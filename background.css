@@ -23,16 +23,17 @@ header {
 }
 
 .main-area>#nepalimiti {
-	font-weight: bold;
+	font-weight: 700;
 	font-size: 9vw;
 }
 
 .main-area>#date-today {
-	font-weight: bold;
+	font-weight: 700;
 	font-size: 6vw;
 }
 
 .main-area>#live-time {
+	font-weight: 500;
 	font-size: 12.5vw;
 }
 
