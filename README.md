@@ -3,13 +3,13 @@
 <span>
 A firefox extension to show distraction free nepali date for your new tab.
 </span><br>
-
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
 </p>
+
+[![HitCount](http://hits.dwyl.com/sidbelbase/undistracted-me.svg)](http://hits.dwyl.com/sidbelbase/undistracted-me)
+![GitHub repo size](https://img.shields.io/github/repo-size/sidbelbase/undistracted-me?style=flat-square)
+![Mozilla Add-on](https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square)
+![Mozilla Add-on](https://img.shields.io/amo/rating/{1071d037-0f17-4c92-b06c-704050d2e2c3}?style=flat-square)
 
 <img src="img/hero.png" width="100%" height="auto">
 
