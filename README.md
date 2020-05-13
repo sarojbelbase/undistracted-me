@@ -2,7 +2,13 @@
 <img src="img/logo.svg" width="40%"><br>
 <span>
 A firefox extension to show distraction free nepali date for your new tab.
-</span>
+</span><br>
+
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+
 </p>
 
 <img src="img/hero.png" width="100%" height="auto">
