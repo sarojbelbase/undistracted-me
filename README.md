@@ -2,13 +2,15 @@
 <img src="img/logo.svg" width="40%"><br>
 <span>
 A chrome/firefox extension to show distraction free nepali date on your new tab.
-</span><br>
+</span>
+<span>
+<a href="http://hits.dwyl.com/sidbelbase/undistracted-me"><img src="http://hits.dwyl.com/sidbelbase/undistracted-me.svg" alt="Total Hits"></a>
+<a href="https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/"><img src="https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square" alt="Chrome Users"></a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/"><img src="https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=mozilla-firefox&logoColor=white&style=flat-square" alt="Firefox Users"></a>
+ <a href="https://github.com/sidbelbase/undistracted-me/releases"><img src="https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square" alt="Releases"></a>
+<img alt="Ratings" src="https://img.shields.io/amo/rating/{1071d037-0f17-4c92-b06c-704050d2e2c3}?style=flat-square">
+</span>
 </p>
-
-[![Visitors](http://hits.dwyl.com/sidbelbase/undistracted-me.svg)](http://hits.dwyl.com/sidbelbase/undistracted-me)
-[![Chrome Users](https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square)](https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/)
-[![Mozilla Users](https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=mozilla-firefox&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
-[![GitHub Release](https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square)](https://github.com/sidbelbase/undistracted-me/releases)
 
 <img src="img/hero.png" width="100%" height="auto">
 
