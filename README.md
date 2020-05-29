@@ -1,8 +1,8 @@
 <p align="center">
 <img src="img/logo.svg" width="40%"><br>
-<span>
+<strong>
 A chrome/firefox extension to show distraction free nepali date on your new tab.
-</span><br>
+</strong><br>
 <span>
 <a href="http://hits.dwyl.com/sidbelbase/undistracted-me"><img src="http://hits.dwyl.com/sidbelbase/undistracted-me.svg" alt="Total Hits"></a>
 <a href="https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/"><img src="https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square" alt="Chrome Users"></a>
@@ -48,3 +48,4 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 1. [ ] Speed dial links like in r/startpages by u/nepmandu
 2. [ ] Dewanagiri support by u/pranphy
 3. [ ] Toggle between 12/24 hours by u/deeplydark
+4. [ ] Customization Feature
