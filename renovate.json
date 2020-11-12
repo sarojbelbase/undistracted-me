@@ -1,0 +1,19 @@
+{
+    "extends": [
+        "config:base"
+    ],
+    "major": {
+        "enabled": false
+    },
+    "packageRules": [
+        {
+            "updateTypes": [
+                "minor",
+                "patch",
+                "pin",
+                "digest"
+            ],
+            "automerge": true
+        }
+    ]
+}
