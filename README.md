@@ -1,14 +1,17 @@
 <p align="center">
 <img src="src/assets/img/logo.svg" width="40%"><br>
+<strong>
+A chrome/firefox extension to show distraction free nepali date on your new tab.
+</strong><br>
 <span>
-A chrome/firefox extension to show distraction-free nepali date on your new tab.
-</span><br>
+<a href="http://hits.dwyl.com/sidbelbase/undistracted-me"><img src="http://hits.dwyl.com/sidbelbase/undistracted-me.svg" alt="Total Hits"></a>
+<a href="https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/"><img src="https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square" alt="Chrome Users"></a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/"><img src="https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=mozilla-firefox&logoColor=white&style=flat-square" alt="Firefox Users"></a>
+ <a href="https://github.com/sidbelbase/undistracted-me/releases"><img src="https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square" alt="Releases"></a>
+<img alt="Rating On Chrome Web Store" src="https://img.shields.io/chrome-web-store/rating/dfgbijakkhepoonhaelocdmcleeehmef
+?style=flat-square">
+</span>
 </p>
-
-[![Visitors](http://hits.dwyl.com/sidbelbase/undistracted-me.svg)](http://hits.dwyl.com/sidbelbase/undistracted-me)
-[![Chrome Users](https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square)](https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/)
-[![Mozilla Users](https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=mozilla-firefox&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
-[![GitHub Release](https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square)](https://github.com/sidbelbase/undistracted-me/releases)
 
 <img src="src/assets/img/hero.png" width="100%" height="auto">
 
@@ -36,9 +39,9 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 
 ## Roadmap
 
-1.[x] Publish on Firefox
-2.[x] Publish on Chrome
-3.[ ] Add more features requested by users
+1. [x] Publish on Firefox
+2. [x] Publish on Chrome
+3. [ ] Add more features requested by users
 
 ## Feature Requests
 
@@ -47,4 +50,4 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 3. [ ] Toggle between 12/24 hours by u/deeplydark
 
 
-### Made with VueJs in Nepal.
+#### Made with VueJs in Nepal.
