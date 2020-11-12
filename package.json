@@ -1,0 +1,31 @@
+{
+  "name": "undistracted-me",
+  "version": "2.0.0",
+  "description": "A chrome/firefox extension to show distraction free nepali date on your new tab.",
+  "main": "index.js",
+  "repository": "https://github.com/sidbelbase/undistracted-me",
+  "author": "sidbelbase",
+  "license": "MIT",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "bootstrap": "^5.0.0-alpha2",
+    "dayjs": "^1.9.6",
+    "popper.js": "^1.16.1",
+    "progressive-image": "^1.2.0",
+    "vue": "^3.0.2"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "~4.5.0",
+    "@vue/compiler-sfc": "^3.0.0",
+    "node-sass": "^4.12.0",
+    "sass-loader": "^8.0.2"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
