@@ -263,9 +263,9 @@ function convertEnglishDateToNepali(yy, mm, dd) {
 
 }
 
-function mitibar(barsha, mahina, din) {
-    parsed_barsha = parseInt(barsha)
-    parsed_mahina = parseInt(mahina)
-    parsed_din = parseInt(din)
+export default function mitibar(barsha, mahina, din) {
+    let parsed_barsha = parseInt(barsha)
+    let parsed_mahina = parseInt(mahina)
+    let parsed_din = parseInt(din)
     return convertEnglishDateToNepali(parsed_barsha, parsed_mahina, parsed_din);
 }

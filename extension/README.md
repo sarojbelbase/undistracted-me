@@ -1,7 +1,7 @@
 <p align="center">
-<img src="src/assets/img/logo.svg" width="40%"><br>
+<img src="img/logo.svg" width="40%"><br>
 <span>
-A chrome/firefox extension to show distraction-free nepali date on your new tab.
+A chrome/firefox extension to show distraction free nepali date on your new tab.
 </span><br>
 </p>
 
@@ -10,21 +10,21 @@ A chrome/firefox extension to show distraction-free nepali date on your new tab.
 [![Mozilla Users](https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=mozilla-firefox&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
 [![GitHub Release](https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square)](https://github.com/sidbelbase/undistracted-me/releases)
 
-<img src="src/assets/img/hero.png" width="100%" height="auto">
+<img src="img/hero.png" width="100%" height="auto">
 
-## Web Version
+## Web Version:
 
-[See Deployed Version](https://whatsthemiti.now.sh/)
+[See on heroku](https://whatsthemiti.herokuapp.com/)
 
-## Firefox Installation
+## Firefox Installation:
 
 [Link to the extension](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
 
-## Chrome Installation
+## Chrome Installation:
 
 [Link to the extension](https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/)
 
-## Offline Installation
+## Offline Installation:
 
 1. First **Clone or Download** this repository.
 2. After successfull download, unzip it with your archive manager.
@@ -34,17 +34,15 @@ A chrome/firefox extension to show distraction-free nepali date on your new tab.
 
 If everything goes right, you could see undistracted me working seamlessly on your chrome and its variants.
 
-## Roadmap
+## TODOS:
 
-1.[x] Publish on Firefox
-2.[x] Publish on Chrome
-3.[ ] Add more features requested by users
+1.  [x] Publish on Firefox
+2.  [x] Publish on Chrome
+3.  [ ] Add Todos Functionality
+4.  [ ] Integrate Weather Functionality
 
-## Feature Requests
+## FEATURES REQUESTS
 
 1. [ ] Speed dial links like in r/startpages by u/nepmandu
 2. [ ] Dewanagiri support by u/pranphy
 3. [ ] Toggle between 12/24 hours by u/deeplydark
-
-
-### Made with VueJs in Nepal.
