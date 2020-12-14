@@ -18,8 +18,8 @@
     "vue": "^3.0.2"
   },
   "devDependencies": {
-    "@vue/cli-service": "4.5.8",
-    "@vue/compiler-sfc": "3.0.2",
+    "@vue/cli-service": "4.5.9",
+    "@vue/compiler-sfc": "3.0.4",
     "node-sass": "4.14.1",
     "sass-loader": "8.0.2"
   },
