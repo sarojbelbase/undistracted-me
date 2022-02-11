@@ -20,7 +20,7 @@
   "devDependencies": {
     "@vue/cli-service": "4.5.9",
     "@vue/compiler-sfc": "3.0.4",
-    "node-sass": "4.14.1",
+    "node-sass": "7.0.0",
     "sass-loader": "8.0.2"
   },
   "browserslist": [
