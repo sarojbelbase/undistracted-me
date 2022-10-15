@@ -11,17 +11,17 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
-    "bootstrap": "^5.0.0-alpha2",
-    "dayjs": "^1.9.6",
+    "bootstrap": "^5.2.2",
+    "dayjs": "^1.11.5",
     "popper.js": "^1.16.1",
     "progressive-image": "^1.2.0",
-    "vue": "^3.0.2"
+    "vue": "^3.2.41"
   },
   "devDependencies": {
-    "@vue/cli-service": "4.5.9",
-    "@vue/compiler-sfc": "3.0.4",
-    "node-sass": "4.14.1",
-    "sass-loader": "8.0.2"
+    "@vue/cli-service": "5.0.8",
+    "@vue/compiler-sfc": "3.2.41",
+    "node-sass": "7.0.3",
+    "sass-loader": "13.1.0"
   },
   "browserslist": [
     "> 1%",
