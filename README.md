@@ -17,17 +17,25 @@ A chrome/firefox extension to show distraction free nepali date on your new tab.
 
 <img src="src/assets/img/hero.png" width="100%" height="auto">
 
-## Web Version
+## Deployments
 
-[See Deployed Version](https://whatsthemiti.sarojbelbase.com.np/)
+- [Chrome Web Store](https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/)
 
-## Firefox Installation
+- [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
 
-[Link to the extension](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
+- [Official Website](https://whatsthemiti.sarojbelbase.com.np/)
 
-## Chrome Installation
+## Build Setup
 
-[Link to the extension](https://chrome.google.com/webstore/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef/)
+``` bash
+# first, install dependencies
+npm install
+
+# then, bundle this extension with
+npm run bundle
+```
+
+It will generate `undistracted-me.zip` file in root directory which you can upload to chrome web store or firefox addons store.
 
 ## Offline Installation
 
