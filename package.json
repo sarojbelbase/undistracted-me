@@ -1,6 +1,6 @@
 {
   "name": "undistracted-me",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A chrome/firefox extension to show distraction free nepali date on your new tab.",
   "main": "index.js",
   "repository": "https://github.com/sidbelbase/undistracted-me",
