@@ -1,5 +1,5 @@
-.vscode/
-node_modules/
-*.zip
 package-lock.json
+node_modules/
 dist
+.vscode
+*.zip
