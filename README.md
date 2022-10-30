@@ -19,7 +19,7 @@ A chrome/firefox extension to show distraction free nepali date on your new tab.
 
 ## Web Version
 
-[See Deployed Version](https://whatsthemiti.now.sh/)
+[See Deployed Version](https://whatsthemiti.sarojbelbase.com.np/)
 
 ## Firefox Installation
 
