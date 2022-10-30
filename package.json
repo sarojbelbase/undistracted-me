@@ -9,7 +9,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "bundle": "vue-cli-service build && zip -r undistracted-me.zip dist && rm -rf dist"
+    "bundle": "vue-cli-service build && zip -r -j undistracted-me.zip dist/* && rm -rf dist"
   },
   "dependencies": {
     "bootstrap": "^5.2.2",
