@@ -9,20 +9,22 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "bundle": "vue-cli-service build && cd dist && zip -r ../undistracted-me.zip ."
+    "start:firefox": "web-ext run --source-dir ./dist/",
+    "build:firefox": "web-ext build --source-dir ./dist/"
   },
   "dependencies": {
     "bootstrap": "^5.2.2",
-    "dayjs": "^1.11.5",
+    "dayjs": "^1.11.6",
     "popper.js": "^1.16.1",
     "progressive-image": "^1.2.0",
-    "vue": "^3.2.41"
+    "vue": "^3.2.45"
   },
   "devDependencies": {
     "@vue/cli-service": "5.0.8",
-    "@vue/compiler-sfc": "3.2.41",
-    "node-sass": "7.0.3",
-    "sass-loader": "13.1.0"
+    "@vue/compiler-sfc": "3.2.45",
+    "node-sass": "8.0.0",
+    "sass-loader": "13.2.0",
+    "web-ext": "^7.3.1"
   },
   "browserslist": [
     "> 1%",
