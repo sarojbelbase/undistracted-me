@@ -31,11 +31,14 @@ A chrome/firefox extension to show distraction free nepali date on your new tab.
 # first, install dependencies
 npm install
 
-# then, bundle this extension with
-npm run bundle
+# minify and build for production inside dist folder
+npm run build
+
+# finally, build with `web-ext`
+npm run build:firefox
 ```
 
-It will generate `undistracted-me.zip` file in root directory which you can upload to chrome web store or firefox addons store.
+It will generate a zip file inside `web-ext-artifacts` folder, which you can upload to chrome web store or firefox addons store.
 
 ## Offline Installation
 
