@@ -1,11 +1,17 @@
 {
-  "background": {
-    "persistent": true,
-    "scripts": [
-      "bundle.js"
-    ]
+  "manifest_version": 3,
+  "name": "Undistracted Me",
+  "version": "2.1.2",
+  "author": "Saroj Belbase",
+  "description": "Replaces your new tabs with a distraction free nepali date.",
+  "icons": {
+    "16": "favicon/lotus16.png",
+    "32": "favicon/lotus32.png",
+    "48": "favicon/lotus48.png",
+    "128": "favicon/lotus128.png",
+    "512": "favicon/lotus512.png"
   },
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "favicon/lotus16.png",
       "24": "favicon/lotus24.png",
@@ -17,23 +23,8 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": [
-    "tabs"
-  ],
-  "description": "Replaces your new tabs with a distraction free nepali date.",
   "homepage_url": "https://whatsthemiti.sarojbelbase.com.np",
-  "icons": {
-    "16": "favicon/lotus16.png",
-    "32": "favicon/lotus32.png",
-    "48": "favicon/lotus48.png",
-    "128": "favicon/lotus128.png",
-    "512": "favicon/lotus512.png"
-  },
-  "incognito": "spanning",
-  "manifest_version": 2,
-  "name": "Undistracted Me",
-  "offline_enabled": true,
-  "short_name": "A distraction-free nepali date for your browser.",
-  "version": "2.1.1",
-  "author": "Siddharth Belbase"
+  "background": {
+    "service_worker": "background.bundle.js"
+  }
 }

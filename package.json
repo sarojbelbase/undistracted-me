@@ -1,30 +1,31 @@
 {
   "name": "undistracted-me",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A chrome/firefox extension to show distraction free nepali date on your new tab.",
   "main": "index.js",
-  "repository": "https://github.com/sidbelbase/undistracted-me",
-  "author": "sidbelbase",
+  "repository": "https://github.com/sarojbelbase/undistracted-me",
+  "author": "sarojbelbase",
   "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "start:firefox": "web-ext run --source-dir ./dist/",
-    "build:firefox": "web-ext build --source-dir ./dist/"
+    "build:firefox": "web-ext build --source-dir ./dist/",
+    "build:chrome": "zip -r dist.zip dist"
   },
   "dependencies": {
-    "bootstrap": "^5.2.2",
-    "dayjs": "^1.11.6",
+    "bootstrap": "^5.3.3",
+    "dayjs": "^1.11.11",
     "popper.js": "^1.16.1",
     "progressive-image": "^1.2.0",
-    "vue": "^3.2.45"
+    "vue": "^3.4.27"
   },
   "devDependencies": {
     "@vue/cli-service": "5.0.8",
-    "@vue/compiler-sfc": "3.2.45",
-    "node-sass": "8.0.0",
-    "sass-loader": "13.2.0",
-    "web-ext": "^7.3.1"
+    "@vue/compiler-sfc": "3.4.27",
+    "node-sass": "9.0.0",
+    "sass-loader": "14.2.1",
+    "web-ext": "^7.11.0"
   },
   "browserslist": [
     "> 1%",
