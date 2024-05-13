@@ -8,7 +8,7 @@ module.exports = {
             splitChunks: false
         },
         output: {
-            filename: 'bundle.js'
+            filename: 'background.bundle.js'
         },
         performance: {
             hints: false,
