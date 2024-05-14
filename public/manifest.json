@@ -23,8 +23,5 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "homepage_url": "https://whatsthemiti.sarojbelbase.com.np",
-  "background": {
-    "service_worker": "background.bundle.js"
-  }
+  "homepage_url": "https://whatsthemiti.sarojbelbase.com.np"
 }
