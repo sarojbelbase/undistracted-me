@@ -61,6 +61,7 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 1. [ ] Speed dial links like in r/startpages by u/nepmandu
 2. [ ] Dewanagiri support by u/pranphy
 3. [ ] Toggle between 12/24 hours by u/deeplydark
+4. [ ] Add a Analog Clock in background as watermark
 
 
 #### Made with ReactJs in Nepal.
