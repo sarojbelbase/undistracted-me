@@ -1,47 +1,18 @@
-<template>
-  <div id="homescreen">
-    <div class="this-area container">
-      <div class="mx-auto text-center row">
-        <div class="col">
-          <nepalimiti />
-        </div>
-      </div>
-      <div class="mx-auto text-center row">
-        <div class="col">
-          <liveclock />
-        </div>
-      </div>
-      <div class="mx-auto text-center row">
-        <div class="col">
-          <datetoday />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script>
-import datetoday from "@/components/datetoday";
-import liveclock from "@/components/liveclock";
-import nepalimiti from "@/components/nepalimiti";
-export default {
-  name: "main",
-  components: {
-    datetoday,
-    liveclock,
-    nepalimiti,
-  },
-};
-</script>
-
-<style>
 @import url("../src/assets/css/fonts.css");
+
+:root {
+  --gradient: linear-gradient(#131416,
+      #202125,
+      #18191B,
+      #121315,
+      #1C1D21,
+      #141517,
+      #161719);
+}
 
 html,
 body {
-  -webkit-touch-callout: none;
   -webkit-user-select: none;
-  -khtml-user-select: none;
   -webkit-user-drag: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -49,11 +20,12 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
-  font-display: fallback !important;
+  margin: 0px !important;
+  background: var(--gradient);
 }
 
-#homescreen {
-  background: linear-gradient(#161819, #2e2b28, #363230);
+#fullscreen {
+  background: var(--gradient);
   background-position: center;
   background-size: cover;
   height: 100vh;
@@ -62,7 +34,7 @@ body {
   animation-fill-mode: forwards;
 }
 
-.this-area {
+.clock-area {
   font-family: "Saira Extra Condensed", sans-serif;
   color: #e1e0e4;
   text-transform: uppercase;
@@ -77,17 +49,17 @@ body {
   animation-name: bounce;
 }
 
-.this-area #nepalimiti {
+.clock-area #nepalimiti {
   font-weight: 700;
   font-size: 9vw;
 }
 
-.this-area #datetoday {
+.clock-area #datetoday {
   font-weight: 700;
   font-size: 6vw;
 }
 
-.this-area #liveclock {
+.clock-area #liveclock {
   font-weight: 500;
   font-size: 12vw;
 }
@@ -108,7 +80,7 @@ body {
 
 @keyframes highres {
   from {
-    background: linear-gradient(#313233, #161819);
+    background: var(--gradient);
     transition: ease-in;
   }
 
@@ -117,4 +89,3 @@ body {
     transition: ease-out;
   }
 }
-</style>
