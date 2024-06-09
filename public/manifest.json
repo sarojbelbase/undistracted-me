@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Undistracted Me",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "author": "Saroj Belbase",
   "description": "Replaces your new tabs with a distraction free nepali date.",
   "icons": {
