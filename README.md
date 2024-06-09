@@ -63,4 +63,4 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 3. [ ] Toggle between 12/24 hours by u/deeplydark
 
 
-#### Made with VueJs in Nepal.
+#### Made with ReactJs in Nepal.
