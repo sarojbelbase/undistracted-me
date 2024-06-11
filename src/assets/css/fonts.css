@@ -4,12 +4,39 @@
 	font-family: 'Saira Extra Condensed';
 	font-style: normal;
 	font-weight: 500;
-	src: local('Saira ExtraCondensed Medium'), local('SairaExtraCondensed-Medium'), url('../fonts/saira-extra-condensed-v5-latin-500.woff2?v=1.0.0.0') format('woff2'), url('../fonts/saira-extra-condensed-v5-latin-500.woff?v=1.0.0.0') format('woff');
+	src: local('Saira ExtraCondensed Medium'), local('SairaExtraCondensed-Medium'), url('../fonts/english/saira-extra-condensed-v5-latin-500.woff2?v=1.0.0.0') format('woff2'), url('../fonts/english/saira-extra-condensed-v5-latin-500.woff?v=1.0.0.0') format('woff');
 }
 
 @font-face {
 	font-family: 'Saira Extra Condensed';
 	font-style: normal;
 	font-weight: 700;
-	src: local('Saira ExtraCondensed Bold'), local('SairaExtraCondensed-Bold'), url('../fonts/saira-extra-condensed-v5-latin-700.woff2?v=1.0.0.0') format('woff2'), url('../fonts/saira-extra-condensed-v5-latin-700.woff?v=1.0.0.0') format('woff');
+	src: local('Saira ExtraCondensed Bold'), local('SairaExtraCondensed-Bold'), url('../fonts/english/saira-extra-condensed-v5-latin-700.woff2?v=1.0.0.0') format('woff2'), url('../fonts/english/saira-extra-condensed-v5-latin-700.woff?v=1.0.0.0') format('woff');
+}
+
+@font-face {
+	font-family: 'Akshar';
+	src: local('Akshar Bold'), local('Akshar-Bold'),
+		url('../fonts/nepali/Akshar-Bold.woff2') format('woff2');
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Akshar';
+	src: local('Akshar SemiBold'), local('Akshar-SemiBold'),
+		url('../fonts/nepali/Akshar-SemiBold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Akshar';
+	src: local('Akshar Medium'), local('Akshar-Medium'),
+		url('../fonts/nepali/Akshar-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
 }
