@@ -54,6 +54,7 @@ If everything goes right, you could see undistracted me working seamlessly on yo
 
 1. [x] Publish on Firefox
 2. [x] Publish on Chrome
+3. [x] Add setting to select language
 3. [ ] Add more features requested by users
 
 ## Feature Requests
