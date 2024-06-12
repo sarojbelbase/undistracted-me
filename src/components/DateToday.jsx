@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getDateTodayInSelectedLanguage } from '../utilities';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const DateToday = () => {
+export const DateToday = ({ language }) => {
   const [date, setDate] = useState('');
 
-  useEffect(() => {
-    const todaysDate = () => {
-      setDate(dayjs().tz('Asia/Kathmandu').format('MMMM D, dddd'));
-    };
+  const updateDate = useCallback(() => {
+    setDate(getDateTodayInSelectedLanguage(language));
+  }, [language]);
 
-    const intervalId = setInterval(todaysDate, 1000);
-    todaysDate(); // Initial call to set the date immediately
+  useEffect(() => {
+    updateDate(); // Initial call to set the date immediately
+    const intervalId = setInterval(updateDate, 1000);
 
     return () => clearInterval(intervalId); // Clean up the interval on component unmount
-  }, []);
+  }, [updateDate]);
 
   return (
     <div id="datetoday">
@@ -26,5 +21,3 @@ const DateToday = () => {
     </div>
   );
 };
-
-export default DateToday;
