@@ -72,7 +72,7 @@ const getTimeZoneAwareDayJsInstance = () => dayjs().tz('Asia/Kathmandu');
 const getNepaliMitiInSelectedLanguage = (language) => {
     const dayJsInstance = getTimeZoneAwareDayJsInstance();
     const [year, month, day] = dayJsInstance.format('YYYY M D').split(' ').map(Number);
-    const [_nepaliYear, nepaliMonth, nepaliDay] = convertEnglishToNepali(year, month, day).split(' ');
+    const [_nepaliYear, nepaliMonth, nepaliDay] = convertEnglishToNepali(year, month, day).split(' '); // eslint-disable-line
 
     const formattedMonth = language === LANGUAGES.ne ? MONTH_NAMES_IN_NEPALI[nepaliMonth - 1] : MONTH_NAMES[nepaliMonth - 1];
     const formattedDay = language === LANGUAGES.ne ? convertThisNumberToNepali(padZero(nepaliDay)) : padZero(nepaliDay);
