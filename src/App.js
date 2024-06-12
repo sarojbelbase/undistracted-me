@@ -5,14 +5,20 @@ import { DateToday } from './components/DateToday';
 import { LiveClock } from './components/LiveClock';
 import { NepaliMiti } from './components/NepaliMiti';
 import { Settings } from './components/Settings';
+import { SHOW_MITI_IN_ICON } from './constants/settings';
 
 const App = () => {
+  const [showSettings, setShowSettings] = useState(false);
+
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem('language');
     return savedLanguage ? savedLanguage : LANGUAGES.en;
   });
 
-  const [showSettings, setShowSettings] = useState(false);
+  const [showMitiInIcon, setShowMitiInIcon] = useState(() => {
+    const showBadge = localStorage.getItem('showMitiInIcon');
+    return showBadge ? showBadge : SHOW_MITI_IN_ICON["Hide"];
+  });
 
   useEffect(() => {
     localStorage.setItem('language', language);
@@ -29,17 +35,24 @@ const App = () => {
   return (
     <div id="fullscreen">
       <div className="setting-area">
-        <div className="setting-icon" onClick={toggleSettings}></div>
+        <div
+          className="setting-icon"
+          onClick={toggleSettings}
+          title='Settings'
+        >
+        </div>
         {showSettings && (
           <Settings
             language={language}
             setLanguage={setLanguage}
+            showMitiInIcon={showMitiInIcon}
+            setShowMitiInIcon={setShowMitiInIcon}
             closeSettings={closeSettings}
           />
         )}
       </div>
       <div className="clock-area" style={{ fontFamily: FONTS[language] }}>
-        <NepaliMiti language={language} />
+        <NepaliMiti language={language} showMitiInIcon={showMitiInIcon} />
         <LiveClock language={language} />
         <DateToday language={language} />
       </div>

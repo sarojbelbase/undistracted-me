@@ -5,11 +5,6 @@ export const FONTS = {
   "en": "Saira Extra Condensed"
 }
 
-export const SETTINGS_LANGUAGE = {
-  "Nepali": "ne",
-  "English": "en"
-}
-
 export const NEPALI_YEARS_AND_DAYS_IN_MONTHS = [
   [2000, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31],
   [2001, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
