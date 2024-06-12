@@ -9,10 +9,9 @@ export const DateToday = ({ language }) => {
   }, [language]);
 
   useEffect(() => {
-    updateDate(); // Initial call to set the date immediately
+    updateDate();
     const intervalId = setInterval(updateDate, 1000);
-
-    return () => clearInterval(intervalId); // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
   }, [updateDate]);
 
   return (

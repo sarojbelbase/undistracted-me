@@ -9,10 +9,9 @@ export const LiveClock = ({ language }) => {
   }, [language]);
 
   useEffect(() => {
-    updateClock(); // Initial call to set the clock immediately
+    updateClock();
     const intervalId = setInterval(updateClock, 1000);
-
-    return () => clearInterval(intervalId); // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
   }, [updateClock]);
 
   return (
