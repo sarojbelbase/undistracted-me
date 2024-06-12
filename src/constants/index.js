@@ -125,7 +125,7 @@ export const ENGLISH_MONTH_NAMES = [
 
 
 export const NUMBER_MAPPING = {
-  0: "o",
+  0: "०",
   1: "१",
   2: "२",
   3: "३",
