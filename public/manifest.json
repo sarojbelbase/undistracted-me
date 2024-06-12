@@ -23,5 +23,10 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+    "browser_specific_settings": {
+    "gecko": {
+      "id": "mail@sarojbelbase.com.np"
+    }
+  },
   "homepage_url": "https://whatsthemiti.sarojbelbase.com.np"
 }
