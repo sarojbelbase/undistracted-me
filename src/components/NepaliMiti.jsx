@@ -1,28 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
-import mitiBar from '../utilities';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getNepaliMitiInSelectedLanguage } from '../utilities';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const NepaliMiti = () => {
+export const NepaliMiti = ({ language }) => {
   const [miti, setMiti] = useState('');
 
-  useEffect(() => {
-    const updateMiti = () => {
-      const year = dayjs().tz('Asia/Kathmandu').format('YYYY');
-      const month = dayjs().tz('Asia/Kathmandu').format('M');
-      const day = dayjs().tz('Asia/Kathmandu').format('D');
-      setMiti(mitiBar(year, month, day));
-    };
+  const updateMiti = useCallback(() => {
+    setMiti(getNepaliMitiInSelectedLanguage(language));
+  }, [language]);
 
-    const intervalId = setInterval(updateMiti, 1000);
+  useEffect(() => {
     updateMiti(); // Initial call to set the date immediately
+    const intervalId = setInterval(updateMiti, 1000);
 
     return () => clearInterval(intervalId); // Clean up the interval on component unmount
-  }, []);
+  }, [updateMiti]);
 
   return (
     <div id="nepalimiti">
@@ -30,5 +21,3 @@ const NepaliMiti = () => {
     </div>
   );
 };
-
-export default NepaliMiti;

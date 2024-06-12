@@ -8,6 +8,8 @@
       #1C1D21,
       #141517,
       #161719);
+  --white: #e1e0e4;
+  --gray: #bebebe;
 }
 
 html,
@@ -22,6 +24,7 @@ body {
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
   margin: 0px !important;
   background: var(--gradient);
+  font-family: sans-serif;
 }
 
 #fullscreen {
@@ -35,8 +38,7 @@ body {
 }
 
 .clock-area {
-  font-family: "Saira Extra Condensed", sans-serif;
-  color: #e1e0e4;
+  color: var(--white);
   text-transform: uppercase;
   line-height: 1 !important;
   height: 100%;
@@ -45,12 +47,11 @@ body {
   justify-content: center;
   align-items: center;
   animation-duration: 1s;
-  animation-delay: 0.6s;
   animation-name: bounce;
 }
 
 .clock-area #nepalimiti {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 9vw;
 }
 

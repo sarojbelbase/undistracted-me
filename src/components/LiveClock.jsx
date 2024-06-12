@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getLiveClockInSelectedLanguage } from '../utilities';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const LiveClock = () => {
+export const LiveClock = ({ language }) => {
   const [clock, setClock] = useState('');
 
-  useEffect(() => {
-    const updateClock = () => {
-      setClock(dayjs().tz('Asia/Kathmandu').format('HH.mm.ss'));
-    };
+  const updateClock = useCallback(() => {
+    setClock(getLiveClockInSelectedLanguage(language));
+  }, [language]);
 
-    const intervalId = setInterval(updateClock, 1000);
+  useEffect(() => {
     updateClock(); // Initial call to set the clock immediately
+    const intervalId = setInterval(updateClock, 1000);
 
     return () => clearInterval(intervalId); // Clean up the interval on component unmount
-  }, []);
+  }, [updateClock]);
 
   return (
     <div id="liveclock">
@@ -26,5 +21,3 @@ const LiveClock = () => {
     </div>
   );
 };
-
-export default LiveClock;

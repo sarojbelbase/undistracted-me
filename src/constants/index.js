@@ -1,3 +1,5 @@
+export const LANGUAGES = Object.freeze({ ne: "ne", en: "en" });
+
 export const NEPALI_YEARS_AND_DAYS_IN_MONTHS = [
   [2000, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31],
   [2001, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
@@ -96,3 +98,41 @@ export const MONTH_NAMES = [
   "Baishakh", "Jestha", "Ashadh", "Shrawan", "Bhadra", "Ashwin",
   "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"
 ];
+
+export const MONTH_NAMES_IN_NEPALI = [
+  "बैशाख", "जेष्ठ", "आषाढ", "साउन", "भाद्र", "आश्विन",
+  "कार्तिक", "मंसिर", "पौष", "माघ", "फाल्गुन", "चैत्र"
+];
+
+export const DAY_NAMES = [
+  "आइतबार", "सोमबार", "मंगलबार", "बुधबार", "बिहीबार", "शुक्रबार", "शनिबार"
+];
+
+export const ENGLISH_MONTH_NAMES = [
+  "जनवरी", "फेब्रुवरी", "मार्च", "अप्रिल", "मे", "जुन",
+  "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"
+];
+
+
+export const NUMBER_MAPPING = {
+  0: "o",
+  1: "१",
+  2: "२",
+  3: "३",
+  4: "४",
+  5: "५",
+  6: "६",
+  7: "७",
+  8: "८",
+  9: "९"
+};
+
+export const DATE_TODAY_FORMATS = {
+  "ne": "M D d",
+  "en": "MMMM D dddd"
+}
+
+export const LIVE_CLOCK_FORMATS = {
+  "ne": "HH mm ss",
+  "en": "HH mm ss"
+}
