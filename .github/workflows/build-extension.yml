@@ -1,0 +1,88 @@
+name: Build and Release Extensions
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        browser: [firefox, chrome]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build for Firefox
+        if: matrix.browser == 'firefox'
+        run: npm run build && npm run build:firefox
+
+      - name: Build for Chrome
+        if: matrix.browser == 'chrome'
+        run: npm run build && npm run build:chrome
+
+      - name: Rename Firefox zip
+        if: matrix.browser == 'firefox'
+        run: |
+          version=$(jq -r .version package.json)
+          mv web-ext-artifacts/*.zip undistracted_me_firefox_v${version}.zip
+
+      - name: Rename Chrome zip
+        if: matrix.browser == 'chrome'
+        run: |
+          version=$(jq -r .version package.json)
+          mv dist.zip undistracted_me_chrome_v${version}.zip
+
+      - name: Upload Firefox Release Asset
+        if: matrix.browser == 'firefox'
+        uses: actions/upload-artifact@v3
+        with:
+          name: firefox-extension
+          path: undistracted_me_firefox_v*.zip
+
+      - name: Upload Chrome Release Asset
+        if: matrix.browser == 'chrome'
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-extension
+          path: undistracted_me_chrome_v*.zip
+
+  create_release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Firefox build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: firefox-extension
+          path: ./firefox
+
+      - name: Download Chrome build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: chrome-extension
+          path: ./chrome
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            firefox/*.zip
+            chrome/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
