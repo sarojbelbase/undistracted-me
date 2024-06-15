@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Undistracted Me",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "author": "Saroj Belbase",
   "description": "Replaces your new tabs with a distraction free nepali date.",
   "icons": {
@@ -23,7 +23,7 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-    "browser_specific_settings": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}"
     }
