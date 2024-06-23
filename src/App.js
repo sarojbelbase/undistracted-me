@@ -1,22 +1,15 @@
 import './App.css';
+import React, { useState } from 'react';
+import useLanguage from './hooks/useLanguage';
+import useShowMitiInIcon from './hooks/useShowMitiInIcon';
+import Settings from './components/Settings';
+import SettingIcon from './components/SettingIcon';
 import DigitalClock from './components/DigitalClock';
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
-
-  const [language, setLanguage] = useState(() => {
-    const savedLanguage = localStorage.getItem('language');
-    return savedLanguage ? savedLanguage : LANGUAGES.en;
-  });
-
-  const [showMitiInIcon, setShowMitiInIcon] = useState(() => {
-    const showBadge = localStorage.getItem('showMitiInIcon');
-    return showBadge ? showBadge : SHOW_MITI_IN_ICON["Hide"];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+  const [language, setLanguage] = useLanguage();
+  const [showMitiInIcon, setShowMitiInIcon] = useShowMitiInIcon();
 
   const toggleSettings = () => {
     setShowSettings(!showSettings);
@@ -29,12 +22,7 @@ const App = () => {
   return (
     <div id="fullscreen">
       <div className="setting-area">
-        <div
-          className="setting-icon"
-          onClick={toggleSettings}
-          title='Settings'
-        >
-        </div>
+        <SettingIcon toggleSettings={toggleSettings} />
         {showSettings && (
           <Settings
             language={language}
