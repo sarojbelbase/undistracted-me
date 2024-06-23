@@ -24,7 +24,7 @@ body {
   animation: highres 1s forwards;
 }
 
-.clock-area {
+.digital-clock {
   color: var(--white);
   text-transform: uppercase;
   line-height: 1 !important;
@@ -36,17 +36,17 @@ body {
   animation: bounce 1s;
 }
 
-.clock-area #nepalimiti {
+.digital-clock #nepalimiti {
   font-weight: 600;
   font-size: 9vw;
 }
 
-.clock-area #datetoday {
+.digital-clock #datetoday {
   font-weight: 700;
   font-size: 6vw;
 }
 
-.clock-area #liveclock {
+.digital-clock #liveclock {
   font-weight: 500;
   font-size: 12vw;
 }

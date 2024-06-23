@@ -1,11 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
-import { FONTS, LANGUAGES } from './constants';
-import { DateToday } from './components/DateToday';
-import { LiveClock } from './components/LiveClock';
-import { NepaliMiti } from './components/NepaliMiti';
-import { Settings } from './components/Settings';
-import { SHOW_MITI_IN_ICON } from './constants/settings';
+import DigitalClock from './components/DigitalClock';
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
@@ -51,11 +45,7 @@ const App = () => {
           />
         )}
       </div>
-      <div className="clock-area" style={{ fontFamily: FONTS[language] }}>
-        <NepaliMiti language={language} showMitiInIcon={showMitiInIcon} />
-        <LiveClock language={language} />
-        <DateToday language={language} />
-      </div>
+      <DigitalClock language={language} showMitiInIcon={showMitiInIcon} />
     </div>
   );
 };

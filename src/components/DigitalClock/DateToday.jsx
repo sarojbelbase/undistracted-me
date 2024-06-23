@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getDateTodayInSelectedLanguage } from '../utilities';
+import { getDateTodayInSelectedLanguage } from '../../utilities';
 
 export const DateToday = ({ language }) => {
   const [date, setDate] = useState('');

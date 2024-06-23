@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getLiveClockInSelectedLanguage } from '../utilities';
+import { getLiveClockInSelectedLanguage } from '../../utilities';
 
 export const LiveClock = ({ language }) => {
   const [clock, setClock] = useState('');

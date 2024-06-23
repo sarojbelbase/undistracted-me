@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getNepaliMitiInSelectedLanguage } from '../utilities';
-import { stampThisIntoExtensionIcon } from '../utilities/chrome';
-import { SHOW_MITI_IN_ICON } from '../constants/settings';
+import { getNepaliMitiInSelectedLanguage } from '../../utilities';
+import { stampThisIntoExtensionIcon } from '../../utilities/chrome';
+import { SHOW_MITI_IN_ICON } from '../../constants/settings';
 
 export const NepaliMiti = ({ language, showMitiInIcon }) => {
   const [miti, setMiti] = useState('');
