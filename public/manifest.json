@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Undistracted Me",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "author": "Saroj Belbase",
-  "description": "Replaces your new tabs with a distraction free nepali date.",
+  "description": "An extension that replaces your boring new tab pages",
   "icons": {
     "16": "favicon/lotus16.png",
     "32": "favicon/lotus32.png",
@@ -12,6 +12,7 @@
     "512": "favicon/lotus512.png"
   },
   "action": {
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "favicon/lotus16.png",
       "24": "favicon/lotus24.png",
@@ -21,12 +22,15 @@
     "default_title": "Undistracted Me"
   },
   "chrome_url_overrides": {
-    "newtab": "index.html"
+    "newtab": "public/index.html"
   },
-    "browser_specific_settings": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}"
     }
   },
-  "homepage_url": "https://whatsthemiti.sarojbelbase.com.np"
+  "homepage_url": "https://whatsthemiti.sarojbelbase.com.np",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval' http://localhost:5173; object-src 'self'"
+  }
 }
