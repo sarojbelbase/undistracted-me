@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@theme {
+  --container-center: true;
+  --container-padding: 1rem;
+
+  --color-accent-1: #141414;
+  --color-accent-2: #2A2A2A;
+  --color-accent-3: #404040;
+  --color-accent-4: #6366F1;
+  --color-accent-6: #EC4899;
+  --color-accent-7: #10B981;
+  --color-accent-8: #F59E0B;
+
+  --grid-cols-12: repeat(12, minmax(0, 1fr));
+  --grid-rows-8: repeat(8, minmax(0, 1fr));
+
+  --spacing-widget: 2rem;
+}
