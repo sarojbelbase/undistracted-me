@@ -21,10 +21,13 @@ export default defineConfig({
     },
   },
   server: {
-    host: 'localhost',
+    host: true,
     port: 5173,
     strictPort: true,
     open: false,
-    hmr: true
+    hmr: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*"
+    }
   },
 });
