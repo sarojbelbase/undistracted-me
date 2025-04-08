@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { getLiveClockInSelectedLanguage } from '../utilities';
+import React, { useState, useEffect, useCallback } from "react";
+import { getLiveClockInSelectedLanguage } from "../utilities";
 
-export const LiveClock = ({ language }) => {
-  const [clock, setClock] = useState('');
+export const LiveClock = ({ language, timeFormat }) => {
+  const [clock, setClock] = useState("");
 
   const updateClock = useCallback(() => {
-    setClock(getLiveClockInSelectedLanguage(language));
-  }, [language]);
+    setClock(getLiveClockInSelectedLanguage(language, timeFormat));
+  }, [language, timeFormat]);
 
   useEffect(() => {
     updateClock();
@@ -14,9 +14,5 @@ export const LiveClock = ({ language }) => {
     return () => clearInterval(intervalId);
   }, [updateClock]);
 
-  return (
-    <div id="liveclock">
-      {clock}
-    </div>
-  );
+  return <div id="liveclock">{clock}</div>;
 };
