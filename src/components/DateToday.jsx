@@ -15,7 +15,7 @@ export const DateToday = ({ language }) => {
   }, [updateDate]);
 
   return (
-    <div id="datetoday">
+    <div id="datetoday" className="font-bold text-[6vw] leading-none text-white drop-shadow-lg">
       {date}
     </div>
   );
