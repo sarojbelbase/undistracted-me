@@ -15,7 +15,7 @@ export const LiveClock = ({ language }) => {
   }, [updateClock]);
 
   return (
-    <div id="liveclock">
+    <div id="liveclock" className="font-medium text-[12vw] leading-none text-white drop-shadow-lg">
       {clock}
     </div>
   );

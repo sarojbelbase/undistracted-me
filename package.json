@@ -6,37 +6,24 @@
 	"repository": "https://github.com/sarojbelbase/undistracted-me",
 	"author": "sarojbelbase",
 	"license": "MIT",
+	"type": "module",
 	"scripts": {
-		"start": "react-scripts start",
-		"build": "webpack --config webpack.config.js",
-		"watch": "webpack -w --config webpack.config.js",
-		"start:firefox": "web-ext run --source-dir ./dist/",
-		"build:firefox": "web-ext build --source-dir ./dist/",
-		"build:chrome": "zip -r dist.zip dist"
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
 	},
 	"dependencies": {
 		"dayjs": "^1.11.13",
-		"react": "^19.1.0",
-		"react-dom": "^19.1.0",
-		"react-scripts": "5.0.1"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"webpack": "^5.99.8",
-		"webpack-cli": "^6.0.1",
-		"babel-loader": "^10.0.0",
-		"@babel/core": "^7.27.1",
-		"@babel/preset-env": "^7.27.2",
-		"@babel/preset-react": "^7.27.1",
-		"copy-webpack-plugin": "^13.0.0",
-		"html-webpack-plugin": "^5.6.3",
-		"style-loader": "^4.0.0",
-		"css-loader": "^7.1.2",
-		"web-ext": "^8.6.0"
-	},
-	"eslintConfig": {
-		"extends": [
-			"react-app"
-		]
+		"@crxjs/vite-plugin": "^2.0.0-beta.23",
+		"@vitejs/plugin-react": "^4.2.1",
+		"autoprefixer": "^10.4.19",
+		"postcss": "^8.4.38",
+		"tailwindcss": "^3.4.3",
+		"vite": "^5.2.11"
 	},
 	"browserslist": {
 		"production": [

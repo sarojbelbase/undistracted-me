@@ -23,7 +23,7 @@ export const NepaliMiti = ({ language, showMitiInIcon }) => {
   }, [updateMiti]);
 
   return (
-    <div id="nepalimiti">
+    <div id="nepalimiti" className="font-semibold text-[9vw] leading-none text-white drop-shadow-lg">
       {miti}
     </div>
   );
