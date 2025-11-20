@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - Notion Style Widgets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Small helper to render 24 dots grid for day progress */
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen font-sans">
+    <div class="relative max-w-6xl mx-auto p-8">
+      <!-- Reference image as faint background (uses uploaded file path) -->
+      <img src="/mnt/data/0911f211-830a-4c96-998d-320ab5f8012c.png" alt="reference"
+        class="pointer-events-none absolute inset-0 w-full h-full object-contain opacity-20" />
+
+      <!-- Grid layout similar to the image -->
+      <div class="relative grid grid-cols-12 gap-6">
+        <!-- Top-left large clock -->
+        <div class="col-span-3 row-span-2 bg-white rounded-2xl p-6 shadow-md">
+          <div class="text-sm text-gray-500">Fri <span class="font-medium">Jul</span></div>
+          <div class="mt-2 text-6xl font-extrabold leading-none">12</div>
+        </div>
+
+        <!-- Day progress (24 dots) -->
+        <div class="col-span-2 bg-white rounded-2xl p-4 shadow-md flex flex-col items-center justify-center">
+          <div class="text-sm text-gray-500">Day <span class="text-xs text-gray-400">30%</span></div>
+          <div class="mt-3 grid grid-cols-6 gap-2">
+            <!-- 24 dots: dark filled for passed hours and light for remaining -->
+            <!-- We'll mark first 8 filled (as example) -->
+            <!-- Use loops in real templating; here explicit markup -->
+            <div class="dot bg-gray-900"></div>
+            <div class="dot bg-gray-900"></div>
+            <div class="dot bg-gray-900"></div>
+            <div class="dot bg-gray-900"></div>
+            <div class="dot bg-gray-900"></div>
+            <div class="dot bg-gray-900"></div>
+
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+            <div class="dot bg-gray-300"></div>
+          </div>
+        </div>
+
+        <!-- Today's todo list (center large card) -->
+        <div class="col-span-5 bg-white rounded-2xl p-6 shadow-md">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-semibold">Today</h3>
+              <p class="text-sm text-gray-400">14 Events</p>
+            </div>
+            <div class="ml-4">
+              <!-- Empty for spacing -->
+            </div>
+          </div>
+          <div class="mt-4 divide-y">
+            <!-- Each event row -->
+            <div class="py-3 flex items-start">
+              <div class="w-1 bg-black rounded mr-4 mt-1" style="height:36px"></div>
+              <div class="flex-1">
+                <div class="font-medium">YouTube Video Script</div>
+                <div class="text-sm text-gray-400">6:00 AM - 7:30 AM</div>
+              </div>
+            </div>
+
+            <div class="py-3 flex items-start">
+              <div class="w-1 bg-black rounded mr-4 mt-1" style="height:36px"></div>
+              <div class="flex-1">
+                <div class="font-medium">Workout</div>
+                <div class="text-sm text-gray-400">7:30 AM - 8:30 AM</div>
+              </div>
+            </div>
+
+            <div class="py-3 flex items-start">
+              <div class="w-1 bg-black rounded mr-4 mt-1" style="height:36px"></div>
+              <div class="flex-1">
+                <div class="font-medium">Breakfast</div>
+                <div class="text-sm text-gray-400">8:30 AM - 9:30 AM</div>
+              </div>
+            </div>
+
+            <div class="py-3 flex items-start">
+              <div class="w-1 bg-black rounded mr-4 mt-1" style="height:36px"></div>
+              <div class="flex-1">
+                <div class="font-medium">Notion Templates</div>
+                <div class="text-sm text-gray-400">9:30 AM - 12:30 PM</div>
+              </div>
+            </div>
+
+            <div class="py-3 flex items-start">
+              <div class="w-1 bg-black rounded mr-4 mt-1" style="height:36px"></div>
+              <div class="flex-1">
+                <div class="font-medium">Lunch</div>
+                <div class="text-sm text-gray-400">12:30 PM - 1:30 PM</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-end">
+            <button
+              class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shadow">&rarr;</button>
+          </div>
+        </div>
+
+        <!-- Top-right weather card -->
+        <div class="col-span-2 bg-white rounded-2xl p-6 shadow-md flex flex-col items-center justify-center">
+          <div class="text-sm text-gray-500">Cloudy <span class="font-medium">25°C</span></div>
+          <svg class="mt-3 w-14 h-14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 16.58A4.41 4.41 0 0016.59 12c-.2 0-.39.02-.58.06A6 6 0 006 12c0 3.31 2.69 6 6 6h8z"
+              stroke="#111827" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M8 19l-1 2" stroke="#111827" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M12 19l-1 2" stroke="#111827" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+
+        <!-- Large monthly calendar (bottom-left) -->
+        <div class="col-span-5 bg-white rounded-2xl p-6 shadow-md">
+          <div class="text-lg font-semibold">July</div>
+          <div class="mt-3 grid grid-cols-7 gap-2 text-center text-sm text-gray-600">
+            <div class="font-medium">Mo</div>
+            <div class="font-medium">Tu</div>
+            <div class="font-medium">We</div>
+            <div class="font-medium">Th</div>
+            <div class="font-medium">Fr</div>
+            <div class="font-medium">Sa</div>
+            <div class="font-medium">Su</div>
+
+            <!-- Dates: simple mapping to illustrate month grid -->
+            <!-- First blank cells to align the 8th on Monday (as in image) -->
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div class="py-2">8</div>
+            <div class="py-2">9</div>
+            <div class="py-2">10</div>
+
+            <div class="py-2">11</div>
+            <div class="py-2">12<span class="ml-2 inline-block bg-black text-white rounded-full px-2 text-xs"> </span>
+            </div>
+            <div class="py-2">13</div>
+            <div class="py-2">14</div>
+            <div class="py-2">15</div>
+            <div class="py-2">16</div>
+            <div class="py-2">17</div>
+
+            <div class="py-2">18</div>
+            <div class="py-2">19</div>
+            <div class="py-2">20</div>
+            <div class="py-2">21</div>
+            <div class="py-2">22</div>
+            <div class="py-2">23</div>
+            <div class="py-2">24</div>
+
+            <div class="py-2">25</div>
+            <div class="py-2">26</div>
+            <div class="py-2">27</div>
+            <div class="py-2">28</div>
+            <div class="py-2">29</div>
+            <div class="py-2">30</div>
+            <div class="py-2">31</div>
+          </div>
+        </div>
+
+        <!-- Small 'Workout in X mins' card (right side) -->
+        <div class="col-span-2 bg-white rounded-2xl p-6 shadow-md flex flex-col justify-center items-start">
+          <div class="text-xs text-gray-400">7:30 AM to 7:30 AM</div>
+          <div class="mt-2 text-xl font-bold">Workout is in <span class="text-2xl">19 min</span></div>
+        </div>
+
+      </div>
+
+      <!-- Footer note: accessibility of original reference image (path) -->
+      <p class="sr-only">Reference image included at /mnt/data/0911f211-830a-4c96-998d-320ab5f8012c.png</p>
+    </div>
+  </body>
+
+</html>
