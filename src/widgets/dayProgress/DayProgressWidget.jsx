@@ -10,13 +10,10 @@ export const DayProgressWidget = ({ onRemove, showRemove }) => {
       const hour = now.getHours();
       const minutes = now.getMinutes();
       const percentage = Math.floor(((hour * 60 + minutes) / (24 * 60)) * 100);
-      
       setProgress({ percentage, currentHour: hour });
     };
-
     updateProgress();
-    const interval = setInterval(updateProgress, 60000); // Update every minute
-
+    const interval = setInterval(updateProgress, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -27,7 +24,7 @@ export const DayProgressWidget = ({ onRemove, showRemove }) => {
       dots.push(
         <div
           key={i}
-          className={`w-2 h-2 rounded-full ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-white/20'}`}
+          className={`w-2 h-2 rounded-full ${isActive ? 'bg-gray-900' : 'bg-gray-300'}`}
         />
       );
     }
@@ -35,11 +32,11 @@ export const DayProgressWidget = ({ onRemove, showRemove }) => {
   };
 
   return (
-    <BaseWidget className="h-full w-full p-4 flex flex-col items-center justify-center" onRemove={onRemove} showRemove={showRemove}>
-      <div className="text-sm font-medium text-white/80 tracking-wide uppercase">
-        Day <span className="text-xs text-white/60 ml-1">{progress.percentage}%</span>
+    <BaseWidget className="p-4 flex flex-col items-center justify-center" onRemove={onRemove} showRemove={showRemove}>
+      <div className="text-sm text-gray-500">
+        Day <span className="text-xs text-gray-400 ml-1">{progress.percentage}%</span>
       </div>
-      <div className="mt-4 grid grid-cols-6 gap-2">
+      <div className="mt-3 grid grid-cols-6 gap-2">
         {renderDots()}
       </div>
     </BaseWidget>

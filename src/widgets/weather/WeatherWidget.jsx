@@ -2,44 +2,24 @@ import React from 'react';
 import { BaseWidget } from '../BaseWidget';
 
 export const WeatherWidget = ({ onRemove, showRemove }) => {
-  // Static data for now
-  const weather = {
-    condition: 'Cloudy',
-    temperature: 25
-  };
+  const weather = { condition: 'Cloudy', temperature: 25 };
 
   return (
-    <BaseWidget className="h-full w-full p-6 flex flex-col items-center justify-center text-white" onRemove={onRemove} showRemove={showRemove}>
-      <div className="text-lg font-medium text-white/90 tracking-wide uppercase">
-        {weather.condition} <span className="font-bold ml-1">{weather.temperature}°C</span>
+    <BaseWidget className="p-6 flex flex-col items-center justify-center" onRemove={onRemove} showRemove={showRemove}>
+      <div className="text-sm text-gray-500">
+        {weather.condition} <span className="font-semibold text-gray-900">{weather.temperature}°C</span>
       </div>
-      <svg 
-        className="mt-4 w-20 h-20 text-white drop-shadow-md" 
-        viewBox="0 0 24 24" 
-        fill="none" 
+      <svg
+        className="mt-4 w-16 h-16 text-gray-900"
+        viewBox="0 0 24 24"
+        fill="currentColor"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path 
-          d="M20 16.58A4.41 4.41 0 0016.59 12c-.2 0-.39.02-.58.06A6 6 0 006 12c0 3.31 2.69 6 6 6h8z" 
-          stroke="currentColor" 
-          strokeWidth="1.2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-        />
-        <path 
-          d="M8 19l-1 2" 
-          stroke="currentColor" 
-          strokeWidth="1.2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-        />
-        <path 
-          d="M12 19l-1 2" 
-          stroke="currentColor" 
-          strokeWidth="1.2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-        />
+        {/* Cloud body (filled) */}
+        <path d="M20 16.58A4.5 4.5 0 0 0 16.5 8a.5.5 0 0 0-.08.01 6.5 6.5 0 0 0-12.92 1.5A4 4 0 0 0 6 18h10.5a4.5 4.5 0 0 0 3.5-1.42z" />
+        {/* Rain drops */}
+        <line x1="8" y1="19" x2="7" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="12" y1="19" x2="11" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     </BaseWidget>
   );
