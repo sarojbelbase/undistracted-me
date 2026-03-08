@@ -6,9 +6,14 @@ import { LiveClock } from './components/LiveClock';
 import { NepaliMiti } from './components/NepaliMiti';
 import { Settings } from './components/Settings';
 import { SHOW_MITI_IN_ICON } from './constants/settings';
+import { WidgetGrid } from './widgets/WidgetGrid';
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [showWidgets, setShowWidgets] = useState(() => {
+    const saved = localStorage.getItem('showWidgets');
+    return saved ? JSON.parse(saved) : true;
+  });
 
   const [language, setLanguage] = useState(() => {
     const savedLanguage = localStorage.getItem('language');
@@ -24,6 +29,10 @@ const App = () => {
     localStorage.setItem('language', language);
   }, [language]);
 
+  useEffect(() => {
+    localStorage.setItem('showWidgets', JSON.stringify(showWidgets));
+  }, [showWidgets]);
+
   const toggleSettings = () => {
     setShowSettings(!showSettings);
   };
@@ -32,9 +41,22 @@ const App = () => {
     setShowSettings(false);
   };
 
+  const toggleWidgets = () => {
+    setShowWidgets(!showWidgets);
+  };
+
   return (
-    <div id="fullscreen" className="relative h-screen w-screen overflow-hidden flex flex-col justify-center items-center text-white bg-gray-900">
-      <div className="absolute top-5 right-5 z-50">
+    <div id="fullscreen" className={`relative h-screen w-screen overflow-auto text-white bg-gray-900 ${!showWidgets ? 'flex flex-col justify-center items-center' : ''}`}>
+      <div className="absolute top-5 right-5 z-50 flex gap-2">
+        <button
+          className="p-2 rounded-full hover:bg-white/10 transition-all duration-300 focus:outline-none"
+          onClick={toggleWidgets}
+          title={showWidgets ? 'Hide Widgets' : 'Show Widgets'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" className="text-gray-300 hover:text-white transition-colors duration-300">
+            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5 0v4h6V2H5zm6 5H5v7h6V7zM1 7v7a1 1 0 0 0 1 1h2V7H1zm11 0v8h1a1 1 0 0 0 1-1V7h-2z" />
+          </svg>
+        </button>
         <button
           className="p-2 rounded-full hover:bg-white/10 transition-all duration-300 focus:outline-none"
           onClick={toggleSettings}
@@ -55,11 +77,18 @@ const App = () => {
           />
         )}
       </div>
-      <div className="flex flex-col items-center justify-center space-y-4 animate-bounce-in" style={{ fontFamily: FONTS[language] }}>
-        <NepaliMiti language={language} showMitiInIcon={showMitiInIcon} />
-        <LiveClock language={language} />
-        <DateToday language={language} />
-      </div>
+
+      {showWidgets ? (
+        <div className="w-full h-full pt-16">
+          <WidgetGrid showWidgetControls={true} />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center space-y-4 animate-bounce-in" style={{ fontFamily: FONTS[language] }}>
+          <NepaliMiti language={language} showMitiInIcon={showMitiInIcon} />
+          <LiveClock language={language} />
+          <DateToday language={language} />
+        </div>
+      )}
     </div>
   );
 };
