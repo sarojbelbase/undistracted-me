@@ -1,60 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
 
+// Week header starting Monday, matching reference image
+const WEEK_DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
 export const CalendarWidget = ({ onRemove, showRemove }) => {
-  const [calendarData, setCalendarData] = useState({
-    month: '',
-    year: '',
-    days: []
-  });
+  const [calendarData, setCalendarData] = useState({ month: '', year: '', days: [] });
 
   useEffect(() => {
     const updateCalendar = () => {
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth();
-      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                         'July', 'August', 'September', 'October', 'November', 'December'];
-      
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const currentDate = now.getDate();
-      
+
+      // Convert Sunday=0 to Mon-first offset:
+      // JS: Sun=0, Mon=1...Sat=6  →  Mon-first: Mon=0, Tue=1...Sun=6
+      const offset = (firstDay + 6) % 7;
+
       const days = [];
-      // Add empty cells for days before the first day of the month
-      for (let i = 0; i < firstDay; i++) {
+      for (let i = 0; i < offset; i++) {
         days.push({ date: null, isCurrent: false });
       }
-      
-      // Add the days of the month
       for (let i = 1; i <= daysInMonth; i++) {
         days.push({ date: i, isCurrent: i === currentDate });
       }
-      
-      setCalendarData({
-        month: monthNames[month],
-        year: year,
-        days: days
-      });
+
+      setCalendarData({ month: monthNames[month], year, days });
     };
 
     updateCalendar();
-    const interval = setInterval(updateCalendar, 3600000); // Update every hour
-
+    const interval = setInterval(updateCalendar, 3600000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <BaseWidget className="h-full w-full p-6 flex flex-col" onRemove={onRemove} showRemove={showRemove}>
-      <div className="text-lg font-semibold text-white">{calendarData.month}</div>
-      <div className="mt-4 grid grid-cols-7 gap-2 text-center text-sm text-white/60 flex-1 content-start">
-        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-          <div key={day} className="font-medium text-white/50">{day}</div>
+    <BaseWidget className="p-6 flex flex-col" onRemove={onRemove} showRemove={showRemove}>
+      <div className="text-base font-semibold text-gray-900">{calendarData.month}</div>
+      <div className="mt-3 grid grid-cols-7 gap-x-2 gap-y-1 text-center text-sm flex-1 content-start">
+        {WEEK_DAYS.map(day => (
+          <div key={day} className="text-xs font-medium text-gray-500 pb-1">{day}</div>
         ))}
         {calendarData.days.map((day, index) => (
-          <div 
-            key={index} 
-            className={`py-2 text-white/90 ${day.isCurrent ? 'bg-white text-black font-bold rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]' : ''}`}
+          <div
+            key={index}
+            className={`
+              py-1 text-sm leading-6 w-7 h-7 mx-auto flex items-center justify-center rounded-full
+              ${day.isCurrent
+                ? 'bg-gray-900 text-white font-bold'
+                : day.date
+                  ? 'text-gray-700 hover:bg-gray-100 cursor-default transition-colors'
+                  : ''}
+            `}
           >
             {day.date || ''}
           </div>

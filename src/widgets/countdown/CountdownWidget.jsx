@@ -9,23 +9,22 @@ export const CountdownWidget = ({ onRemove, showRemove }) => {
   });
 
   useEffect(() => {
-    // Static countdown for now
-    // In future, this will calculate from actual events
     const interval = setInterval(() => {
       setCountdown(prev => ({
         ...prev,
         minutes: prev.minutes > 0 ? prev.minutes - 1 : 0
       }));
-    }, 60000); // Update every minute
-
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <BaseWidget className="h-full w-full p-6 flex flex-col justify-center" onRemove={onRemove} showRemove={showRemove}>
-      <div className="text-sm text-white/60 uppercase tracking-widest mb-1">{countdown.time}</div>
-      <div className="mt-1 text-2xl font-bold text-white/80 leading-snug">
-        {countdown.eventName} is in <br/><span className="text-4xl text-white block mt-1">{countdown.minutes} min</span>
+    <BaseWidget className="p-6 flex flex-col justify-center" onRemove={onRemove} showRemove={showRemove}>
+      <div className="text-xs text-gray-400 tracking-wide">{countdown.time}</div>
+      <div className="mt-2 text-xl font-bold text-gray-900 leading-snug">
+        {countdown.eventName} is{' '}
+        <span className="text-gray-500 font-normal">in</span>{' '}
+        <span className="text-3xl font-extrabold text-gray-900">{countdown.minutes} min</span>
       </div>
     </BaseWidget>
   );

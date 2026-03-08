@@ -12,13 +12,15 @@ import { CountdownWidget } from './countdown/CountdownWidget';
 import { WIDGET_TYPES, DEFAULT_WIDGETS } from './widgetConfig';
 
 const DEFAULT_LAYOUT = [
-  { i: 'clock-1', x: 0, y: 0, w: 3, h: 4 },
-  { i: 'dayProgress-1', x: 3, y: 0, w: 2, h: 2 },
-  { i: 'events-1', x: 5, y: 0, w: 5, h: 4 },
-  { i: 'weather-1', x: 3, y: 2, w: 2, h: 2 },
-  { i: 'calendar-1', x: 0, y: 4, w: 5, h: 4 },
-  { i: 'countdown-1', x: 5, y: 4, w: 2, h: 2 },
+  { i: 'clock-1',       x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 2 },
+  { i: 'dayProgress-1', x: 3, y: 0, w: 2, h: 2, minW: 2, minH: 2 },
+  { i: 'events-1',      x: 5, y: 0, w: 5, h: 4, minW: 3, minH: 3 },
+  { i: 'weather-1',     x: 3, y: 2, w: 2, h: 2, minW: 2, minH: 2 },
+  { i: 'calendar-1',   x: 0, y: 4, w: 5, h: 4, minW: 3, minH: 3 },
+  { i: 'countdown-1',  x: 5, y: 4, w: 2, h: 2, minW: 2, minH: 2 },
 ];
+
+const LAYOUT_VERSION = 'v2-white-cards';
 
 export const WidgetGrid = ({ showWidgetControls = false }) => {
   const { width, containerRef, mounted } = useContainerWidth();
@@ -27,6 +29,15 @@ export const WidgetGrid = ({ showWidgetControls = false }) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
+    // Version-based cache bust: clear stale layouts when design version changes
+    const storedVersion = localStorage.getItem('widgetLayoutVersion');
+    if (storedVersion !== LAYOUT_VERSION) {
+      localStorage.removeItem('widgetLayouts');
+      localStorage.removeItem('activeWidgets');
+      localStorage.setItem('widgetLayoutVersion', LAYOUT_VERSION);
+      return; // use default state
+    }
+
     const savedLayout = localStorage.getItem('widgetLayouts');
     if (savedLayout) {
       setLayouts(JSON.parse(savedLayout));
@@ -108,7 +119,7 @@ export const WidgetGrid = ({ showWidgetControls = false }) => {
           width={width}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={60}
+          rowHeight={75}
           onLayoutChange={handleLayoutChange}
           isDraggable={isEditMode}
           isResizable={isEditMode}
