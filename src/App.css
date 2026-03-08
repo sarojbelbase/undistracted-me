@@ -1,8 +1,6 @@
 @import url("../src/assets/css/fonts.css");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
