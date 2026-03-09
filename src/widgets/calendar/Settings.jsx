@@ -7,7 +7,7 @@ const CALENDAR_TYPES = [
 
 export const Settings = ({ widgetId, calendarType, onChange }) => (
   <div className="flex flex-col gap-2">
-    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Settings</span>
+    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Calendar Format</span>
     {CALENDAR_TYPES.map(({ label, value }) => (
       <label key={value} className="flex items-center gap-2 cursor-pointer">
         <input
