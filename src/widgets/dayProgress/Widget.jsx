@@ -30,6 +30,7 @@ export const Widget = () => {
           {Array.from({ length: 24 }, (_, i) => (
             <div
               key={i}
+              title='1 hour'
               className={`w-3 h-3 rounded-full justify-self-center ${i < progress.currentHour ? 'bg-gray-900' : 'bg-gray-300'}`}
             />
           ))}
