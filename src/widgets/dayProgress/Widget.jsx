@@ -21,7 +21,7 @@ export const Widget = () => {
 
   return (
     <BaseWidget className="p-4 flex flex-col">
-      <div className="flex justify-center gap-1.5">
+      <div className="flex justify-between mx-2">
         <span className="text-base font-semibold text-gray-400">Day</span>
         <span className="text-base font-bold text-gray-700">{progress.percentage}%</span>
       </div>

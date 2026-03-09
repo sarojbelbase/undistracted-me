@@ -2,6 +2,10 @@
 
 @import "tailwindcss";
 
+body {
+  font-family: 'Google Sans', sans-serif;
+}
+
 :root {
   --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
   --white: #e1e0e4;
@@ -47,4 +51,12 @@
   to {
     opacity: 1;
   }
+}
+
+/* react-grid-layout: kill drag cursor and hide resize handle when not in edit mode */
+.react-grid-item {
+  cursor: default !important;
+}
+.react-resizable-handle {
+  display: none !important;
 }
