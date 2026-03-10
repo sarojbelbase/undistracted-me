@@ -1,39 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { BaseWidget } from '../BaseWidget';
-import { convertEnglishToNepali, getTimeZoneAwareDayJsInstance } from '../../utilities';
-import { MONTH_NAMES as NEPALI_MONTH_NAMES, NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../../constants';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { useEvents } from '../useEvents';
+import { useEvents, useGoogleCalendar } from '../useEvents';
+import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 
-const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-const BASE_NEPALI_YEAR = 2000;
-const AD_MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const DEFAULTS = { calendarType: 'bs' };
-
-// Tooltip that shows on hover, closes on mouse-leave / blur
+// Tooltip that shows on hover, renders via portal so it escapes widget overflow clipping
 const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
-  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
   const ref = useRef(null);
   const hasEvents = !isCurrent && eventsForDay.length > 0;
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  const handleMouseEnter = () => {
+    if (!hasEvents || !ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    // Flip above if within 160px of the bottom of the viewport
+    const spaceBelow = window.innerHeight - r.bottom;
+    const showAbove = spaceBelow < 160;
+    setPos({
+      left: r.left + r.width / 2,
+      ...(showAbove ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }),
+    });
+  };
+
+  const fmt = (time) => {
+    if (!time) return null;
+    const [h, m] = time.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+  };
 
   return (
     <div
       ref={ref}
       className="relative flex flex-col items-center"
-      onMouseEnter={() => hasEvents && setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setPos(null)}
     >
       <div
         className={`py-1 text-sm font-semibold leading-6 w-7 h-7 mx-auto flex items-center justify-center rounded-full
@@ -45,14 +48,23 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
         {day || ''}
       </div>
       {hasEvents && (
-        <div className="w-1 h-1 rounded-full mt-0.5" style={{ backgroundColor: 'var(--w-ink-6)' }} />
+        <div className="w-1 h-1 rounded-full mt-0.5" style={{ backgroundColor: 'var(--w-accent)' }} />
       )}
-      {open && (
-        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 rounded-xl shadow-lg p-2 min-w-[120px] w-max max-w-[180px] animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
-          {eventsForDay.map(e => (
-            <div key={e.id} className="w-caption font-medium truncate py-0.5">{e.title}</div>
+      {pos && createPortal(
+        <div
+          className="fixed z-[9999] rounded-xl shadow-lg p-3 w-max max-w-[220px] animate-fade-in flex flex-col gap-2"
+          style={{ ...pos, transform: 'translateX(-50%)', backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)', pointerEvents: 'none' }}
+        >
+          {eventsForDay.map((e, i) => (
+            <div key={e.id} className={`flex flex-col gap-0.5 ${i > 0 ? 'pt-2 border-t' : ''}`} style={{ borderColor: 'var(--w-border)' }}>
+              <div className="w-body font-semibold leading-snug" style={{ color: 'var(--w-ink-1)' }}>{e.title}</div>
+              {fmt(e.startTime) && (
+                <div className="w-caption" style={{ color: 'var(--w-accent)' }}>{fmt(e.startTime)}{e.endTime ? ` – ${fmt(e.endTime)}` : ''}</div>
+              )}
+            </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -61,42 +73,14 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
 export const Widget = ({ id: widgetId }) => {
   const [settings, updateSetting] = useWidgetSettings(widgetId || 'calendar', DEFAULTS);
   const { calendarType } = settings;
-  const [calendarData, setCalendarData] = useState({ label: '', sublabel: '', days: [], year: 0, month: 0 });
-  const [events] = useEvents();
+  const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType));
+  const [localEvents] = useEvents();
+  const { gcalEvents } = useGoogleCalendar();
+  const events = [...localEvents, ...gcalEvents];
 
   useEffect(() => {
     const update = () => {
-      const now = getTimeZoneAwareDayJsInstance();
-      const year = now.year();
-      const month = now.month() + 1;
-      const day = now.date();
-
-      if (calendarType === 'bs') {
-        const nepaliResult = convertEnglishToNepali(year, month, day);
-        const [nepaliYear, nepaliMonth, nepaliDay] = nepaliResult.split(' ').map(Number);
-        const daysInNepaliMonth = NEPALI_YEARS_AND_DAYS_IN_MONTHS[nepaliYear - BASE_NEPALI_YEAR][nepaliMonth];
-        const firstDayOfMonth = now.subtract(nepaliDay - 1, 'day');
-        const offset = firstDayOfMonth.day();
-        const days = [
-          ...Array.from({ length: offset }, () => ({ date: null, isCurrent: false })),
-          ...Array.from({ length: daysInNepaliMonth }, (_, i) => ({
-            date: i + 1,
-            isCurrent: i + 1 === nepaliDay,
-          })),
-        ];
-        setCalendarData({ label: NEPALI_MONTH_NAMES[nepaliMonth - 1], sublabel: String(nepaliYear), days, year: nepaliYear, month: nepaliMonth });
-      } else {
-        const firstDay = new Date(year, month - 1, 1).getDay();
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const days = [
-          ...Array.from({ length: firstDay }, () => ({ date: null, isCurrent: false })),
-          ...Array.from({ length: daysInMonth }, (_, i) => ({
-            date: i + 1,
-            isCurrent: i + 1 === day,
-          })),
-        ];
-        setCalendarData({ label: AD_MONTH_NAMES[month - 1], sublabel: String(year), days, year, month });
-      }
+        setCalendarData(buildCalendarData(calendarType));
     };
 
     update();
@@ -119,10 +103,10 @@ export const Widget = ({ id: widgetId }) => {
         {calendarData.days.map((day, index) => {
           const col = index % 7;
           const isWeekend = col === 0 || col === 6;
-          // Build YYYY-MM-DD for this cell to match against event startDate
-          const dateStr = day.date
+          // In BS mode, adDate holds the real AD date string; in AD mode, build it from year/month/day
+          const dateStr = day.adDate ?? (day.date
             ? `${String(calendarData.year).padStart(4, '0')}-${String(calendarData.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-            : null;
+            : null);
           const eventsForDay = dateStr
             ? events.filter(e => e.startDate === dateStr)
             : [];

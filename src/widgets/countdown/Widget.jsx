@@ -1,28 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { HourglassSplit } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, eventStartDate, formatEventTime } from '../useEvents';
-
-const fmt12h = (date) => {
-  if (!date) return '';
-  const h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
-};
-
-const getMinutesLeft = (target) => Math.max(0, Math.floor((target - new Date()) / 60_000));
-
-const getNextEvent = (events) => {
-  const now = new Date();
-  return events
-    .map(e => ({ ...e, _start: eventStartDate(e) }))
-    .filter(e => e._start && e._start > now)
-    .sort((a, b) => a._start - b._start)[0] || null;
-};
+import { useEvents, useGoogleCalendar, formatEventTime } from '../useEvents';
+import { fmt12h, getMinutesLeft, getNextEvent } from './utils';
 
 export const Widget = () => {
-  const [events] = useEvents();
+  const [localEvents] = useEvents();
+  const { gcalEvents } = useGoogleCalendar();
+  const events = [...localEvents, ...gcalEvents];
   const [minutes, setMinutes] = useState(0);
   const [next, setNext] = useState(null);
 

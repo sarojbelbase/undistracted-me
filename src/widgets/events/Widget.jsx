@@ -2,60 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusLg, ArrowRight, CalendarEvent, XLg, Trash3, ClockFill } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, formatEventTime, todayStr } from '../useEvents';
-
-const ITEM_HEIGHT = 57;
-const HEADER_H = 40;
-const FOOTER_H = 52;
-
-const bucket = (dateStr) => {
-  const today = todayStr();
-  const tom = new Date(); tom.setDate(tom.getDate() + 1);
-  const tomorrowStr = tom.toISOString().slice(0, 10);
-  if (!dateStr || dateStr === today) return 'Today';
-  if (dateStr === tomorrowStr) return 'Tomorrow';
-  if (dateStr > today) return 'Later';
-  return 'Past';
-};
-
-const getDateOffset = (offset) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
-};
-
-const DURATION_PILLS = [
-  { label: '30 min', mins: 30 },
-  { label: '1 hr', mins: 60 },
-  { label: '2 hr', mins: 120 },
-  { label: 'Custom', mins: null },
-];
-
-const applyDuration = (startDate, startTime, mins) => {
-  if (!startDate || !startTime) return { endDate: startDate || '', endTime: '' };
-  const d = new Date(`${startDate}T${startTime}`);
-  d.setMinutes(d.getMinutes() + mins);
-  return {
-    endDate: d.toISOString().slice(0, 10),
-    endTime: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
-  };
-};
-
-const pill = (active) => ({
-  className: 'px-3 py-1 text-xs rounded-full border transition-all',
-  style: active
-    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', borderColor: 'var(--w-accent)' }
-    : { backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-4)', borderColor: 'var(--w-ink-6)' },
-});
-
-const EMPTY_FORM = { title: '', startDate: '', startTime: '', endDate: '', endTime: '' };
-
-// Date chips: Today / Tomorrow / Custom
-const DATE_CHIPS = [
-  { label: 'Today', key: 'today', offset: 0 },
-  { label: 'Tomorrow', key: 'tomorrow', offset: 1 },
-  { label: 'Custom', key: 'custom', offset: null },
-];
+import { useEvents, useGoogleCalendar, formatEventTime, todayStr } from '../useEvents';
+import {
+  ITEM_HEIGHT, HEADER_H, FOOTER_H,
+  EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
+  getDateOffset, applyDuration, pill, bucketLabel,
+} from './utils';
 
 const CreateModal = ({ onSave, onClose }) => {
   const [form, setForm] = useState({ ...EMPTY_FORM, startDate: todayStr() });
@@ -232,7 +184,7 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
   const buckets = ['Today', 'Tomorrow', 'Later', 'Past'];
   const grouped = buckets.reduce((acc, b) => { acc[b] = []; return acc; }, {});
-  events.forEach(e => { const b = bucket(e.startDate); if (grouped[b]) grouped[b].push(e); });
+  events.forEach(e => { const b = bucketLabel(e.startDate); if (grouped[b]) grouped[b].push(e); });
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
@@ -257,12 +209,17 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
                   <div key={event.id} className="py-2.5 flex items-start gap-2">
                     <div className="w-1 rounded-full shrink-0 mt-0.5" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                     <div className="flex-1 min-w-0">
-                      <div className="w-body font-medium truncate">{event.title}</div>
+                      {event.htmlLink
+                        ? <a href={event.htmlLink} target="_blank" rel="noreferrer" className="w-body font-medium truncate block hover:underline" style={{ color: 'inherit' }}>{event.title}</a>
+                        : <div className="w-body font-medium truncate">{event.title}</div>
+                      }
                       <div className="w-caption">{formatEventTime(event)}</div>
                     </div>
-                    <button onClick={() => onRemove(event.id)} className="w-7 h-7 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 mt-0.5">
-                      <Trash3 size={13} />
-                    </button>
+                    {event._source !== 'gcal' && (
+                      <button onClick={() => onRemove(event.id)} className="w-7 h-7 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 mt-0.5">
+                        <Trash3 size={13} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -283,7 +240,9 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
 };
 
 export const Widget = () => {
-  const [events, addEvent, removeEvent] = useEvents();
+  const [localEvents, addEvent, removeEvent] = useEvents();
+  const { gcalEvents } = useGoogleCalendar();
+  const events = [...localEvents, ...gcalEvents];
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const containerRef = useRef(null);
@@ -331,9 +290,17 @@ export const Widget = () => {
               <div key={event.id} className="py-3 flex items-start" style={{ height: ITEM_HEIGHT }}>
                 <div className="w-1 rounded-full mr-3 mt-0.5 shrink-0" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                 <div className="flex-1 min-w-0">
-                  <div className="w-body font-medium truncate">{event.title}</div>
+                  {event.htmlLink
+                    ? <a href={event.htmlLink} target="_blank" rel="noreferrer" className="w-body font-medium truncate block hover:underline" style={{ color: 'inherit' }}>{event.title}</a>
+                    : <div className="w-body font-medium truncate">{event.title}</div>
+                  }
                   <div className="w-caption mt-0.5">{formatEventTime(event)}</div>
                 </div>
+                {event._source !== 'gcal' && (
+                  <button onClick={() => removeEvent(event.id)} className="w-7 h-7 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                    <Trash3 size={13} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
