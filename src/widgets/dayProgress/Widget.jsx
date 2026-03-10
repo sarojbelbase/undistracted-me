@@ -22,16 +22,16 @@ export const Widget = () => {
   return (
     <BaseWidget className="p-4 flex flex-col">
       <div className="flex justify-between mx-2">
-        <span className="text-base font-semibold text-gray-400">Day</span>
-        <span className="text-base font-bold text-gray-700">{progress.percentage}%</span>
+        <span className="w-title-soft">Day</span>
+        <span className="w-title-bold">{progress.percentage}%</span>
       </div>
       <div className="flex-1 flex items-center">
-        <div className="grid grid-cols-6 gap-y-3 w-full">
+        <div className="grid grid-cols-6 gap-y-3 w-full place-items-center">
           {Array.from({ length: 24 }, (_, i) => (
             <div
               key={i}
               title='1 hour'
-              className={`w-3 h-3 rounded-full justify-self-center ${i < progress.currentHour ? 'bg-gray-900' : 'bg-gray-300'}`}
+              className={`w-dot${i < progress.currentHour ? ' w-dot-active' : ''}`}
             />
           ))}
         </div>

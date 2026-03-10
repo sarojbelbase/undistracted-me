@@ -1,7 +1,61 @@
-# Undistracted Me - Project Context
+# Undistracted Me — Context
 
 ## Overview
-"Undistracted Me" is a modern, customizable homepage/new-tab browser extension built with React. It provides a beautiful, distraction-free dashboard featuring a modular, draggable widget system with a sleek translucent "glassmorphism" design aesthetic.
+React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab page. Two modes:
+1. **Focused** (`showWidgets=false`): Dark `#18191B` bg, giant Nepali date + clock centered
+2. **Dashboard** (`showWidgets=true`): Light `#F0F0F2` bg, draggable widget grid
+
+## Tech Stack
+- **React 19**, **Vite**, **@crxjs/vite-plugin**
+- **Tailwind CSS v4** — `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
+- **react-grid-layout** — `Responsive` + `useContainerWidth()` (NOT WidthProvider — Vite CJS incompatibility)
+- **react-bootstrap-icons** — all icons, no inline SVGs
+- **dayjs** + timezone plugin (Asia/Kathmandu)
+
+## Design System (App.css)
+- Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) — shift palette here
+- Classes: `w-display`, `w-heading`, `w-title-soft/bold`, `w-sub-soft/bold`, `w-period`, `w-body`, `w-caption`, `w-label`, `w-muted`, `w-dot`/`w-dot-active`
+
+## Key Files
+```
+src/
+  App.jsx              — root, mode toggle, settings overlay
+  App.css              — design tokens, typography classes, grid overrides
+  widgets/
+    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence (widget_grid_layouts)
+    BaseWidget.jsx     — forwardRef card, GearWide settings popover, mousedown click-outside
+    useWidgetSettings.js — per-widget localStorage (widgetSettings_${id})
+    useEvents.js       — shared events: module-level cache, SYNC_EVENT broadcast
+    index.js           — WIDGET_TYPES, WIDGET_REGISTRY, all exports
+    clock/             — live 1s clock, 24h/12h, time-aware greetings
+    dateToday/         — weekday + date, BS/AD toggle
+    dayProgress/       — 24-dot grid, 1-min interval
+    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal, createPortal
+    countdown/         — reads useEvents, nearest future event
+    calendar/          — BS/AD, event dots, today = dark fill + white text (inline style)
+    weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env
+```
+
+## Critical Rules
+- **Modals** → `createPortal(…, document.body)` — CSS `transform` in grid breaks `position:fixed`
+- **Cross-widget sync** → module-level cache + `dispatchEvent(new Event('widget_events_changed'))`. Never mutate inside `setState(prev =>)` when dispatching (StrictMode double-invoke = double event)
+- **Drag buttons** → `onMouseDown={e => e.stopPropagation()}` on any button inside a widget
+- **Per-breakpoint layout** → save `allLayouts` (2nd arg of `onLayoutChange`) not just current
+- **Icons** → react-bootstrap-icons only
+
+## localStorage Keys
+- `language`, `showWidgets`, `showMitiInIcon`
+- `widgetSettings_${widgetId}` — per-widget settings
+- `widget_events` — events array `{ id, title, startDate, startTime, endDate, endTime }`
+- `widget_grid_layouts` — `{ lg: [...], md: [...], ... }` per breakpoint
+
+## Event Shape
+`{ id, title, startDate, startTime, endDate, endTime }` — dates `YYYY-MM-DD`, times `HH:MM` 24h
+
+## Commands
+- `npm run dev` — Vite dev server
+- `npm run build` — extension build
+
 
 ## Tech Stack
 - **Framework**: React (v18/19 compatible)

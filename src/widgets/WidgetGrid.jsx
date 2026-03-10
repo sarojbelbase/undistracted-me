@@ -1,117 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-import { ClockWidget } from './dateToday/ClockWidget';
-import { DayProgressWidget } from './dayProgress/DayProgressWidget';
-import { EventsWidget } from './events/EventsWidget';
-import { WeatherWidget } from './weather/WeatherWidget';
-import { CalendarWidget } from './calendar/CalendarWidget';
-import { CountdownWidget } from './countdown/CountdownWidget';
-import { WIDGET_TYPES, DEFAULT_WIDGETS } from './widgetConfig';
+import {
+  WIDGET_TYPES,
+  WIDGET_REGISTRY,
+  ClockWidget,
+  DateTodayWidget,
+  DayProgressWidget,
+  EventsWidget,
+  WeatherWidget,
+  CalendarWidget,
+  CountdownWidget,
+} from './index';
 
-const DEFAULT_LAYOUT = [
-  { i: 'clock-1',       x: 0, y: 0, w: 3, h: 4, minW: 2, minH: 2 },
-  { i: 'dayProgress-1', x: 3, y: 0, w: 2, h: 2, minW: 2, minH: 2 },
-  { i: 'events-1',      x: 5, y: 0, w: 5, h: 4, minW: 3, minH: 3 },
-  { i: 'weather-1',     x: 3, y: 2, w: 2, h: 2, minW: 2, minH: 2 },
-  { i: 'calendar-1',   x: 0, y: 4, w: 5, h: 4, minW: 3, minH: 3 },
-  { i: 'countdown-1',  x: 5, y: 4, w: 2, h: 2, minW: 2, minH: 2 },
-];
+// Derived at module load — change enabled/positions in each widget's config.js or index.js
+const ACTIVE_WIDGETS = WIDGET_REGISTRY.filter(w => w.enabled);
+const DEFAULT_LAYOUT = ACTIVE_WIDGETS.map(({ id, x, y, w, h, minW, minH }) => ({
+  i: id, x, y, w, h, minW, minH,
+}));
 
-const LAYOUT_VERSION = 'v2-white-cards';
+const LAYOUT_KEY = 'widget_grid_layouts'; // keyed by breakpoint
 
-export const WidgetGrid = ({ showWidgetControls = false }) => {
+const DEFAULT_LAYOUTS = {
+  lg: DEFAULT_LAYOUT,
+};
+
+const loadLayouts = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+    // Must be an object with at least one breakpoint array
+    if (saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length) {
+      return { ...DEFAULT_LAYOUTS, ...saved };
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_LAYOUTS;
+};
+
+const renderWidget = (widget) => {
+  switch (widget.type) {
+    case WIDGET_TYPES.CLOCK: return <ClockWidget widgetId={widget.id} />;
+    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget widgetId={widget.id} />;
+    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget />;
+    case WIDGET_TYPES.EVENTS: return <EventsWidget />;
+    case WIDGET_TYPES.WEATHER: return <WeatherWidget />;
+    case WIDGET_TYPES.CALENDAR: return <CalendarWidget />;
+    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget />;
+    default: return null;
+  }
+};
+
+export const WidgetGrid = () => {
   const { width, containerRef, mounted } = useContainerWidth();
-  const [layouts, setLayouts] = useState({ lg: DEFAULT_LAYOUT });
-  const [widgets, setWidgets] = useState(DEFAULT_WIDGETS);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [layouts, setLayouts] = useState(loadLayouts);
+  const [draggingId, setDraggingId] = useState(null);
 
-  useEffect(() => {
-    // Version-based cache bust: clear stale layouts when design version changes
-    const storedVersion = localStorage.getItem('widgetLayoutVersion');
-    if (storedVersion !== LAYOUT_VERSION) {
-      localStorage.removeItem('widgetLayouts');
-      localStorage.removeItem('activeWidgets');
-      localStorage.setItem('widgetLayoutVersion', LAYOUT_VERSION);
-      return; // use default state
-    }
-
-    const savedLayout = localStorage.getItem('widgetLayouts');
-    if (savedLayout) {
-      setLayouts(JSON.parse(savedLayout));
-    }
-    const savedWidgets = localStorage.getItem('activeWidgets');
-    if (savedWidgets) {
-      setWidgets(JSON.parse(savedWidgets));
-    }
+  // onLayoutChange receives (currentLayout, allLayouts) — save allLayouts so each
+  // breakpoint keeps its own positions independently
+  const handleLayoutChange = useCallback((_current, allLayouts) => {
+    setLayouts(allLayouts);
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(allLayouts));
   }, []);
 
-  const handleLayoutChange = (layout, allLayouts) => {
-    setLayouts(allLayouts);
-    localStorage.setItem('widgetLayouts', JSON.stringify(allLayouts));
-  };
+  const handleDragStart = useCallback((_layout, oldItem) => {
+    setDraggingId(oldItem.i);
+  }, []);
 
-  const removeWidget = (id) => {
-    const updatedWidgets = widgets.filter(w => w.id !== id);
-    setWidgets(updatedWidgets);
-    localStorage.setItem('activeWidgets', JSON.stringify(updatedWidgets));
-  };
+  const handleDragStop = useCallback(() => {
+    setDraggingId(null);
+  }, []);
 
-  const resetLayout = () => {
-    setLayouts({ lg: DEFAULT_LAYOUT });
-    setWidgets(DEFAULT_WIDGETS);
-    localStorage.setItem('widgetLayouts', JSON.stringify({ lg: DEFAULT_LAYOUT }));
-    localStorage.setItem('activeWidgets', JSON.stringify(DEFAULT_WIDGETS));
-  };
-
-  const renderWidget = (widget) => {
-    const commonProps = {
-      isEditMode,
-      onRemove: () => removeWidget(widget.id)
-    };
-
-    switch (widget.type) {
-      case WIDGET_TYPES.CLOCK: return <ClockWidget {...commonProps} />;
-      case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget {...commonProps} />;
-      case WIDGET_TYPES.EVENTS: return <EventsWidget {...commonProps} />;
-      case WIDGET_TYPES.WEATHER: return <WeatherWidget {...commonProps} />;
-      case WIDGET_TYPES.CALENDAR: return <CalendarWidget {...commonProps} />;
-      case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget {...commonProps} />;
-      default: return null;
-    }
-  };
+  const isDragging = draggingId !== null;
 
   return (
     <div className="w-full h-full p-4 relative" ref={containerRef}>
-      {showWidgetControls && (
-        <div className="absolute top-2 left-2 z-50 flex gap-2">
-          <button
-            onClick={() => setIsEditMode(!isEditMode)}
-            className={`p-2 rounded-full transition-all duration-300 focus:outline-none ${isEditMode ? 'bg-blue-600 text-white' : 'bg-gray-800/50 text-gray-300 hover:text-white hover:bg-gray-700'}`}
-            title={isEditMode ? "Done Editing" : "Edit Layout"}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-            </svg>
-          </button>
-          
-          {isEditMode && (
-            <button
-              onClick={resetLayout}
-              className="p-2 rounded-full bg-gray-800/50 text-gray-300 hover:text-white hover:bg-red-600/50 transition-all duration-300 focus:outline-none"
-              title="Reset to Default"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                <path fillRule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
-                <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
-              </svg>
-            </button>
-          )}
-        </div>
-      )}
-
+      {/* Dot-grid overlay — fades in when dragging */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-200"
+        style={{
+          opacity: isDragging ? 1 : 0,
+          backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.18) 1.5px, transparent 1.5px)',
+          backgroundSize: '28px 28px',
+          backgroundPosition: '14px 14px',
+        }}
+      />
       {mounted && (
         <Responsive
           className="layout"
@@ -120,15 +93,21 @@ export const WidgetGrid = ({ showWidgetControls = false }) => {
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
           rowHeight={75}
-          onLayoutChange={handleLayoutChange}
-          isDraggable={isEditMode}
-          isResizable={isEditMode}
+          isDraggable={true}
+          isResizable={false}
           margin={[16, 16]}
           containerPadding={[0, 0]}
           useCSSTransforms={true}
+          onLayoutChange={handleLayoutChange}
+          onDragStart={handleDragStart}
+          onDragStop={handleDragStop}
         >
-          {widgets.map(widget => (
-            <div key={widget.id} className="w-full h-full relative group">
+          {ACTIVE_WIDGETS.map(widget => (
+            <div
+              key={widget.id}
+              className="w-full h-full transition-opacity duration-200"
+              style={{ opacity: isDragging && draggingId !== widget.id ? 0.4 : 1 }}
+            >
               {renderWidget(widget)}
             </div>
           ))}

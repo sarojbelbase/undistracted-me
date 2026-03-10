@@ -84,7 +84,7 @@ const App = () => {
 
       {showWidgets ? (
         <div className="w-full h-full pt-16">
-          <WidgetGrid showWidgetControls={true} />
+          <WidgetGrid />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center space-y-4 animate-bounce-in" style={{ fontFamily: FONTS[language] }}>

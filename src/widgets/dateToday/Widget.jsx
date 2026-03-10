@@ -51,11 +51,11 @@ export const Widget = ({ widgetId }) => {
       settingsContent={<Settings widgetId={widgetId} language={language} onChange={updateSetting} />}
     >
       <div className="flex items-baseline gap-1.5">
-        <span className="text-base font-semibold text-gray-400">{parts.weekday}</span>
-        <span className="text-base font-bold text-gray-700">{parts.month}</span>
+        <span className="w-title-soft">{parts.weekday}</span>
+        <span className="w-title-bold">{parts.month}</span>
       </div>
       <div className="flex items-end">
-        <span className="text-[clamp(4rem,9vw,7rem)] font-bold leading-none text-gray-800">
+        <span className="w-display text-[clamp(4rem,9vw,7rem)]">
           {parts.day}
         </span>
       </div>

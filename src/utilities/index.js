@@ -100,6 +100,7 @@ const getDateTodayInSelectedLanguage = (language) => {
 }
 
 export {
+    convertEnglishToNepali,
     convertThisNumberToNepali,
     getTimeZoneAwareDayJsInstance,
     getNepaliMitiInSelectedLanguage,

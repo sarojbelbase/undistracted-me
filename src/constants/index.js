@@ -2,7 +2,7 @@ export const LANGUAGES = Object.freeze({ ne: "ne", en: "en" });
 
 export const FONTS = {
   ne: "Akshar",
-  en: "Saira Extra Condensed",
+  en: "Google Sans",
 };
 
 export const NEPALI_YEARS_AND_DAYS_IN_MONTHS = [
