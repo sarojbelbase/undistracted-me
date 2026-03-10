@@ -105,6 +105,13 @@ body {
   /* gray-300 — inactive dots, faintest accents              */
   --w--ink-7: #f3f4f6;
   /* gray-100 — background of some widgets, lightest accents  */
+  --w-surface: #ffffff;
+  --w-surface-2: #f9fafb;
+  --w-border: #e5e7eb;
+  --w-page-bg: #F0F0F2;
+  --w-accent: #111827;
+  --w-accent-fg: #ffffff;
+  --w-accent-rgb: 17, 24, 39;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -142,7 +149,7 @@ body {
   .w-title-bold {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--w-ink-3);
+    color: var(--w-accent);
   }
 
   /* Level 4 — Sub row: smaller pair (greeting, unit beside display) */
@@ -156,7 +163,7 @@ body {
   .w-sub-bold {
     font-size: 0.875rem;
     font-weight: 700;
-    color: var(--w-ink-3);
+    color: var(--w-accent);
   }
 
   /* Period: AM/PM or secondary unit beside a display number */
@@ -208,6 +215,89 @@ body {
   }
 
   .w-dot-active {
-    background-color: var(--w-ink-1);
+    background-color: var(--w-accent);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DRAG DOT OVERLAY — moved from inline style so dark mode can adapt
+   ═══════════════════════════════════════════════════════════════ */
+.drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.18) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE ADAPTIVE OVERRIDES
+   Catches hardcoded Tailwind utility classes in widget code.
+   ═══════════════════════════════════════════════════════════════ */
+[data-mode="dark"] .bg-white {
+  background-color: var(--w-surface) !important;
+}
+
+[data-mode="dark"] .bg-gray-50 {
+  background-color: var(--w-surface-2) !important;
+}
+
+[data-mode="dark"] .bg-gray-100 {
+  background-color: var(--w-surface-2) !important;
+}
+
+[data-mode="dark"] .hover\:bg-gray-100:hover {
+  background-color: var(--w-surface-2) !important;
+}
+
+[data-mode="dark"] .border-gray-100,
+[data-mode="dark"] .border-gray-200 {
+  border-color: var(--w-border) !important;
+}
+
+[data-mode="dark"] .divide-gray-100> :not([hidden])~ :not([hidden]) {
+  border-color: var(--w-border) !important;
+}
+
+[data-mode="dark"] .text-gray-400 {
+  color: var(--w-ink-5) !important;
+}
+
+[data-mode="dark"] .text-gray-500 {
+  color: var(--w-ink-4) !important;
+}
+
+[data-mode="dark"] .text-gray-900 {
+  color: var(--w-ink-1) !important;
+}
+
+[data-mode="dark"] input,
+[data-mode="dark"] textarea,
+[data-mode="dark"] select {
+  background-color: var(--w-surface) !important;
+  color: var(--w-ink-1) !important;
+  border-color: var(--w-border) !important;
+}
+
+[data-mode="dark"] .react-grid-placeholder {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-mode="dark"] .drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
+}
+
+[data-mode="dark"] .shadow-md {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-mode="dark"] .shadow-lg {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-mode="dark"] .shadow-2xl {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-mode="dark"] .react-grid-item.react-draggable-dragging>* {
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7) !important;
 }

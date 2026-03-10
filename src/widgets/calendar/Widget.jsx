@@ -39,7 +39,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
         className={`py-1 text-sm font-semibold leading-6 w-7 h-7 mx-auto flex items-center justify-center rounded-full
           ${isCurrent ? '' : day ? 'hover:bg-gray-100 cursor-default transition-colors' : ''}`}
         style={isCurrent
-          ? { backgroundColor: 'var(--w-ink-1)', color: '#ffffff' }
+          ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
           : day ? { color: isWeekend ? 'var(--w-ink-5)' : 'var(--w-ink-4)' } : undefined}
       >
         {day || ''}
@@ -48,7 +48,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
         <div className="w-1 h-1 rounded-full mt-0.5" style={{ backgroundColor: 'var(--w-ink-6)' }} />
       )}
       {open && (
-        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 bg-white border border-gray-100 rounded-xl shadow-lg p-2 min-w-[120px] w-max max-w-[180px] animate-fade-in">
+        <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 rounded-xl shadow-lg p-2 min-w-[120px] w-max max-w-[180px] animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
           {eventsForDay.map(e => (
             <div key={e.id} className="w-caption font-medium truncate py-0.5">{e.title}</div>
           ))}

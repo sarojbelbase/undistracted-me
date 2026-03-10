@@ -44,8 +44,8 @@ const applyDuration = (startDate, startTime, mins) => {
 const pill = (active) => ({
   className: 'px-3 py-1 text-xs rounded-full border transition-all',
   style: active
-    ? { backgroundColor: 'var(--w-ink-1)', color: '#fff', borderColor: 'var(--w-ink-1)' }
-    : { backgroundColor: '#fff', color: 'var(--w-ink-4)', borderColor: 'var(--w-ink-6)' },
+    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', borderColor: 'var(--w-accent)' }
+    : { backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-4)', borderColor: 'var(--w-ink-6)' },
 });
 
 const EMPTY_FORM = { title: '', startDate: '', startTime: '', endDate: '', endTime: '' };
@@ -135,7 +135,7 @@ const CreateModal = ({ onSave, onClose }) => {
           />
 
           {/* When block */}
-          <div className="rounded-xl border border-gray-100 overflow-hidden" style={{ background: '#f9fafb' }}>
+          <div className="rounded-xl border border-gray-100 overflow-hidden" style={{ backgroundColor: 'var(--w-surface-2)' }}>
             {/* Date chips */}
             <div className="flex gap-1.5 p-3 pb-2">
               {DATE_CHIPS.map(chip => (
@@ -196,7 +196,7 @@ const CreateModal = ({ onSave, onClose }) => {
 
           {/* Custom end when duration=custom */}
           {durType === 'custom' && (
-            <div className="rounded-xl border border-gray-100 overflow-hidden" style={{ background: '#f9fafb' }}>
+            <div className="rounded-xl border border-gray-100 overflow-hidden" style={{ backgroundColor: 'var(--w-surface-2)' }}>
               <div className="px-3 pb-3 pt-3">
                 <span className="w-label mb-1 block">End date &amp; time</span>
                 <input
@@ -218,8 +218,8 @@ const CreateModal = ({ onSave, onClose }) => {
           <button
             onClick={handleSave}
             disabled={!valid}
-            className="px-4 py-1.5 text-sm text-white rounded-lg transition-colors disabled:opacity-40"
-            style={{ backgroundColor: 'var(--w-ink-1)' }}
+            className="px-4 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-40"
+            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
           >Save</button>
         </div>
       </div>
@@ -240,7 +240,7 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <span className="w-heading">All Events</span>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowCreate(true)} className="w-7 h-7 rounded-full flex items-center justify-center transition-colors text-white" style={{ backgroundColor: 'var(--w-ink-2)' }}>
+            <button onClick={() => setShowCreate(true)} className="w-7 h-7 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
               <PlusLg size={14} />
             </button>
             <button onClick={onClose} className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
@@ -255,7 +255,7 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
               <div className="divide-y divide-gray-100">
                 {grouped[b].map(event => (
                   <div key={event.id} className="py-2.5 flex items-start gap-2">
-                    <div className="w-1 rounded-full shrink-0 mt-0.5" style={{ height: '36px', backgroundColor: 'var(--w-ink-1)' }} />
+                    <div className="w-1 rounded-full shrink-0 mt-0.5" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                     <div className="flex-1 min-w-0">
                       <div className="w-body font-medium truncate">{event.title}</div>
                       <div className="w-caption">{formatEventTime(event)}</div>
@@ -329,7 +329,7 @@ export const Widget = () => {
           <div className="divide-y divide-gray-100 flex-1 overflow-hidden">
             {visible.map(event => (
               <div key={event.id} className="py-3 flex items-start" style={{ height: ITEM_HEIGHT }}>
-                <div className="w-1 rounded-full mr-3 mt-0.5 shrink-0" style={{ height: '36px', backgroundColor: 'var(--w-ink-1)' }} />
+                <div className="w-1 rounded-full mr-3 mt-0.5 shrink-0" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                 <div className="flex-1 min-w-0">
                   <div className="w-body font-medium truncate">{event.title}</div>
                   <div className="w-caption mt-0.5">{formatEventTime(event)}</div>
@@ -347,7 +347,7 @@ export const Widget = () => {
                 onClick={() => setShowAll(true)}
                 onMouseDown={e => e.stopPropagation()}
                 className="h-8 px-3 rounded-full flex items-center gap-1.5 transition-colors"
-                style={{ backgroundColor: 'var(--w-ink-2)', color: '#fff' }}
+                style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
               >
                 <span className="text-xs font-medium">View all</span>
                 <ArrowRight size={14} />
@@ -357,8 +357,8 @@ export const Widget = () => {
           <button
             onClick={() => setShowCreate(true)}
             onMouseDown={e => e.stopPropagation()}
-            className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-md transition-colors"
-            style={{ backgroundColor: 'var(--w-ink-2)' }}
+            className="w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
           >
             <PlusLg size={18} />
           </button>

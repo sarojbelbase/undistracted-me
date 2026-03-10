@@ -34,7 +34,7 @@ export const BaseWidget = forwardRef(({
   return (
     // Outer div is overflow-visible so the settings panel can escape the card boundary
     <div ref={ref} className="relative h-full group">
-      <div className={`bg-white rounded-2xl shadow-md text-gray-900 flex flex-col overflow-hidden h-full ${className}`}>
+      <div className={`rounded-2xl shadow-md flex flex-col overflow-hidden h-full ${className}`} style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}>
         {showRemove && onRemove && (
           <button
             onClick={onRemove}
@@ -60,7 +60,7 @@ export const BaseWidget = forwardRef(({
           </button>
 
           {showSettings && (
-            <div ref={panelRef} className="absolute right-0 top-9 z-40 bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-[150px] animate-fade-in">
+            <div ref={panelRef} className="absolute right-0 top-9 z-40 rounded-xl shadow-lg p-3 min-w-[150px] animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
               <div className="flex items-center justify-between mb-3">
                 <span className="w-label">Settings</span>
                 <button
