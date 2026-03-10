@@ -32,9 +32,7 @@ export const Settings = ({ location, onChange, locationDenied }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-        Set Location
-      </span>
+      <span className="w-label">Set Location</span>
       <div className="relative">
         <input
           type="text"

@@ -53,10 +53,161 @@ body {
   }
 }
 
-/* react-grid-layout: kill drag cursor and hide resize handle when not in edit mode */
+/* react-grid-layout: hide resize handle, allow grab cursor */
 .react-grid-item {
-  cursor: default !important;
+  cursor: grab;
 }
+
+.react-grid-item:active {
+  cursor: grabbing;
+}
+
 .react-resizable-handle {
   display: none !important;
+}
+
+/* Drag placeholder: rounded card outline instead of red fill */
+.react-grid-placeholder {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Lifted appearance while dragging */
+.react-grid-item.react-draggable-dragging>* {
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18) !important;
+  transform: scale(1.02);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WIDGET DESIGN TOKENS
+   To shift the whole widget palette, update these variables.
+   Every token accepts any valid CSS color (hex, oklch, hsl, rgb).
+
+   Currently tuned to neutral gray. Example accent shift:
+     --w-ink-1: #0f172a;  --w-ink-3: #1e40af;  → navy/blue theme
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --w-ink-1: #111827;
+  /* gray-900 — primary: filled dots, strong labels          */
+  --w-ink-2: #1f2937;
+  /* gray-800 — display numbers (clock, large date)          */
+  --w-ink-3: #374151;
+  /* gray-700 — bold value text in title/sub pairs           */
+  --w-ink-4: #4b5563;
+  /* gray-600 — medium context (countdown num, "is" text)    */
+  --w-ink-5: #9ca3af;
+  /* gray-400 — soft/muted labels, captions                  */
+  --w-ink-6: #d1d5db;
+  /* gray-300 — inactive dots, faintest accents              */
+  --w--ink-7: #f3f4f6;
+  /* gray-100 — background of some widgets, lightest accents  */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WIDGET TYPOGRAPHY HIERARCHY
+   Use these component classes for all widget content text.
+   Add Tailwind size/layout utilities alongside (e.g. text-[clamp(…)]).
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* Level 1 — Display: hero numbers (clock, large date) */
+  .w-display {
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--w-ink-2);
+  }
+
+  /* Level 2 — Heading: widget section title ("Today", event name) */
+  .w-heading {
+    font-size: 1.125rem;
+    /* text-lg */
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--w-ink-1);
+  }
+
+  /* Level 3 — Title row: paired label + value (city °C, weekday month) */
+  .w-title-soft {
+    font-size: 1rem;
+    /* text-base */
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  .w-title-bold {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--w-ink-3);
+  }
+
+  /* Level 4 — Sub row: smaller pair (greeting, unit beside display) */
+  .w-sub-soft {
+    font-size: 0.875rem;
+    /* text-sm */
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  .w-sub-bold {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--w-ink-3);
+  }
+
+  /* Period: AM/PM or secondary unit beside a display number */
+  .w-period {
+    font-size: 1.25rem;
+    /* text-xl */
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  /* Level 5 — Body: standard content (event titles, option labels) */
+  /* Font-weight intentionally unset — caller adds font-medium/bold */
+  .w-body {
+    font-size: 0.875rem;
+    /* text-sm */
+    color: var(--w-ink-1);
+  }
+
+  /* Level 6 — Caption: tiny info (event time, weather description) */
+  /* Font-weight intentionally unset — caller adds font-bold etc. */
+  .w-caption {
+    font-size: 0.75rem;
+    /* text-xs */
+    color: var(--w-ink-5);
+  }
+
+  /* Level 7 — Label: settings section headers (ALL CAPS + tracking) */
+  .w-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--w-ink-5);
+  }
+
+  /* Muted: status / error / empty-state messages */
+  .w-muted {
+    font-size: 0.75rem;
+    color: var(--w-ink-5);
+    text-align: center;
+  }
+
+  /* Dot: progress / activity dot (day-progress widget) */
+  .w-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    background-color: var(--w-ink-6);
+  }
+
+  .w-dot-active {
+    background-color: var(--w-ink-1);
+  }
 }

@@ -1,6 +1,35 @@
-# Undistracted Me - Project Roadmap & TODOs
+# Undistracted Me — Roadmap & TODOs
 
-This document serves as a persistent record of completed project phases and a roadmap for future development. It is intended to help new contributors (and AI agents) understand the project's trajectory.
+## ✅ Done
+- [x] Widget grid: drag, per-breakpoint layout persistence, dot-grid overlay, sibling dimming
+- [x] Design system: `--w-ink-*` tokens + typography classes
+- [x] BaseWidget: gear settings popover, click-outside, forwardRef
+- [x] Events system: localStorage, cross-widget sync, create/delete, createPortal modals
+- [x] Events UI: Today/Tomorrow/Custom chips, datetime-local picker, duration pills, View all, trash icon
+- [x] Countdown: reads shared events, nearest future event
+- [x] Calendar: event dots, today cell white text, BS/AD toggle
+- [x] Clock: 24h/12h, time-aware greetings
+- [x] Day progress: 24-dot grid, consistent alignment
+- [x] Weather: OWM API, geolocation, BSicons
+
+---
+
+## 🚧 Up Next
+
+### Short term
+- [ ] **Weather** — error states, refresh interval, unit toggle (°C/°F)
+- [ ] **Dynamic quotes** — rotating quotes widget (static JSON or API)
+
+### Medium term
+- [ ] **Theme customization** — swap `--w-ink-*` tokens via settings (light/dark/accent presets)
+- [ ] **Notes widget** — sticky-note textarea, localStorage persist
+- [ ] **Pomodoro widget** — 25/5 timer, ring progress, session counter
+
+### Later
+- [ ] **Bookmarks widget** — pinned links with favicon, open in new tab
+- [ ] **Onboarding** — first-run flow: API key prompt, widget picker
+- [ ] **Build optimization** — manifest permissions audit, bundle size, Firefox packaging
+
 
 ## ✅ Completed Phases
 
@@ -32,7 +61,11 @@ This document serves as a persistent record of completed project phases and a ro
 
 ## 🚧 Upcoming Phases (TODOs)
 
-### Phase 5: Backend / API Integration
+### Phase 5: Widget UX Polish
+- [ ] **Remove focused/dashboard toggle**: The `ClockWidget` now embeds the full Nepali date + clock + English date display. Once users are happy with the widget mode, deprecate the focused mode toggle (the grid IS the homepage).
+- [ ] **Per-widget settings UX**: Extend the `useWidgetSettings` + `BaseWidget` settings panel pattern to all other widgets (DayProgress, Weather, Events, Calendar, Countdown).
+
+### Phase 6: Backend / API Integration
 - [ ] **Weather Widget API**: Connect the static weather widget to a live API (e.g., OpenWeatherMap) based on user location.
 - [ ] **Events/Calendar Integration**: Integrate with Google Calendar or similar APIs to fetch real tasks and events instead of static mock data.
 - [ ] **Dynamic Quotes**: Fetch daily motivational quotes from a REST API.

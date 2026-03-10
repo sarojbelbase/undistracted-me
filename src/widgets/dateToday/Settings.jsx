@@ -3,7 +3,7 @@ import { LANGUAGES } from '../../constants';
 
 export const Settings = ({ widgetId, language, onChange }) => (
   <div className="flex flex-col gap-2">
-    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Date Format</span>
+    <span className="w-label">Date Format</span>
     {[
       { label: 'Gregorian (A.D.)', value: LANGUAGES.en },
       { label: 'Bikram Sambat (B.S.)', value: LANGUAGES.ne },
@@ -17,7 +17,7 @@ export const Settings = ({ widgetId, language, onChange }) => (
           onChange={() => onChange('language', value)}
           className="accent-blue-500"
         />
-        <span className="text-sm text-gray-700">{label}</span>
+        <span className="w-body font-normal">{label}</span>
       </label>
     ))}
   </div>
