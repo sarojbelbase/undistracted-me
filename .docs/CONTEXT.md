@@ -3,7 +3,7 @@
 ## Overview
 React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab page. Two modes:
 1. **Focused** (`showWidgets=false`): Dark `#18191B` bg, giant Nepali date + clock centered
-2. **Dashboard** (`showWidgets=true`): Light `#F0F0F2` bg, draggable widget grid
+2. **Dashboard** (`showWidgets=true`): Themed bg via `--w-page-bg`, draggable widget grid
 
 ## Tech Stack
 - **React 19**, **Vite**, **@crxjs/vite-plugin**
@@ -12,15 +12,28 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 - **react-bootstrap-icons** — all icons, no inline SVGs
 - **dayjs** + timezone plugin (Asia/Kathmandu)
 
-## Design System (App.css)
-- Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) — shift palette here
+## Theme System (`src/theme.js`)
+- `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
+- `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
+- CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
+- `data-mode` attribute set on `<html>` — drives `[data-mode="dark"]` overrides in `App.css`
+- `useTheme()` — `{ accent, mode, setAccent, setMode }`, persists to `app_accent` / `app_mode` in localStorage
+- **Constraint**: `"Default"` accent is incompatible with dark mode (near-black on dark = invisible text). Switching to dark auto-selects Blueberry; Default swatch is disabled (opacity 30%, `not-allowed` cursor) in dark mode.
+- `applyTheme` is called on import (before React mounts) to prevent FOUC
+
+## Design System (`App.css`)
+- Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) for light; inverted for dark
 - Classes: `w-display`, `w-heading`, `w-title-soft/bold`, `w-sub-soft/bold`, `w-period`, `w-body`, `w-caption`, `w-label`, `w-muted`, `w-dot`/`w-dot-active`
+- `w-title-bold` and `w-sub-bold` use `var(--w-accent)` for accent-tinted text
+- `w-dot-active` uses `var(--w-accent)`
+- Dark mode overrides: `[data-mode="dark"]` selectors patch hardcoded Tailwind classes (bg-white, border-gray-*, text-gray-*, inputs)
 
 ## Key Files
 ```
 src/
   App.jsx              — root, mode toggle, settings overlay
-  App.css              — design tokens, typography classes, grid overrides
+  App.css              — design tokens, typography classes, grid overrides, dark mode patches
+  theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
   widgets/
     WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence (widget_grid_layouts)
     BaseWidget.jsx     — forwardRef card, GearWide settings popover, mousedown click-outside
@@ -32,8 +45,10 @@ src/
     dayProgress/       — 24-dot grid, 1-min interval
     events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal, createPortal
     countdown/         — reads useEvents, nearest future event
-    calendar/          — BS/AD, event dots, today = dark fill + white text (inline style)
+    calendar/          — BS/AD, event dots, today = accent fill + white text
     weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env
+  components/
+    Settings.jsx       — global settings panel: Light/Dark toggle, accent swatches, language
 ```
 
 ## Critical Rules
@@ -42,9 +57,12 @@ src/
 - **Drag buttons** → `onMouseDown={e => e.stopPropagation()}` on any button inside a widget
 - **Per-breakpoint layout** → save `allLayouts` (2nd arg of `onLayoutChange`) not just current
 - **Icons** → react-bootstrap-icons only
+- **Theme** → always use `var(--w-accent)` / `var(--w-ink-*)` — never hardcode colors in widgets
 
 ## localStorage Keys
-- `language`, `showWidgets`, `showMitiInIcon`
+- `language`, `showWidgets`
+- `app_accent` — accent color name (e.g. `"Blueberry"`)
+- `app_mode` — `"light"` or `"dark"`
 - `widgetSettings_${widgetId}` — per-widget settings
 - `widget_events` — events array `{ id, title, startDate, startTime, endDate, endTime }`
 - `widget_grid_layouts` — `{ lg: [...], md: [...], ... }` per breakpoint
@@ -56,28 +74,6 @@ src/
 - `npm run dev` — Vite dev server
 - `npm run build` — extension build
 
-
-## Tech Stack
-- **Framework**: React (v18/19 compatible)
-- **Build Tool**: Vite (configured for Chrome/Firefox Extension builds via `@crxjs/vite-plugin`)
-- **Styling**: Tailwind CSS v4 (using `@import "tailwindcss"` in `src/App.css`)
-- **Grid Layout**: `react-grid-layout` (v2+)
-- **State & Persistence**: React State + `localStorage` (Zustand planned/available for complex state)
-- **Icons**: `lucide-react` (planned/available)
-- **Fonts**: Custom local fonts (loaded via `src/assets/css/fonts.css`)
-
-## Architecture & Core Systems
-
-### 1. Modular Widget System (`src/widgets/`)
-The core of the application is the `WidgetGrid.jsx` which utilizes `react-grid-layout`.
-- **Warning on `react-grid-layout`**: Do NOT use the legacy `WidthProvider` HOC. Vite does not play nicely with its CommonJS exports. We use the modern native hook `useContainerWidth()` and the base `<Responsive>` component instead.
-- **Widgets**: Individual components (`ClockWidget`, `WeatherWidget`, `CalendarWidget`, `EventsWidget`, `DayProgressWidget`, `CountdownWidget`) wrap their content in `<BaseWidget>`.
-- **BaseWidget**: Provides the unified glassmorphism styling (`bg-white/10 backdrop-blur-md rounded-3xl text-white shadow-xl`), standardized padding, and the remove button functionality during edit mode.
-
-### 2. Styling System (Tailwind v4)
-- We use Tailwind CSS v4. The main entry is `src/App.css` containing `@import "tailwindcss";`.
-- The app uses a dark gradient background configured in `App.css` (`--gradient`).
-- UI elements heavily rely on high-contrast white text (`text-white`, `text-white/80`, `text-white/60`) and translucent backgrounds (`bg-white/10`, `bg-white/20`) to achieve the premium glass vibe against the dark background.
 
 ### 3. State Management
 - `showWidgets`: Toggles between the minimal focused view (huge clock) and the full dashboard widget view.
