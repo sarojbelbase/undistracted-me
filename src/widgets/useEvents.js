@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getCalendarEvents, isCalendarConnected, loadCachedGcalEvents, getGoogleProfile, loadCachedProfile } from '../utilities/googleCalendar';
 
 const STORAGE_KEY = 'widget_events';
 const SYNC_EVENT = 'widget_events_changed';
@@ -79,3 +80,67 @@ export const eventStartDate = (event) => {
 
 // Today's date string in YYYY-MM-DD
 export const todayStr = () => new Date().toISOString().slice(0, 10);
+
+// ─── Google Calendar hook ────────────────────────────────────────────────────
+
+/**
+ * Fetches Google Calendar events and maps them to the internal event shape.
+ * Returns { gcalEvents, loading, connected, refresh }.
+ *
+ * Usage:
+ *   const { gcalEvents, loading, connected, refresh } = useGoogleCalendar();
+ *
+ * gcalEvents can be merged with local events:
+ *   const allEvents = [...localEvents, ...gcalEvents];
+ *
+ * gcal events have _source: 'gcal' — treat them as read-only (no delete).
+ */
+export const useGoogleCalendar = () => {
+  const [gcalEvents, setGcalEvents] = useState(() => loadCachedGcalEvents());
+  const [loading, setLoading] = useState(false);
+  const [connected, setConnected] = useState(() => loadCachedGcalEvents().length > 0);
+  const fetchedRef = useRef(false);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { events, changed } = await getCalendarEvents();
+      setConnected(true);
+      if (changed) setGcalEvents(events);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    const cached = loadCachedGcalEvents();
+    if (cached.length > 0) {
+      // Already have cached data — use it as-is, no background re-fetch
+      setConnected(true);
+      return;
+    }
+    // No cache — silently check if already connected before prompting
+    isCalendarConnected().then((yes) => {
+      setConnected(yes);
+      if (yes) refresh();
+    });
+  }, [refresh]);
+
+  return { gcalEvents, loading, connected, refresh };
+};
+
+/**
+ * Returns the signed-in Google user's profile { name, email, picture }.
+ * Loads from cache instantly, revalidates in the background.
+ */
+export const useGoogleProfile = () => {
+  const [profile, setProfile] = useState(() => loadCachedProfile());
+
+  useEffect(() => {
+    getGoogleProfile().then(p => { if (p) setProfile(p); });
+  }, []);
+
+  return profile;
+};

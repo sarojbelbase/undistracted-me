@@ -2,65 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import {
-  Sun, MoonStars,
-  CloudSun, CloudMoon,
-  Cloud, Clouds,
-  CloudRain, CloudRainHeavy,
-  CloudDrizzle, CloudSleet,
-  CloudSnow, CloudLightningRain,
-  CloudFog, CloudHaze, CloudHaze2,
-  Wind, Tornado,
-  ArrowRepeat, ExclamationTriangle, KeyFill,
-} from 'react-bootstrap-icons';
-
-// OpenWeatherMap condition code → Bootstrap Icon component
-// Codes: https://openweathermap.org/weather-conditions
-const getWeatherIcon = (code, isDay, size = 52) => {
-  const props = { size, className: 'text-gray-600' };
-  if (code >= 200 && code < 300) return <CloudLightningRain {...props} />;
-  if (code >= 300 && code < 400) return <CloudDrizzle {...props} />;
-  if (code === 500) return <CloudRain {...props} />;
-  if (code === 511) return <CloudSleet {...props} />;
-  if (code >= 501 && code < 600) return <CloudRainHeavy {...props} />;
-  if ([611, 612, 613, 615, 616].includes(code)) return <CloudSleet {...props} />;
-  if (code >= 600 && code < 700) return <CloudSnow {...props} />;
-  if (code === 741) return <CloudFog {...props} />;
-  if (code === 701 || code === 721) return <CloudHaze {...props} />;
-  if (code === 771) return <Wind {...props} />;
-  if (code === 781) return <Tornado {...props} />;
-  if (code >= 700 && code < 800) return <CloudHaze2 {...props} />;
-  if (code === 800) return isDay ? <Sun {...props} /> : <MoonStars {...props} />;
-  if (code === 801 || code === 802) return isDay ? <CloudSun {...props} /> : <CloudMoon {...props} />;
-  if (code >= 803) return <Clouds {...props} />;
-  return <Cloud {...props} />;
-};
-
-const API_KEY = import.meta.env.VITE_OWM_API_KEY || null;
-
-const getCoords = () =>
-  new Promise((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(
-      ({ coords: { latitude: lat, longitude: lon } }) => resolve({ lat, lon }),
-      reject,
-      { timeout: 8_000 }
-    )
-  );
-
-const fetchWeatherByCoords = (lat, lon) =>
-  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`)
-    .then(r => r.ok ? r.json() : Promise.reject(new Error(`API error ${r.status}`)));
-
-const fetchWeatherByCity = (lat, lon) => fetchWeatherByCoords(lat, lon);
-
-const parseWeather = (data) => ({
-  condition: data.weather[0].main,
-  description: data.weather[0].description,
-  temperature: Math.round(data.main.temp),
-  code: data.weather[0].id,
-  isDay: data.dt >= data.sys.sunrise && data.dt < data.sys.sunset,
-  city: data.name,
-});
+import { ArrowRepeat, ExclamationTriangle, KeyFill } from 'react-bootstrap-icons';
+import { API_KEY, getWeatherIcon, getCoords, fetchWeatherByCoords, parseWeather } from './utils.jsx';
 
 export const Widget = ({ id: widgetId }) => {
   const [settings, updateSetting] = useWidgetSettings(widgetId || 'weather', { location: null });

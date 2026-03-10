@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
+import { getDayProgress, TOTAL_DOTS } from './utils';
 
 export const Widget = () => {
-  const [progress, setProgress] = useState({ percentage: 0, currentHour: 0 });
+  const [progress, setProgress] = useState(() => getDayProgress());
 
   useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const minutes = now.getMinutes();
-      setProgress({
-        percentage: Math.floor(((hour * 60 + minutes) / (24 * 60)) * 100),
-        currentHour: hour,
-      });
-    };
+    const update = () => setProgress(getDayProgress());
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
@@ -27,7 +20,7 @@ export const Widget = () => {
       </div>
       <div className="flex-1 flex items-center">
         <div className="grid grid-cols-6 gap-y-3 w-full place-items-center">
-          {Array.from({ length: 24 }, (_, i) => (
+          {Array.from({ length: TOTAL_DOTS }, (_, i) => (
             <div
               key={i}
               title='1 hour'

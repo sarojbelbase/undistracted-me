@@ -2,35 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import {
-  getTimeZoneAwareDayJsInstance,
-  convertEnglishToNepali,
-} from '../../utilities';
-import { LANGUAGES, MONTH_NAMES } from '../../constants';
-
-const EN_WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-const getDateParts = (language) => {
-  const now = getTimeZoneAwareDayJsInstance();
-  const weekdayIndex = now.day();
-
-  if (language === LANGUAGES.ne) {
-    const [y, m, d] = now.format('YYYY M D').split(' ').map(Number);
-    const [, nepaliMonthStr, nepaliDayStr] = convertEnglishToNepali(y, m, d).split(' ');
-    return {
-      weekday: EN_WEEKDAYS[weekdayIndex],
-      month: MONTH_NAMES[parseInt(nepaliMonthStr) - 1],
-      day: String(parseInt(nepaliDayStr)).padStart(2, '0'),
-    };
-  }
-
-  return {
-    weekday: EN_WEEKDAYS[weekdayIndex],
-    month: EN_MONTHS[now.month()],
-    day: String(now.date()).padStart(2, '0'),
-  };
-};
+import { LANGUAGES } from '../../constants';
+import { getDateParts } from './utils';
 
 export const Widget = ({ widgetId }) => {
   const [settings, updateSetting] = useWidgetSettings(widgetId, { language: LANGUAGES.en });
