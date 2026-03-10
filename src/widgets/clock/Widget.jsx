@@ -2,62 +2,47 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import {
-  getTimeZoneAwareDayJsInstance,
-  convertEnglishToNepali,
-} from '../../utilities';
-import { LANGUAGES, MONTH_NAMES } from '../../constants';
+import { getTimeZoneAwareDayJsInstance } from '../../utilities';
 
-const EN_WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-const getDateParts = (language) => {
+const getTimeParts = (format) => {
   const now = getTimeZoneAwareDayJsInstance();
-  const weekdayIndex = now.day();
+  const h24 = now.hour();
+  const minutes = String(now.minute()).padStart(2, '0');
 
-  if (language === LANGUAGES.ne) {
-    const [y, m, d] = now.format('YYYY M D').split(' ').map(Number);
-    const [, nepaliMonthStr, nepaliDayStr] = convertEnglishToNepali(y, m, d).split(' ');
-    return {
-      weekday: EN_WEEKDAYS[weekdayIndex],
-      month: MONTH_NAMES[parseInt(nepaliMonthStr) - 1],
-      day: String(parseInt(nepaliDayStr)).padStart(2, '0'),
-    };
+  if (format === '24h') {
+    return { time: String(h24).padStart(2, '0') + ':' + minutes, period: null };
   }
 
-  return {
-    weekday: EN_WEEKDAYS[weekdayIndex],
-    month: EN_MONTHS[now.month()],
-    day: String(now.date()).padStart(2, '0'),
-  };
+  const period = h24 < 12 ? 'AM' : 'PM';
+  const h12 = h24 % 12 || 12;
+  return { time: String(h12).padStart(2, '0') + ':' + minutes, period };
 };
 
 export const Widget = ({ widgetId }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId, { language: LANGUAGES.en });
-  const { language } = settings;
+  const [settings, updateSetting] = useWidgetSettings(widgetId, { format: '24h' });
+  const { format } = settings;
 
-  const [parts, setParts] = useState(() => getDateParts(language));
-  const update = useCallback(() => setParts(getDateParts(language)), [language]);
+  const [parts, setParts] = useState(() => getTimeParts(format));
+  const update = useCallback(() => setParts(getTimeParts(format)), [format]);
 
   useEffect(() => {
     update();
-    const id = setInterval(update, 60_000);
+    const id = setInterval(update, 1_000);
     return () => clearInterval(id);
   }, [update]);
 
   return (
     <BaseWidget
       className="p-4 flex flex-col items-center justify-center"
-      settingsContent={<Settings widgetId={widgetId} language={language} onChange={updateSetting} />}
+      settingsContent={<Settings widgetId={widgetId} format={format} onChange={updateSetting} />}
     >
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-base font-semibold text-gray-400">{parts.weekday}</span>
-        <span className="text-base font-bold text-gray-700">{parts.month}</span>
-      </div>
-      <div className="flex items-end">
-        <span className="text-[clamp(4rem,9vw,7rem)] font-bold leading-none text-gray-800">
-          {parts.day}
+      <div className="flex items-baseline gap-2">
+        <span className="text-[clamp(3rem,5vw,5rem)] font-bold leading-none tracking-tight text-gray-800">
+          {parts.time}
         </span>
+        {parts.period && (
+          <span className="text-xl font-semibold text-gray-400">{parts.period}</span>
+        )}
       </div>
     </BaseWidget>
   );
