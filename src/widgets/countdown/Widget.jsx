@@ -52,7 +52,7 @@ export const Widget = () => {
             <div className="w-full text-xl font-bold leading-snug" style={{ color: 'var(--w-ink-1)' }}>
               <span className="block truncate">{next.title} <span className="font-normal" style={{ color: 'var(--w-ink-5)' }}>is</span></span>
               {minutes > 0
-                ? <>in <span className="text-4xl font-extrabold" style={{ color: 'var(--w-ink-4)' }}>{minutes} min</span></>
+                ? <>in <span className="text-4xl font-extrabold" style={{ color: 'var(--w-accent)' }}>{minutes} min</span></>
                 : <span className="text-4xl font-extrabold" style={{ color: 'var(--w-ink-1)' }}>now</span>
               }
             </div>

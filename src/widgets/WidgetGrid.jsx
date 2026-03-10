@@ -75,15 +75,10 @@ export const WidgetGrid = () => {
 
   return (
     <div className="w-full h-full p-4 relative" ref={containerRef}>
-      {/* Dot-grid overlay — fades in when dragging */}
+      {/* Dot-grid overlay — fades in when dragging; color adapts via dark mode CSS */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-200"
-        style={{
-          opacity: isDragging ? 1 : 0,
-          backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.18) 1.5px, transparent 1.5px)',
-          backgroundSize: '28px 28px',
-          backgroundPosition: '14px 14px',
-        }}
+        className="absolute inset-0 pointer-events-none transition-opacity duration-200 drag-dot-overlay"
+        style={{ opacity: isDragging ? 1 : 0 }}
       />
       {mounted && (
         <Responsive
