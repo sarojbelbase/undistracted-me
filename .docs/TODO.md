@@ -11,6 +11,14 @@
 - [x] Clock: 24h/12h, time-aware greetings
 - [x] Day progress: 24-dot grid, consistent alignment
 - [x] Weather: OWM API, geolocation, BSicons
+- [x] Global theme system: `useTheme` + `applyTheme` in `theme.js`, light/dark modes, 11 Elementary OS accent colors
+- [x] Accent color system: colors applied via CSS vars (`--w-accent`, `--w-accent-fg`, `--w-accent-rgb`)
+- [x] Dark mode adaptive overrides in `App.css` (`[data-mode="dark"]` selectors for hardcoded Tailwind classes)
+- [x] `"Default"` accent locked/disabled in dark mode (30% opacity, `not-allowed` cursor, tooltip)
+- [x] Auto-switch accent to Blueberry when switching to dark with Default selected
+- [x] Accent tints on text: `w-title-bold` and `w-sub-bold` use `var(--w-accent)`
+- [x] View all button, event timeline bars, countdown number use `var(--w-accent)`
+- [x] Removed Icon Badge (Miti in icon) setting from global settings panel
 
 ---
 
@@ -21,7 +29,6 @@
 - [ ] **Dynamic quotes** — rotating quotes widget (static JSON or API)
 
 ### Medium term
-- [ ] **Theme customization** — swap `--w-ink-*` tokens via settings (light/dark/accent presets)
 - [ ] **Notes widget** — sticky-note textarea, localStorage persist
 - [ ] **Pomodoro widget** — 25/5 timer, ring progress, session counter
 
@@ -29,6 +36,7 @@
 - [ ] **Bookmarks widget** — pinned links with favicon, open in new tab
 - [ ] **Onboarding** — first-run flow: API key prompt, widget picker
 - [ ] **Build optimization** — manifest permissions audit, bundle size, Firefox packaging
+
 
 
 ## ✅ Completed Phases
