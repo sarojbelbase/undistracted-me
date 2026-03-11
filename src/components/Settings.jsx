@@ -65,7 +65,7 @@ export const Settings = ({
                   backgroundColor: color.hex,
                   outline: accent === color.name ? `2.5px solid ${color.hex}` : 'none',
                   outlineOffset: '2px',
-                  opacity: locked ? 0.3 : 1,
+                  opacity: locked ? 0.4 : 1,
                   cursor: locked ? 'not-allowed' : 'pointer',
                   transform: locked ? 'none' : undefined,
                 }}

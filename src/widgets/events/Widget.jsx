@@ -206,7 +206,7 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
               <div className="w-label mb-2">{b}</div>
               <div className="divide-y divide-gray-100">
                 {grouped[b].map(event => (
-                  <div key={event.id} className="py-2.5 flex items-start gap-2">
+                  <div key={event.id} className="py-2.5 flex items-start gap-2 transition-opacity" style={{ opacity: isPast(event) ? 0.35 : 1 }}>
                     <div className="w-1 rounded-full shrink-0 mt-0.5" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                     <div className="flex-1 min-w-0">
                       {event.htmlLink
@@ -237,6 +237,21 @@ const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
     </div>,
     document.body
   );
+};
+
+const isPast = (event) => {
+  const now = new Date();
+  if (event.endDate && event.endTime) {
+    return new Date(`${event.endDate}T${event.endTime}`) < now;
+  }
+  if (event.startDate && event.startTime) {
+    return new Date(`${event.startDate}T${event.startTime}`) < now;
+  }
+  // All-day: past only if the date itself is before today
+  if (event.startDate) {
+    return event.startDate < todayStr();
+  }
+  return false;
 };
 
 export const Widget = () => {
@@ -287,7 +302,7 @@ export const Widget = () => {
         ) : (
           <div className="divide-y divide-gray-100 flex-1 overflow-hidden">
             {visible.map(event => (
-              <div key={event.id} className="py-3 flex items-start" style={{ height: ITEM_HEIGHT }}>
+              <div key={event.id} className="py-3 flex items-start transition-opacity" style={{ height: ITEM_HEIGHT, opacity: isPast(event) ? 0.3 : 1 }}>
                 <div className="w-1 rounded-full mr-3 mt-0.5 shrink-0" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
                 <div className="flex-1 min-w-0">
                   {event.htmlLink
