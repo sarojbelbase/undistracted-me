@@ -71,7 +71,7 @@ export const Widget = ({ id: widgetId }) => {
           </div>
           <div className="flex-1 flex flex-col items-center justify-center mt-4 mb-2">
             {getWeatherIcon(weather.code, weather.isDay)}
-            <div className="w-caption font-bold mt-3 capitalize">{weather.description}</div>
+            <div className="w-caption font-bold mt-3 capitalize" style={{ color: 'var(--w-accent)' }}>{weather.description}</div>
           </div>
         </div>
       ) : (
