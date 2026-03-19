@@ -1,0 +1,62 @@
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
+/**
+ * Reusable settings modal used by all widgets via BaseWidget.
+ * Renders as a centered portal overlay with backdrop blur.
+ * Dismisses on ESC or backdrop click.
+ */
+export const BaseSettingsModal = ({ title = 'Settings', onClose, children }) => {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="flex flex-col rounded-2xl shadow-2xl w-80 overflow-hidden animate-fade-in"
+        style={{
+          backgroundColor: 'var(--w-surface)',
+          border: '1px solid var(--w-border)',
+          maxHeight: '70vh',
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
+          style={{ borderBottom: '1px solid var(--w-border)' }}
+        >
+          <span className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>
+            {title}
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Close settings"
+            className="w-6 h-6 flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer"
+            style={{ color: 'var(--w-ink-4)' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content — scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {children}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};

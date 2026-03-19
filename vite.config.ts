@@ -10,5 +10,18 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
+    cors: true,
+    proxy: {
+      '/np-api': {
+        target: 'https://nepalipaisa.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/np-api/, '/api'),
+      },
+      '/ml-api': {
+        target: 'https://www.merolagani.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ml-api/, '/handlers/TechnicalChartHandler.ashx'),
+      },
+    },
   },
 })

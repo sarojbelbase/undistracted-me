@@ -12,7 +12,13 @@ const load = () => {
   }
 };
 
-const save = (events) => localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+const save = (events) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  // Mirror to service worker so it can fire event reminders even when tab is closed
+  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+    chrome.runtime.sendMessage({ type: 'EVENTS_UPDATED', events });
+  }
+};
 
 // Module-level cache — shared across all useEvents instances so mutations are visible immediately
 let cache = load();

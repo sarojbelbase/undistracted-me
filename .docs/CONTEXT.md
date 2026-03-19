@@ -16,10 +16,10 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 - `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
 - `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
 - CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
-- `data-mode` attribute set on `<html>` — drives `[data-mode="dark"]` overrides in `App.css`
-- `useTheme()` — `{ accent, mode, setAccent, setMode }`, persists to `app_accent` / `app_mode` in localStorage
-- **Constraint**: `"Default"` accent is incompatible with dark mode (near-black on dark = invisible text). Switching to dark auto-selects Blueberry; Default swatch is disabled (opacity 30%, `not-allowed` cursor) in dark mode.
-- `applyTheme` is called on import (before React mounts) to prevent FOUC
+- `data-mode` attribute on `<html>` drives `[data-mode="dark"]` overrides in `App.css`
+- `useTheme()` — `{ accent, mode, setAccent, setMode }`, persists to `app_accent` / `app_mode`
+- **Constraint**: `"Default"` accent is incompatible with dark mode. Switching to dark auto-selects Blueberry; Default swatch disabled in dark mode.
+- `applyTheme` called on import (before React mounts) to prevent FOUC
 
 ## Design System (`App.css`)
 - Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) for light; inverted for dark
@@ -27,71 +27,104 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 - `w-title-bold` and `w-sub-bold` use `var(--w-accent)` for accent-tinted text
 - `w-dot-active` uses `var(--w-accent)`
 - Dark mode overrides: `[data-mode="dark"]` selectors patch hardcoded Tailwind classes (bg-white, border-gray-*, text-gray-*, inputs)
+- `.react-grid-item { cursor: default }` — drag cursor is ONLY on `.widget-drag-handle`, not on the whole widget
 
 ## Key Files
 ```
 src/
-  App.jsx              — root, mode toggle, settings overlay
+  App.jsx              — root, mode toggle, settings overlay (showWidgets toggle button + gear icon)
   App.css              — design tokens, typography classes, grid overrides, dark mode patches
   theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
   widgets/
-    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence (widget_grid_layouts)
-    BaseWidget.jsx     — forwardRef card, GearWide settings popover, mousedown click-outside
+    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence, drag handle system
+    BaseWidget.jsx     — forwardRef card, GearWide settings popover, mousedown click-outside, cardStyle prop
     useWidgetSettings.js — per-widget localStorage (widgetSettings_${id})
-    useEvents.js       — shared events: module-level cache, SYNC_EVENT broadcast
-    index.js           — WIDGET_TYPES, WIDGET_REGISTRY, all exports
+    useEvents.js       — shared events + Google Calendar: module-level cache, SYNC_EVENT broadcast,
+                         useGoogleCalendar(), useGoogleProfile() hooks
+    index.js           — WIDGET_TYPES, WIDGET_REGISTRY (11 widgets), all exports
     clock/             — live 1s clock, 24h/12h, time-aware greetings
     dateToday/         — weekday + date, BS/AD toggle
     dayProgress/       — 24-dot grid, 1-min interval
-    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal, createPortal
+    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal,
+                         Google Calendar sync, past events faded at 35% opacity,
+                         both modals use createPortal(…, document.body)
     countdown/         — reads useEvents, nearest future event
-    calendar/          — BS/AD, event dots, today = accent fill + white text
-    weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env
+    calendar/          — BS/AD, event dots + tooltip portal, today = accent fill + white text
+    weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env,
+                         description text uses var(--w-accent)
+    notes/             — textarea, localStorage via useWidgetSettings, ACCENT_COLORS color picker
+                         with WCAG luminance contrast auto-detection, cardStyle background
+    bookmarks/         — Google Favicon API, chrome.topSites (Most Visited) + manual Pinned section,
+                         AddModal with URL+name fields
+    pomodoro/          — two phases: pick (25/30/60/custom pills) → timer (SVG ring + Play/Pause/Reset)
+    spotify/           — PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas color
+                         extraction, 5s polling + local tick between polls
   components/
-    Settings.jsx       — global settings panel: Light/Dark toggle, accent swatches, language
+    Settings.jsx       — global settings: Light/Dark toggle, accent swatches, language,
+                         Google Calendar OAuth connect/disconnect, Google profile (avatar + name + email)
+```
+
+## Widget Registry (WIDGET_REGISTRY in index.js)
+All 11 widgets, each with `{ id, type, enabled, x, y, w, h }`:
+1. `clock` — CLOCK
+2. `date-today` — DATE_TODAY
+3. `day-progress` — DAY_PROGRESS
+4. `events` — EVENTS
+5. `weather` — WEATHER
+6. `calendar` — CALENDAR
+7. `countdown` — COUNTDOWN
+8. `notes` — NOTES
+9. `bookmarks` — BOOKMARKS
+10. `pomodoro` — POMODORO
+11. `spotify` — SPOTIFY
+
+## Drag System (WidgetGrid.jsx)
+- `draggableHandle=".widget-drag-handle"` — RGL only starts a drag from this element
+- Handle is a 6-dot pill centered at the top of each widget (`absolute top-0 left-1/2 -translate-x-1/2 z-30`)
+- Handle is `opacity-0` by default, `group-hover:opacity-100` on hover
+- DO NOT add a blocker div (`absolute inset-0`) over widget content — it breaks all interactivity inside widgets
+- Dot-grid overlay (`drag-dot-overlay` class) fades in only while `isDragging` is true
+- **Safety net**: `document.addEventListener('mouseup', clearDragging)` — catches mouse released outside viewport so grid never freezes in dragging state
+- `LAYOUT_VERSION = ACTIVE_WIDGETS.length` — auto-busts saved layout when widget count changes
+
+## Google Calendar / Profile Integration
+- OAuth via `chrome.identity.getAuthToken` (Chrome) with scopes: `calendar.readonly`, `userinfo.profile`, `userinfo.email`
+- `useGoogleCalendar()` in `useEvents.js` — returns `{ events, loading, error, connected, refresh, disconnect }`
+- Cache: raw API response stored in `widget_gcal_cache` + `widget_gcal_cache_time`; if cache exists on tab open, use it immediately without re-fetching (no spinner every load)
+- Manual Sync button triggers a forced refresh
+- `useGoogleProfile()` — fetches `https://www.googleapis.com/oauth2/v2/userinfo`, returns `{ profile: { name, email, picture }, ... }`
+- Profile shown in Settings panel: avatar + name + email card when connected
+- `manifest.json` OAuth2 block: `client_id`, scopes `calendar.readonly userinfo.profile userinfo.email`
+
+## Manifest Permissions
+```json
+"permissions": ["identity", "storage", "geolocation", "topSites"]
+"host_permissions": ["https://api.spotify.com/*", "https://accounts.spotify.com/*"]
 ```
 
 ## Critical Rules
-- **Modals** → `createPortal(…, document.body)` — CSS `transform` in grid breaks `position:fixed`
+- **Modals** → `createPortal(…, document.body)` — CSS `transform` in grid creates stacking context, breaks `position:fixed`
 - **Cross-widget sync** → module-level cache + `dispatchEvent(new Event('widget_events_changed'))`. Never mutate inside `setState(prev =>)` when dispatching (StrictMode double-invoke = double event)
-- **Drag buttons** → `onMouseDown={e => e.stopPropagation()}` on any button inside a widget
+- **Drag buttons** → `onMouseDown={e => e.stopPropagation()}` on any interactive element inside a widget to prevent drag from starting
 - **Per-breakpoint layout** → save `allLayouts` (2nd arg of `onLayoutChange`) not just current
-- **Icons** → react-bootstrap-icons only
+- **Icons** → react-bootstrap-icons only, no hardcoded SVGs
 - **Theme** → always use `var(--w-accent)` / `var(--w-ink-*)` — never hardcode colors in widgets
+- **Chrome API guards** → always check `typeof chrome !== 'undefined' && chrome.runtime?.id` before calling any `chrome.*` API
+- **Spotify / identity** → guard `chrome.identity?.launchWebAuthFlow` — not available outside extension context
 
 ## localStorage Keys
 - `language`, `showWidgets`
-- `app_accent` — accent color name (e.g. `"Blueberry"`)
-- `app_mode` — `"light"` or `"dark"`
+- `app_accent`, `app_mode`
 - `widgetSettings_${widgetId}` — per-widget settings
-- `widget_events` — events array `{ id, title, startDate, startTime, endDate, endTime }`
+- `widget_events` — events array
+- `widget_gcal_cache` — raw Google Calendar API response
+- `widget_gcal_cache_time` — timestamp (ms) of last GCal fetch
 - `widget_grid_layouts` — `{ lg: [...], md: [...], ... }` per breakpoint
+- `widget_grid_layout_version` — equals `ACTIVE_WIDGETS.length`; mismatch clears saved layout
 
 ## Event Shape
 `{ id, title, startDate, startTime, endDate, endTime }` — dates `YYYY-MM-DD`, times `HH:MM` 24h
 
 ## Commands
-- `npm run dev` — Vite dev server
-- `npm run build` — extension build
-
-
-### 3. State Management
-- `showWidgets`: Toggles between the minimal focused view (huge clock) and the full dashboard widget view.
-- `layouts`: Stores the `react-grid-layout` breakpoints and coordinates for widgets. Saved to `localStorage('widgetLayouts')`.
-- `widgets`: Stores the active list of widgets to render. Saved to `localStorage('activeWidgets')`.
-
-## Project History & Current State
-The project has undergone 4 major phases:
-1. **Setup**: Vite + Extension config.
-2. **Feature Implementation**: Static widget components created.
-3. **Design Polish**: Layouts refined.
-4. **Modular Grid System**: (Current State) Completely dynamic grid using `react-grid-layout`. All widgets are draggable, resizable (configurable), and have cohesive glassmorphism styling.
-
-## How to Run & Build
-- **Development**: `npm run dev` (Runs the standard Vite web server on `localhost:3000`).
-- **Production/Extension Build**: `npm run build` (Builds the extension using the CRXJS Vite plugin based on `public/manifest.json`).
-
-## AI Agent / LLM Guidelines
-- **CSS**: Always use Tailwind classes. Preserve the glassmorphism theme (do not use solid white backgrounds `bg-white` for cards).
-- **Grid**: If modifying grid logic, refer to `useGridLayout` or `Responsive` from `react-grid-layout`. Ensure compatibility with ES Modules.
-- **Context Updates**: When adding new major features, architectural changes, or fixing profound bugs (like the Vite CJS interop issue), append or modify this file so future models have the updated context.
+- `npm run dev` — Vite dev server (port 3000, CORS enabled)
+- `npm run build` — extension build → `dist/`

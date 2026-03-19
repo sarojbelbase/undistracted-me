@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <title>GBIME — Stock Data Debug</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: monospace;
+        background: #0f1117;
+        color: #e2e8f0;
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 18px;
+        margin-bottom: 4px;
+        color: #f8fafc;
+      }
+
+      .sub {
+        font-size: 12px;
+        color: #64748b;
+        margin-bottom: 20px;
+      }
+
+      .stats {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        background: #1e2433;
+        border-radius: 10px;
+        padding: 12px 18px;
+      }
+
+      .stat-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #64748b;
+      }
+
+      .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+
+      .up {
+        color: #22c55e;
+      }
+
+      .down {
+        color: #ef4444;
+      }
+
+      .neutral {
+        color: #94a3b8;
+      }
+
+      canvas {
+        display: block;
+        border-radius: 10px;
+      }
+
+      .chart-wrap {
+        background: #1e2433;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th {
+        text-align: left;
+        padding: 6px 10px;
+        color: #64748b;
+        border-bottom: 1px solid #1e2433;
+        position: sticky;
+        top: 0;
+        background: #0f1117;
+      }
+
+      td {
+        padding: 5px 10px;
+        border-bottom: 1px solid #1a1f2e;
+      }
+
+      tr:hover td {
+        background: #1e2433;
+      }
+
+      .table-wrap {
+        max-height: 380px;
+        overflow-y: auto;
+        border: 1px solid #1e2433;
+        border-radius: 10px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .badge.up {
+        background: #14532d;
+        color: #4ade80;
+      }
+
+      .badge.down {
+        background: #7f1d1d;
+        color: #f87171;
+      }
+
+      .badge.neutral {
+        background: #1e293b;
+        color: #94a3b8;
+      }
+
+      .section-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: #64748b;
+        margin-bottom: 8px;
+      }
+
+      .note {
+        font-size: 11px;
+        color: #f59e0b;
+        background: #1c1a0a;
+        border: 1px solid #78350f;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <h1>GBIME — Raw API Data Debug</h1>
+    <div class="sub">dataType=1D · All timestamps → Nepal time (Asia/Kathmandu, UTC+5:45)</div>
+
+    <div id="note" class="note"></div>
+    <div class="stats" id="stats"></div>
+
+    <div class="chart-wrap">
+      <div class="section-title">Intraday price line (all ticks)</div>
+      <canvas id="chart" height="180"></canvas>
+    </div>
+
+    <div class="section-title">All ticks (sorted ascending by tradeDate)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>tradeDate (ms)</th>
+            <th>Time (NPT)</th>
+            <th>Closing Price</th>
+            <th>Δ from prev</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const RAW = { "statusCode": 200, "message": "Success", "result": [{ "tradeDate": 1773878400000.0, "closingPrice": 249.00 }, { "tradeDate": 1773917160000.0, "closingPrice": 237.00 }, { "tradeDate": 1773918141000.0, "closingPrice": 241.70 }, { "tradeDate": 1773918151000.0, "closingPrice": 242.00 }, { "tradeDate": 1773918303000.0, "closingPrice": 244.00 }, { "tradeDate": 1773918333000.0, "closingPrice": 242.00 }, { "tradeDate": 1773918357000.0, "closingPrice": 244.00 }, { "tradeDate": 1773918437000.0, "closingPrice": 243.00 }, { "tradeDate": 1773918468000.0, "closingPrice": 244.00 }, { "tradeDate": 1773918544000.0, "closingPrice": 245.60 }, { "tradeDate": 1773918581000.0, "closingPrice": 245.60 }, { "tradeDate": 1773918667000.0, "closingPrice": 246.90 }, { "tradeDate": 1773918684000.0, "closingPrice": 250.50 }, { "tradeDate": 1773918714000.0, "closingPrice": 251.00 }, { "tradeDate": 1773918756000.0, "closingPrice": 249.90 }, { "tradeDate": 1773918824000.0, "closingPrice": 249.00 }, { "tradeDate": 1773918859000.0, "closingPrice": 249.00 }, { "tradeDate": 1773918881000.0, "closingPrice": 247.00 }, { "tradeDate": 1773918921000.0, "closingPrice": 246.10 }, { "tradeDate": 1773918979000.0, "closingPrice": 246.10 }, { "tradeDate": 1773919005000.0, "closingPrice": 246.10 }, { "tradeDate": 1773919063000.0, "closingPrice": 246.10 }, { "tradeDate": 1773919103000.0, "closingPrice": 246.00 }, { "tradeDate": 1773919134000.0, "closingPrice": 245.90 }, { "tradeDate": 1773919168000.0, "closingPrice": 245.00 }, { "tradeDate": 1773919214000.0, "closingPrice": 246.00 }, { "tradeDate": 1773919290000.0, "closingPrice": 246.00 }, { "tradeDate": 1773919340000.0, "closingPrice": 245.10 }, { "tradeDate": 1773919380000.0, "closingPrice": 246.00 }, { "tradeDate": 1773919425000.0, "closingPrice": 246.10 }, { "tradeDate": 1773919451000.0, "closingPrice": 247.00 }, { "tradeDate": 1773919505000.0, "closingPrice": 246.00 }, { "tradeDate": 1773919545000.0, "closingPrice": 247.00 }, { "tradeDate": 1773919630000.0, "closingPrice": 247.00 }, { "tradeDate": 1773919680000.0, "closingPrice": 246.90 }, { "tradeDate": 1773919775000.0, "closingPrice": 246.10 }, { "tradeDate": 1773919812000.0, "closingPrice": 246.90 }, { "tradeDate": 1773919866000.0, "closingPrice": 246.90 }, { "tradeDate": 1773919975000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920009000.0, "closingPrice": 246.80 }, { "tradeDate": 1773920132000.0, "closingPrice": 246.80 }, { "tradeDate": 1773920174000.0, "closingPrice": 246.60 }, { "tradeDate": 1773920193000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920262000.0, "closingPrice": 246.20 }, { "tradeDate": 1773920280000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920337000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920451000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920472000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920535000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920609000.0, "closingPrice": 246.00 }, { "tradeDate": 1773920648000.0, "closingPrice": 247.00 }, { "tradeDate": 1773920708000.0, "closingPrice": 248.00 }, { "tradeDate": 1773920745000.0, "closingPrice": 248.00 }, { "tradeDate": 1773920784000.0, "closingPrice": 248.00 }, { "tradeDate": 1773920800000.0, "closingPrice": 247.00 }, { "tradeDate": 1773920896000.0, "closingPrice": 247.00 }, { "tradeDate": 1773920932000.0, "closingPrice": 247.90 }, { "tradeDate": 1773921059000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921225000.0, "closingPrice": 247.80 }, { "tradeDate": 1773921236000.0, "closingPrice": 247.80 }, { "tradeDate": 1773921275000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921345000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921355000.0, "closingPrice": 247.70 }, { "tradeDate": 1773921425000.0, "closingPrice": 247.60 }, { "tradeDate": 1773921430000.0, "closingPrice": 248.00 }, { "tradeDate": 1773921476000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921579000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921620000.0, "closingPrice": 247.70 }, { "tradeDate": 1773921651000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921675000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921743000.0, "closingPrice": 247.50 }, { "tradeDate": 1773921768000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921819000.0, "closingPrice": 247.00 }, { "tradeDate": 1773921836000.0, "closingPrice": 246.10 }, { "tradeDate": 1773921972000.0, "closingPrice": 246.20 }, { "tradeDate": 1773922018000.0, "closingPrice": 246.50 }, { "tradeDate": 1773922028000.0, "closingPrice": 246.20 }, { "tradeDate": 1773922103000.0, "closingPrice": 246.10 }, { "tradeDate": 1773922142000.0, "closingPrice": 246.10 }, { "tradeDate": 1773922150000.0, "closingPrice": 246.10 }, { "tradeDate": 1773922216000.0, "closingPrice": 245.20 }, { "tradeDate": 1773922263000.0, "closingPrice": 246.00 }, { "tradeDate": 1773922301000.0, "closingPrice": 246.50 }, { "tradeDate": 1773922316000.0, "closingPrice": 246.50 }, { "tradeDate": 1773922365000.0, "closingPrice": 245.20 }, { "tradeDate": 1773922496000.0, "closingPrice": 245.30 }, { "tradeDate": 1773922512000.0, "closingPrice": 245.30 }, { "tradeDate": 1773922584000.0, "closingPrice": 245.30 }, { "tradeDate": 1773922604000.0, "closingPrice": 246.00 }, { "tradeDate": 1773922634000.0, "closingPrice": 246.00 }, { "tradeDate": 1773922741000.0, "closingPrice": 246.00 }, { "tradeDate": 1773922815000.0, "closingPrice": 246.00 }, { "tradeDate": 1773922824000.0, "closingPrice": 246.30 }, { "tradeDate": 1773922907000.0, "closingPrice": 246.30 }, { "tradeDate": 1773922937000.0, "closingPrice": 246.40 }, { "tradeDate": 1773922972000.0, "closingPrice": 246.50 }, { "tradeDate": 1773923008000.0, "closingPrice": 246.80 }, { "tradeDate": 1773923057000.0, "closingPrice": 246.70 }, { "tradeDate": 1773923178000.0, "closingPrice": 246.70 }, { "tradeDate": 1773923226000.0, "closingPrice": 246.80 }, { "tradeDate": 1773923244000.0, "closingPrice": 246.70 }, { "tradeDate": 1773923298000.0, "closingPrice": 246.10 }, { "tradeDate": 1773923373000.0, "closingPrice": 246.10 }, { "tradeDate": 1773923418000.0, "closingPrice": 246.50 }, { "tradeDate": 1773923535000.0, "closingPrice": 246.00 }, { "tradeDate": 1773923554000.0, "closingPrice": 246.50 }, { "tradeDate": 1773923704000.0, "closingPrice": 246.00 }, { "tradeDate": 1773923740000.0, "closingPrice": 246.00 }, { "tradeDate": 1773923786000.0, "closingPrice": 246.10 }, { "tradeDate": 1773923880000.0, "closingPrice": 246.40 }, { "tradeDate": 1773924018000.0, "closingPrice": 246.50 }, { "tradeDate": 1773924061000.0, "closingPrice": 246.20 }, { "tradeDate": 1773924104000.0, "closingPrice": 246.70 }, { "tradeDate": 1773924167000.0, "closingPrice": 246.70 }, { "tradeDate": 1773924185000.0, "closingPrice": 246.50 }, { "tradeDate": 1773924231000.0, "closingPrice": 246.50 }, { "tradeDate": 1773924310000.0, "closingPrice": 246.60 }, { "tradeDate": 1773924333000.0, "closingPrice": 246.80 }, { "tradeDate": 1773924419000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924446000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924504000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924514000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924582000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924658000.0, "closingPrice": 246.50 }, { "tradeDate": 1773924724000.0, "closingPrice": 246.50 }, { "tradeDate": 1773924776000.0, "closingPrice": 246.40 }, { "tradeDate": 1773924821000.0, "closingPrice": 246.30 }, { "tradeDate": 1773924849000.0, "closingPrice": 247.00 }, { "tradeDate": 1773924889000.0, "closingPrice": 246.00 }, { "tradeDate": 1773924945000.0, "closingPrice": 246.00 }, { "tradeDate": 1773924979000.0, "closingPrice": 245.50 }, { "tradeDate": 1773925023000.0, "closingPrice": 245.50 }, { "tradeDate": 1773925035000.0, "closingPrice": 246.00 }, { "tradeDate": 1773925121000.0, "closingPrice": 246.00 }, { "tradeDate": 1773925170000.0, "closingPrice": 246.00 }, { "tradeDate": 1773925213000.0, "closingPrice": 246.00 }, { "tradeDate": 1773925279000.0, "closingPrice": 246.10 }, { "tradeDate": 1773925337000.0, "closingPrice": 246.20 }, { "tradeDate": 1773925361000.0, "closingPrice": 246.10 }, { "tradeDate": 1773925503000.0, "closingPrice": 246.10 }, { "tradeDate": 1773925539000.0, "closingPrice": 246.10 }, { "tradeDate": 1773925722000.0, "closingPrice": 247.00 }, { "tradeDate": 1773925816000.0, "closingPrice": 247.00 }, { "tradeDate": 1773925860000.0, "closingPrice": 246.20 }, { "tradeDate": 1773925867000.0, "closingPrice": 246.20 }, { "tradeDate": 1773925981000.0, "closingPrice": 246.20 }, { "tradeDate": 1773926014000.0, "closingPrice": 246.10 }, { "tradeDate": 1773926076000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926172000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926216000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926246000.0, "closingPrice": 247.20 }, { "tradeDate": 1773926321000.0, "closingPrice": 247.20 }, { "tradeDate": 1773926393000.0, "closingPrice": 247.20 }, { "tradeDate": 1773926453000.0, "closingPrice": 247.50 }, { "tradeDate": 1773926495000.0, "closingPrice": 247.50 }, { "tradeDate": 1773926541000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926570000.0, "closingPrice": 246.30 }, { "tradeDate": 1773926635000.0, "closingPrice": 247.10 }, { "tradeDate": 1773926673000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926747000.0, "closingPrice": 247.00 }, { "tradeDate": 1773926758000.0, "closingPrice": 247.40 }, { "tradeDate": 1773926921000.0, "closingPrice": 247.40 }, { "tradeDate": 1773926981000.0, "closingPrice": 247.10 }, { "tradeDate": 1773927023000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927045000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927107000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927181000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927220000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927299000.0, "closingPrice": 247.30 }, { "tradeDate": 1773927424000.0, "closingPrice": 247.10 }, { "tradeDate": 1773927464000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927501000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927529000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927550000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927600000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927651000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927677000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927717000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927756000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927796000.0, "closingPrice": 247.00 }, { "tradeDate": 1773927855000.0, "closingPrice": 246.50 }, { "tradeDate": 1773927886000.0, "closingPrice": 246.90 }, { "tradeDate": 1773927911000.0, "closingPrice": 245.10 }, { "tradeDate": 1773927994000.0, "closingPrice": 245.20 }, { "tradeDate": 1773928084000.0, "closingPrice": 245.10 }, { "tradeDate": 1773928185000.0, "closingPrice": 246.00 }, { "tradeDate": 1773928250000.0, "closingPrice": 246.00 }, { "tradeDate": 1773928335000.0, "closingPrice": 246.30 }, { "tradeDate": 1773928350000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928461000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928478000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928537000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928551000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928627000.0, "closingPrice": 246.10 }, { "tradeDate": 1773928678000.0, "closingPrice": 246.20 }, { "tradeDate": 1773928845000.0, "closingPrice": 246.80 }, { "tradeDate": 1773928904000.0, "closingPrice": 247.00 }, { "tradeDate": 1773929005000.0, "closingPrice": 247.00 }, { "tradeDate": 1773929094000.0, "closingPrice": 247.50 }, { "tradeDate": 1773929186000.0, "closingPrice": 247.40 }, { "tradeDate": 1773929203000.0, "closingPrice": 247.00 }, { "tradeDate": 1773929296000.0, "closingPrice": 247.00 }, { "tradeDate": 1773929342000.0, "closingPrice": 247.50 }, { "tradeDate": 1773929372000.0, "closingPrice": 247.60 }, { "tradeDate": 1773929424000.0, "closingPrice": 247.60 }, { "tradeDate": 1773929435000.0, "closingPrice": 247.80 }, { "tradeDate": 1773929502000.0, "closingPrice": 248.20 }, { "tradeDate": 1773929531000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929585000.0, "closingPrice": 249.50 }, { "tradeDate": 1773929605000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929641000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929687000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929733000.0, "closingPrice": 249.40 }, { "tradeDate": 1773929788000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929818000.0, "closingPrice": 249.50 }, { "tradeDate": 1773929845000.0, "closingPrice": 249.00 }, { "tradeDate": 1773929891000.0, "closingPrice": 249.40 }, { "tradeDate": 1773929945000.0, "closingPrice": 249.30 }, { "tradeDate": 1773929987000.0, "closingPrice": 248.60 }, { "tradeDate": 1773930014000.0, "closingPrice": 249.00 }, { "tradeDate": 1773930065000.0, "closingPrice": 249.50 }, { "tradeDate": 1773930109000.0, "closingPrice": 249.50 }, { "tradeDate": 1773930145000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930165000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930218000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930260000.0, "closingPrice": 250.50 }, { "tradeDate": 1773930299000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930342000.0, "closingPrice": 250.40 }, { "tradeDate": 1773930366000.0, "closingPrice": 250.10 }, { "tradeDate": 1773930416000.0, "closingPrice": 250.10 }, { "tradeDate": 1773930465000.0, "closingPrice": 250.40 }, { "tradeDate": 1773930501000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930545000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930585000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930622000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930664000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930674000.0, "closingPrice": 250.00 }, { "tradeDate": 1773930732000.0, "closingPrice": 249.50 }, { "tradeDate": 1773930789000.0, "closingPrice": 249.90 }, { "tradeDate": 1773930794000.0, "closingPrice": 249.10 }, { "tradeDate": 1773930857000.0, "closingPrice": 249.70 }, { "tradeDate": 1773930880000.0, "closingPrice": 249.70 }, { "tradeDate": 1773930946000.0, "closingPrice": 249.60 }, { "tradeDate": 1773930986000.0, "closingPrice": 250.00 }, { "tradeDate": 1773931029000.0, "closingPrice": 249.60 }, { "tradeDate": 1773931067000.0, "closingPrice": 250.00 }, { "tradeDate": 1773931069000.0, "closingPrice": 249.90 }, { "tradeDate": 1773931124000.0, "closingPrice": 250.00 }, { "tradeDate": 1773931170000.0, "closingPrice": 250.00 }, { "tradeDate": 1773931223000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931267000.0, "closingPrice": 249.50 }, { "tradeDate": 1773931301000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931336000.0, "closingPrice": 249.90 }, { "tradeDate": 1773931372000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931413000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931456000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931496000.0, "closingPrice": 249.60 }, { "tradeDate": 1773931536000.0, "closingPrice": 249.60 }, { "tradeDate": 1773931573000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931624000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931659000.0, "closingPrice": 249.00 }, { "tradeDate": 1773931706000.0, "closingPrice": 249.10 }, { "tradeDate": 1773931736000.0, "closingPrice": 249.00 }, { "tradeDate": 1773931773000.0, "closingPrice": 248.50 }, { "tradeDate": 1773931826000.0, "closingPrice": 248.10 }, { "tradeDate": 1773931870000.0, "closingPrice": 248.00 }, { "tradeDate": 1773931902000.0, "closingPrice": 248.10 }, { "tradeDate": 1773931935000.0, "closingPrice": 248.50 }, { "tradeDate": 1773931981000.0, "closingPrice": 248.10 }, { "tradeDate": 1773932037000.0, "closingPrice": 248.90 }, { "tradeDate": 1773932098000.0, "closingPrice": 248.10 }, { "tradeDate": 1773932141000.0, "closingPrice": 248.10 }, { "tradeDate": 1773932174000.0, "closingPrice": 248.00 }, { "tradeDate": 1773932203000.0, "closingPrice": 248.20 }, { "tradeDate": 1773932263000.0, "closingPrice": 248.10 }, { "tradeDate": 1773932288000.0, "closingPrice": 248.10 }, { "tradeDate": 1773932346000.0, "closingPrice": 248.50 }] };
+
+      // ─── Replicate utils.js logic exactly ───────────────────────────────────────
+      const raw = RAW.result;
+      const sorted = [...raw].sort((a, b) => a.tradeDate - b.tradeDate);
+      const prices = sorted.map(p => Number(p.closingPrice)).filter(v => !isNaN(v));
+
+      const ltp = prices[prices.length - 1];           // last tick
+      const prevClose_OLD = prices[0];                        // OLD logic (utils before fix)
+      const prevClose_NEW = prices.length >= 2               // NEW logic
+        ? prices[prices.length - 2] : prices[0];
+
+      // first tick timestamp for reference
+      const firstTs = sorted[0].tradeDate;
+      const firstTime = new Date(firstTs).toLocaleString('en-US', { timeZone: 'Asia/Kathmandu', hour12: true, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+      // ─── format NPT ─────────────────────────────────────────────────────────────
+      function toNPT(ts) {
+        return new Date(ts).toLocaleTimeString('en-US', {
+          timeZone: 'Asia/Kathmandu', hour12: false,
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      }
+      function toNPTFull(ts) {
+        return new Date(ts).toLocaleString('en-US', {
+          timeZone: 'Asia/Kathmandu', hour12: false,
+          month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      }
+
+      // ─── Stats box ──────────────────────────────────────────────────────────────
+      const statsEl = document.getElementById('stats');
+
+      function statHTML(label, value, cls = 'neutral') {
+        return `<div class="stat"><div class="stat-label">${label}</div><div class="stat-value ${cls}">${value}</div></div>`;
+      }
+
+      const changeOld = ltp - prevClose_OLD;
+      const pctOld = (changeOld / prevClose_OLD * 100);
+      const changeNew = ltp - prevClose_NEW;
+      const pctNew = (changeNew / prevClose_NEW * 100);
+
+      statsEl.innerHTML = `
+  ${statHTML('LTP (last tick)', ltp.toFixed(2))}
+  ${statHTML('prices[0]  (first tick / OLD prevClose)', prevClose_OLD.toFixed(2), 'down')}
+  ${statHTML('prices[n-2] (NEW prevClose)', prevClose_NEW.toFixed(2), 'up')}
+  ${statHTML('Change  OLD logic', `${changeOld > 0 ? '+' : ''}${changeOld.toFixed(2)} (${pctOld > 0 ? '+' : ''}${pctOld.toFixed(2)}%)`, changeOld >= 0 ? 'up' : 'down')}
+  ${statHTML('Change  NEW logic', `${changeNew > 0 ? '+' : ''}${changeNew.toFixed(2)} (${pctNew > 0 ? '+' : ''}${pctNew.toFixed(2)}%)`, changeNew >= 0 ? 'up' : 'down')}
+  ${statHTML('Total ticks', sorted.length)}
+`;
+
+      // ─── Note ───────────────────────────────────────────────────────────────────
+      document.getElementById('note').innerHTML =
+        `⚠ prices[0] = <b>${prevClose_OLD}</b> — first tick at <b>${toNPTFull(sorted[0].tradeDate)}</b> NPT.<br>
+   This is a <em>same-day intraday open</em>, <b>not</b> yesterday's close.<br>
+   The gap between 249 (prices[0] at ~10:10 AM) and the rest of the ticks (~11:05 AM onward) is<br>
+   <b>${((sorted[1].tradeDate - sorted[0].tradeDate) / 1000 / 60).toFixed(1)} minutes</b> — confirming prices[0] is the pre-market/opening reference, not a prior-day close.<br>
+   <br>
+   ✅ <b>New prevClose = prices[n-2] = ${prevClose_NEW}</b> → Change: <b>${changeNew > 0 ? '+' : ''}${changeNew.toFixed(2)} (${pctNew > 0 ? '+' : ''}${pctNew.toFixed(2)}%)</b> which matches NEPSE display (+8.00 / +3.32%) direction.`;
+
+      // ─── Canvas chart ───────────────────────────────────────────────────────────
+      const canvas = document.getElementById('chart');
+      const W = canvas.parentElement.clientWidth - 32;
+      canvas.width = W;
+      const H = 180;
+      const ctx = canvas.getContext('2d');
+
+      const PAD = { top: 12, bottom: 28, left: 12, right: 12 };
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const range = max - min || 1;
+
+      function px(i) {
+        return PAD.left + (i / (prices.length - 1)) * (W - PAD.left - PAD.right);
+      }
+      function py(v) {
+        return PAD.top + (1 - (v - min) / range) * (H - PAD.top - PAD.bottom);
+      }
+
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, PAD.top, 0, H - PAD.bottom);
+      grad.addColorStop(0, 'rgba(34,197,94,0.3)');
+      grad.addColorStop(1, 'rgba(34,197,94,0.02)');
+
+      ctx.beginPath();
+      ctx.moveTo(px(0), py(prices[0]));
+      for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
+      ctx.lineTo(px(prices.length - 1), H - PAD.bottom);
+      ctx.lineTo(px(0), H - PAD.bottom);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(px(0), py(prices[0]));
+      for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Mark prices[0] — OLD prevClose
+      ctx.beginPath();
+      ctx.arc(px(0), py(prices[0]), 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '10px monospace';
+      ctx.fillText(`prices[0]=${prevClose_OLD} (OLD prevClose)`, px(0) + 8, py(prices[0]) - 4);
+
+      // Mark prices[n-2] — NEW prevClose
+      const idx2 = prices.length - 2;
+      ctx.beginPath();
+      ctx.arc(px(idx2), py(prices[idx2]), 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fill();
+      ctx.fillStyle = '#3b82f6';
+      ctx.font = '10px monospace';
+      ctx.fillText(`prices[n-2]=${prevClose_NEW} (NEW prevClose)`, px(idx2) - 140, py(prices[idx2]) - 6);
+
+      // Mark LTP
+      ctx.beginPath();
+      ctx.arc(px(prices.length - 1), py(ltp), 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fill();
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '10px monospace';
+      ctx.fillText(`LTP=${ltp}`, px(prices.length - 1) - 52, py(ltp) - 6);
+
+      // X-axis time labels (every ~30 ticks)
+      ctx.fillStyle = '#475569';
+      ctx.font = '9px monospace';
+      const step = Math.floor(prices.length / 8);
+      for (let i = 0; i < prices.length; i += step) {
+        const t = toNPT(sorted[i].tradeDate);
+        ctx.fillText(t, px(i) - 18, H - 6);
+      }
+
+      // ─── Table ───────────────────────────────────────────────────────────────────
+      const tbody = document.getElementById('tbody');
+      sorted.forEach((row, i) => {
+        const prev = i > 0 ? sorted[i - 1].closingPrice : null;
+        const delta = prev !== null ? (row.closingPrice - prev) : null;
+        const dir = delta === null ? '' : delta > 0 ? 'up' : delta < 0 ? 'down' : 'neutral';
+        const deltaStr = delta === null ? '—'
+          : `${delta > 0 ? '+' : ''}${delta.toFixed(2)}`;
+
+        const isFirst = i === 0;
+        const isLast = i === sorted.length - 1;
+        const isN2 = i === sorted.length - 2;
+        const rowBg = isFirst ? 'background:#3f1d1d' : isN2 ? 'background:#1a2a3f' : isLast ? 'background:#1a2f1a' : '';
+
+        tbody.innerHTML += `<tr style="${rowBg}">
+    <td>${i}</td>
+    <td>${row.tradeDate}</td>
+    <td>${toNPTFull(row.tradeDate)}${isFirst ? ' <span class="badge down">prices[0] OLD prevClose</span>' : ''}${isN2 ? ' <span class="badge" style="background:#1e3a5f;color:#93c5fd">prices[n-2] NEW prevClose</span>' : ''}${isLast ? ' <span class="badge up">LTP prices[n-1]</span>' : ''}</td>
+    <td><b>${row.closingPrice.toFixed(2)}</b></td>
+    <td class="${dir}">${deltaStr}</td>
+  </tr>`;
+      });
+    </script>
+  </body>
+
+</html>

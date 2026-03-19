@@ -53,10 +53,11 @@ export const getCoords = () =>
 
 /**
  * Fetches current weather from OpenWeatherMap for the given coordinates.
+ * @param {string} units - 'metric' (°C) or 'imperial' (°F)
  */
-export const fetchWeatherByCoords = (lat, lon) =>
+export const fetchWeatherByCoords = (lat, lon, units = 'metric') =>
   fetch(
-    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`,
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${API_KEY}`,
   ).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`API error ${r.status}`))));
 
 /**

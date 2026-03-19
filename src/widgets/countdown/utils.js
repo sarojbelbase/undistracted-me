@@ -1,33 +1,54 @@
 /**
  * Countdown widget utilities
  */
-import { eventStartDate } from '../useEvents';
+
+export const REPEAT_OPTIONS = [
+  { label: 'Once', value: 'none' },
+  { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' },
+  { label: 'Yearly', value: 'yearly' },
+];
 
 /**
- * Formats a Date as "H:MM AM/PM".
+ * Returns the next future occurrence of a countdown.
+ * For 'none' repeat, returns the target Date as-is (may be in the past).
+ * For repeating countdowns, advances until the next future occurrence.
  */
-export const fmt12h = (date) => {
-  if (!date) return '';
-  const h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+export const getNextOccurrence = ({ targetDate, targetTime, repeat }) => {
+  const base = new Date(`${targetDate}T${targetTime || '00:00'}`);
+  if (!repeat || repeat === 'none') return base;
+
+  const now = new Date();
+  if (base > now) return base;
+
+  let next = new Date(base);
+  while (next <= now) {
+    if (repeat === 'weekly') next.setDate(next.getDate() + 7);
+    else if (repeat === 'monthly') next.setMonth(next.getMonth() + 1);
+    else if (repeat === 'yearly') next.setFullYear(next.getFullYear() + 1);
+    else break; // safety — prevent infinite loop
+  }
+  return next;
 };
 
 /**
- * Returns minutes remaining until the target Date (min 0).
+ * Returns { days, hours, minutes, totalSeconds } remaining until a target Date (min 0).
+ * Uses Math.ceil so "1 second remaining" still shows as 1 minute, not 0.
  */
-export const getMinutesLeft = (target) =>
-  Math.max(0, Math.floor((target - new Date()) / 60_000));
+export const formatCountdown = (targetDate) => {
+  const now = new Date();
+  const diffMs = Math.max(0, targetDate - now);
+  const totalSeconds = Math.ceil(diffMs / 1_000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return { days, hours, minutes, totalSeconds };
+};
 
 /**
- * Finds the nearest upcoming event (start > now).
- * Attaches a `_start` Date to each event via eventStartDate().
+ * Formats a Date as "Jan 1, 2026".
  */
-export const getNextEvent = (events) => {
-  const now = new Date();
-  return events
-    .map(e => ({ ...e, _start: eventStartDate(e) }))
-    .filter(e => e._start && e._start > now)
-    .sort((a, b) => a._start - b._start)[0] || null;
+export const formatTargetDate = (date) => {
+  if (!date) return '';
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };

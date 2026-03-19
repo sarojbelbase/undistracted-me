@@ -5,9 +5,9 @@ import { Settings } from './Settings';
 import { ArrowRepeat, ExclamationTriangle, KeyFill } from 'react-bootstrap-icons';
 import { API_KEY, getWeatherIcon, getCoords, fetchWeatherByCoords, parseWeather } from './utils.jsx';
 
-export const Widget = ({ id: widgetId }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId || 'weather', { location: null });
-  const { location } = settings; // { name, lat, lon } or null
+export const Widget = ({ id: widgetId, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(widgetId || 'weather', { location: null, unit: 'metric' });
+  const { location, unit } = settings; // location: { name, lat, lon } | null; unit: 'metric' | 'imperial'
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
@@ -30,7 +30,7 @@ export const Widget = ({ id: widgetId }) => {
             return;
           }
         }
-        const data = await fetchWeatherByCoords(lat, lon);
+        const data = await fetchWeatherByCoords(lat, lon, unit);
         setWeather(parseWeather(data));
       } catch (e) {
         setError(e.message);
@@ -40,14 +40,14 @@ export const Widget = ({ id: widgetId }) => {
     load();
     const id = setInterval(load, 30 * 60_000);
     return () => clearInterval(id);
-  }, [location]);
+  }, [location, unit]);
 
   const settingsContent = API_KEY
-    ? <Settings location={location} onChange={updateSetting} locationDenied={locationDenied} />
+    ? <Settings location={location} onChange={updateSetting} locationDenied={locationDenied} unit={unit} />
     : null;
 
   return (
-    <BaseWidget className="p-4 flex flex-col items-center justify-center" settingsContent={settingsContent}>
+    <BaseWidget className="p-4 flex flex-col items-center justify-center" settingsContent={settingsContent} onRemove={onRemove}>
       {!API_KEY ? (
         <div className="flex flex-col items-center gap-2 text-gray-300">
           <KeyFill size={36} />
@@ -67,7 +67,7 @@ export const Widget = ({ id: widgetId }) => {
         <div className="flex flex-col items-center w-full">
           <div className="flex items-baseline gap-1.5">
             <span className="w-title-soft">{weather.city}</span>
-            <span className="w-title-bold">{weather.temperature}°C</span>
+            <span className="w-title-bold">{weather.temperature}°{unit === 'imperial' ? 'F' : 'C'}</span>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center mt-4 mb-2">
             {getWeatherIcon(weather.code, weather.isDay)}

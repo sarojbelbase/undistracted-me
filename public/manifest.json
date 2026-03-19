@@ -20,6 +20,9 @@
     },
     "default_title": "Undistracted Me"
   },
+  "background": {
+    "service_worker": "src/bg.js"
+  },
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
@@ -32,7 +35,16 @@
   "permissions": [
     "identity",
     "storage",
-    "geolocation"
+    "geolocation",
+    "topSites",
+    "notifications",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://api.spotify.com/*",
+    "https://accounts.spotify.com/*",
+    "https://nepalipaisa.com/*",
+    "https://www.merolagani.com/*"
   ],
   "oauth2": {
     "client_id": "647187355675-e5v949u9j2dd54p152rr3l48ulfr4l66.apps.googleusercontent.com",

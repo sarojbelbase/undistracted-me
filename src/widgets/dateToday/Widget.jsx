@@ -5,7 +5,7 @@ import { Settings } from './Settings';
 import { LANGUAGES } from '../../constants';
 import { getDateParts } from './utils';
 
-export const Widget = ({ widgetId }) => {
+export const Widget = ({ widgetId, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(widgetId, { language: LANGUAGES.en });
   const { language } = settings;
 
@@ -22,6 +22,7 @@ export const Widget = ({ widgetId }) => {
     <BaseWidget
       className="p-4 flex flex-col items-center justify-center"
       settingsContent={<Settings widgetId={widgetId} language={language} onChange={updateSetting} />}
+      onRemove={onRemove}
     >
       <div className="flex items-baseline gap-1.5">
         <span className="w-title-soft">{parts.weekday}</span>
