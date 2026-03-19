@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { getDayProgress, TOTAL_DOTS } from './utils';
 
-export const Widget = () => {
+export const Widget = ({ onRemove }) => {
   const [progress, setProgress] = useState(() => getDayProgress());
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export const Widget = () => {
   }, []);
 
   return (
-    <BaseWidget className="p-4 flex flex-col">
+    <BaseWidget className="p-4 flex flex-col" onRemove={onRemove}>
       <div className="flex justify-between mx-2">
         <span className="w-title-soft">Day</span>
         <span className="w-title-bold">{progress.percentage}%</span>

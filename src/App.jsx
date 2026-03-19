@@ -7,6 +7,8 @@ import { NepaliMiti } from './components/NepaliMiti';
 import { Settings } from './components/Settings';
 import { SHOW_MITI_IN_ICON } from './constants/settings';
 import { WidgetGrid } from './widgets/WidgetGrid';
+import { WidgetCatalog } from './widgets/WidgetCatalog';
+import { useWidgetInstances } from './widgets/useWidgetInstances';
 import { useTheme } from './theme';
 
 const App = () => {
@@ -22,6 +24,10 @@ const App = () => {
   });
 
   const [showMitiInIcon] = useState(SHOW_MITI_IN_ICON["Hide"]);
+
+  const { instances, addInstance, removeInstance } = useWidgetInstances();
+
+  const [showCatalog, setShowCatalog] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('language', language);
@@ -64,6 +70,16 @@ const App = () => {
       style={{ background: showWidgets ? 'var(--w-page-bg)' : '#18191B' }}
     >
       <div ref={topBarRef} className="absolute top-5 right-5 z-50 flex gap-2">
+        {/* Widget catalog / hamburger */}
+        <button
+          className={`p-2 rounded-full transition-all duration-300 focus:outline-none ${!showWidgets || mode === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+          onClick={() => { setShowCatalog(true); closeSettings(); }}
+          title="Manage Widgets"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" className={`transition-colors duration-300 ${!showWidgets || mode === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>
+            <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
+          </svg>
+        </button>
         <button
           className={`p-2 rounded-full transition-all duration-300 focus:outline-none ${!showWidgets || mode === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
           onClick={toggleWidgets}
@@ -96,12 +112,21 @@ const App = () => {
         )}
       </div>
 
+      {showCatalog && (
+        <WidgetCatalog
+          instances={instances}
+          onAddInstance={addInstance}
+          onRemoveInstance={removeInstance}
+          onClose={() => setShowCatalog(false)}
+        />
+      )}
+
       {showWidgets ? (
         <div className="w-full h-full pt-16">
-          <WidgetGrid />
+          <WidgetGrid instances={instances} onRemoveInstance={removeInstance} />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-4 animate-bounce-in" style={{ fontFamily: FONTS[language] }}>
+        <div className="flex flex-col items-center justify-center space-y-4" style={{ fontFamily: FONTS[language] }}>
           <NepaliMiti language={language} showMitiInIcon={showMitiInIcon} />
           <LiveClock language={language} />
           <DateToday language={language} />

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -13,54 +13,79 @@ import {
   WeatherWidget,
   CalendarWidget,
   CountdownWidget,
+  NotesWidget,
+  BookmarksWidget,
+  PomodoroWidget,
+  SpotifyWidget,
+  FactsWidget,
+  StockWidget,
 } from './index';
 
-// Derived at module load — change enabled/positions in each widget's config.js or index.js
-const ACTIVE_WIDGETS = WIDGET_REGISTRY.filter(w => w.enabled);
-const DEFAULT_LAYOUT = ACTIVE_WIDGETS.map(({ id, x, y, w, h, minW, minH }) => ({
-  i: id, x, y, w, h, minW, minH,
-}));
+const LAYOUT_KEY = 'widget_grid_layouts';
 
-const LAYOUT_KEY = 'widget_grid_layouts'; // keyed by breakpoint
-
-const DEFAULT_LAYOUTS = {
-  lg: DEFAULT_LAYOUT,
-};
+// O(1) lookup: type → registry entry
+const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map(w => [w.type, w]));
 
 const loadLayouts = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
-    // Must be an object with at least one breakpoint array
-    if (saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length) {
-      return { ...DEFAULT_LAYOUTS, ...saved };
-    }
+    if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
   } catch { /* ignore */ }
-  return DEFAULT_LAYOUTS;
+  return {};
 };
 
-const renderWidget = (widget) => {
-  switch (widget.type) {
-    case WIDGET_TYPES.CLOCK: return <ClockWidget widgetId={widget.id} />;
-    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget widgetId={widget.id} />;
-    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget />;
-    case WIDGET_TYPES.EVENTS: return <EventsWidget />;
-    case WIDGET_TYPES.WEATHER: return <WeatherWidget />;
-    case WIDGET_TYPES.CALENDAR: return <CalendarWidget />;
-    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget />;
+const renderWidget = (id, type, onRemove) => {
+  switch (type) {
+    case WIDGET_TYPES.CLOCK: return <ClockWidget widgetId={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget widgetId={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.EVENTS: return <EventsWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.WEATHER: return <WeatherWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.CALENDAR: return <CalendarWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.NOTES: return <NotesWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.BOOKMARKS: return <BookmarksWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.POMODORO: return <PomodoroWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.FACTS: return <FactsWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.STOCK: return <StockWidget id={id} onRemove={onRemove} />;
     default: return null;
   }
 };
 
-export const WidgetGrid = () => {
-  const { width, containerRef, mounted } = useContainerWidth();
+export const WidgetGrid = ({ instances, onRemoveInstance }) => {
+  // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
+  // This makes offsetWidth === contentRect.width === window.innerWidth, so
+  // measureWidth() and ResizeObserver both fire with the same value we seeded,
+  // meaning setWidth() is called with an unchanged value and React skips all
+  // post-mount re-renders. Without this, 2-3 forced re-renders caused the blink.
+  const { width, containerRef } = useContainerWidth({
+    initialWidth: typeof window !== 'undefined' ? window.innerWidth : 1280,
+  });
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
-  // onLayoutChange receives (currentLayout, allLayouts) — save allLayouts so each
-  // breakpoint keeps its own positions independently
+  // Build layout items from current instances
+  const layoutItems = useMemo(() => {
+    const savedMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
+    return (instances || []).map(({ id, type }) => {
+      if (savedMap[id]) return savedMap[id];
+      const reg = REG_MAP[type];
+      return reg
+        ? { i: id, x: reg.x, y: Infinity, w: reg.w, h: reg.h }
+        : { i: id, x: 0, y: Infinity, w: 3, h: 3 };
+    });
+  }, [instances, layouts]);
+
   const handleLayoutChange = useCallback((_current, allLayouts) => {
-    setLayouts(allLayouts);
-    localStorage.setItem(LAYOUT_KEY, JSON.stringify(allLayouts));
+    setLayouts(prev => {
+      const next = { ...prev, ...allLayouts };
+      // Return same reference if lg positions are unchanged — prevents mount re-render
+      // (react-grid-layout calls onLayoutChange once on mount even with no changes)
+      if (JSON.stringify(prev.lg) === JSON.stringify(next.lg)) return prev;
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(next));
+      return next;
+    });
   }, []);
 
   const handleDragStart = useCallback((_layout, oldItem) => {
@@ -71,43 +96,65 @@ export const WidgetGrid = () => {
     setDraggingId(null);
   }, []);
 
+  // Safety net: if onDragStop doesn't fire (mouse released outside viewport), clear state
+  useEffect(() => {
+    const clear = () => setDraggingId(null);
+    document.addEventListener('mouseup', clear);
+    return () => document.removeEventListener('mouseup', clear);
+  }, []);
+
   const isDragging = draggingId !== null;
 
   return (
-    <div className="w-full h-full p-4 relative" ref={containerRef}>
-      {/* Dot-grid overlay — fades in when dragging; color adapts via dark mode CSS */}
+    <div className="w-full h-full relative" ref={containerRef}>
+      {/* Dot grid — only visible while dragging */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-200 drag-dot-overlay"
-        style={{ opacity: isDragging ? 1 : 0 }}
+        className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
+        style={{ opacity: isDragging ? 0.5 : 0 }}
       />
-      {mounted && (
-        <Responsive
-          className="layout"
-          layouts={layouts}
-          width={width}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={75}
-          isDraggable={true}
-          isResizable={false}
-          margin={[16, 16]}
-          containerPadding={[0, 0]}
-          useCSSTransforms={true}
-          onLayoutChange={handleLayoutChange}
-          onDragStart={handleDragStart}
-          onDragStop={handleDragStop}
-        >
-          {ACTIVE_WIDGETS.map(widget => (
+      <Responsive
+        className="layout"
+        layouts={{ lg: layoutItems }}
+        width={width}
+        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+        rowHeight={75}
+        isDraggable={true}
+        draggableHandle=".widget-drag-handle"
+        isResizable={false}
+        margin={[16, 16]}
+        containerPadding={[16, 16]}
+        useCSSTransforms={false}
+        onLayoutChange={handleLayoutChange}
+        onDragStart={handleDragStart}
+        onDragStop={handleDragStop}
+      >
+        {(instances || []).map(({ id, type }) => (
+          <div
+            key={id}
+            className="group relative w-full h-full transition-opacity duration-200"
+            style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1 }}
+          >
+            {/* Drag handle — single notch pill with 3 dots in one row */}
             <div
-              key={widget.id}
-              className="w-full h-full transition-opacity duration-200"
-              style={{ opacity: isDragging && draggingId !== widget.id ? 0.4 : 1 }}
+              className="widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
+                  flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
+                  cursor-grab active:cursor-grabbing select-none
+                  opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', borderTop: 'none' }}
+              aria-label="Drag to move"
             >
-              {renderWidget(widget)}
+              {[0, 1, 2, 3].map(i => (
+                <span key={i} className="block w-[3px] h-[3px] rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
+              ))}
             </div>
-          ))}
-        </Responsive>
-      )}
+            {/* Stop mousedown from bubbling to the rgl drag listener — only the handle above should initiate drag */}
+            <div className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
+              {renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined)}
+            </div>
+          </div>
+        ))}
+      </Responsive>
     </div>
   );
 };

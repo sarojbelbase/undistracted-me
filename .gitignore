@@ -3,4 +3,6 @@ node_modules/
 *.zip
 dist
 web-ext-artifacts
+playwright-screenshots
 .env
+.agents

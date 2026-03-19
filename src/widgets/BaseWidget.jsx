@@ -1,83 +1,120 @@
 import React, { useState, useRef, useEffect, forwardRef } from 'react';
-import { GearWide, XLg } from 'react-bootstrap-icons';
+import { BaseSettingsModal } from './BaseSettingsModal';
 
 /**
  * Base card wrapper for all widgets.
  *
  * Props:
- *  - settingsContent: JSX rendered inside the settings panel. When provided,
- *    a gear icon appears (hidden in edit mode). Clicking it opens the panel.
- *    Clicking outside closes it.
+ *  - settingsContent: JSX or (onClose) => JSX rendered inside the settings modal.
+ *    When provided, a ⋯ button appears on hover that opens the modal.
+ *    When a function, it receives `onClose` so the content can auto-close
+ *    (e.g. stock selector closes after picking a symbol).
+ *  - settingsTitle: Title shown in the modal header. Defaults to "Settings".
+ *  - onRemove: Called when user picks "Remove" from the context menu.
  *  - ref: forwarded to the outer wrapper div (for ResizeObserver / sizing).
  */
 export const BaseWidget = forwardRef(({
   children,
   className = '',
   onRemove = null,
-  showRemove = false,
   settingsContent = null,
+  settingsTitle = 'Settings',
+  cardStyle = {},
 }, ref) => {
-  const [showSettings, setShowSettings] = useState(false);
-  const panelRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const menuRef = useRef(null);
 
+  // Close context menu on outside click
   useEffect(() => {
-    if (!showSettings) return;
+    if (!menuOpen) return;
     const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        setShowSettings(false);
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [showSettings]);
+  }, [menuOpen]);
+
+  const hasMenu = settingsContent || onRemove;
 
   return (
-    // Outer div is overflow-visible so the settings panel can escape the card boundary
     <div ref={ref} className="relative h-full group">
-      <div className={`rounded-2xl shadow-md flex flex-col overflow-hidden h-full ${className}`} style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}>
-        {showRemove && onRemove && (
-          <button
-            onClick={onRemove}
-            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-colors z-10"
-            title="Remove widget"
-          >
-            <XLg size={10} />
-          </button>
-        )}
+      <div
+        className={`rounded-2xl shadow-md flex flex-col overflow-hidden h-full ${className}`}
+        style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)', ...cardStyle }}
+      >
         {children}
       </div>
 
-      {/* Settings gear — hidden in edit mode so it doesn't conflict with the remove button */}
-      {settingsContent && !showRemove && (
-        <div className="absolute top-2 right-2 z-20">
+      {/* Three-dots context menu — floats outside card, top-right corner */}
+      {hasMenu && (
+        <div ref={menuRef} className="absolute z-20" style={{ top: -14, right: -14 }}>
           <button
-            onClick={() => setShowSettings(s => !s)}
+            onClick={() => setMenuOpen(s => !s)}
             onMouseDown={e => e.stopPropagation()}
-            className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-all opacity-0 group-hover:opacity-100"
-            title="Widget settings"
+            className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150"
+            style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
+            aria-label="Widget options"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
-            <GearWide size={13} />
+            <svg width="14" height="4" viewBox="0 0 14 4" fill="currentColor" aria-hidden="true">
+              <circle cx="2" cy="2" r="1.5" />
+              <circle cx="7" cy="2" r="1.5" />
+              <circle cx="12" cy="2" r="1.5" />
+            </svg>
           </button>
 
-          {showSettings && (
-            <div ref={panelRef} className="absolute right-0 top-9 z-40 rounded-xl shadow-lg p-3 min-w-[150px] animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-label">Settings</span>
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-9 z-40 rounded-xl shadow-lg py-1 animate-fade-in"
+              style={{
+                backgroundColor: 'var(--w-surface)',
+                border: '1px solid var(--w-border)',
+                minWidth: 130,
+              }}
+            >
+              {settingsContent && (
                 <button
-                  onClick={() => setShowSettings(false)}
+                  role="menuitem"
+                  onClick={() => { setMenuOpen(false); setModalOpen(true); }}
                   onMouseDown={e => e.stopPropagation()}
-                  className="w-5 h-5 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--w-ink-1)' }}
                 >
-                  <XLg size={10} />
+                  Settings
                 </button>
-              </div>
-              {settingsContent}
+              )}
+              {onRemove && (
+                <button
+                  role="menuitem"
+                  onClick={() => { setMenuOpen(false); onRemove(); }}
+                  onMouseDown={e => e.stopPropagation()}
+                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+                  style={{ color: '#ef4444' }}
+                >
+                  Remove
+                </button>
+              )}
             </div>
           )}
         </div>
+      )}
+
+      {/* Settings modal */}
+      {modalOpen && (
+        <BaseSettingsModal title={settingsTitle} onClose={() => setModalOpen(false)}>
+          {typeof settingsContent === 'function'
+            ? settingsContent(() => setModalOpen(false))
+            : settingsContent}
+        </BaseSettingsModal>
       )}
     </div>
   );
 });
 
 BaseWidget.displayName = 'BaseWidget';
+

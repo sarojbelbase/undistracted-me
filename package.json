@@ -22,6 +22,7 @@
 	},
 	"devDependencies": {
 		"@crxjs/vite-plugin": "^2.3.0",
+		"@playwright/test": "^1.58.2",
 		"@tailwindcss/postcss": "^4.2.1",
 		"@vitejs/plugin-react": "^5.1.4",
 		"autoprefixer": "^10.4.27",

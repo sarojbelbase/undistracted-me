@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const API_KEY = import.meta.env.VITE_OWM_API_KEY || null;
 
-export const Settings = ({ location, onChange, locationDenied }) => {
+export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }) => {
   const [query, setQuery] = useState(location?.name || '');
   const [suggestions, setSuggestions] = useState([]);
   const debounceRef = useRef(null);
@@ -32,6 +32,24 @@ export const Settings = ({ location, onChange, locationDenied }) => {
 
   return (
     <div className="flex flex-col gap-2">
+      {/* Unit toggle */}
+      <span className="w-label">Temperature</span>
+      <div className="flex gap-1.5">
+        {[{ value: 'metric', label: '°C' }, { value: 'imperial', label: '°F' }].map(({ value, label }) => (
+          <button
+            key={value}
+            onMouseDown={e => e.stopPropagation()}
+            onClick={() => onChange('unit', value)}
+            className="flex-1 py-1 rounded-lg text-xs font-medium transition-all"
+            style={unit === value
+              ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+              : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <span className="w-label">Set Location</span>
       <div className="relative">
         <input

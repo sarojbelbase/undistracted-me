@@ -12,17 +12,6 @@ body {
 }
 
 /* Keep animations if needed, or move to Tailwind config */
-@keyframes bounce {
-  from {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
 
 @keyframes highres {
   from {
@@ -35,10 +24,6 @@ body {
 }
 
 /* Utility classes for animations */
-.animate-bounce-in {
-  animation: bounce 1s;
-}
-
 .animate-fade-in {
   animation: fade 0.3s ease-in-out;
 }
@@ -53,12 +38,51 @@ body {
   }
 }
 
-/* react-grid-layout: hide resize handle, allow grab cursor */
-.react-grid-item {
-  cursor: grab;
+/* react-grid-layout: no transitions at all — widgets appear in place instantly */
+.react-grid-item,
+.react-grid-item.cssTransforms,
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.react-grid-placeholder,
+.react-grid-item.resizing {
+  cursor: default;
+  transition: none !important;
+  -webkit-transition: none !important;
+}
+
+/* Hide scrollbar while keeping scroll behaviour */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Right drawer slide-in */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.22s ease-out;
 }
 
 .react-grid-item:active {
+  cursor: default;
+}
+
+.widget-drag-handle {
+  cursor: grab;
+}
+
+.widget-drag-handle:active {
   cursor: grabbing;
 }
 
@@ -75,11 +99,22 @@ body {
   opacity: 1 !important;
 }
 
-/* Lifted appearance while dragging */
+/* Subtle lift while dragging — no scale/blur, just a clean shadow elevation */
 .react-grid-item.react-draggable-dragging>* {
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18) !important;
-  transform: scale(1.02);
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+  cursor: grabbing !important;
+}
+
+/* Hide options button while dragging — it's in the way and confusing */
+.react-draggable-dragging .absolute.z-20 {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ghost notch during drag — stays visible but semi-transparent so it blends in */
+.react-draggable-dragging .widget-drag-handle {
+  opacity: 0.35 !important;
+  cursor: grabbing !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -294,10 +329,26 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   KEYBOARD ACCESSIBILITY — focus-visible ring
+   Only fires when navigating by keyboard; invisible on mouse/touch.
+   Applies globally so every interactive element in a widget is covered.
+   ═══════════════════════════════════════════════════════════════ */
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="menuitem"]:focus-visible {
+  outline: 2px solid var(--w-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 [data-mode="dark"] .shadow-2xl {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7) !important;
 }
 
 [data-mode="dark"] .react-grid-item.react-draggable-dragging>* {
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
 }

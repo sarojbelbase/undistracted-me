@@ -70,7 +70,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
   );
 };
 
-export const Widget = ({ id: widgetId }) => {
+export const Widget = ({ id: widgetId, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(widgetId || 'calendar', DEFAULTS);
   const { calendarType } = settings;
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType));
@@ -89,7 +89,7 @@ export const Widget = ({ id: widgetId }) => {
   }, [calendarType]);
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={<Settings widgetId={widgetId || 'calendar'} calendarType={calendarType} onChange={updateSetting} />}>
+    <BaseWidget className="p-4 flex flex-col" settingsContent={<Settings widgetId={widgetId || 'calendar'} calendarType={calendarType} onChange={updateSetting} />} onRemove={onRemove}>
       <div className="flex items-baseline gap-2">
         <span className="w-heading">{calendarData.label}</span>
         {calendarData.sublabel && (
