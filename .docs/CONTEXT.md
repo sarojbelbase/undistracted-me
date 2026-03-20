@@ -9,8 +9,155 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 - **React 19**, **Vite**, **@crxjs/vite-plugin**
 - **Tailwind CSS v4** — `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
 - **react-grid-layout** — `Responsive` + `useContainerWidth()` (NOT WidthProvider — Vite CJS incompatibility)
-- **react-bootstrap-icons** — all icons, no inline SVGs
 - **dayjs** + timezone plugin (Asia/Kathmandu)
+- **No external icon library** — all icons are inline SVGs
+
+## Theme System (`src/theme.js`)
+- `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
+- `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
+- CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
+- `data-mode` attribute on `<html>` drives `[data-mode="dark"]` overrides in `App.css`
+- `useTheme()` — `{ accent, mode, setAccent, setMode }`, persists to `app_accent` / `app_mode`
+- **Constraint**: `"Default"` accent is incompatible with dark mode. Switching to dark auto-selects Blueberry; Default swatch disabled in dark mode.
+- `applyTheme` called on import (before React mounts) to prevent FOUC
+
+## Design System (`App.css`)
+- Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) for light; inverted for dark
+- Classes: `w-display`, `w-heading`, `w-title-soft/bold`, `w-sub-soft/bold`, `w-period`, `w-body`, `w-caption`, `w-label`, `w-muted`, `w-dot`/`w-dot-active`
+- `w-title-bold` and `w-sub-bold` use `var(--w-accent)` for accent-tinted text
+- Keyboard accessibility: global `button:focus-visible` / `[role="button"]:focus-visible` ring using `var(--w-accent)` outline
+- Dark mode overrides: `[data-mode="dark"]` selectors patch hardcoded Tailwind classes
+- Drag CSS:
+  - `.react-grid-item { cursor: default }` — cursor ONLY on `.widget-drag-handle`
+  - `.react-draggable-dragging .absolute.z-20 { opacity: 0 }` — hides 3-dot options button during drag
+  - `.react-draggable-dragging .widget-drag-handle { opacity: 0.35 }` — ghost notch during drag
+  - No `transform: scale()` on drag — prevents blur/separate-element look
+
+## Key Files
+```
+src/
+  App.jsx              — root, mode toggle, settings overlay
+  App.css              — design tokens, typography classes, grid overrides, dark mode patches
+  theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
+  widgets/
+    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence, drag handle (3-dot pill notch)
+    BaseWidget.jsx     — forwardRef card, 3-dot options menu (aria-label, role="menu"), mousedown click-outside
+    BaseSettingsModal.jsx — role="dialog", aria-modal, shared settings modal shell
+    useWidgetSettings.js — per-widget localStorage (widgetSettings_${id})
+    useWidgetInstances.js — manages widget instances in the grid
+    useEvents.js       — shared events + Google Calendar: module-level cache, SYNC_EVENT broadcast
+    WidgetCatalog.jsx  — widget picker drawer with categories
+    settingsIO.js      — settings import/export helpers
+    index.js           — WIDGET_TYPES, WIDGET_REGISTRY (13 widgets), all exports
+    clock/             — live 1s clock, 24h/12h, extra timezone rows, time-aware greetings
+                         font: clamp(2rem,4.5vw,3.5rem) no-TZ | clamp(1.5rem,3vw,2.25rem) with-TZ
+    dateToday/         — weekday + date, BS/AD toggle
+    dayProgress/       — 24-dot grid, 1-min interval
+    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal,
+                         Google Calendar sync, past events faded, both modals use createPortal
+    countdown/         — reads useEvents, nearest future event
+    calendar/          — BS/AD, event dots + tooltip portal, today = accent fill + white text
+    weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env, °C/°F toggle
+    notes/             — textarea, localStorage, ACCENT_COLORS color picker, hide/expand/collapse
+                         aria-labels on eye/expand/collapse buttons
+    bookmarks/         — Google Favicon API, chrome.topSites + manual Pinned section, AddModal
+    pomodoro/          — pick (25/30/60/custom pills) → timer (SVG ring + Play/Pause/Reset)
+    spotify/           — PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas color
+                         extraction, 5s polling + local tick between polls
+    facts/             — daily interesting fact widget
+    stock/             — NEPSE stock ticker (1–3 symbols), sparkline, OHL display
+                         see STOCK WIDGET section below
+  components/
+    Settings.jsx       — global settings: Light/Dark toggle, accent swatches, language,
+                         Google Calendar OAuth connect/disconnect, Google profile card
+```
+
+## Widget Registry (13 widgets)
+```
+clock, dateToday, dayProgress, countdown, events, calendar, pomodoro, notes,
+weather, facts, bookmarks, spotify, stock
+```
+
+## Stock Widget (`src/widgets/stock/`)
+
+### Data Source
+- **API**: `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx`
+- **Endpoint**: `?type=get_advanced_chart&symbol=SYMBOL&resolution=1D&rangeStartDate=START&rangeEndDate=END&from=&isAdjust=1`
+- **Range**: 90 days rolling (`now - 90*24*3600` → `now`), dynamic Unix timestamps
+- **Response**: `{ t, o, h, l, c, v, s }` — standard OHLCV arrays; `s === "ok"` on success
+- **No caching needed** — single clean call, official closes only
+- **host_permissions**: `https://www.merolagani.com/*` in manifest.json
+- **Dev proxy** (`vite.config.ts`): `/ml-api` → `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx`
+
+### Data Mapping
+- `c[n-1]` → **LTP** (today's official close)
+- `c[n-2]` → **prevClose** (yesterday's close)
+- `c[]` → sparkline (90-day daily closes)
+- `o[n-1]` / `h[n-1]` / `l[n-1]` → today's O/H/L
+- `v[n-1]` → today's volume (available but not currently displayed)
+
+### Company List Source
+- Still fetched from `https://nepalipaisa.com/api/GetCompanies` (POST)
+- `host_permissions` includes `https://nepalipaisa.com/*`
+- Dev proxy: `/np-api` → `https://nepalipaisa.com/api`
+
+### UI Modes
+**Single symbol** (1 stock):
+- Symbol label + refresh age at top
+- Large LTP price + change row (amount + %)
+- **O / H / L** row — always visible, `flex-wrap` so it wraps on narrow widgets
+- Sparkline (LTTB-downsampled 40 pts, Catmull-Rom bezier) bleeds edge-to-edge at bottom
+
+**Multi symbol** (2–3 stocks):
+- 2-line rows: symbol label (top, muted) + price (bottom, bold) | % change (right)
+- No sparkline in list view
+
+### Utilities (`utils.js`)
+- `fetchChart(symbol)` — single API call, returns `{ prices, ltp, prevClose, open, high, low, volume }`
+- `fetchCompanies()` — returns `[{ symbol, name, sector }]`
+- `buildSparklinePaths(prices, vw, vh)` — LTTB + Catmull-Rom SVG paths
+- `priceStats(chartData)` — `{ change, pct, dir }`, dir = `'up'|'down'|'flat'`
+- `fmtPrice(n)` — `en-NP` locale, 2 decimal places
+- `fmtOHL(n)` — 1 decimal place
+- `fmtVolume(n)` — compact: `1.2B`, `50.3M`, `450K`
+- `humanizeAge(ts)` — `'just now'`, `'2m ago'`, `'3h ago'`
+
+## Drag System (WidgetGrid.jsx)
+- `draggableHandle=".widget-drag-handle"` — RGL only starts a drag from this element
+- Handle: single-row 3-dot pill (`rounded-b-xl`, `--w-surface-2` bg, no top border) centered at top of each widget
+- Handle is `opacity-0` by default, `group-hover:opacity-100` on hover
+- During drag: options button hidden (`opacity: 0`), notch ghost (`opacity: 0.35`), no scale/transform
+- `LAYOUT_VERSION = ACTIVE_WIDGETS.length` — auto-busts saved layout when widget count changes
+- Safety net: `document.addEventListener('mouseup', clearDragging)` prevents grid freeze
+
+## Google Calendar / Profile Integration
+- OAuth via `chrome.identity.getAuthToken` (Chrome) with scopes: `calendar.readonly`, `userinfo.profile`, `userinfo.email`
+- Cache: raw API response stored in `widget_gcal_cache` + `widget_gcal_cache_time`
+- `useGoogleProfile()` — avatar + name + email shown in Settings panel
+
+## Accessibility
+- `BaseWidget.jsx`: `aria-label="Widget options"`, `aria-haspopup="menu"`, `aria-expanded`, `role="menu"`, `role="menuitem"`
+- `BaseSettingsModal.jsx`: `role="dialog"`, `aria-modal="true"`, `aria-label` on close button
+- Notes widget: aria-labels on eye/expand/collapse buttons
+- Global focus-visible ring on all interactive elements
+
+## Manifest Permissions
+```json
+"permissions": ["identity", "storage", "geolocation", "topSites", "notifications", "alarms"]
+"host_permissions": [
+  "https://api.spotify.com/*",
+  "https://accounts.spotify.com/*",
+  "https://nepalipaisa.com/*",
+  "https://www.merolagani.com/*"
+]
+```
+
+## Dev Proxy (`vite.config.ts`)
+```js
+'/np-api' → 'https://nepalipaisa.com/api'          // company list
+'/ml-api' → 'https://www.merolagani.com/handlers/TechnicalChartHandler.ashx'  // stock charts
+```
+
 
 ## Theme System (`src/theme.js`)
 - `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
