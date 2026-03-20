@@ -2,5 +2,5 @@ export default {
   id: 'calendar',
   type: 'calendar',
   label: 'Calendar',
-  x: 0, y: 4, w: 6, h: 6,
+  x: 0, y: 4, w: 3, h: 3,
 };
