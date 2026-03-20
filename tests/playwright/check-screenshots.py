@@ -3,7 +3,10 @@ import struct
 import zlib
 import os
 
-DIR = '/home/saroj/code/undistracted-me/playwright-screenshots'
+import os as _os
+DIR = _os.path.join(_os.path.dirname(
+    _os.path.abspath(__file__)), 'screenshots')
+
 
 def read_png(path):
     with open(path, 'rb') as f:
@@ -40,7 +43,7 @@ def read_png(path):
     for y in range(h):
         offset = y * stride
         ftype = raw[offset]
-        scanline = bytearray(raw[offset+1 : offset+1 + w*channels])
+        scanline = bytearray(raw[offset+1: offset+1 + w*channels])
 
         if ftype == 0:  # None
             pass
@@ -99,7 +102,8 @@ def check_edges(path, label):
             r, g, b = get_pixel(rows, ch, right_x, y)
             if not is_background(r, g, b):
                 non_bg_right += 1
-                print(f"  Right edge y={y}: rgb({r},{g},{b}) <- non-background!")
+                print(
+                    f"  Right edge y={y}: rgb({r},{g},{b}) <- non-background!")
 
         # Sample bottom edge row
         bot_y = h - 3

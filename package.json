@@ -10,7 +10,11 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test": "playwright test",
+		"test:ui": "playwright test --ui",
+		"test:headed": "playwright test --headed",
+		"test:report": "playwright show-report tests/playwright/report"
 	},
 	"dependencies": {
 		"dayjs": "^1.11.19",
