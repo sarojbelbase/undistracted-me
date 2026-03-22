@@ -82,25 +82,26 @@ test('Opening settings reveals language section', async ({ page }) => {
 
 test('Dark/Light mode buttons are visible in settings', async ({ page }) => {
   await page.getByTitle('Settings').click();
-  await expect(page.getByRole('button', { name: /dark/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /light/i })).toBeVisible();
+  // Use exact names to avoid matching accent swatches like "Not available in dark mode"
+  await expect(page.getByRole('button', { name: 'Dark', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Light', exact: true })).toBeVisible();
 });
 
 test('Switching to light mode persists in localStorage', async ({ page }) => {
   await page.getByTitle('Settings').click();
-  await page.getByRole('button', { name: /light/i }).click();
+  await page.getByRole('button', { name: 'Light', exact: true }).click();
   const mode = await page.evaluate(() => localStorage.getItem('app_mode'));
   expect(mode).toBe('light');
 });
 
 test('Switching back to dark mode persists in localStorage', async ({ page }) => {
-  // Start in light mode
-  await page.evaluate(() => localStorage.setItem('app_mode', 'light'));
-  await page.reload({ waitUntil: 'networkidle' });
+  // Start in light mode — add a second init script so 'light' wins over 'dark' from beforeEach
+  await page.addInitScript(() => localStorage.setItem('app_mode', 'light'));
+  await page.goto('/', { waitUntil: 'networkidle' });
   await page.waitForSelector('#nepalimiti:not(:empty)', { timeout: 5000 });
 
   await page.getByTitle('Settings').click();
-  await page.getByRole('button', { name: /dark/i }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
   const mode = await page.evaluate(() => localStorage.getItem('app_mode'));
   expect(mode).toBe('dark');
 });
