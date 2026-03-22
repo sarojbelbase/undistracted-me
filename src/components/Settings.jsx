@@ -10,6 +10,7 @@ export const Settings = ({
   closeSettings,
   accent, setAccent,
   mode, setMode,
+  defaultView, setDefaultView,
 }) => {
   const { connected, loading, refresh } = useGoogleCalendar();
   const profile = useGoogleProfile();
@@ -27,7 +28,29 @@ export const Settings = ({
       style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
       onMouseDown={e => e.stopPropagation()}
     >
-      {/* Appearance */}
+      {/* Launch mode */}
+      <div>
+        <p className="w-label mb-2">Launch Mode</p>
+        <div className="flex gap-1.5">
+          {[
+            { id: 'canvas', label: 'Canvas' },
+            { id: 'focus', label: 'Focus' },
+          ].map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setDefaultView(id)}
+              className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={defaultView === id
+                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Appearance */}}
       <div>
         <p className="w-label mb-2">Appearance</p>
         <div className="flex gap-1.5">
