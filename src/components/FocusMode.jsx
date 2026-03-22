@@ -9,8 +9,9 @@ import { MONTH_NAMES } from '../constants';
 import { useEvents, useGoogleCalendar } from '../widgets/useEvents';
 import { formatTime } from '../widgets/pomodoro/utils';
 import { GearFill, CheckLg, StopwatchFill } from 'react-bootstrap-icons';
-import { ACCENT_COLORS, applyTheme } from '../theme';
+import { ACCENT_COLORS } from '../theme';
 import { LANGUAGES } from '../constants/settings';
+import { useSettingsStore } from '../store';
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
 
@@ -62,22 +63,20 @@ const getCurrentEvent = (events) => {
 
 // ─── Settings panel ──────────────────────────────────────────────────────────
 
-const FocusModeSettings = ({
-  dateFormat, setDateFormat,
-  accent, setAccent,
-  mode, setMode,
-  language, setLanguage,
-}) => {
+const FocusModeSettings = () => {
+  const {
+    dateFormat, setDateFormat,
+    accent, setAccent,
+    mode, setMode,
+    language, setLanguage,
+  } = useSettingsStore();
+
   const handleSetAccent = (name) => {
-    setAccent(name);
-    // Immediate CSS var update — don't wait for App.jsx useEffect batching
-    applyTheme(name, mode);
+    setAccent(name); // store action also calls applyTheme
   };
 
   const handleSetMode = (m) => {
-    const nextAccent = m === 'dark' && accent === 'Default' ? 'Blueberry' : accent;
-    setMode(m);
-    applyTheme(nextAccent, m);
+    setMode(m); // store action handles accent guard + applyTheme
   };
 
   return (
@@ -172,7 +171,7 @@ const FocusModeSettings = ({
         </p>
         <select
           value={language}
-          onChange={e => { setLanguage(e.target.value); localStorage.setItem('language', e.target.value); }}
+          onChange={e => { setLanguage(e.target.value); }}
           className="w-full rounded-lg px-2 py-1.5 text-[10px] outline-none"
           style={{
             backgroundColor: 'rgba(255,255,255,0.07)',
@@ -274,10 +273,8 @@ const DigitRoller = React.memo(({ char }) => {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const FocusMode = ({ onExit, accent, setAccent, mode, setMode, language, setLanguage }) => {
-  const [dateFormat, setDateFormat] = useState(() =>
-    localStorage.getItem('focusDateFormat') || 'gregorian'
-  );
+export const FocusMode = ({ onExit }) => {
+  const { dateFormat, setDateFormat } = useSettingsStore();
   const [parts, setParts] = useState(() => getTimeParts('24h'));
   const [dateStr, setDateStr] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -299,10 +296,6 @@ export const FocusMode = ({ onExit, accent, setAccent, mode, setMode, language, 
     const id = setInterval(update, 1_000);
     return () => clearInterval(id);
   }, [update]);
-
-  useEffect(() => {
-    localStorage.setItem('focusDateFormat', dateFormat);
-  }, [dateFormat]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onExit(); };
@@ -384,16 +377,7 @@ export const FocusMode = ({ onExit, accent, setAccent, mode, setMode, language, 
             />
           </button>
           {showSettings && (
-            <FocusModeSettings
-              dateFormat={dateFormat}
-              setDateFormat={setDateFormat}
-              accent={accent}
-              setAccent={setAccent}
-              mode={mode}
-              setMode={setMode}
-              language={language}
-              setLanguage={setLanguage}
-            />
+            <FocusModeSettings />
           )}
         </div>
       </div>

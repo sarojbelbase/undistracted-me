@@ -4,14 +4,16 @@ import { LANGUAGES } from '../constants/settings';
 import { ACCENT_COLORS } from '../theme';
 import { useGoogleCalendar, useGoogleProfile } from '../widgets/useEvents';
 import { disconnectCalendar } from '../utilities/googleCalendar';
+import { useSettingsStore } from '../store';
 
-export const Settings = ({
-  language, setLanguage,
-  closeSettings,
-  accent, setAccent,
-  mode, setMode,
-  defaultView, setDefaultView,
-}) => {
+export const Settings = ({ closeSettings }) => {
+  const {
+    language, setLanguage,
+    accent, setAccent,
+    mode, setMode,
+    defaultView, setDefaultView,
+  } = useSettingsStore();
+
   const { connected, loading, refresh } = useGoogleCalendar();
   const profile = useGoogleProfile();
 
@@ -50,7 +52,7 @@ export const Settings = ({
         </div>
       </div>
 
-      {/* Appearance */}}
+      {/* Appearance */}
       <div>
         <p className="w-label mb-2">Appearance</p>
         <div className="flex gap-1.5">
@@ -108,7 +110,7 @@ export const Settings = ({
             <span className="w-caption font-medium" style={{ color: 'var(--w-ink-4)' }}>Language</span>
             <select
               value={language}
-              onChange={e => { setLanguage(e.target.value); localStorage.setItem('language', e.target.value); closeSettings(); }}
+              onChange={e => { setLanguage(e.target.value); closeSettings(); }}
               className="rounded-lg px-2 py-1.5 text-xs outline-none transition-colors"
               style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)', border: '1px solid var(--w-border)' }}
             >
@@ -117,7 +119,6 @@ export const Settings = ({
               ))}
             </select>
           </div>
-
         </div>
       </div>
 
