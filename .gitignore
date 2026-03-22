@@ -4,5 +4,7 @@ node_modules/
 dist
 web-ext-artifacts
 tests/playwright/results
+tests/playwright/screenshots
+tests/playwright/report
 .env
 .agents
