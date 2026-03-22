@@ -74,6 +74,23 @@ body {
   animation: slide-in-right 0.22s ease-out;
 }
 
+/* Centered panel pop-in: scale + fade */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-panel-in {
+  animation: panel-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .react-grid-item:active {
   cursor: default;
 }

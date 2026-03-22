@@ -83,6 +83,20 @@ export const Widget = ({ onRemove }) => {
     return () => clearInterval(intervalRef.current);
   }, [running, done, preset]);
 
+  // Sync running state to localStorage so FocusMode can read it
+  useEffect(() => {
+    if (phase === 'timer' && running && remaining > 0) {
+      localStorage.setItem('fm_pomodoro', JSON.stringify({
+        running: true,
+        remaining,
+        total: duration,
+        preset,
+      }));
+    } else {
+      localStorage.removeItem('fm_pomodoro');
+    }
+  }, [phase, running, remaining, duration, preset]);
+
   // ─── PICK PHASE ──────────────────────────────────────────────────────────────
   if (phase === 'pick') {
     return (
