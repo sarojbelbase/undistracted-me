@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 
 export const ACCENT_COLORS = [
   { name: 'Default', hex: '#111827', fg: '#ffffff' },
@@ -58,32 +58,26 @@ export const applyTheme = (accent, mode) => {
   root.setAttribute('data-mode', mode);
 };
 
-// Apply immediately on import to prevent flash of unstyled content
-applyTheme(
-  localStorage.getItem('app_accent') || 'Default',
-  localStorage.getItem('app_mode') || 'light',
-);
-
-export const useTheme = () => {
-  const [accent, setAccentState] = useState(() => localStorage.getItem('app_accent') || 'Default');
-  const [mode, setModeState] = useState(() => localStorage.getItem('app_mode') || 'light');
-
-  useEffect(() => {
-    applyTheme(accent, mode);
-  }, [accent, mode]);
-
-  const setAccent = (name) => {
-    setAccentState(name);
-    localStorage.setItem('app_accent', name);
-  };
-
-  const setMode = (m) => {
-    if (m === 'dark' && accent === 'Default') {
-      setAccent('Blueberry');
+/**
+ * Apply theme immediately on module load to prevent flash of unstyled content.
+ * Reads from the Zustand persist key first, falling back to legacy per-key
+ * entries so existing users are not affected after the Zustand migration.
+ */
+const _getInitTheme = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('undistracted_settings'));
+    if (stored?.state) {
+      return {
+        accent: stored.state.accent || 'Default',
+        mode: stored.state.mode || 'light',
+      };
     }
-    setModeState(m);
-    localStorage.setItem('app_mode', m);
+  } catch { /* ignore */ }
+  return {
+    accent: localStorage.getItem('app_accent') || 'Default',
+    mode: localStorage.getItem('app_mode') || 'light',
   };
-
-  return { accent, mode, setAccent, setMode };
 };
+
+const { accent: _initAccent, mode: _initMode } = _getInitTheme();
+applyTheme(_initAccent, _initMode);

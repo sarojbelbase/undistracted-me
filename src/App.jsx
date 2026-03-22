@@ -1,38 +1,23 @@
 import './App.css';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
-import { LANGUAGES } from './constants';
 import { Settings } from './components/Settings';
 import { FocusMode } from './components/FocusMode';
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { WidgetCatalog } from './widgets/WidgetCatalog';
-import { useWidgetInstances } from './widgets/useWidgetInstances';
-import { useTheme } from './theme';
+import { useSettingsStore, useWidgetInstancesStore } from './store';
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
-
-  const [language, setLanguage] = useState(() => {
-    const savedLanguage = localStorage.getItem('language');
-    return savedLanguage ? savedLanguage : LANGUAGES.en;
-  });
-
-  const { instances, addInstance, removeInstance } = useWidgetInstances();
-
   const [showCatalog, setShowCatalog] = useState(false);
-  const [defaultView, setDefaultView] = useState(() => localStorage.getItem('defaultView') || 'canvas');
-  const [showFocusMode, setShowFocusMode] = useState(() => (localStorage.getItem('defaultView') || 'canvas') === 'focus');
 
-  const handleSetDefaultView = (view) => {
-    setDefaultView(view);
-    localStorage.setItem('defaultView', view);
-  };
+  // ── Zustand stores ─────────────────────────────────────────────────────────
+  const { mode, defaultView } = useSettingsStore();
+  const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+  // Focus mode is either the user's stored default or an in-session toggle
+  const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
 
-  const { accent, mode, setAccent, setMode } = useTheme();
   const topBarRef = useRef(null);
 
   useEffect(() => {
@@ -46,13 +31,8 @@ const App = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [showSettings]);
 
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-  };
-
-  const closeSettings = () => {
-    setShowSettings(false);
-  };
+  const toggleSettings = () => setShowSettings((s) => !s);
+  const closeSettings = () => setShowSettings(false);
 
   const isDark = mode === 'dark';
 
@@ -137,17 +117,7 @@ const App = () => {
         </div>
 
         {showSettings && (
-          <Settings
-            language={language}
-            setLanguage={setLanguage}
-            closeSettings={closeSettings}
-            accent={accent}
-            setAccent={setAccent}
-            mode={mode}
-            setMode={setMode}
-            defaultView={defaultView}
-            setDefaultView={handleSetDefaultView}
-          />
+          <Settings closeSettings={closeSettings} />
         )}
       </div>
 
@@ -165,15 +135,7 @@ const App = () => {
       </div>
 
       {showFocusMode && (
-        <FocusMode
-          onExit={() => setShowFocusMode(false)}
-          accent={accent}
-          setAccent={setAccent}
-          mode={mode}
-          setMode={setMode}
-          language={language}
-          setLanguage={setLanguage}
-        />
+        <FocusMode onExit={() => setShowFocusMode(false)} />
       )}
     </div>
   );
