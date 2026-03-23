@@ -7,6 +7,7 @@ import { useSettingsStore } from '../../store';
 export const FocusModeSettings = () => {
   const {
     dateFormat, setDateFormat,
+    clockFormat, setClockFormat,
     accent, setAccent,
     mode, setMode,
     language, setLanguage,
@@ -37,6 +38,27 @@ export const FocusModeSettings = () => {
               onClick={() => setDateFormat(id)}
               className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
               style={dateFormat === id
+                ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Clock format */}
+      <div>
+        <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
+          Clock Format
+        </p>
+        <div className="flex gap-1.5">
+          {[{ id: '24h', label: '24h' }, { id: '12h', label: '12h' }].map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setClockFormat(id)}
+              className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
+              style={(clockFormat || '24h') === id
                 ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
                 : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
             >

@@ -35,10 +35,14 @@ export const useSettingsStore = create(
     (set, get) => ({
       // ── State (seeded from legacy keys on first load) ──────────────────
       ...fromLegacy(),
+      clockFormat: '24h',
 
       // ── Actions ────────────────────────────────────────────────────────
 
       setLanguage: (language) => set({ language }),
+
+      /** Clock time format shown in Focus Mode: '24h' | '12h' */
+      setClockFormat: (clockFormat) => set({ clockFormat }),
 
       setAccent: (accent) => {
         set({ accent });

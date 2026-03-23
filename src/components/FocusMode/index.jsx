@@ -8,9 +8,10 @@ import {
 import { MONTH_NAMES } from '../../constants';
 import { useEvents, useGoogleCalendar } from '../../widgets/useEvents';
 import { formatTime } from '../../widgets/pomodoro/utils';
-import { GearFill, StopwatchFill, ArrowsFullscreen, FullscreenExit } from 'react-bootstrap-icons';
+import { GearFill, ArrowsFullscreen, FullscreenExit, MusicNoteBeamed, PauseFill, PlayFill } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { FocusModeSettings } from './Settings';
+import { getCurrentPlayback, isSpotifyConnected, setPlayPause } from '../../widgets/spotify/utils';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -48,16 +49,51 @@ const readPomodoro = () => {
   }
 };
 
-// ─── Current event finder ─────────────────────────────────────────────────────
+// ─── Event helpers ────────────────────────────────────────────────────────────
 
-const getCurrentEvent = (events) => {
+/**
+ * Returns { event, isActive } for whichever should be shown:
+ * 1. Currently active event (highest priority)
+ * 2. Next upcoming event (soonest in the future)
+ */
+const getNextEventToShow = (events) => {
   const now = new Date();
-  return events.find(e => {
+  const active = events.find(e => {
     if (!e.startDate || !e.endDate || !e.startTime || !e.endTime) return false;
     const start = new Date(`${e.startDate}T${e.startTime}`);
     const end = new Date(`${e.endDate}T${e.endTime}`);
     return now >= start && now <= end;
-  }) || null;
+  });
+  if (active) return { event: active, isActive: true };
+
+  const upcoming = events
+    .filter(e => {
+      if (!e.startDate || !e.startTime) return false;
+      return new Date(`${e.startDate}T${e.startTime}`) > now;
+    })
+    .sort((a, b) =>
+      new Date(`${a.startDate}T${a.startTime}`) - new Date(`${b.startDate}T${b.startTime}`)
+    );
+  if (upcoming.length > 0) return { event: upcoming[0], isActive: false };
+  return null;
+};
+
+const getTimeUntilEvent = (event) => {
+  const start = new Date(`${event.startDate}T${event.startTime}`);
+  const diffMs = start - new Date();
+  if (diffMs <= 0) return 'now';
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `in ${diffMin}m`;
+  const h = Math.floor(diffMin / 60), m = diffMin % 60;
+  return m > 0 ? `in ${h}h ${m}m` : `in ${h}h`;
+};
+
+const formatEventStartTime = (event) => {
+  if (!event.startTime) return '';
+  const [h, min] = event.startTime.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(min).padStart(2, '0')} ${ampm}`;
 };
 
 // ─── Odometer digit roller ───────────────────────────────────────────────────
@@ -129,6 +165,107 @@ const DigitRoller = React.memo(({ char }) => {
   );
 });
 
+// ─── Spotify mini-player ─────────────────────────────────────────────────────
+
+const SpotifyBar = ({ track, onToggle }) => (
+  <div
+    className="flex items-center gap-2.5"
+    style={{
+      background: 'rgba(8,9,11,0.64)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '12px',
+      padding: '7px 10px 7px 7px',
+      maxWidth: '210px',
+    }}
+    onClick={e => e.stopPropagation()}
+  >
+    {track.albumArt
+      ? <img src={track.albumArt} alt="" style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+      : (
+        <div style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <MusicNoteBeamed size={11} style={{ color: 'rgba(255,255,255,0.35)' }} />
+        </div>
+      )}
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {track.title}
+      </div>
+      <div style={{ fontSize: '10px', marginTop: '2px', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {track.artist}
+      </div>
+    </div>
+    <button
+      onClick={onToggle}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'rgba(255,255,255,0.55)', flexShrink: 0 }}
+    >
+      {track.isPlaying
+        ? <PauseFill size={11} style={{ display: 'block' }} />
+        : <PlayFill size={11} style={{ display: 'block' }} />}
+    </button>
+  </div>
+);
+
+// ─── Pomodoro pill ────────────────────────────────────────────────────────────
+
+const PomodoroPill = ({ pomodoro }) => {
+  const pct = pomodoro.total > 0 ? (pomodoro.remaining / pomodoro.total) * 100 : 0;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+        {pomodoro.preset && (
+          <>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+              {pomodoro.preset}
+            </span>
+            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'inline-block', flexShrink: 0 }} />
+          </>
+        )}
+        <span style={{ fontSize: '22px', fontWeight: 600, color: 'rgba(255,255,255,0.78)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em' }}>
+          {formatTime(pomodoro.remaining)}
+        </span>
+      </div>
+      {/* Drain progress bar */}
+      <div style={{ width: '180px', height: '1.5px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)' }}>
+        <div style={{
+          height: '100%', borderRadius: '2px',
+          background: 'var(--w-accent)',
+          width: `${pct.toFixed(1)}%`,
+          transition: 'width 1s linear',
+          opacity: 0.6,
+        }} />
+      </div>
+    </div>
+  );
+};
+
+// ─── Event line ───────────────────────────────────────────────────────────────
+
+const EventLine = ({ eventInfo }) => {
+  const { event, isActive } = eventInfo;
+  const timeLabel = formatEventStartTime(event);
+  const prefix = isActive ? 'now' : getTimeUntilEvent(event);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span style={{
+        width: '5px', height: '5px', borderRadius: '50%',
+        background: 'var(--w-accent)', opacity: isActive ? 0.8 : 0.4, flexShrink: 0,
+      }} />
+      <span style={{
+        fontSize: '12px', color: 'rgba(255,255,255,0.42)', fontWeight: 400,
+        letterSpacing: '0.03em', maxWidth: '260px',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {event.title}
+      </span>
+      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.04em', flexShrink: 0 }}>
+        {prefix}{timeLabel ? ` · ${timeLabel}` : ''}
+      </span>
+    </div>
+  );
+};
+
 // ─── Wake Lock hook ───────────────────────────────────────────────────────────
 
 const useWakeLock = (active) => {
@@ -157,13 +294,15 @@ const useWakeLock = (active) => {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export const FocusMode = ({ onExit }) => {
-  const { dateFormat, accent } = useSettingsStore();
-  const [parts, setParts] = useState(() => getTimeParts('24h'));
+  const { dateFormat, clockFormat } = useSettingsStore();
+  const fmt = clockFormat || '24h';
+  const [parts, setParts] = useState(() => getTimeParts(fmt));
   const [dateParts, setDateParts] = useState(() =>
     dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts()
   );
   const [showSettings, setShowSettings] = useState(false);
   const [pomodoro, setPomodoro] = useState(null);
+  const [spotify, setSpotify] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
   const hideTimerRef = useRef(null);
@@ -209,19 +348,51 @@ export const FocusMode = ({ onExit }) => {
 
   const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
-  const currentEvent = getCurrentEvent([...localEvents, ...gcalEvents]);
+  const eventInfo = getNextEventToShow([...localEvents, ...gcalEvents]);
 
   const update = useCallback(() => {
-    setParts(getTimeParts('24h'));
+    setParts(getTimeParts(fmt));
     setDateParts(dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts());
     setPomodoro(readPomodoro());
-  }, [dateFormat]);
+  }, [dateFormat, fmt]);
 
   useEffect(() => {
     update();
     const id = setInterval(update, 1_000);
     return () => clearInterval(id);
   }, [update]);
+
+  // Spotify polling — only when connected, every 5s
+  useEffect(() => {
+    if (!isSpotifyConnected()) return;
+    let cancelled = false;
+    const fetchSpotify = async () => {
+      try {
+        const data = await getCurrentPlayback();
+        if (cancelled) return;
+        if (!data?.item) { setSpotify(null); return; }
+        setSpotify({
+          isPlaying: data.is_playing,
+          title: data.item.name,
+          artist: data.item.artists.map(a => a.name).join(', '),
+          albumArt: data.item.album.images[0]?.url ?? null,
+        });
+      } catch {
+        if (!cancelled) setSpotify(null);
+      }
+    };
+    fetchSpotify();
+    const id = setInterval(fetchSpotify, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const handleSpotifyToggle = useCallback(async () => {
+    if (!spotify) return;
+    try {
+      await setPlayPause(!spotify.isPlaying);
+      setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s);
+    } catch { }
+  }, [spotify]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onExit(); };
@@ -245,8 +416,6 @@ export const FocusMode = ({ onExit }) => {
       if (handler) document.removeEventListener('mousedown', handler);
     };
   }, [showSettings]);
-
-  const hasContext = pomodoro || currentEvent;
 
   const fadeIn = (e) => { e.currentTarget.style.opacity = '0.88'; };
   const fadeOut = (e) => { e.currentTarget.style.opacity = '0.38'; };
@@ -365,43 +534,62 @@ export const FocusMode = ({ onExit }) => {
         </div>
       </div>
 
-      {/* ── Center Stage: Clock + Greeting ── */}
+      {/* ── Center Stage: Clock + Greeting + Context ── */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center select-none pointer-events-none">
         <div
           className="flex flex-col items-center pointer-events-auto"
           onClick={e => e.stopPropagation()}
         >
-          {/* Odometer clock */}
-          <div
-            className="flex items-center"
-            style={{
-              fontSize: 'clamp(7rem, 20vw, 20rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'white',
-              lineHeight: 1,
-            }}
-          >
-            {parts.time.split('').map((char, i) =>
-              char === ':' ? (
-                <span
-                  key={i}
-                  style={{
-                    lineHeight: 1,
-                    height: '1em',
-                    display: 'flex',
-                    alignItems: 'center',
-                    paddingBottom: '0.05em',
-                    color: 'var(--w-accent)',
-                    marginInline: '0.015em',
-                    opacity: 0.9,
-                  }}
-                >
-                  :
-                </span>
-              ) : (
-                <DigitRoller key={i} char={char} />
-              )
+          {/* Odometer clock + AM/PM */}
+          <div className="flex items-start">
+            <div
+              className="flex items-center"
+              style={{
+                fontSize: 'clamp(7rem, 20vw, 20rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                color: 'white',
+                lineHeight: 1,
+              }}
+            >
+              {parts.time.split('').map((char, i) =>
+                char === ':' ? (
+                  <span
+                    key={i}
+                    style={{
+                      lineHeight: 1,
+                      height: '1em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      paddingBottom: '0.05em',
+                      color: 'var(--w-accent)',
+                      marginInline: '0.015em',
+                      opacity: 0.9,
+                    }}
+                  >
+                    :
+                  </span>
+                ) : (
+                  <DigitRoller key={i} char={char} />
+                )
+              )}
+            </div>
+
+            {/* AM / PM badge for 12h mode */}
+            {parts.period && (
+              <span
+                style={{
+                  fontSize: 'clamp(1.4rem, 3vw, 4.2rem)',
+                  fontWeight: 300,
+                  color: 'rgba(255,255,255,0.38)',
+                  lineHeight: 1,
+                  paddingTop: '0.48em',
+                  paddingLeft: '0.28em',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                {parts.period}
+              </span>
             )}
           </div>
 
@@ -420,42 +608,21 @@ export const FocusMode = ({ onExit }) => {
               {parts.greeting.label}
             </span>
           </div>
+
+          {/* ─── Context strip: Pomodoro + Event ─── */}
+          {(pomodoro || eventInfo) && (
+            <div className="flex flex-col items-center gap-3.5 mt-9">
+              {pomodoro && <PomodoroPill pomodoro={pomodoro} />}
+              {eventInfo && <EventLine eventInfo={eventInfo} />}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Bottom strip — context info ── */}
-      {hasContext && (
-        <div
-          className="relative z-10 flex items-end justify-end px-8 pb-6"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="flex flex-col items-end gap-1">
-            {pomodoro && (
-              <div className="flex items-center gap-1.5">
-                <StopwatchFill size={9} style={{ color: 'var(--w-accent)', opacity: 0.5 }} />
-                <span
-                  className="text-[11px] font-light tabular-nums tracking-[0.05em]"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                >
-                  {formatTime(pomodoro.remaining)}
-                </span>
-              </div>
-            )}
-            {currentEvent && (
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ background: 'var(--w-accent)', opacity: 0.5 }}
-                />
-                <span
-                  className="text-[11px] font-light tracking-[0.04em] max-w-[200px] truncate"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                >
-                  {currentEvent.title}
-                </span>
-              </div>
-            )}
-          </div>
+      {/* ── Spotify mini-player — bottom-left ── */}
+      {spotify && (
+        <div className="absolute bottom-6 left-7 z-20">
+          <SpotifyBar track={spotify} onToggle={handleSpotifyToggle} />
         </div>
       )}
     </div>
