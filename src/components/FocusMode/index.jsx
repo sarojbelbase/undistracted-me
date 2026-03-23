@@ -8,10 +8,13 @@ import {
 import { MONTH_NAMES } from '../../constants';
 import { useEvents, useGoogleCalendar } from '../../widgets/useEvents';
 import { formatTime } from '../../widgets/pomodoro/utils';
-import { GearFill, ArrowsFullscreen, FullscreenExit, MusicNoteBeamed, PauseFill, PlayFill } from 'react-bootstrap-icons';
+import { GearFill, ArrowsFullscreen, FullscreenExit, MusicNoteBeamed, PauseFill, PlayFill, SkipStartFill, SkipEndFill } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { FocusModeSettings } from './Settings';
-import { getCurrentPlayback, isSpotifyConnected, setPlayPause } from '../../widgets/spotify/utils';
+import { getCurrentPlayback, isSpotifyConnected, setPlayPause, skipNext, skipPrev } from '../../widgets/spotify/utils';
+import { API_KEY, getWeatherIcon, getCoords, fetchWeatherByCoords, parseWeather } from '../../widgets/weather/utils.jsx';
+import { fetchChart, priceStats, fmtPrice } from '../../widgets/stock/utils';
+import { getCurrentPhoto, rotatePhoto, getCachedPhotoSync } from '../../utilities/unsplash';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -165,106 +168,239 @@ const DigitRoller = React.memo(({ char }) => {
   );
 });
 
-// ─── Spotify mini-player ─────────────────────────────────────────────────────
+// ─── Shared glass-card style ─────────────────────────────────────────────────
 
-const SpotifyBar = ({ track, onToggle }) => (
-  <div
-    className="flex items-center gap-2.5"
-    style={{
-      background: 'rgba(8,9,11,0.64)',
-      backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: '12px',
-      padding: '7px 10px 7px 7px',
-      maxWidth: '210px',
-    }}
-    onClick={e => e.stopPropagation()}
-  >
-    {track.albumArt
-      ? <img src={track.albumArt} alt="" style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-      : (
-        <div style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <MusicNoteBeamed size={11} style={{ color: 'rgba(255,255,255,0.35)' }} />
-        </div>
-      )}
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {track.title}
+const GLASS_CARD = {
+  background: 'rgba(6,7,9,0.56)',
+  backdropFilter: 'blur(22px)',
+  WebkitBackdropFilter: 'blur(22px)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: '14px',
+};
+
+// ─── Data hooks ───────────────────────────────────────────────────────────────
+
+/** Reads weather widget settings from localStorage and fetches live weather. */
+const useFocusWeather = () => {
+  const [weather, setWeather] = useState(null);
+  useEffect(() => {
+    if (!API_KEY) return;
+    let location = null, unit = 'metric';
+    try {
+      const ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || '{}');
+      location = ws.location || null;
+      unit = ws.unit || 'metric';
+    } catch { }
+    const load = async () => {
+      try {
+        let lat, lon;
+        if (location) { lat = location.lat; lon = location.lon; }
+        else { try { ({ lat, lon } = await getCoords()); } catch { return; } }
+        const data = await fetchWeatherByCoords(lat, lon, unit);
+        setWeather({ ...parseWeather(data), unit });
+      } catch { }
+    };
+    load();
+    const id = setInterval(load, 30 * 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return weather;
+};
+
+/** Reads stock symbols from widget settings and fetches live chart data. */
+const useFocusStocks = () => {
+  const [stocks, setStocks] = useState([]);
+  useEffect(() => {
+    let symbols = [];
+    try {
+      const direct = JSON.parse(localStorage.getItem('widgetSettings_stock') || 'null');
+      if (direct?.symbols?.length) {
+        symbols = direct.symbols;
+      } else {
+        const instances = JSON.parse(localStorage.getItem('widget_instances') || '[]');
+        const id = instances.find(i => i.type === 'stock')?.id;
+        if (id) {
+          const ws = JSON.parse(localStorage.getItem(`widgetSettings_${id}`) || 'null');
+          if (ws?.symbols?.length) symbols = ws.symbols;
+        }
+      }
+    } catch { }
+    if (!symbols.length) return;
+    const load = async () => {
+      const results = await Promise.all(symbols.map(s => fetchChart(s).catch(() => null)));
+      setStocks(symbols.map((sym, i) => ({ sym, data: results[i] })));
+    };
+    load();
+    const id = setInterval(load, 5 * 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return stocks;
+};
+
+/** Loads Unsplash photos with smooth crossfade transitions between slots. */
+const useFocusPhoto = () => {
+  const [photo, setPhoto] = useState(() => getCachedPhotoSync());
+  const [slotA, setSlotA] = useState(() => getCachedPhotoSync()?.regular || null);
+  const [slotB, setSlotB] = useState(null);
+  const [activeSlot, setActiveSlot] = useState('a');
+  const prevUrlRef = useRef(null);
+
+  const applyPhoto = useCallback((p) => {
+    if (!p) return;
+    const url = p.regular || p.url;
+    if (url === prevUrlRef.current) return;
+    prevUrlRef.current = url;
+    setPhoto(p);
+    setActiveSlot(cur => {
+      if (cur === 'a') { setSlotB(url); return 'b'; }
+      else { setSlotA(url); return 'a'; }
+    });
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    getCurrentPhoto().then(p => { if (mounted && p) applyPhoto(p); });
+    const id = setInterval(() => {
+      if (!mounted) return;
+      rotatePhoto().then(p => { if (mounted && p) applyPhoto(p); });
+    }, 45 * 60_000);
+    return () => { mounted = false; clearInterval(id); };
+  }, [applyPhoto]);
+
+  return { photo, slotA, slotB, activeSlot };
+};
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+/** Inline weather badge for the top bar: white icon + temp + separator dot */
+const WeatherTopBadge = ({ weather }) => {
+  if (!weather) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ filter: 'brightness(0) invert(1)', opacity: 0.65, display: 'flex', alignItems: 'center' }}>
+        {getWeatherIcon(weather.code, weather.isDay, 14)}
       </div>
-      <div style={{ fontSize: '10px', marginTop: '2px', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {track.artist}
+      <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '-0.01em' }}>
+        {weather.temperature}°{weather.unit === 'imperial' ? 'F' : 'C'}
+      </span>
+      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', marginInline: 1 }}>·</span>
+    </div>
+  );
+};
+
+/** Right-side Spotify card: album art + track info + progress + controls */
+const SpotifyPanel = ({ track, onToggle, onNext, onPrev }) => {
+  const pct = track.durationMs > 0 ? Math.min((track.progressMs / track.durationMs) * 100, 100) : 0;
+  return (
+    <div
+      style={{ ...GLASS_CARD, padding: 14, width: 192, display: 'flex', flexDirection: 'column', gap: 12 }}
+      onClick={e => e.stopPropagation()}
+    >
+      {track.albumArt
+        ? <img src={track.albumArt} alt="" style={{ width: '100%', aspectRatio: '1/1', borderRadius: 10, objectFit: 'cover' }} />
+        : (
+          <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: 10, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MusicNoteBeamed size={28} style={{ color: 'rgba(255,255,255,0.2)' }} />
+          </div>
+        )}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.82)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
+          {track.title}
+        </div>
+        <div style={{ fontSize: 10, marginTop: 3, color: 'rgba(255,255,255,0.32)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {track.artist}
+        </div>
+      </div>
+      <div style={{ height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.08)' }}>
+        <div style={{ height: '100%', borderRadius: 2, background: 'var(--w-accent)', width: `${pct.toFixed(1)}%`, transition: 'width 1s linear', opacity: 0.65 }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <button onClick={onPrev} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.32)', padding: 4, display: 'flex' }}>
+          <SkipStartFill size={13} />
+        </button>
+        <button onClick={onToggle} style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', color: 'rgba(255,255,255,0.82)', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {track.isPlaying ? <PauseFill size={12} /> : <PlayFill size={13} />}
+        </button>
+        <button onClick={onNext} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.32)', padding: 4, display: 'flex' }}>
+          <SkipEndFill size={13} />
+        </button>
       </div>
     </div>
-    <button
-      onClick={onToggle}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'rgba(255,255,255,0.55)', flexShrink: 0 }}
-    >
-      {track.isPlaying
-        ? <PauseFill size={11} style={{ display: 'block' }} />
-        : <PlayFill size={11} style={{ display: 'block' }} />}
-    </button>
+  );
+};
+
+/** Left panel — Pomodoro timer card */
+const PomodoroPanelCard = ({ pomodoro }) => {
+  const pct = pomodoro.total > 0 ? (pomodoro.remaining / pomodoro.total) * 100 : 0;
+  return (
+    <div style={{ ...GLASS_CARD, padding: '14px 16px' }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontWeight: 700 }}>
+        Focus{pomodoro.preset ? ` · ${pomodoro.preset}` : ''}
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: 'rgba(255,255,255,0.82)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', marginTop: 5 }}>
+        {formatTime(pomodoro.remaining)}
+      </div>
+      <div style={{ marginTop: 10, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}>
+        <div style={{ height: '100%', borderRadius: 2, background: 'var(--w-accent)', width: `${pct.toFixed(1)}%`, transition: 'width 1s linear', opacity: 0.6 }} />
+      </div>
+    </div>
+  );
+};
+
+/** Left panel — Upcoming / active event card */
+const EventPanelCard = ({ eventInfo }) => {
+  const { event, isActive } = eventInfo;
+  return (
+    <div style={{ ...GLASS_CARD, padding: '12px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--w-accent)', opacity: isActive ? 0.9 : 0.45, flexShrink: 0, display: 'inline-block' }} />
+        <span style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontWeight: 700 }}>
+          {isActive ? 'Now' : 'Upcoming'}
+        </span>
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.78)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
+        {event.title}
+      </div>
+      <div style={{ fontSize: 10, marginTop: 3, color: 'rgba(255,255,255,0.28)' }}>
+        {isActive ? 'in progress' : getTimeUntilEvent(event)}
+        {formatEventStartTime(event) ? ` · ${formatEventStartTime(event)}` : ''}
+      </div>
+    </div>
+  );
+};
+
+/** Left panel — Stock tickers card */
+const StocksPanelCard = ({ stocks }) => (
+  <div style={{ ...GLASS_CARD, padding: '12px 16px' }}>
+    <div style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', fontWeight: 700, marginBottom: 8 }}>
+      Stocks
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      {stocks.map(({ sym, data }) => {
+        const stats = data ? priceStats(data) : null;
+        const clr = !stats ? 'rgba(255,255,255,0.3)' : stats.dir === 'up' ? '#4ade80' : stats.dir === 'down' ? '#f87171' : 'rgba(255,255,255,0.4)';
+        return (
+          <div key={sym} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.58)', letterSpacing: '0.08em' }}>{sym}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.48)', fontVariantNumeric: 'tabular-nums' }}>
+                {data ? fmtPrice(data.ltp) : '—'}
+              </span>
+              {stats && (
+                <span style={{ fontSize: 10, color: clr, fontWeight: 600 }}>
+                  {stats.dir === 'up' ? '▲' : stats.dir === 'down' ? '▼' : '—'} {Math.abs(stats.pct).toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 );
 
-// ─── Pomodoro pill ────────────────────────────────────────────────────────────
-
-const PomodoroPill = ({ pomodoro }) => {
-  const pct = pomodoro.total > 0 ? (pomodoro.remaining / pomodoro.total) * 100 : 0;
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-        {pomodoro.preset && (
-          <>
-            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-              {pomodoro.preset}
-            </span>
-            <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'inline-block', flexShrink: 0 }} />
-          </>
-        )}
-        <span style={{ fontSize: '22px', fontWeight: 600, color: 'rgba(255,255,255,0.78)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em' }}>
-          {formatTime(pomodoro.remaining)}
-        </span>
-      </div>
-      {/* Drain progress bar */}
-      <div style={{ width: '180px', height: '1.5px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)' }}>
-        <div style={{
-          height: '100%', borderRadius: '2px',
-          background: 'var(--w-accent)',
-          width: `${pct.toFixed(1)}%`,
-          transition: 'width 1s linear',
-          opacity: 0.6,
-        }} />
-      </div>
-    </div>
-  );
-};
-
-// ─── Event line ───────────────────────────────────────────────────────────────
-
-const EventLine = ({ eventInfo }) => {
-  const { event, isActive } = eventInfo;
-  const timeLabel = formatEventStartTime(event);
-  const prefix = isActive ? 'now' : getTimeUntilEvent(event);
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{
-        width: '5px', height: '5px', borderRadius: '50%',
-        background: 'var(--w-accent)', opacity: isActive ? 0.8 : 0.4, flexShrink: 0,
-      }} />
-      <span style={{
-        fontSize: '12px', color: 'rgba(255,255,255,0.42)', fontWeight: 400,
-        letterSpacing: '0.03em', maxWidth: '260px',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {event.title}
-      </span>
-      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.04em', flexShrink: 0 }}>
-        {prefix}{timeLabel ? ` · ${timeLabel}` : ''}
-      </span>
-    </div>
-  );
-};
+// ─── Depth-overlay mask ───────────────────────────────────────────────────────
+const FG_MASK = 'linear-gradient(to bottom, transparent 0%, transparent 26%, rgba(0,0,0,0.38) 46%, rgba(0,0,0,0.86) 64%, black 100%)';
 
 // ─── Wake Lock hook ───────────────────────────────────────────────────────────
 
@@ -303,10 +439,15 @@ export const FocusMode = ({ onExit }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [pomodoro, setPomodoro] = useState(null);
   const [spotify, setSpotify] = useState(null);
+  const [spotifyProgress, setSpotifyProgress] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
   const hideTimerRef = useRef(null);
   const settingsRef = useRef(null);
+
+  const weather = useFocusWeather();
+  const stocks = useFocusStocks();
+  const { photo, slotA, slotB, activeSlot } = useFocusPhoto();
 
   useWakeLock(isFullscreen);
 
@@ -362,7 +503,7 @@ export const FocusMode = ({ onExit }) => {
     return () => clearInterval(id);
   }, [update]);
 
-  // Spotify polling — only when connected, every 5s
+  // Spotify — poll every 5s when connected
   useEffect(() => {
     if (!isSpotifyConnected()) return;
     let cancelled = false;
@@ -371,12 +512,16 @@ export const FocusMode = ({ onExit }) => {
         const data = await getCurrentPlayback();
         if (cancelled) return;
         if (!data?.item) { setSpotify(null); return; }
-        setSpotify({
+        const p = {
           isPlaying: data.is_playing,
           title: data.item.name,
           artist: data.item.artists.map(a => a.name).join(', '),
           albumArt: data.item.album.images[0]?.url ?? null,
-        });
+          durationMs: data.item.duration_ms,
+          progressMs: data.progress_ms ?? 0,
+        };
+        setSpotify(p);
+        setSpotifyProgress(p.progressMs);
       } catch {
         if (!cancelled) setSpotify(null);
       }
@@ -386,13 +531,35 @@ export const FocusMode = ({ onExit }) => {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  // Smooth local progress tick between Spotify polls
+  useEffect(() => {
+    if (!spotify?.isPlaying) return;
+    const id = setInterval(() => setSpotifyProgress(p => Math.min(p + 1000, spotify.durationMs || p)), 1000);
+    return () => clearInterval(id);
+  }, [spotify?.isPlaying, spotify?.durationMs]);
+
   const handleSpotifyToggle = useCallback(async () => {
     if (!spotify) return;
-    try {
-      await setPlayPause(!spotify.isPlaying);
-      setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s);
-    } catch { }
+    try { await setPlayPause(!spotify.isPlaying); setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s); } catch { }
   }, [spotify]);
+
+  const refreshSpotifyTrack = useCallback(async () => {
+    try {
+      const data = await getCurrentPlayback();
+      if (data?.item) {
+        const p = { isPlaying: data.is_playing, title: data.item.name, artist: data.item.artists.map(a => a.name).join(', '), albumArt: data.item.album.images[0]?.url ?? null, durationMs: data.item.duration_ms, progressMs: data.progress_ms ?? 0 };
+        setSpotify(p); setSpotifyProgress(p.progressMs);
+      }
+    } catch { }
+  }, []);
+
+  const handleSpotifyNext = useCallback(async () => {
+    try { await skipNext(); setTimeout(refreshSpotifyTrack, 500); } catch { }
+  }, [refreshSpotifyTrack]);
+
+  const handleSpotifyPrev = useCallback(async () => {
+    try { await skipPrev(); setTimeout(refreshSpotifyTrack, 500); } catch { }
+  }, [refreshSpotifyTrack]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onExit(); };
@@ -405,38 +572,143 @@ export const FocusMode = ({ onExit }) => {
     let handler = null;
     const id = setTimeout(() => {
       handler = (e) => {
-        if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-          setShowSettings(false);
-        }
+        if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
       };
       document.addEventListener('mousedown', handler);
     }, 0);
-    return () => {
-      clearTimeout(id);
-      if (handler) document.removeEventListener('mousedown', handler);
-    };
+    return () => { clearTimeout(id); if (handler) document.removeEventListener('mousedown', handler); };
   }, [showSettings]);
 
   const fadeIn = (e) => { e.currentTarget.style.opacity = '0.88'; };
   const fadeOut = (e) => { e.currentTarget.style.opacity = '0.38'; };
 
+  const leftHasContent = pomodoro || eventInfo || stocks.length > 0;
+  const spotifyTrack = spotify ? { ...spotify, progressMs: spotifyProgress } : null;
+  const photoColor = photo?.color || '#18191b';
+
+  const bgStyle = { position: 'absolute', inset: 0, backgroundSize: 'cover', backgroundPosition: 'center' };
+
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      className="fixed inset-0 z-50 overflow-hidden"
+      style={{ backgroundColor: photoColor }}
       onClick={onExit}
     >
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/42 pointer-events-none" />
+      {/* ── Background photo — two slots for crossfade (z 0/1) ── */}
+      <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+      <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
 
-      {/* ── Top bar ── */}
+      {/* ── Cinematic vignette (z 2) ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.5) 100%), linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, transparent 28%, transparent 62%, rgba(0,0,0,0.42) 100%)',
+      }} />
+
+      {/* ── Clock digits — between bg and foreground depth layer (z 10) ── */}
       <div
-        className="relative z-30 flex items-center justify-between px-7 pt-5"
+        className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
+        style={{ zIndex: 10 }}
+      >
+        <div className="flex items-start">
+          <div
+            className="flex items-center"
+            style={{
+              fontSize: 'clamp(5.5rem, 14vw, 17rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              color: 'rgba(255,255,255,0.88)',
+              lineHeight: 1,
+              textShadow: '0 2px 32px rgba(0,0,0,0.22)',
+            }}
+          >
+            {parts.time.split('').map((char, i) =>
+              char === ':' ? (
+                <span
+                  key={i}
+                  style={{
+                    lineHeight: 1, height: '1em', display: 'flex', alignItems: 'center',
+                    paddingBottom: '0.05em', color: 'var(--w-accent)', marginInline: '0.015em', opacity: 0.9,
+                  }}
+                >:</span>
+              ) : (
+                <DigitRoller key={i} char={char} />
+              )
+            )}
+          </div>
+          {parts.period && (
+            <span style={{
+              fontSize: 'clamp(1.2rem, 2.8vw, 4rem)', fontWeight: 300,
+              color: 'rgba(255,255,255,0.32)', lineHeight: 1,
+              paddingTop: '0.5em', paddingLeft: '0.25em', letterSpacing: '0.06em',
+            }}>
+              {parts.period}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Foreground depth overlay — text-behind-image illusion (z 15) ── */}
+      {(slotA || slotB) && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          backgroundImage: activeSlot === 'a'
+            ? (slotA ? `url(${slotA})` : undefined)
+            : (slotB ? `url(${slotB})` : undefined),
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          WebkitMaskImage: FG_MASK, maskImage: FG_MASK,
+        }} />
+      )}
+
+      {/* ── Greeting — above depth overlay (z 20) ── */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
+        style={{ zIndex: 20 }}
+      >
+        <div style={{ height: 'clamp(5.5rem, 14vw, 17rem)', flexShrink: 0 }} />
+        <div className="flex items-baseline gap-2 mt-5">
+          <span style={{ fontSize: '1.2rem', fontWeight: 500, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.28)' }}>
+            {parts.greeting.prefix}
+          </span>
+          <span style={{ fontSize: '1.2rem', fontWeight: 600, letterSpacing: '0.03em', color: 'var(--w-accent)', opacity: 0.78 }}>
+            {parts.greeting.label}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Left panel: Pomodoro + Event + Stocks (z 22) ── */}
+      {leftHasContent && (
+        <div
+          className="absolute flex flex-col gap-2.5 pointer-events-auto"
+          style={{ left: 32, top: '50%', transform: 'translateY(-52%)', zIndex: 22, width: 200 }}
+          onClick={e => e.stopPropagation()}
+        >
+          {pomodoro && <PomodoroPanelCard pomodoro={pomodoro} />}
+          {eventInfo && <EventPanelCard eventInfo={eventInfo} />}
+          {stocks.length > 0 && <StocksPanelCard stocks={stocks} />}
+        </div>
+      )}
+
+      {/* ── Right panel: Spotify (z 22) ── */}
+      {spotifyTrack && (
+        <div
+          className="absolute pointer-events-auto"
+          style={{ right: 32, top: '50%', transform: 'translateY(-52%)', zIndex: 22 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <SpotifyPanel
+            track={spotifyTrack}
+            onToggle={handleSpotifyToggle}
+            onNext={handleSpotifyNext}
+            onPrev={handleSpotifyPrev}
+          />
+        </div>
+      )}
+
+      {/* ── Top bar (z 30) ── */}
+      <div
+        className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 pt-5"
         style={{
+          zIndex: 30,
           opacity: uiVisible ? 1 : 0,
           transition: 'opacity 0.7s ease',
           pointerEvents: uiVisible ? 'auto' : 'none',
@@ -449,38 +721,29 @@ export const FocusMode = ({ onExit }) => {
           onMouseEnter={fadeIn}
           onMouseLeave={fadeOut}
           className="flex items-center gap-1.5 rounded-full focus:outline-none"
-          style={{
-            padding: '5px 12px 5px 9px',
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.11)',
-            backdropFilter: 'blur(12px)',
-            opacity: 0.38,
-            transition: 'opacity 0.2s',
-          }}
+          style={{ padding: '5px 12px 5px 9px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', opacity: 0.38, transition: 'opacity 0.2s' }}
           title="Back to Canvas"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M6.5 2L3.5 5L6.5 8" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[10px] font-medium tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>
-            Canvas
-          </span>
+          <span className="text-[10px] font-medium tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>Canvas</span>
         </button>
 
-        {/* Right: fullscreen | settings */}
-        <div
-          className="relative flex items-center"
-          ref={settingsRef}
-          onClick={e => e.stopPropagation()}
-        >
-          <div
-            className="flex items-center rounded-full"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.11)',
-              backdropFilter: 'blur(16px)',
-            }}
-          >
+        {/* Center: Weather · Date */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0 select-none pointer-events-none">
+          <WeatherTopBadge weather={weather} />
+          <span style={{ fontSize: 15, fontWeight: 500, letterSpacing: '0.01em', color: 'rgba(255,255,255,0.72)' }}>
+            {dateParts.dow}, {dateParts.month} {dateParts.day}
+          </span>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.22)', marginLeft: 7 }}>
+            {dateParts.year}
+          </span>
+        </div>
+
+        {/* Right: Fullscreen + Settings */}
+        <div className="relative flex items-center" ref={settingsRef} onClick={e => e.stopPropagation()}>
+          <div className="flex items-center rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(16px)' }}>
             <button
               onClick={toggleFullscreen}
               onMouseEnter={fadeIn}
@@ -489,13 +752,9 @@ export const FocusMode = ({ onExit }) => {
               style={{ opacity: 0.38, transition: 'opacity 0.2s' }}
               title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
             >
-              {isFullscreen
-                ? <FullscreenExit size={13} style={{ color: 'rgba(255,255,255,0.9)' }} />
-                : <ArrowsFullscreen size={12} style={{ color: 'rgba(255,255,255,0.9)' }} />}
+              {isFullscreen ? <FullscreenExit size={13} style={{ color: 'rgba(255,255,255,0.9)' }} /> : <ArrowsFullscreen size={12} style={{ color: 'rgba(255,255,255,0.9)' }} />}
             </button>
-
             <div className="w-px h-3.5 shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }} />
-
             <button
               onClick={() => setShowSettings(s => !s)}
               onMouseEnter={fadeIn}
@@ -504,125 +763,24 @@ export const FocusMode = ({ onExit }) => {
               style={{ opacity: showSettings ? 0.88 : 0.38, transition: 'opacity 0.2s' }}
               title="Settings"
             >
-              <GearFill
-                size={13}
-                className="transition-transform duration-300 group-hover:rotate-90"
-                style={{ color: 'rgba(255,255,255,0.9)' }}
-              />
+              <GearFill size={13} className="transition-transform duration-300 group-hover:rotate-90" style={{ color: 'rgba(255,255,255,0.9)' }} />
             </button>
           </div>
-
-          {showSettings && <FocusModeSettings />}
-        </div>
-
-        {/* Date — centered in the top bar */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 flex items-baseline gap-2.5 select-none pointer-events-none"
-        >
-          <span
-            className="text-2xl font-semibold tracking-[0.01em]"
-            style={{ color: 'rgba(255,255,255,0.78)' }}
-          >
-            {dateParts.dow}, {dateParts.month} {dateParts.day}
-          </span>
-          <span
-            className="text-sm font-light"
-            style={{ color: 'rgba(255,255,255,0.22)' }}
-          >
-            {dateParts.year}
-          </span>
+          {showSettings && <FocusModeSettings onRotatePhoto={rotatePhoto} />}
         </div>
       </div>
 
-      {/* ── Center Stage: Clock + Greeting + Context ── */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center select-none pointer-events-none">
-        <div
-          className="flex flex-col items-center pointer-events-auto"
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Odometer clock + AM/PM */}
-          <div className="flex items-start">
-            <div
-              className="flex items-center"
-              style={{
-                fontSize: 'clamp(7rem, 20vw, 20rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                color: 'white',
-                lineHeight: 1,
-              }}
-            >
-              {parts.time.split('').map((char, i) =>
-                char === ':' ? (
-                  <span
-                    key={i}
-                    style={{
-                      lineHeight: 1,
-                      height: '1em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      paddingBottom: '0.05em',
-                      color: 'var(--w-accent)',
-                      marginInline: '0.015em',
-                      opacity: 0.9,
-                    }}
-                  >
-                    :
-                  </span>
-                ) : (
-                  <DigitRoller key={i} char={char} />
-                )
-              )}
-            </div>
-
-            {/* AM / PM badge for 12h mode */}
-            {parts.period && (
-              <span
-                style={{
-                  fontSize: 'clamp(1.4rem, 3vw, 4.2rem)',
-                  fontWeight: 300,
-                  color: 'rgba(255,255,255,0.38)',
-                  lineHeight: 1,
-                  paddingTop: '0.48em',
-                  paddingLeft: '0.28em',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                {parts.period}
-              </span>
-            )}
-          </div>
-
-          {/* Greeting */}
-          <div className="flex items-baseline gap-2 mt-5">
-            <span
-              className="text-2xl font-semibold tracking-[0.04em]"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
-            >
-              {parts.greeting.prefix}
-            </span>
-            <span
-              className="text-2xl font-semibold tracking-[0.03em]"
-              style={{ color: 'var(--w-accent)', opacity: 0.85 }}
-            >
-              {parts.greeting.label}
-            </span>
-          </div>
-
-          {/* ─── Context strip: Pomodoro + Event ─── */}
-          {(pomodoro || eventInfo) && (
-            <div className="flex flex-col items-center gap-3.5 mt-9">
-              {pomodoro && <PomodoroPill pomodoro={pomodoro} />}
-              {eventInfo && <EventLine eventInfo={eventInfo} />}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Spotify mini-player — bottom-left ── */}
-      {spotify && (
-        <div className="absolute bottom-6 left-7 z-20">
-          <SpotifyBar track={spotify} onToggle={handleSpotifyToggle} />
+      {/* ── Photo attribution (z 20) ── */}
+      {photo?.author && (
+        <div className="absolute bottom-3 right-4 pointer-events-auto" style={{ zIndex: 20 }} onClick={e => e.stopPropagation()}>
+          <a
+            href={photo.photoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.03em', textDecoration: 'none' }}
+          >
+            {photo.author} · Unsplash
+          </a>
         </div>
       )}
     </div>

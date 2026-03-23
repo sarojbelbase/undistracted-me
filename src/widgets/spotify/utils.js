@@ -98,7 +98,7 @@ export const getAccessToken = async () => {
   if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
 
   // Refresh
-  if (!stored.refresh_token) { localStorage.removeItem(TOKEN_KEY); return null; }
+  if (!stored.refresh_token) { return null; }
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -110,7 +110,9 @@ export const getAccessToken = async () => {
     }),
   });
 
-  if (!res.ok) { localStorage.removeItem(TOKEN_KEY); return null; }
+  // Don't clear stored tokens on a transient refresh failure — only disconnectSpotify() should do that.
+  // This prevents the connect screen from reappearing after a network hiccup or token expiry.
+  if (!res.ok) { return null; }
 
   const tokens = await res.json();
   const updated = {

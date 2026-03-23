@@ -1,10 +1,11 @@
-import React from 'react';
-import { CheckLg } from 'react-bootstrap-icons';
+import React, { useState } from 'react';
+import { CheckLg, ArrowRepeat } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../../theme';
 import { LANGUAGES } from '../../constants/settings';
 import { useSettingsStore } from '../../store';
+import { hasUnsplashKey } from '../../utilities/unsplash';
 
-export const FocusModeSettings = () => {
+export const FocusModeSettings = ({ onRotatePhoto }) => {
   const {
     dateFormat, setDateFormat,
     clockFormat, setClockFormat,
@@ -12,6 +13,13 @@ export const FocusModeSettings = () => {
     mode, setMode,
     language, setLanguage,
   } = useSettingsStore();
+  const [rotating, setRotating] = useState(false);
+
+  const handleRotate = async () => {
+    if (!onRotatePhoto || rotating) return;
+    setRotating(true);
+    try { await onRotatePhoto(); } finally { setRotating(false); }
+  };
 
   return (
     <div
@@ -141,6 +149,24 @@ export const FocusModeSettings = () => {
           ))}
         </select>
       </div>
+
+      {/* Photo */}
+      {hasUnsplashKey() && (
+        <div>
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
+            Background Photo
+          </p>
+          <button
+            onClick={handleRotate}
+            disabled={rotating}
+            className="w-full flex items-center justify-center gap-2 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
+            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.45)' }}
+          >
+            <ArrowRepeat size={11} className={rotating ? 'animate-spin' : ''} />
+            {rotating ? 'Loading…' : 'New Photo'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

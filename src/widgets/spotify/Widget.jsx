@@ -45,7 +45,10 @@ export const Widget = ({ onRemove }) => {
         lastArtRef.current = null;
       }
     } catch (e) {
-      if (e.message === 'not_authenticated') setConnected(false);
+      // Don't flip back to the connect screen on a transient auth error — the user
+      // already went through setup. Stay connected and show "nothing playing";
+      // they can explicitly disconnect via the settings gear if needed.
+      if (e.message === 'not_authenticated') setTrack(null);
     }
   }, []);
 
