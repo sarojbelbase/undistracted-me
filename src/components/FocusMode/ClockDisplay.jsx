@@ -10,7 +10,7 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
       <div
         className="flex items-center"
         style={{
-          fontSize: 'clamp(9rem, 26vw, 32rem)',
+          fontSize: 'clamp(6rem, 18vw, 24rem)',
           fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
           fontWeight: 700,
           letterSpacing: '-0.02em',
@@ -40,7 +40,7 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
       </div>
       {parts.period && (
         <span style={{
-          fontSize: 'clamp(0.75rem, 1.3vw, 1.5rem)',
+          fontSize: 'clamp(1.2rem, 2vw, 2.4rem)',
           fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
           fontWeight: 500,
           letterSpacing: '0.08em',

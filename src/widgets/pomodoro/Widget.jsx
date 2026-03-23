@@ -172,8 +172,8 @@ export const Widget = ({ onRemove }) => {
           style={{
             fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
             color: done ? 'var(--w-accent)' : 'var(--w-ink-1)',
-            maskImage: done ? 'none' : drainMask,
-            WebkitMaskImage: done ? 'none' : drainMask,
+            maskImage: done || elapsed === 0 ? 'none' : drainMask,
+            WebkitMaskImage: done || elapsed === 0 ? 'none' : drainMask,
           }}
         >
           {formatTime(remaining)}
