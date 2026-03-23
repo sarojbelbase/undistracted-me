@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckLg, ArrowRepeat } from 'react-bootstrap-icons';
+import { CheckLg } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../../theme';
 import { LANGUAGES } from '../../constants/settings';
 import { useSettingsStore } from '../../store';
@@ -16,6 +16,7 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
   const [rotating, setRotating] = useState(false);
 
   const handleRotate = async () => {
+    console.log('[Settings] handleRotate clicked, onRotatePhoto:', typeof onRotatePhoto, 'rotating:', rotating);
     if (!onRotatePhoto || rotating) return;
     setRotating(true);
     try { await onRotatePhoto(); } finally { setRotating(false); }
@@ -130,7 +131,7 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
       {/* Language */}
       <div>
         <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
-          Nepali Language
+          Language
         </p>
         <select
           value={language}
@@ -159,12 +160,23 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
           <button
             onClick={handleRotate}
             disabled={rotating}
-            className="w-full flex items-center justify-center gap-2 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.45)' }}
+            className="w-full relative overflow-hidden text-[10px] py-1.5 rounded-lg font-medium focus:outline-none"
+            style={{ background: 'rgba(255,255,255,0.05)', color: rotating ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.45)', cursor: 'pointer' }}
           >
-            <ArrowRepeat size={11} className={rotating ? 'animate-spin' : ''} />
-            {rotating ? 'Loading…' : 'New Photo'}
+            {rotating && (
+              <span
+                key="fill"
+                style={{
+                  position: 'absolute', left: 0, top: 0, bottom: 0,
+                  background: 'rgba(255,255,255,0.11)',
+                  animation: 'photo-load-fill 2.4s cubic-bezier(0.4,0,0.2,1) forwards',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+            <span className="relative" style={{ zIndex: 1 }}>Shuffle Photo</span>
           </button>
+          <style>{`@keyframes photo-load-fill { from { width: 0% } to { width: 100% } }`}</style>
         </div>
       )}
     </div>
