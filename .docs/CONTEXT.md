@@ -2,8 +2,242 @@
 
 ## Overview
 React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab page. Two modes:
-1. **Focused** (`showWidgets=false`): Dark `#18191B` bg, giant Nepali date + clock centered
+1. **Focus Mode** (`showWidgets=false`): Cinematic fullscreen view — Unsplash background with text-behind-image clock, ambient context panels (Pomodoro, Events, Stocks, Spotify, Weather)
 2. **Dashboard** (`showWidgets=true`): Themed bg via `--w-page-bg`, draggable widget grid
+
+## Tech Stack
+- **React 19**, **Vite v8**, **@crxjs/vite-plugin**
+- **Tailwind CSS v4** — `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
+- **Zustand** + `persist` middleware — global settings & widget instances stores
+- **react-grid-layout** — `Responsive` + `useContainerWidth()` (NOT WidthProvider — Vite CJS incompatibility)
+- **react-bootstrap-icons** — ALL icons, no hardcoded SVGs
+- **dayjs** + timezone plugin (Asia/Kathmandu)
+
+## State Management (Zustand)
+
+### `useSettingsStore` (`src/store/useSettingsStore.js`)
+Persistence key: `undistracted_settings`
+Fields: `language`, `accent`, `mode`, `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `showMitiInIcon`
+Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setShowMitiInIcon`
+- `setAccent` / `setMode` call `applyTheme()` immediately
+- `onRehydrateStorage` re-applies theme CSS vars after hydration (prevents FOUC)
+- First-run migration: reads legacy per-key localStorage entries if `undistracted_settings` absent
+
+### `useWidgetInstancesStore` (`src/store/useWidgetInstancesStore.js`)
+Persistence key: `widget_instances`
+Fields: `instances: [{ id, type }]`
+Actions: `addInstance`, `removeInstance`, `restoreInstances`
+- Falls back to `widget_enabled_ids` legacy key, then WIDGET_REGISTRY defaults
+
+## Theme System (`src/theme.js`)
+- `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
+- `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
+- CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
+- `data-mode` attribute on `<html>` drives `[data-mode="dark"]` overrides in `App.css`
+- **Constraint**: `"Default"` accent is incompatible with dark mode. Switching to dark auto-selects Blueberry.
+- `applyTheme` called on import (before React mounts) to prevent FOUC
+
+## Design System (`App.css`)
+- Tokens: `--w-ink-1` (#111827) → `--w-ink-6` (#d1d5db) for light; inverted for dark
+- Classes: `w-display`, `w-heading`, `w-title-soft/bold`, `w-sub-soft/bold`, `w-period`, `w-body`, `w-caption`, `w-label`, `w-muted`, `w-dot`/`w-dot-active`
+- `w-title-bold` and `w-sub-bold` use `var(--w-accent)` for accent-tinted text
+- Keyboard accessibility: global `button:focus-visible` ring using `var(--w-accent)`
+- Dark mode overrides: `[data-mode="dark"]` selectors patch hardcoded Tailwind classes
+- Drag CSS: cursor only on `.widget-drag-handle`, options button hidden during drag
+
+## Key Files
+```
+src/
+  App.jsx              — root, mode toggle, settings overlay
+  App.css              — design tokens, typography classes, grid overrides, dark mode patches
+  theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
+  store/
+    useSettingsStore.js     — Zustand persist: all app settings
+    useWidgetInstancesStore.js — Zustand persist: active widget instances
+  utilities/
+    index.js           — convertEnglishToNepali, getTimeZoneAwareDayJsInstance
+    unsplash.js        — Unsplash photo cache (see Unsplash section below)
+    googleCalendar.js  — Google Calendar OAuth integration
+    chrome.js          — Chrome extension API helpers
+  components/
+    FocusMode/
+      index.jsx        — Cinematic focus mode (see Focus Mode section below)
+      Settings.jsx     — Glass settings panel: dateFormat, clockFormat (24h/12h),
+                         accent, mode, language, "New Photo" (only when Unsplash key set)
+    Settings.jsx       — Dashboard global settings overlay
+  widgets/
+    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence
+    BaseWidget.jsx     — forwardRef card, GearWide settings popover, cardStyle prop
+    BaseSettingsModal.jsx — role="dialog", aria-modal, shared settings modal shell
+    useWidgetSettings.js — per-widget localStorage (widgetSettings_${id})
+    useEvents.js       — shared events store: module-level cache, SYNC_EVENT broadcast,
+                         useEvents() + useGoogleCalendar() + useGoogleProfile() hooks
+    WidgetCatalog.jsx  — widget picker drawer with categories
+    settingsIO.js      — settings import/export helpers
+    index.js           — WIDGET_TYPES, WIDGET_REGISTRY (13 widgets), all exports
+    clock/             — live 1s clock, 24h/12h, extra timezone rows, time-aware greetings
+    dateToday/         — weekday + date, BS/AD toggle
+    dayProgress/       — 24-dot grid, 1-min interval
+    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal,
+                         Google Calendar sync, both modals use createPortal(…, document.body)
+    countdown/         — reads useEvents, nearest future event
+    calendar/          — BS/AD, event dots + tooltip portal, today = accent fill + white text
+    weather/           — OpenWeatherMap API, geolocation, VITE_OWM_API_KEY in .env, °C/°F toggle
+    notes/             — textarea, localStorage, accent color picker, hide/expand/collapse
+    bookmarks/         — Google Favicon API, chrome.topSites + manual Pinned, AddModal
+    pomodoro/          — pick (preset pills) → timer; syncs { running, remaining, total, preset }
+                         to localStorage key fm_pomodoro for Focus Mode to read
+    spotify/           — PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas
+                         color extraction, 5s polling + local tick between polls
+                         NOTE: token refresh failure does NOT clear localStorage tokens —
+                         only disconnectSpotify() wipes them. not_authenticated → setTrack(null)
+                         NOT setConnected(false), to avoid re-showing the onboarding screen.
+    facts/             — daily interesting fact widget
+    stock/             — NEPSE stock tickers (see Stock Widget section)
+```
+
+## Widget Registry (13 widgets)
+```
+clock, dateToday, dayProgress, countdown, events, calendar, pomodoro, notes,
+weather, facts, bookmarks, spotify, stock
+```
+
+## Focus Mode Architecture (`src/components/FocusMode/index.jsx`)
+
+Layered z-index composition achieving text-behind-image depth effect:
+
+| z | Layer | Notes |
+|---|---|---|
+| 0/1 | Two Unsplash photo slots | 2.5s opacity crossfade between images |
+| 2 | Cinematic vignette | Radial + vertical gradient |
+| 10 | **Clock digits** (odometer roller) | Sits UNDER the foreground depth overlay |
+| 15 | **Foreground depth overlay** | Same photo, masked transparent→opaque top→bottom — terrain/objects appear IN FRONT of digits |
+| 20 | Greeting + photo attribution | |
+| 22 | Left panel + Right panel | Glass blur cards (`blur(22px)`) |
+| 30 | Top bar | Auto-hides after 3s idle in fullscreen |
+
+### Top bar center: `WeatherTopBadge`
+- Reads `widgetSettings_weather` from localStorage
+- Format: `☁ 22°C · Mon, 23 Mar 2026`
+- Polls OWM every 30 min
+
+### Left panel (vertically centered with clock)
+- `PomodoroPanelCard` — reads `fm_pomodoro` localStorage every 1s; shows timer + drain bar
+- `EventPanelCard` — active event (priority) or soonest upcoming; title + time-until
+- `StocksPanelCard` — reads `widget_instances` → `widgetSettings_${id}`, polls every 5min; symbol + price + ↑↓%
+
+### Right panel
+- `SpotifyPanel` — full square album art, progress bar, prev/play/next controls
+- Local 1s progress tick between 5s Spotify polls for smooth bar movement
+
+### Data hooks (defined in index.jsx)
+- `useFocusWeather()` — reads widgetSettings_weather, fetches OWM
+- `useFocusStocks()` — reads widget_instances → widgetSettings_${id}, fetchChart every 5min
+- `useFocusPhoto()` — manages slotA/slotB crossfade with Unsplash utility
+
+### FocusModeSettings panel
+- Date Calendar: CE / BS
+- Clock Format: 24h / 12h (persisted via `clockFormat` in `useSettingsStore`)
+- Appearance: Light / Dark
+- Accent: color swatches
+- Language: Nepali language select
+- Background Photo: "New Photo" button (only when `VITE_UNSPLASH_ACCESS_KEY` is set)
+
+## Unsplash Photo Utility (`src/utilities/unsplash.js`)
+- Requires `VITE_UNSPLASH_ACCESS_KEY` in `.env`
+- localStorage key: `fm_unsplash_cache` — stores up to 6 photo objects (URLs only, no image data)
+- Each item: `{ id, url, regular, small, color, author, authorUrl, photoUrl, query, cachedAt }`
+- TTL: 45 min — advances to next cached photo when head is stale
+- 12 curated queries (zen/landscape/nature), rotates to avoid repeats
+- Pre-fetches in background when cache < 3 items
+- Exports: `getCurrentPhoto`, `rotatePhoto`, `prewarmPhotos`, `getCachedPhotoSync`, `hasUnsplashKey`, `clearPhotoCache`
+- Attribution: `photo.author + " · Unsplash"` rendered bottom-right of Focus Mode
+
+## Stock Widget (`src/widgets/stock/`)
+
+### Data Source
+- **API**: `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx`
+- **Range**: 90 days rolling (`now - 90*24*3600` → `now`), dynamic Unix timestamps
+- **Response**: `{ t, o, h, l, c, v, s }` — OHLCV arrays; `s === "ok"` on success
+- `c[n-1]` → LTP, `c[n-2]` → prevClose, `c[]` → sparkline, OHL at `[n-1]`
+- Company list: `https://nepalipaisa.com/api/GetCompanies` (POST)
+
+### UI Modes
+- **Single** (1 stock): large LTP + change + O/H/L + sparkline bleeds edge-to-edge
+- **Multi** (2–3 stocks): 2-line rows (symbol / price | % change)
+
+### Utilities (`utils.js`)
+`fetchChart`, `fetchCompanies`, `buildSparklinePaths` (LTTB + Catmull-Rom), `priceStats`, `fmtPrice`, `fmtOHL`, `fmtVolume`, `humanizeAge`
+
+## Drag System (WidgetGrid.jsx)
+- `draggableHandle=".widget-drag-handle"` — only the 3-dot pill notch triggers drag
+- `LAYOUT_VERSION = ACTIVE_WIDGETS.length` — auto-busts saved layout when widget count changes
+- `document.addEventListener('mouseup', clearDragging)` safety net prevents grid freeze
+
+## Google Calendar / Profile Integration
+- OAuth via `chrome.identity.getAuthToken` with scopes: `calendar.readonly`, `userinfo.profile`, `userinfo.email`
+- Cache: `widget_gcal_cache` + `widget_gcal_cache_time`
+- `useGoogleProfile()` — avatar + name + email in Settings panel
+
+## Accessibility
+- BaseWidget: `aria-label`, `aria-haspopup`, `aria-expanded`, `role="menu"`, `role="menuitem"`
+- BaseSettingsModal: `role="dialog"`, `aria-modal`, `aria-label` on close
+- Global `button:focus-visible` ring using `var(--w-accent)`
+
+## Manifest Permissions
+```json
+"permissions": ["identity", "storage", "geolocation", "topSites", "notifications", "alarms"]
+"host_permissions": [
+  "https://api.spotify.com/*",
+  "https://accounts.spotify.com/*",
+  "https://nepalipaisa.com/*",
+  "https://www.merolagani.com/*",
+  "https://api.unsplash.com/*"
+]
+```
+
+## Dev Proxy (`vite.config.ts`)
+```js
+'/np-api' → 'https://nepalipaisa.com/api'
+'/ml-api' → 'https://www.merolagani.com/handlers/TechnicalChartHandler.ashx'
+```
+
+## localStorage Keys
+| Key | Contents |
+|---|---|
+| `undistracted_settings` | Zustand: language, accent, mode, defaultView, dateFormat, clockFormat, showMitiInIcon |
+| `widget_instances` | Zustand: `[{ id, type }]` |
+| `widgetSettings_${id}` | Per-widget settings |
+| `widget_events` | Events array `[{ id, title, startDate, startTime, endDate, endTime }]` |
+| `widget_grid_layouts` | `{ lg: [...], md: [...], ... }` per-breakpoint |
+| `fm_pomodoro` | `{ running, remaining, total, preset }` written by Pomodoro widget |
+| `fm_unsplash_cache` | `[{ id, url, regular, color, author, ... }]` max 6 items |
+| `spotify_tokens` | `{ access_token, refresh_token, expires_at }` |
+| `spotify_profile` | Cached Spotify user profile |
+| `widget_gcal_cache` | Cached Google Calendar events |
+
+## Event Shape
+`{ id, title, startDate, startTime, endDate, endTime }` — dates `YYYY-MM-DD`, times `HH:MM` 24h
+
+## ENV Variables
+| Variable | Used by |
+|---|---|
+| `VITE_OWM_API_KEY` | Weather widget — OpenWeatherMap |
+| `VITE_UNSPLASH_ACCESS_KEY` | Focus Mode backgrounds — Unsplash |
+
+## Key Patterns & Gotchas
+- **Events double-add bug**: NEVER mutate state inside `setX(prev => ...)` when calling `dispatchEvent` — StrictMode calls updaters twice. Use module-level cache + direct mutation.
+- **Modal portals**: MUST use `createPortal(…, document.body)` — CSS `transform` in react-grid-layout breaks `position:fixed` stacking context
+- **Cross-widget sync**: `window.dispatchEvent(new Event('widget_events_changed'))` same-page; `storage` event cross-tab
+- **Per-breakpoint layout**: save `allLayouts` (2nd arg of `onLayoutChange`), not `currentLayout`
+- **Drag stopPropagation**: `onMouseDown={e => e.stopPropagation()}` on buttons inside widgets
+- **Spotify re-auth loop**: refresh token failure must NOT call `localStorage.removeItem(TOKEN_KEY)`. Only `disconnectSpotify()` clears tokens. `not_authenticated` in fetchPlayback → `setTrack(null)`, NOT `setConnected(false)`
+- **Focus Mode depth effect**: clock digits at z10, foreground photo overlay at z15 with gradient mask — this puts the photo's foreground visually in front of digits
+
+## Commands
+- `npm run dev` — Vite dev server
+- `npm run build` — extension build (outputs to `dist/`)
+
 
 ## Tech Stack
 - **React 19**, **Vite**, **@crxjs/vite-plugin**
