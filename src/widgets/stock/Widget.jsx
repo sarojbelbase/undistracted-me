@@ -83,7 +83,7 @@ const StockRow = ({ sym, data, isLast }) => {
       <div className="flex flex-col gap-0.5 min-w-0">
         <span
           className="text-[10px] font-bold uppercase tracking-widest leading-none truncate"
-          style={{ color: isDead ? inkMuted : 'var(--w-ink-3)', letterSpacing: '0.08em' }}
+          style={{ color: isDead ? inkMuted : 'var(--w-accent)', letterSpacing: '0.08em' }}
         >
           {sym}
         </span>
@@ -213,7 +213,7 @@ export const Widget = ({ id: widgetId, onRemove }) => {
         onRemove={onRemove}
       >
         <div className="flex items-center justify-between px-3 pt-2 pb-1 shrink-0">
-          <span className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>NEPSE</span>
+          <span className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>{symbols.length >= 2 ? 'Watchlist' : 'Stock'}</span>
           {RefreshBtn}
         </div>
         <div className="flex flex-col flex-1">

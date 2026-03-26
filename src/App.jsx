@@ -18,6 +18,19 @@ const App = () => {
   // Focus mode is either the user's stored default or an in-session toggle
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
 
+  // Alt+Shift+F — toggle Focus Mode (safe across Chrome/Firefox/Linux)
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        setShowFocusMode(v => !v);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   const topBarRef = useRef(null);
 
   useEffect(() => {
@@ -53,7 +66,7 @@ const App = () => {
             border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)'}`,
             backdropFilter: 'blur(12px)',
           }}
-          title="Focus Mode"
+          title="Focus Mode (Alt+Shift+F)"
         >
           <MoonStarsFill
             size={14}

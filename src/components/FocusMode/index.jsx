@@ -177,7 +177,6 @@ export const FocusMode = ({ onExit }) => {
     <div
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ backgroundColor: photoColor }}
-      onClick={onExit}
     >
       <style>{`@keyframes focusDigitIn { from { opacity: 0; transform: translateY(0.18em); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
