@@ -5,10 +5,10 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
     className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
     style={{ zIndex: 20 }}
   >
-    <div style={{ height: 'clamp(10rem, 28vw, 36rem)', flexShrink: 0 }} />
+    <div style={{ height: 'clamp(4rem, 18vw, 20rem)', flexShrink: 0 }} />
     <div
       className="flex items-baseline"
-      style={{ gap: '0.30em', marginTop: 'clamp(0.4rem, 1vw, 1rem)' }}
+      style={{ gap: '0.30em', marginTop: 'clamp(0.5rem, 1.8vw, 1.8rem)' }}
     >
       <span style={{
         fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
