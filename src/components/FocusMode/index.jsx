@@ -181,8 +181,6 @@ export const FocusMode = ({ onExit }) => {
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ backgroundColor: photoColor }}
     >
-      <style>{`@keyframes focusDigitIn { from { opacity: 0; transform: translateY(0.18em); } to { opacity: 1; transform: translateY(0); } }`}</style>
-
       {/* ── Background photo — two slots for crossfade (z 0/1) ── */}
       <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
       <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
