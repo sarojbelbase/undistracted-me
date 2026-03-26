@@ -2,6 +2,18 @@
 
 @import "tailwindcss";
 
+@keyframes focusDigitIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.18em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 body {
   font-family: 'Google Sans', sans-serif;
 }
