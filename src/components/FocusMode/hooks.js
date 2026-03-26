@@ -175,23 +175,28 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 
 export const useFocusTimezones = () => {
   const [timezones, setTimezones] = useState([]);
+
   useEffect(() => {
     const read = () => {
       try {
         const raw = JSON.parse(localStorage.getItem('widget_instances') || 'null');
-        // Zustand persist wraps the value: { state: { instances: [...] }, version: N }
-        // Fall back to plain array for legacy / first-run format
-        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances || []);
+        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances ?? []);
         const clockInst = instancesList.find(i => i.type === 'clock');
         if (!clockInst) { setTimezones([]); return; }
         const ws = JSON.parse(localStorage.getItem(`widgetSettings_${clockInst.id}`) || '{}');
         setTimezones(ws.timezones || []);
       } catch { setTimezones([]); }
     };
+
     read();
+    // Poll every 5 s so changes made on the canvas appear without requiring
+    // a page reload (the storage event only fires across tabs, not same-tab).
+    const pollId = setInterval(read, 5_000);
+    // Still listen for cross-tab changes just in case.
     const onStorage = (e) => { if (e.key?.startsWith('widgetSettings_')) read(); };
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    return () => { clearInterval(pollId); window.removeEventListener('storage', onStorage); };
   }, []);
+
   return timezones;
 };

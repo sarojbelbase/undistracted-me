@@ -176,7 +176,6 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
             )}
             <span className="relative" style={{ zIndex: 1 }}>Shuffle Photo</span>
           </button>
-          <style>{`@keyframes photo-load-fill { from { width: 0% } to { width: 100% } }`}</style>
         </div>
       )}
     </div>
