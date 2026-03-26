@@ -27,6 +27,54 @@ const CARD_ANIM_CSS = `
 @keyframes panelCardIn {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Left-panel layout ─────────────────────────────── */
+/* Desktop (≥900px): left sidebar, vertically centered */
+.fm-left-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 216px;
+  z-index: 22;
+}
+/* Tablet + Phone (≤899px): horizontal strip pinned to the bottom.
+   Cards stack horizontally and are scrollable — no left sidebar
+   competing with the clock at any screen width below 900px. */
+@media (max-width: 899px) {
+  .fm-left-panel {
+    position: fixed;
+    left: 0;
+    top: auto;
+    bottom: 24px;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0 16px;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .fm-left-panel::-webkit-scrollbar { display: none; }
+  /* Tablet (641-899px): slightly wider cards since there's more room */
+  .fm-left-panel > * {
+    flex-shrink: 0;
+    width: 188px;
+  }
+}
+/* Phone (≤480px): narrower cards */
+@media (max-width: 480px) {
+  .fm-left-panel > * {
+    width: 160px;
+  }
 }`;
 
 const AnimatedCard = ({ delay, children }) => (
@@ -66,7 +114,7 @@ const EventPanelCard = ({ eventInfo, t }) => {
           {isActive ? 'Now' : 'Upcoming'}
         </span>
       </div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
         {event.title}
       </div>
       <div style={{ fontSize: 10, marginTop: 3, color: t.sub }}>
@@ -175,8 +223,8 @@ export const LeftPanel = ({ pomodoro, eventInfo, stocks, spotifyTrack, onToggle,
     <>
       <style>{CARD_ANIM_CSS}</style>
       <div
-        className="absolute flex flex-col gap-2.5 pointer-events-auto"
-        style={{ left: 32, top: '50%', transform: 'translateY(-50%)', zIndex: 22, width: 216 }}
+        className="fm-left-panel pointer-events-auto"
+        style={{ zIndex: 22 }}
         onClick={e => e.stopPropagation()}
       >
         {pomodoro && (
