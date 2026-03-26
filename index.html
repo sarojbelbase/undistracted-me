@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon/lotus16.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#141414" />
     <meta name="description" content="Web site created using create-react-app" />
     <link rel="apple-touch-icon" href="/favicon/lotus128.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -24,15 +24,22 @@
         margin: 0;
         padding: 0;
         background-color: #F0F0F2;
-        /* light fallback, overridden by script below */
       }
 
       [data-mode="dark"],
       [data-mode="dark"] body {
-        background-color: #141920;
+        background-color: #141414;
+      }
+
+      /* Fallback: match OS dark preference before themeInit.js runs */
+      @media (prefers-color-scheme: dark) {
+
+        html:not([data-mode="light"]),
+        html:not([data-mode="light"]) body {
+          background-color: #141414;
+        }
       }
     </style>
-    <script src="/theme-init.js"></script>
   </head>
 
   <body>

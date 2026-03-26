@@ -1,3 +1,4 @@
+import './themeInit.js'; // must be first — sets data-mode & CSS vars before React renders
 import ReactDOM from 'react-dom/client';
 import React from 'react';
 import App from './App';
