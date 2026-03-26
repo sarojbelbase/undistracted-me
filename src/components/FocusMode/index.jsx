@@ -17,7 +17,9 @@ import {
   useFocusPhoto,
   useWakeLock,
   useCenterOnDark,
+  useFocusTimezones,
 } from './hooks';
+import { WorldClocksPanel } from './WorldClocksPanel';
 import { ClockDisplay } from './ClockDisplay';
 import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
@@ -41,6 +43,7 @@ export const FocusMode = ({ onExit }) => {
   const stocks = useFocusStocks();
   const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
   const centerOnDark = useCenterOnDark(slotA, slotB, activeSlot);
+  const extraTimezones = useFocusTimezones();
 
   useWakeLock(isFullscreen);
 
@@ -208,6 +211,11 @@ export const FocusMode = ({ onExit }) => {
 
       {/* ── Greeting (z 20) ── */}
       <GreetingDisplay parts={parts} centerOnDark={centerOnDark} />
+
+      {/* ── World clocks — right side ambient (z 22) ── */}
+      {extraTimezones.length > 0 && (
+        <WorldClocksPanel timezones={extraTimezones} clockFormat={fmt} />
+      )}
 
       {/* ── Left panel: Pomodoro + Event + Stocks + Spotify (z 22) ── */}
       {(leftHasContent || spotifyTrack) && (

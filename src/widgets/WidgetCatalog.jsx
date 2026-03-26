@@ -4,7 +4,8 @@ import { XLg } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { exportSettings, importFromFile, resetSettings } from './settingsIO';
 
-const CATEGORIES = [
+const TABS = [
+  { id: 'all', label: 'All' },
   { id: 'time', label: 'Time & Date' },
   { id: 'planning', label: 'Planning' },
   { id: 'info', label: 'Information' },
@@ -14,11 +15,17 @@ const CATEGORIES = [
 export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onClose }) => {
   const [resetConfirm, setResetConfirm] = useState(false);
   const [importError, setImportError] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
 
   const countByType = (instances || []).reduce((acc, { type }) => {
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {});
+
+  const removeLastOfType = (type) => {
+    const last = [...(instances || [])].reverse().find(i => i.type === type);
+    if (last) onRemoveInstance(last.id);
+  };
 
   const handleReset = () => {
     if (!resetConfirm) {
@@ -35,7 +42,10 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const activeCount = (instances || []).length;
+  const activeTypes = Object.keys(countByType);
+  const filteredWidgets = activeTab === 'all'
+    ? WIDGET_REGISTRY
+    : WIDGET_REGISTRY.filter(w => w.category === activeTab);
 
   return createPortal(
     <>
@@ -46,15 +56,15 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         onMouseDown={onClose}
       />
 
-      {/* Centered floating panel */}
+      {/* Panel */}
       <div
         className="fixed z-[101] flex flex-col animate-panel-in"
         style={{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 460,
-          maxHeight: '78vh',
+          width: 520,
+          maxHeight: '82vh',
           backgroundColor: 'var(--w-surface)',
           border: '1px solid var(--w-border)',
           borderRadius: 22,
@@ -63,161 +73,214 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         }}
         onMouseDown={e => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-semibold" style={{ color: 'var(--w-ink-1)' }}>
-              Widgets
-            </span>
-            {activeCount > 0 && (
-              <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+        {/* ── Header ── */}
+        <div
+          className="flex items-center gap-3 px-5 py-4 shrink-0"
+          style={{ borderBottom: '1px solid var(--w-border)' }}
+        >
+          <span className="text-sm font-semibold flex-1" style={{ color: 'var(--w-ink-1)' }}>
+            Customize Canvas
+          </span>
+
+          {/* Utility pills */}
+          <div className="flex items-center gap-1">
+            {[
+              { label: 'Export', onClick: exportSettings },
+              { label: 'Import', onClick: () => importFromFile(err => setImportError(String(err))) },
+              {
+                label: resetConfirm ? 'Confirm' : 'Reset',
+                onClick: handleReset,
+                danger: resetConfirm,
+              },
+            ].map(({ label, onClick, danger }) => (
+              <button
+                key={label}
+                onClick={onClick}
+                className="text-[10px] font-medium px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                style={{
+                  color: danger ? '#ef4444' : 'var(--w-ink-5)',
+                  background: danger ? 'rgba(239,68,68,0.08)' : 'var(--w-surface-2)',
+                  border: `1px solid ${danger ? 'rgba(239,68,68,0.3)' : 'var(--w-border)'}`,
+                }}
               >
-                {activeCount} on canvas
-              </span>
-            )}
+                {label}
+              </button>
+            ))}
           </div>
+
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-opacity hover:opacity-60"
+            className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-opacity hover:opacity-60 cursor-pointer"
             style={{ background: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}
           >
             <XLg size={11} />
           </button>
         </div>
 
-        {/* Scrollable section */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4 flex flex-col gap-5">
-          {CATEGORIES.map((cat) => {
-            const widgets = WIDGET_REGISTRY.filter(w => w.category === cat.id);
-            if (!widgets.length) return null;
-            return (
-              <div key={cat.id}>
-                {/* Category label */}
-                <div
-                  className="text-[9px] font-bold uppercase tracking-[0.14em] mb-2.5"
-                  style={{ color: 'var(--w-ink-5)' }}
+        {/* ── Active chips strip ── */}
+        {activeTypes.length > 0 && (
+          <div
+            className="px-5 py-3 shrink-0 flex items-start gap-3"
+            style={{ borderBottom: '1px solid var(--w-border)' }}
+          >
+            <span
+              className="text-[9px] font-bold uppercase tracking-[0.14em] mt-1 shrink-0"
+              style={{ color: 'var(--w-ink-5)' }}
+            >
+              On Canvas
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {activeTypes.map(type => {
+                const w = WIDGET_REGISTRY.find(r => r.type === type);
+                if (!w) return null;
+                const count = countByType[type];
+                return (
+                  <div
+                    key={type}
+                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                    style={{
+                      background: `rgba(var(--w-accent-rgb), 0.09)`,
+                      border: '1px solid var(--w-accent)',
+                    }}
+                  >
+                    <span style={{ fontSize: 12 }}>{w.icon}</span>
+                    <span className="text-[10px] font-medium" style={{ color: 'var(--w-ink-2)' }}>
+                      {w.label}
+                      {count > 1 && (
+                        <span className="ml-1 text-[9px]" style={{ color: 'var(--w-accent)' }}>
+                          ×{count}
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      onClick={() => removeLastOfType(type)}
+                      className="flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer"
+                      style={{ width: 13, height: 13, background: 'var(--w-accent)', color: '#fff', flexShrink: 0 }}
+                      title={`Remove ${w.label}`}
+                    >
+                      <svg width="6" height="6" viewBox="0 0 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <line x1="1" y1="1" x2="5" y2="5" /><line x1="5" y1="1" x2="1" y2="5" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Scrollable area ── */}
+        <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col">
+
+          {/* Sticky category tabs */}
+          <div
+            className="flex items-center gap-1 px-5 py-3 shrink-0 overflow-x-auto no-scrollbar"
+            style={{
+              position: 'sticky',
+              top: 0,
+              backgroundColor: 'var(--w-surface)',
+              zIndex: 2,
+              borderBottom: '1px solid var(--w-border)',
+            }}
+          >
+            {TABS.map(tab => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap shrink-0"
+                  style={{
+                    background: isActive ? 'var(--w-accent)' : 'var(--w-surface-2)',
+                    color: isActive ? '#fff' : 'var(--w-ink-4)',
+                    border: isActive ? '1px solid transparent' : '1px solid var(--w-border)',
+                    letterSpacing: '0.01em',
+                  }}
                 >
-                  {cat.label}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Widget grid — 3 columns */}
+          <div className="grid grid-cols-3 gap-2.5 p-5">
+            {filteredWidgets.map(w => {
+              const count = countByType[w.type] || 0;
+              const isActive = count > 0;
+
+              return (
+                <div
+                  key={w.type}
+                  className="relative flex flex-col rounded-2xl overflow-hidden group"
+                  style={{
+                    background: isActive
+                      ? `rgba(var(--w-accent-rgb), 0.06)`
+                      : 'var(--w-surface-2)',
+                    border: `1.5px solid ${isActive ? 'var(--w-accent)' : 'var(--w-border)'}`,
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}
+                  title={w.description}
+                >
+                  {/* Count badge */}
+                  {count > 0 && (
+                    <div
+                      className="absolute top-2 right-2 z-10 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center tabular-nums"
+                      style={{ background: 'var(--w-accent)', color: '#fff' }}
+                    >
+                      {count}
+                    </div>
+                  )}
+
+                  {/* Card body — click adds */}
+                  <button
+                    className="flex flex-col items-center justify-center gap-1.5 pt-5 pb-3 w-full focus:outline-none cursor-pointer"
+                    onClick={() => onAddInstance(w.type)}
+                  >
+                    <span
+                      className="text-[26px] leading-none select-none transition-transform duration-200 group-hover:scale-110"
+                    >
+                      {w.icon}
+                    </span>
+                    <span
+                      className="text-[10px] font-medium text-center leading-tight px-2 w-full truncate"
+                      style={{ color: isActive ? 'var(--w-ink-2)' : 'var(--w-ink-5)' }}
+                    >
+                      {w.label}
+                    </span>
+                  </button>
+
+                  {/* Remove strip — only when active */}
+                  {isActive && (
+                    <button
+                      className="w-full text-[9px] font-semibold py-1.5 transition-opacity hover:opacity-70 cursor-pointer shrink-0"
+                      style={{
+                        borderTop: `1px solid var(--w-accent)`,
+                        background: `rgba(var(--w-accent-rgb), 0.08)`,
+                        color: 'var(--w-accent)',
+                        letterSpacing: '0.04em',
+                      }}
+                      onClick={(e) => { e.stopPropagation(); removeLastOfType(w.type); }}
+                    >
+                      − Remove
+                    </button>
+                  )}
                 </div>
-
-                {/* Widget grid — 4 cols */}
-                <div className="grid grid-cols-4 gap-2">
-                  {widgets.map(w => {
-                    const isActive = !!countByType[w.type];
-                    const count = countByType[w.type] || 0;
-
-                    const handleAdd = (e) => {
-                      e.stopPropagation();
-                      onAddInstance(w.type);
-                    };
-
-                    const handleRemoveOne = (e) => {
-                      e.stopPropagation();
-                      const last = [...(instances || [])].reverse().find(i => i.type === w.type);
-                      if (last) onRemoveInstance(last.id);
-                    };
-
-                    return (
-                      <div
-                        key={w.type}
-                        className="relative flex flex-col items-center rounded-2xl transition-all duration-200"
-                        style={{
-                          background: isActive
-                            ? `rgba(var(--w-accent-rgb), 0.08)`
-                            : 'var(--w-surface-2)',
-                          border: `1.5px solid ${isActive ? 'var(--w-accent)' : 'var(--w-border)'}`,
-                          boxShadow: isActive
-                            ? `0 0 0 3px rgba(var(--w-accent-rgb), 0.1)`
-                            : 'none',
-                        }}
-                        title={w.description}
-                      >
-                        {/* Tap area — adds first instance if inactive */}
-                        <button
-                          className="w-full flex flex-col items-center justify-center pt-3.5 pb-2 gap-1.5 focus:outline-none"
-                          onClick={isActive ? undefined : () => onAddInstance(w.type)}
-                          style={{ cursor: isActive ? 'default' : 'pointer' }}
-                        >
-                          <span className="text-[22px] leading-none select-none">{w.icon}</span>
-                          <span
-                            className="text-[10px] font-medium text-center leading-tight px-1 w-full truncate"
-                            style={{ color: isActive ? 'var(--w-ink-2)' : 'var(--w-ink-5)' }}
-                          >
-                            {w.label}
-                          </span>
-                        </button>
-
-                        {/* Morphed stepper — only when active */}
-                        {isActive ? (
-                          <div className="w-full flex items-center justify-between px-2 pb-2.5 gap-1">
-                            <button
-                              onClick={handleRemoveOne}
-                              className="flex-1 h-6 rounded-lg flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-60 focus:outline-none select-none"
-                              style={{ background: `rgba(var(--w-accent-rgb), 0.14)`, color: 'var(--w-accent)' }}
-                            >
-                              −
-                            </button>
-                            <span
-                              className="text-[11px] font-bold tabular-nums w-4 text-center shrink-0"
-                              style={{ color: 'var(--w-accent)' }}
-                            >
-                              {count}
-                            </span>
-                            <button
-                              onClick={handleAdd}
-                              className="flex-1 h-6 rounded-lg flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-80 focus:outline-none select-none"
-                              style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="pb-1" />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <div
           className="shrink-0 flex items-center justify-between px-5 py-3"
           style={{ borderTop: '1px solid var(--w-border)' }}
         >
-          <div className="flex items-center gap-1">
-            <button
-              onClick={exportSettings}
-              className="text-[11px] px-2.5 py-1.5 rounded-lg transition-colors"
-              style={{ color: 'var(--w-ink-4)', background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
-            >
-              Export
-            </button>
-            <button
-              onClick={() => importFromFile(err => setImportError(String(err)))}
-              className="text-[11px] px-2.5 py-1.5 rounded-lg transition-colors"
-              style={{ color: 'var(--w-ink-4)', background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
-            >
-              Import
-            </button>
-            <button
-              onClick={handleReset}
-              className="text-[11px] px-2.5 py-1.5 rounded-lg transition-all"
-              style={{
-                color: resetConfirm ? '#ef4444' : 'var(--w-ink-5)',
-                background: resetConfirm ? 'rgba(239,68,68,0.08)' : 'transparent',
-                border: `1px solid ${resetConfirm ? 'rgba(239,68,68,0.3)' : 'transparent'}`,
-              }}
-            >
-              {resetConfirm ? 'Confirm reset' : 'Reset'}
-            </button>
-          </div>
-
+          {importError ? (
+            <span className="text-[11px]" style={{ color: '#f87171' }}>{importError}</span>
+          ) : (
+            <span />
+          )}
           <a
             href="https://buymemomo.com/sarojbelbase"
             target="_blank"
@@ -228,10 +291,6 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
             🥟 Momo
           </a>
         </div>
-
-        {importError && (
-          <div className="px-5 pb-3 text-xs" style={{ color: '#f87171' }}>{importError}</div>
-        )}
       </div>
     </>,
     document.body
