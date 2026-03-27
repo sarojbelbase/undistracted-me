@@ -336,7 +336,7 @@ body {
 [data-mode="dark"] input,
 [data-mode="dark"] textarea,
 [data-mode="dark"] select {
-  background-color: var(--w-surface) !important;
+  background-color: var(--w-surface-2) !important;
   color: var(--w-ink-1) !important;
   border-color: var(--w-border) !important;
 }

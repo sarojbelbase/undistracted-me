@@ -19,11 +19,11 @@ const ACCENTS = {
 };
 
 const LIGHT_BG = '#F0F0F2';
-const DARK_BG = '#141920';
+const DARK_BG = '#0f0f0f';
 const LIGHT_SURFACE = '#ffffff';
-const DARK_SURFACE = '#1e2433';
+const DARK_SURFACE = '#141414';
 const LIGHT_BORDER = '#e5e7eb';
-const DARK_BORDER = '#374151';
+const DARK_BORDER = '#2a2a2a';
 
 try {
   // Prefer the Zustand persist key — this is where settings live after first run.
