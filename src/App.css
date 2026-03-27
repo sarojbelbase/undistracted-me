@@ -683,7 +683,7 @@ textarea:focus-visible,
   right: 0;
   bottom: 0;
   z-index: 201;
-  width: 400px;
+  width: 380px;
   display: flex;
   flex-direction: column;
   background: var(--wc-bg);
@@ -730,18 +730,15 @@ textarea:focus-visible,
   border-bottom: 1px solid var(--wc-border);
 }
 
-/* Title and × are natural flex items; pills sit absolutely centred */
 .wc-header-left {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 }
 
-/* Absolute centre — immune to title/close asymmetry, × hugs the edge */
+/* Grid auto column — always truly centred because both side columns are equal 1fr */
 .wc-header-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -751,6 +748,7 @@ textarea:focus-visible,
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .wc-title {
