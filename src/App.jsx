@@ -1,11 +1,12 @@
 import './App.css';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
-import { Settings } from './components/Settings';
-import { FocusMode } from './components/FocusMode';
 import { WidgetGrid } from './widgets/WidgetGrid';
-import { WidgetCatalog } from './widgets/WidgetCatalog';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
+
+const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
+const FocusMode = lazy(() => import('./components/FocusMode').then(m => ({ default: m.FocusMode })));
+const WidgetCatalog = lazy(() => import('./widgets/WidgetCatalog').then(m => ({ default: m.WidgetCatalog })));
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
@@ -130,17 +131,21 @@ const App = () => {
         </div>
 
         {showSettings && (
-          <Settings closeSettings={closeSettings} />
+          <Suspense fallback={null}>
+            <Settings closeSettings={closeSettings} />
+          </Suspense>
         )}
       </div>
 
       {showCatalog && (
-        <WidgetCatalog
-          instances={instances}
-          onAddInstance={addInstance}
-          onRemoveInstance={removeInstance}
-          onClose={() => setShowCatalog(false)}
-        />
+        <Suspense fallback={null}>
+          <WidgetCatalog
+            instances={instances}
+            onAddInstance={addInstance}
+            onRemoveInstance={removeInstance}
+            onClose={() => setShowCatalog(false)}
+          />
+        </Suspense>
       )}
 
       <div className="w-full h-full pt-16">
@@ -148,7 +153,9 @@ const App = () => {
       </div>
 
       {showFocusMode && (
-        <FocusMode onExit={() => setShowFocusMode(false)} />
+        <Suspense fallback={null}>
+          <FocusMode onExit={() => setShowFocusMode(false)} />
+        </Suspense>
       )}
     </div>
   );

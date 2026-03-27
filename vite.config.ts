@@ -8,6 +8,19 @@ export default defineConfig({
     react(),
     crx({ manifest }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules/react-grid-layout') || id.includes('node_modules/react-resizable')) return 'vendor-grid';
+          if (id.includes('node_modules/react-bootstrap-icons')) return 'vendor-icons';
+          if (id.includes('node_modules/dayjs')) return 'vendor-dayjs';
+          if (id.includes('node_modules/zustand')) return 'vendor-zustand';
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'vendor-react';
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
     cors: true,
