@@ -22,7 +22,7 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
     style={{ zIndex: 20 }}
   >
     <div className="fm-greeting-spacer" />
-    <div className="fm-greeting-row flex items-baseline" style={{ gap: '0.30em' }}>
+    <p className="fm-greeting-row">
       <span
         className="fm-greeting-text"
         style={{
@@ -32,7 +32,7 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
           color: centerOnDark ? 'rgba(255,255,255,0.52)' : 'rgba(0,0,0,0.50)',
         }}
       >
-        {parts.greeting.prefix}
+        {parts.greeting.prefix}{' '}
       </span>
       <span
         className="fm-greeting-text"
@@ -45,6 +45,6 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
       >
         {parts.greeting.label}
       </span>
-    </div>
+    </p>
   </div>
 );
