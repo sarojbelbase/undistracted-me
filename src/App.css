@@ -667,7 +667,13 @@ textarea:focus-visible,
   background: rgba(0, 0, 0, 0.20);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-  transition: opacity 0.20s ease;
+  /* Open: fade in slightly lagging the panel */
+  transition: opacity 0.32s ease;
+}
+
+/* Close: fade out faster (panel is already leaving) */
+.wc-backdrop--leaving {
+  transition: opacity 0.22s ease-in !important;
 }
 
 /* ── Drawer panel ──────────────────────────────────────────────── */
@@ -677,7 +683,7 @@ textarea:focus-visible,
   right: 0;
   bottom: 0;
   z-index: 201;
-  width: 360px;
+  width: 400px;
   display: flex;
   flex-direction: column;
   background: var(--wc-bg);
@@ -686,30 +692,65 @@ textarea:focus-visible,
     -1px 0 0 rgba(0, 0, 0, 0.04),
     -16px 0 60px rgba(0, 0, 0, 0.09),
     -4px 0 16px rgba(0, 0, 0, 0.05);
-  transition:
-    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.20s ease;
+  /*
+   * Open: spring-decelerate — starts fast, lands softly (iOS/macOS feel)
+   * cubic-bezier(0.22, 1, 0.36, 1) is a spring approximation used by
+   * Radix UI, shadcn/ui Vaul drawer, and Apple's UIKit spring defaults.
+   */
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
   overflow: hidden;
 }
 
+/* Close: swift ease-in — panel snaps away decisively */
+.wc-panel--leaving {
+  transition: transform 0.26s cubic-bezier(0.55, 0, 1, 0.45) !important;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+  .wc-panel,
+  .wc-panel--leaving,
+  .wc-backdrop,
+  .wc-backdrop--leaving {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Header ────────────────────────────────────────────────────── */
 .wc-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 14px 0 20px;
-  height: 58px;
+  padding: 0 18px;
+  height: 62px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--wc-border);
 }
 
+/* Title and × are natural flex items; pills sit absolutely centred */
 .wc-header-left {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 9px;
-  min-width: 0;
+}
+
+/* Absolute centre — immune to title/close asymmetry, × hugs the edge */
+.wc-header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wc-header-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .wc-title {
@@ -730,13 +771,6 @@ textarea:focus-visible,
   color: var(--wc-badge-fg);
   letter-spacing: 0.04em;
   line-height: 1.4;
-  flex-shrink: 0;
-}
-
-.wc-header-right {
-  display: flex;
-  align-items: center;
-  gap: 5px;
   flex-shrink: 0;
 }
 
@@ -813,8 +847,8 @@ textarea:focus-visible,
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 16px;
-  height: 50px;
+  padding: 0 18px;
+  height: 52px;
   border-bottom: 1px solid var(--wc-border);
   flex-shrink: 0;
   overflow-x: auto;
@@ -897,13 +931,25 @@ textarea:focus-visible,
 .wc-section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 22px 20px 9px 20px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--wc-ink-3);
+  gap: 7px;
+  padding: 20px 18px 9px 18px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--wc-ink-4);
+}
+
+.wc-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--wc-border);
+}
+
+.wc-section-icon {
+  display: flex;
+  align-items: center;
+  color: var(--wc-ink-5);
+  flex-shrink: 0;
 }
 
 .wc-section-header:first-child {
@@ -921,13 +967,12 @@ textarea:focus-visible,
 .wc-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-height: 64px;
-  padding: 10px 16px 10px 12px;
+  gap: 12px;
+  min-height: 66px;
+  padding: 10px 16px 10px 18px;
   border-bottom: 1px solid var(--wc-border);
   cursor: default;
   transition: background 0.12s;
-  position: relative;
 }
 
 .wc-row:last-child {
@@ -938,67 +983,29 @@ textarea:focus-visible,
   background: var(--wc-active-fill);
 }
 
-/* Active state: neutral left bar + whisper-light fill */
+/* Active: just a thin 1px left hairline — no background fill */
 .wc-row--active {
-  background: var(--wc-active-fill);
+  border-left: 2px solid var(--wc-border-med);
 }
 
-.wc-row--active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--wc-active-bar);
-}
-
-.wc-row--active:hover {
-  background: var(--wc-active-fill);
-  filter: brightness(0.97);
-}
-
-/* Drag grip */
-.wc-grip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  flex-shrink: 0;
-  color: var(--wc-ink-6);
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.14s;
-}
-
-.wc-row:hover .wc-grip {
-  opacity: 1;
-}
-
-.wc-grip:active {
-  cursor: grabbing;
-}
-
-/* Icon box — neutral at rest, ink-toned when active */
+/* Icon box — bigger, higher contrast icon */
 .wc-icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
   background: var(--wc-bg-2);
-  color: var(--wc-ink-4);
-  border: 1px solid var(--wc-border);
+  color: var(--wc-ink-3);
+  border: 1px solid var(--wc-border-med);
   flex-shrink: 0;
-  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  transition: background 0.14s, color 0.14s;
 }
 
-/* Active icon: slightly darker fill + stronger foreground — still completely neutral */
 .wc-icon-box--active {
   background: var(--wc-bg-3);
-  color: var(--wc-ink-2);
+  color: var(--wc-ink-1);
   border-color: var(--wc-border-med);
 }
 
@@ -1008,9 +1015,8 @@ textarea:focus-visible,
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
-  cursor: pointer;
 }
 
 .wc-label {
@@ -1023,14 +1029,13 @@ textarea:focus-visible,
   line-height: 1.3;
 }
 
-/* Active label: full black ink */
 .wc-row--active .wc-label {
   color: var(--wc-ink-1);
   font-weight: 700;
 }
 
 .wc-desc {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--wc-ink-4);
   white-space: nowrap;
@@ -1039,64 +1044,70 @@ textarea:focus-visible,
   line-height: 1.3;
 }
 
-/* Row right controls */
-.wc-row-controls {
+/* ── Stepper controls: [−] count [+] always visible ─────────── */
+.wc-stepper {
   display: flex;
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
 }
 
-/* ×N badge when multiple instances are on canvas */
-.wc-multi-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 10px;
-  background: var(--wc-badge-bg);
-  color: var(--wc-badge-fg);
-  line-height: 1.4;
-}
-
-/* +/- icon buttons */
-.wc-icon-btn {
+.wc-stepper-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   cursor: pointer;
   flex-shrink: 0;
+  transition: background 0.13s, color 0.13s, transform 0.10s;
 }
 
-.wc-icon-btn--remove {
-  background: rgba(180, 40, 40, 0.06);
-  color: #b71c1c;
-  border: 1px solid rgba(180, 40, 40, 0.14);
-  opacity: 0;
-  transition: opacity 0.14s, background 0.12s, border-color 0.12s;
+.wc-stepper-btn:active {
+  transform: scale(0.90);
 }
 
-.wc-row:hover .wc-icon-btn--remove {
-  opacity: 1;
+/* Remove (−) — clearly red-tinted, always visible when row is active */
+.wc-stepper-btn--remove {
+  background: rgba(210, 40, 40, 0.09);
+  color: #e05555;
+  border: 1.5px solid rgba(210, 40, 40, 0.22);
 }
 
-.wc-icon-btn--remove:hover {
-  background: rgba(180, 40, 40, 0.12);
-  border-color: rgba(180, 40, 40, 0.26);
+.wc-stepper-btn--remove:hover {
+  background: rgba(210, 40, 40, 0.17);
+  border-color: rgba(210, 40, 40, 0.40);
+  color: #ea3333;
 }
 
-.wc-icon-btn--add {
+/* Add (+) — neutral, always visible */
+.wc-stepper-btn--add {
   background: var(--wc-bg-2);
-  color: var(--wc-ink-4);
-  border: 1px solid var(--wc-border);
-  opacity: 0;
-  transition: opacity 0.14s, background 0.12s, color 0.12s, border-color 0.12s;
+  color: var(--wc-ink-3);
+  border: 1.5px solid var(--wc-border-med);
 }
 
-.wc-row:hover .wc-icon-btn--add {
-  opacity: 1;
+.wc-stepper-btn--add:hover {
+  background: var(--wc-bg-3);
+  color: var(--wc-ink-1);
+}
+
+/* Add when row is already active: one step brighter */
+.wc-stepper-btn--add-active {
+  background: var(--wc-bg-3);
+  color: var(--wc-ink-2);
+}
+
+/* Count number between − and + */
+.wc-stepper-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wc-ink-2);
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 /* Add button hover: pure ink fill — decisive, theme-neutral */
