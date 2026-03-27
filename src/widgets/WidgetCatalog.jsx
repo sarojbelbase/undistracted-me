@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  XLg, GripVertical, PlusLg, DashLg,
+  XLg, PlusLg, DashLg,
   BoxArrowUpRight, Upload, Download, ArrowCounterclockwise,
   ClockFill, CalendarDateFill, BarChartFill, HourglassSplit,
   CalendarEventFill, Calendar3, StopwatchFill, StickyFill,
   CloudSunFill, LightbulbFill, BookmarkStarFill, MusicNoteBeamed,
-  GraphUpArrow,
+  GraphUpArrow, InfoCircleFill, GearFill,
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { exportSettings, importFromFile, resetSettings } from './settingsIO';
@@ -39,6 +39,12 @@ const CATEGORY_LABELS = {
   info: 'Information',
   tools: 'Tools',
 };
+const CATEGORY_ICONS = {
+  time: <ClockFill size={11} />,
+  planning: <CalendarEventFill size={11} />,
+  info: <InfoCircleFill size={11} />,
+  tools: <GearFill size={11} />,
+};
 const CATEGORY_ORDER = ['time', 'planning', 'info', 'tools'];
 
 // ─── Individual widget row ─────────────────────────────────────────────────────
@@ -46,35 +52,38 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
   const isActive = count > 0;
   return (
     <div className={`wc-row${isActive ? ' wc-row--active' : ''}`} role="listitem">
-      <span className="wc-grip" aria-hidden="true">
-        <GripVertical size={12} />
-      </span>
 
       <span className={`wc-icon-box${isActive ? ' wc-icon-box--active' : ''}`}>
-        <WidgetIcon name={widget.icon} size={16} />
+        <WidgetIcon name={widget.icon} size={17} />
       </span>
 
-      <div className="wc-text" onClick={onAdd} role="button" tabIndex={0}
-        onKeyDown={e => e.key === 'Enter' && onAdd()}>
+      <div className="wc-text">
         <span className="wc-label">{widget.label}</span>
         <span className="wc-desc">{widget.description}</span>
       </div>
 
-      <div className="wc-row-controls">
-        {count > 1 && <span className="wc-multi-badge">×{count}</span>}
-        {isActive && (
-          <button className="wc-icon-btn wc-icon-btn--remove"
-            onClick={e => { e.stopPropagation(); onRemove(); }}
-            aria-label={`Remove ${widget.label}`}
-            title="Remove one">
-            <DashLg size={10} />
-          </button>
-        )}
-        <button className="wc-icon-btn wc-icon-btn--add"
+      {/* Always-visible stepper: [−] count [+] */}
+      <div className="wc-stepper">
+        {isActive ? (
+          <>
+            <button
+              className="wc-stepper-btn wc-stepper-btn--remove"
+              onClick={e => { e.stopPropagation(); onRemove(); }}
+              aria-label={`Remove ${widget.label}`}
+              title="Remove one"
+            >
+              <DashLg size={12} />
+            </button>
+            <span className="wc-stepper-count">{count}</span>
+          </>
+        ) : null}
+        <button
+          className={`wc-stepper-btn wc-stepper-btn--add${isActive ? ' wc-stepper-btn--add-active' : ''}`}
           onClick={onAdd}
           aria-label={`Add ${widget.label}`}
-          title="Add to canvas">
-          <PlusLg size={10} />
+          title="Add to canvas"
+        >
+          <PlusLg size={12} />
         </button>
       </div>
     </div>
@@ -87,14 +96,21 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
   const [importError, setImportError] = useState(null);
   const [importOk, setImportOk] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [visible, setVisible] = useState(false);
+  const [phase, setPhase] = useState('entering'); // entering → open → leaving
 
-  // Entrance: single animation frame before setting visible=true triggers CSS transition
-  useEffect(() => { const id = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(id); }, []);
+  // Double-RAF: first frame mounts the DOM at initial state (translateX 100%),
+  // second frame flips to open so the browser has a real "from" state to transition from.
+  useEffect(() => {
+    let id1, id2;
+    id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setPhase('open'));
+    });
+    return () => { cancelAnimationFrame(id1); cancelAnimationFrame(id2); };
+  }, []);
 
   const handleClose = useCallback(() => {
-    setVisible(false);
-    setTimeout(onClose, 240);
+    setPhase('leaving');
+    setTimeout(onClose, 280);
   }, [onClose]);
 
   useEffect(() => {
@@ -128,22 +144,20 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     ? WIDGET_REGISTRY
     : WIDGET_REGISTRY.filter(w => w.category === activeTab);
 
-  const activeCount = Object.values(countByType).reduce((s, n) => s + n, 0);
-
   return createPortal(
     <>
       {/* ── Backdrop ── */}
       <div
-        className="wc-backdrop"
-        style={{ opacity: visible ? 1 : 0 }}
+        className={`wc-backdrop${phase === 'leaving' ? ' wc-backdrop--leaving' : ''}`}
+        style={{ opacity: phase === 'open' ? 1 : 0 }}
         onMouseDown={handleClose}
         aria-hidden="true"
       />
 
       {/* ── Drawer panel ── */}
       <aside
-        className="wc-panel"
-        style={{ transform: visible ? 'translateX(0)' : 'translateX(calc(100% + 20px))', opacity: visible ? 1 : 0 }}
+        className={`wc-panel${phase === 'leaving' ? ' wc-panel--leaving' : ''}`}
+        style={{ transform: phase === 'open' ? 'translateX(0)' : 'translateX(100%)' }}
         onMouseDown={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -153,10 +167,9 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         <div className="wc-header">
           <div className="wc-header-left">
             <span className="wc-title">Widgets</span>
-            {activeCount > 0 && <span className="wc-active-badge">{activeCount}</span>}
           </div>
 
-          <div className="wc-header-right">
+          <div className="wc-header-center">
             <button className="wc-pill-btn" onClick={exportSettings} title="Export settings">
               <Upload size={11} /><span>Export</span>
             </button>
@@ -171,9 +184,9 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
               <ArrowCounterclockwise size={11} />
               <span>{resetConfirm ? 'Sure?' : 'Reset'}</span>
             </button>
+          </div>
 
-            <span className="wc-header-sep" aria-hidden="true" />
-
+          <div className="wc-header-right">
             <button className="wc-close-btn" onClick={handleClose} aria-label="Close (Esc)">
               <XLg size={11} />
             </button>
@@ -182,23 +195,17 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
 
         {/* ── Category tabs ── */}
         <nav className="wc-tabs" role="tablist" aria-label="Widget categories">
-          {TABS.map(tab => {
-            const cnt = tab.id === 'all'
-              ? WIDGET_REGISTRY.length
-              : WIDGET_REGISTRY.filter(w => w.category === tab.id).length;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={activeTab === tab.id}
-                className={`wc-tab${activeTab === tab.id ? ' wc-tab--active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-                <span className="wc-tab-cnt">{cnt}</span>
-              </button>
-            );
-          })}
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`wc-tab${activeTab === tab.id ? ' wc-tab--active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
         {/* ── Widget list ── */}
@@ -209,8 +216,8 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
               return (
                 <React.Fragment key={cat}>
                   <div className="wc-section-header" role="presentation">
+                    <span className="wc-section-icon">{CATEGORY_ICONS[cat]}</span>
                     {CATEGORY_LABELS[cat]}
-                    <span className="wc-section-count">{widgets.length}</span>
                   </div>
                   {widgets.map(w => (
                     <WidgetRow
@@ -240,7 +247,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         <div className="wc-footer">
           {importError
             ? <span className="wc-footer-err">{importError}</span>
-            : <span className="wc-footer-hint">+ add &nbsp;·&nbsp; − remove from canvas</span>
+            : <span className="wc-footer-hint">+ Add &nbsp;·&nbsp; − Remove from Canvas</span>
           }
           <a
             href="https://buymemomo.com/sarojbelbase"
@@ -248,7 +255,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
             rel="noopener noreferrer"
             className="wc-momo-link"
           >
-            <BoxArrowUpRight size={9} /><span>Buy Momo</span>
+            <BoxArrowUpRight size={9} /><span>Buy Me Momo</span>
           </a>
         </div>
       </aside>
