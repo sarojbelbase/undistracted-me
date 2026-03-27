@@ -28,16 +28,16 @@ const LIGHT_TOKENS = {
 };
 
 const DARK_TOKENS = {
-  '--w-ink-1': '#f9fafb',
-  '--w-ink-2': '#f3f4f6',
-  '--w-ink-3': '#e5e7eb',
-  '--w-ink-4': '#9ca3af',
-  '--w-ink-5': '#6b7280',
-  '--w-ink-6': '#374151',
-  '--w-surface': '#1e2433',
-  '--w-surface-2': '#252d3d',
-  '--w-border': '#374151',
-  '--w-page-bg': '#141920',
+  '--w-ink-1': '#f2f2f2',   /* near-white, zero blue cast              */
+  '--w-ink-2': '#e2e2e2',   /* primary labels & display numbers        */
+  '--w-ink-3': '#c0c0c0',   /* bold value text, strong secondary       */
+  '--w-ink-4': '#888888',   /* medium context, captions                */
+  '--w-ink-5': '#555555',   /* muted labels                            */
+  '--w-ink-6': '#333333',   /* inactive dots, faintest dividers        */
+  '--w-surface': '#141414', /* matte black — widget card surface       */
+  '--w-surface-2': '#1e1e1e', /* raised surface — inputs, sub-panels   */
+  '--w-border': '#2a2a2a',  /* hairline separators                     */
+  '--w-page-bg': '#0f0f0f', /* page canvas behind widget grid          */
 };
 
 const hexToRgb = (hex) => {
