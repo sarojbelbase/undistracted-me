@@ -1,19 +1,21 @@
 /**
  * Unsplash photo utility for Focus Mode.
  *
- * Fetches landscape/zen/nature photos via the Unsplash API and caches them in
- * localStorage (URLs only, not image data). Up to MAX_CACHE URLs are stored.
- * Rotates to the next cached image after TTL_MS without a network call.
- * Pre-fetches in the background when the cache runs low.
+ * Photo library model:
+ *  - library[0] = currently displayed photo.
+ *  - rotatePhoto()      → cycles head→tail, returns new head (never destroys).
+ *  - downloadNewPhoto() → force-fetches a brand new photo, prepends to library.
+ *  - deletePhoto(id)    → removes a photo from the library.
+ *  - jumpToPhotoById(id)→ moves any photo to head without discarding others.
+ *  - getPhotoLibrary()  → returns the full cached library.
  *
- * Requires:  VITE_UNSPLASH_ACCESS_KEY  in your .env file.
- * Attribution: per Unsplash ToS, each photo object includes author + link.
+ * Requires: VITE_UNSPLASH_ACCESS_KEY in .env
+ * Attribution: per Unsplash ToS every photo carries author + link.
  */
 
 const ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || null;
 const CACHE_KEY = 'fm_unsplash_cache';
-const MAX_CACHE = 6;          // Max photos to keep in localStorage
-const TTL_MS = 45 * 60_000;  // Rotate every 45 min
+export const LIBRARY_MAX = 10;        // max photos stored in library
 
 // Curated queries — calm, non-distracting imagery
 const QUERIES = [
@@ -39,7 +41,7 @@ const readCache = () => {
 
 const writeCache = (items) => {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(items.slice(0, MAX_CACHE)));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(items.slice(0, LIBRARY_MAX)));
   } catch { /* localStorage quota exceeded — silently skip */ }
 };
 
@@ -55,8 +57,13 @@ const pickQuery = (cache) => {
 
 let _fetchInFlight = false;
 
-const fetchOne = async () => {
-  if (!ACCESS_KEY || _fetchInFlight) return null;
+/**
+ * Fetches one photo from Unsplash and prepends it to the library.
+ * @param {boolean} force — bypass the in-flight guard (for manual downloads)
+ */
+const fetchOne = async (force = false) => {
+  if (!ACCESS_KEY) return null;
+  if (_fetchInFlight && !force) return null;
   _fetchInFlight = true;
 
   const cache = readCache();
@@ -73,7 +80,7 @@ const fetchOne = async () => {
     const item = {
       id: d.id,
       url: d.urls.full,
-      regular: d.urls.regular,   // ~1080p — better for performance
+      regular: d.urls.regular,
       small: d.urls.small,
       color: d.color || '#18191b',
       author: d.user.name,
@@ -83,7 +90,7 @@ const fetchOne = async () => {
       cachedAt: Date.now(),
     };
 
-    // Prepend, deduplicate by id, trim to MAX_CACHE
+    // Prepend, deduplicate by id, trim to LIBRARY_MAX
     const fresh = readCache().filter(c => c.id !== item.id);
     writeCache([item, ...fresh]);
     return item;
@@ -97,60 +104,87 @@ const fetchOne = async () => {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the photo to display right now.
- * - If head of cache is fresh (< TTL_MS), return it instantly.
- * - If stale but cache has more items, pop head → return next instantly, fetch in background.
- * - If cache is empty, fetch synchronously (may be slow on first open).
+ * Returns the photo currently at the head of the library.
+ * Fetches from Unsplash only if the library is completely empty.
+ * Pre-warms in the background when the library runs low.
  */
 export const getCurrentPhoto = async () => {
   const cache = readCache();
-  const head = cache[0];
-
-  // Still fresh
-  if (head && Date.now() - head.cachedAt < TTL_MS) {
-    if (cache.length < 3) fetchOne(); // pre-warm in background
-    return head;
+  if (cache.length > 0) {
+    if (cache.length < 3) fetchOne(); // background pre-warm
+    return cache[0];
   }
-
-  // Stale — advance cache
-  if (cache.length > 1) {
-    writeCache(cache.slice(1));
-    fetchOne(); // replenish in background
-    return cache[1];
-  }
-
-  // Cache exhausted — must fetch (or return stale as fallback)
-  const fresh = await fetchOne();
-  return fresh || head || null;
+  // Library empty — must fetch
+  return fetchOne();
 };
 
 /**
- * Force-advance to a new photo immediately.
- * Drops the current head and resolves to the next available photo.
+ * Advance to the next photo by cycling head → tail.
+ * The current photo is never discarded — it moves to the end.
+ * If only one photo exists, fetches a new one first.
  */
 export const rotatePhoto = async () => {
   const cache = readCache();
-  writeCache(cache.slice(1));
-  return getCurrentPhoto();
+  if (cache.length === 0) return fetchOne();
+
+  if (cache.length === 1) {
+    // Need another photo to rotate to — fetch one first
+    const newPhoto = await fetchOne();
+    if (!newPhoto) return cache[0]; // fetch failed, stay on current
+    // fetchOne prepended → library is now [new, old] — new is now showing
+    return readCache()[0];
+  }
+
+  // Cycle: head goes to tail
+  writeCache([...cache.slice(1), cache[0]]);
+  const next = readCache()[0];
+  if (cache.length < 4) fetchOne(); // background pre-warm
+  return next;
 };
 
 /**
- * Pre-warm the cache with a few photos. Call once when the app boots
- * so future opens are instant.
+ * Force-fetch a brand new photo from Unsplash and prepend it to the library.
+ * Bypasses the in-flight guard — explicitly user-requested.
+ */
+export const downloadNewPhoto = async () => {
+  _fetchInFlight = false;
+  return fetchOne(true);
+};
+
+/** Remove a photo from the library by id. */
+export const deletePhoto = (id) => {
+  writeCache(readCache().filter(c => c.id !== id));
+};
+
+/**
+ * Move a specific photo to the head (current) position without
+ * discarding any other photos.
+ */
+export const jumpToPhotoById = (id) => {
+  const cache = readCache();
+  const idx = cache.findIndex(c => c.id === id);
+  if (idx <= 0) return; // already head or not found
+  const photo = cache[idx];
+  writeCache([photo, ...cache.filter(c => c.id !== id)]);
+};
+
+/** Returns the full photo library (all cached entries). */
+export const getPhotoLibrary = () => readCache();
+
+export const hasUnsplashKey = () => !!ACCESS_KEY;
+export const clearPhotoCache = () => localStorage.removeItem(CACHE_KEY);
+export const getCachedPhotoSync = () => readCache()[0] || null;
+
+/**
+ * Pre-warm: fetch up to 2 photos on app boot so Focus Mode
+ * opens instantly with a fresh image.
  */
 export const prewarmPhotos = async () => {
   if (!ACCESS_KEY) return;
   const cache = readCache();
-  const needed = Math.min(MAX_CACHE - cache.length, 2);
+  const needed = Math.min(LIBRARY_MAX - cache.length, 2);
   for (let i = 0; i < needed; i++) {
     await fetchOne();
-    // Small gap to avoid rate-limiting
     if (i < needed - 1) await new Promise(r => setTimeout(r, 300));
   }
 };
-
-export const hasUnsplashKey = () => !!ACCESS_KEY;
-export const clearPhotoCache = () => localStorage.removeItem(CACHE_KEY);
-
-/** Synchronously reads the first cached photo — useful for initial render. */
-export const getCachedPhotoSync = () => readCache()[0] || null;

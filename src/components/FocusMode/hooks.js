@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { API_KEY, getCoords, fetchWeatherByCoords, parseWeather } from '../../widgets/weather/utils.jsx';
 import { fetchChart } from '../../widgets/stock/utils';
-import { getCurrentPhoto, rotatePhoto, getCachedPhotoSync } from '../../utilities/unsplash';
+import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
+import { useWidgetInstancesStore } from '../../store';
 
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
@@ -84,12 +85,19 @@ export const useFocusPhoto = () => {
     });
   }, []);
 
-  const rotate = useCallback(async () => {
-    prevUrlRef.current = null;
+  // Called with no args: advance to next photo (shuffle).
+  // Called with a photo id: jump to that specific photo without advancing others.
+  const rotate = useCallback(async (targetId) => {
+    prevUrlRef.current = null; // force re-apply even if same URL
+    if (targetId) {
+      jumpToPhotoById(targetId);
+      const p = await getCurrentPhoto();
+      if (p) applyPhoto(p);
+      return p;
+    }
     const p = await rotatePhoto();
-    if (p) {
-      applyPhoto(p);
-    } else {
+    if (p) applyPhoto(p);
+    else {
       const fallback = await getCurrentPhoto();
       if (fallback) applyPhoto(fallback);
     }
@@ -175,28 +183,28 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 
 export const useFocusTimezones = () => {
   const [timezones, setTimezones] = useState([]);
+  // Use the store directly — reliable even when widget_instances hasn't been
+  // written to localStorage yet (Zustand persist only writes on first change).
+  const instances = useWidgetInstancesStore(s => s.instances);
 
   useEffect(() => {
+    const clockInst = instances.find(i => i.type === 'clock');
+    if (!clockInst) { setTimezones([]); return; }
+
     const read = () => {
       try {
-        const raw = JSON.parse(localStorage.getItem('widget_instances') || 'null');
-        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances ?? []);
-        const clockInst = instancesList.find(i => i.type === 'clock');
-        if (!clockInst) { setTimezones([]); return; }
         const ws = JSON.parse(localStorage.getItem(`widgetSettings_${clockInst.id}`) || '{}');
         setTimezones(ws.timezones || []);
       } catch { setTimezones([]); }
     };
 
     read();
-    // Poll every 5 s so changes made on the canvas appear without requiring
-    // a page reload (the storage event only fires across tabs, not same-tab).
+    // Poll every 5 s to pick up same-tab changes (storage event is cross-tab only).
     const pollId = setInterval(read, 5_000);
-    // Still listen for cross-tab changes just in case.
     const onStorage = (e) => { if (e.key?.startsWith('widgetSettings_')) read(); };
     window.addEventListener('storage', onStorage);
     return () => { clearInterval(pollId); window.removeEventListener('storage', onStorage); };
-  }, []);
+  }, [instances]);
 
   return timezones;
 };

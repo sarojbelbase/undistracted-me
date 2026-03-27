@@ -1,11 +1,12 @@
 import './App.css';
 import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
+import { FocusMode } from './components/FocusMode';
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 
+// Settings and catalog are only ever opened on demand — lazy-load them.
 const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
-const FocusMode = lazy(() => import('./components/FocusMode').then(m => ({ default: m.FocusMode })));
 const WidgetCatalog = lazy(() => import('./widgets/WidgetCatalog').then(m => ({ default: m.WidgetCatalog })));
 
 const App = () => {
@@ -153,9 +154,7 @@ const App = () => {
       </div>
 
       {showFocusMode && (
-        <Suspense fallback={null}>
-          <FocusMode onExit={() => setShowFocusMode(false)} />
-        </Suspense>
+        <FocusMode onExit={() => setShowFocusMode(false)} />
       )}
     </div>
   );
