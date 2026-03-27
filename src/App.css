@@ -638,24 +638,27 @@ textarea:focus-visible,
 
 /* Dark mode token overrides */
 [data-mode="dark"] .wc-panel {
-  --wc-bg: #1c1c1e;
-  --wc-bg-2: #2c2c2e;
-  --wc-bg-3: #3a3a3c;
-  --wc-border: rgba(255, 255, 255, 0.07);
-  --wc-border-med: rgba(255, 255, 255, 0.12);
+  --wc-bg: #222222;
+  --wc-bg-2: #2b2b2b;
+  --wc-bg-3: #363636;
+  --wc-border: rgba(255, 255, 255, 0.08);
+  --wc-border-med: rgba(255, 255, 255, 0.13);
   --wc-ink-1: #f5f5f7;
   --wc-ink-2: #e5e5ea;
-  --wc-ink-3: #aeaeb2;
-  --wc-ink-4: #8e8e93;
-  --wc-ink-5: #636366;
-  --wc-ink-6: #48484a;
+  --wc-ink-3: #b0b0b5;
+  --wc-ink-4: #8c8c91;
+  /* 4.8:1 ✓ AA */
+  --wc-ink-5: #6a6a6f;
+  /* 3.1:1 ✓ AA large */
+  --wc-ink-6: #525257;
+  /* 2.2:1 decorative */
   --wc-active-fill: rgba(255, 255, 255, 0.06);
-  --wc-active-bar: rgba(255, 255, 255, 0.75);
+  --wc-active-bar: rgba(255, 255, 255, 0.78);
   --wc-tab-active-bg: rgba(255, 255, 255, 0.12);
   --wc-tab-active-fg: #f5f5f7;
-  --wc-badge-bg: rgba(255, 255, 255, 0.14);
+  --wc-badge-bg: rgba(255, 255, 255, 0.16);
   --wc-badge-fg: #f5f5f7;
-  --wc-add-hover-bg: rgba(255, 255, 255, 0.14);
+  --wc-add-hover-bg: rgba(255, 255, 255, 0.16);
   --wc-add-hover-fg: #f5f5f7;
 }
 
