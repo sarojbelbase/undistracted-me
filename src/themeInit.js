@@ -26,8 +26,20 @@ const LIGHT_BORDER = '#e5e7eb';
 const DARK_BORDER = '#374151';
 
 try {
-  const mode = localStorage.getItem('app_mode') || 'light';
-  const accentName = localStorage.getItem('app_accent') || 'Default';
+  // Prefer the Zustand persist key — this is where settings live after first run.
+  // Fall back to legacy per-key entries for first-time users migrating from older builds.
+  let mode = 'light';
+  let accentName = 'Default';
+
+  const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
+  if (stored?.state) {
+    mode = stored.state.mode || 'light';
+    accentName = stored.state.accent || 'Default';
+  } else {
+    mode = localStorage.getItem('app_mode') || 'light';
+    accentName = localStorage.getItem('app_accent') || 'Default';
+  }
+
   const accent = ACCENTS[accentName] || ACCENTS.Default;
   const dark = mode === 'dark';
   const r = document.documentElement;

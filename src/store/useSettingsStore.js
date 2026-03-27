@@ -18,17 +18,32 @@ import { applyTheme } from '../theme';
 export const STORE_KEY = 'undistracted_settings';
 
 /**
- * Read from legacy localStorage keys for one-time migration.
- * Zustand persist will override these defaults once `STORE_KEY` exists.
+ * Seed initial state. Reads from the Zustand persist key first so accents
+ * and mode are correct on the very first render — before async rehydration.
+ * Falls back to legacy per-key entries for first-time migration.
  */
-const fromLegacy = () => ({
-  language: localStorage.getItem('language') || 'en',
-  accent: localStorage.getItem('app_accent') || 'Default',
-  mode: localStorage.getItem('app_mode') || 'light',
-  defaultView: localStorage.getItem('defaultView') || 'canvas',
-  dateFormat: localStorage.getItem('focusDateFormat') || 'gregorian',
-  showMitiInIcon: localStorage.getItem('showMitiInIcon') || '0',
-});
+const fromLegacy = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
+    if (stored?.state) return {
+      language: stored.state.language ?? 'en',
+      accent: stored.state.accent ?? 'Default',
+      mode: stored.state.mode ?? 'light',
+      defaultView: stored.state.defaultView ?? 'canvas',
+      dateFormat: stored.state.dateFormat ?? 'gregorian',
+      showMitiInIcon: stored.state.showMitiInIcon ?? '0',
+    };
+  } catch { /* ignore */ }
+  // Legacy single-key fallback
+  return {
+    language: localStorage.getItem('language') || 'en',
+    accent: localStorage.getItem('app_accent') || 'Default',
+    mode: localStorage.getItem('app_mode') || 'light',
+    defaultView: localStorage.getItem('defaultView') || 'canvas',
+    dateFormat: localStorage.getItem('focusDateFormat') || 'gregorian',
+    showMitiInIcon: localStorage.getItem('showMitiInIcon') || '0',
+  };
+};
 
 export const useSettingsStore = create(
   persist(

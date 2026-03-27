@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { GearFill, ArrowsFullscreen, FullscreenExit } from 'react-bootstrap-icons';
 import { getWeatherIcon } from '../../widgets/weather/utils.jsx';
-import { FocusModeSettings } from './Settings';
+
+const FocusModeSettings = lazy(() => import('./Settings').then(m => ({ default: m.FocusModeSettings })));
 
 // ─── Responsive top-bar CSS ───────────────────────────────────────────────────
 // Desktop: center cluster is absolutely centered (doesn't push buttons)
@@ -107,7 +108,11 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
             <GearFill size={13} className="transition-transform duration-300 group-hover:rotate-90" style={{ color: 'rgba(255,255,255,0.9)' }} />
           </button>
         </div>
-        {showSettings && <FocusModeSettings onRotatePhoto={onRotatePhoto} />}
+        {showSettings && (
+          <Suspense fallback={null}>
+            <FocusModeSettings onRotatePhoto={onRotatePhoto} />
+          </Suspense>
+        )}
       </div>
     </div>
   );
