@@ -28,16 +28,16 @@ const LIGHT_TOKENS = {
 };
 
 const DARK_TOKENS = {
-  '--w-ink-1': '#f2f2f2',   /* near-white, zero blue cast              */
-  '--w-ink-2': '#e2e2e2',   /* primary labels & display numbers        */
-  '--w-ink-3': '#c0c0c0',   /* bold value text, strong secondary       */
-  '--w-ink-4': '#888888',   /* medium context, captions                */
-  '--w-ink-5': '#555555',   /* muted labels                            */
-  '--w-ink-6': '#333333',   /* inactive dots, faintest dividers        */
-  '--w-surface': '#141414', /* matte black — widget card surface       */
-  '--w-surface-2': '#1e1e1e', /* raised surface — inputs, sub-panels   */
-  '--w-border': '#2a2a2a',  /* hairline separators                     */
-  '--w-page-bg': '#0f0f0f', /* page canvas behind widget grid          */
+  '--w-ink-1': '#f2f2f2',   /* near-white — headlines                  */
+  '--w-ink-2': '#e0e0e0',   /* primary labels & display numbers        */
+  '--w-ink-3': '#c4c4c4',   /* bold value text, strong secondary       */
+  '--w-ink-4': '#8e8e8e',   /* medium context, captions      5.0:1 ✓   */
+  '--w-ink-5': '#636363',   /* muted labels                  3.2:1 ✓   */
+  '--w-ink-6': '#484848',   /* inactive / decorative         2.2:1      */
+  '--w-surface': '#1c1c1c', /* mid-point widget card surface            */
+  '--w-surface-2': '#252525', /* raised surface — inputs, sub-panels   */
+  '--w-border': '#333333',  /* hairline separators                      */
+  '--w-page-bg': '#141414', /* page canvas behind widget grid           */
 };
 
 const hexToRgb = (hex) => {
