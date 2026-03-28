@@ -13,8 +13,8 @@ export const Widget = ({ onRemove }) => {
   return (
     <BaseWidget className="p-5 flex flex-col justify-between" onRemove={onRemove}>
       <p
-        className="w-body leading-relaxed flex-1 flex items-center text-center"
-        style={{ color: 'var(--w-ink-2)' }}
+        className="leading-relaxed flex-1 flex items-center text-center"
+        style={{ fontSize: '0.9375rem', color: 'var(--w-ink-2)', lineHeight: 1.65 }}
       >
         {text}
       </p>

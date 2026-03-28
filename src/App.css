@@ -128,10 +128,25 @@ body {
   opacity: 1 !important;
 }
 
-/* Subtle lift while dragging — no scale/blur, just a clean shadow elevation */
+/* Subtle lift while dragging — stronger shadow elevation to feel "picked up" */
 .react-grid-item.react-draggable-dragging>* {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
   cursor: grabbing !important;
+}
+
+/* Active dot pulse — current hour indicator in DayProgress widget */
+@keyframes dotActiveGlow {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.65;
+    transform: scale(1.2);
+  }
 }
 
 /* Hide options button while dragging — it's in the way and confusing */
@@ -167,7 +182,7 @@ body {
   /* gray-400 — soft/muted labels, captions                  */
   --w-ink-6: #d1d5db;
   /* gray-300 — inactive dots, faintest accents              */
-  --w--ink-7: #f3f4f6;
+  --w-ink-7: #f3f4f6;
   /* gray-100 — background of some widgets, lightest accents  */
   --w-surface: #ffffff;
   --w-surface-2: #f9fafb;
@@ -276,10 +291,12 @@ body {
     height: 0.75rem;
     border-radius: 9999px;
     background-color: var(--w-ink-6);
+    transition: background-color 0.3s ease;
   }
 
   .w-dot-active {
     background-color: var(--w-accent);
+    animation: dotActiveGlow 2.4s ease-in-out infinite;
   }
 }
 
@@ -341,6 +358,10 @@ body {
   border-color: var(--w-border) !important;
 }
 
+[data-mode="dark"] .react-grid-item.react-draggable-dragging>* {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.55) !important;
+}
+
 [data-mode="dark"] .react-grid-placeholder {
   background: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
@@ -351,7 +372,11 @@ body {
 }
 
 [data-mode="dark"] .shadow-md {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-mode="dark"] .hover\:shadow-lg:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.45) !important;
 }
 
 [data-mode="dark"] .shadow-lg {
@@ -594,10 +619,6 @@ textarea:focus-visible,
   to {
     width: 100%;
   }
-}
-
-[data-mode="dark"] .react-grid-item.react-draggable-dragging>* {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════

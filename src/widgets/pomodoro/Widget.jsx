@@ -102,8 +102,8 @@ export const Widget = ({ onRemove }) => {
     return (
       <BaseWidget className="p-3 flex flex-col items-center justify-center gap-3" onRemove={onRemove}>
         <div className="text-center">
-          <p className="w-heading text-sm">Focus Timer</p>
-          <p className="w-muted text-xs mt-0.5">Pick a duration</p>
+          <p className="w-heading">Focus Timer</p>
+          <p className="w-muted mt-0.5">Pick a duration</p>
         </div>
 
         <div className="flex flex-col gap-2 w-full items-center">

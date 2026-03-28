@@ -42,7 +42,7 @@ export const BaseWidget = forwardRef(({
   return (
     <div ref={ref} className="relative h-full group">
       <div
-        className={`rounded-2xl shadow-md flex flex-col overflow-hidden h-full ${className}`}
+        className={`rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col overflow-hidden h-full ${className}`}
         style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)', ...cardStyle }}
       >
         {children}

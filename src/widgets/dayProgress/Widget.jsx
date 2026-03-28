@@ -14,9 +14,9 @@ export const Widget = ({ onRemove }) => {
 
   return (
     <BaseWidget className="p-4 flex flex-col" onRemove={onRemove}>
-      <div className="flex justify-between mx-2">
-        <span className="w-title-soft">Day</span>
-        <span className="w-title-bold">{progress.percentage}%</span>
+      <div className="flex justify-between mx-2 items-baseline">
+        <span className="w-sub-soft">Day Progress</span>
+        <span className="w-sub-bold" style={{ fontSize: '1.05rem' }}>{progress.percentage}%</span>
       </div>
       <div className="flex-1 flex items-center">
         <div className="grid grid-cols-6 gap-y-3 w-full place-items-center">
