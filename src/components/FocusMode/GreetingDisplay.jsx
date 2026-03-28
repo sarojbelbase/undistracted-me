@@ -1,4 +1,3 @@
-import React from 'react';
 
 // ── Spacer = clock font-size. Proof:
 //   Both clock and greeting are independently centered in `absolute inset-0`

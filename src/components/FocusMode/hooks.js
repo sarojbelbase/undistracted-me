@@ -12,9 +12,15 @@ export const useFocusWeather = () => {
     if (!API_KEY) return;
     let location = null, unit = 'metric';
     try {
-      const ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || '{}');
-      location = ws.location || null;
-      unit = ws.unit || 'metric';
+      // Try fixed legacy key first, then scan instances for the actual UUID-based key
+      let ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || 'null');
+      if (!ws) {
+        const raw = JSON.parse(localStorage.getItem('widget_instances') || 'null');
+        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances || []);
+        const wid = instancesList.find(i => i.type === 'weather')?.id;
+        if (wid) ws = JSON.parse(localStorage.getItem(`widgetSettings_${wid}`) || 'null');
+      }
+      if (ws) { location = ws.location || null; unit = ws.unit || 'metric'; }
     } catch { }
     const load = async () => {
       try {

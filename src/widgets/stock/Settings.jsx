@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchCompanies } from './utils';
 
 /**
@@ -6,7 +6,7 @@ import { fetchCompanies } from './utils';
  * Supports selecting up to 3 symbols.
  * onClose is injected by BaseWidget when settingsContent is a function.
  */
-export const StockSettings = ({ symbols = [], onChange, onClose }) => {
+export const Settings = ({ symbols = [], onChange, onClose }) => {
   const [companies, setCompanies] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

@@ -4,8 +4,8 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import { getTimeParts, getTimeInZone } from './utils';
 
-export const Widget = ({ widgetId, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId, { format: '24h', timezones: [] });
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, { format: '24h', timezones: [] });
   const { format, timezones = [] } = settings;
 
   const [parts, setParts] = useState(() => getTimeParts(format));
@@ -33,7 +33,6 @@ export const Widget = ({ widgetId, onRemove }) => {
       className="p-4 flex flex-col items-center justify-center gap-2"
       settingsContent={
         <Settings
-          widgetId={widgetId}
           format={format}
           timezones={timezones}
           onChange={updateSetting}

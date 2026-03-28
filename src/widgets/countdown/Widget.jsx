@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusLg, XLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, todayStr } from '../useEvents';
+import { useEvents } from '../useEvents';
+import { todayStr } from '../events/utils';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 
 const STORAGE_KEY = 'countdown_events';

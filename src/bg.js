@@ -158,6 +158,7 @@ function updateBadge() {
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = 'UM_TICK';        // fires every 1 min for event reminders
 const ALARM_BADGE = 'UM_BADGE';      // fires at midnight to refresh date badge
+const ALARM_LOOKAWAY = 'UM_LOOKAWAY'; // fires every N min for eye-break reminders
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
 
@@ -240,6 +241,21 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_BADGE) updateBadge();
   if (alarm.name === ALARM_TICK) syncEventsFromStorage();
+
+  // ── LookAway break alarm ─────────────────────────────────────────────────
+  if (alarm.name === ALARM_LOOKAWAY) {
+    // Set flag in chrome.storage — open new tab pages react instantly via
+    // storage.onChanged; pages opened later catch it on mount.
+    chrome.storage.local.set({ lookaway_due: Date.now() });
+    // Show an OS notification so the user knows even when no new tab is open.
+    chrome.notifications.create('lookaway_' + Date.now(), {
+      type: 'basic',
+      iconUrl: 'favicon/lotus128.png',
+      title: 'Time to look away 👁',
+      message: 'Give your eyes a 20-second break. Open a new tab when ready.',
+      priority: 1,
+    });
+  }
 });
 
 // ─── Messages from the page ───────────────────────────────────────────────────
@@ -273,5 +289,31 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'EVENTS_UPDATED' && msg.events) {
     self.storageCache = JSON.stringify(msg.events);
     chrome.storage.local.set({ widget_events: self.storageCache });
+  }
+
+  // ── LookAway schedule sync ───────────────────────────────────────────────
+  // Page sends this whenever enabled/interval changes in settings.
+  if (msg.type === 'LOOKAWAY_SYNC') {
+    if (msg.enabled) {
+      // Only clear+recreate if the interval changed or alarm doesn't exist yet.
+      // If we recreated it on every new tab open the countdown would always reset.
+      chrome.alarms.get(ALARM_LOOKAWAY, (existing) => {
+        if (!existing || Math.round(existing.periodInMinutes) !== Number(msg.intervalMins)) {
+          chrome.alarms.clear(ALARM_LOOKAWAY, () => {
+            chrome.alarms.create(ALARM_LOOKAWAY, { periodInMinutes: msg.intervalMins });
+          });
+        }
+        // else: correct alarm already ticking — leave it alone
+      });
+    } else {
+      chrome.alarms.clear(ALARM_LOOKAWAY);
+      chrome.storage.local.remove('lookaway_due'); // clear any pending break
+    }
+  }
+
+  // ── LookAway manual preview / fire-now ──────────────────────────────────
+  // Triggered by the Preview button in Settings or WidgetCatalog.
+  if (msg.type === 'LOOKAWAY_FIRE') {
+    chrome.storage.local.set({ lookaway_due: Date.now() });
   }
 });

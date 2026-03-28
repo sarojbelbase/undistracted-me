@@ -103,6 +103,89 @@ body {
   animation: panel-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ── LookAway overlay animations ─────────────────────────────────────────── */
+
+/* Bloom in: emerges from soft blur, like opening eyes */
+@keyframes lookaway-in {
+  from {
+    opacity: 0;
+    filter: blur(18px);
+    transform: scale(1.018);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+/* Dissolve out: melts away into blur, like closing eyes */
+@keyframes lookaway-out {
+  from {
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(14px);
+  }
+}
+
+/* Content rise: gentle upward drift with blur */
+@keyframes lookaway-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+/* Slow orbital spin of the 3-orb background layer */
+@keyframes lookaway-orb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slow counter-spin of the secondary orb layer */
+@keyframes lookaway-orb-counter {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Breathing pulse on the central bloom */
+@keyframes lookaway-bloom {
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+
 .react-grid-item:active {
   cursor: default;
 }

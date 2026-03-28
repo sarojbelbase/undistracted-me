@@ -2,6 +2,8 @@ import './App.css';
 import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
 import { FocusMode } from './components/FocusMode';
+import { LookAway } from './components/LookAway';
+import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 
@@ -14,11 +16,18 @@ const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
 
   // ── Zustand stores ─────────────────────────────────────────────────────────
-  const { mode, defaultView } = useSettingsStore();
+  const { mode, defaultView, lookAwayEnabled, lookAwayInterval } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
   // Focus mode is either the user's stored default or an in-session toggle
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
+  const [showLookAway, setShowLookAway] = useState(false);
+
+  useLookAwayScheduler({
+    enabled: lookAwayEnabled,
+    intervalMins: lookAwayInterval,
+    onTrigger: () => setShowLookAway(true),
+  });
 
   // Alt+Shift+F — toggle Focus Mode (safe across Chrome/Firefox/Linux)
   useEffect(() => {
@@ -133,7 +142,10 @@ const App = () => {
 
         {showSettings && (
           <Suspense fallback={null}>
-            <Settings closeSettings={closeSettings} />
+            <Settings
+              closeSettings={closeSettings}
+              onPreviewLookAway={() => { setShowLookAway(true); closeSettings(); }}
+            />
           </Suspense>
         )}
       </div>
@@ -155,6 +167,13 @@ const App = () => {
 
       {showFocusMode && (
         <FocusMode onExit={() => setShowFocusMode(false)} />
+      )}
+
+      {showLookAway && (
+        <LookAway
+          onDismiss={() => { setShowLookAway(false); clearLookAwayDue(); }}
+          duration={20}
+        />
       )}
     </div>
   );

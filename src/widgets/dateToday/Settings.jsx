@@ -1,24 +1,17 @@
-import React from 'react';
+import { RadioGroup } from '../../components/ui/RadioGroup';
 import { LANGUAGES } from '../../constants';
 
-export const Settings = ({ widgetId, language, onChange }) => (
-  <div className="flex flex-col gap-2">
-    <span className="w-label">Date Format</span>
-    {[
-      { label: 'Gregorian (A.D.)', value: LANGUAGES.en },
-      { label: 'Bikram Sambat (B.S.)', value: LANGUAGES.ne },
-    ].map(({ label, value }) => (
-      <label key={value} className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="radio"
-          name={`${widgetId}-lang`}
-          value={value}
-          checked={language === value}
-          onChange={() => onChange('language', value)}
-          className="accent-blue-500"
-        />
-        <span className="w-body font-normal">{label}</span>
-      </label>
-    ))}
-  </div>
+const DATE_FORMAT_OPTIONS = [
+  { label: 'Gregorian (A.D.)', value: LANGUAGES.en },
+  { label: 'Bikram Sambat (B.S.)', value: LANGUAGES.ne },
+];
+
+export const Settings = ({ id, language, onChange }) => (
+  <RadioGroup
+    name={`${id}-lang`}
+    label="Date Format"
+    options={DATE_FORMAT_OPTIONS}
+    value={language}
+    onChange={(v) => onChange('language', v)}
+  />
 );

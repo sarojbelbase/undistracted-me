@@ -1,4 +1,3 @@
-import React from 'react';
 import { MusicNoteBeamed, PauseFill, PlayFill, SkipStartFill, SkipEndFill } from 'react-bootstrap-icons';
 import { formatTime } from '../../widgets/pomodoro/utils';
 import { priceStats, fmtPrice } from '../../widgets/stock/utils';

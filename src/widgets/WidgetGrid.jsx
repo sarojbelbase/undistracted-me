@@ -36,18 +36,18 @@ const loadLayouts = () => {
 
 const renderWidget = (id, type, onRemove) => {
   switch (type) {
-    case WIDGET_TYPES.CLOCK: return <ClockWidget widgetId={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget widgetId={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.EVENTS: return <EventsWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.WEATHER: return <WeatherWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.CALENDAR: return <CalendarWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.CLOCK: return <ClockWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.EVENTS: return <EventsWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.WEATHER: return <WeatherWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.CALENDAR: return <CalendarWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.NOTES: return <NotesWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.BOOKMARKS: return <BookmarksWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.POMODORO: return <PomodoroWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget onRemove={onRemove} />;
-    case WIDGET_TYPES.FACTS: return <FactsWidget onRemove={onRemove} />;
+    case WIDGET_TYPES.POMODORO: return <PomodoroWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.FACTS: return <FactsWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.STOCK: return <StockWidget id={id} onRemove={onRemove} />;
     default: return null;
   }

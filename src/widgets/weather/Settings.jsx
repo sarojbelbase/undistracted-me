@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const API_KEY = import.meta.env.VITE_OWM_API_KEY || null;
 
@@ -57,15 +57,19 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }
           placeholder="Type location name"
           value={query}
           onChange={e => handleInput(e.target.value)}
-          className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 w-44 outline-none focus:border-gray-400 transition-colors"
+          className="text-sm rounded-lg px-2 py-1.5 w-44 outline-none transition-colors"
+          style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}
         />
         {suggestions.length > 0 && (
-          <ul className="absolute left-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-hidden">
+          <ul className="absolute left-0 top-full mt-1 w-44 rounded-lg shadow-lg z-30 overflow-hidden" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
             {suggestions.map((item, i) => (
               <li
                 key={i}
                 onClick={() => select(item)}
-                className="px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer truncate"
+                className="px-2 py-1.5 text-xs cursor-pointer truncate transition-colors"
+                style={{ color: 'var(--w-ink-2)' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--w-surface-2)'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
               >
                 {[item.name, item.state, item.country].filter(Boolean).join(', ')}
               </li>

@@ -1,7 +1,6 @@
 /**
  * Weather widget utilities
  */
-import React from 'react';
 import {
   Sun, MoonStars,
   CloudSun, CloudMoon,
