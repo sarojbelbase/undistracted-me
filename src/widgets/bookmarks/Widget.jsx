@@ -35,17 +35,18 @@ const AddModal = ({ onSave, onClose }) => {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
-      <div className="bg-white rounded-2xl shadow-2xl p-5 w-72 animate-fade-in">
+      <div className="rounded-2xl shadow-2xl p-5 w-72 animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
         <div className="flex items-center justify-between mb-4">
           <span className="w-heading">Add Bookmark</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}>
             <XLg size={14} />
           </button>
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label className="w-label mb-1 block">URL</label>
+            <label htmlFor="bm-url" className="w-label mb-1 block">URL</label>
             <input
+              id="bm-url"
               autoFocus
               type="url"
               placeholder="https://example.com"
@@ -53,23 +54,26 @@ const AddModal = ({ onSave, onClose }) => {
               onChange={e => setUrl(e.target.value)}
               onBlur={handleUrlBlur}
               onKeyDown={e => e.key === 'Enter' && handleSave()}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+              style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
             />
           </div>
           <div>
-            <label className="w-label mb-1 block">Name</label>
+            <label htmlFor="bm-name" className="w-label mb-1 block">Name</label>
             <input
+              id="bm-name"
               type="text"
               placeholder="My site"
               value={name}
               onChange={e => { setName(e.target.value); setNameTouched(true); }}
               onKeyDown={e => e.key === 'Enter' && handleSave()}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+              style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
             />
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>
+          <button onClick={onClose} className="px-4 py-1.5 text-sm transition-colors" style={{ color: 'var(--w-ink-4)' }}>Cancel</button>
           <button
             onClick={handleSave}
             disabled={!url.trim()}
@@ -103,7 +107,7 @@ const Chip = ({ href, favicon, name, onRemove }) => (
           onError={e => { e.currentTarget.style.display = 'none'; }}
         />
       )}
-      <span className="max-w-[100px] truncate">{name}</span>
+      <span className="max-w-25 truncate">{name}</span>
     </a>
     {onRemove ? (
       <button

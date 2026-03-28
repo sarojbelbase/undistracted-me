@@ -20,11 +20,13 @@ export const getDateParts = (language) => {
 
   if (language === LANGUAGES.ne) {
     const [y, m, d] = now.format('YYYY M D').split(' ').map(Number);
-    const [, nepaliMonthStr, nepaliDayStr] = convertEnglishToNepali(y, m, d).split(' ');
+    const nepaliResult = convertEnglishToNepali(y, m, d);
+    const [nepaliYear, nepaliMonthStr, nepaliDayStr] = nepaliResult.split(' ');
     return {
       weekday: EN_WEEKDAYS[weekdayIndex],
       month: NEPALI_MONTH_NAMES[parseInt(nepaliMonthStr) - 1],
       day: String(parseInt(nepaliDayStr)).padStart(2, '0'),
+      year: nepaliYear,
     };
   }
 
@@ -32,5 +34,6 @@ export const getDateParts = (language) => {
     weekday: EN_WEEKDAYS[weekdayIndex],
     month: EN_MONTHS[now.month()],
     day: String(now.date()).padStart(2, '0'),
+    year: String(now.year()),
   };
 };

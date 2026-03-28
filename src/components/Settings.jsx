@@ -26,7 +26,7 @@ export const Settings = ({ closeSettings }) => {
 
   return (
     <div
-      className="absolute top-12 right-0 z-50 rounded-2xl shadow-xl p-4 w-60 flex flex-col gap-4 animate-fade-in"
+      className="absolute top-12 right-0 z-50 rounded-2xl shadow-xl p-5 w-72 flex flex-col gap-4 animate-fade-in"
       style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
       onMouseDown={e => e.stopPropagation()}
     >

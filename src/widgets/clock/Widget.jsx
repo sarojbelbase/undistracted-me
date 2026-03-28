@@ -88,7 +88,7 @@ export const Widget = ({ widgetId, onRemove }) => {
               </div>
               <span
                 className="text-center leading-tight font-medium"
-                style={{ fontSize: '0.6rem', color: 'var(--w-ink-5)', maxWidth: '5rem' }}
+                style={{ fontSize: '0.68rem', color: 'var(--w-ink-4)', maxWidth: '5rem' }}
               >
                 {label}
               </span>

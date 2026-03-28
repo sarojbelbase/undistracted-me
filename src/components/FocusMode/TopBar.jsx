@@ -63,7 +63,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
         onMouseEnter={fadeIn}
         onMouseLeave={fadeOut}
         className="flex items-center gap-1.5 rounded-full focus:outline-none"
-        style={{ padding: '5px 12px 5px 9px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', opacity: 0.38, transition: 'opacity 0.2s' }}
+        style={{ padding: '5px 12px 5px 9px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', opacity: 0.52, transition: 'opacity 0.2s' }}
         title="Back to Canvas"
       >
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -91,7 +91,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
             onMouseEnter={fadeIn}
             onMouseLeave={fadeOut}
             className="p-2.5 rounded-full focus:outline-none"
-            style={{ opacity: 0.38, transition: 'opacity 0.2s' }}
+            style={{ opacity: 0.52, transition: 'opacity 0.2s' }}
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
           >
             {isFullscreen ? <FullscreenExit size={13} style={{ color: 'rgba(255,255,255,0.9)' }} /> : <ArrowsFullscreen size={12} style={{ color: 'rgba(255,255,255,0.9)' }} />}
@@ -102,7 +102,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
             onMouseEnter={fadeIn}
             onMouseLeave={e => { e.currentTarget.style.opacity = showSettings ? '0.88' : '0.38'; }}
             className="group p-2.5 rounded-full focus:outline-none"
-            style={{ opacity: showSettings ? 0.88 : 0.38, transition: 'opacity 0.2s' }}
+            style={{ opacity: showSettings ? 0.92 : 0.52, transition: 'opacity 0.2s' }}
             title="Settings"
           >
             <GearFill size={13} className="transition-transform duration-300 group-hover:rotate-90" style={{ color: 'rgba(255,255,255,0.9)' }} />

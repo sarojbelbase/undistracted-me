@@ -100,7 +100,7 @@ const StockRow = ({ sym, data, isLast }) => {
         className="flex items-center gap-0.5 shrink-0"
         style={{ color: isDead ? inkMuted : color }}
       >
-        <svg width="5" height="5" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
+        <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
           {!isDead && stats?.dir === 'up'
             ? <polygon points="4,0 8,8 0,8" />
             : !isDead && stats?.dir === 'down'
