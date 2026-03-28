@@ -5,8 +5,8 @@ import { Settings } from './Settings';
 import { ArrowRepeat, ExclamationTriangle, KeyFill } from 'react-bootstrap-icons';
 import { API_KEY, getWeatherIcon, getCoords, fetchWeatherByCoords, parseWeather } from './utils.jsx';
 
-export const Widget = ({ id: widgetId, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId || 'weather', { location: null, unit: 'metric' });
+export const Widget = ({ id = 'weather', onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, { location: null, unit: 'metric' });
   const { location, unit } = settings; // location: { name, lat, lon } | null; unit: 'metric' | 'imperial'
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);

@@ -84,9 +84,6 @@ export const eventStartDate = (event) => {
   return new Date(`${event.startDate}T${event.startTime || '00:00'}`);
 };
 
-// Today's date string in YYYY-MM-DD
-export const todayStr = () => new Date().toISOString().slice(0, 10);
-
 // ─── Google Calendar hook ────────────────────────────────────────────────────
 
 /**

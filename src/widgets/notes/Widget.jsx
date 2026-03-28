@@ -7,8 +7,8 @@ import { ACCENT_COLORS } from '../../theme';
 
 const PALETTE = ACCENT_COLORS.filter(c => c.name !== 'Default');
 
-export const Widget = ({ id: widgetId, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId || 'notes', { text: '', bgColor: null });
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, { text: '', bgColor: null });
   const { text, bgColor } = settings;
   const [isHidden, setIsHidden] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);

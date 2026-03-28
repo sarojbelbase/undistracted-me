@@ -32,6 +32,8 @@ const fromLegacy = () => {
       defaultView: stored.state.defaultView ?? 'canvas',
       dateFormat: stored.state.dateFormat ?? 'gregorian',
       showMitiInIcon: stored.state.showMitiInIcon ?? '0',
+      lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
+      lookAwayInterval: stored.state.lookAwayInterval ?? 20,
     };
   } catch { /* ignore */ }
   // Legacy single-key fallback
@@ -42,6 +44,8 @@ const fromLegacy = () => {
     defaultView: localStorage.getItem('defaultView') || 'canvas',
     dateFormat: localStorage.getItem('focusDateFormat') || 'gregorian',
     showMitiInIcon: localStorage.getItem('showMitiInIcon') || '0',
+    lookAwayEnabled: false,
+    lookAwayInterval: 20,
   };
 };
 
@@ -79,6 +83,10 @@ export const useSettingsStore = create(
       setDateFormat: (dateFormat) => set({ dateFormat }),
 
       setShowMitiInIcon: (showMitiInIcon) => set({ showMitiInIcon }),
+
+      /** LookAway eye-break reminders */
+      setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),
+      setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),
     }),
     {
       name: STORE_KEY,

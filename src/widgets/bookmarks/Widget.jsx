@@ -124,8 +124,8 @@ const Chip = ({ href, favicon, name, onRemove }) => (
   </div>
 );
 
-export const Widget = ({ id: widgetId, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId || 'bookmarks', { bookmarks: [] });
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, { bookmarks: [] });
   const { bookmarks } = settings;
   const [topSites, setTopSites] = useState([]);
   const [showAdd, setShowAdd] = useState(false);

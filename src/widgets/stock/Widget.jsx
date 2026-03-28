@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { StockSettings } from './Settings';
+import { Settings } from './Settings';
 import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL, humanizeAge } from './utils';
 
 const DIR_COLOR = {
@@ -116,8 +116,8 @@ const StockRow = ({ sym, data, isLast }) => {
   );
 };
 
-export const Widget = ({ id: widgetId, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(widgetId || 'stock', { symbols: ['GBIME'] });
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, { symbols: ['GBIME'] });
   const { symbols = [] } = settings;
 
   const [chartMap, setChartMap] = useState({});
@@ -178,7 +178,7 @@ export const Widget = ({ id: widgetId, onRemove }) => {
   const ohlSize = '0.65rem';
 
   const settingsContent = (onClose) => (
-    <StockSettings symbols={symbols} onChange={updateSetting} onClose={onClose} />
+    <Settings symbols={symbols} onChange={updateSetting} onClose={onClose} />
   );
 
   // Refresh button + age label — always inline for minimal vertical footprint

@@ -53,20 +53,34 @@ export const getGreeting = (h24) =>
 /**
  * Returns { time, period, greeting } using browser local time (no hardcoded TZ).
  * @param {'24h'|'12h'} format
+/**
+ * Core time formatter shared by getTimeParts and getTimeInZone.
+ * @param {import('dayjs').Dayjs} dayjsInstance
+ * @param {'24h'|'12h'} format
+ * @returns {{ time: string, period: string|null }}
  */
-export const getTimeParts = (format) => {
-  const now = dayjs();
-  const h24 = now.hour();
-  const minutes = String(now.minute()).padStart(2, '0');
-  const greeting = getGreeting(h24);
+const formatTime = (dayjsInstance, format) => {
+  const h24 = dayjsInstance.hour();
+  const minutes = String(dayjsInstance.minute()).padStart(2, '0');
 
   if (format === '24h') {
-    return { time: String(h24).padStart(2, '0') + ':' + minutes, period: null, greeting };
+    return { time: String(h24).padStart(2, '0') + ':' + minutes, period: null };
   }
 
   const period = h24 < 12 ? 'AM' : 'PM';
-  const h12 = h24 % 12 || 12;
-  return { time: String(h12).padStart(2, '0') + ':' + minutes, period, greeting };
+  const h12 = String(h24 % 12 || 12).padStart(2, '0');
+  return { time: h12 + ':' + minutes, period };
+};
+
+/**
+ * Returns { time, period, greeting } using browser local time (no hardcoded TZ).
+ * @param {'24h'|'12h'} format
+ */
+export const getTimeParts = (format) => {
+  const now = dayjs();
+  const { time, period } = formatTime(now, format);
+  const greeting = getGreeting(now.hour());
+  return { time, period, greeting };
 };
 
 /**
@@ -76,16 +90,7 @@ export const getTimeParts = (format) => {
  */
 export const getTimeInZone = (tz, format) => {
   const now = dayjs().tz(tz);
-  const h24 = now.hour();
-  const minutes = String(now.minute()).padStart(2, '0');
+  const { time, period } = formatTime(now, format);
   const option = TZ_OPTIONS.find(o => o.tz === tz);
-  const label = option ? option.label : tz;
-
-  if (format === '24h') {
-    return { time: String(h24).padStart(2, '0') + ':' + minutes, period: null, label };
-  }
-
-  const period = h24 < 12 ? 'AM' : 'PM';
-  const h12 = h24 % 12 || 12;
-  return { time: String(h12) + ':' + minutes, period, label };
+  return { time, period, label: option ? option.label : tz };
 };

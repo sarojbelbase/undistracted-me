@@ -1,4 +1,3 @@
-import React from 'react';
 import DigitRoller from './DigitRoller';
 
 export const ClockDisplay = ({ parts, centerOnDark }) => (

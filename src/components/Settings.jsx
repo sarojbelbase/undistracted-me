@@ -1,4 +1,4 @@
-import React from 'react';
+import { EyeSlashFill } from 'react-bootstrap-icons';
 import { SunFill, MoonFill, CheckLg, ArrowRepeat, CalendarCheck, Calendar2X } from 'react-bootstrap-icons';
 import { LANGUAGES } from '../constants/settings';
 import { ACCENT_COLORS } from '../theme';
@@ -6,12 +6,14 @@ import { useGoogleCalendar, useGoogleProfile } from '../widgets/useEvents';
 import { disconnectCalendar } from '../utilities/googleCalendar';
 import { useSettingsStore } from '../store';
 
-export const Settings = ({ closeSettings }) => {
+export const Settings = ({ closeSettings, onPreviewLookAway }) => {
   const {
     language, setLanguage,
     accent, setAccent,
     mode, setMode,
     defaultView, setDefaultView,
+    lookAwayEnabled, setLookAwayEnabled,
+    lookAwayInterval, setLookAwayInterval,
   } = useSettingsStore();
 
   const { connected, loading, refresh } = useGoogleCalendar();
@@ -122,10 +124,59 @@ export const Settings = ({ closeSettings }) => {
         </div>
       </div>
 
+      {/* Look Away */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="w-label flex items-center gap-1.5">
+            <EyeSlashFill size={11} style={{ color: 'var(--w-ink-4)' }} />
+            Look Away
+          </p>
+          <div className="flex items-center gap-1.5">
+            {onPreviewLookAway && (
+              <button
+                onClick={onPreviewLookAway}
+                className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
+                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
+                title="Preview the Look Away overlay"
+              >
+                Preview
+              </button>
+            )}
+            <button
+              onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
+              className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
+              style={lookAwayEnabled
+                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+            >
+              {lookAwayEnabled ? 'On' : 'Off'}
+            </button>
+          </div>
+        </div>
+        {lookAwayEnabled && (
+          <div className="flex flex-col gap-1.5">
+            <span className="w-caption" style={{ color: 'var(--w-ink-4)' }}>Remind every</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {[10, 20, 30, 45, 60].map((mins) => (
+                <button
+                  key={mins}
+                  onClick={() => setLookAwayInterval(mins)}
+                  className="px-3 py-1 text-xs rounded-full border transition-all"
+                  style={lookAwayInterval === mins
+                    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', borderColor: 'var(--w-accent)' }
+                    : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', borderColor: 'var(--w-border)' }}
+                >
+                  {mins === 60 ? '1 hr' : `${mins} min`}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Google Calendar */}
       <div>
-        <p className="w-label mb-2">Google Calendar</p>
-        {connected ? (
+        <p className="w-label mb-2">Google Calendar</p>        {connected ? (
           <div className="flex flex-col gap-2">
             {profile ? (
               <div className="flex items-center gap-2">

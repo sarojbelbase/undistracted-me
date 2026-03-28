@@ -7,6 +7,21 @@
 /** Today's date string in YYYY-MM-DD */
 export const todayStr = () => new Date().toISOString().slice(0, 10);
 
+/** Returns true if an event is in the past */
+export const isPast = (event) => {
+  const now = new Date();
+  if (event.endDate && event.endTime) {
+    return new Date(`${event.endDate}T${event.endTime}`) < now;
+  }
+  if (event.startDate && event.startTime) {
+    return new Date(`${event.startDate}T${event.startTime}`) < now;
+  }
+  if (event.startDate) {
+    return event.startDate < todayStr();
+  }
+  return false;
+};
+
 /** Date string offset from today (offset=1 → tomorrow) */
 export const getDateOffset = (offset) => {
   const d = new Date();

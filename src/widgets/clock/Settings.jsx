@@ -1,7 +1,6 @@
-import React from 'react';
 import { TZ_OPTIONS } from './utils';
 
-export const Settings = ({ widgetId, format, timezones = [], onChange }) => {
+export const Settings = ({ format, timezones = [], onChange }) => {
   const setTz = (idx, tz) => {
     const next = [...timezones];
     next[idx] = tz;
