@@ -1,6 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { LockFill } from 'react-bootstrap-icons';
+
+// 7 vibes — one picked randomly per overlay instance, independent of accent
+const ORB_PALETTES = [
+  '54,133,230',    // Blueberry
+  '198,38,46',     // Strawberry
+  '222,62,128',    // Bubblegum
+  '165,109,226',   // Grape
+  '243,115,41',    // Orange
+  '40,188,163',    // Mint
+  '207,162,94',    // Latte
+];
 
 // ─── Messages ────────────────────────────────────────────────────────────────
 
@@ -402,14 +413,14 @@ const RING_CIRC = 2 * Math.PI * RING_R;
 
 // ─── Thin ring progress (accent-tinted) ───────────────────────────────────────
 
-const RingProgress = ({ progress }) => {
+const RingProgress = ({ progress, orbRgb }) => {
   const dashOffset = RING_CIRC * (1 - progress);
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
       <circle cx="9" cy="9" r={RING_R} stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
       <circle
         cx="9" cy="9" r={RING_R}
-        stroke="rgba(var(--w-accent-rgb),0.7)"
+        stroke={`rgba(${orbRgb},0.8)`}
         strokeWidth="1.5"
         fill="none"
         strokeLinecap="round"
@@ -462,6 +473,11 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
   const [timeLabel, setTimeLabel] = useState(getTimeLabel);
   const [isExiting, setIsExiting] = useState(false);
   const [msg] = useState(() => MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
+  // Pick a random palette once per overlay mount — independent of user accent
+  const orbRgb = useMemo(
+    () => ORB_PALETTES[Math.floor(Math.random() * ORB_PALETTES.length)],
+    []
+  );
 
   // ── Graceful dismiss: play exit animation then unmount ────────────────────
   const dismiss = useCallback(() => {
@@ -520,68 +536,69 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         overflow: 'hidden',
       }}
     >
-      {/* ── Rotating accent orb field ─────────────────────────────────────── */}
-      {/* Outer spin wrapper — oversized so corners stay filled during rotation */}
+      {/* ── Orb field — viewport-sized so rotation never compresses them ───── */}
+      {/*
+        Key insight: orbs are positioned with fixed vw/vh units so they keep
+        their true circular shape regardless of the parent's rotation transform.
+        The spin wrapper is purely a rotation pivot; orb dimensions are
+        independent of it, so no ellipse / pixelation artefacts.
+      */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
-          width: '170%',
-          height: '170%',
-          top: '-35%',
-          left: '-35%',
-          animation: 'lookaway-orb-spin 42s linear infinite',
+          inset: 0,
+          animation: 'lookaway-orb-spin 48s linear infinite',
           pointerEvents: 'none',
+          transformOrigin: '50% 50%',
         }}
       >
-        {/* Primary orb — large, centred */}
+        {/* Primary orb — dead centre, large breathing bloom */}
         <div style={{
           position: 'absolute',
-          width: '65%',
-          height: '65%',
-          top: '17.5%',
-          left: '17.5%',
+          width: '70vmin',
+          height: '70vmin',
+          top: 'calc(50vh - 35vmin)',
+          left: 'calc(50vw - 35vmin)',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, rgba(var(--w-accent-rgb),0.06) 55%, transparent 75%)',
-          filter: 'blur(48px)',
-          animation: 'lookaway-bloom 7s ease-in-out infinite',
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)`,
+          filter: 'blur(52px)',
+          animation: 'lookaway-bloom 8s ease-in-out infinite',
         }} />
-        {/* Secondary orb — top-right offset */}
+        {/* Secondary orb — offset top-right */}
         <div style={{
           position: 'absolute',
-          width: '42%',
-          height: '42%',
-          top: '6%',
-          right: '8%',
+          width: '50vmin',
+          height: '50vmin',
+          top: 'calc(10vh - 5vmin)',
+          right: 'calc(8vw - 5vmin)',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(var(--w-accent-rgb),0.2) 0%, transparent 68%)',
-          filter: 'blur(60px)',
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)`,
+          filter: 'blur(64px)',
         }} />
-        {/* Tertiary orb — bottom-left offset, slow counter-spin of its own */}
+        {/* Tertiary orb — offset bottom-left, counter-rotation */}
         <div style={{
           position: 'absolute',
-          width: '36%',
-          height: '36%',
-          bottom: '8%',
-          left: '6%',
+          width: '44vmin',
+          height: '44vmin',
+          bottom: 'calc(8vh - 5vmin)',
+          left: 'calc(6vw - 5vmin)',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(var(--w-accent-rgb),0.14) 0%, transparent 65%)',
-          filter: 'blur(72px)',
-          animation: 'lookaway-orb-counter 28s linear infinite',
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)`,
+          filter: 'blur(80px)',
+          animation: 'lookaway-orb-counter 32s linear infinite',
+          transformOrigin: '50% 50%',
         }} />
       </div>
 
-      {/* ── Inner contrasting accent line — very subtle ───────────────────── */}
+      {/* ── Subtle conic shimmer — slow independent counter-rotation ──────── */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
-          width: '110%',
-          height: '110%',
-          top: '-5%',
-          left: '-5%',
-          background: 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(var(--w-accent-rgb),0.04) 90deg, transparent 180deg, rgba(var(--w-accent-rgb),0.03) 270deg, transparent 360deg)',
-          animation: 'lookaway-orb-counter 55s linear infinite',
+          inset: '-20%',
+          background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${orbRgb},0.04) 90deg, transparent 180deg, rgba(${orbRgb},0.03) 270deg, transparent 360deg)`,
+          animation: 'lookaway-orb-counter 60s linear infinite',
           pointerEvents: 'none',
         }}
       />
@@ -597,7 +614,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         }}
       />
 
-      {/* ── Time label — top, accent-tinted ───────────────────────────────── */}
+      {/* ── Time label — top, orb-tinted ────────────────────────────────────── */}
       <div
         style={{
           position: 'absolute',
@@ -605,7 +622,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           left: 0,
           right: 0,
           textAlign: 'center',
-          color: 'rgba(var(--w-accent-rgb),0.5)',
+          color: `rgba(${orbRgb},0.55)`,
           fontSize: '0.62rem',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
@@ -660,12 +677,12 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           {msg.subtitle}
         </p>
 
-        {/* Timer — accent-tinted, monospace, light weight */}
+        {/* Timer — orb-tinted, monospace, light weight */}
         <div
           aria-live="polite"
           aria-label={`${remaining} seconds remaining`}
           style={{
-            color: 'rgba(var(--w-accent-rgb),0.65)',
+            color: `rgba(${orbRgb},0.7)`,
             fontSize: 'clamp(1.7rem, 3.2vw, 2.6rem)',
             fontFamily: "'SF Mono','Fira Code','Consolas',monospace",
             fontWeight: 300,
@@ -692,7 +709,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         }}
       >
         <GhostBtn onClick={dismiss}>
-          <RingProgress progress={progress} />
+          <RingProgress progress={progress} orbRgb={orbRgb} />
           Skip
         </GhostBtn>
 

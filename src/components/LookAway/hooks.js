@@ -37,13 +37,26 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, onTrigger }) => {
     return () => chrome.storage.onChanged.removeListener(handler);
   }, [enabled]);
 
-  // ── On mount: fire immediately if a break was due while in another app ───
+  // ── On mount: fire if a break was recently due (but skip stale ones) ────
+  // "Stale" = the alarm fired more than 2× the interval ago, meaning the
+  // machine was asleep (or the user just unlocked after a long absence).
+  // In that case silently clear the flag — no one wants a forced break the
+  // second they sit back down at their computer.
   useEffect(() => {
     if (!enabled || !hasChromeApi() || !chrome.storage?.local) return;
     chrome.storage.local.get('lookaway_due', (result) => {
-      if (result.lookaway_due) triggerRef.current();
+      const due = result.lookaway_due;
+      if (!due) return;
+      const ageMs = Date.now() - due;
+      const gracePeriodMs = intervalMins * 60_000 * 2;
+      if (ageMs > gracePeriodMs) {
+        // Stale — machine was likely asleep. Dismiss quietly.
+        chrome.storage.local.remove('lookaway_due');
+        return;
+      }
+      triggerRef.current();
     });
-  }, [enabled]);
+  }, [enabled, intervalMins]);
 
   // ── Dev fallback: plain setInterval (no chrome extension context) ────────
   useEffect(() => {
