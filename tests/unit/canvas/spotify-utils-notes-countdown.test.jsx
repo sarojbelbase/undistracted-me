@@ -80,11 +80,11 @@ vi.mock('../../../src/widgets/countdown/utils', () => ({
     { value: 'daily', label: 'Daily' },
     { value: 'weekly', label: 'Weekly' },
   ],
-  getNextOccurrence: vi.fn((targetDate, targetTime) => {
-    const d = new Date(`${targetDate}T${targetTime || '00:00'}`);
+  getNextOccurrence: vi.fn((cd) => {
+    const d = new Date(`${cd.targetDate}T${cd.targetTime || '00:00'}`);
     return d;
   }),
-  formatCountdown: vi.fn(() => '3d 12h 30m'),
+  formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
   formatTargetDate: vi.fn(() => 'Jul 4, 2025'),
 }));
 
