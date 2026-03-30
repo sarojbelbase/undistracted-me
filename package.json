@@ -12,6 +12,9 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",
+		"test:unit": "vitest run --config vitest.config.ts",
+		"test:unit:watch": "vitest --config vitest.config.ts",
+		"test:unit:coverage": "vitest run --config vitest.config.ts --coverage",
 		"test:ui": "playwright test --ui",
 		"test:headed": "playwright test --headed",
 		"test:report": "playwright show-report tests/playwright/report"
@@ -29,11 +32,17 @@
 		"@crxjs/vite-plugin": "^2.4.0",
 		"@playwright/test": "^1.58.2",
 		"@tailwindcss/postcss": "^4.2.2",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@vitejs/plugin-react": "^6.0.1",
+		"@vitest/coverage-v8": "^4.1.2",
 		"autoprefixer": "^10.4.27",
+		"jsdom": "^29.0.1",
 		"postcss": "^8.5.8",
 		"tailwindcss": "^4.2.2",
-		"vite": "^8.0.3"
+		"vite": "^8.0.3",
+		"vitest": "^4.1.2"
 	},
 	"browserslist": {
 		"production": [

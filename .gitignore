@@ -7,3 +7,4 @@ tests/playwright/screenshots
 tests/playwright/report
 .env
 .agents
+coverage
