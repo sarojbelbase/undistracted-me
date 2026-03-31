@@ -88,13 +88,3 @@ export const applyDuration = (startDate, startTime, mins) => {
     endTime: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
   };
 };
-
-/**
- * Returns className + style props for a pill button (active/inactive states).
- */
-export const pill = (active) => ({
-  className: 'px-3 py-1 text-xs rounded-full border transition-all',
-  style: active
-    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', borderColor: 'var(--w-accent)' }
-    : { backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-4)', borderColor: 'var(--w-ink-6)' },
-});

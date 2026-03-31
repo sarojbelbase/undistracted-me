@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { XLg } from 'react-bootstrap-icons';
 
 /**
  * Reusable settings modal used by all widgets via BaseWidget.
@@ -44,10 +45,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children }) => 
             className="w-6 h-6 flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer"
             style={{ color: 'var(--w-ink-4)' }}
           >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <line x1="1" y1="1" x2="11" y2="11" />
-              <line x1="11" y1="1" x2="1" y2="11" />
-            </svg>
+            <XLg size={12} aria-hidden="true" />
           </button>
         </div>
 

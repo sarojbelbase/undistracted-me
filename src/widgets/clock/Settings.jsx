@@ -1,4 +1,11 @@
+import { XLg } from 'react-bootstrap-icons';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { TZ_OPTIONS } from './utils';
+
+const FORMAT_OPTIONS = [
+  { label: '24h', value: '24h' },
+  { label: '12h (AM/PM)', value: '12h' },
+];
 
 export const Settings = ({ format, timezones = [], onChange }) => {
   const setTz = (idx, tz) => {
@@ -16,37 +23,13 @@ export const Settings = ({ format, timezones = [], onChange }) => {
   return (
     <div className="flex flex-col gap-5">
 
-      {/* ── Format — segmented pill control ── */}
-      <div className="flex flex-col gap-2.5">
-        <span className="w-label">Time Format</span>
-        <div
-          className="flex rounded-xl p-0.5"
-          style={{ backgroundColor: 'var(--w-surface-2)' }}
-        >
-          {[
-            { label: '24h', value: '24h' },
-            { label: '12h (AM/PM)', value: '12h' },
-          ].map(({ label, value }) => {
-            const active = format === value;
-            return (
-              <button
-                key={value}
-                onClick={() => onChange('format', value)}
-                className="flex-1 rounded-[10px] text-xs font-semibold py-1.5 transition-all cursor-pointer"
-                style={{
-                  background: active ? 'var(--w-accent)' : 'transparent',
-                  color: active ? '#fff' : 'var(--w-ink-3)',
-                  border: 'none',
-                  outline: 'none',
-                  letterSpacing: '0.01em',
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* ── Format ── */}
+      <SegmentedControl
+        label="Time Format"
+        options={FORMAT_OPTIONS}
+        value={format}
+        onChange={(v) => onChange('format', v)}
+      />
 
       {/* ── Extra Clocks ── */}
       <div className="flex flex-col gap-2">
@@ -91,9 +74,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
                   style={{ background: 'var(--w-accent)', color: '#fff' }}
                   title="Remove"
                 >
-                  <svg width="7" height="7" viewBox="0 0 7 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <line x1="1" y1="1" x2="6" y2="6" /><line x1="6" y1="1" x2="1" y2="6" />
-                  </svg>
+                  <XLg size={7} aria-hidden="true" />
                 </button>
               </div>
             );
