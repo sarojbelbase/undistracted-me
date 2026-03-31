@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { XLg, ClockFill } from 'react-bootstrap-icons';
+import { PillButton } from '../../components/ui/PillButton';
 import { todayStr } from './utils';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
-  getDateOffset, applyDuration, pill,
+  getDateOffset, applyDuration,
 } from './utils';
 
 export const CreateModal = ({ onSave, onClose }) => {
@@ -104,14 +105,13 @@ export const CreateModal = ({ onSave, onClose }) => {
             {/* Date chips */}
             <div className="flex gap-1.5 p-3 pb-2">
               {DATE_CHIPS.map(chip => (
-                <button
+                <PillButton
                   key={chip.key}
-                  type="button"
+                  active={dateChip === chip.key}
                   onClick={() => handleDateChip(chip)}
-                  {...pill(dateChip === chip.key)}
                 >
                   {chip.label}
-                </button>
+                </PillButton>
               ))}
             </div>
 
@@ -151,9 +151,9 @@ export const CreateModal = ({ onSave, onClose }) => {
               {DURATION_PILLS.map(p => {
                 const active = p.mins === null ? durType === 'custom' : durType === p.mins;
                 return (
-                  <button key={p.label} type="button" onClick={() => handleDurationPill(p)} {...pill(active)}>
+                  <PillButton key={p.label} active={active} onClick={() => handleDurationPill(p)}>
                     {p.label}
-                  </button>
+                  </PillButton>
                 );
               })}
             </div>

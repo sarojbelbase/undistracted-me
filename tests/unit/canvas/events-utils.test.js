@@ -26,7 +26,6 @@ import {
   EMPTY_FORM,
   DATE_CHIPS,
   DURATION_PILLS,
-  pill,
 } from '../../../src/widgets/events/utils';
 
 afterEach(() => vi.useRealTimers());
@@ -256,33 +255,6 @@ describe('applyDuration', () => {
   it('returns zero-padded hours and minutes', () => {
     const result = applyDuration('2025-06-10', '00:05', 10);
     expect(result.endTime).toBe('00:15');
-  });
-});
-
-// ────────────────────────────────────────────────────────────────────────────
-// pill
-// ────────────────────────────────────────────────────────────────────────────
-
-describe('pill', () => {
-  it('returns an object with className and style', () => {
-    const result = pill(true);
-    expect(result).toHaveProperty('className');
-    expect(result).toHaveProperty('style');
-  });
-
-  it('active pill uses accent CSS variable for background', () => {
-    const { style } = pill(true);
-    expect(style.backgroundColor).toContain('--w-accent');
-  });
-
-  it('inactive pill uses surface CSS variable for background', () => {
-    const { style } = pill(false);
-    expect(style.backgroundColor).toContain('--w-surface');
-  });
-
-  it('className is a non-empty string', () => {
-    expect(pill(true).className.length).toBeGreaterThan(0);
-    expect(pill(false).className.length).toBeGreaterThan(0);
   });
 });
 

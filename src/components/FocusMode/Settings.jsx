@@ -12,6 +12,30 @@ import {
   LIBRARY_MAX,
 } from '../../utilities/unsplash';
 
+// ── Local component: dark glass toggle row (specific to this panel's aesthetic) ─────
+// Not exported — only meaningful over a dark photo background with high-contrast styling.
+const GlassToggleRow = ({ label, options, value, onChange }) => (
+  <div>
+    <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
+      {label}
+    </p>
+    <div className="flex gap-1.5">
+      {options.map(({ id, label: optLabel }) => (
+        <button
+          key={id}
+          onClick={() => onChange(id)}
+          className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none cursor-pointer"
+          style={value === id
+            ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+            : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
+        >
+          {optLabel}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 export const FocusModeSettings = ({ onRotatePhoto }) => {
   const {
     dateFormat, setDateFormat,
@@ -69,67 +93,28 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
       onClick={e => e.stopPropagation()}
     >
       {/* Date format */}
-      <div>
-        <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
-          Date Calendar
-        </p>
-        <div className="flex gap-1.5">
-          {[{ id: 'gregorian', label: 'CE' }, { id: 'bikramSambat', label: 'BS' }].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setDateFormat(id)}
-              className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
-              style={dateFormat === id
-                ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <GlassToggleRow
+        label="Date Calendar"
+        options={[{ id: 'gregorian', label: 'CE' }, { id: 'bikramSambat', label: 'BS' }]}
+        value={dateFormat}
+        onChange={setDateFormat}
+      />
 
       {/* Clock format */}
-      <div>
-        <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
-          Clock Format
-        </p>
-        <div className="flex gap-1.5">
-          {[{ id: '24h', label: '24h' }, { id: '12h', label: '12h' }].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setClockFormat(id)}
-              className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
-              style={(clockFormat || '24h') === id
-                ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <GlassToggleRow
+        label="Clock Format"
+        options={[{ id: '24h', label: '24h' }, { id: '12h', label: '12h' }]}
+        value={clockFormat || '24h'}
+        onChange={setClockFormat}
+      />
 
       {/* Appearance */}
-      <div>
-        <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
-          Appearance
-        </p>
-        <div className="flex gap-1.5">
-          {[{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setMode(id)}
-              className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none"
-              style={mode === id
-                ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <GlassToggleRow
+        label="Appearance"
+        options={[{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }]}
+        value={mode}
+        onChange={setMode}
+      />
 
       {/* Accent */}
       <div>

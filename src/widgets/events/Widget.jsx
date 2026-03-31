@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { PlusLg, ArrowRight, CalendarEvent, Trash3 } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar, formatEventTime } from '../useEvents';
-import { todayStr, isPast, HEADER_H, FOOTER_H, bucketLabel, pill } from './utils';
+import { todayStr, isPast, HEADER_H, FOOTER_H, bucketLabel } from "./utils";
 import { CreateModal } from './CreateModal';
 import { AllEventsModal } from './AllEventsModal';
 

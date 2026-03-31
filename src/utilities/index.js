@@ -105,5 +105,11 @@ export {
     getTimeZoneAwareDayJsInstance,
     getNepaliMitiInSelectedLanguage,
     getLiveClockInSelectedLanguage,
-    getDateTodayInSelectedLanguage
+    getDateTodayInSelectedLanguage,
+    todayStr,
 };
+
+/** Returns today's date as a YYYY-MM-DD string (local time). */
+function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+}

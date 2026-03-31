@@ -443,7 +443,7 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('auto-picks nearest upcoming event when no pinned', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Big Conference', startDate: '2025-08-15', startTime: '09:00', endDate: '', endTime: '' },
+      { id: 'ev1', title: 'Big Conference', startDate: '2027-08-15', startTime: '09:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     vi.mocked(formatCountdown).mockReturnValue({ days: 45, hours: 0, minutes: 0, totalSeconds: 3888000 });
     render(<CountdownWidget onRemove={vi.fn()} />);
@@ -486,7 +486,7 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows "days" label when countdown is days > 0', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Test Event', startDate: '2025-08-15', startTime: '10:00', endDate: '', endTime: '' },
+      { id: 'ev1', title: 'Test Event', startDate: '2027-08-15', startTime: '10:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     vi.mocked(formatCountdown).mockReturnValue({ days: 45, hours: 12, minutes: 30, totalSeconds: 3906600 });
     render(<CountdownWidget onRemove={vi.fn()} />);
@@ -495,7 +495,7 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows "auto" badge when target is auto-picked', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Auto Event', startDate: '2025-08-15', startTime: '10:00', endDate: '', endTime: '' },
+      { id: 'ev1', title: 'Auto Event', startDate: '2027-08-15', startTime: '10:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     vi.mocked(formatCountdown).mockReturnValue({ days: 45, hours: 0, minutes: 0, totalSeconds: 3888000 });
     render(<CountdownWidget onRemove={vi.fn()} />);
@@ -516,7 +516,7 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows hours display when days === 0 and hours > 0', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Soon Event', startDate: '2025-07-02', startTime: '10:00', endDate: '', endTime: '' },
+      { id: 'ev1', title: 'Soon Event', startDate: '2027-07-02', startTime: '10:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     vi.mocked(formatCountdown).mockReturnValue({ days: 0, hours: 5, minutes: 30, totalSeconds: 19800 });
     render(<CountdownWidget onRemove={vi.fn()} />);
@@ -539,10 +539,10 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows event in settings panel when events exist', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Conference 2025', startDate: '2025-08-15', startTime: '09:00', endDate: '', endTime: '' },
+      { id: 'ev1', title: 'Conference 2027', startDate: '2027-08-15', startTime: '09:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     render(<CountdownWidget onRemove={vi.fn()} />);
-    const allConference = screen.getAllByText('Conference 2025');
+    const allConference = screen.getAllByText('Conference 2027');
     expect(allConference.length).toBeGreaterThan(0);
   });
 

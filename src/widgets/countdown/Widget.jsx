@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { PlusLg, XLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents } from '../useEvents';
-import { todayStr } from '../events/utils';
+import { todayStr } from '../../utilities';
+import { PillButton } from '../../components/ui/PillButton';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 
 const STORAGE_KEY = 'countdown_events';
@@ -97,13 +98,9 @@ const AddModal = ({ onSave, onClose }) => {
             <div className="text-xs font-medium mb-1.5" style={{ color: 'var(--w-ink-4)' }}>Repeat</div>
             <div className="flex gap-1.5 flex-wrap">
               {REPEAT_OPTIONS.map(r => (
-                <button key={r.value} type="button" onClick={() => setRepeat(r.value)}
-                  className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-                  style={repeat === r.value
-                    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                    : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }
-                  }
-                >{r.label}</button>
+                <PillButton key={r.value} active={repeat === r.value} onClick={() => setRepeat(r.value)}>
+                  {r.label}
+                </PillButton>
               ))}
             </div>
           </div>

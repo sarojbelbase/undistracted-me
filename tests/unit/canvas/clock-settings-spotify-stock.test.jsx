@@ -13,6 +13,7 @@ vi.mock('react-bootstrap-icons', () => ({
   SkipEndFill: () => <span>Next</span>,
   PlayFill: () => <span>Play</span>,
   PauseFill: () => <span>Pause</span>,
+  XLg: () => <span aria-hidden="true">✕</span>,
   MusicNoteBeamed: () => <span data-testid="music-icon">Music</span>,
 }));
 
