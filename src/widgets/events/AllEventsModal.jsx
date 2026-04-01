@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusLg, XLg, Trash3, CalendarEvent } from 'react-bootstrap-icons';
 import { bucketLabel, isPast, fmt12, calcDuration } from './utils';
@@ -6,6 +6,12 @@ import { CreateModal } from './CreateModal';
 
 export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const buckets = ['Today', 'Tomorrow', 'Later'];
   const grouped = buckets.reduce((acc, b) => { acc[b] = []; return acc; }, {});

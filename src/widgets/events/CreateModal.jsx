@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { XLg, ClockFill } from 'react-bootstrap-icons';
 import { PillButton } from '../../components/ui/PillButton';
@@ -10,6 +10,12 @@ import {
 
 export const CreateModal = ({ onSave, onClose }) => {
   const [form, setForm] = useState({ ...EMPTY_FORM, startDate: todayStr() });
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
   const [dateChip, setDateChip] = useState('today');
   const [durType, setDurType] = useState(null);
 

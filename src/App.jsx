@@ -47,12 +47,17 @@ const App = () => {
   useEffect(() => {
     if (!showSettings) return;
     const handler = (e) => {
+      if (e.type === 'keydown' && e.key === 'Escape') { setShowSettings(false); return; }
       if (topBarRef.current && !topBarRef.current.contains(e.target)) {
         setShowSettings(false);
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', handler);
+    };
   }, [showSettings]);
 
   const toggleSettings = () => setShowSettings((s) => !s);
