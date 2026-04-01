@@ -77,7 +77,11 @@ export const useFocusPhoto = () => {
   const [slotA, setSlotA] = useState(() => getCachedPhotoSync()?.regular || null);
   const [slotB, setSlotB] = useState(null);
   const [activeSlot, setActiveSlot] = useState('a');
-  const prevUrlRef = useRef(null);
+  // Seed with the already-displayed URL so the mount effect's applyPhoto
+  // short-circuits when getCachedPhotoSync and getCurrentPhoto return the same
+  // photo — preventing a spurious slot-switch on first render.
+  const cachedUrl = getCachedPhotoSync()?.regular || getCachedPhotoSync()?.url || null;
+  const prevUrlRef = useRef(cachedUrl);
 
   const applyPhoto = useCallback((p) => {
     if (!p) return;

@@ -1,21 +1,29 @@
-import { useState } from 'react';
-import { PlusLg, ArrowRight, CalendarEvent, Trash3 } from 'react-bootstrap-icons';
+import { useState, useEffect } from 'react';
+import { PlusLg, CalendarEvent, Trash3, ArrowRepeat, ChevronRight, ArrowBarRight, ArrowRight, ArrowClockwise } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, useGoogleCalendar, formatEventTime } from '../useEvents';
-import { todayStr, isPast, HEADER_H, FOOTER_H, bucketLabel } from "./utils";
+import { useEvents, useGoogleCalendar } from '../useEvents';
+import { todayStr, humanizeAge, fmt12, calcDuration, datePrefixFor } from "./utils";
 import { CreateModal } from './CreateModal';
 import { AllEventsModal } from './AllEventsModal';
+import config from './config';
 
 export const Widget = ({ onRemove }) => {
   const [localEvents, addEvent, removeEvent] = useEvents();
-  const { gcalEvents } = useGoogleCalendar();
+  const { gcalEvents, loading, connected, syncedAt, refresh } = useGoogleCalendar();
   const events = [...localEvents, ...gcalEvents];
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [ageLabel, setAgeLabel] = useState(() => humanizeAge(syncedAt));
+
+  useEffect(() => {
+    setAgeLabel(humanizeAge(syncedAt));
+    if (!syncedAt) return;
+    const tid = setInterval(() => setAgeLabel(humanizeAge(syncedAt)), 30_000);
+    return () => clearInterval(tid);
+  }, [syncedAt]);
 
   const today = todayStr();
 
-  // All upcoming events (today + future) sorted chronologically
   const upcomingEvents = events
     .filter(e => !e.startDate || e.startDate >= today)
     .sort((a, b) => {
@@ -24,110 +32,174 @@ export const Widget = ({ onRemove }) => {
       return aKey.localeCompare(bKey);
     });
 
-  const todayCount = upcomingEvents.filter(e => !e.startDate || e.startDate === today).length;
-  const hasAnyEvents = events.length > 0;
+  const MAX_VISIBLE = 2;
+  const visibleEvents = upcomingEvents.slice(0, MAX_VISIBLE);
+  const hasMore = upcomingEvents.length > MAX_VISIBLE;
 
-  // Build a flat list of group headers + events for rendering
-  const rows = [];
-  let lastGroup = null;
-  upcomingEvents.forEach(event => {
-    const group = bucketLabel(event.startDate);
-    if (group !== lastGroup) {
-      rows.push({ _type: 'header', label: group, key: `hdr-${group}` });
-      lastGroup = group;
-    }
-    rows.push({ _type: 'event', ...event });
-  });
+  const syncLabel = connected && ageLabel ? `${ageLabel}` : null;
+  const countLabel = upcomingEvents.length > 0 ? `${upcomingEvents.length} Upcoming` : 'Nothing';
 
   return (
     <>
-      <BaseWidget className="p-4 flex flex-col" onRemove={onRemove}>
-        {/* Header */}
-        <div className="flex justify-between items-baseline shrink-0" style={{ height: HEADER_H }}>
-          <h3 className="w-heading">Today</h3>
-          <div className="flex items-baseline gap-1">
-            <span className="w-title-bold">{todayCount}</span>
-            <span className="w-title-soft">Events</span>
+      <BaseWidget className="p-4 flex flex-col gap-3" onRemove={onRemove}>
+
+        {/* ── Header: title left · meta+refresh+add right ── */}
+        <div className="flex items-center gap-2 shrink-0">
+          <h3 className="w-heading leading-tight flex-1">{config.label}</h3>
+
+          {/* Meta info: count · sync · inline text refresh */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className="text-[11px] font-medium truncate"
+              style={{ color: 'var(--w-ink-5)' }}
+            >
+              {countLabel}{syncLabel ? ` · ${syncLabel}` : ''}
+            </span>
+            <button
+              onClick={refresh}
+              disabled={loading}
+              title={connected ? 'Refresh' : 'Connect Google Calendar'}
+              aria-label={connected ? 'Refresh' : 'Connect Google Calendar'}
+              className="flex items-center leading-none transition-opacity hover:opacity-50 cursor-pointer select-none shrink-0"
+              style={{ color: connected ? 'var(--w-ink-5)' : 'var(--w-accent)' }}
+            >
+              {loading ? '···' : connected ? <ArrowClockwise size={13} className="animate-none" /> : 'Connect'}
+            </button>
           </div>
+
         </div>
 
-        {/* Event list or empty state */}
+        {/* ── Event list / empty state ── */}
         {upcomingEvents.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-            <CalendarEvent size={28} className="text-gray-200" />
-            <p className="w-muted">No events today.<br />Press + to add one.</p>
+          <div className="flex flex-col items-center justify-center gap-2 text-center py-4">
+            <CalendarEvent size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
+            <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
+              No upcoming events
+            </p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto no-scrollbar">
-            {rows.map(row => {
-              if (row._type === 'header') {
-                // Skip Today header — the widget title already says "Today"
-                if (row.label === 'Today') return null;
-                return (
-                  <div key={row.key} className="flex items-center gap-2 py-1.5 mt-1">
-                    <div className="flex-1 h-px" style={{ backgroundColor: 'var(--w-border)' }} />
-                    <span className="w-label" style={{ fontSize: '10px' }}>{row.label}</span>
-                    <div className="flex-1 h-px" style={{ backgroundColor: 'var(--w-border)' }} />
-                  </div>
-                );
-              }
-              const event = row;
+          <div className="flex flex-col gap-3.5">
+            {visibleEvents.map(event => {
+              const startLabel = fmt12(event.startTime);
+              const duration = calcDuration(event.startTime, event.endTime, event.startDate, event.endDate);
+              const prefix = datePrefixFor(event.startDate);
+              const meetLink = event.meetLink || null;
+
+              const metaParts = [];
+              if (prefix) metaParts.push({ text: prefix, accent: true });
+              if (startLabel) metaParts.push({ text: startLabel });
+              if (duration) metaParts.push({ text: duration });
+
               return (
-                <div
-                  key={event.id}
-                  className="py-3 flex items-start transition-opacity"
-                  style={{
-                    borderBottom: '1px solid var(--w-border)',
-                    opacity: isPast(event) ? 0.3 : 1,
-                  }}
-                >
-                  <div className="w-1 rounded-full mr-3 mt-0.5 shrink-0" style={{ height: '36px', backgroundColor: 'var(--w-accent)' }} />
-                  <div className="flex-1 min-w-0">
-                    {event.htmlLink
-                      ? <a href={event.htmlLink} target="_blank" rel="noreferrer" className="w-body font-medium truncate block hover:underline" style={{ color: 'inherit' }}>{event.title}</a>
-                      : <div className="w-body font-medium truncate">{event.title}</div>
-                    }
-                    <div className="w-caption mt-0.5">{formatEventTime(event)}</div>
+                <div key={event.id} className="flex items-stretch gap-3 group">
+
+                  {/* 3 px accent bar */}
+                  <div
+                    className="w-[5px] rounded-[2px] shrink-0 self-stretch"
+                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
+                  />
+
+                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+
+                    {/* Title row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        {event.htmlLink
+                          ? <a
+                            href={event.htmlLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[13px] font-semibold leading-snug hover:opacity-80 block transition-opacity"
+                            style={{ color: 'var(--w-accent)' }}
+                          >{event.title}</a>
+                          : <p className="text-[13px] font-semibold leading-snug" style={{ color: 'var(--w-ink-1)' }}>
+                            {event.title}
+                          </p>
+                        }
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                        {/* Go to Meet — accent-tinted rectangle */}
+                        {meetLink && (
+                          <a
+                            href={meetLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] font-semibold px-2.5 py-1 rounded-md whitespace-nowrap transition-opacity hover:opacity-80"
+                            style={{
+                              background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)',
+                              color: 'var(--w-accent)'
+                            }}
+                          >Go to Meet</a>
+                        )}
+                        {/* Hover-delete for local events */}
+                        {event._source !== 'gcal' && (
+                          <button
+                            onClick={() => removeEvent(event.id)}
+                            className="w-5 h-5 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 shrink-0 cursor-pointer"
+                            style={{ color: 'var(--w-ink-5)' }}
+                            aria-label={`Remove ${event.title}`}
+                          >
+                            <Trash3 size={10} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Meta: prefix · start · duration */}
+                    {metaParts.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        {metaParts.flatMap((part, i) => [
+                          i > 0 ? <span key={`d${i}`} className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span> : null,
+                          <span
+                            key={`p${i}`}
+                            className="text-[11px] font-semibold"
+                            style={{
+                              color: part.accent
+                                ? 'color-mix(in srgb, var(--w-accent) 65%, var(--w-ink-3))'
+                                : 'var(--w-ink-5)'
+                            }}
+                          >{part.text}</span>,
+                        ]).filter(Boolean)}
+                      </div>
+                    )}
                   </div>
-                  {event._source !== 'gcal' && (
-                    <button onClick={() => removeEvent(event.id)} className="w-7 h-7 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
-                      <Trash3 size={13} />
-                    </button>
-                  )}
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* Footer: view-all left, plus right */}
-        <div className="flex justify-between items-center shrink-0 pt-1" style={{ height: FOOTER_H }}>
-          <div>
-            {hasAnyEvents && (
-              <button
-                onClick={() => setShowAll(true)}
-                onMouseDown={e => e.stopPropagation()}
-                className="h-8 px-3 rounded-full flex items-center gap-1.5 transition-colors"
-                style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-              >
-                <span className="text-xs font-medium">View all</span>
-                <ArrowRight size={14} />
-              </button>
-            )}
-          </div>
+        {/* ── Footer ── */}
+        <div className="flex items-center justify-between shrink-0 pt-0.5">
+          <button
+            onClick={() => setShowAll(true)}
+            onMouseDown={e => e.stopPropagation()}
+            className="h-8 flex items-center gap-1 text-[13px] font-semibold text-left transition-opacity hover:opacity-80 cursor-pointer px-3 rounded-lg"
+            style={{
+              background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)',
+              color: 'var(--w-accent)',
+            }}
+          >
+            View All <ArrowRight size={19} />
+          </button>
+
           <button
             onClick={() => setShowCreate(true)}
             onMouseDown={e => e.stopPropagation()}
-            className="w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
-            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+            title="New event"
+            aria-label="New event"
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-85 cursor-pointer shrink-0"
+            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
           >
-            <PlusLg size={18} />
+            <PlusLg size={22} />
           </button>
         </div>
+
       </BaseWidget>
 
       {showCreate && <CreateModal onSave={addEvent} onClose={() => setShowCreate(false)} />}
-      {showAll && <AllEventsModal events={events} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} />}
+      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} />}
     </>
   );
 };

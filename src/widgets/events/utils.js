@@ -51,6 +51,18 @@ export const groupEventsByBucket = (events) => {
   return buckets;
 };
 
+// ─── Age label ───────────────────────────────────────────────────────────────
+
+/** Format a timestamp (ms) as a human-readable age string, e.g. "synced 3m ago". */
+export const humanizeAge = (ts) => {
+  if (!ts) return null;
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 30) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+};
+
 // ─── Layout constants ────────────────────────────────────────────────────────
 
 export const ITEM_HEIGHT = 57;
@@ -87,4 +99,39 @@ export const applyDuration = (startDate, startTime, mins) => {
     endDate: d.toISOString().slice(0, 10),
     endTime: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
   };
+};
+
+// ─── Display formatters (shared by Widget + AllEventsModal) ──────────────────
+
+/** "8:15 AM" from a 24-hour HH:MM string */
+export const fmt12 = (time) => {
+  if (!time) return null;
+  const [h, m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
+
+/** "45 min" / "1h 30m" from start+end HH:MM; null if multi-day or indeterminate */
+export const calcDuration = (startTime, endTime, startDate, endDate) => {
+  if (!startTime || !endTime) return null;
+  if (endDate && startDate && endDate !== startDate) return null;
+  const [sh, sm] = startTime.split(':').map(Number);
+  const [eh, em] = endTime.split(':').map(Number);
+  const diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff <= 0 || diff > 1440) return null;
+  if (diff < 60) return `${diff} min`;
+  const hrs = Math.floor(diff / 60);
+  const mins = diff % 60;
+  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+};
+
+/** Today → null; Tomorrow → 'Tomorrow'; else 'Fri, Apr 3' */
+export const datePrefixFor = (dateStr) => {
+  if (!dateStr) return null;
+  const bucket = bucketLabel(dateStr);
+  if (bucket === 'Today') return null;
+  if (bucket === 'Tomorrow') return 'Tomorrow';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 };

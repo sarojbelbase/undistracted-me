@@ -99,7 +99,7 @@ describe('WIDGET_TYPES dispatch exhaustiveness', () => {
   const KNOWN_TYPES = [
     'clock', 'dateToday', 'dayProgress', 'events', 'weather',
     'calendar', 'countdown', 'notes', 'bookmarks', 'pomodoro',
-    'spotify', 'facts', 'stock',
+    'spotify', 'facts', 'stock', 'birthdays',
   ];
 
   it('all known types are present in WIDGET_TYPES', () => {

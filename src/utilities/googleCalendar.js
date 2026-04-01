@@ -41,6 +41,28 @@ async function removeCachedToken(token) {
 // ─── Local cache ────────────────────────────────────────────────────────────
 
 const GCAL_CACHE_KEY = 'gcal_events_cache';
+const GCAL_DISCONNECTED_KEY = 'gcal_disconnected';
+const GCAL_SYNCED_AT_KEY = 'gcal_synced_at';
+
+function setDisconnectedFlag() {
+  try { localStorage.setItem(GCAL_DISCONNECTED_KEY, '1'); } catch { /* ignore */ }
+}
+
+export function clearDisconnectedFlag() {
+  try { localStorage.removeItem(GCAL_DISCONNECTED_KEY); } catch { /* ignore */ }
+}
+
+function isDisconnected() {
+  try { return localStorage.getItem(GCAL_DISCONNECTED_KEY) === '1'; } catch { return false; }
+}
+
+export function loadGcalSyncedAt() {
+  try { return JSON.parse(localStorage.getItem(GCAL_SYNCED_AT_KEY) || 'null'); } catch { return null; }
+}
+
+function saveGcalSyncedAt() {
+  try { localStorage.setItem(GCAL_SYNCED_AT_KEY, JSON.stringify(Date.now())); } catch { /* ignore */ }
+}
 
 /** Load previously cached events synchronously (returns [] if none). */
 export function loadCachedGcalEvents() {
@@ -60,6 +82,7 @@ function saveCachedGcalEvents(events) {
 /** Clear the cache (used on disconnect). */
 export function clearGcalCache() {
   localStorage.removeItem(GCAL_CACHE_KEY);
+  localStorage.removeItem(GCAL_SYNCED_AT_KEY);
 }
 
 // ─── Profile cache ────────────────────────────────────────────────────────────
@@ -136,6 +159,7 @@ async function fetchEventsWithToken(token) {
     endDate: (e.end?.dateTime || e.end?.date || '').slice(0, 10),
     endTime: e.end?.dateTime ? e.end.dateTime.slice(11, 16) : '',
     htmlLink: e.htmlLink || null,
+    meetLink: e.hangoutLink || null,
     _source: 'gcal',
   }));
 }
@@ -153,6 +177,8 @@ export async function getCalendarEvents() {
       fresh.some(e => !cachedIds.has(e.id)) ||
       cached.some(e => !freshIds.has(e.id));
     if (changed) saveCachedGcalEvents(fresh);
+    clearDisconnectedFlag();
+    saveGcalSyncedAt();
     return { events: fresh, changed };
   } catch (err) {
     if (err.message === 'TOKEN_EXPIRED' && token) {
@@ -174,9 +200,11 @@ export async function getCalendarEvents() {
 
 /**
  * Silent check — true if the user has already granted consent.
+ * Returns false immediately if the user previously explicitly disconnected.
  * Does NOT show a consent prompt.
  */
 export async function isCalendarConnected() {
+  if (isDisconnected()) return false;
   try {
     const token = await getAuthToken(false);
     return !!token;
@@ -187,10 +215,12 @@ export async function isCalendarConnected() {
 
 /**
  * Revoke and remove the cached OAuth token (effectively "disconnect").
+ * Sets a persistent flag so the extension does not silently re-connect on reload.
  */
 export async function disconnectCalendar() {
   const token = await getAuthToken(false).catch(() => null);
   if (token) await removeCachedToken(token);
   clearGcalCache();
   clearProfileCache();
+  setDisconnectedFlag();
 }

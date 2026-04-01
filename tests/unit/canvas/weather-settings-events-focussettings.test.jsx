@@ -18,6 +18,7 @@ vi.mock('react-bootstrap-icons', () => ({
   PlusLg: () => <span data-testid="plus">+</span>,
   ArrowRight: () => <span>→</span>,
   CalendarEvent: () => <span data-testid="no-events">Cal</span>,
+  CalendarCheck: () => <span data-testid="calendar-check">📅</span>,
   Trash3: () => <span>🗑</span>,
   CheckLg: () => <span>✓</span>,
   XLg: () => <span>X</span>,
@@ -41,6 +42,8 @@ vi.mock('../../../src/utilities/googleCalendar', () => ({
   getCalendarEvents: vi.fn(() => Promise.resolve({ events: [], changed: false })),
   isCalendarConnected: vi.fn(() => Promise.resolve(false)),
   disconnectCalendar: vi.fn(() => Promise.resolve()),
+  loadGcalSyncedAt: vi.fn(() => null),
+  clearDisconnectedFlag: vi.fn(),
 }));
 
 // Mock useEvents to return controllable state
@@ -48,7 +51,7 @@ const mockAddEvent = vi.fn();
 const mockRemoveEvent = vi.fn();
 vi.mock('../../../src/widgets/useEvents', () => ({
   useEvents: vi.fn(() => [[], mockAddEvent, mockRemoveEvent]),
-  useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
+  useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], loading: false, connected: false, syncedAt: null, refresh: vi.fn() })),
   formatEventTime: vi.fn(ev => ev.startTime || 'All day'),
 }));
 
@@ -219,21 +222,14 @@ describe('Events Widget', () => {
     expect(() => render(<EventsWidget onRemove={vi.fn()} />)).not.toThrow();
   });
 
-  it('shows "Today" header', () => {
+  it('shows "Events" header', () => {
     render(<EventsWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('Today')).toBeTruthy();
+    expect(screen.getByText('Events')).toBeTruthy();
   });
 
   it('shows empty state when no events', () => {
     render(<EventsWidget onRemove={vi.fn()} />);
-    expect(screen.getByText(/No events today/i)).toBeTruthy();
-  });
-
-  it('shows event count in header', () => {
-    render(<EventsWidget onRemove={vi.fn()} />);
-    // 0 events shown
-    expect(screen.getByText('0')).toBeTruthy();
-    expect(screen.getByText('Events')).toBeTruthy();
+    expect(screen.getByText(/No upcoming events/i)).toBeTruthy();
   });
 
   it('renders + button to add event', () => {
@@ -256,17 +252,12 @@ describe('Events Widget', () => {
     expect(screen.getByText('Morning meeting')).toBeTruthy();
   });
 
-  it('shows event count as 1 when one today event exists', () => {
+  it('shows "View all" button when more than 3 events exist', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Meeting', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-    ], mockAddEvent, mockRemoveEvent]);
-    render(<EventsWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('1')).toBeTruthy();
-  });
-
-  it('shows "View all" button when events exist', () => {
-    vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Event', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Event 1', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e2', title: 'Event 2', startDate: '2025-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e3', title: 'Event 3', startDate: '2025-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e4', title: 'Event 4', startDate: '2025-07-04', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     expect(screen.getByText('View all')).toBeTruthy();
@@ -274,7 +265,10 @@ describe('Events Widget', () => {
 
   it('opens AllEventsModal when "View all" is clicked', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Event', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Event 1', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e2', title: 'Event 2', startDate: '2025-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e3', title: 'Event 3', startDate: '2025-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e4', title: 'Event 4', startDate: '2025-07-04', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     fireEvent.click(screen.getByText('View all'));
@@ -296,7 +290,7 @@ describe('Events Widget', () => {
     vi.mocked(useGoogleCalendar).mockReturnValueOnce({
       gcalEvents: [
         { id: 'gcal_1', title: 'Google Event', startDate: '2025-07-01', startTime: '10:00', endDate: '', endTime: '', _source: 'gcal' },
-      ], isLoading: false
+      ], loading: false, connected: false, syncedAt: null, refresh: vi.fn(),
     });
     render(<EventsWidget onRemove={vi.fn()} />);
     // gcal events should NOT have trash icons

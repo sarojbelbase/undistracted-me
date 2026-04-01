@@ -30,20 +30,14 @@ describe('EventsWidget — empty state', () => {
     expect(() => render(<EventsWidget />)).not.toThrow();
   });
 
-  it('shows "Today" heading', () => {
+  it('shows "Events" heading', () => {
     render(<EventsWidget />);
-    expect(screen.getByText('Today')).toBeTruthy();
-  });
-
-  it('shows "0 Events" when no events', () => {
-    render(<EventsWidget />);
-    expect(screen.getByText('0')).toBeTruthy();
     expect(screen.getByText('Events')).toBeTruthy();
   });
 
   it('shows empty-state message', () => {
     render(<EventsWidget />);
-    expect(document.body.textContent).toMatch(/No events today/);
+    expect(document.body.textContent).toMatch(/No upcoming events/);
   });
 });
 
