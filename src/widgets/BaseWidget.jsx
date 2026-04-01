@@ -13,12 +13,12 @@ import { BaseSettingsModal } from './BaseSettingsModal';
  *  - onRemove: Called when user picks "Remove" from the context menu.
  *  - ref: forwarded to the outer wrapper div (for ResizeObserver / sizing).
  */
-export const BaseWidget = forwardRef(({
-  children,
+export const BaseWidget = forwardRef(({ children,
   className = '',
   onRemove = null,
   settingsContent = null,
   settingsTitle = 'Settings',
+  modalWidth = 'w-80',
   cardStyle = {},
 }, ref) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -106,7 +106,7 @@ export const BaseWidget = forwardRef(({
 
       {/* Settings modal */}
       {modalOpen && (
-        <BaseSettingsModal title={settingsTitle} onClose={() => setModalOpen(false)}>
+        <BaseSettingsModal title={settingsTitle} onClose={() => setModalOpen(false)} width={modalWidth}>
           {typeof settingsContent === 'function'
             ? settingsContent(() => setModalOpen(false))
             : settingsContent}

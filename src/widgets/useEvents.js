@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getCalendarEvents, isCalendarConnected, loadCachedGcalEvents, getGoogleProfile, loadCachedProfile } from '../utilities/googleCalendar';
+import { getCalendarEvents, isCalendarConnected, loadCachedGcalEvents, getGoogleProfile, loadCachedProfile, loadGcalSyncedAt } from '../utilities/googleCalendar';
 
 const STORAGE_KEY = 'widget_events';
 const SYNC_EVENT = 'widget_events_changed';
@@ -102,6 +102,7 @@ export const useGoogleCalendar = () => {
   const [gcalEvents, setGcalEvents] = useState(() => loadCachedGcalEvents());
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(() => loadCachedGcalEvents().length > 0);
+  const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
   const fetchedRef = useRef(false);
 
   const refresh = useCallback(async () => {
@@ -109,6 +110,7 @@ export const useGoogleCalendar = () => {
     try {
       const { events, changed } = await getCalendarEvents();
       setConnected(true);
+      setSyncedAt(loadGcalSyncedAt());
       if (changed) setGcalEvents(events);
     } finally {
       setLoading(false);
@@ -131,7 +133,7 @@ export const useGoogleCalendar = () => {
     });
   }, [refresh]);
 
-  return { gcalEvents, loading, connected, refresh };
+  return { gcalEvents, loading, connected, syncedAt, refresh };
 };
 
 /**

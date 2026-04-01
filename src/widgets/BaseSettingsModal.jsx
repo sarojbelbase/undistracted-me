@@ -7,7 +7,7 @@ import { XLg } from 'react-bootstrap-icons';
  * Renders as a centered portal overlay with backdrop blur.
  * Dismisses on ESC or backdrop click.
  */
-export const BaseSettingsModal = ({ title = 'Settings', onClose, children }) => {
+export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width = 'w-80' }) => {
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
@@ -24,7 +24,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children }) => 
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex flex-col rounded-2xl shadow-2xl w-80 overflow-hidden animate-fade-in"
+        className={`flex flex-col rounded-2xl shadow-2xl ${width} overflow-hidden animate-fade-in`}
         style={{
           backgroundColor: 'var(--w-surface)',
           border: '1px solid var(--w-border)',

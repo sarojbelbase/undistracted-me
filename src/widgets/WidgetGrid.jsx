@@ -19,6 +19,7 @@ import {
   SpotifyWidget,
   FactsWidget,
   StockWidget,
+  BirthdaysWidget,
 } from './index';
 
 const LAYOUT_KEY = 'widget_grid_layouts';
@@ -49,6 +50,7 @@ const renderWidget = (id, type, onRemove) => {
     case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.FACTS: return <FactsWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.STOCK: return <StockWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.BIRTHDAYS: return <BirthdaysWidget id={id} onRemove={onRemove} />;
     default: return null;
   }
 };

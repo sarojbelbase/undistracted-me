@@ -1,6 +1,6 @@
 export default {
   id: 'events',
   type: 'events',
-  label: 'Events',
-  x: 4, y: 0, w: 4, h: 4,
+  label: 'Upcoming Events',
+  x: 4, y: 0, w: 3.5, h: 2.5,
 };

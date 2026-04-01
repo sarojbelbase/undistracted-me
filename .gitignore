@@ -8,3 +8,4 @@ tests/playwright/report
 .env
 .agents
 coverage
+examples/new_ones

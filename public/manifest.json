@@ -44,12 +44,14 @@
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
     "https://nepalipaisa.com/*",
-    "https://www.merolagani.com/*"
+    "https://www.merolagani.com/*",
+    "https://people.googleapis.com/*"
   ],
   "oauth2": {
     "client_id": "647187355675-e5v949u9j2dd54p152rr3l48ulfr4l66.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/contacts.readonly",
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email"
     ]
