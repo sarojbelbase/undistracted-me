@@ -67,9 +67,9 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
         title="Back to Canvas"
       >
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M6.5 2L3.5 5L6.5 8" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6.5 2L3.5 5L6.5 8" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="text-[10px] font-medium tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>Canvas</span>
+        <span className="text-[10px] font-semibold tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>Canvas</span>
       </button>
 
       {/* Center: Weather · Date */}
@@ -78,7 +78,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
         <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.01em', color: 'rgba(255,255,255,0.72)' }}>
           {dateParts.dow}, {dateParts.month} {dateParts.day}
         </span>
-        <span className="fm-topbar-year" style={{ fontSize: 13, color: 'rgba(255,255,255,0.22)', marginLeft: 7 }}>
+        <span className="fm-topbar-year" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.36)', marginLeft: 7 }}>
           {dateParts.year}
         </span>
       </div>
@@ -94,7 +94,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
             style={{ opacity: 0.52, transition: 'opacity 0.2s' }}
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
           >
-            {isFullscreen ? <FullscreenExit size={13} style={{ color: 'rgba(255,255,255,0.9)' }} /> : <ArrowsFullscreen size={12} style={{ color: 'rgba(255,255,255,0.9)' }} />}
+            {isFullscreen ? <FullscreenExit size={15} style={{ color: 'rgba(255,255,255,0.9)' }} /> : <ArrowsFullscreen size={14} style={{ color: 'rgba(255,255,255,0.9)' }} />}
           </button>
           <div className="w-px h-3.5 shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }} />
           <button
@@ -105,7 +105,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
             style={{ opacity: showSettings ? 0.92 : 0.52, transition: 'opacity 0.2s' }}
             title="Settings"
           >
-            <GearFill size={13} className="transition-transform duration-300 group-hover:rotate-90" style={{ color: 'rgba(255,255,255,0.9)' }} />
+            <GearFill size={15} className="transition-transform duration-300 group-hover:rotate-90" style={{ color: 'rgba(255,255,255,0.9)' }} />
           </button>
         </div>
         {showSettings && (

@@ -62,7 +62,7 @@ const EventPanelCard = ({ eventInfo, t }) => {
       <div style={{ fontSize: 13, fontWeight: 700, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
         {event.title}
       </div>
-      <div style={{ fontSize: 10, marginTop: 3, color: t.sub }}>
+      <div style={{ fontSize: 10, fontWeight: 600, marginTop: 3, color: t.sub }}>
         {isActive ? 'in progress' : getTimeUntilEvent(event)}
         {formatEventStartTime(event) ? ` · ${formatEventStartTime(event)}` : ''}
       </div>
@@ -88,7 +88,7 @@ const StocksPanelCard = ({ stocks, t }) => (
             {/* Symbol in accent color */}
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--w-accent)', letterSpacing: '0.08em' }}>{sym}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ fontSize: 11, color: t.sub, fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: t.sub, fontVariantNumeric: 'tabular-nums' }}>
                 {data ? fmtPrice(data.ltp) : '—'}
               </span>
               {stats && (
@@ -117,7 +117,7 @@ const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
         ? <img src={track.albumArt} alt="" style={{ width: 40, height: 40, borderRadius: 7, objectFit: 'cover', flexShrink: 0 }} />
         : (
           <div style={{ width: 40, height: 40, borderRadius: 7, background: t.track, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <MusicNoteBeamed size={16} style={{ color: t.sub }} />
+            <MusicNoteBeamed size={20} style={{ color: t.sub }} />
           </div>
         )
       }
@@ -136,7 +136,7 @@ const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
         }}>
           {track.title}
         </div>
-        <div style={{ fontSize: 10, marginTop: 3, color: t.sub }}>
+        <div style={{ fontSize: 10, fontWeight: 600, marginTop: 3, color: t.sub }}>
           {track.artist}
         </div>
       </div>
@@ -144,13 +144,13 @@ const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
     {/* Controls: centered below */}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
       <button onClick={onPrev} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex' }}>
-        <SkipStartFill size={11} />
+        <SkipStartFill size={14} />
       </button>
-      <button onClick={onToggle} style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {track.isPlaying ? <PauseFill size={10} /> : <PlayFill size={11} />}
+      <button onClick={onToggle} style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
       </button>
       <button onClick={onNext} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex' }}>
-        <SkipEndFill size={11} />
+        <SkipEndFill size={14} />
       </button>
     </div>
   </div>

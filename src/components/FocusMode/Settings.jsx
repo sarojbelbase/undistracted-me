@@ -26,8 +26,8 @@ const GlassToggleRow = ({ label, options, value, onChange }) => (
           onClick={() => onChange(id)}
           className="flex-1 text-[10px] py-1.5 rounded-lg font-medium transition-all focus:outline-none cursor-pointer"
           style={value === id
-            ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-            : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)' }}
+            ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', fontWeight: 700 }
+            : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.50)', fontWeight: 600 }}
         >
           {optLabel}
         </button>
@@ -154,11 +154,11 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
         <select
           value={language}
           onChange={e => setLanguage(e.target.value)}
-          className="w-full rounded-lg px-2 py-1.5 text-[10px] outline-none"
+          className="w-full rounded-lg px-2 py-1.5 text-[10px] font-semibold outline-none"
           style={{
             backgroundColor: 'rgba(255,255,255,0.07)',
-            color: 'rgba(255,255,255,0.6)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            color: 'rgba(255,255,255,0.72)',
+            border: '1px solid rgba(255,255,255,0.12)',
           }}
         >
           {Object.keys(LANGUAGES).map(k => (

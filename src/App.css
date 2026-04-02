@@ -18,6 +18,43 @@ body {
   font-family: 'Google Sans', sans-serif;
 }
 
+/* ── Global thin auto-hiding scrollbars ─────────────────────────────────── */
+/* Scrollbar rail is always reserved (no layout jump), thumb is invisible at rest */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*.is-scrolling {
+  scrollbar-color: rgba(128, 128, 128, 0.32) transparent;
+}
+
+/* Chrome / Safari / Edge */
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.25s ease;
+}
+
+*.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.32);
+}
+
+*.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.52);
+}
+
 :root {
   --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
   --white: #e1e0e4;
@@ -1015,8 +1052,6 @@ textarea:focus-visible,
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--wc-border-med) transparent;
 }
 
 .wc-list::-webkit-scrollbar {
@@ -1028,7 +1063,6 @@ textarea:focus-visible,
 }
 
 .wc-list::-webkit-scrollbar-thumb {
-  background: var(--wc-border-med);
   border-radius: 3px;
 }
 
