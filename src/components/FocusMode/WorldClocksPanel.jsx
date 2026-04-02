@@ -61,8 +61,8 @@ export const WorldClocksPanel = ({ timezones, clockFormat }) => {
               {period && (
                 <span style={{
                   fontSize: 'clamp(0.5rem, 0.7vw, 0.65rem)',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.36)',
+                  fontWeight: 700,
+                  color: 'rgba(255,255,255,0.52)',
                   letterSpacing: '0.09em',
                   textTransform: 'uppercase',
                   textShadow: '0 1px 8px rgba(0,0,0,0.4)',

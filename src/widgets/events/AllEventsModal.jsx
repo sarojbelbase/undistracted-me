@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { PlusLg, XLg, Trash3, CalendarEvent } from 'react-bootstrap-icons';
-import { bucketLabel, isPast, fmt12, calcDuration } from './utils';
+import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
+import { bucketLabel, isPast } from './utils';
 import { CreateModal } from './CreateModal';
+import { EventRow } from '../../components/ui/EventRow';
 
 export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
@@ -86,77 +87,12 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
 
               <div className="flex flex-col gap-4">
                 {grouped[b].map(event => {
-                  const startLabel = fmt12(event.startTime);
-                  const duration = calcDuration(event.startTime, event.endTime, event.startDate, event.endDate);
-                  const meetLink = event.meetLink || null;
-                  const metaParts = [];
-                  if (startLabel) metaParts.push(startLabel);
-                  if (duration) metaParts.push(duration);
-
                   return (
                     <div
                       key={event.id}
-                      className="flex items-stretch gap-3 group"
                       style={{ opacity: isPast(event) ? 0.4 : 1 }}
                     >
-                      {/* 3 px bar */}
-                      <div
-                        className="w-[5px] rounded-[2px] shrink-0 self-stretch"
-                        style={{ backgroundColor: 'var(--w-accent)', minHeight: '40px' }}
-                      />
-
-                      <div className="flex-1 min-w-0 flex flex-col gap-1">
-
-                        {/* Title + actions */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            {event.htmlLink
-                              ? <a
-                                href={event.htmlLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[13px] font-semibold leading-snug hover:underline block"
-                                style={{ color: 'var(--w-ink-1)' }}
-                              >{event.title}</a>
-                              : <p className="text-[13px] font-semibold leading-snug" style={{ color: 'var(--w-ink-1)' }}>
-                                {event.title}
-                              </p>
-                            }
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {meetLink && (
-                              <a
-                                href={meetLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[10px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-opacity hover:opacity-80"
-                                style={{
-                                  background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)',
-                                  color: 'var(--w-accent)',
-                                }}
-                              >Go to Meet</a>
-                            )}
-                            {event._source !== 'gcal' && (
-                              <button
-                                onClick={() => onRemove(event.id)}
-                                className="w-6 h-6 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 shrink-0 cursor-pointer"
-                                style={{ color: 'var(--w-ink-5)' }}
-                                aria-label="Remove"
-                              >
-                                <Trash3 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Meta: time · duration */}
-                        {metaParts.length > 0 && (
-                          <p className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
-                            {metaParts.join(' · ')}
-                          </p>
-                        )}
-                      </div>
+                      <EventRow event={event} onRemove={onRemove} showPrefix={false} />
                     </div>
                   );
                 })}

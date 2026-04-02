@@ -122,8 +122,9 @@ export const useGoogleCalendar = () => {
     fetchedRef.current = true;
     const cached = loadCachedGcalEvents();
     if (cached.length > 0) {
-      // Already have cached data — use it as-is, no background re-fetch
+      // Already have cached data — refresh in background so data is fresh
       setConnected(true);
+      refresh();
       return;
     }
     // No cache — silently check if already connected before prompting
@@ -132,6 +133,14 @@ export const useGoogleCalendar = () => {
       if (yes) refresh();
     });
   }, [refresh]);
+
+  // Auto-refresh every hour so calendar stays in sync
+  useEffect(() => {
+    const tid = setInterval(() => {
+      if (connected) refresh();
+    }, 60 * 60 * 1000);
+    return () => clearInterval(tid);
+  }, [connected, refresh]);
 
   return { gcalEvents, loading, connected, syncedAt, refresh };
 };

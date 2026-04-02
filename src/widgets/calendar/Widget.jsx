@@ -5,6 +5,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import { useEvents, useGoogleCalendar } from '../useEvents';
 import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
+import { EventRow } from '../../components/ui/EventRow';
 
 // Tooltip that shows on hover, renders via portal so it escapes widget overflow clipping
 const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
@@ -22,13 +23,6 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
       left: r.left + r.width / 2,
       ...(showAbove ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }),
     });
-  };
-
-  const fmt = (time) => {
-    if (!time) return null;
-    const [h, m] = time.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
   };
 
   return (
@@ -52,16 +46,11 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay }) => {
       )}
       {pos && createPortal(
         <div
-          className="fixed z-[9999] rounded-xl shadow-lg p-3 w-max max-w-[220px] animate-fade-in flex flex-col gap-2"
+          className="fixed z-[9999] rounded-xl shadow-lg p-3 w-max max-w-[240px] animate-fade-in flex flex-col gap-2.5"
           style={{ ...pos, transform: 'translateX(-50%)', backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)', pointerEvents: 'none' }}
         >
-          {eventsForDay.map((e, i) => (
-            <div key={e.id} className={`flex flex-col gap-0.5 ${i > 0 ? 'pt-2 border-t' : ''}`} style={{ borderColor: 'var(--w-border)' }}>
-              <div className="w-body font-semibold leading-snug" style={{ color: 'var(--w-ink-1)' }}>{e.title}</div>
-              {fmt(e.startTime) && (
-                <div className="w-caption" style={{ color: 'var(--w-accent)' }}>{fmt(e.startTime)}{e.endTime ? ` – ${fmt(e.endTime)}` : ''}</div>
-              )}
-            </div>
+          {eventsForDay.map(e => (
+            <EventRow key={e.id} event={e} showPrefix={false} showMeet={false} compact />
           ))}
         </div>,
         document.body
