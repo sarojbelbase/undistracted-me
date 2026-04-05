@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { XLg, BalloonFill, HeartFill, StarFill, ArrowRepeat, PersonXFill, CheckCircleFill, PlusLg, PersonBoundingBox } from 'react-bootstrap-icons';
-import { loadCachedProfile } from '../../utilities/googleCalendar';
+import { XLg, BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import {
   loadManualBirthdays,
   addManualBirthday,
   removeManualBirthday,
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
+import { IntegrationRow } from '../../components/ui/IntegrationRow';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -82,118 +82,26 @@ const selStyle = {
 
 // ─── Google Contacts section ──────────────────────────────────────────────────
 
-const ContactsSection = ({ connected, loading, ageLabel, onConnect, onSync, onDisconnect }) => {
-  const profile = loadCachedProfile();
-
-  if (!connected) {
-    return (
-      <div>
-        <SectionHeading>Google Contacts</SectionHeading>
-        <div
-          className="rounded-2xl p-5 flex flex-col items-center gap-4 text-center"
-          style={{ background: 'var(--w-surface-2)', border: '1px dashed var(--w-border)' }}
-        >
-          {/* Icon badge */}
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--w-accent)', opacity: 0.12, position: 'absolute' }}
-          />
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 relative"
-            style={{ background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)' }}
-          >
-            <PersonBoundingBox size={22} style={{ color: 'var(--w-accent)' }} />
-          </div>
-
-          {/* Copy */}
-          <div className="space-y-1">
-            <p className="text-sm font-semibold" style={{ color: 'var(--w-ink-1)' }}>
-              Never miss an occasion
-            </p>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
-              Automatically sync birthdays and anniversaries from your Google Contacts.
-            </p>
-          </div>
-
-          {/* CTA */}
-          <button
-            onClick={onConnect}
-            disabled={loading}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-85 active:opacity-60 disabled:opacity-40 cursor-pointer"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            {loading ? 'Connecting…' : 'Connect Google Contacts'}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <SectionHeading>Google Contacts</SectionHeading>
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
-      >
-        {/* Profile */}
-        <div className="flex items-center gap-3 px-4 py-4">
-          {profile?.picture ? (
-            <img src={profile.picture} alt="" className="w-9 h-9 rounded-full shrink-0" referrerPolicy="no-referrer" />
-          ) : (
-            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
-              style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-              {profile?.name?.[0] || '?'}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
-              {profile?.name || 'Google Account'}
-            </div>
-            {profile?.email && (
-              <div className="text-xs truncate mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
-                {profile.email}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-full"
-            style={{ background: '#dcfce7' }}>
-            <CheckCircleFill size={11} style={{ color: '#16a34a' }} />
-            <span className="text-[11px] font-semibold" style={{ color: '#16a34a' }}>Synced</span>
-          </div>
-        </div>
-
-        {/* Last synced row */}
-        {ageLabel && (
-          <div className="px-4 py-2" style={{ borderTop: '1px solid var(--w-border)' }}>
-            <span className="text-xs" style={{ color: 'var(--w-ink-5)' }}>Last synced {ageLabel}</span>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2 px-4 pb-4 pt-3" style={{ borderTop: '1px solid var(--w-border)' }}>
-          <button
-            onClick={onSync}
-            disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 disabled:opacity-40 cursor-pointer"
-            style={{ background: 'var(--w-surface)', color: 'var(--w-ink-2)', border: '1px solid var(--w-border)' }}
-          >
-            <ArrowRepeat size={13} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Syncing…' : 'Sync now'}
-          </button>
-          <button
-            onClick={onDisconnect}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-            style={{ background: 'var(--w-surface)', color: '#ef4444', border: '1px solid var(--w-border)' }}
-          >
-            <PersonXFill size={13} />
-            Disconnect
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+const ContactsSection = ({ connected, loading, ageLabel, profile, onConnect, onSync, onDisconnect }) => (
+  <IntegrationRow
+    icon={<PersonHeart size={12} />}
+    label="Google Contacts"
+    connected={connected}
+    loading={loading}
+    profile={profile ? {
+      name: profile.name ?? 'Google Account',
+      email: profile.email,
+      picture: profile.picture,
+    } : null}
+    syncedAtLabel={ageLabel}
+    description="Reads birthdays and anniversaries from your contacts."
+    privacyLabel="Stored only in your browser"
+    connectLabel="Connect Google Contacts"
+    onConnect={onConnect}
+    onSync={onSync}
+    onDisconnect={onDisconnect}
+  />
+);
 
 // ─── Manual entries section ───────────────────────────────────────────────────
 
@@ -403,10 +311,11 @@ const ManualSection = ({ onManualChange }) => {
 
 // ─── Exported settings component ─────────────────────────────────────────────
 
-export const BirthdaysSettings = ({
+export const OccasionsSettings = ({
   connected,
   loading,
   ageLabel,
+  profile,
   onConnect,
   onSync,
   onDisconnect,
@@ -417,6 +326,7 @@ export const BirthdaysSettings = ({
       connected={connected}
       loading={loading}
       ageLabel={ageLabel}
+      profile={profile}
       onConnect={onConnect}
       onSync={onSync}
       onDisconnect={onDisconnect}

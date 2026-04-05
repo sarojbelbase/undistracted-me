@@ -21,6 +21,23 @@ body {
 /* ── Global thin auto-hiding scrollbars ─────────────────────────────────── */
 /* Scrollbar rail is always reserved (no layout jump), thumb is invisible at rest */
 
+/* Hide scrollbar arrow buttons globally */
+::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* Notes textarea — hide scrollbar entirely, scroll via wheel/touch only */
+.notes-textarea::-webkit-scrollbar {
+  display: none;
+}
+
+.notes-textarea {
+  scrollbar-width: none;
+  outline: none !important;
+}
+
 /* Firefox */
 * {
   scrollbar-width: thin;
@@ -924,7 +941,7 @@ textarea:focus-visible,
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 10.5px;
-  font-weight: 500;
+  font-weight: 600;
   background: var(--wc-bg-2);
   color: var(--wc-ink-4);
   border: 1px solid var(--wc-border);
@@ -1008,7 +1025,7 @@ textarea:focus-visible,
   padding: 5px 13px;
   border-radius: 20px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
   background: transparent;
@@ -1175,7 +1192,7 @@ textarea:focus-visible,
 
 .wc-desc {
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--wc-ink-4);
   white-space: nowrap;
   overflow: hidden;
@@ -1270,7 +1287,7 @@ textarea:focus-visible,
 
 .wc-footer-hint {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--wc-ink-4);
   letter-spacing: 0.01em;
 }

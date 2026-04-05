@@ -145,41 +145,38 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
 
   return (
     <>
-      {/* Section: From Events */}
-      <div className="mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <CalendarEvent size={11} style={{ color: 'var(--w-accent)' }} />
-          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--w-ink-4)' }}>From Events</span>
+      {/* ── From Events ── */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <CalendarEvent size={10} style={{ color: 'var(--w-accent)' }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>From Events</span>
         </div>
+
         {upcomingEvents.length === 0 ? (
-          <p className="text-xs py-2 px-1" style={{ color: 'var(--w-ink-5)' }}>No upcoming events. Add some in the Events widget.</p>
+          <p className="text-xs py-2" style={{ color: 'var(--w-ink-5)' }}>No upcoming events. Add some in the Events widget.</p>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col">
             {upcomingEvents.slice(0, 8).map(ev => {
               const isPinned = pinned?.type === 'event' && pinned?.eventId === ev.id;
               return (
                 <button
                   key={ev.id}
                   onClick={() => { onPin({ type: 'event', eventId: ev.id }); onClose?.(); }}
-                  className="w-full text-left px-3 py-2.5 rounded-xl transition-all hover:opacity-90"
-                  style={isPinned
-                    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                    : { backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }
-                  }
+                  className="w-full text-left py-2 px-2 rounded-xl transition-colors cursor-pointer group"
+                  style={isPinned ? { backgroundColor: 'color-mix(in srgb, var(--w-accent) 12%, transparent)' } : {}}
                 >
-                  {isPinned ? (
-                    <div className="flex items-center gap-2">
-                      <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor" className="shrink-0"><path d="M5 0L6.2 3.8H10L6.9 6.2 8.1 10 5 7.6 1.9 10 3.1 6.2 0 3.8H3.8Z" /></svg>
-                      <div className="min-w-0">
-                        <div className="text-xs font-semibold truncate">{ev.title}</div>
-                        <div className="text-[10px] opacity-70 mt-0.5">{ev.startDate}{ev.startTime ? ` · ${ev.startTime}` : ''}</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ pointerEvents: 'none' }}>
-                      <EventRow event={ev} showMeet={false} showPrefix />
+                  {isPinned && (
+                    <div
+                      className="flex items-center gap-1.5 mb-1"
+                      style={{ color: 'var(--w-accent)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                    >
+                      <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><path d="M5 0L6.2 3.8H10L6.9 6.2 8.1 10 5 7.6 1.9 10 3.1 6.2 0 3.8H3.8Z" /></svg>
+                      Pinned
                     </div>
                   )}
+                  <div style={{ pointerEvents: 'none' }}>
+                    <EventRow event={ev} showMeet={false} showPrefix />
+                  </div>
                 </button>
               );
             })}
@@ -188,14 +185,14 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       </div>
 
       {/* Divider */}
-      <div className="mb-5" style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
+      <div className="mb-6" style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
 
-      {/* Section: Custom */}
+      {/* ── Custom Countdowns ── */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <HourglassSplit size={11} style={{ color: 'var(--w-accent)' }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--w-ink-4)' }}>Custom</span>
+            <HourglassSplit size={10} style={{ color: 'var(--w-accent)' }} />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>Custom</span>
           </div>
           <button
             onClick={() => setShowAdd(true)}
@@ -207,39 +204,69 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
         </div>
 
         {custom.length === 0 ? (
-          <p className="text-xs py-1 px-1" style={{ color: 'var(--w-ink-5)' }}>No custom countdowns.</p>
+          <p className="text-xs py-1" style={{ color: 'var(--w-ink-5)' }}>No custom countdowns yet.</p>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col">
             {custom.map(cd => {
               const next = getNextOccurrence(cd);
-              const { days, hours } = formatCountdown(next);
+              const { days, hours, minutes: mins } = formatCountdown(next);
               const isPinned = pinned?.type === 'custom' && pinned?.id === cd.id;
               const isPast = next < new Date() && cd.repeat === 'none';
+
+              // Format sub-meta like EventRow
+              const cdLabel = isPast ? 'Past' : days > 0 ? `${days}d` : hours > 0 ? `${hours}h` : `${mins}m`;
+              const cdDate = formatTargetDate(next);
+
               return (
                 <div
                   key={cd.id}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                  style={isPinned
-                    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                    : { backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', opacity: isPast ? 0.5 : 1 }
-                  }
+                  className="flex items-stretch gap-3 py-2 px-2 rounded-xl group"
+                  style={{
+                    opacity: isPast ? 0.45 : 1,
+                    ...(isPinned ? { backgroundColor: 'color-mix(in srgb, var(--w-accent) 12%, transparent)' } : {}),
+                  }}
                 >
+                  {/* Accent bar (matches EventRow) */}
+                  <div
+                    className="w-[6px] rounded-[2px] shrink-0 self-stretch"
+                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
+                  />
+
+                  {/* Content */}
                   <button
-                    className="flex-1 min-w-0 text-left"
+                    className="flex-1 min-w-0 text-left flex flex-col justify-center gap-0.5"
                     onClick={() => { onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
                   >
-                    <div className="text-xs font-semibold truncate" style={{ color: isPinned ? 'var(--w-accent-fg)' : 'var(--w-ink-1)' }}>{cd.title}</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: isPinned ? 'var(--w-accent-fg)' : 'var(--w-ink-4)', opacity: 0.8 }}>
-                      {isPast ? 'Past' : days > 0 ? `${days}d` : `${hours}h`} · {formatTargetDate(next)}
-                      {cd.repeat !== 'none' && ` · ${cd.repeat}`}
+                    {isPinned && (
+                      <div
+                        className="flex items-center gap-1"
+                        style={{ color: 'var(--w-accent)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+                      >
+                        <svg width="7" height="7" viewBox="0 0 10 10" fill="currentColor"><path d="M5 0L6.2 3.8H10L6.9 6.2 8.1 10 5 7.6 1.9 10 3.1 6.2 0 3.8H3.8Z" /></svg>
+                        Pinned
+                      </div>
+                    )}
+                    <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                      {cd.title}
+                    </p>
+                    <div className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--w-ink-4)' }}>
+                      <span style={{ color: 'var(--w-accent)', fontWeight: 600 }}>{cdLabel}</span>
+                      <span>·</span>
+                      <span>{cdDate}</span>
+                      {cd.repeat !== 'none' && (
+                        <><span>·</span><span>{cd.repeat}</span></>
+                      )}
                     </div>
                   </button>
+
+                  {/* Trash — visible on hover, bigger */}
                   <button
                     onClick={() => onRemoveCustom(cd.id)}
-                    className="w-5 h-5 flex items-center justify-center rounded-full hover:opacity-70 cursor-pointer shrink-0"
-                    style={{ color: isPinned ? 'var(--w-accent-fg)' : 'var(--w-ink-5)' }}
+                    className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 cursor-pointer shrink-0"
+                    style={{ color: 'var(--w-ink-4)' }}
+                    aria-label={`Remove ${cd.title}`}
                   >
-                    <Trash3 size={11} />
+                    <Trash3 size={15} strokeWidth={1.5} />
                   </button>
                 </div>
               );
@@ -264,7 +291,7 @@ export const Widget = ({ onRemove }) => {
   const [pinned, setPinnedState] = useState(loadPinned);
   const [, setTick] = useState(0);
 
-  const [localEvents] = useEvents();
+  const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const today = todayStr();
   const allEvents = [...localEvents, ...(gcalEvents || [])];
@@ -288,7 +315,17 @@ export const Widget = ({ onRemove }) => {
 
   const addCustom = useCallback((cd) => {
     setCustom(prev => { const next = [...prev, cd]; saveCustom(next); return next; });
-  }, []);
+    // Mirror to widget_events so it appears in the Events widget
+    addEventToStore({
+      id: cd.id,
+      title: cd.title,
+      startDate: cd.targetDate,
+      startTime: cd.targetTime || '',
+      endDate: cd.targetDate,
+      endTime: '',
+      _fromCountdown: true,
+    });
+  }, [addEventToStore]);
 
   const removeCustom = useCallback((id) => {
     setCustom(prev => { const next = prev.filter(c => c.id !== id); saveCustom(next); return next; });
@@ -296,7 +333,9 @@ export const Widget = ({ onRemove }) => {
       if (p?.type === 'custom' && p?.id === id) { savePinned(null); return null; }
       return p;
     });
-  }, []);
+    // Remove the mirror from widget_events
+    removeEventFromStore(id);
+  }, [removeEventFromStore]);
 
   // Re-render every second for live countdown
   useEffect(() => {
@@ -399,21 +438,52 @@ export const Widget = ({ onRemove }) => {
     />
   );
 
+  // ── When current event hits zero, advance display to the next upcoming ───────
+  const activeTarget = (() => {
+    if (!target || totalSeconds >= 60) return target;
+    const now = new Date();
+    const nextEv = upcomingEvents.find(e =>
+      e.id !== target.id &&
+      new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now
+    );
+    if (nextEv) return {
+      title: nextEv.title,
+      nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`),
+      startTime: nextEv.startTime,
+      endTime: nextEv.endTime,
+      isEvent: true,
+      isGcal: nextEv._source === 'gcal',
+      id: nextEv.id,
+    };
+    const sorted = custom
+      .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
+      .filter(cd => cd._next > now && cd.id !== target.id)
+      .sort((a, b) => a._next - b._next);
+    if (sorted[0]) return {
+      title: sorted[0].title,
+      nextDate: sorted[0]._next,
+      startTime: sorted[0].targetTime,
+      isEvent: false,
+      isGcal: false,
+      id: sorted[0].id,
+      repeat: sorted[0].repeat,
+    };
+    return null;
+  })();
+
+  const { days: aDays = 0, hours: aHours = 0, minutes: aMins = 0 } =
+    activeTarget ? formatCountdown(activeTarget.nextDate) : {};
+
   // ── Human-readable countdown value ─────────────────────────────────────────
   const countdownValue = () => {
-    if (totalSeconds === 0) return { main: 'now', unit: null, sub: null };
-    if (days > 0) return {
-      main: String(days),
-      unit: days === 1 ? 'day' : 'days',
-      sub: (hours > 0 || mins > 0) ? `${hours}h ${mins}m` : null,
-    };
-    if (hours > 0) return { main: String(hours), unit: `h ${mins}m`, sub: null };
-    return { main: String(mins), unit: 'min', sub: null };
+    if (aDays > 0) return { main: String(aDays), unit: aDays === 1 ? 'day' : 'days' };
+    if (aHours > 0) return { main: String(aHours), unit: aHours === 1 ? 'hr' : 'hrs' };
+    if (aMins > 0) return { main: String(aMins), unit: 'min' };
+    return { main: null, unit: null };
   };
 
   const cv = countdownValue();
 
-  // Format target time nicely
   const fmtTime = (t) => {
     if (!t) return null;
     const [h, m] = t.split(':').map(Number);
@@ -421,78 +491,101 @@ export const Widget = ({ onRemove }) => {
     return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
   };
 
-  // Duration string from startTime + endTime
   const durStr = (() => {
-    if (!target?.startTime || !target?.endTime) return null;
-    const [sh, sm] = target.startTime.split(':').map(Number);
-    const [eh, em] = target.endTime.split(':').map(Number);
+    if (!activeTarget?.startTime || !activeTarget?.endTime) return null;
+    const [sh, sm] = activeTarget.startTime.split(':').map(Number);
+    const [eh, em] = activeTarget.endTime.split(':').map(Number);
     const diff = (eh * 60 + em) - (sh * 60 + sm);
     if (diff <= 0) return null;
     if (diff < 60) return `${diff}min`;
     const h = Math.floor(diff / 60), m = diff % 60;
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   })();
-  const titleShort = !target || target.title.length <= 28;
+
+  // Start time only — "3:15 PM"
+  const startTimeStr = activeTarget?.startTime ? fmtTime(activeTarget.startTime) : null;
+
+  // Dynamic title font size
+  const titleLen = activeTarget?.title?.length ?? 0;
+  const titleFontSize = (() => {
+    if (titleLen <= 12) return 'clamp(1.05rem, 2.4vw, 1.4rem)';
+    if (titleLen <= 22) return 'clamp(0.9rem, 2vw, 1.15rem)';
+    if (titleLen <= 36) return 'clamp(0.8rem, 1.75vw, 1rem)';
+    return 'clamp(0.7rem, 1.5vw, 0.88rem)';
+  })();
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle="Countdown" onRemove={onRemove}>
-      {target ? (
-        <div className="flex-1 flex flex-col justify-center gap-2 min-w-0 overflow-hidden">
+    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle="Settings" modalWidth="w-[26rem]" onRemove={onRemove}>
+      {activeTarget ? (
+        <div className="flex-1 flex flex-row items-center gap-0 min-w-0 overflow-hidden">
 
-          {/* Event title — wraps to 2 lines */}
-          <p
-            className="text-[13px] font-semibold leading-snug"
-            style={{ color: 'var(--w-ink-2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-            title={target.title}
-          >
-            {target.title}
-          </p>
-
-          {/* "is in N unit" — all inline */}
-          <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
-            <span
-              className="font-medium"
-              style={{ fontSize: titleShort ? '13px' : '11px', color: 'var(--w-ink-5)' }}
-            >
-              {totalSeconds === 0 ? 'is starting' : 'is in'}
-            </span>
-            {totalSeconds > 0 && (
+          {/* Left: big number + unit */}
+          <div className="flex flex-col items-center justify-center shrink-0 pr-4" style={{ minWidth: 0 }}>
+            {cv.main ? (
               <>
                 <span
-                  className="font-extrabold leading-none"
-                  style={{ fontSize: titleShort ? 'clamp(2.8rem,6.5vw,4.5rem)' : 'clamp(2.2rem,5vw,3.8rem)', color: 'var(--w-accent)', lineHeight: 1 }}
+                  className="font-black leading-none"
+                  style={{ fontSize: 'clamp(2.8rem, 6vw, 4.4rem)', color: 'var(--w-accent)', letterSpacing: '-0.04em', lineHeight: 1 }}
                 >
                   {cv.main}
                 </span>
                 <span
-                  className="font-bold"
-                  style={{ fontSize: titleShort ? 'clamp(1.4rem,3vw,2rem)' : 'clamp(1.1rem,2.5vw,1.6rem)', color: 'var(--w-ink-2)', lineHeight: 1 }}
+                  className="font-bold mt-0.5"
+                  style={{ fontSize: 'clamp(0.9rem, 2vw, 1.15rem)', color: 'var(--w-ink-2)', letterSpacing: '-0.01em' }}
                 >
                   {cv.unit}
                 </span>
               </>
+            ) : (
+              <span
+                className="font-black leading-none"
+                style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: 'var(--w-accent)', letterSpacing: '-0.03em' }}
+              >
+                &lt;1m
+              </span>
             )}
           </div>
 
-          {/* Sub-time (e.g. "4h 20m" under days) */}
-          {cv.sub && (
-            <p className="text-[11px] font-medium" style={{ color: 'var(--w-ink-5)' }}>{cv.sub}</p>
-          )}
+          {/* Divider — not full height, centered */}
+          <div className="shrink-0 my-auto" style={{ width: '1px', height: '65%', backgroundColor: 'var(--w-border)' }} />
 
-          {/* Time · duration meta (semibold) */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {(target.startTime || durStr) && (
-              <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
-                {[target.startTime ? fmtTime(target.startTime) : null, durStr].filter(Boolean).join(' · ')}
-              </span>
-            )}
-            {target.repeat && target.repeat !== 'none' && target.repeat !== 'event' && (
-              <span
-                className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full"
-                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}
-              >
-                <ArrowRepeat size={9} />{target.repeat}
-              </span>
+          {/* Right: title + time */}
+          <div className="flex-1 flex flex-col justify-center gap-2 pl-4 min-w-0 overflow-hidden">
+            {/* Title — 4-line clamp, clean truncation */}
+            <p
+              style={{
+                fontSize: titleFontSize,
+                fontWeight: 700,
+                color: 'var(--w-ink-1)',
+                lineHeight: 1.3,
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {activeTarget.title}
+            </p>
+
+            {/* Start time · duration + repeat badge on same line */}
+            {(startTimeStr || (activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event')) && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {startTimeStr && (
+                  <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--w-ink-3)', lineHeight: 1, letterSpacing: '-0.01em' }}>
+                    {startTimeStr}
+                    {durStr && <span style={{ color: 'var(--w-ink-5)' }}> · {durStr}</span>}
+                  </p>
+                )}
+                {activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event' && (
+                  <span
+                    className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}
+                  >
+                    <ArrowRepeat size={8} />{activeTarget.repeat}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 

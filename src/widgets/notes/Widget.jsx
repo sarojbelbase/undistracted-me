@@ -1,133 +1,157 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { EyeFill, EyeSlashFill, ArrowsFullscreen, FullscreenExit } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { ACCENT_COLORS } from '../../theme';
 
-const PALETTE = ACCENT_COLORS.filter(c => c.name !== 'Default');
+const PAD = 16;
 
+// Custom dashed separator using background image, so it can be visible even when the header is mostly transparent.
+const DASH_SEP = {
+  backgroundImage: 'repeating-linear-gradient(90deg, rgba(128,128,128,0.4) 0, rgba(128,128,128,0.4) 5px, transparent 5px, transparent 10px)',
+  backgroundPosition: 'bottom',
+  backgroundSize: '100% 1.5px',
+  backgroundRepeat: 'no-repeat',
+};
+
+// ─── Mac-style traffic lights ─────────────────────────────────────────────────
+const TrafficLights = ({ onRed, onYellow, onGreen }) => (
+  <div className="flex items-center gap-1.5">
+    <button onClick={onGreen} onMouseDown={e => e.stopPropagation()} aria-label="Full page"
+      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
+      style={{ backgroundColor: '#28c840' }} />
+    <button onClick={onYellow} onMouseDown={e => e.stopPropagation()} aria-label="Modal"
+      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
+      style={{ backgroundColor: '#ffbd2e' }} />
+    <button onClick={onRed} onMouseDown={e => e.stopPropagation()} aria-label="Remove"
+      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
+      style={{ backgroundColor: '#ff5f57' }} />
+  </div>
+);
+
+// ─── Widget ───────────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { text: '', bgColor: null });
-  const { text, bgColor } = settings;
-  const [isHidden, setIsHidden] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [settings, updateSetting] = useWidgetSettings(id, { text: '' });
+  const { text } = settings;
 
-  const isDark = document.documentElement.getAttribute('data-mode') === 'dark';
-  const textColor = bgColor ? (isDark ? '#1c1c1e' : '#ffffff') : 'var(--w-ink-1)';
-  const ringColor = isDark ? '#1c1c1e' : '#ffffff';
-  const btnBg = bgColor ? 'rgba(0,0,0,0.15)' : 'var(--w-surface-2)';
-  const btnColor = bgColor ? ringColor : 'var(--w-ink-4)';
+  const [mode, setMode] = useState('widget');
+  const textareaRef = useRef(null);
+  const pageTextareaRef = useRef(null);
 
-  const settingsContent = (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs" style={{ color: 'var(--w-ink-4)' }}>Note color</span>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <button
-          onClick={() => updateSetting('bgColor', null)}
-          title="Default"
-          className="w-5 h-5 rounded-full border-2 transition-all"
-          style={{
-            backgroundColor: 'transparent',
-            borderColor: !bgColor ? 'var(--w-ink-1)' : 'var(--w-border)',
-          }}
-        />
-        {PALETTE.map(c => (
-          <button
-            key={c.name}
-            onClick={() => updateSetting('bgColor', c.hex)}
-            title={c.name}
-            className="w-5 h-5 rounded-full transition-all"
-            style={{
-              backgroundColor: c.hex,
-              outline: bgColor === c.hex ? `2px solid ${ringColor}` : 'none',
-              outlineOffset: '2px',
-            }}
-          />
-        ))}
+  const pageBg = 'var(--w-surface)';
+  const pageBarBg = 'var(--w-surface)';
+
+  const openModal = useCallback(() => setMode('modal'), []);
+  const openPage = useCallback(() => setMode('page'), []);
+  const close = useCallback(() => setMode('widget'), []);
+
+  useEffect(() => {
+    if (mode === 'modal' && textareaRef.current) textareaRef.current.focus();
+    if (mode === 'page' && pageTextareaRef.current) pageTextareaRef.current.focus();
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode === 'widget') return;
+    const handler = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [mode, close]);
+
+  const widgetCard = (
+    <BaseWidget className="flex flex-col overflow-hidden" cardStyle={{ borderRadius: '14px' }}>
+      {/* Header — custom dashed separator always visible, traffic lights fade in on hover */}
+      <div
+        className="shrink-0 flex items-center"
+        style={{ height: 32, paddingLeft: PAD, ...DASH_SEP }}
+      >
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <TrafficLights onRed={onRemove} onYellow={openModal} onGreen={openPage} />
+        </div>
       </div>
-    </div>
+      <textarea
+        value={text}
+        onChange={e => updateSetting('text', e.target.value)}
+        placeholder="New note…"
+        spellCheck={false}
+        className="notes-textarea flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed min-h-0"
+        style={{
+          color: 'var(--w-ink-1)',
+          padding: PAD,
+          paddingTop: 8,
+          overflowY: 'auto',
+        }}
+      />
+    </BaseWidget>
+  );
+
+  // ── Modal ──
+  const modalOverlay = mode === 'modal' && createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center animate-fade-in"
+      style={{ background: 'rgba(0,0,0,0.45)', zIndex: 150 }}
+      onMouseDown={e => { if (e.target === e.currentTarget) close(); }}
+    >
+      <div
+        className="flex flex-col rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+        style={{ width: 640, height: 460, backgroundColor: 'var(--w-surface)' }}
+        onMouseDown={e => e.stopPropagation()}
+      >
+        <div className="flex items-center shrink-0" style={{ height: 36, paddingLeft: PAD }}>
+          <TrafficLights onRed={close} onYellow={close} onGreen={openPage} />
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={e => updateSetting('text', e.target.value)}
+          placeholder="New note…"
+          spellCheck={false}
+          className="notes-textarea flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed min-h-0"
+          style={{ color: 'var(--w-ink-1)', padding: PAD, paddingTop: 8 }}
+        />
+      </div>
+    </div>,
+    document.body
+  );
+
+  // ── Full-page ──
+  const pageOverlay = mode === 'page' && createPortal(
+    <div className="fixed inset-0 flex flex-col animate-fade-in" style={{ zIndex: 200, backgroundColor: pageBg }}>
+      <div
+        className="flex items-center shrink-0"
+        style={{ height: 36, paddingLeft: PAD, backgroundColor: pageBarBg }}
+      >
+        <TrafficLights onRed={close} onYellow={openModal} onGreen={close} />
+      </div>
+      <textarea
+        ref={pageTextareaRef}
+        value={text}
+        onChange={e => updateSetting('text', e.target.value)}
+        placeholder="Write something…"
+        spellCheck={false}
+        className="notes-textarea"
+        style={{
+          flex: 1,
+          width: '100%',
+          resize: 'none',
+          background: 'transparent',
+          outline: 'none',
+          border: 'none',
+          padding: PAD,
+          paddingTop: 8,
+          fontSize: '1.0625rem',
+          lineHeight: 1.8,
+          color: 'var(--w-ink-1)',
+          overflowY: 'auto',
+        }}
+      />
+    </div>,
+    document.body
   );
 
   return (
     <>
-      <BaseWidget
-        className="p-3 flex flex-col"
-        cardStyle={bgColor ? { backgroundColor: bgColor } : {}}
-        settingsContent={settingsContent}
-        onRemove={onRemove}
-      >
-        <textarea
-          value={text}
-          onChange={e => updateSetting('text', e.target.value)}
-          placeholder="New note..."
-          spellCheck={false}
-          className="flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed transition-[filter]"
-          style={{
-            color: textColor,
-            filter: isHidden ? 'blur(8px)' : 'none',
-            userSelect: isHidden ? 'none' : 'auto',
-          }}
-        />
-
-        {/* Hover action buttons */}
-        <div className="flex items-center justify-end gap-1 mt-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => setIsHidden(h => !h)}
-            onMouseDown={e => e.stopPropagation()}
-            aria-label={isHidden ? 'Show note' : 'Hide note'}
-            className="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: btnBg, color: btnColor }}
-          >
-            {isHidden ? <EyeSlashFill size={11} aria-hidden="true" /> : <EyeFill size={11} aria-hidden="true" />}
-          </button>
-          <button
-            onClick={() => setIsExpanded(true)}
-            onMouseDown={e => e.stopPropagation()}
-            aria-label="Expand note"
-            className="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
-            style={{ backgroundColor: btnBg, color: btnColor }}
-          >
-            <ArrowsFullscreen size={10} />
-          </button>
-        </div>
-      </BaseWidget>
-
-      {isExpanded && createPortal(
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.6)' }}
-          onClick={() => setIsExpanded(false)}
-        >
-          <div
-            className="rounded-2xl shadow-2xl p-5 w-[600px] h-[420px] flex flex-col animate-fade-in"
-            style={{ backgroundColor: bgColor || 'var(--w-surface)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-3 shrink-0">
-              <span className="text-xs font-semibold tracking-wide uppercase opacity-50" style={{ color: textColor }}>Note</span>
-              <button
-                onClick={() => setIsExpanded(false)}
-                aria-label="Close expanded note"
-                className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-                style={{ backgroundColor: btnBg, color: btnColor }}
-              >
-                <FullscreenExit size={12} aria-hidden="true" />
-              </button>
-            </div>
-            <textarea
-              autoFocus
-              value={text}
-              onChange={e => updateSetting('text', e.target.value)}
-              placeholder="New note..."
-              spellCheck={false}
-              className="flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed"
-              style={{ color: textColor }}
-            />
-          </div>
-        </div>,
-        document.body
-      )}
+      {widgetCard}
+      {modalOverlay}
+      {pageOverlay}
     </>
   );
 };

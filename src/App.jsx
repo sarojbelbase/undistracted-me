@@ -16,7 +16,7 @@ const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
 
   // ── Zustand stores ─────────────────────────────────────────────────────────
-  const { mode, defaultView, lookAwayEnabled, lookAwayInterval } = useSettingsStore();
+  const { mode, defaultView, lookAwayEnabled, lookAwayInterval, lookAwayNotify } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
   // Focus mode is either the user's stored default or an in-session toggle
@@ -26,6 +26,7 @@ const App = () => {
   useLookAwayScheduler({
     enabled: lookAwayEnabled,
     intervalMins: lookAwayInterval,
+    notify: lookAwayNotify,
     onTrigger: () => setShowLookAway(true),
   });
 

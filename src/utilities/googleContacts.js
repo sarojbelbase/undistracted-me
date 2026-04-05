@@ -13,6 +13,7 @@
 const PEOPLE_API = 'https://people.googleapis.com/v1/people/me/connections';
 const CACHE_KEY = 'contacts_birthdays_cache';
 const SYNCED_KEY = 'contacts_birthdays_synced_at';
+const DISCONNECTED_KEY = 'contacts_disconnected';
 
 // ─── Auth helpers (mirrors googleCalendar.js) ────────────────────────────────
 
@@ -67,6 +68,18 @@ function saveCachedContacts(entries) {
 export function clearContactsCache() {
   localStorage.removeItem(CACHE_KEY);
   localStorage.removeItem(SYNCED_KEY);
+}
+
+function isContactsDisconnected() {
+  return localStorage.getItem(DISCONNECTED_KEY) === '1';
+}
+
+function setContactsDisconnectedFlag() {
+  localStorage.setItem(DISCONNECTED_KEY, '1');
+}
+
+export function clearContactsDisconnectedFlag() {
+  localStorage.removeItem(DISCONNECTED_KEY);
 }
 
 // ─── People API fetch ────────────────────────────────────────────────────────
@@ -178,6 +191,7 @@ export async function getContactBirthdays(interactive = true) {
     const connections = await fetchAllConnections(token);
     const entries = parseContacts(connections);
     saveCachedContacts(entries);
+    clearContactsDisconnectedFlag(); // user re-authorized — clear any disconnect flag
     return entries;
   } catch (err) {
     // SERVICE_DISABLED: People API not enabled in GCP — don't retry, propagate immediately
@@ -203,16 +217,22 @@ export async function getContactBirthdays(interactive = true) {
 
 /**
  * Silent check — true if the user has already granted consent and has cached data.
+ * Returns false immediately if the user previously explicitly disconnected.
  */
 export function isContactsConnected() {
+  if (isContactsDisconnected()) return false;
   return loadCachedContacts().length > 0;
 }
 
 /**
- * Removes the cached contacts data (does NOT revoke the OAuth token — shared with Calendar).
+ * Removes the cached contacts data and sets a disconnected flag so the extension
+ * does not silently re-sync on the next reload.
+ * Note: Contacts and Calendar share the same Google OAuth token — we don't revoke
+ * the token here (that would log out Calendar too). The flag prevents re-syncing.
  */
 export function disconnectContacts() {
   clearContactsCache();
+  setContactsDisconnectedFlag();
 }
 
 // ─── Manual birthdays ─────────────────────────────────────────────────────────

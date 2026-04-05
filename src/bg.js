@@ -244,16 +244,45 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
   if (alarm.name === ALARM_LOOKAWAY) {
-    // Set flag in chrome.storage — open new tab pages react instantly via
-    // storage.onChanged; pages opened later catch it on mount.
-    chrome.storage.local.set({ lookaway_due: Date.now() });
-    // Show an OS notification so the user knows even when no new tab is open.
-    chrome.notifications.create('lookaway_' + Date.now(), {
-      type: 'basic',
-      iconUrl: 'favicon/lotus128.png',
-      title: 'Time to look away 👁',
-      message: 'Give your eyes a 20-second break. Open a new tab when ready.',
-      priority: 1,
+    const now = Date.now();
+    const lateMs = now - alarm.scheduledTime;
+    const periodMs = (alarm.periodInMinutes ?? 10) * 60_000;
+
+    if (lateMs > periodMs * 0.5) {
+      // This alarm fired late — machine was asleep or Chrome was closed.
+      // Chrome fires catch-up alarms with the *original* scheduledTime, so
+      // lateMs will be hours/days for a sleep-wake scenario.
+      // Don't nag the user the moment they sit down. Reset the countdown
+      // from now so the first real break fires after a full interval of active use.
+      chrome.alarms.clear(ALARM_LOOKAWAY, () => {
+        chrome.alarms.create(ALARM_LOOKAWAY, { periodInMinutes: alarm.periodInMinutes ?? 10 });
+      });
+      chrome.storage.local.remove('lookaway_due');
+      return;
+    }
+
+    // Normal firing during an active session — signal open tabs.
+    chrome.storage.local.set({ lookaway_due: now });
+    // Only show OS notification if no new tab page is visible AND user wants notifications.
+    // If the user already has a new tab open, the in-page overlay fires
+    // via storage.onChanged — a system notification on top would be redundant.
+    chrome.storage.local.get('lookaway_notify', ({ lookaway_notify }) => {
+      if (lookaway_notify === false) return; // user opted out
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs[0];
+        const isNewTab = activeTab?.url === 'chrome://newtab/' ||
+          activeTab?.pendingUrl === 'chrome://newtab/' ||
+          (activeTab?.url && activeTab.url.startsWith('chrome-extension://'));
+        if (!isNewTab) {
+          chrome.notifications.create('lookaway_' + Date.now(), {
+            type: 'basic',
+            iconUrl: 'favicon/lotus128.png',
+            title: 'Time to look away 👁',
+            message: 'Give your eyes a 20-second break. Open a new tab when ready.',
+            priority: 1,
+          });
+        }
+      });
     });
   }
 });
@@ -294,6 +323,9 @@ chrome.runtime.onMessage.addListener((msg) => {
   // ── LookAway schedule sync ───────────────────────────────────────────────
   // Page sends this whenever enabled/interval changes in settings.
   if (msg.type === 'LOOKAWAY_SYNC') {
+    // Persist the notify preference so the alarm handler can read it
+    chrome.storage.local.set({ lookaway_notify: msg.notify !== false });
+
     if (msg.enabled) {
       // Only clear+recreate if the interval changed or alarm doesn't exist yet.
       // If we recreated it on every new tab open the countdown would always reset.

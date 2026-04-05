@@ -1,2 +1,41 @@
-// No configurable settings yet for Events.
-export const Settings = null;
+import { useState, useEffect } from 'react';
+import { CalendarCheck } from 'react-bootstrap-icons';
+import { useGoogleCalendar, useGoogleProfile } from '../useEvents';
+import { disconnectCalendar } from '../../utilities/googleCalendar';
+import { IntegrationRow } from '../../components/ui/IntegrationRow';
+import { humanizeAge } from './utils';
+
+export const Settings = () => {
+  const { connected, loading, refresh, syncedAt } = useGoogleCalendar();
+  const profile = useGoogleProfile();
+  const [syncedAtLabel, setSyncedAtLabel] = useState(() => humanizeAge(syncedAt));
+
+  useEffect(() => {
+    setSyncedAtLabel(humanizeAge(syncedAt));
+    if (!syncedAt) return;
+    const tid = setInterval(() => setSyncedAtLabel(humanizeAge(syncedAt)), 30_000);
+    return () => clearInterval(tid);
+  }, [syncedAt]);
+
+  const handleDisconnect = async () => {
+    await disconnectCalendar();
+    window.location.reload();
+  };
+
+  return (
+    <IntegrationRow
+      icon={<CalendarCheck size={12} />}
+      label="Google Calendar"
+      connected={connected}
+      loading={loading}
+      profile={profile ? { name: profile.name, email: profile.email, picture: profile.picture } : null}
+      syncedAtLabel={syncedAtLabel}
+      description="Shows upcoming events from your primary calendar."
+      privacyLabel="Read-only · nothing stored on servers"
+      connectLabel="Sign in with Google"
+      onConnect={refresh}
+      onSync={refresh}
+      onDisconnect={handleDisconnect}
+    />
+  );
+};
