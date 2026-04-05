@@ -169,6 +169,26 @@ export const setPlayPause = (play) => apiCall('PUT', play ? '/me/player/play' : 
 export const skipNext = () => apiCall('POST', '/me/player/next');
 export const skipPrev = () => apiCall('POST', '/me/player/previous');
 
+// ─── Chrome Media Session helpers ────────────────────────────────────────────
+
+/** Queries the background SW for any currently-playing browser media session. */
+export const getChromeMedia = () =>
+  new Promise((resolve) => {
+    if (typeof chrome === 'undefined' || !chrome.runtime) { resolve(null); return; }
+    try {
+      chrome.runtime.sendMessage({ type: 'GET_CHROME_MEDIA' }, (data) => {
+        if (chrome.runtime.lastError) { resolve(null); return; }
+        resolve(data ?? null);
+      });
+    } catch { resolve(null); }
+  });
+
+/** Tells the background SW to dispatch a media action on the active media tab. */
+export const sendChromeMediaAction = (action) => {
+  if (typeof chrome === 'undefined' || !chrome.runtime) return;
+  try { chrome.runtime.sendMessage({ type: 'CHROME_MEDIA_ACTION', action }); } catch { }
+};
+
 // ─── Album art color extraction ───────────────────────────────────────────────
 
 export const extractAlbumColor = (imageUrl) =>

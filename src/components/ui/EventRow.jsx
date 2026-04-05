@@ -1,16 +1,16 @@
-import { Trash3 } from 'react-bootstrap-icons';
+import { Trash } from 'react-bootstrap-icons';
 import { TintedChip } from './TintedChip';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from '../../widgets/events/utils';
 
 /**
- * EventRow — reusable event row shared across Events widget, AllEventsModal, and Calendar tooltip.
+ * EventRow - reusable event row shared across Events widget, AllEventsModal, and Calendar tooltip.
  *
  * Props:
- *  event       – { id, title, htmlLink?, startTime?, endTime?, startDate?, endDate?, meetLink?, _source? }
- *  onRemove    – optional handler; shows a hover-delete button for local (non-gcal) events
- *  showMeet    – show "Go to Meet" chip (default true)
- *  showPrefix  – prepend Today/Tomorrow/date prefix to meta row (default true)
- *  compact     – compact variant for calendar tooltip — thinner bar, smaller text, no chips/delete
+ *  event       - { id, title, htmlLink?, startTime?, endTime?, startDate?, endDate?, meetLink?, _source? }
+ *  onRemove    - optional handler; shows a hover-delete button for local (non-gcal) events
+ *  showMeet    - show "Go to Meet" chip (default true)
+ *  showPrefix  - prepend Today/Tomorrow/date prefix to meta row (default true)
+ *  compact     - compact variant for calendar tooltip - thinner bar, smaller text, no chips/delete
  */
 export const EventRow = ({
   event,
@@ -39,9 +39,9 @@ export const EventRow = ({
   const metaSz = compact ? 'text-[10px]' : 'text-[11px]';
 
   return (
-    <div className="flex items-stretch gap-3 group">
+    <div className="relative flex items-stretch gap-3 group">
 
-      {/* Accent bar — pulses when live */}
+      {/* Accent bar - pulses when live */}
       <div
         className={`${barW} rounded-[2px] shrink-0 self-stretch${live ? ' animate-pulse' : ''}`}
         style={{ backgroundColor: live ? '#22c55e' : 'var(--w-accent)', minHeight: minH }}
@@ -49,8 +49,8 @@ export const EventRow = ({
 
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
 
-        {/* Title + action chips */}
-        <div className="flex items-start justify-between gap-2">
+        {/* Title row */}
+        <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0 flex items-center gap-1.5">
             {event.htmlLink
               ? <a
@@ -67,30 +67,30 @@ export const EventRow = ({
             }
           </div>
 
-          {!compact && (
+          {!compact && meetLink && (
             <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-              {meetLink && (
-                <TintedChip href={meetLink}>Go to Meet</TintedChip>
-              )}
-              {event._source !== 'gcal' && onRemove && (
-                <button
-                  onClick={() => onRemove(event.id)}
-                  className="w-5 h-5 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 shrink-0 cursor-pointer"
-                  style={{ color: 'var(--w-ink-5)' }}
-                  aria-label={`Remove ${event.title}`}
-                >
-                  <Trash3 size={10} />
-                </button>
-              )}
+              <TintedChip href={meetLink}>Go to Meet</TintedChip>
             </div>
           )}
         </div>
 
-        {/* Meta: prefix · time · duration  OR  in progress · ends HH:MM */}
+        {/* Trash - absolutely positioned top-right, never affects row width */}
+        {!compact && event._source !== 'gcal' && onRemove && (
+          <button
+            onClick={() => onRemove(event.id)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 cursor-pointer"
+            style={{ color: 'var(--w-ink-4)' }}
+            aria-label={`Remove ${event.title}`}
+          >
+            <Trash size={14} />
+          </button>
+        )}
+
+        {/* Meta: prefix / time / duration  OR  in progress / ends HH:MM */}
         {live ? (
           <div className="flex items-center gap-1">
             <span className={`${metaSz} font-semibold`} style={{ color: 'rgba(34,197,94,0.75)' }}>
-              in progress{endLabel ? ` · ends ${endLabel}` : ''}
+              in progress{endLabel ? ` \u00B7 ends ${endLabel}` : ''}
             </span>
           </div>
         ) : metaParts.length > 0 ? (
@@ -101,15 +101,13 @@ export const EventRow = ({
                   key={`d${i}`}
                   className={`${metaSz} font-semibold select-none`}
                   style={{ color: 'var(--w-ink-6)' }}
-                >·</span>
+                >{'\u00B7'}</span>
                 : null,
               <span
                 key={`p${i}`}
                 className={`${metaSz} font-semibold`}
                 style={{
-                  color: part.accent
-                    ? 'color-mix(in srgb, var(--w-accent) 65%, var(--w-ink-3))'
-                    : 'var(--w-ink-5)',
+                  color: part.accent ? 'var(--w-accent)' : 'var(--w-ink-5)',
                 }}
               >{part.text}</span>,
             ]).filter(Boolean)}

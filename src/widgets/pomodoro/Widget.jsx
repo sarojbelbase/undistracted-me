@@ -16,20 +16,7 @@ export const Widget = ({ onRemove }) => {
   const [showCustom, setShowCustom] = useState(false);
   const intervalRef = useRef(null);
 
-  const elapsed = duration > 0 ? (duration - remaining) / duration : 0;
   const done = remaining === 0 && phase === 'timer';
-
-  // Drain mask: bright zone shrinks from right as time elapses.
-  // At elapsed=0 → fully bright. At elapsed=1 → fully faded to 15%.
-  // Wide feather (±40px) keeps the transition silky — no hard edge.
-  const brightPct = (1 - elapsed) * 100;
-  const drainMask = `linear-gradient(to right,
-    black 0%,
-    black calc(${brightPct.toFixed(1)}% - 40px),
-    rgba(0,0,0,0.42) ${brightPct.toFixed(1)}%,
-    rgba(0,0,0,0.15) calc(${brightPct.toFixed(1)}% + 40px),
-    rgba(0,0,0,0.15) 100%
-  )`;
 
   const startTimer = (secs, label) => {
     setPreset(label);
@@ -172,8 +159,6 @@ export const Widget = ({ onRemove }) => {
           style={{
             fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
             color: done ? 'var(--w-accent)' : 'var(--w-ink-1)',
-            maskImage: done || elapsed === 0 ? 'none' : drainMask,
-            WebkitMaskImage: done || elapsed === 0 ? 'none' : drainMask,
           }}
         >
           {formatTime(remaining)}
