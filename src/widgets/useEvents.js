@@ -44,7 +44,8 @@ export const useEvents = () => {
   }, []);
 
   const addEvent = useCallback((event) => {
-    cache = [...cache, { ...event, id: Date.now() }];
+    // Preserve caller-provided id (e.g. from countdown widget mirror)
+    cache = [...cache, { ...event, id: event.id ?? Date.now() }];
     save(cache);
     broadcast();
   }, []);

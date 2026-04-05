@@ -9,6 +9,7 @@ import {
   disconnectContacts,
   loadManualBirthdays,
 } from '../../utilities/googleContacts';
+import { loadCachedProfile } from '../../utilities/googleCalendar';
 import {
   computeUpcoming,
   daysLabel,
@@ -18,7 +19,7 @@ import {
   avatarLetter,
   humanizeAge,
 } from './utils';
-import { BirthdaysSettings } from './Settings';
+import { OccasionsSettings } from './Settings';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 
@@ -258,10 +259,11 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Settings panel ─────────────────────────────────────────────────────────
   const settingsContent = (
-    <BirthdaysSettings
+    <OccasionsSettings
       connected={connected}
       loading={loading}
       ageLabel={ageLabel}
+      profile={loadCachedProfile()}
       onConnect={() => sync(true)}
       onSync={() => sync(true)}
       onDisconnect={() => {

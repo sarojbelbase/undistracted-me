@@ -34,6 +34,7 @@ const fromLegacy = () => {
       showMitiInIcon: stored.state.showMitiInIcon ?? '0',
       lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
       lookAwayInterval: stored.state.lookAwayInterval ?? 20,
+      lookAwayNotify: stored.state.lookAwayNotify ?? true,
     };
   } catch { /* ignore */ }
   // Legacy single-key fallback
@@ -46,6 +47,7 @@ const fromLegacy = () => {
     showMitiInIcon: localStorage.getItem('showMitiInIcon') || '0',
     lookAwayEnabled: false,
     lookAwayInterval: 20,
+    lookAwayNotify: true,
   };
 };
 
@@ -87,6 +89,7 @@ export const useSettingsStore = create(
       /** LookAway eye-break reminders */
       setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),
       setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),
+      setLookAwayNotify: (lookAwayNotify) => set({ lookAwayNotify }),
     }),
     {
       name: STORE_KEY,

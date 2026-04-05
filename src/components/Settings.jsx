@@ -1,30 +1,38 @@
-import { EyeSlashFill } from 'react-bootstrap-icons';
-import { SunFill, MoonFill, CheckLg, ArrowRepeat, CalendarCheck, Calendar2X } from 'react-bootstrap-icons';
-import { LANGUAGES } from '../constants/settings';
+import { SunFill, MoonFill, CheckLg } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
-import { useGoogleCalendar, useGoogleProfile } from '../widgets/useEvents';
-import { disconnectCalendar } from '../utilities/googleCalendar';
 import { useSettingsStore } from '../store';
+
+const CoffeeIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 8h1a4 4 0 0 1 0 8h-1" />
+    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+    <line x1="6" y1="2" x2="6" y2="4" />
+    <line x1="10" y1="2" x2="10" y2="4" />
+    <line x1="14" y1="2" x2="14" y2="4" />
+  </svg>
+);
+
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
 export const Settings = ({ closeSettings, onPreviewLookAway }) => {
   const {
-    language, setLanguage,
     accent, setAccent,
     mode, setMode,
     defaultView, setDefaultView,
     lookAwayEnabled, setLookAwayEnabled,
     lookAwayInterval, setLookAwayInterval,
+    lookAwayNotify, setLookAwayNotify,
   } = useSettingsStore();
 
-  const { connected, loading, refresh } = useGoogleCalendar();
-  const profile = useGoogleProfile();
+  const SectionLabel = ({ children }) => (
+    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-5)' }}>
+      {children}
+    </p>
+  );
 
-  const handleConnect = () => refresh();
-
-  const handleDisconnect = async () => {
-    await disconnectCalendar();
-    window.location.reload();
-  };
+  const Divider = () => (
+    <div style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
+  );
 
   return (
     <div
@@ -32,201 +40,152 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
       style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
       onMouseDown={e => e.stopPropagation()}
     >
-      {/* Launch mode */}
-      <div>
-        <p className="w-label mb-2">Launch Mode</p>
-        <div className="flex gap-1.5">
-          {[
-            { id: 'canvas', label: 'Canvas' },
-            { id: 'focus', label: 'Focus' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setDefaultView(id)}
-              className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={defaultView === id
-                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Appearance */}
-      <div>
-        <p className="w-label mb-2">Appearance</p>
-        <div className="flex gap-1.5">
-          {[{ id: 'light', icon: <SunFill size={11} /> }, { id: 'dark', icon: <MoonFill size={11} /> }].map(({ id, icon }) => (
-            <button
-              key={id}
-              onClick={() => setMode(id)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={mode === id
-                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-            >
-              {icon}
-              {id.charAt(0).toUpperCase() + id.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Accent Color */}
-      <div>
-        <p className="w-label mb-2">
-          Accent — <span style={{ color: 'var(--w-accent)', fontWeight: 600 }}>{accent}</span>
-        </p>
-        <div className="grid grid-cols-6 gap-1.5">
-          {ACCENT_COLORS.map(color => {
-            const locked = color.name === 'Default' && mode === 'dark';
-            return (
+      {/* ── VIEW ── */}
+      <div className="flex flex-col gap-3">
+        {/* Launch Mode */}
+        <div>
+          <SectionLabel>Launch Mode</SectionLabel>
+          <div className="flex gap-1.5">
+            {[{ id: 'canvas', label: 'Canvas' }, { id: 'focus', label: 'Focus' }].map(({ id, label }) => (
               <button
-                key={color.name}
-                title={locked ? 'Not available in dark mode' : color.name}
-                onClick={() => !locked && setAccent(color.name)}
-                className="w-7 h-7 rounded-full flex items-center justify-center transition-transform"
-                style={{
-                  backgroundColor: color.hex,
-                  outline: accent === color.name ? `2.5px solid ${color.hex}` : 'none',
-                  outlineOffset: '2px',
-                  opacity: locked ? 0.4 : 1,
-                  cursor: locked ? 'not-allowed' : 'pointer',
-                  transform: locked ? 'none' : undefined,
-                }}
+                key={id}
+                onClick={() => setDefaultView(id)}
+                className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={defaultView === id
+                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
               >
-                {accent === color.name && <CheckLg size={12} style={{ color: color.fg }} />}
+                {label}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Nepali Date */}
-      <div>
-        <p className="w-label mb-2">Nepali Date</p>
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="w-caption font-medium" style={{ color: 'var(--w-ink-4)' }}>Language</span>
-            <select
-              value={language}
-              onChange={e => { setLanguage(e.target.value); closeSettings(); }}
-              className="rounded-lg px-2 py-1.5 text-xs outline-none transition-colors"
-              style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)', border: '1px solid var(--w-border)' }}
-            >
-              {Object.keys(LANGUAGES).map(k => (
-                <option key={k} value={LANGUAGES[k]}>{k}</option>
-              ))}
-            </select>
+        {/* Appearance */}
+        <div>
+          <SectionLabel>Appearance</SectionLabel>
+          <div className="flex gap-1.5">
+            {[{ id: 'light', icon: <SunFill size={11} /> }, { id: 'dark', icon: <MoonFill size={11} /> }].map(({ id, icon }) => (
+              <button
+                key={id}
+                onClick={() => setMode(id)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={mode === id
+                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+              >
+                {icon}{id.charAt(0).toUpperCase() + id.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Accent */}
+        <div>
+          <SectionLabel>
+            Accent — <span style={{ color: 'var(--w-accent)', textTransform: 'none', fontWeight: 600, letterSpacing: 0 }}>{accent}</span>
+          </SectionLabel>
+          <div className="flex flex-wrap gap-2">
+            {ACCENT_COLORS.map(color => {
+              const locked = color.name === 'Default' && mode === 'dark';
+              return (
+                <button
+                  key={color.name}
+                  title={locked ? 'Not available in dark mode' : color.name}
+                  onClick={() => !locked && setAccent(color.name)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center transition-transform"
+                  style={{
+                    backgroundColor: color.hex,
+                    outline: accent === color.name ? `2.5px solid ${color.hex}` : 'none',
+                    outlineOffset: '3px',
+                    opacity: locked ? 0.4 : 1,
+                    cursor: locked ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {accent === color.name && <CheckLg size={10} style={{ color: color.fg }} />}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Look Away */}
+      <Divider />
+
+      {/* ── LOOK AWAY ── */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="w-label flex items-center gap-1.5">
-            <EyeSlashFill size={11} style={{ color: 'var(--w-ink-4)' }} />
-            Look Away
-          </p>
+        <div className="flex items-center justify-between mb-1.5">
+          <SectionLabel>
+            <span className="flex items-center gap-1.5"><CoffeeIcon />Look Away</span>
+          </SectionLabel>
           <div className="flex items-center gap-1.5">
-            {onPreviewLookAway && (
+            {/* Preview button only in dev mode */}
+            {DEV_MODE && onPreviewLookAway && (
               <button
                 onClick={onPreviewLookAway}
                 className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
                 style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
-                title="Preview the Look Away overlay"
               >
                 Preview
               </button>
             )}
-            <button
-              onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
-              className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
-              style={lookAwayEnabled
-                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-            >
-              {lookAwayEnabled ? 'On' : 'Off'}
-            </button>
+            {/* On/Off only in production mode */}
+            {!DEV_MODE && (
+              <button
+                onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
+                className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
+                style={lookAwayEnabled
+                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+              >
+                {lookAwayEnabled ? 'On' : 'Off'}
+              </button>
+            )}
           </div>
         </div>
         {lookAwayEnabled && (
-          <div className="flex flex-col gap-1.5">
-            <span className="w-caption" style={{ color: 'var(--w-ink-4)' }}>Remind every</span>
-            <div className="flex gap-1.5 flex-wrap">
-              {[10, 20, 30, 45, 60].map((mins) => (
-                <button
-                  key={mins}
-                  onClick={() => setLookAwayInterval(mins)}
-                  className="px-3 py-1 text-xs rounded-full border transition-all"
-                  style={lookAwayInterval === mins
-                    ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', borderColor: 'var(--w-accent)' }
-                    : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', borderColor: 'var(--w-border)' }}
-                >
-                  {mins === 60 ? '1 hr' : `${mins} min`}
-                </button>
-              ))}
+          <div className="flex flex-col gap-1.5 mt-2">
+            <span className="text-[11px] text-center font-medium" style={{ color: 'var(--w-ink-4)' }}>Remind every</span>
+            <div className="flex justify-center gap-2">
+              {[20, 30, 60].map((mins) => {
+                const selected = lookAwayInterval === mins;
+                return (
+                  <button
+                    key={mins}
+                    onClick={() => setLookAwayInterval(mins)}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
+                    style={selected ? {
+                      background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)',
+                      color: 'var(--w-accent)',
+                      border: '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
+                    } : {
+                      backgroundColor: 'var(--w-surface-2)',
+                      color: 'var(--w-ink-4)',
+                      border: '1px solid var(--w-border)',
+                    }}
+                  >
+                    {mins === 60 ? '1 hr' : `${mins} min`}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Notification toggle */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] font-medium" style={{ color: 'var(--w-ink-4)' }}>Show notification</span>
+              <button
+                onClick={() => setLookAwayNotify(!lookAwayNotify)}
+                className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
+                style={lookAwayNotify
+                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+              >
+                {lookAwayNotify ? 'On' : 'Off'}
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Google Calendar */}
-      <div>
-        <p className="w-label mb-2">Google Calendar</p>        {connected ? (
-          <div className="flex flex-col gap-2">
-            {profile ? (
-              <div className="flex items-center gap-2">
-                {profile.picture
-                  ? <img src={profile.picture} alt="" className="w-7 h-7 rounded-full shrink-0" referrerPolicy="no-referrer" />
-                  : <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>{profile.name?.[0] || '?'}</div>
-                }
-                <div className="flex flex-col min-w-0">
-                  <span className="w-caption font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>{profile.name}</span>
-                  <span className="w-caption truncate" style={{ color: 'var(--w-ink-4)' }}>{profile.email}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--w-ink-3)' }}>
-                <CalendarCheck size={12} style={{ color: 'var(--w-accent)' }} />
-                <span>Connected</span>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <button
-                onClick={refresh}
-                disabled={loading}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-2)', border: '1px solid var(--w-border)', opacity: loading ? 0.5 : 1 }}
-              >
-                <ArrowRepeat size={11} className={loading ? 'animate-spin' : ''} />
-                Sync
-              </button>
-              <button
-                onClick={handleDisconnect}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-              >
-                <Calendar2X size={11} />
-                Disconnect
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={handleConnect}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-medium transition-all"
-            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', opacity: loading ? 0.6 : 1 }}
-          >
-            <ArrowRepeat size={11} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Connecting…' : 'Sign in with Google'}
-          </button>
-        )}
-      </div>
     </div>
   );
 };

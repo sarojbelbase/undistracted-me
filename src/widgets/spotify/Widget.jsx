@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
+import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import {
   SPOTIFY_CLIENT_ID,
   connectSpotify, disconnectSpotify, isSpotifyConnected,
   getCurrentPlayback, setPlayPause, skipNext, skipPrev,
   extractAlbumColor, fetchAndCacheProfile, getSpotifyProfile,
 } from './utils';
+
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
 const parseTrack = (data) => {
   if (!data?.item) return null;
@@ -129,76 +132,44 @@ export const Widget = ({ onRemove }) => {
     );
   }
 
-  // Not connected
+  const settingsPanel = (
+    <SpotifySettings
+      connected={connected}
+      profile={profile}
+      loading={loading}
+      error={error}
+      onConnect={handleConnect}
+      onDisconnect={handleDisconnect}
+    />
+  );
+
+  // Not connected — clear setup instructions
   if (!connected) {
-    const extensionId = typeof chrome !== 'undefined' && chrome.runtime?.id;
-    const redirectUri = extensionId ? `https://${extensionId}.chromiumapp.org/` : null;
-    const isRedirectError = error && (error.includes('could not be loaded') || error.includes('redirect') || error.includes('cancelled'));
     return (
-      <BaseWidget className="p-4 flex flex-col items-center justify-center gap-3" onRemove={onRemove}>
-        <MusicNoteBeamed size={32} style={{ color: 'var(--w-ink-4)' }} />
-        <p className="text-center text-sm" style={{ color: 'var(--w-ink-3)' }}>
-          Connect your Spotify account to see what's playing
-        </p>
-        {error && (
-          <div className="w-full flex flex-col gap-2">
-            <p className="text-xs text-red-400 text-center">{error}</p>
-            {isRedirectError && redirectUri && (
-              <div className="rounded-lg p-2.5 text-center" style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
-                <p className="text-[11px] mb-1.5" style={{ color: 'var(--w-ink-4)' }}>
-                  Add this redirect URI to your{' '}
-                  <a
-                    href="https://developer.spotify.com/dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                    style={{ color: '#1DB954' }}
-                  >
-                    Spotify app
-                  </a>
-                  :
-                </p>
-                <code
-                  className="text-[10px] break-all select-all block font-mono px-2 py-1 rounded"
-                  style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}
-                >
-                  {redirectUri}
-                </code>
-              </div>
-            )}
-          </div>
-        )}
-        {!error && redirectUri && (
-          <div className="w-full rounded-lg p-2.5 text-center" style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
-            <p className="text-[11px] mb-1.5" style={{ color: 'var(--w-ink-4)' }}>
-              Make sure this redirect URI is in your{' '}
-              <a
-                href="https://developer.spotify.com/dashboard"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-                style={{ color: '#1DB954' }}
-              >
-                Spotify app
-              </a>
-              :
-            </p>
-            <code
-              className="text-[10px] break-all select-all block font-mono px-2 py-1 rounded"
-              style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}
+      <BaseWidget
+        className="p-4 flex flex-col items-center justify-center gap-3"
+        onRemove={onRemove}
+        settingsContent={settingsPanel}
+        settingsTitle="Spotify"
+      >
+        <MusicNoteBeamed size={28} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>
+            Not connected
+          </p>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+            Open the{' '}
+            <span
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle"
+              style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
             >
-              {redirectUri}
-            </code>
-          </div>
-        )}
-        <button
-          onClick={handleConnect}
-          disabled={loading}
-          className="px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
-          style={{ backgroundColor: '#1DB954', color: '#000' }}
-        >
-          {loading ? 'Connecting…' : 'Connect Spotify'}
-        </button>
+              <svg width="10" height="3" viewBox="0 0 14 4" fill="currentColor" style={{ color: 'var(--w-ink-3)' }}>
+                <circle cx="2" cy="2" r="1.5" /><circle cx="7" cy="2" r="1.5" /><circle cx="12" cy="2" r="1.5" />
+              </svg>
+            </span>
+            {' '}menu and tap <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span> to connect your Spotify account.
+          </p>
+        </div>
       </BaseWidget>
     );
   }
@@ -209,7 +180,8 @@ export const Widget = ({ onRemove }) => {
       <BaseWidget
         className="p-4 flex flex-col items-center justify-center gap-2"
         cardStyle={bgStyle}
-        settingsContent={<SpotifySettings profile={profile} onDisconnect={handleDisconnect} />}
+        settingsContent={settingsPanel}
+        settingsTitle="Spotify"
         onRemove={onRemove}
       >
         <MusicNoteBeamed size={28} style={{ color: muteColor }} />
@@ -222,7 +194,8 @@ export const Widget = ({ onRemove }) => {
     <BaseWidget
       className="relative p-0 flex flex-col"
       cardStyle={bgStyle}
-      settingsContent={<SpotifySettings profile={profile} onDisconnect={handleDisconnect} />}
+      settingsContent={settingsPanel}
+      settingsTitle="Spotify"
       onRemove={onRemove}
     >
       {/* Album art — full-bleed, faded + dark scrim; clipped to card corners */}
@@ -277,36 +250,52 @@ export const Widget = ({ onRemove }) => {
   );
 };
 
-const SpotifySettings = ({ profile, onDisconnect }) => (
-  <div className="flex flex-col gap-3">
-    {/* Profile */}
-    <div className="flex items-center gap-2.5">
-      {profile?.avatar ? (
-        <img src={profile.avatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-      ) : (
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
-          style={{ backgroundColor: '#1DB954', color: '#000' }}
-        >
-          {(profile?.name?.[0] ?? 'S').toUpperCase()}
+const SpotifyMusicIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z" />
+    <path fillRule="evenodd" d="M9 3v10H8V3h1z" />
+    <path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z" />
+  </svg>
+);
+
+const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisconnect }) => {
+  const extensionId = typeof chrome !== 'undefined' && chrome.runtime?.id;
+  const redirectUri = extensionId ? `https://${extensionId}.chromiumapp.org/` : null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <IntegrationRow
+        icon={<SpotifyMusicIcon />}
+        label="Spotify"
+        connected={connected}
+        loading={loading}
+        profile={connected && profile ? {
+          name: profile.name ?? 'Spotify Account',
+          picture: profile.avatar ?? null,
+          avatarColor: '#1DB954',
+          avatarFgColor: '#000',
+        } : null}
+        description="Plays music and shows your current track."
+        privacyLabel="No data stored · playback controls only"
+        connectLabel="Connect Spotify"
+        onConnect={onConnect}
+        onDisconnect={onDisconnect}
+      />
+      {/* Dev mode only: redirect URI setup helper */}
+      {DEV_MODE && !connected && redirectUri && (
+        <div className="rounded-lg p-2.5" style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+          <p className="text-[11px] mb-1.5" style={{ color: 'var(--w-ink-4)' }}>
+            Add this to your{' '}
+            <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#1DB954' }}>
+              Spotify app
+            </a>{' '}redirect URIs:
+          </p>
+          <code className="text-[10px] break-all select-all block font-mono px-2 py-1 rounded" style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)' }}>
+            {redirectUri}
+          </code>
         </div>
       )}
-      <div className="min-w-0">
-        <div className="text-xs font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
-          {profile?.name ?? 'Spotify Account'}
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-          <span className="text-[10px]" style={{ color: 'var(--w-ink-4)' }}>Connected</span>
-        </div>
-      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
-    <button
-      onClick={onDisconnect}
-      className="w-full text-xs py-1.5 rounded-lg font-medium transition-all hover:opacity-80"
-      style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-2)', border: '1px solid var(--w-border)' }}
-    >
-      Disconnect
-    </button>
-  </div>
-);
+  );
+};

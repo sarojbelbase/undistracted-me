@@ -57,7 +57,7 @@ export const groupEventsByBucket = (events) => {
 export const humanizeAge = (ts) => {
   if (!ts) return null;
   const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 30) return 'just now';
+  if (diff < 60) return 'just now';
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
@@ -132,6 +132,43 @@ export const datePrefixFor = (dateStr) => {
   const bucket = bucketLabel(dateStr);
   if (bucket === 'Today') return null;
   if (bucket === 'Tomorrow') return 'Tomorrow';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr + 'T00:00:00');
+  const diffDays = Math.round((target - today) / 86400000);
+
+  // Start of each relative boundary (Monday of next week, 1st of next month, etc.)
+  const startOfNextWeek = new Date(today);
+  startOfNextWeek.setDate(today.getDate() + (7 - today.getDay() || 7));
+
+  const startOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const startOfNextYear = new Date(today.getFullYear() + 1, 0, 1);
+
+  if (target >= startOfNextYear) return 'Next Year';
+  if (target >= startOfNextMonth) return 'Next Month';
+  if (target >= startOfNextWeek) return 'Next Week';
+
+  // Same week but not today/tomorrow — fall back to short date
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+};
+
+/**
+ * Returns true if an event is currently in progress (started but not yet ended).
+ */
+export const isLiveNow = (event) => {
+  const now = new Date();
+  const today = todayStr();
+  const eDate = event.startDate || today;
+  if (eDate !== today) return false;
+  if (!event.startTime) return false;
+  const start = new Date(`${eDate}T${event.startTime}`);
+  if (now < start) return false;
+  if (event.endTime) {
+    const end = new Date(`${event.endDate || eDate}T${event.endTime}`);
+    return now < end;
+  }
+  // No end time — treat the event as live for 30 min after start
+  return (now - start) < 30 * 60 * 1000;
 };

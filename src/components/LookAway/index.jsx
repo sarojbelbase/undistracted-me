@@ -452,7 +452,7 @@ const GhostBtn = ({ onClick, children }) => {
         padding: '6px 4px',
         cursor: 'pointer',
         fontSize: '0.68rem',
-        fontWeight: 500,
+        fontWeight: 600,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
         color: hovered ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.28)',
@@ -626,7 +626,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           fontSize: '0.62rem',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          fontWeight: 500,
+          fontWeight: 600,
           animation: 'lookaway-rise 1s cubic-bezier(0.16,1,0.3,1) 0.15s both',
           userSelect: 'none',
         }}

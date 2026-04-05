@@ -9,6 +9,7 @@ import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { Settings } from './Settings';
 
 export const Widget = ({ onRemove }) => {
   const [localEvents, addEvent, removeEvent] = useEvents();
@@ -58,13 +59,13 @@ export const Widget = ({ onRemove }) => {
 
   return (
     <>
-      <BaseWidget className="p-4 flex flex-col gap-3" onRemove={onRemove}>
+      <BaseWidget className="p-4 flex flex-col gap-3" onRemove={onRemove} settingsContent={<Settings />} settingsTitle="Settings">
 
         {/* ── Header: title left · meta+refresh+add right ── */}
         <div className="flex items-center gap-2 shrink-0">
           <h3 className="w-heading leading-tight flex-1">{config.label}</h3>
 
-          {/* Meta info: count · sync · inline text refresh */}
+          {/* Meta info: sync age · refresh (only when calendar is connected) */}
           <div className="flex items-center gap-1.5 min-w-0">
             <span
               className="text-[11px] font-medium truncate"
@@ -72,30 +73,32 @@ export const Widget = ({ onRemove }) => {
             >
               {syncLabel}
             </span>
-            <button
-              onClick={refresh}
-              disabled={loading}
-              title={connected ? 'Refresh' : 'Connect Google Calendar'}
-              aria-label={connected ? 'Refresh' : 'Connect Google Calendar'}
-              className="flex items-center leading-none transition-opacity hover:opacity-50 cursor-pointer select-none shrink-0"
-              style={{ color: connected ? 'var(--w-ink-5)' : 'var(--w-accent)' }}
-            >
-              <RefreshIcon spinning={loading} />
-            </button>
+            {connected && (
+              <button
+                onClick={refresh}
+                disabled={loading}
+                title="Refresh"
+                aria-label="Refresh"
+                className="flex items-center leading-none transition-opacity hover:opacity-50 cursor-pointer select-none shrink-0"
+                style={{ color: 'var(--w-ink-5)' }}
+              >
+                <RefreshIcon spinning={loading} />
+              </button>
+            )}
           </div>
 
         </div>
 
         {/* ── Event list / empty state ── */}
         {upcomingEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 text-center py-4">
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
             <CalendarEvent size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
             <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
               No upcoming events
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3.5">
+          <div className="flex-1 flex flex-col gap-3.5">
             {visibleEvents.map(event => (
               <EventRow key={event.id} event={event} onRemove={removeEvent} />
             ))}
@@ -104,9 +107,13 @@ export const Widget = ({ onRemove }) => {
 
         {/* ── Footer ── */}
         <div className="flex items-center justify-between shrink-0 pt-0.5">
-          <TintedChip size="md" onClick={() => setShowAll(true)} onMouseDown={e => e.stopPropagation()}>
-            View All <ArrowRight size={13} />
-          </TintedChip>
+          {upcomingEvents.length > MAX_VISIBLE ? (
+            <TintedChip size="md" onClick={() => setShowAll(true)} onMouseDown={e => e.stopPropagation()}>
+              View All <ArrowRight size={13} />
+            </TintedChip>
+          ) : (
+            <div />
+          )}
 
           <button
             onClick={() => setShowCreate(true)}

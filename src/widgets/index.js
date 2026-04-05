@@ -11,7 +11,7 @@ import pomodoroConfig from './pomodoro/config';
 import spotifyConfig from './spotify/config';
 import factsConfig from './facts/config';
 import stockConfig from './stock/config';
-import birthdaysConfig from './birthdays/config';
+import occasionsConfig from './occasions/config';
 
 export { Widget as ClockWidget } from './clock/Widget';
 export { Widget as DateTodayWidget } from './dateToday/Widget';
@@ -26,7 +26,7 @@ export { Widget as PomodoroWidget } from './pomodoro/Widget';
 export { Widget as SpotifyWidget } from './spotify/Widget';
 export { Widget as FactsWidget } from './facts/Widget';
 export { Widget as StockWidget } from './stock/Widget';
-export { Widget as BirthdaysWidget } from './birthdays/Widget';
+export { Widget as BirthdaysWidget } from './occasions/Widget';
 
 export const WIDGET_TYPES = Object.freeze({
   CLOCK: 'clock',
@@ -66,5 +66,5 @@ export const WIDGET_REGISTRY = [
   { ...bookmarksConfig, enabled: true, category: 'tools', icon: 'BookmarkStarFill', description: 'Quick-access bookmarks' },
   { ...spotifyConfig, enabled: true, category: 'tools', icon: 'MusicNoteBeamed', description: 'Spotify playback controls' },
   { ...stockConfig, enabled: true, category: 'info', icon: 'GraphUpArrow', description: 'NEPSE stock watchlist' },
-  { ...birthdaysConfig, enabled: true, category: 'planning', icon: 'BalloonFill', description: 'Birthdays, anniversaries & special occasions' },
+  { ...occasionsConfig, enabled: true, category: 'planning', icon: 'BalloonFill', description: 'Birthdays, anniversaries & special occasions' },
 ];
