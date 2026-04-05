@@ -82,25 +82,30 @@ const selStyle = {
 
 // ─── Google Contacts section ──────────────────────────────────────────────────
 
-const ContactsSection = ({ connected, loading, ageLabel, profile, onConnect, onSync, onDisconnect }) => (
-  <IntegrationRow
-    icon={<PersonHeart size={12} />}
-    label="Google Contacts"
-    connected={connected}
-    loading={loading}
-    profile={profile ? {
-      name: profile.name ?? 'Google Account',
-      email: profile.email,
-      picture: profile.picture,
-    } : null}
-    syncedAtLabel={ageLabel}
-    description="Reads birthdays and anniversaries from your contacts."
-    privacyLabel="Stored only in your browser"
-    connectLabel="Connect Google Contacts"
-    onConnect={onConnect}
-    onSync={onSync}
-    onDisconnect={onDisconnect}
-  />
+const ContactsSection = ({ connected, loading, ageLabel, profile, error, onConnect, onSync, onDisconnect }) => (
+  <div className="flex flex-col gap-3">
+    <IntegrationRow
+      icon={<PersonHeart size={12} />}
+      label="Google Contacts"
+      connected={connected}
+      loading={loading}
+      profile={profile ? {
+        name: profile.name ?? 'Google Account',
+        email: profile.email,
+        picture: profile.picture,
+      } : null}
+      syncedAtLabel={ageLabel}
+      description="Reads birthdays and anniversaries from your contacts."
+      privacyLabel="Stored only in your browser"
+      connectLabel="Connect Google Contacts"
+      onConnect={onConnect}
+      onSync={onSync}
+      onDisconnect={onDisconnect}
+    />
+    {error && (
+      <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>
+    )}
+  </div>
 );
 
 // ─── Manual entries section ───────────────────────────────────────────────────
@@ -314,6 +319,7 @@ const ManualSection = ({ onManualChange }) => {
 export const OccasionsSettings = ({
   connected,
   loading,
+  error,
   ageLabel,
   profile,
   onConnect,
@@ -325,6 +331,7 @@ export const OccasionsSettings = ({
     <ContactsSection
       connected={connected}
       loading={loading}
+      error={error}
       ageLabel={ageLabel}
       profile={profile}
       onConnect={onConnect}
