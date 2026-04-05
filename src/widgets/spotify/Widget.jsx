@@ -405,6 +405,50 @@ const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisc
         </div>
       )}
       {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {/* Browser media playback section */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-1.5">
+          <span style={{ color: 'var(--w-ink-5)' }}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2 2.5.895 2.5 2zm9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2z" />
+              <path fillRule="evenodd" d="M14 11V2h1v9h-1zM6 3v10H5V3h1z" />
+              <path d="M5 2.905a1 1 0 0 1 .9-.995l8-.8a1 1 0 0 1 1.1.995V3L5 4V2.905z" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>Browser Media</span>
+        </div>
+        <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
+          When Spotify is idle, playback from any browser tab is shown automatically.
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { name: 'YouTube', color: '#FF0000' },
+            { name: 'YouTube Music', color: '#FF0000' },
+            { name: 'SoundCloud', color: '#FF5500' },
+            { name: 'Apple Music', color: '#FA2D48' },
+            { name: 'Deezer', color: '#A238FF' },
+            { name: 'Tidal', color: 'var(--w-ink-2)' },
+            { name: 'Last.fm', color: '#D51007' },
+            { name: 'Bandcamp', color: '#1DA0C3' },
+            { name: 'Twitch', color: '#9147FF' },
+          ].map(({ name, color }) => (
+            <span
+              key={name}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color }}
+            >
+              {name}
+            </span>
+          ))}
+          <span
+            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-5)' }}
+          >
+            + any site using Media Session API
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
