@@ -5,28 +5,42 @@ import { useWidgetSettings } from '../useWidgetSettings';
 
 const PAD = 16;
 
-// Custom dashed separator using background image, so it can be visible even when the header is mostly transparent.
+// Dotted separator — rendered as background image so no extra DOM node needed.
 const DASH_SEP = {
-  backgroundImage: 'repeating-linear-gradient(90deg, rgba(128,128,128,0.4) 0, rgba(128,128,128,0.4) 5px, transparent 5px, transparent 10px)',
-  backgroundPosition: 'bottom',
-  backgroundSize: '100% 1.5px',
-  backgroundRepeat: 'no-repeat',
+  backgroundImage: 'radial-gradient(circle, rgba(128,128,128,0.45) 1.5px, transparent 3px)',
+  backgroundPosition: 'bottom center',
+  backgroundSize: '9px 1.5px',
+  backgroundRepeat: 'repeat-x',
 };
 
 // ─── Mac-style traffic lights ─────────────────────────────────────────────────
-const TrafficLights = ({ onRed, onYellow, onGreen }) => (
-  <div className="flex items-center gap-1.5">
-    <button onClick={onGreen} onMouseDown={e => e.stopPropagation()} aria-label="Full page"
-      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
-      style={{ backgroundColor: '#28c840' }} />
-    <button onClick={onYellow} onMouseDown={e => e.stopPropagation()} aria-label="Modal"
-      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
-      style={{ backgroundColor: '#ffbd2e' }} />
-    <button onClick={onRed} onMouseDown={e => e.stopPropagation()} aria-label="Remove"
-      className="w-3 h-3 rounded-full shrink-0 transition-opacity hover:opacity-75 cursor-pointer"
-      style={{ backgroundColor: '#ff5f57' }} />
-  </div>
-);
+const TrafficLights = ({
+  onRed, onYellow, onGreen,
+  redLabel = 'Close', yellowLabel = 'Expand', greenLabel = 'Full Page',
+  redDisabled = false, yellowDisabled = false, greenDisabled = false,
+}) => {
+  const btn = (onClick, label, color, disabled) => (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseDown={e => e.stopPropagation()}
+      aria-label={label}
+      title={disabled ? undefined : label}
+      disabled={disabled}
+      className="w-3 h-3 rounded-full shrink-0 transition-opacity"
+      style={{
+        backgroundColor: disabled ? 'rgba(128,128,128,0.35)' : color,
+        cursor: disabled ? 'default' : 'pointer',
+      }}
+    />
+  );
+  return (
+    <div className="flex items-center gap-1.5">
+      {btn(onGreen, greenLabel, '#28c840', greenDisabled)}
+      {btn(onYellow, yellowLabel, '#ffbd2e', yellowDisabled)}
+      {btn(onRed, redLabel, '#ff5f57', redDisabled)}
+    </div>
+  );
+};
 
 // ─── Widget ───────────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
@@ -64,7 +78,7 @@ export const Widget = ({ id, onRemove }) => {
         style={{ height: 32, paddingLeft: PAD, ...DASH_SEP }}
       >
         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-          <TrafficLights onRed={onRemove} onYellow={openModal} onGreen={openPage} />
+          <TrafficLights onRed={onRemove} onYellow={openModal} onGreen={openPage} redLabel="Remove" yellowLabel="Expand" greenLabel="Full page" redDisabled />
         </div>
       </div>
       <textarea
@@ -96,7 +110,7 @@ export const Widget = ({ id, onRemove }) => {
         onMouseDown={e => e.stopPropagation()}
       >
         <div className="flex items-center shrink-0" style={{ height: 36, paddingLeft: PAD }}>
-          <TrafficLights onRed={close} onYellow={close} onGreen={openPage} />
+          <TrafficLights onRed={close} onYellow={close} onGreen={openPage} redLabel="Close" yellowLabel="Close" greenLabel="Full page" yellowDisabled />
         </div>
         <textarea
           ref={textareaRef}
@@ -104,8 +118,8 @@ export const Widget = ({ id, onRemove }) => {
           onChange={e => updateSetting('text', e.target.value)}
           placeholder="New note…"
           spellCheck={false}
-          className="notes-textarea flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed min-h-0"
-          style={{ color: 'var(--w-ink-1)', padding: PAD, paddingTop: 8 }}
+          className="notes-textarea flex-1 w-full resize-none outline-none text-sm leading-relaxed min-h-0"
+          style={{ color: 'var(--w-ink-1)', background: 'var(--w-surface-2)', padding: PAD, paddingTop: 8 }}
         />
       </div>
     </div>,
@@ -119,7 +133,7 @@ export const Widget = ({ id, onRemove }) => {
         className="flex items-center shrink-0"
         style={{ height: 36, paddingLeft: PAD, backgroundColor: pageBarBg }}
       >
-        <TrafficLights onRed={close} onYellow={openModal} onGreen={close} />
+        <TrafficLights onRed={close} onYellow={openModal} onGreen={close} redLabel="Close" yellowLabel="Shrink" greenLabel="Close" greenDisabled />
       </div>
       <textarea
         ref={pageTextareaRef}
@@ -132,7 +146,7 @@ export const Widget = ({ id, onRemove }) => {
           flex: 1,
           width: '100%',
           resize: 'none',
-          background: 'transparent',
+          background: 'var(--w-surface-2)',
           outline: 'none',
           border: 'none',
           padding: PAD,
