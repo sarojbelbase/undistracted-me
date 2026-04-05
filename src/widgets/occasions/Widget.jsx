@@ -95,26 +95,24 @@ const TypeIcon = ({ type, size = 11 }) => {
 
 // ─── Empty / unauthenticated states ──────────────────────────────────────────
 
-const ConnectPrompt = ({ onConnect, loading }) => (
-  <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 py-2">
-    <div
-      className="w-10 h-10 rounded-full flex items-center justify-center"
-      style={{ background: 'var(--w-surface-2)' }}
-    >
-      <PersonHeart size={20} style={{ color: 'var(--w-ink-4)' }} />
+const ConnectPrompt = () => (
+  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
+    <PersonHeart size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.35 }} />
+    <div className="flex flex-col items-center gap-1.5">
+      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Not connected</p>
+      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+        Open the{' '}
+        <span
+          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle"
+          style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+        >
+          <svg width="10" height="3" viewBox="0 0 14 4" fill="currentColor" style={{ color: 'var(--w-ink-3)' }}>
+            <circle cx="2" cy="2" r="1.5" /><circle cx="7" cy="2" r="1.5" /><circle cx="12" cy="2" r="1.5" />
+          </svg>
+        </span>
+        {' '}menu and tap <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span> to sync Google Contacts birthdays.
+      </p>
     </div>
-    <div className="text-center">
-      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-2)' }}>Never miss a birthday</p>
-      <p className="w-muted mt-0.5">Sync from your Google Contacts</p>
-    </div>
-    <button
-      onClick={onConnect}
-      disabled={loading}
-      className="h-8 px-4 rounded-full text-xs font-semibold transition-opacity hover:opacity-80 active:opacity-60 disabled:opacity-40 cursor-pointer"
-      style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-    >
-      {loading ? 'Connecting…' : 'Connect Google Contacts'}
-    </button>
   </div>
 );
 
@@ -262,6 +260,7 @@ export const Widget = ({ id, onRemove }) => {
     <OccasionsSettings
       connected={connected}
       loading={loading}
+      error={!connected ? error : null}
       ageLabel={ageLabel}
       profile={loadCachedProfile()}
       onConnect={() => sync(true)}
@@ -315,8 +314,8 @@ export const Widget = ({ id, onRemove }) => {
         {RefreshRow}
       </div>
 
-      {/* ── Error banner ───────────────────────────────────────────────────── */}
-      {error && (
+      {/* ── Error banner — only shown when already connected (retry errors) ─────────── */}
+      {error && connected && (
         <div
           className="mx-3 mb-2 px-3 py-2 rounded-xl text-[11px]"
           style={{ background: '#fff5f5', color: '#c0392b', border: '1px solid #fecaca' }}
@@ -325,9 +324,9 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       )}
 
-      {/* ── Content ────────────────────────────────────────────────────────── */}
+      {/* ── Content ──────────────────────────────────────────────────── */}
       {!connected && manual.length === 0 ? (
-        <ConnectPrompt onConnect={() => sync(true)} loading={loading} />
+        <ConnectPrompt />
       ) : upcoming.length === 0 ? (
         <EmptyState />
       ) : (

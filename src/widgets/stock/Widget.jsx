@@ -117,7 +117,7 @@ const StockRow = ({ sym, data, isLast }) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { symbols: ['GBIME'] });
+  const [settings, updateSetting] = useWidgetSettings(id, { symbols: ['NEPSE'] });
   const { symbols = [] } = settings;
 
   const [chartMap, setChartMap] = useState({});
