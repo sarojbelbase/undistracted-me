@@ -71,10 +71,16 @@ function poll() {
 setInterval(poll, 1000);
 
 // Forward playback actions sent from the background SW.
-// Tries the Media Session API action handler first (most reliable), then falls back
-// to synthetic media-key events that almost all music sites handle.
+// Uses a layered fallback strategy:
+//   1. callActionHandler via injected main-world script (most reliable for sites
+//      that use navigator.mediaSession, e.g. YouTube, Spotify Web, Apple Music)
+//   2. Direct HTMLMediaElement .play()/.pause() for native video/audio sites
+//   3. Synthetic media-key keyboard events on both window and document
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type !== 'MEDIA_ACTION') return;
+
+  const VALID_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
+  if (!VALID_ACTIONS.has(msg.action)) return;
 
   const sessionActionMap = {
     play: 'play',
@@ -83,16 +89,46 @@ chrome.runtime.onMessage.addListener((msg) => {
     previous: 'previoustrack',
   };
   const sessionAction = sessionActionMap[msg.action];
+
+  // Strategy 1: inject into the page's main world so callActionHandler can reach
+  // action handlers registered by the page's own JavaScript. Content scripts run
+  // in an isolated world and may not share the same MediaSession action handler
+  // registry as the page in all browser builds.
   if (sessionAction) {
     try {
-      // navigator.mediaSession.callActionHandler is non-standard but widely supported
-      if (navigator.mediaSession?.callActionHandler) {
-        navigator.mediaSession.callActionHandler(sessionAction);
-        return;
-      }
-    } catch { /* fall through to keyboard event */ }
+      const script = document.createElement('script');
+      // The action name is validated against a fixed set above — no injection risk.
+      script.textContent = `
+        (function() {
+          try {
+            if (navigator.mediaSession && navigator.mediaSession.callActionHandler) {
+              navigator.mediaSession.callActionHandler('${sessionAction}');
+            }
+          } catch(e) {}
+        })();
+      `;
+      (document.head || document.documentElement).appendChild(script);
+      script.remove();
+    } catch { /* fall through */ }
   }
 
+  // Strategy 2: directly control HTML5 media elements (works on YouTube, SoundCloud, etc.)
+  // This is reliable because .play()/.pause() are accessible from the isolated world.
+  if (msg.action === 'play' || msg.action === 'pause') {
+    const els = document.querySelectorAll('audio, video');
+    for (const el of els) {
+      if (el.readyState >= 2) {
+        try {
+          if (msg.action === 'play' && el.paused) el.play();
+          else if (msg.action === 'pause' && !el.paused) el.pause();
+        } catch { /* autoplay policy or other error — skip */ }
+      }
+    }
+  }
+
+  // Strategy 3: synthetic media-key events as last resort.
+  // Dispatched to both window and document to cover all listener patterns.
+  // Note: isTrusted is false on synthetic events, so sites that check it won't respond.
   const keyMap = {
     play: 'MediaPlayPause',
     pause: 'MediaPlayPause',
@@ -101,6 +137,10 @@ chrome.runtime.onMessage.addListener((msg) => {
   };
   const key = keyMap[msg.action];
   if (!key) return;
-  document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
-  document.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true }));
+  const downEvt = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+  const upEvt = new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true });
+  document.dispatchEvent(downEvt);
+  document.dispatchEvent(upEvt);
+  window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  window.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true }));
 });
