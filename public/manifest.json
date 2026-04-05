@@ -38,7 +38,8 @@
     "geolocation",
     "topSites",
     "notifications",
-    "alarms"
+    "alarms",
+    "tabs"
   ],
   "host_permissions": [
     "https://api.spotify.com/*",
@@ -46,6 +47,17 @@
     "https://nepalipaisa.com/*",
     "https://www.merolagani.com/*",
     "https://people.googleapis.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/media-cs.js"
+      ],
+      "run_at": "document_idle"
+    }
   ],
   "oauth2": {
     "client_id": "647187355675-e5v949u9j2dd54p152rr3l48ulfr4l66.apps.googleusercontent.com",

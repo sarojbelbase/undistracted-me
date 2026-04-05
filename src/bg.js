@@ -289,7 +289,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 // ─── Messages from the page ───────────────────────────────────────────────────
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Pomodoro session complete
   if (msg.type === 'POMODORO_DONE') {
     chrome.notifications.create('pomodoro_done', {
@@ -348,4 +348,32 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'LOOKAWAY_FIRE') {
     chrome.storage.local.set({ lookaway_due: Date.now() });
   }
+
+  // ── Chrome Media Session ─────────────────────────────────────────────────
+  if (msg.type === 'MEDIA_SESSION_UPDATE') {
+    self.chromeMedia = { ...msg.data, tabId: sender?.tab?.id ?? null };
+  }
+
+  if (msg.type === 'MEDIA_SESSION_CLEAR') {
+    if (self.chromeMedia?.tabId === (sender?.tab?.id ?? null)) {
+      self.chromeMedia = null;
+    }
+  }
+
+  if (msg.type === 'GET_CHROME_MEDIA') {
+    sendResponse(self.chromeMedia ?? null);
+    return true;
+  }
+
+  if (msg.type === 'CHROME_MEDIA_ACTION') {
+    const tabId = self.chromeMedia?.tabId;
+    if (tabId != null) {
+      chrome.tabs.sendMessage(tabId, { type: 'MEDIA_ACTION', action: msg.action }).catch(() => { });
+    }
+  }
+});
+
+// Clear stored Chrome media state when the source tab is closed
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (self.chromeMedia?.tabId === tabId) self.chromeMedia = null;
 });

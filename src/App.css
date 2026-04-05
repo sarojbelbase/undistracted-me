@@ -271,20 +271,6 @@ body {
   cursor: grabbing !important;
 }
 
-/* Active dot pulse — current hour indicator in DayProgress widget */
-@keyframes dotActiveGlow {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.65;
-    transform: scale(1.2);
-  }
-}
 
 /* Hide options button while dragging — it's in the way and confusing */
 .react-draggable-dragging .absolute.z-20 {
@@ -433,7 +419,6 @@ body {
 
   .w-dot-active {
     background-color: var(--w-accent);
-    animation: dotActiveGlow 2.4s ease-in-out infinite;
   }
 }
 
