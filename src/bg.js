@@ -350,24 +350,43 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   // ── Chrome Media Session ─────────────────────────────────────────────────
+  // Up to 3 concurrent browser media sessions are tracked in a map keyed by tabId.
+  // chromeSessionOrder keeps insertion order (newest first) for easy array return.
   if (msg.type === 'MEDIA_SESSION_UPDATE') {
-    self.chromeMedia = { ...msg.data, tabId: sender?.tab?.id ?? null };
+    if (!self.chromeSessions) self.chromeSessions = {};
+    if (!self.chromeSessionOrder) self.chromeSessionOrder = [];
+    const tabId = sender?.tab?.id ?? null;
+    if (tabId === null) return;
+    self.chromeSessions[tabId] = { ...msg.data, tabId };
+    // Move this tab to front of order (most recently active), then cap at 3
+    self.chromeSessionOrder = [tabId, ...self.chromeSessionOrder.filter(id => id !== tabId)].slice(0, 3);
+    // Remove any sessions that fell off the cap
+    for (const id of Object.keys(self.chromeSessions)) {
+      if (!self.chromeSessionOrder.includes(Number(id))) delete self.chromeSessions[id];
+    }
   }
 
   if (msg.type === 'MEDIA_SESSION_CLEAR') {
-    if (self.chromeMedia?.tabId === (sender?.tab?.id ?? null)) {
-      self.chromeMedia = null;
+    const tabId = sender?.tab?.id ?? null;
+    if (tabId !== null && self.chromeSessions?.[tabId]) {
+      delete self.chromeSessions[tabId];
+      self.chromeSessionOrder = (self.chromeSessionOrder ?? []).filter(id => id !== tabId);
     }
   }
 
   if (msg.type === 'GET_CHROME_MEDIA') {
-    sendResponse(self.chromeMedia ?? null);
+    const order = self.chromeSessionOrder ?? [];
+    const sessions = self.chromeSessions ?? {};
+    sendResponse(order.map(id => sessions[id]).filter(Boolean));
     return true;
   }
 
   if (msg.type === 'CHROME_MEDIA_ACTION') {
-    const tabId = self.chromeMedia?.tabId;
-    if (tabId != null) {
+    const sessions = self.chromeSessions ?? {};
+    const order = self.chromeSessionOrder ?? [];
+    // If requester specifies a tabId use it, otherwise fall back to most recently updated tab
+    const tabId = msg.tabId != null ? msg.tabId : (order[0] ?? null);
+    if (tabId != null && sessions[tabId]) {
       chrome.tabs.sendMessage(tabId, { type: 'MEDIA_ACTION', action: msg.action }).catch(() => { });
     }
   }
@@ -375,5 +394,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 // Clear stored Chrome media state when the source tab is closed
 chrome.tabs.onRemoved.addListener((tabId) => {
-  if (self.chromeMedia?.tabId === tabId) self.chromeMedia = null;
+  if (self.chromeSessions?.[tabId]) {
+    delete self.chromeSessions[tabId];
+    self.chromeSessionOrder = (self.chromeSessionOrder ?? []).filter(id => id !== tabId);
+  }
 });

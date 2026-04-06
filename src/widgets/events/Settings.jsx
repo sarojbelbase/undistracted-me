@@ -6,7 +6,7 @@ import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { humanizeAge } from './utils';
 
 export const Settings = () => {
-  const { connected, loading, refresh, syncedAt } = useGoogleCalendar();
+  const { connected, loading, error, refresh, syncedAt } = useGoogleCalendar();
   const profile = useGoogleProfile();
   const [syncedAtLabel, setSyncedAtLabel] = useState(() => humanizeAge(syncedAt));
 
@@ -23,19 +23,24 @@ export const Settings = () => {
   };
 
   return (
-    <IntegrationRow
-      icon={<CalendarCheck size={12} />}
-      label="Google Calendar"
-      connected={connected}
-      loading={loading}
-      profile={profile ? { name: profile.name, email: profile.email, picture: profile.picture } : null}
-      syncedAtLabel={syncedAtLabel}
-      description="Shows upcoming events from your primary calendar."
-      privacyLabel="Read-only · nothing stored on servers"
-      connectLabel="Sign in with Google"
-      onConnect={refresh}
-      onSync={refresh}
-      onDisconnect={handleDisconnect}
-    />
+    <>
+      <IntegrationRow
+        icon={<CalendarCheck size={12} />}
+        label="Google Calendar"
+        connected={connected}
+        loading={loading}
+        profile={profile ? { name: profile.name, email: profile.email, picture: profile.picture } : null}
+        syncedAtLabel={syncedAtLabel}
+        description="Shows upcoming events from your primary calendar."
+        privacyLabel="Read-only · nothing stored on servers"
+        connectLabel="Sign in with Google"
+        onConnect={refresh}
+        onSync={refresh}
+        onDisconnect={handleDisconnect}
+      />
+      {!connected && error && (
+        <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{error}</p>
+      )}
+    </>
   );
 };

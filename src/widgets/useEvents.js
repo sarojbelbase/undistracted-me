@@ -103,16 +103,33 @@ export const useGoogleCalendar = () => {
   const [gcalEvents, setGcalEvents] = useState(() => loadCachedGcalEvents());
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(() => loadCachedGcalEvents().length > 0);
+  const [error, setError] = useState(null);
   const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
   const fetchedRef = useRef(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const { events, changed } = await getCalendarEvents();
       setConnected(true);
+      setError(null);
       setSyncedAt(loadGcalSyncedAt());
       if (changed) setGcalEvents(events);
+    } catch (err) {
+      const cached = loadCachedGcalEvents();
+      if (cached.length > 0) {
+        // Previously established connection — keep connected with stale data, don't alarm
+        setConnected(true);
+      } else {
+        // Never successfully fetched calendar data — stay/go disconnected and show error
+        setConnected(false);
+        setError(
+          err.message?.includes('403') || err.message?.includes('SERVICE_DISABLED')
+            ? 'Calendar API not enabled. Check your Google Cloud Console.'
+            : 'Could not connect. Try again.'
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -128,9 +145,9 @@ export const useGoogleCalendar = () => {
       refresh();
       return;
     }
-    // No cache — silently check if already connected before prompting
+    // No cache — silently check if already connected before prompting.
+    // Do NOT set connected=true based on token alone — only a successful fetch confirms it.
     isCalendarConnected().then((yes) => {
-      setConnected(yes);
       if (yes) refresh();
     });
   }, [refresh]);
@@ -143,7 +160,7 @@ export const useGoogleCalendar = () => {
     return () => clearInterval(tid);
   }, [connected, refresh]);
 
-  return { gcalEvents, loading, connected, syncedAt, refresh };
+  return { gcalEvents, loading, connected, error, syncedAt, refresh };
 };
 
 /**

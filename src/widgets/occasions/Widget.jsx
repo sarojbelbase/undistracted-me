@@ -124,75 +124,53 @@ const EmptyState = () => (
   </div>
 );
 
-// ─── Hero card — spotlit single entry within 30 days ─────────────────────────
+// ─── Regular list row ─────────────────────────────────────────────────────────
 
-const HeroRow = ({ entry }) => {
-  const { bg } = avatarColor(entry.name);
+const ListRow = ({ entry, isLast, highlight }) => {
   return (
     <div
-      className="mx-3 rounded-2xl px-3.5 py-3 flex items-center gap-3"
-      style={{ background: bg, transition: 'background 0.3s ease' }}
+      className="flex items-center gap-2.5 px-4 py-2.5"
+      style={{
+        borderBottom: isLast ? 'none' : '1px solid var(--w-border)',
+        background: highlight
+          ? 'color-mix(in srgb, var(--w-accent) 5%, transparent)'
+          : undefined,
+        borderRadius: highlight ? 12 : undefined,
+        margin: highlight ? '0 10px' : undefined,
+        paddingLeft: highlight ? 12 : undefined,
+        paddingRight: highlight ? 12 : undefined,
+        border: highlight ? '1px solid color-mix(in srgb, var(--w-accent) 20%, transparent)' : undefined,
+        marginBottom: highlight ? 4 : undefined,
+      }}
     >
-      {/* Large avatar */}
-      <Avatar name={entry.name} size={44} />
+      {/* Left urgency bar */}
+      <div
+        className="self-stretch rounded-full shrink-0"
+        style={{ width: 3, backgroundColor: highlight ? 'var(--w-accent)' : urgencyColor(entry.daysAway), opacity: 1 }}
+      />
 
-      {/* Name + type row */}
+      {/* Avatar */}
+      <Avatar name={entry.name} size={30} />
+
+      {/* Name + type */}
       <div className="flex-1 min-w-0">
         <div
-          className="font-semibold text-sm leading-tight truncate"
-          style={{ color: 'var(--w-ink-1)' }}
+          className="text-xs font-semibold leading-tight truncate"
+          style={{ color: highlight ? 'var(--w-accent)' : 'var(--w-ink-1)' }}
         >
           {entry.name}
         </div>
-        <div
-          className="text-[11px] mt-0.5 flex items-center gap-1"
-          style={{ color: 'var(--w-ink-4)' }}
-        >
-          <TypeIcon type={entry.type} size={11} />
+        <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-5)' }}>
+          <TypeIcon type={entry.type} size={10} />
           {typeLabel(entry.type)}
         </div>
       </div>
 
-      {/* Days chip floated right */}
+      {/* Days chip */}
       <DaysChip days={entry.daysAway} />
     </div>
   );
 };
-
-// ─── Regular list row ─────────────────────────────────────────────────────────
-
-const ListRow = ({ entry, isLast }) => (
-  <div
-    className="flex items-center gap-2.5 px-4 py-2.5"
-    style={{ borderBottom: isLast ? 'none' : '1px solid var(--w-border)' }}
-  >
-    {/* Left urgency bar */}
-    <div
-      className="self-stretch rounded-full shrink-0"
-      style={{ width: 3, backgroundColor: urgencyColor(entry.daysAway), opacity: 0.8 }}
-    />
-
-    {/* Avatar */}
-    <Avatar name={entry.name} size={30} />
-
-    {/* Name + type */}
-    <div className="flex-1 min-w-0">
-      <div
-        className="text-xs font-semibold leading-tight truncate"
-        style={{ color: 'var(--w-ink-1)' }}
-      >
-        {entry.name}
-      </div>
-      <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-5)' }}>
-        <TypeIcon type={entry.type} size={10} />
-        {typeLabel(entry.type)}
-      </div>
-    </div>
-
-    {/* Days chip */}
-    <DaysChip days={entry.daysAway} />
-  </div>
-);
 
 // ─── Main widget ──────────────────────────────────────────────────────────────
 
@@ -330,26 +308,14 @@ export const Widget = ({ id, onRemove }) => {
       ) : upcoming.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="flex flex-col flex-1">
-
-          {/* Hero (spacious highlighted card) */}
-          {isHero && hero && (
-            <div className="pb-2">
-              <HeroRow entry={hero} />
-            </div>
-          )}
-
-          {/* Divider between hero + secondary rows */}
-          {isHero && secondary.length > 0 && (
-            <div className="mx-4 mb-1" style={{ height: 1, background: 'var(--w-border)' }} />
-          )}
-
-          {/* List rows */}
-          {secondary.map((entry, i) => (
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+          {/* Render all rows; hero gets a tinted background highlight */}
+          {upcoming.map((entry, i) => (
             <ListRow
               key={entry.id}
               entry={entry}
-              isLast={i === secondary.length - 1}
+              highlight={i === 0}
+              isLast={i === upcoming.length - 1}
             />
           ))}
         </div>
