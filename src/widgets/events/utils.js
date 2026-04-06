@@ -138,16 +138,33 @@ export const datePrefixFor = (dateStr) => {
   const target = new Date(dateStr + 'T00:00:00');
   const diffDays = Math.round((target - today) / 86400000);
 
-  // Start of each relative boundary (Monday of next week, 1st of next month, etc.)
+  // Start/end of each relative boundary (Monday of next week, 1st of next month, etc.)
   const startOfNextWeek = new Date(today);
   startOfNextWeek.setDate(today.getDate() + (7 - today.getDay() || 7));
+  const endOfNextWeek = new Date(startOfNextWeek);
+  endOfNextWeek.setDate(startOfNextWeek.getDate() + 7);
 
   const startOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-  const startOfNextYear = new Date(today.getFullYear() + 1, 0, 1);
+  const endOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 1);
 
-  if (target >= startOfNextYear) return 'Next Year';
-  if (target >= startOfNextMonth) return 'Next Month';
-  if (target >= startOfNextWeek) return 'Next Week';
+  const startOfNextYear = new Date(today.getFullYear() + 1, 0, 1);
+  const endOfNextYear = new Date(today.getFullYear() + 2, 0, 1);
+
+  if (target >= startOfNextYear) {
+    if (target < endOfNextYear) return 'Next Year';
+    const years = target.getFullYear() - today.getFullYear();
+    return `in ${years} years`;
+  }
+  if (target >= startOfNextMonth) {
+    if (target < endOfNextMonth) return 'Next Month';
+    const months = (target.getFullYear() - today.getFullYear()) * 12 + (target.getMonth() - today.getMonth());
+    return `in ${months} months`;
+  }
+  if (target >= startOfNextWeek) {
+    if (target < endOfNextWeek) return 'Next Week';
+    const weeks = Math.floor(diffDays / 7);
+    return `in ${weeks} weeks`;
+  }
 
   // Same week but not today/tomorrow — fall back to short date
   const d = new Date(dateStr + 'T00:00:00');
