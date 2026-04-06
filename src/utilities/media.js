@@ -12,6 +12,14 @@
 let prevTitle = null;
 let prevPlaybackState = null;
 
+// Becomes false when the extension is reloaded/updated while this content script is still
+// alive. After that, all chrome.runtime calls would throw 'Extension context invalidated'.
+let contextValid = true;
+const pollInterval = setInterval(() => {
+  if (!contextValid) { clearInterval(pollInterval); return; }
+  poll();
+}, 1000);
+
 function getArtwork() {
   const artwork = navigator.mediaSession?.metadata?.artwork;
   if (!artwork?.length) return null;
@@ -46,7 +54,7 @@ function poll() {
     if (prevTitle !== null) {
       prevTitle = null;
       prevPlaybackState = null;
-      chrome.runtime.sendMessage({ type: 'MEDIA_SESSION_CLEAR' }).catch(() => { });
+      safeSend({ type: 'MEDIA_SESSION_CLEAR' });
     }
     return;
   }
@@ -54,7 +62,7 @@ function poll() {
   if (meta.title !== prevTitle || playbackState !== prevPlaybackState) {
     prevTitle = meta.title;
     prevPlaybackState = playbackState;
-    chrome.runtime.sendMessage({
+    safeSend({
       type: 'MEDIA_SESSION_UPDATE',
       data: {
         title: meta.title || null,
@@ -64,83 +72,49 @@ function poll() {
         playbackState,
         host: location.hostname,
       },
-    }).catch(() => { });
+    });
   }
 }
 
-setInterval(poll, 1000);
-
-// Forward playback actions sent from the background SW.
-// Uses a layered fallback strategy:
-//   1. callActionHandler via injected main-world script (most reliable for sites
-//      that use navigator.mediaSession, e.g. YouTube, Spotify Web, Apple Music)
-//   2. Direct HTMLMediaElement .play()/.pause() for native video/audio sites
-//   3. Synthetic media-key keyboard events on both window and document
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type !== 'MEDIA_ACTION') return;
-
-  const VALID_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
-  if (!VALID_ACTIONS.has(msg.action)) return;
-
-  const sessionActionMap = {
-    play: 'play',
-    pause: 'pause',
-    next: 'nexttrack',
-    previous: 'previoustrack',
-  };
-  const sessionAction = sessionActionMap[msg.action];
-
-  // Strategy 1: inject into the page's main world so callActionHandler can reach
-  // action handlers registered by the page's own JavaScript. Content scripts run
-  // in an isolated world and may not share the same MediaSession action handler
-  // registry as the page in all browser builds.
-  if (sessionAction) {
-    try {
-      const script = document.createElement('script');
-      // The action name is validated against a fixed set above — no injection risk.
-      script.textContent = `
-        (function() {
-          try {
-            if (navigator.mediaSession && navigator.mediaSession.callActionHandler) {
-              navigator.mediaSession.callActionHandler('${sessionAction}');
-            }
-          } catch(e) {}
-        })();
-      `;
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
-    } catch { /* fall through */ }
-  }
-
-  // Strategy 2: directly control HTML5 media elements (works on YouTube, SoundCloud, etc.)
-  // This is reliable because .play()/.pause() are accessible from the isolated world.
-  if (msg.action === 'play' || msg.action === 'pause') {
-    const els = document.querySelectorAll('audio, video');
-    for (const el of els) {
-      if (el.readyState >= 2) {
-        try {
-          if (msg.action === 'play' && el.paused) el.play();
-          else if (msg.action === 'pause' && !el.paused) el.pause();
-        } catch { /* autoplay policy or other error — skip */ }
-      }
+// Sends a message to the background SW, silently handling context invalidation.
+function safeSend(msg) {
+  if (!contextValid) return;
+  try {
+    chrome.runtime.sendMessage(msg).catch(() => { });
+  } catch (e) {
+    if (e.message?.includes('Extension context invalidated')) {
+      contextValid = false;
+      clearInterval(pollInterval);
     }
   }
+}
 
-  // Strategy 3: synthetic media-key events as last resort.
-  // Dispatched to both window and document to cover all listener patterns.
-  // Note: isTrusted is false on synthetic events, so sites that check it won't respond.
-  const keyMap = {
-    play: 'MediaPlayPause',
-    pause: 'MediaPlayPause',
-    next: 'MediaTrackNext',
-    previous: 'MediaTrackPrevious',
-  };
-  const key = keyMap[msg.action];
-  if (!key) return;
-  const downEvt = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
-  const upEvt = new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true });
-  document.dispatchEvent(downEvt);
-  document.dispatchEvent(upEvt);
-  window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
-  window.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true }));
-});
+// Forward playback actions sent from the background SW.
+// Currently supports SoundCloud via its player button CSS classes.
+// More media playback sites will be added soon.
+try {
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type !== 'MEDIA_ACTION') return;
+
+    const VALID_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
+    if (!VALID_ACTIONS.has(msg.action)) return;
+
+    // Click the SoundCloud player button.
+    const buttonSelectors = {
+      play: ['.playControl'],
+      pause: ['.playControl'],
+      next: ['.skipControl__next'],
+      previous: ['.skipControl__previous'],
+    };
+    for (const sel of buttonSelectors[msg.action]) {
+      const btn = document.querySelector(sel);
+      if (btn) { btn.click(); break; }
+    }
+  });
+} catch (e) {
+  if (e.message?.includes('Extension context invalidated')) {
+    contextValid = false;
+    clearInterval(pollInterval);
+  }
+}
+

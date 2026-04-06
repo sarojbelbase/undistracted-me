@@ -51,22 +51,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/*",
-        "*://*.music.youtube.com/*",
-        "*://*.soundcloud.com/*",
-        "*://*.music.apple.com/*",
-        "*://*.deezer.com/*",
-        "*://*.tidal.com/*",
-        "*://*.last.fm/*",
-        "*://*.bandcamp.com/*",
-        "*://*.twitch.tv/*",
-        "*://*.netflix.com/*",
-        "*://*.hulu.com/*",
-        "*://*.disneyplus.com/*",
-        "*://*.primevideo.com/*",
-        "*://*.itunes.apple.com/*",
-        "*://*.spotify.com/*",
-        "*://*.open.spotify.com/*"
+        "*://*.soundcloud.com/*"
       ],
       "js": [
         "src/utilities/media.js"

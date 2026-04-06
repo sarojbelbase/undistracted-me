@@ -190,11 +190,11 @@ export async function getCalendarEvents() {
         return { events: fresh, changed: true };
       } catch (retryErr) {
         console.warn('[GoogleCalendar] Retry failed:', retryErr.message);
-        return { events: loadCachedGcalEvents(), changed: false };
+        throw retryErr; // propagate so callers can show error
       }
     }
     console.warn('[GoogleCalendar]', err.message);
-    return { events: loadCachedGcalEvents(), changed: false };
+    throw err; // propagate — callers decide whether to use stale cache
   }
 }
 

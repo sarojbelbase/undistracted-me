@@ -171,22 +171,22 @@ export const skipPrev = () => apiCall('POST', '/me/player/previous');
 
 // ─── Chrome Media Session helpers ────────────────────────────────────────────
 
-/** Queries the background SW for any currently-playing browser media session. */
+/** Queries the background SW for all currently-active browser media sessions (up to 3). */
 export const getChromeMedia = () =>
   new Promise((resolve) => {
-    if (typeof chrome === 'undefined' || !chrome.runtime) { resolve(null); return; }
+    if (typeof chrome === 'undefined' || !chrome.runtime) { resolve([]); return; }
     try {
       chrome.runtime.sendMessage({ type: 'GET_CHROME_MEDIA' }, (data) => {
-        if (chrome.runtime.lastError) { resolve(null); return; }
-        resolve(data ?? null);
+        if (chrome.runtime.lastError) { resolve([]); return; }
+        resolve(Array.isArray(data) ? data : (data ? [data] : []));
       });
-    } catch { resolve(null); }
+    } catch { resolve([]); }
   });
 
-/** Tells the background SW to dispatch a media action on the active media tab. */
-export const sendChromeMediaAction = (action) => {
+/** Tells the background SW to dispatch a media action to the given tab (or the most recently active media tab). */
+export const sendChromeMediaAction = (action, tabId) => {
   if (typeof chrome === 'undefined' || !chrome.runtime) return;
-  try { chrome.runtime.sendMessage({ type: 'CHROME_MEDIA_ACTION', action }); } catch { }
+  try { chrome.runtime.sendMessage({ type: 'CHROME_MEDIA_ACTION', action, ...(tabId != null && { tabId }) }); } catch { }
 };
 
 // ─── Album art color extraction ───────────────────────────────────────────────
