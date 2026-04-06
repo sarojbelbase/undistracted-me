@@ -10,7 +10,7 @@ import {
   getChromeMedia, sendChromeMediaAction,
 } from './utils';
 
-const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
 const parseTrack = (data) => {
   if (!data?.item) return null;
@@ -108,7 +108,10 @@ export const Widget = ({ onRemove }) => {
   const [albumColor, setAlbumColor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [profile, setProfile] = useState(() => getSpotifyProfile());
+  const [profile, setProfile] = useState(null);
+
+  // Load profile from chrome.storage.local on mount (async)
+  useEffect(() => { getSpotifyProfile().then(p => { if (p) setProfile(p); }); }, []);
   const lastArtRef = useRef(null);
   const tickRef = useRef(null);
   const [chromeMediaSessions, setChromeMediaSessions] = useState([]);
@@ -660,7 +663,7 @@ const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisc
         onDisconnect={onDisconnect}
       />
       {/* Dev mode only: redirect URI setup helper */}
-      {DEV_MODE && !connected && redirectUri && (
+      {DEBUG_MODE && !connected && redirectUri && (
         <div className="rounded-lg p-2.5" style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
           <p className="text-[11px] mb-1.5" style={{ color: 'var(--w-ink-4)' }}>
             Add this to your{' '}
