@@ -1,13 +1,14 @@
-// ─── Replace with your Spotify app's Client ID ─────────────────────────────
-// 1. Go to https://developer.spotify.com/dashboard and create an app
-// 2. Add your extension's redirect URI: https://<your-extension-id>.chromiumapp.org/
-//    (find your extension ID at chrome://extensions)
-// 3. Paste your Client ID below
-export const SPOTIFY_CLIENT_ID = 'a82f9a5c893848aba34a6cee1422739c';
+// ─── Spotify Client ID ───────────────────────────────────────────────────────
+// Set VITE_SPOTIFY_CLIENT_ID in your .env file.
+// 1. Go to https://developer.spotify.com/dashboard and create an app.
+// 2. Add redirect URI: https://<your-extension-id>.chromiumapp.org/
+// 3. Add the Client ID to .env  (it is XOR-encoded at build time — not plain text in bundle).
+export const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
 
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-private user-read-email';
 const TOKEN_KEY = 'spotify_tokens';
 const PROFILE_KEY = 'spotify_profile';
+const CONNECTED_FLAG = 'spotify_connected';
 
 // ─── PKCE helpers ────────────────────────────────────────────────────────────
 
@@ -85,13 +86,28 @@ export const connectSpotify = async () => {
     refresh_token: tokens.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
+  await chrome.storage.local.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
+  localStorage.setItem(CONNECTED_FLAG, '1'); // sync flag so isSpotifyConnected() is immediate
   return stored.access_token;
 };
 
 export const getAccessToken = async () => {
-  let stored;
-  try { stored = JSON.parse(localStorage.getItem(TOKEN_KEY)); } catch { return null; }
+  // One-time migration: move tokens from old localStorage storage to chrome.storage.local.
+  // This runs silently on first invocation after an update and removes the insecure copy.
+  const legacyRaw = localStorage.getItem(TOKEN_KEY);
+  if (legacyRaw) {
+    try {
+      const legacy = JSON.parse(legacyRaw);
+      if (legacy?.access_token) {
+        await chrome.storage.local.set({ [TOKEN_KEY]: legacy }); // eslint-disable-line no-undef
+        localStorage.setItem(CONNECTED_FLAG, '1');
+      }
+    } catch { /* ignore malformed legacy data */ }
+    localStorage.removeItem(TOKEN_KEY); // always clear — even if parse failed
+  }
+
+  const result = await chrome.storage.local.get(TOKEN_KEY); // eslint-disable-line no-undef
+  const stored = result[TOKEN_KEY] ?? null;
   if (!stored) return null;
 
   // Still valid
@@ -120,19 +136,21 @@ export const getAccessToken = async () => {
     refresh_token: tokens.refresh_token || stored.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
+  await chrome.storage.local.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
   return updated.access_token;
 };
 
 export const disconnectSpotify = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(PROFILE_KEY);
+  chrome.storage.local.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
+  localStorage.removeItem(CONNECTED_FLAG);
 };
 
-export const isSpotifyConnected = () => !!localStorage.getItem(TOKEN_KEY);
+// Synchronous — reads only the non-sensitive boolean flag, not the token itself.
+export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
 
-export const getSpotifyProfile = () => {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)); } catch { return null; }
+export const getSpotifyProfile = async () => {
+  const result = await chrome.storage.local.get(PROFILE_KEY); // eslint-disable-line no-undef
+  return result[PROFILE_KEY] ?? null;
 };
 
 // ─── Playback API ─────────────────────────────────────────────────────────────
@@ -160,7 +178,7 @@ export const fetchAndCacheProfile = async () => {
       name: data.display_name || data.id || 'Spotify User',
       avatar: data.images?.[0]?.url ?? null,
     };
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    await chrome.storage.local.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
     return profile;
   } catch { return null; }
 };

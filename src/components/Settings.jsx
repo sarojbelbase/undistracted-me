@@ -12,7 +12,7 @@ const CoffeeIcon = () => (
   </svg>
 );
 
-const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
 export const Settings = ({ closeSettings, onPreviewLookAway }) => {
   const {
@@ -120,7 +120,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
           </SectionLabel>
           <div className="flex items-center gap-1.5">
             {/* Preview button only in dev mode */}
-            {DEV_MODE && onPreviewLookAway && (
+            {DEBUG_MODE && onPreviewLookAway && (
               <button
                 onClick={onPreviewLookAway}
                 className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
@@ -130,7 +130,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
               </button>
             )}
             {/* On/Off only in production mode */}
-            {!DEV_MODE && (
+            {!DEBUG_MODE && (
               <button
                 onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
                 className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"

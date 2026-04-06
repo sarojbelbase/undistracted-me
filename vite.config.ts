@@ -2,9 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { crx } from '@crxjs/vite-plugin'
 import manifest from './public/manifest.json'
+import { obscureEnvKeys } from './plugins/obscureEnvKeys'
 
 export default defineConfig({
   plugins: [
+    // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
+    obscureEnvKeys([
+      'VITE_OWM_API_KEY',
+      'VITE_UNSPLASH_ACCESS_KEY',
+      'VITE_SPOTIFY_CLIENT_ID',
+      'VITE_GOOGLE_DESKTOP_CLIENT_ID',
+      'VITE_GOOGLE_DESKTOP_CLIENT_SECRET',
+    ]),
     react(),
     crx({ manifest }),
   ],

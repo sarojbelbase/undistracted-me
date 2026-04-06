@@ -1,56 +1,42 @@
 /**
  * Google People API — contacts birthdays & anniversaries
  *
- * Uses the same chrome.identity OAuth flow as googleCalendar.js.
- * Required manifest scope: https://www.googleapis.com/auth/contacts.readonly
- *
- * Cache shape (raw, no daysAway — computed at render time):
- *   [{ id, name, type, month, day }]
- *
- * `type` is one of: 'birthday' | 'anniversary' | 'other'
+ * Auth is handled by googleAuth.js which works on both Chrome and Firefox.
  */
+import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
 
 const PEOPLE_API = 'https://people.googleapis.com/v1/people/me/connections';
 const CACHE_KEY = 'contacts_birthdays_cache';
 const SYNCED_KEY = 'contacts_birthdays_synced_at';
 const DISCONNECTED_KEY = 'contacts_disconnected';
-
-// ─── Auth helpers (mirrors googleCalendar.js) ────────────────────────────────
-
-function isChromeIdentityAvailable() {
-  return typeof chrome !== 'undefined' && !!chrome.identity;
-}
-
-async function getAuthToken(interactive = true) {
-  if (!isChromeIdentityAvailable()) {
-    throw new Error('chrome.identity is not available');
-  }
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive }, (token) => { // eslint-disable-line no-undef
-      if (chrome.runtime.lastError) { // eslint-disable-line no-undef
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(token);
-      }
-    });
-  });
-}
-
-async function removeCachedToken(token) {
-  if (!isChromeIdentityAvailable()) return;
-  return new Promise((resolve) => {
-    chrome.identity.removeCachedAuthToken({ token }, resolve); // eslint-disable-line no-undef
-  });
-}
+// Non-sensitive boolean flag in localStorage so isContactsConnected() stays synchronous.
+const HAS_CACHE_FLAG = 'contacts_has_cache';
 
 // ─── Local cache ────────────────────────────────────────────────────────────
 
-export function loadCachedContacts() {
-  try {
-    return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
-  } catch {
-    return [];
+// Module-level memory cache — populated on first chrome.storage.local read.
+// Updated synchronously on every write/clear so subsequent reads are instant.
+let _contactsMemCache = null; // null = not yet loaded
+
+export async function loadCachedContacts() {
+  if (_contactsMemCache !== null) return _contactsMemCache;
+
+  // One-time migration from old localStorage copy.
+  const legacyRaw = localStorage.getItem(CACHE_KEY);
+  if (legacyRaw) {
+    try {
+      const legacy = JSON.parse(legacyRaw);
+      if (Array.isArray(legacy) && legacy.length > 0) {
+        await chrome.storage.local.set({ [CACHE_KEY]: legacy }); // eslint-disable-line no-undef
+        localStorage.setItem(HAS_CACHE_FLAG, '1');
+      }
+    } catch { /* ignore malformed data */ }
+    localStorage.removeItem(CACHE_KEY);
   }
+
+  const result = await chrome.storage.local.get(CACHE_KEY); // eslint-disable-line no-undef
+  _contactsMemCache = result[CACHE_KEY] ?? [];
+  return _contactsMemCache;
 }
 
 export function loadContactsSyncedAt() {
@@ -58,15 +44,17 @@ export function loadContactsSyncedAt() {
   return v ? Number(v) : null;
 }
 
-function saveCachedContacts(entries) {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
-    localStorage.setItem(SYNCED_KEY, String(Date.now()));
-  } catch { /* storage full — ignore */ }
+async function saveCachedContacts(entries) {
+  _contactsMemCache = entries; // update memory immediately
+  await chrome.storage.local.set({ [CACHE_KEY]: entries }); // eslint-disable-line no-undef
+  localStorage.setItem(HAS_CACHE_FLAG, '1');
+  localStorage.setItem(SYNCED_KEY, String(Date.now()));
 }
 
-export function clearContactsCache() {
-  localStorage.removeItem(CACHE_KEY);
+export async function clearContactsCache() {
+  _contactsMemCache = [];
+  await chrome.storage.local.remove(CACHE_KEY); // eslint-disable-line no-undef
+  localStorage.removeItem(HAS_CACHE_FLAG);
   localStorage.removeItem(SYNCED_KEY);
 }
 
@@ -187,20 +175,18 @@ function parseContacts(connections) {
 export async function getContactBirthdays(interactive = true) {
   let token;
   try {
-    token = await getAuthToken(interactive);
+    token = await getGoogleAuthToken(interactive);
     const connections = await fetchAllConnections(token);
     const entries = parseContacts(connections);
     saveCachedContacts(entries);
-    clearContactsDisconnectedFlag(); // user re-authorized — clear any disconnect flag
+    clearContactsDisconnectedFlag();
     return entries;
   } catch (err) {
-    // SERVICE_DISABLED: People API not enabled in GCP — don't retry, propagate immediately
     if (err.message === 'SERVICE_DISABLED') throw err;
-    // TOKEN_EXPIRED / SCOPE_INSUFFICIENT: remove stale token and force re-auth
     if ((err.message === 'TOKEN_EXPIRED' || err.message === 'SCOPE_INSUFFICIENT') && token) {
-      await removeCachedToken(token);
+      await removeGoogleAuthToken(token);
       try {
-        const freshToken = await getAuthToken(interactive);
+        const freshToken = await getGoogleAuthToken(interactive);
         const connections = await fetchAllConnections(freshToken);
         const entries = parseContacts(connections);
         saveCachedContacts(entries);
@@ -221,7 +207,7 @@ export async function getContactBirthdays(interactive = true) {
  */
 export function isContactsConnected() {
   if (isContactsDisconnected()) return false;
-  return loadCachedContacts().length > 0;
+  return localStorage.getItem(HAS_CACHE_FLAG) === '1';
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getCalendarEvents, isCalendarConnected, loadCachedGcalEvents, getGoogleProfile, loadCachedProfile, loadGcalSyncedAt } from '../utilities/googleCalendar';
+import { getCalendarEvents, isCalendarConnected, loadCachedGcalEvents, hasCachedGcalEvents, getGoogleProfile, loadCachedProfile, loadGcalSyncedAt } from '../utilities/googleCalendar';
 
 const STORAGE_KEY = 'widget_events';
 const SYNC_EVENT = 'widget_events_changed';
@@ -100,12 +100,20 @@ export const eventStartDate = (event) => {
  * gcal events have _source: 'gcal' — treat them as read-only (no delete).
  */
 export const useGoogleCalendar = () => {
-  const [gcalEvents, setGcalEvents] = useState(() => loadCachedGcalEvents());
+  const [gcalEvents, setGcalEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [connected, setConnected] = useState(() => loadCachedGcalEvents().length > 0);
+  // hasCachedGcalEvents() is synchronous — reads a non-PII localStorage flag.
+  const [connected, setConnected] = useState(() => hasCachedGcalEvents());
   const [error, setError] = useState(null);
   const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
   const fetchedRef = useRef(false);
+
+  // Load cached events from chrome.storage.local on mount (async).
+  useEffect(() => {
+    loadCachedGcalEvents().then(cached => {
+      if (cached.length > 0) setGcalEvents(cached);
+    });
+  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -117,7 +125,7 @@ export const useGoogleCalendar = () => {
       setSyncedAt(loadGcalSyncedAt());
       if (changed) setGcalEvents(events);
     } catch (err) {
-      const cached = loadCachedGcalEvents();
+      const cached = await loadCachedGcalEvents();
       if (cached.length > 0) {
         // Previously established connection — keep connected with stale data, don't alarm
         setConnected(true);
@@ -138,8 +146,7 @@ export const useGoogleCalendar = () => {
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    const cached = loadCachedGcalEvents();
-    if (cached.length > 0) {
+    if (hasCachedGcalEvents()) {
       // Already have cached data — refresh in background so data is fresh
       setConnected(true);
       refresh();
@@ -168,9 +175,11 @@ export const useGoogleCalendar = () => {
  * Loads from cache instantly, revalidates in the background.
  */
 export const useGoogleProfile = () => {
-  const [profile, setProfile] = useState(() => loadCachedProfile());
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
+    // Load cached profile from chrome.storage.local, then revalidate in background.
+    loadCachedProfile().then(p => { if (p) setProfile(p); });
     getGoogleProfile().then(p => { if (p) setProfile(p); });
   }, []);
 

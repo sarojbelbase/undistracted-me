@@ -175,13 +175,18 @@ const ListRow = ({ entry, isLast, highlight }) => {
 // ─── Main widget ──────────────────────────────────────────────────────────────
 
 export const Widget = ({ id, onRemove }) => {
-  const [raw, setRaw] = useState(() => loadCachedContacts());
+  const [raw, setRaw] = useState([]);
   const [manual, setManual] = useState(() => loadManualBirthdays());
   const [syncedAt, setSyncedAt] = useState(() => loadContactsSyncedAt());
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(() => isContactsConnected());
   const [error, setError] = useState(null);
   const [ageLabel, setAgeLabel] = useState(() => humanizeAge(loadContactsSyncedAt()));
+
+  // Load cached contacts from chrome.storage.local on mount (async).
+  useEffect(() => {
+    loadCachedContacts().then(entries => { if (entries.length > 0) setRaw(entries); });
+  }, []);
 
   // Re-tick the age label every 30s
   useEffect(() => {
