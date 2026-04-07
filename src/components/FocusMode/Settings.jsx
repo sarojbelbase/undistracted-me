@@ -111,7 +111,11 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
       {/* Appearance */}
       <GlassToggleRow
         label="Appearance"
-        options={[{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }]}
+        options={[
+          { id: 'light', label: 'Light' },
+          { id: 'auto', label: 'Auto' },
+          { id: 'dark', label: 'Dark' },
+        ]}
         value={mode}
         onChange={setMode}
       />
@@ -123,7 +127,7 @@ export const FocusModeSettings = ({ onRotatePhoto }) => {
         </p>
         <div className="grid grid-cols-6 gap-1.5">
           {ACCENT_COLORS.map(color => {
-            const locked = color.name === 'Default' && mode === 'dark';
+            const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
             return (
               <button
                 key={color.name}

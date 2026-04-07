@@ -6,6 +6,7 @@ import { LookAway } from './components/LookAway';
 import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
+import { useAutoTheme } from './utilities/useAutoTheme';
 
 // Settings and catalog are only ever opened on demand — lazy-load them.
 const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
@@ -16,10 +17,13 @@ const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
 
   // ── Zustand stores ─────────────────────────────────────────────────────────
-  const { mode, defaultView, lookAwayEnabled, lookAwayInterval, lookAwayNotify } = useSettingsStore();
+  const { mode, accent, defaultView, lookAwayEnabled, lookAwayInterval, lookAwayNotify } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
-  // Focus mode is either the user's stored default or an in-session toggle
+  // Resolves 'auto' mode to 'light'/'dark' based on sunrise/sunset;
+  // no-op (returns mode as-is) for explicit 'light' or 'dark' settings.
+  const effectiveMode = useAutoTheme(mode, accent);
+  const isDark = effectiveMode === 'dark';
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
   const [showLookAway, setShowLookAway] = useState(false);
 
@@ -63,8 +67,6 @@ const App = () => {
 
   const toggleSettings = () => setShowSettings((s) => !s);
   const closeSettings = () => setShowSettings(false);
-
-  const isDark = mode === 'dark';
 
   return (
     <div
@@ -179,6 +181,7 @@ const App = () => {
         <LookAway
           onDismiss={() => { setShowLookAway(false); clearLookAwayDue(); }}
           duration={20}
+          isDark={isDark}
         />
       )}
     </div>
