@@ -4,6 +4,7 @@ import { getTimeParts } from '../../widgets/clock/utils';
 import { useEvents, useGoogleCalendar } from '../../widgets/useEvents';
 import { useSettingsStore } from '../../store';
 import { getCurrentPlayback, isSpotifyConnected, setPlayPause, skipNext, skipPrev } from '../../widgets/spotify/utils';
+import { getWeatherIcon } from '../../widgets/weather/utils.jsx';
 import {
   getGregorianDateParts,
   getBikramSambatDateParts,
@@ -24,6 +25,8 @@ import { ClockDisplay } from './ClockDisplay';
 import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
+import { BackgroundModal, getCustomBgUrl } from './BackgroundModal';
+import { getBgSource, setBgSource } from '../../utilities/unsplash';
 
 export const FocusMode = ({ onExit }) => {
   const { dateFormat, clockFormat } = useSettingsStore();
@@ -37,12 +40,18 @@ export const FocusMode = ({ onExit }) => {
   const [spotifyProgress, setSpotifyProgress] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uiVisible, setUiVisible] = useState(true);
+  const [showBgModal, setShowBgModal] = useState(false);
+  const [bgSource, setBgSourceState] = useState(() => getBgSource());
+  const [customBgUrl, setCustomBgUrlState] = useState(() => getCustomBgUrl());
   const hideTimerRef = useRef(null);
 
   const weather = useFocusWeather();
   const stocks = useFocusStocks();
   const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
   const centerOnDark = useCenterOnDark(slotA, slotB, activeSlot);
+  // For non-curated sources (default image, custom URL) the background is
+  // always treated as dark so the clock never renders with white shadows.
+  const effectiveCenterOnDark = bgSource === 'curated' ? centerOnDark : true;
   const extraTimezones = useFocusTimezones();
 
   useWakeLock(isFullscreen);
@@ -171,19 +180,39 @@ export const FocusMode = ({ onExit }) => {
     return () => document.removeEventListener('keydown', handleKey);
   }, [onExit]);
 
+  // Background source change — called by BackgroundModal
+  const handleBgChange = useCallback((source, customUrl) => {
+    setBgSource(source);
+    setBgSourceState(source);
+    if (customUrl !== undefined) setCustomBgUrlState(customUrl);
+    else if (source !== 'custom') setCustomBgUrlState(null);
+  }, []);
+
   const leftHasContent = pomodoro || eventInfo || stocks.length > 0;
   const spotifyTrack = spotify ? { ...spotify, progressMs: spotifyProgress } : null;
   const photoColor = photo?.color || '#18191b';
   const bgStyle = { position: 'absolute', inset: 0, backgroundSize: 'cover', backgroundPosition: 'center' };
+
+  // Resolve the active background from the persisted source preference
+  const activeBg =
+    bgSource === 'custom' ? (customBgUrl || bgImage) :
+      bgSource === 'default' ? bgImage :
+        null; // 'curated' → use Unsplash crossfade slots
 
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ backgroundColor: photoColor }}
     >
-      {/* ── Background photo — two slots for crossfade (z 0/1) ── */}
-      <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
-      <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+      {/* ── Background photo — source drives what's shown ── */}
+      {bgSource === 'curated' ? (
+        <>
+          <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+          <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+        </>
+      ) : (
+        <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />
+      )}
 
       {/* ── Cinematic vignette (z 2) ── */}
       <div style={{
@@ -192,10 +221,10 @@ export const FocusMode = ({ onExit }) => {
       }} />
 
       {/* ── Clock (z 18) ── */}
-      <ClockDisplay parts={parts} centerOnDark={centerOnDark} />
+      <ClockDisplay parts={parts} centerOnDark={effectiveCenterOnDark} />
 
-      {/* ── Foreground depth overlay — gradient mask (z 15) ── */}
-      {(slotA || slotB) && (
+      {/* ── Foreground depth overlay — gradient mask (z 15) — curated only ── */}
+      {bgSource === 'curated' && (slotA || slotB) && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
           backgroundImage: activeSlot === 'a'
@@ -208,7 +237,7 @@ export const FocusMode = ({ onExit }) => {
       )}
 
       {/* ── Greeting (z 20) ── */}
-      <GreetingDisplay parts={parts} centerOnDark={centerOnDark} />
+      <GreetingDisplay parts={parts} centerOnDark={effectiveCenterOnDark} />
 
       {/* ── World clocks — right side ambient (z 22) ── */}
       {extraTimezones.length > 0 && (
@@ -234,23 +263,40 @@ export const FocusMode = ({ onExit }) => {
         isFullscreen={isFullscreen}
         toggleFullscreen={toggleFullscreen}
         uiVisible={uiVisible}
-        weather={weather}
-        dateParts={dateParts}
-        onRotatePhoto={rotate}
+        onOpenBgModal={() => setShowBgModal(true)}
       />
 
-      {/* ── Photo attribution (z 20) ── */}
-      {photo?.author && (
-        <div className="absolute bottom-3 right-4 pointer-events-auto" style={{ zIndex: 20 }} onClick={e => e.stopPropagation()}>
-          <a
-            href={photo.photoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.03em', textDecoration: 'none' }}
-          >
-            {photo.author} · Unsplash
-          </a>
-        </div>
+      {/* ── Weather + date — always visible, never hidden (z 31) ── */}
+      <div
+        className="fm-topbar-center"
+        style={{ zIndex: 31, top: 'calc(1.25rem + 2px)', pointerEvents: 'none', userSelect: 'none' }}
+      >
+        {weather && (
+          <>
+            <div style={{ filter: 'brightness(0) invert(1)', opacity: 0.65, display: 'flex', alignItems: 'center', marginRight: 6 }}>
+              {getWeatherIcon(weather.code, weather.isDay, 14)}
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '-0.01em' }}>
+              {weather.temperature}°{weather.unit === 'imperial' ? 'F' : 'C'}
+            </span>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', marginInline: 4 }}>·</span>
+          </>
+        )}
+        <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.01em', color: 'rgba(255,255,255,0.72)' }}>
+          {dateParts.dow}, {dateParts.month} {dateParts.day}
+        </span>
+        <span className="fm-topbar-year" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.36)', marginLeft: 7 }}>
+          {dateParts.year}
+        </span>
+      </div>
+
+      {/* ── Background modal (z 80) ── */}
+      {showBgModal && (
+        <BackgroundModal
+          onBgChange={handleBgChange}
+          onRotatePhoto={rotate}
+          onClose={() => setShowBgModal(false)}
+        />
       )}
     </div>
   );
