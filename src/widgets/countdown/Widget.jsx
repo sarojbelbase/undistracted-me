@@ -10,18 +10,19 @@ import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } 
 
 const STORAGE_KEY = 'countdown_events';
 // pinned: { type: 'event', eventId } | { type: 'custom', id } | null
-const PINNED_KEY = 'countdown_pinned';
+// PINNED_KEY is scoped per-instance so multiple countdown widgets can each pin a different event.
+const pinnedKey = (id) => `countdown_pinned_${id}`;
 
 const loadCustom = () => {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
   catch { return []; }
 };
 const saveCustom = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-const loadPinned = () => {
-  try { return JSON.parse(localStorage.getItem(PINNED_KEY) || 'null'); }
+const loadPinned = (id) => {
+  try { return JSON.parse(localStorage.getItem(pinnedKey(id)) || 'null'); }
   catch { return null; }
 };
-const savePinned = (p) => localStorage.setItem(PINNED_KEY, JSON.stringify(p));
+const savePinned = (id, p) => localStorage.setItem(pinnedKey(id), JSON.stringify(p));
 
 const makeId = () => `cd_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
@@ -286,9 +287,9 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
 };
 
 // ─── Main Widget ──────────────────────────────────────────────────────────────
-export const Widget = ({ onRemove }) => {
+export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
-  const [pinned, setPinnedState] = useState(loadPinned);
+  const [pinned, setPinnedState] = useState(() => loadPinned(id));
   const [, setTick] = useState(0);
 
   const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
@@ -310,8 +311,8 @@ export const Widget = ({ onRemove }) => {
 
   const setPin = useCallback((p) => {
     setPinnedState(p);
-    savePinned(p);
-  }, []);
+    savePinned(id, p);
+  }, [id]);
 
   const addCustom = useCallback((cd) => {
     setCustom(prev => { const next = [...prev, cd]; saveCustom(next); return next; });

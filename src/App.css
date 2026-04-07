@@ -18,6 +18,13 @@ body {
   font-family: 'Google Sans', sans-serif;
 }
 
+/* ── Time/date input — hide the native browser picker icon ──────────────── */
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 /* ── Global thin auto-hiding scrollbars ─────────────────────────────────── */
 /* Scrollbar rail is always reserved (no layout jump), thumb is invisible at rest */
 

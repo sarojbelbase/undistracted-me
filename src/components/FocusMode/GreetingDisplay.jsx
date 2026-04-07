@@ -11,8 +11,8 @@
 const shared = (centerOnDark) => ({
   fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
   textShadow: centerOnDark
-    ? '0 1px 14px rgba(0,0,0,0.8)'
-    : '0 1px 14px rgba(255,255,255,0.9)',
+    ? '0 1px 12px rgba(0,0,0,0.85), 0 4px 32px rgba(0,0,0,0.5)'
+    : '0 1px 12px rgba(255,255,255,0.95), 0 4px 24px rgba(255,255,255,0.7)',
 });
 
 export const GreetingDisplay = ({ parts, centerOnDark }) => (
@@ -28,7 +28,7 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
           ...shared(centerOnDark),
           fontWeight: 600,
           letterSpacing: '0.01em',
-          color: centerOnDark ? 'rgba(255,255,255,0.52)' : 'rgba(0,0,0,0.50)',
+          color: centerOnDark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.60)',
         }}
       >
         {parts.greeting.prefix}{' '}
@@ -39,7 +39,7 @@ export const GreetingDisplay = ({ parts, centerOnDark }) => (
           ...shared(centerOnDark),
           fontWeight: 700,
           letterSpacing: '-0.01em',
-          color: centerOnDark ? 'rgba(255,255,255,0.96)' : 'rgba(0,0,0,0.90)',
+          color: centerOnDark ? 'rgba(255,255,255,0.97)' : 'rgba(0,0,0,0.92)',
         }}
       >
         {parts.greeting.label}

@@ -12,11 +12,11 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
           fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
           fontWeight: 700,
           letterSpacing: '-0.02em',
-          color: centerOnDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.82)',
+          color: centerOnDark ? 'rgba(255,255,255,0.97)' : 'rgba(0,0,0,0.88)',
           lineHeight: 1,
           textShadow: centerOnDark
-            ? '0 1px 0 rgba(0,0,0,0.12), 0 4px 24px rgba(0,0,0,0.28)'
-            : '0 1px 0 rgba(255,255,255,0.3), 0 4px 24px rgba(255,255,255,0.5)',
+            ? '0 2px 4px rgba(0,0,0,0.5), 0 4px 32px rgba(0,0,0,0.72), 0 8px 64px rgba(0,0,0,0.4)'
+            : '0 1px 0 rgba(255,255,255,0.9), 0 2px 16px rgba(255,255,255,0.7), 0 4px 32px rgba(0,0,0,0.08)',
         }}
       >
         {parts.time.split('').map((char, i) =>
@@ -27,7 +27,7 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
                 fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
                 lineHeight: 1, height: '1em', display: 'flex', alignItems: 'center',
                 paddingBottom: '0.05em',
-                color: centerOnDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.52)',
+                color: centerOnDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.56)',
                 marginInline: '0.015em',
               }}
             >:</span>
@@ -47,10 +47,10 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
           position: 'absolute',
           left: 'calc(100% + 0.15em)',
           top: '0.3em',
-          color: centerOnDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)',
+          color: centerOnDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)',
           textShadow: centerOnDark
-            ? '0 1px 10px rgba(0,0,0,0.65)'
-            : '0 1px 10px rgba(255,255,255,0.8)',
+            ? '0 1px 8px rgba(0,0,0,0.7)'
+            : '0 1px 8px rgba(255,255,255,0.95)',
         }}>
           {parts.period}
         </span>

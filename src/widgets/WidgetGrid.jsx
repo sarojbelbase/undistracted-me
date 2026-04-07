@@ -69,15 +69,14 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
-  // Build layout items from current instances
+  // Build layout items from current instances — skip unknown types (no REG_MAP entry)
   const layoutItems = useMemo(() => {
     const savedMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
-    return (instances || []).map(({ id, type }) => {
-      if (savedMap[id]) return savedMap[id];
+    return (instances || []).flatMap(({ id, type }) => {
       const reg = REG_MAP[type];
-      return reg
-        ? { i: id, x: reg.x, y: Infinity, w: reg.w, h: reg.h }
-        : { i: id, x: 0, y: Infinity, w: 3, h: 3 };
+      if (!reg) return [];  // unknown type — skip to avoid ghost grid cells
+      if (savedMap[id]) return [savedMap[id]];
+      return [{ i: id, x: reg.x, y: Infinity, w: reg.w, h: reg.h }];
     });
   }, [instances, layouts]);
 
@@ -133,31 +132,35 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
         onDragStart={handleDragStart}
         onDragStop={handleDragStop}
       >
-        {(instances || []).map(({ id, type }) => (
-          <div
-            key={id}
-            className="group relative w-full h-full transition-opacity duration-200"
-            style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1 }}
-          >
-            {/* Drag handle — single notch pill with 3 dots in one row */}
+        {(instances || []).map(({ id, type }) => {
+          const widget = renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined);
+          if (!widget) return null;
+          return (
             <div
-              className="widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
+              key={id}
+              className="group relative w-full h-full transition-opacity duration-200"
+              style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1 }}
+            >
+              {/* Drag handle — single notch pill with 3 dots in one row */}
+              <div
+                className="widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
                   flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
                   cursor-grab active:cursor-grabbing select-none
                   opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', borderTop: 'none' }}
-              aria-label="Drag to move"
-            >
-              {[0, 1, 2, 3].map(i => (
-                <span key={i} className="block w-[3px] h-[3px] rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
-              ))}
+                style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', borderTop: 'none' }}
+                aria-label="Drag to move"
+              >
+                {[0, 1, 2, 3].map(i => (
+                  <span key={i} className="block w-[3px] h-[3px] rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
+                ))}
+              </div>
+              {/* Stop mousedown from bubbling to the rgl drag listener — only the handle above should initiate drag */}
+              <div className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
+                {widget}
+              </div>
             </div>
-            {/* Stop mousedown from bubbling to the rgl drag listener — only the handle above should initiate drag */}
-            <div className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
-              {renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </Responsive>
     </div>
   );
