@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { GearFill, ArrowsFullscreen, FullscreenExit } from 'react-bootstrap-icons';
-import { getWeatherIcon } from '../../widgets/weather/utils.jsx';
 
 const FocusModeSettings = lazy(() => import('./Settings').then(m => ({ default: m.FocusModeSettings })));
 
@@ -8,26 +7,9 @@ const FocusModeSettings = lazy(() => import('./Settings').then(m => ({ default: 
 // Desktop: center cluster is absolutely centered (doesn't push buttons)
 // Tablet/Phone: collapses to a single row; year + weather hidden on small screens
 
-// ─── Weather badge ────────────────────────────────────────────────────────────
-
-const WeatherTopBadge = ({ weather }) => {
-  if (!weather) return null;
-  return (
-    <div className="fm-topbar-weather" style={{ alignItems: 'center', gap: 6 }}>
-      <div style={{ filter: 'brightness(0) invert(1)', opacity: 0.65, display: 'flex', alignItems: 'center' }}>
-        {getWeatherIcon(weather.code, weather.isDay, 14)}
-      </div>
-      <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.78)', letterSpacing: '-0.01em' }}>
-        {weather.temperature}°{weather.unit === 'imperial' ? 'F' : 'C'}
-      </span>
-      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', marginInline: 4 }}>·</span>
-    </div>
-  );
-};
-
 // ─── Top bar ──────────────────────────────────────────────────────────────────
 
-export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weather, dateParts, onRotatePhoto }) => {
+export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal }) => {
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
 
@@ -72,17 +54,6 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
         <span className="text-[10px] font-semibold tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>Canvas</span>
       </button>
 
-      {/* Center: Weather · Date */}
-      <div className="fm-topbar-center">
-        <WeatherTopBadge weather={weather} />
-        <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.01em', color: 'rgba(255,255,255,0.72)' }}>
-          {dateParts.dow}, {dateParts.month} {dateParts.day}
-        </span>
-        <span className="fm-topbar-year" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.36)', marginLeft: 7 }}>
-          {dateParts.year}
-        </span>
-      </div>
-
       {/* Right: Fullscreen + Settings */}
       <div className="relative flex items-center" ref={settingsRef} onClick={e => e.stopPropagation()}>
         <div className="flex items-center rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(16px)' }}>
@@ -110,7 +81,7 @@ export const TopBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, weat
         </div>
         {showSettings && (
           <Suspense fallback={null}>
-            <FocusModeSettings onRotatePhoto={onRotatePhoto} />
+            <FocusModeSettings onOpenBgModal={onOpenBgModal} />
           </Suspense>
         )}
       </div>

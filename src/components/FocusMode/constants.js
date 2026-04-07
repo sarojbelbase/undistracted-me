@@ -82,10 +82,10 @@ export const formatEventStartTime = (event) => {
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 export const GLASS_CARD = {
-  background: 'rgba(6,7,9,0.56)',
-  backdropFilter: 'blur(22px)',
-  WebkitBackdropFilter: 'blur(22px)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(4,5,7,0.68)',
+  backdropFilter: 'blur(28px)',
+  WebkitBackdropFilter: 'blur(28px)',
+  border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: '14px',
 };
 

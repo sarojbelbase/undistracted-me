@@ -9,29 +9,19 @@
  *  - jumpToPhotoById(id)→ moves any photo to head without discarding others.
  *  - getPhotoLibrary()  → returns the full cached library.
  *
- * Requires: VITE_UNSPLASH_ACCESS_KEY in .env
+ * Photo source: Vercel curated proxy — VITE_PHOTOS_API_URL or the
+ *   hardcoded fallback undistractedme.vercel.app/api/photos/curated.
+ *
  * Attribution: per Unsplash ToS every photo carries author + link.
  */
 
-const ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || null;
+const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
+  || 'https://undistractedme.sarojbelbase.com.np/api/photos/curated';
+/** Shared secret sent as X-API-Key header to the Vercel proxy. */
+const PHOTOS_API_KEY = import.meta.env.VITE_PHOTOS_API_KEY || null;
+
 const CACHE_KEY = 'fm_unsplash_cache';
 export const LIBRARY_MAX = 10;        // max photos stored in library
-
-// Curated queries — calm, non-distracting imagery
-const QUERIES = [
-  'zen nature landscape',
-  'serene mountains mist',
-  'minimal ocean horizon',
-  'forest morning light',
-  'peaceful lake reflection',
-  'desert dunes golden hour',
-  'snow mountain valley',
-  'coastal cliffs sunrise',
-  'bamboo forest bokeh',
-  'autumn forest path',
-  'nordic fjord calm',
-  'misty hills green',
-];
 
 // ─── Cache helpers ────────────────────────────────────────────────────────────
 
@@ -45,62 +35,6 @@ const writeCache = (items) => {
   } catch { /* localStorage quota exceeded — silently skip */ }
 };
 
-// Pick a query we haven't used recently to maximise variety
-const pickQuery = (cache) => {
-  const usedQueries = new Set(cache.map(c => c.query).filter(Boolean));
-  const unused = QUERIES.filter(q => !usedQueries.has(q));
-  const pool = unused.length > 0 ? unused : QUERIES;
-  return pool[Math.floor(Math.random() * pool.length)];
-};
-
-// ─── Fetch ────────────────────────────────────────────────────────────────────
-
-let _fetchInFlight = false;
-
-/**
- * Fetches one photo from Unsplash and prepends it to the library.
- * @param {boolean} force — bypass the in-flight guard (for manual downloads)
- */
-const fetchOne = async (force = false) => {
-  if (!ACCESS_KEY) return null;
-  if (_fetchInFlight && !force) return null;
-  _fetchInFlight = true;
-
-  const cache = readCache();
-  const query = pickQuery(cache);
-
-  try {
-    const res = await fetch(
-      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&content_filter=high`,
-      { headers: { Authorization: `Client-ID ${ACCESS_KEY}` } },
-    );
-    if (!res.ok) return null;
-
-    const d = await res.json();
-    const item = {
-      id: d.id,
-      url: d.urls.full,
-      regular: d.urls.regular,
-      small: d.urls.small,
-      color: d.color || '#18191b',
-      author: d.user.name,
-      authorUrl: `${d.user.links.html}?utm_source=undistracted_me&utm_medium=referral`,
-      photoUrl: `${d.links.html}?utm_source=undistracted_me&utm_medium=referral`,
-      query,
-      cachedAt: Date.now(),
-    };
-
-    // Prepend, deduplicate by id, trim to LIBRARY_MAX
-    const fresh = readCache().filter(c => c.id !== item.id);
-    writeCache([item, ...fresh]);
-    return item;
-  } catch {
-    return null;
-  } finally {
-    _fetchInFlight = false;
-  }
-};
-
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -110,12 +44,10 @@ const fetchOne = async (force = false) => {
  */
 export const getCurrentPhoto = async () => {
   const cache = readCache();
-  if (cache.length > 0) {
-    if (cache.length < 3) fetchOne(); // background pre-warm
-    return cache[0];
-  }
-  // Library empty — must fetch
-  return fetchOne();
+  if (cache.length > 0) return cache[0];
+  // Library empty — download the curated set
+  const photos = await downloadCuratedPhotos();
+  return photos?.[0] || null;
 };
 
 /**
@@ -125,30 +57,20 @@ export const getCurrentPhoto = async () => {
  */
 export const rotatePhoto = async () => {
   const cache = readCache();
-  if (cache.length === 0) return fetchOne();
-
-  if (cache.length === 1) {
-    // Need another photo to rotate to — fetch one first
-    const newPhoto = await fetchOne();
-    if (!newPhoto) return cache[0]; // fetch failed, stay on current
-    // fetchOne prepended → library is now [new, old] — new is now showing
-    return readCache()[0];
+  if (cache.length === 0) {
+    const photos = await downloadCuratedPhotos();
+    return photos?.[0] || null;
   }
-
+  if (cache.length === 1) return cache[0]; // only one photo, stay on it
   // Cycle: head goes to tail
   writeCache([...cache.slice(1), cache[0]]);
-  const next = readCache()[0];
-  if (cache.length < 4) fetchOne(); // background pre-warm
-  return next;
+  return readCache()[0];
 };
 
-/**
- * Force-fetch a brand new photo from Unsplash and prepend it to the library.
- * Bypasses the in-flight guard — explicitly user-requested.
- */
+/** Re-download the curated set and return the first photo. */
 export const downloadNewPhoto = async () => {
-  _fetchInFlight = false;
-  return fetchOne(true);
+  const photos = await downloadCuratedPhotos();
+  return photos?.[0] || null;
 };
 
 /** Remove a photo from the library by id. */
@@ -171,7 +93,8 @@ export const jumpToPhotoById = (id) => {
 /** Returns the full photo library (all cached entries). */
 export const getPhotoLibrary = () => readCache();
 
-export const hasUnsplashKey = () => !!ACCESS_KEY;
+/** True when photo fetching is available (direct key OR proxy API). */
+export const hasUnsplashKey = () => !!PHOTOS_API_URL;
 export const clearPhotoCache = () => localStorage.removeItem(CACHE_KEY);
 export const getCachedPhotoSync = () => readCache()[0] || null;
 
@@ -180,11 +103,49 @@ export const getCachedPhotoSync = () => readCache()[0] || null;
  * opens instantly with a fresh image.
  */
 export const prewarmPhotos = async () => {
-  if (!ACCESS_KEY) return;
-  const cache = readCache();
-  const needed = Math.min(LIBRARY_MAX - cache.length, 2);
-  for (let i = 0; i < needed; i++) {
-    await fetchOne();
-    if (i < needed - 1) await new Promise(r => setTimeout(r, 300));
+  if (readCache().length > 0) return;
+  await downloadCuratedPhotos();
+};
+
+// ─── Background source ────────────────────────────────────────────────────────
+
+export const BG_SOURCE_KEY = 'fm_bg_source';
+
+/** Returns the active background source: 'default' | 'curated' | 'custom'. */
+export const getBgSource = () => {
+  try { return localStorage.getItem(BG_SOURCE_KEY) || 'default'; }
+  catch { return 'default'; }
+};
+
+/** Persists the background source choice. */
+export const setBgSource = (src) => {
+  try { localStorage.setItem(BG_SOURCE_KEY, src); }
+  catch { }
+};
+
+// ─── Download curated set ─────────────────────────────────────────────────────
+
+/**
+ * Fetch the complete curated photo list from the Vercel proxy and replace
+ * the local library with those photos.
+ *
+ * Returns the array of downloaded photos (may be fewer than 10 if the
+ * server returned errors), or null on network failure.
+ */
+export const downloadCuratedPhotos = async () => {
+  const headers = {};
+  if (PHOTOS_API_KEY) headers['X-API-Key'] = PHOTOS_API_KEY;
+
+  try {
+    const res = await fetch(PHOTOS_API_URL, { headers });
+    if (!res.ok) return null;
+    const photos = await res.json();
+    if (!Array.isArray(photos) || photos.length === 0) return null;
+
+    const stamped = photos.map(p => ({ ...p, cachedAt: Date.now() }));
+    writeCache(stamped);
+    return stamped;
+  } catch {
+    return null;
   }
 };

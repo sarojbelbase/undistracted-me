@@ -10,14 +10,14 @@ import { useSettingsStore } from '../../store';
 // regardless of the app's light/dark mode preference.
 const getTheme = (_mode) => ({
   card: GLASS_CARD,
-  label: 'rgba(255,255,255,0.48)',
-  text: 'rgba(255,255,255,0.88)',
-  sub: 'rgba(255,255,255,0.62)',
-  track: 'rgba(255,255,255,0.10)',
-  btnBg: 'rgba(255,255,255,0.14)',
-  btnBorder: 'rgba(255,255,255,0.14)',
-  btnColor: 'rgba(255,255,255,0.88)',
-  btnIcon: 'rgba(255,255,255,0.55)',
+  label: 'rgba(255,255,255,0.60)',
+  text: 'rgba(255,255,255,0.96)',
+  sub: 'rgba(255,255,255,0.74)',
+  track: 'rgba(255,255,255,0.14)',
+  btnBg: 'rgba(255,255,255,0.18)',
+  btnBorder: 'rgba(255,255,255,0.18)',
+  btnColor: 'rgba(255,255,255,0.95)',
+  btnIcon: 'rgba(255,255,255,0.65)',
 });
 
 // ─── Card entry animation (spring-in from below, staggered) ──────────────────

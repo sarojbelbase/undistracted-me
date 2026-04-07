@@ -21,24 +21,66 @@ const parentDomain = (hostname) => {
   return parts.length > 2 ? parts.slice(1).join('.') : null;
 };
 
+// Without fallback_opts=TYPE,SIZE, gstatic returns HTTP 404 (not the grey globe)
+// when it finds no favicon — that fires onError and cascades to the next source.
+// This is the primary fix for all platforms: Chrome, Firefox, and web.
 const gstaticFavicon = (origin) =>
-  `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE&url=${encodeURIComponent(origin)}&size=128`;
+  `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&url=${encodeURIComponent(origin)}&size=128`;
 
 const buildSources = (url) => {
   const hostname = getHostname(url);
   const origin = `https://${hostname}/`;
   const parent = parentDomain(hostname);
   const sources = [];
+  // 1. gstatic for origin (404s when no real favicon found → onError cascades)
   sources.push(gstaticFavicon(origin));
+  // 2. gstatic for parent domain (covers subdomains like app.example.com)
   if (parent) sources.push(gstaticFavicon(`https://${parent}/`));
+  // 3. Direct /favicon.ico — works without any external service
+  sources.push(`${origin}favicon.ico`);
+  // 4. Chrome extension favicon API (extension context only)
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     sources.push(`chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=64`);
   }
+  // 5. Empty string → letter initial fallback
   sources.push('');
   return sources;
 };
 
 // Favicon with cascade fallback. key={url+iconMode} at usage site forces remount on any change.
+
+/**
+ * Returns true when an image looks like the gstatic "no favicon found" default
+ * (a grey globe / generic icon). Samples pixel data via canvas and rejects any
+ * image whose opaque pixels are almost entirely greyscale (avg saturation < 0.10).
+ * This threshold is intentionally tight — real brand icons almost always have
+ * noticeable colour even when they appear "neutral" (e.g. grayscale logos still
+ * tend to have slight tonal variation). The grey gstatic placeholder has ~0 sat.
+ */
+const looksLikeDefaultIcon = (imgEl) => {
+  try {
+    const SIZE = 24;
+    const canvas = document.createElement('canvas');
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgEl, 0, 0, SIZE, SIZE);
+    const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
+    let satSum = 0, opaque = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 64) continue;
+      opaque++;
+      const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      satSum += max === 0 ? 0 : (max - min) / max;
+    }
+    if (opaque === 0) return true; // fully transparent → default
+    return (satSum / opaque) < 0.10;
+  } catch {
+    return false;
+  }
+};
+
 const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
   const [idx, setIdx] = useState(0);
   const sources = React.useMemo(() => buildSources(url), [url]);
@@ -79,10 +121,12 @@ const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
     <img
       key={src}
       src={src}
-      alt=""
-      style={{ width: size, height: size }}
+      alt="" crossOrigin="anonymous" style={{ width: size, height: size }}
       className="rounded-lg object-contain"
-      onLoad={(e) => { if (onColor) extractColorFromUrl(e.currentTarget.src, onColor); }}
+      onLoad={(e) => {
+        if (looksLikeDefaultIcon(e.currentTarget)) { setIdx(i => i + 1); return; }
+        if (onColor) extractColorFromUrl(e.currentTarget.src, onColor);
+      }}
       onError={() => setIdx(i => i + 1)}
     />
   );

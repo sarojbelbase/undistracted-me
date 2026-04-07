@@ -159,6 +159,11 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
   useEffect(() => {
     const url = activeSlot === 'a' ? slotA : slotB;
     if (!url) return;
+
+    // Immediately assume dark (safe default) while the analysis runs, so the
+    // white-shadow style never flashes on during a transition.
+    setCenterOnDark(true);
+
     let cancelled = false;
     const img = new Image();
     img.crossOrigin = 'anonymous';

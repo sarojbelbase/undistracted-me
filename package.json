@@ -20,6 +20,7 @@
 		"test:report": "playwright show-report tests/playwright/report"
 	},
 	"dependencies": {
+		"@vercel/blob": "^2.3.3",
 		"dayjs": "^1.11.20",
 		"react": "^19.2.4",
 		"react-bootstrap-icons": "^1.11.6",
