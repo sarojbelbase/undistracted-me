@@ -45,7 +45,7 @@ function buildBuckets(data) {
     if (!buckets[key]) buckets[key] = { r, g, b, count: 0, sat, lum };
     buckets[key].count += a / 255;
   }
-  return { buckets, totalOpaque, transparentCount, darkCount, lumSum };
+  return { buckets, totalOpaque, transparentCount, darkCount };
 }
 
 function pickBestColor(entries, pool) {
@@ -64,13 +64,22 @@ function runExtraction(img, onColor) {
     const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
     const totalPixels = SIZE * SIZE;
 
-    const { buckets, totalOpaque, transparentCount, darkCount, lumSum } = buildBuckets(data);
+    const { buckets, totalOpaque, transparentCount, darkCount } = buildBuckets(data);
     if (totalOpaque === 0) return;
     const entries = Object.values(buckets);
 
-    // 1. Mostly-transparent icon: infer a contrasting solid background
+    // 1. Mostly-transparent icon (e.g. Spotify green logo on transparent background).
+    //    Don't synthesise a flat black/white — run the vibrant selector on the brand
+    //    pixels themselves so Spotify gets its green, GitHub gets its dark grey, etc.
     if (transparentCount / totalPixels > 0.45) {
-      onColor(lumSum / totalOpaque > 0.45 ? '#111111' : '#f5f5f5');
+      // Skip the dark-dominant early exit; just do vibrant/fallback directly on opaque pixels
+      const vibrantPoolT = entries.filter(
+        (e) => e.lum >= 0.2 && e.sat > 0.25 && wcagY(e.r, e.g, e.b) <= 0.5,
+      );
+      let poolT = vibrantPoolT.length > 0 ? vibrantPoolT : entries.filter((e) => e.lum >= 0.15);
+      if (poolT.length === 0) poolT = entries;
+      const bestT = pickBestColor(entries, poolT);
+      if (bestT) onColor(`rgb(${bestT.r},${bestT.g},${bestT.b})`);
       return;
     }
 

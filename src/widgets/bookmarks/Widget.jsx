@@ -5,7 +5,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { extractColorFromUrl, nameToColor } from './utils';
+import { extractColorFromUrl } from './utils';
 
 const normalizeUrl = (url) => (url.startsWith('http') ? url : `https://${url}`);
 
@@ -44,14 +44,14 @@ const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
   const sources = React.useMemo(() => buildSources(url), [url]);
   const letter = getDefaultName(url).charAt(0).toUpperCase();
 
-  // Letter mode — no network fetch, no color extraction (Widget handles bg color)
+  // Letter mode — no network fetch, design-system accent colour fills the card.
   if (iconMode === 'letter') {
     return (
       <span
         className="font-black select-none"
         style={{
           fontSize: Math.round(size * 0.58) + 'px',
-          color: 'rgba(255,255,255,0.92)',
+          color: 'var(--w-accent-fg)',
           lineHeight: 1,
           letterSpacing: '-0.02em',
           textShadow: '0 1px 4px rgba(0,0,0,0.18)',
@@ -177,8 +177,9 @@ export const Widget = ({ id, onRemove }) => {
   // Reset / recompute background colour whenever url or iconMode changes
   useEffect(() => {
     if (iconMode === 'letter') {
-      const label = name || (url ? getDefaultName(url) : '');
-      setBgColor(label ? nameToColor(label) : null);
+      // Use accent CSS variable — set as string so BaseWidget inlines it.
+      // The letter colour uses var(--w-accent-fg) which is guaranteed to contrast.
+      setBgColor('var(--w-accent)');
     } else {
       setBgColor(null); // favicon onLoad callback will set it
     }
