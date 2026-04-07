@@ -21,7 +21,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
+        gap: '2px',
         width: '100%',
         boxSizing: 'border-box',
         borderRadius: '12px',
