@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BaseWidget } from "../BaseWidget";
+import { extractColorFromUrl } from "../bookmarks/utils";
 
 const getHostname = (url) => {
   try { return new URL(url).hostname; } catch { return url; }
@@ -32,13 +33,14 @@ const buildSources = (url) => {
   const origin = `https://${hostname}/`;
   const parent = parentDomain(hostname);
   const sources = [];
-  if (typeof chrome !== "undefined" && chrome.runtime?.id) {
-    sources.push(
-      `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=64`
-    );
-  }
+  // gstatic first: fetches real web favicons without needing site history
   sources.push(gstaticFavicon(origin));
   if (parent) sources.push(gstaticFavicon(`https://${parent}/`));
+  if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+    sources.push(
+      `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=128`
+    );
+  }
   sources.push("");  // sentinel → letter
   return sources;
 };
@@ -46,35 +48,17 @@ const buildSources = (url) => {
 const cleanTitle = (raw, url) => {
   if (!raw) return getDefaultName(url);
   const t = raw
-    .replace(/\(\d+\)\s*/g, "")
+    .replaceAll(/\(\d+\)\s*/g, "")
     .replace(/\s*[-|]\s+.+/, "")
     .trim();
   return t || getDefaultName(url);
 };
 
-const extractDominantRgb = (imgEl) => {
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 8; canvas.height = 8;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(imgEl, 0, 0, 8, 8);
-    const data = ctx.getImageData(0, 0, 8, 8).data;
-    let r = 0, g = 0, b = 0, count = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i + 3] > 128) { r += data[i]; g += data[i + 1]; b += data[i + 2]; count++; }
-    }
-    if (!count) return null;
-    return `${Math.round(r / count)},${Math.round(g / count)},${Math.round(b / count)}`;
-  } catch { return null; }
-};
-
 const Favicon = ({ url, onColor }) => {
   const [idx, setIdx] = useState(0);
-  // Sources are stable for a given url — recalculate only when url changes
   const sources = React.useMemo(() => buildSources(url), [url]);
   const letter = getDefaultName(url).charAt(0).toUpperCase();
 
-  // Reset cascade when url changes
   useEffect(() => { setIdx(0); }, [url]);
 
   const src = sources[idx];
@@ -87,11 +71,6 @@ const Favicon = ({ url, onColor }) => {
     );
   }
 
-  const handleLoad = (e) => {
-    const rgb = extractDominantRgb(e.currentTarget);
-    if (rgb) onColor(rgb);
-  };
-
   return (
     <img
       key={src}
@@ -99,8 +78,9 @@ const Favicon = ({ url, onColor }) => {
       alt=""
       width={22}
       height={22}
+      crossOrigin="anonymous"
       className="rounded-sm object-contain"
-      onLoad={handleLoad}
+      onLoad={(e) => extractColorFromUrl(e.currentTarget.src, onColor)}
       onError={() => setIdx((i) => i + 1)}
     />
   );
@@ -108,7 +88,7 @@ const Favicon = ({ url, onColor }) => {
 
 // Named group/tile — hover scoped to individual tile only
 const Tile = ({ href, url, title }) => {
-  const [rgb, setRgb] = useState(null);
+  const [color, setColor] = useState(null);
 
   return (
     <a
@@ -119,12 +99,15 @@ const Tile = ({ href, url, title }) => {
     >
       <div
         className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 group-hover/tile:scale-110 group-active/tile:scale-95"
-        style={{
-          backgroundColor: rgb ? `rgba(${rgb},0.16)` : "var(--w-surface-2)",
-          border: rgb ? `1px solid rgba(${rgb},0.38)` : "1px solid var(--w-border)",
+        style={color ? {
+          backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
+        } : {
+          backgroundColor: 'var(--w-surface-2)',
+          border: '1px solid var(--w-border)',
         }}
       >
-        <Favicon url={url} onColor={setRgb} />
+        <Favicon url={url} onColor={setColor} />
       </div>
       <span
         className="w-full text-center truncate px-0.5"
