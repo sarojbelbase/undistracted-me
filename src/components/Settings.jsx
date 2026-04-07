@@ -1,4 +1,4 @@
-import { SunFill, MoonFill, CheckLg } from 'react-bootstrap-icons';
+import { SunFill, MoonFill, CheckLg, CircleHalf } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
 import { useSettingsStore } from '../store';
 
@@ -11,8 +11,6 @@ const CoffeeIcon = () => (
     <line x1="14" y1="2" x2="14" y2="4" />
   </svg>
 );
-
-const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
 export const Settings = ({ closeSettings, onPreviewLookAway }) => {
   const {
@@ -65,7 +63,11 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
         <div>
           <SectionLabel>Appearance</SectionLabel>
           <div className="flex gap-1.5">
-            {[{ id: 'light', icon: <SunFill size={11} /> }, { id: 'dark', icon: <MoonFill size={11} /> }].map(({ id, icon }) => (
+            {[
+              { id: 'light', icon: <SunFill size={11} /> },
+              { id: 'auto', icon: <CircleHalf size={11} /> },
+              { id: 'dark', icon: <MoonFill size={11} /> },
+            ].map(({ id, icon }) => (
               <button
                 key={id}
                 onClick={() => setMode(id)}
@@ -73,6 +75,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
                 style={mode === id
                   ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
                   : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+                title={id === 'auto' ? 'Auto — follows sunrise & sunset' : id.charAt(0).toUpperCase() + id.slice(1)}
               >
                 {icon}{id.charAt(0).toUpperCase() + id.slice(1)}
               </button>
@@ -87,7 +90,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
           </SectionLabel>
           <div className="flex flex-wrap gap-2">
             {ACCENT_COLORS.map(color => {
-              const locked = color.name === 'Default' && mode === 'dark';
+              const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
               return (
                 <button
                   key={color.name}
@@ -119,8 +122,8 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
             <span className="flex items-center gap-1.5"><CoffeeIcon />Look Away</span>
           </SectionLabel>
           <div className="flex items-center gap-1.5">
-            {/* Preview button only in dev mode */}
-            {DEBUG_MODE && onPreviewLookAway && (
+            {/* Preview button — always shown when handler provided */}
+            {onPreviewLookAway && (
               <button
                 onClick={onPreviewLookAway}
                 className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
@@ -129,18 +132,16 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
                 Preview
               </button>
             )}
-            {/* On/Off only in production mode */}
-            {!DEBUG_MODE && (
-              <button
-                onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
-                className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
-                style={lookAwayEnabled
-                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-              >
-                {lookAwayEnabled ? 'On' : 'Off'}
-              </button>
-            )}
+            {/* On/Off toggle — always shown */}
+            <button
+              onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
+              className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
+              style={lookAwayEnabled
+                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+            >
+              {lookAwayEnabled ? 'On' : 'Off'}
+            </button>
           </div>
         </div>
         {lookAwayEnabled && (

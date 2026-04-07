@@ -435,8 +435,10 @@ const RingProgress = ({ progress, orbRgb }) => {
 
 // ─── Ghost text button (no border, no band) ───────────────────────────────────
 
-const GhostBtn = ({ onClick, children }) => {
+const GhostBtn = ({ onClick, children, isDark }) => {
   const [hovered, setHovered] = useState(false);
+  const base = isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.28)';
+  const hover = isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.72)';
   return (
     <button
       type="button"
@@ -455,7 +457,7 @@ const GhostBtn = ({ onClick, children }) => {
         fontWeight: 600,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: hovered ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.28)',
+        color: hovered ? hover : base,
         transition: 'color 0.3s ease',
         outline: 'none',
         userSelect: 'none',
@@ -468,7 +470,7 @@ const GhostBtn = ({ onClick, children }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const LookAway = ({ onDismiss, duration = 20 }) => {
+export const LookAway = ({ onDismiss, duration = 20, isDark = true }) => {
   const [remaining, setRemaining] = useState(duration);
   const [timeLabel, setTimeLabel] = useState(getTimeLabel);
   const [isExiting, setIsExiting] = useState(false);
@@ -518,6 +520,20 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
     ? 'lookaway-out 0.5s cubic-bezier(0.4,0,1,1) forwards'
     : 'lookaway-in 0.7s cubic-bezier(0.16,1,0.3,1) both';
 
+  // ── Theme-aware colour tokens ─────────────────────────────────────────────
+  const bg = isDark ? '#060608' : '#f5f5f7';
+  const titleColor = isDark ? '#ffffff' : '#0a0a0c';
+  const subtitleRgba = isDark ? 'rgba(255,255,255,0.36)' : 'rgba(0,0,0,0.38)';
+  const timelabelRgba = isDark
+    ? `rgba(${orbRgb},0.55)`
+    : `rgba(${orbRgb},0.70)`;
+  const timerRgba = isDark ? `rgba(${orbRgb},0.7)` : `rgba(${orbRgb},0.8)`;
+  const orbOpacity1 = isDark ? 0.38 : 0.28;
+  const orbOpacity2 = isDark ? 0.22 : 0.16;
+  const orbOpacity3 = isDark ? 0.16 : 0.10;
+  const vignetteStart = isDark ? 'rgba(4,4,6,0.65)' : 'rgba(245,245,247,0.55)';
+  const vignetteEnd = isDark ? 'rgba(2,2,4,0.92)' : 'rgba(240,240,242,0.90)';
+
   return createPortal(
     <div
       role="dialog"
@@ -531,7 +547,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#060608',
+        background: bg,
         animation: anim,
         overflow: 'hidden',
       }}
@@ -561,7 +577,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           top: 'calc(50vh - 35vmin)',
           left: 'calc(50vw - 35vmin)',
           borderRadius: '50%',
-          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)`,
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},${orbOpacity1}) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)`,
           filter: 'blur(52px)',
           animation: 'lookaway-bloom 8s ease-in-out infinite',
         }} />
@@ -573,7 +589,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           top: 'calc(10vh - 5vmin)',
           right: 'calc(8vw - 5vmin)',
           borderRadius: '50%',
-          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)`,
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},${orbOpacity2}) 0%, transparent 65%)`,
           filter: 'blur(64px)',
         }} />
         {/* Tertiary orb — offset bottom-left, counter-rotation */}
@@ -584,7 +600,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           bottom: 'calc(8vh - 5vmin)',
           left: 'calc(6vw - 5vmin)',
           borderRadius: '50%',
-          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)`,
+          background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},${orbOpacity3}) 0%, transparent 62%)`,
           filter: 'blur(80px)',
           animation: 'lookaway-orb-counter 32s linear infinite',
           transformOrigin: '50% 50%',
@@ -603,13 +619,13 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         }}
       />
 
-      {/* ── Deep vignette — crushes edges to near-black ───────────────────── */}
+      {/* ── Deep vignette — crushes edges to match background ─────────────── */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, rgba(4,4,6,0.65) 65%, rgba(2,2,4,0.92) 100%)',
+          background: `radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, ${vignetteStart} 65%, ${vignetteEnd} 100%)`,
           pointerEvents: 'none',
         }}
       />
@@ -622,7 +638,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           left: 0,
           right: 0,
           textAlign: 'center',
-          color: `rgba(${orbRgb},0.55)`,
+          color: timelabelRgba,
           fontSize: '0.62rem',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
@@ -649,7 +665,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         {/* Title — airy, light weight, high contrast */}
         <h1
           style={{
-            color: '#ffffff',
+            color: titleColor,
             fontSize: 'clamp(2.4rem, 5.5vw, 4.2rem)',
             fontWeight: 200,
             letterSpacing: '-0.01em',
@@ -664,7 +680,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
         {/* Subtitle — softer, mid-weight */}
         <p
           style={{
-            color: 'rgba(255,255,255,0.36)',
+            color: subtitleRgba,
             fontSize: '1rem',
             fontWeight: 400,
             letterSpacing: '0.01em',
@@ -682,7 +698,7 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           aria-live="polite"
           aria-label={`${remaining} seconds remaining`}
           style={{
-            color: `rgba(${orbRgb},0.7)`,
+            color: timerRgba,
             fontSize: 'clamp(1.7rem, 3.2vw, 2.6rem)',
             fontFamily: "'SF Mono','Fira Code','Consolas',monospace",
             fontWeight: 300,
@@ -708,12 +724,12 @@ export const LookAway = ({ onDismiss, duration = 20 }) => {
           animation: 'lookaway-rise 1s ease-out 0.3s both',
         }}
       >
-        <GhostBtn onClick={dismiss}>
+        <GhostBtn onClick={dismiss} isDark={isDark}>
           <RingProgress progress={progress} orbRgb={orbRgb} />
           Skip
         </GhostBtn>
 
-        <GhostBtn onClick={handleLockScreen}>
+        <GhostBtn onClick={handleLockScreen} isDark={isDark}>
           <LockFill size={11} style={{ opacity: 0.65 }} />
           Lock Screen
         </GhostBtn>

@@ -72,11 +72,15 @@ export const useSettingsStore = create(
 
       setMode: (mode) => {
         const prevAccent = get().accent;
-        // 'Default' accent is not valid in dark mode
+        // 'Default' accent is only valid in explicit light mode.
+        // In 'dark' or 'auto' (which can resolve to dark at night) swap to Blueberry.
         const accent =
-          mode === 'dark' && prevAccent === 'Default' ? 'Blueberry' : prevAccent;
+          (mode === 'dark' || mode === 'auto') && prevAccent === 'Default'
+            ? 'Blueberry'
+            : prevAccent;
         set({ mode, accent });
-        applyTheme(accent, mode);
+        // For 'auto', theme will be applied by useAutoTheme hook after mount.
+        if (mode !== 'auto') applyTheme(accent, mode);
       },
 
       setDefaultView: (defaultView) => set({ defaultView }),

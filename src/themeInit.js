@@ -2,7 +2,12 @@
  * Theme initialisation — runs as the very first module import in index.jsx.
  * Sets data-mode and CSS variables on <html> from localStorage before React
  * renders, preventing a light-flash on dark-mode page loads.
+ *
+ * 'auto' mode is resolved synchronously here using cached coordinates
+ * (or Kathmandu fallback) so there is no flash when the page loads at night.
  */
+
+import { computeAutoMode } from './utilities/sunTime';
 
 const ACCENTS = {
   Default: { hex: '#111827', fg: '#ffffff' },
@@ -39,6 +44,9 @@ try {
     mode = localStorage.getItem('app_mode') || 'light';
     accentName = localStorage.getItem('app_accent') || 'Default';
   }
+
+  // Resolve 'auto' synchronously before painting — uses cached coords or Kathmandu
+  if (mode === 'auto') mode = computeAutoMode();
 
   const accent = ACCENTS[accentName] || ACCENTS.Default;
   const dark = mode === 'dark';
