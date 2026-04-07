@@ -7,6 +7,7 @@ import calendarConfig from './calendar/config';
 import countdownConfig from './countdown/config';
 import notesConfig from './notes/config';
 import bookmarksConfig from './bookmarks/config';
+import quickAccessConfig from './quickAccess/config';
 import pomodoroConfig from './pomodoro/config';
 import spotifyConfig from './spotify/config';
 import factsConfig from './facts/config';
@@ -22,6 +23,7 @@ export { Widget as CalendarWidget } from './calendar/Widget';
 export { Widget as CountdownWidget } from './countdown/Widget';
 export { Widget as NotesWidget } from './notes/Widget';
 export { Widget as BookmarksWidget } from './bookmarks/Widget';
+export { Widget as QuickAccessWidget } from './quickAccess/Widget';
 export { Widget as PomodoroWidget } from './pomodoro/Widget';
 export { Widget as SpotifyWidget } from './spotify/Widget';
 export { Widget as FactsWidget } from './facts/Widget';
@@ -37,7 +39,8 @@ export const WIDGET_TYPES = Object.freeze({
   CALENDAR: 'calendar',
   COUNTDOWN: 'countdown',
   NOTES: 'notes',
-  BOOKMARKS: 'bookmarks',
+  BOOKMARKS: 'bookmark',
+  QUICK_ACCESS: 'quickAccess',
   POMODORO: 'pomodoro',
   SPOTIFY: 'spotify',
   FACTS: 'facts',
@@ -64,6 +67,7 @@ export const WIDGET_REGISTRY = [
   { ...weatherConfig, enabled: true, category: 'info', icon: 'CloudSunFill', description: 'Local weather & forecast' },
   { ...factsConfig, enabled: true, category: 'info', icon: 'LightbulbFill', description: 'Daily interesting fact' },
   { ...bookmarksConfig, enabled: true, category: 'tools', icon: 'BookmarkStarFill', description: 'Quick-access bookmarks' },
+  { ...quickAccessConfig, enabled: true, category: 'tools', icon: 'Grid3x3GapFill', description: 'Top visited sites dock' },
   { ...spotifyConfig, enabled: true, category: 'tools', icon: 'MusicNoteBeamed', description: 'Spotify playback controls' },
   { ...stockConfig, enabled: true, category: 'info', icon: 'GraphUpArrow', description: 'NEPSE stock watchlist' },
   { ...occasionsConfig, enabled: true, category: 'planning', icon: 'BalloonFill', description: 'Birthdays, anniversaries & special occasions' },

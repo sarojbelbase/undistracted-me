@@ -38,11 +38,13 @@
     "storage",
     "geolocation",
     "topSites",
+    "favicon",
     "notifications",
     "alarms",
     "tabs"
   ],
   "host_permissions": [
+    "https://t1.gstatic.com/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
     "https://nepalipaisa.com/*",

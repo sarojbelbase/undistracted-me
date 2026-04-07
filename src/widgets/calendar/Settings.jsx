@@ -1,4 +1,4 @@
-import { RadioGroup } from '../../components/ui/RadioGroup';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 
 const CALENDAR_TYPES = [
   { label: 'Bikram Sambat (B.S.)', value: 'bs' },
@@ -6,8 +6,7 @@ const CALENDAR_TYPES = [
 ];
 
 export const Settings = ({ id, calendarType, onChange }) => (
-  <RadioGroup
-    name={`${id}-calendar-type`}
+  <SegmentedControl
     label="Calendar Format"
     options={CALENDAR_TYPES}
     value={calendarType}

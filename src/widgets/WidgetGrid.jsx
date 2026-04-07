@@ -15,6 +15,7 @@ import {
   CountdownWidget,
   NotesWidget,
   BookmarksWidget,
+  QuickAccessWidget,
   PomodoroWidget,
   SpotifyWidget,
   FactsWidget,
@@ -46,6 +47,7 @@ const renderWidget = (id, type, onRemove) => {
     case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.NOTES: return <NotesWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.BOOKMARKS: return <BookmarksWidget id={id} onRemove={onRemove} />;
+    case WIDGET_TYPES.QUICK_ACCESS: return <QuickAccessWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.POMODORO: return <PomodoroWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget id={id} onRemove={onRemove} />;
     case WIDGET_TYPES.FACTS: return <FactsWidget id={id} onRemove={onRemove} />;

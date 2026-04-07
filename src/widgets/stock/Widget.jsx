@@ -250,8 +250,8 @@ export const Widget = ({ id, onRemove }) => {
         {RefreshBtn}
       </div>
 
-      {/* ── Body ── */}
-      <div className="flex flex-col flex-1 px-3 pb-0">
+      {/* ── Body — natural height, never flex-stretched ── */}
+      <div className="shrink-0 px-3 pb-0">
         {/* Price */}
         <div className="flex items-baseline gap-2 mt-0.5">
           <span
@@ -284,13 +284,13 @@ export const Widget = ({ id, onRemove }) => {
         </div>
 
         {/* O / H / L — always visible in single-stock view */}
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 mt-1.5">
+        <div className="grid grid-cols-3 items-baseline gap-x-2 mt-1.5">
           {[
             { label: 'O', val: chart?.open },
             { label: 'H', val: chart?.high },
             { label: 'L', val: chart?.low },
           ].map(({ label, val }) => (
-            <div key={label} className="flex items-baseline gap-1">
+            <div key={label} className="flex items-baseline gap-0.5">
               <span className="font-medium shrink-0" style={{ fontSize: ohlSize, color: inkMuted }}>{label}</span>
               <span className="tabular-nums shrink-0 transition-colors duration-300" style={{ fontSize: ohlSize, color: isDead ? inkMuted : 'var(--w-ink-3)' }}>
                 {val != null ? fmtOHL(val) : '—'}
@@ -300,8 +300,11 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       </div>
 
-      {/* ── Sparkline — always rendered, dead state when no data ── */}
-      <div className="shrink-0 mt-auto" style={{ lineHeight: 0 }}>
+      {/* Elastic gap — fills available space when card is tall, collapses to 0 when short */}
+      <div className="flex-1 min-h-0" />
+
+      {/* ── Sparkline — always rendered at full height, never clipped ── */}
+      <div className="shrink-0" style={{ lineHeight: 0 }}>
         <Sparkline prices={chart?.prices ?? []} dir={stats?.dir ?? 'flat'} dead={isDead} />
       </div>
     </BaseWidget>
