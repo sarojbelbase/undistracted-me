@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { GeoAlt, XCircleFill } from 'react-bootstrap-icons';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { SettingsInput } from '../../components/ui/SettingsInput';
 
 const API_KEY = import.meta.env.VITE_OWM_API_KEY || null;
 
@@ -89,49 +90,27 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }
       <div className="flex flex-col gap-2">
         <span className="w-label">Location</span>
 
-        <div
-          ref={inputWrapRef}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            width: '100%',
-            boxSizing: 'border-box',
-            borderRadius: '12px',
-            padding: '0 12px',
-            height: '40px',
-            backgroundColor: 'var(--w-surface-2)',
-          }}
-        >
-          <GeoAlt size={13} style={{ color: 'var(--w-ink-5)', flexShrink: 0 }} />
-          <input
-            type="text"
-            placeholder="Search city…"
-            value={query}
-            onChange={e => handleInput(e.target.value)}
-            onFocus={() => setFocused(true)}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontSize: '12px',
-              background: 'transparent',
-              outline: 'none',
-              border: 'none',
-              color: 'var(--w-ink-1)',
-              caretColor: 'var(--w-accent)',
-            }}
-          />
-          {query && (
-            <button
-              onClick={clearLocation}
-              className="shrink-0 transition-opacity hover:opacity-60 cursor-pointer"
-              style={{ color: 'var(--w-ink-5)', background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
-              aria-label="Clear location"
-            >
-              <XCircleFill size={12} />
-            </button>
-          )}
-        </div>
+        <SettingsInput
+          wrapperRef={inputWrapRef}
+          icon={<GeoAlt size={13} />}
+          type="text"
+          placeholder="Search city…"
+          value={query}
+          onChange={e => handleInput(e.target.value)}
+          onFocus={() => setFocused(true)}
+          suffix={
+            query ? (
+              <button
+                onClick={clearLocation}
+                className="shrink-0 transition-opacity hover:opacity-60 cursor-pointer"
+                style={{ color: 'var(--w-ink-5)', background: 'none', border: 'none', padding: 0, lineHeight: 0 }}
+                aria-label="Clear location"
+              >
+                <XCircleFill size={12} />
+              </button>
+            ) : null
+          }
+        />
 
         {/* Helper text */}
         <p className="text-[11px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>

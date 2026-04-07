@@ -6,7 +6,7 @@ import {
   ClockFill, CalendarDateFill, BarChartFill, HourglassSplit,
   CalendarEventFill, Calendar3, StopwatchFill, StickyFill,
   CloudSunFill, LightbulbFill, BookmarkStarFill, MusicNoteBeamed,
-  GraphUpArrow, InfoCircleFill, GearFill,
+  GraphUpArrow, InfoCircleFill, GearFill, BalloonFill, Grid3x3GapFill,
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { exportSettings, importFromFile, resetSettings } from './settingsIO';
@@ -16,7 +16,7 @@ const ICON_MAP = {
   ClockFill, CalendarDateFill, BarChartFill, HourglassSplit,
   CalendarEventFill, Calendar3, StopwatchFill, StickyFill,
   CloudSunFill, LightbulbFill, BookmarkStarFill, MusicNoteBeamed,
-  GraphUpArrow,
+  GraphUpArrow, BalloonFill, Grid3x3GapFill,
 };
 
 const WidgetIcon = ({ name, size = 14 }) => {

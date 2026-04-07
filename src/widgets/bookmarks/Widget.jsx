@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { PlusLg, XLg, DashLg, BookmarkFill } from 'react-bootstrap-icons';
+import React, { useState, useEffect, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
+import { BaseSettingsModal } from '../BaseSettingsModal';
 import { useWidgetSettings } from '../useWidgetSettings';
+import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Popup } from '../../components/ui/Popup';
 
 const normalizeUrl = (url) => (url.startsWith('http') ? url : `https://${url}`);
 
@@ -12,198 +13,207 @@ const getHostname = (url) => {
 
 const getDefaultName = (url) => getHostname(url).replace(/^www\./, '');
 
-const getFaviconUrl = (url) => {
-  const host = getHostname(url);
-  return `https://www.google.com/s2/favicons?sz=64&domain=${host}`;
+// Strip one subdomain level for favicon fallback
+const parentDomain = (hostname) => {
+  const parts = hostname.split('.');
+  return parts.length > 2 ? parts.slice(1).join('.') : null;
 };
 
-const AddModal = ({ onSave, onClose }) => {
-  const [url, setUrl] = useState('');
-  const [name, setName] = useState('');
-  const [nameTouched, setNameTouched] = useState(false);
+const gstaticFavicon = (origin) =>
+  `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE&url=${encodeURIComponent(origin)}&size=64`;
 
-  const handleUrlBlur = () => {
-    if (!nameTouched && url.trim()) setName(getDefaultName(url));
-  };
+const buildSources = (url) => {
+  const hostname = getHostname(url);
+  const origin = `https://${hostname}/`;
+  const parent = parentDomain(hostname);
+  const sources = [];
+  if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
+    sources.push(`chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=64`);
+  }
+  sources.push(gstaticFavicon(origin));
+  if (parent) sources.push(gstaticFavicon(`https://${parent}/`));
+  sources.push('');
+  return sources;
+};
 
-  const handleSave = () => {
-    if (!url.trim()) return;
-    const finalUrl = normalizeUrl(url.trim());
-    onSave({ id: Date.now(), url: finalUrl, name: (name.trim() || getDefaultName(url)), favicon: getFaviconUrl(finalUrl) });
-    onClose();
-  };
+// Large favicon with cascade fallback — same strategy as Quick Access
+// key={url} on the usage site forces a full remount on URL change so idx
+// starts at 0 immediately rather than after a useEffect cycle.
+const FaviconHero = ({ url, size = 40 }) => {
+  const [idx, setIdx] = useState(0);
+  const sources = React.useMemo(() => buildSources(url), [url]);
+  const letter = getDefaultName(url).charAt(0).toUpperCase();
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
-      <div className="rounded-2xl shadow-2xl p-5 w-72 animate-fade-in" style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <span className="w-heading">Add Bookmark</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}>
-            <XLg size={14} />
-          </button>
-        </div>
-        <div className="flex flex-col gap-3">
-          <div>
-            <label htmlFor="bm-url" className="w-label mb-1 block">URL</label>
-            <input
-              id="bm-url"
-              autoFocus
-              type="url"
-              placeholder="https://example.com"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              onBlur={handleUrlBlur}
-              onKeyDown={e => e.key === 'Enter' && handleSave()}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-none transition-colors"
-              style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
-            />
-          </div>
-          <div>
-            <label htmlFor="bm-name" className="w-label mb-1 block">Name</label>
-            <input
-              id="bm-name"
-              type="text"
-              placeholder="My site"
-              value={name}
-              onChange={e => { setName(e.target.value); setNameTouched(true); }}
-              onKeyDown={e => e.key === 'Enter' && handleSave()}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-none transition-colors"
-              style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-1.5 text-sm transition-colors" style={{ color: 'var(--w-ink-4)' }}>Cancel</button>
-          <button
-            onClick={handleSave}
-            disabled={!url.trim()}
-            className="px-4 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-40"
-            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >Save</button>
-        </div>
-      </div>
-    </div>,
-    document.body
+  const src = sources[idx];
+
+  if (src === '') {
+    return (
+      <span
+        className="font-bold select-none"
+        style={{ fontSize: Math.round(size * 0.5) + 'px', color: 'var(--w-ink-2)', lineHeight: 1 }}
+      >
+        {letter}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      key={src}
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      className="rounded-lg object-contain"
+      onError={() => setIdx(i => i + 1)}
+    />
   );
 };
 
-const Chip = ({ href, favicon, name, onRemove }) => (
-  <div
-    className="group flex items-center rounded-xl text-xs font-medium transition-all"
-    style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)', border: '1px solid var(--w-border)' }}
-  >
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center gap-2 pl-3 py-1.5 hover:opacity-80 transition-opacity"
-      style={{ color: 'var(--w-ink-1)' }}
-    >
-      {favicon && (
-        <img
-          src={favicon}
-          alt=""
-          className="w-4 h-4 rounded-sm shrink-0"
-          onError={e => { e.currentTarget.style.display = 'none'; }}
+// Settings panel rendered inside BaseSettingsModal
+const BookmarkSettings = ({ url, name, onSave }) => {
+  // Keep only the part after the protocol for the display input
+  const stripProtocol = (u) => (u || '').replace(/^https?:\/\//, '');
+
+  const [path, setPath] = useState(() => stripProtocol(url));
+  const [localName, setLocalName] = useState(name || '');
+
+  const fullUrl = path.trim() ? `https://${path.trim()}` : '';
+
+  const handleBlur = () => {
+    if (!localName.trim() && path.trim()) {
+      try { setLocalName(getDefaultName(fullUrl)); } catch { }
+    }
+  };
+
+  const canSave = Boolean(path.trim());
+
+  const handleSave = () => {
+    if (!canSave) return;
+    const u = normalizeUrl(fullUrl);
+    const n = localName.trim() || getDefaultName(u);
+    onSave(u, n);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1.5">
+        <label className="w-label">URL</label>
+        <SettingsInput
+          autoFocus
+          prefix="https://"
+          value={path}
+          onChange={e => setPath(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={e => e.key === 'Enter' && handleSave()}
+          placeholder="facebook.com"
         />
-      )}
-      <span className="max-w-25 truncate">{name}</span>
-    </a>
-    {onRemove ? (
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="w-label">Name</label>
+        <SettingsInput
+          placeholder={path.trim() ? getDefaultName(fullUrl) : 'Facebook'}
+          value={localName}
+          onChange={e => setLocalName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSave()}
+        />
+      </div>
       <button
-        onClick={onRemove}
-        className="px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center"
-        style={{ color: 'var(--w-ink-4)' }}
-        title="Remove"
+        onClick={handleSave}
+        disabled={!canSave}
+        className="w-full px-4 py-2 text-xs rounded-xl font-semibold transition-opacity disabled:opacity-40 hover:opacity-90"
+        style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
       >
-        <DashLg size={14} />
+        Save
       </button>
-    ) : (
-      <div className="pr-3" />
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { bookmarks: [] });
-  const { bookmarks } = settings;
-  const [topSites, setTopSites] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
+  const [settings, updateSetting] = useWidgetSettings(id, { url: '', name: '' });
+  const [showSettings, setShowSettings] = useState(false);
+  const [anchor, setAnchor] = useState(null);
+  const linkRef = useRef(null);
+  const { url, name } = settings;
 
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.topSites) {
-      chrome.topSites.get(sites => setTopSites((sites || []).slice(0, 8)));
-    }
-  }, []);
+  const hasUrl = Boolean(url && url !== 'https://');
+  const displayName = name || (hasUrl ? getDefaultName(url) : 'Bookmark');
+  const hostname = hasUrl ? getHostname(url) : '';
 
-  const addBookmark = (bm) => updateSetting('bookmarks', [...bookmarks, bm]);
-  const removeBookmark = (id) => updateSetting('bookmarks', bookmarks.filter(b => b.id !== id));
+  const handleSave = (u, n) => {
+    updateSetting('url', u);
+    updateSetting('name', n);
+    setShowSettings(false);
+  };
 
-  const hasTopSites = topSites.length > 0;
-  const hasBookmarks = bookmarks.length > 0;
+  // Both the ⋯ menu and the + button open identical BaseSettingsModal
+  const settingsContent = (onClose) => (
+    <BookmarkSettings url={url} name={name} onSave={(u, n) => { handleSave(u, n); onClose(); }} />
+  );
 
   return (
     <>
-      <BaseWidget className="px-4 py-3 flex flex-col gap-2.5" onRemove={onRemove}>
-
-        {/* Most Visited */}
-        {hasTopSites && (
-          <div>
-            <p className="w-label mb-1.5">Most Visited</p>
-            <div className="flex flex-wrap gap-1.5">
-              {topSites.map(site => (
-                <Chip
-                  key={site.url}
-                  href={site.url}
-                  favicon={getFaviconUrl(site.url)}
-                  name={site.title || getDefaultName(site.url)}
-                />
-              ))}
-            </div>
-          </div>
+      <BaseWidget
+        settingsContent={settingsContent}
+        settingsTitle="Bookmark"
+        onRemove={onRemove}
+      >
+        {!hasUrl ? (
+          // Empty state — + button, opens same central modal
+          <button
+            onClick={() => setShowSettings(true)}
+            onMouseDown={e => e.stopPropagation()}
+            aria-label="Add bookmark"
+            className="flex-1 self-stretch flex items-center justify-center transition-opacity hover:opacity-70 active:opacity-40"
+            style={{ color: 'var(--w-ink-4)' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="7" y="1" width="2" height="14" rx="1" />
+              <rect x="1" y="7" width="14" height="2" rx="1" />
+            </svg>
+          </button>
+        ) : (
+          <a
+            ref={linkRef}
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={displayName}
+            className="flex-1 self-stretch flex items-center justify-center outline-none transition-opacity hover:opacity-80 active:opacity-60"
+            onMouseDown={e => e.stopPropagation()}
+            onMouseEnter={() => {
+              if (!linkRef.current) return;
+              const r = linkRef.current.getBoundingClientRect();
+              setAnchor({ left: r.left, top: r.top, bottom: r.bottom, width: r.width, height: r.height });
+            }}
+            onMouseLeave={() => setAnchor(null)}
+          >
+            <FaviconHero key={url} url={url} size={40} />
+          </a>
         )}
 
-        {/* Divider */}
-        {hasTopSites && (
-          <div className="shrink-0" style={{ height: 1, backgroundColor: 'var(--w-border)' }} />
+        {/* Hover popup — portalled via Popup, so it escapes overflow:hidden */}
+        {anchor && (
+          <Popup anchor={anchor} className="px-3 py-2.5 gap-1 max-w-[200px]">
+            <span className="text-xs font-semibold leading-snug" style={{ color: 'var(--w-ink-1)' }}>
+              {displayName}
+            </span>
+            <span className="text-[10px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>
+              {hostname}
+            </span>
+          </Popup>
         )}
-
-        {/* Pinned bookmarks */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="w-label">Pinned</p>
-            <button
-              onClick={() => setShowAdd(true)}
-              onMouseDown={e => e.stopPropagation()}
-              className="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
-              style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-            >
-              <PlusLg size={12} />
-            </button>
-          </div>
-
-          {hasBookmarks ? (
-            <div className="flex flex-wrap gap-1.5 overflow-y-auto">
-              {bookmarks.map(bm => (
-                <Chip
-                  key={bm.id}
-                  href={bm.url}
-                  favicon={bm.favicon}
-                  name={bm.name}
-                  onRemove={() => removeBookmark(bm.id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 py-1">
-              <BookmarkFill size={12} className="opacity-20" />
-              <span className="w-muted">Hit + to pin a site</span>
-            </div>
-          )}
-        </div>
       </BaseWidget>
-      {showAdd && <AddModal onSave={addBookmark} onClose={() => setShowAdd(false)} />}
+
+      {/* + button opens the same modal as ⋯ → Settings */}
+      {showSettings && (
+        <BaseSettingsModal title="Bookmark" onClose={() => setShowSettings(false)}>
+          <div className="px-4 pb-4">
+            <BookmarkSettings url={url} name={name} onSave={handleSave} />
+          </div>
+        </BaseSettingsModal>
+      )}
     </>
   );
 };
-

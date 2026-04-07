@@ -1,6 +1,6 @@
 export default {
-  id: 'bookmarks',
-  type: 'bookmarks',
-  label: 'Bookmarks',
-  x: 0, y: 6, w: 4, h: 3,
+  id: 'bookmark',
+  type: 'bookmark',
+  label: 'Bookmark',
+  x: 0, y: 4, w: 0.7, h: 0.9,
 };

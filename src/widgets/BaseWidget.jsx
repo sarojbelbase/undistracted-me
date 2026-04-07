@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { BaseSettingsModal } from './BaseSettingsModal';
 
 /**
@@ -24,17 +25,47 @@ export const BaseWidget = forwardRef(({ children,
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const menuRef = useRef(null);
+  const btnRef = useRef(null);
+  const dropRef = useRef(null);
+  // Computed drop position — null until measured
+  const [dropStyle, setDropStyle] = useState(null);
 
-  // Close context menu on outside click
+  // Close context menu on outside click — check both button and portal dropdown
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
+      // Close if click is outside the ⋯ button AND outside the portal dropdown
+      const inBtn = menuRef.current?.contains(e.target);
+      const inDrop = dropRef.current?.contains(e.target);
+      if (!inBtn && !inDrop) setMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  // When the dropdown mounts, measure it and compute the best position before paint
+  useLayoutEffect(() => {
+    if (!menuOpen || !dropRef.current || !btnRef.current) return;
+    const M = 8; // min gap from viewport edge
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const btn = btnRef.current.getBoundingClientRect();
+    const { width: dw, height: dh } = dropRef.current.getBoundingClientRect();
+
+    // Horizontal: prefer aligning right edge with button's right edge; flip left if needed
+    let left = btn.right - dw;
+    if (left < M) left = btn.left; // flip to align left edges
+    left = Math.max(M, Math.min(left, vw - dw - M));
+
+    // Vertical: prefer below button; flip above when more space there
+    const spaceBelow = vh - btn.bottom - M;
+    const spaceAbove = btn.top - M;
+    let top = (spaceBelow >= dh || spaceBelow >= spaceAbove)
+      ? btn.bottom + 4
+      : btn.top - dh - 4;
+    top = Math.max(M, Math.min(top, vh - dh - M));
+
+    setDropStyle({ position: 'fixed', zIndex: 9999, top, left });
   }, [menuOpen]);
 
   const hasMenu = settingsContent || onRemove;
@@ -48,11 +79,12 @@ export const BaseWidget = forwardRef(({ children,
         {children}
       </div>
 
-      {/* Three-dots context menu — floats outside card, top-right corner */}
+      {/* Three-dots button — absolute top-right corner of the widget */}
       {hasMenu && (
         <div ref={menuRef} className="absolute z-20" style={{ top: -14, right: -14 }}>
           <button
-            onClick={() => setMenuOpen(s => !s)}
+            ref={btnRef}
+            onClick={() => { setDropStyle(null); setMenuOpen(s => !s); }}
             onMouseDown={e => e.stopPropagation()}
             className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150"
             style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
@@ -66,42 +98,46 @@ export const BaseWidget = forwardRef(({ children,
               <circle cx="12" cy="2" r="1.5" />
             </svg>
           </button>
-
-          {menuOpen && (
-            <div
-              role="menu"
-              className="absolute right-0 top-9 z-40 rounded-xl shadow-lg py-1 animate-fade-in"
-              style={{
-                backgroundColor: 'var(--w-surface)',
-                border: '1px solid var(--w-border)',
-                minWidth: 130,
-              }}
-            >
-              {settingsContent && (
-                <button
-                  role="menuitem"
-                  onClick={() => { setMenuOpen(false); setModalOpen(true); }}
-                  onMouseDown={e => e.stopPropagation()}
-                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--w-ink-1)' }}
-                >
-                  Settings
-                </button>
-              )}
-              {onRemove && (
-                <button
-                  role="menuitem"
-                  onClick={() => { setMenuOpen(false); onRemove(); }}
-                  onMouseDown={e => e.stopPropagation()}
-                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
-                  style={{ color: '#ef4444' }}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          )}
         </div>
+      )}
+
+      {/* Dropdown — rendered via portal so it escapes the grid-item CSS transform */}
+      {hasMenu && menuOpen && createPortal(
+        <div
+          ref={dropRef}
+          role="menu"
+          className="rounded-xl shadow-lg py-1 animate-fade-in"
+          style={{
+            ...(dropStyle ?? { position: 'fixed', opacity: 0, pointerEvents: 'none', zIndex: 9999 }),
+            backgroundColor: 'var(--w-surface)',
+            border: '1px solid var(--w-border)',
+            minWidth: 130,
+          }}
+        >
+          {settingsContent && (
+            <button
+              role="menuitem"
+              onClick={() => { setMenuOpen(false); setModalOpen(true); }}
+              onMouseDown={e => e.stopPropagation()}
+              className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+              style={{ color: 'var(--w-ink-1)' }}
+            >
+              Settings
+            </button>
+          )}
+          {onRemove && (
+            <button
+              role="menuitem"
+              onClick={() => { setMenuOpen(false); onRemove(); }}
+              onMouseDown={e => e.stopPropagation()}
+              className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+              style={{ color: '#ef4444' }}
+            >
+              Remove
+            </button>
+          )}
+        </div>,
+        document.body
       )}
 
       {/* Settings modal */}
