@@ -79,7 +79,24 @@ export const getCoords = () =>
     ),
   );
 
-// ── Open-Meteo API ────────────────────────────────────────────────────────────
+/**
+ * Reverse-geocode {lat, lon} → city name using OSM Nominatim (free, no key).
+ * Returns the suburb/town/city/county closest to the point, or ''.
+ */
+export const reverseGeocode = async (lat, lon) => {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      { signal: AbortSignal.timeout(5000), headers: { 'Accept-Language': 'en' } },
+    );
+    if (!r.ok) return '';
+    const d = await r.json();
+    const a = d.address || {};
+    return (a.suburb || a.neighbourhood || a.town || a.city || a.county || a.state || '');
+  } catch {
+    return '';
+  }
+};
 
 /**
  * Single Open-Meteo call — returns current + 12h hourly forecast.
