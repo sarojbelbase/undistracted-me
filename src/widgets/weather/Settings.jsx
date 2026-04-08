@@ -4,14 +4,17 @@ import { GeoAlt, XCircleFill } from 'react-bootstrap-icons';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 
-const API_KEY = import.meta.env.VITE_OWM_API_KEY || null;
-
 const UNIT_OPTIONS = [
   { label: '°C', value: 'metric' },
   { label: '°F', value: 'imperial' },
 ];
 
-export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }) => {
+const STYLE_OPTIONS = [
+  { label: 'Simple', value: 'simple' },
+  { label: 'Expressive', value: 'expressive' },
+];
+
+export const Settings = ({ location, onChange, locationDenied, unit = 'metric', style = 'simple' }) => { // style: 'simple' | 'expressive'
   const [query, setQuery] = useState(location?.name || '');
   const [suggestions, setSuggestions] = useState([]);
   const [focused, setFocused] = useState(false);
@@ -54,19 +57,19 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }
     clearTimeout(debounceRef.current);
     if (val.length < 2) { setSuggestions([]); return; }
     debounceRef.current = setTimeout(() => {
-      fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(val)}&limit=5&appid=${API_KEY}`)
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=5&language=en&format=json`)
         .then(r => r.json())
-        .then(results => setSuggestions(results || []))
+        .then(res => setSuggestions(res.results || []))
         .catch(() => setSuggestions([]));
     }, 350);
   };
 
   const select = (item) => {
-    const name = [item.name, item.state, item.country].filter(Boolean).join(', ');
+    const name = [item.name, item.admin1, item.country].filter(Boolean).join(', ');
     setQuery(name);
     setSuggestions([]);
     setFocused(false);
-    onChange('location', { name, lat: item.lat, lon: item.lon });
+    onChange('location', { name, lat: item.latitude, lon: item.longitude });
   };
 
   const clearLocation = () => {
@@ -77,6 +80,14 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }
 
   return (
     <div className="flex flex-col gap-5">
+
+      {/* ── Display style ── */}
+      <SegmentedControl
+        label="Display"
+        options={STYLE_OPTIONS}
+        value={style}
+        onChange={(v) => onChange('style', v)}
+      />
 
       {/* ── Temperature unit ── */}
       <SegmentedControl
@@ -129,7 +140,7 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric' }
           style={{ ...dropdownStyle, backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
         >
           {suggestions.map((item, i) => {
-            const name = [item.name, item.state, item.country].filter(Boolean).join(', ');
+            const name = [item.name, item.admin1, item.country].filter(Boolean).join(', ');
             return (
               <li
                 key={i}

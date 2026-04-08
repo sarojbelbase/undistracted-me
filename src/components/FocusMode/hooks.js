@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { API_KEY, getCoords, fetchWeatherByCoords, parseWeather } from '../../widgets/weather/utils.jsx';
+import { getCoords, fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { fetchChart } from '../../widgets/stock/utils';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
@@ -9,7 +9,6 @@ import { useWidgetInstancesStore } from '../../store';
 export const useFocusWeather = () => {
   const [weather, setWeather] = useState(null);
   useEffect(() => {
-    if (!API_KEY) return;
     let location = null, unit = 'metric';
     try {
       // Try fixed legacy key first, then scan instances for the actual UUID-based key
@@ -27,13 +26,14 @@ export const useFocusWeather = () => {
         let lat, lon;
         if (location) { lat = location.lat; lon = location.lon; }
         else { try { ({ lat, lon } = await getCoords()); } catch { return; } }
-        const data = await fetchWeatherByCoords(lat, lon, unit);
-        setWeather({ ...parseWeather(data), unit });
+        const cityName = location?.name || '';
+        const data = await fetchOpenMeteo(lat, lon, unit);
+        setWeather({ ...parseWeather(data, cityName), unit });
       } catch { }
     };
     load();
-    const id = setInterval(load, 30 * 60_000);
-    return () => clearInterval(id);
+    const timerId = setInterval(load, 30 * 60_000);
+    return () => clearInterval(timerId);
   }, []);
   return weather;
 };
@@ -157,8 +157,10 @@ export const useWakeLock = (active) => {
 export const useCenterOnDark = (slotA, slotB, activeSlot) => {
   const [centerOnDark, setCenterOnDark] = useState(true);
   useEffect(() => {
+    // slotA/slotB hold CDN image URLs (p.regular). Never use the Unsplash page
+    // URL (p.url) here — that origin blocks cross-origin canvas reads.
     const url = activeSlot === 'a' ? slotA : slotB;
-    if (!url) return;
+    if (!url || url.includes('unsplash.com/photos/')) return;
 
     // Immediately assume dark (safe default) while the analysis runs, so the
     // white-shadow style never flashes on during a transition.
