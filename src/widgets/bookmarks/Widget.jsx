@@ -5,86 +5,21 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { extractColorFromUrl } from './utils';
+import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { extractColorFromUrl, getDefaultName, buildFaviconSources, faviconCache, cacheFavicon, getHostname } from './utils';
 
 const normalizeUrl = (url) => (url.startsWith('http') ? url : `https://${url}`);
 
-const getHostname = (url) => {
-  try { return new URL(normalizeUrl(url)).hostname; } catch { return url; }
-};
-
-const getDefaultName = (url) => getHostname(url).replace(/^www\./, '');
-
-// Strip one subdomain level for favicon fallback
-const parentDomain = (hostname) => {
-  const parts = hostname.split('.');
-  return parts.length > 2 ? parts.slice(1).join('.') : null;
-};
-
-// Without fallback_opts=TYPE,SIZE, gstatic returns HTTP 404 (not the grey globe)
-// when it finds no favicon — that fires onError and cascades to the next source.
-// This is the primary fix for all platforms: Chrome, Firefox, and web.
-const gstaticFavicon = (origin) =>
-  `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&url=${encodeURIComponent(origin)}&size=128`;
-
-const buildSources = (url) => {
-  const hostname = getHostname(url);
-  const origin = `https://${hostname}/`;
-  const parent = parentDomain(hostname);
-  const sources = [];
-  // 1. gstatic for origin (404s when no real favicon found → onError cascades)
-  sources.push(gstaticFavicon(origin));
-  // 2. gstatic for parent domain (covers subdomains like app.example.com)
-  if (parent) sources.push(gstaticFavicon(`https://${parent}/`));
-  // 3. Direct /favicon.ico — works without any external service
-  sources.push(`${origin}favicon.ico`);
-  // 4. Chrome extension favicon API (extension context only)
-  if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
-    sources.push(`chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=64`);
-  }
-  // 5. Empty string → letter initial fallback
-  sources.push('');
-  return sources;
-};
-
 // Favicon with cascade fallback. key={url+iconMode} at usage site forces remount on any change.
 
-/**
- * Returns true when an image looks like the gstatic "no favicon found" default
- * (a grey globe / generic icon). Samples pixel data via canvas and rejects any
- * image whose opaque pixels are almost entirely greyscale (avg saturation < 0.10).
- * This threshold is intentionally tight — real brand icons almost always have
- * noticeable colour even when they appear "neutral" (e.g. grayscale logos still
- * tend to have slight tonal variation). The grey gstatic placeholder has ~0 sat.
- */
-const looksLikeDefaultIcon = (imgEl) => {
-  try {
-    const SIZE = 24;
-    const canvas = document.createElement('canvas');
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(imgEl, 0, 0, SIZE, SIZE);
-    const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
-    let satSum = 0, opaque = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i + 3] < 64) continue;
-      opaque++;
-      const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
-      const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      satSum += max === 0 ? 0 : (max - min) / max;
-    }
-    if (opaque === 0) return true; // fully transparent → default
-    return (satSum / opaque) < 0.10;
-  } catch {
-    return false;
-  }
-};
-
 const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
+  const hostname = getHostname(url);
   const [idx, setIdx] = useState(0);
-  const sources = React.useMemo(() => buildSources(url), [url]);
+  const [loaded, setLoaded] = useState(false);
+  const sources = React.useMemo(() => buildFaviconSources(url, size), [url, size]);
   const letter = getDefaultName(url).charAt(0).toUpperCase();
+
+  useEffect(() => { setIdx(0); setLoaded(false); }, [url]);
 
   // Letter mode — no network fetch, design-system accent colour fills the card.
   if (iconMode === 'letter') {
@@ -107,6 +42,7 @@ const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
   const src = sources[idx];
 
   if (src === '') {
+    if (!faviconCache.has(hostname)) cacheFavicon(hostname, '');
     return (
       <span
         className="font-bold select-none"
@@ -118,17 +54,27 @@ const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
   }
 
   return (
-    <img
-      key={src}
-      src={src}
-      alt="" crossOrigin="anonymous" style={{ width: size, height: size }}
-      className="rounded-lg object-contain"
-      onLoad={(e) => {
-        if (looksLikeDefaultIcon(e.currentTarget)) { setIdx(i => i + 1); return; }
-        if (onColor) extractColorFromUrl(e.currentTarget.src, onColor);
-      }}
-      onError={() => setIdx(i => i + 1)}
-    />
+    <div className="relative" style={{ width: size, height: size }}>
+      {!loaded && (
+        <div
+          className="absolute inset-0 rounded-lg animate-pulse"
+          style={{ backgroundColor: 'var(--w-surface-3)' }}
+        />
+      )}
+      <img
+        key={src}
+        src={src}
+        alt=""
+        style={{ width: size, height: size, opacity: loaded ? 1 : 0, transition: 'opacity 0.15s' }}
+        className="rounded-lg object-contain"
+        onLoad={(e) => {
+          setLoaded(true);
+          cacheFavicon(hostname, src);
+          if (onColor) extractColorFromUrl(e.currentTarget.src, onColor);
+        }}
+        onError={() => setIdx(i => i + 1)}
+      />
+    </div>
   );
 };
 
@@ -140,18 +86,26 @@ const ICON_MODE_OPTIONS = [
 // Settings panel rendered inside BaseSettingsModal
 const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', onSave }) => {
   const stripProtocol = (u) => (u || '').replace(/^https?:\/\//, '');
+  const isEditing = Boolean(url && url !== 'https://');
 
   const [path, setPath] = useState(() => stripProtocol(url));
   const [localName, setLocalName] = useState(name || '');
   const [iconMode, setIconMode] = useState(initialIconMode);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const fullUrl = path.trim() ? `https://${path.trim()}` : '';
   const derivedName = path.trim() ? getDefaultName(fullUrl) : '';
+  const previewHostname = fullUrl ? getHostname(fullUrl) : '';
 
   const handleBlur = () => {
     if (!localName.trim() && path.trim()) {
       try { setLocalName(getDefaultName(fullUrl)); } catch { }
     }
+  };
+
+  const handleRefresh = () => {
+    if (previewHostname) faviconCache.delete(previewHostname);
+    setPreviewKey(k => k + 1);
   };
 
   const canSave = Boolean(path.trim());
@@ -165,7 +119,39 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Icon style — shown first so user decides before typing */}
+      {/* Live icon preview */}
+      {fullUrl && (
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--w-surface-2)' }}>
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: 'var(--w-surface-3)' }}
+          >
+            <FaviconHero
+              key={`preview-${fullUrl}-${iconMode}-${previewKey}`}
+              url={fullUrl}
+              size={36}
+              iconMode={iconMode}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold truncate" style={{ color: 'var(--w-ink-2)' }}>
+              {localName || derivedName || previewHostname}
+            </div>
+            <div className="text-xs truncate" style={{ color: 'var(--w-ink-5)' }}>{previewHostname}</div>
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="p-1.5 rounded-lg transition-opacity hover:opacity-70 active:opacity-40 shrink-0"
+            style={{ color: 'var(--w-ink-4)' }}
+            title="Refresh icon"
+          >
+            <RefreshIcon />
+          </button>
+        </div>
+      )}
+
+      {/* Icon style */}
       <SegmentedControl
         label="Icon style"
         options={ICON_MODE_OPTIONS}
@@ -204,7 +190,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
         className="w-full px-4 py-2 text-xs rounded-xl font-semibold transition-opacity disabled:opacity-40 hover:opacity-90"
         style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
       >
-        Save
+        {isEditing ? 'Update Bookmark' : 'Add Bookmark'}
       </button>
     </div>
   );
@@ -253,7 +239,7 @@ export const Widget = ({ id, onRemove }) => {
     <>
       <BaseWidget
         settingsContent={settingsContent}
-        settingsTitle="Add Bookmark"
+        settingsTitle={hasUrl ? 'Update Bookmark' : 'Add Bookmark'}
         onRemove={onRemove}
         cardStyle={bgColor ? { backgroundColor: bgColor } : {}}
       >
@@ -309,7 +295,7 @@ export const Widget = ({ id, onRemove }) => {
 
       {/* + button opens the same modal as ⋯ → Settings */}
       {showSettings && (
-        <BaseSettingsModal title="Bookmark" onClose={() => setShowSettings(false)}>
+        <BaseSettingsModal title={hasUrl ? 'Update Bookmark' : 'Add Bookmark'} onClose={() => setShowSettings(false)}>
           <div className="px-4 pb-4">
             <BookmarkSettings url={url} name={name} iconMode={iconMode} onSave={handleSave} />
           </div>

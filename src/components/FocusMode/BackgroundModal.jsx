@@ -56,9 +56,34 @@ const Spinner = ({ size = 14 }) => (
   </svg>
 );
 
-// ─── Segment control ──────────────────────────────────────────────────────────
+// ─── Orb color palettes ──────────────────────────────────────────────────────
+
+export const ORB_PALETTES = [
+  { id: 'blueberry', label: 'Blueberry', rgb: '54,133,230' },
+  { id: 'strawberry', label: 'Strawberry', rgb: '198,38,46' },
+  { id: 'bubblegum', label: 'Bubblegum', rgb: '222,62,128' },
+  { id: 'grape', label: 'Grape', rgb: '165,109,226' },
+  { id: 'orange', label: 'Orange', rgb: '243,115,41' },
+  { id: 'mint', label: 'Mint', rgb: '40,188,163' },
+  { id: 'latte', label: 'Latte', rgb: '207,162,94' },
+];
+
+const ORB_PALETTE_KEY = 'fm_orb_palette_id';
+export const getOrbPaletteId = () => {
+  try { return localStorage.getItem(ORB_PALETTE_KEY) || 'blueberry'; } catch { return 'blueberry'; }
+};
+export const getOrbRgb = () => {
+  const id = getOrbPaletteId();
+  return ORB_PALETTES.find(p => p.id === id)?.rgb || ORB_PALETTES[0].rgb;
+};
+const setOrbPaletteId = (id) => {
+  try { localStorage.setItem(ORB_PALETTE_KEY, id); } catch { }
+};
+
+// ─── Tab definitions ─────────────────────────────────────────────────────────
 
 const TABS = [
+  { id: 'orb', label: 'Color Motion' },
   { id: 'default', label: 'Default' },
   { id: 'curated', label: 'Curated' },
   { id: 'custom', label: 'URL' },
@@ -104,6 +129,121 @@ const DefaultPanel = ({ isActive, onApply }) => (
     )}
   </div>
 );
+
+// ─── Orb panel ───────────────────────────────────────────────────────────────
+
+const OrbPanel = ({ isActive, onApply }) => {
+  const [selectedId, setSelectedId] = useState(getOrbPaletteId);
+  const selected = ORB_PALETTES.find(p => p.id === selectedId) || ORB_PALETTES[0];
+  const previewRgb = selected.rgb;
+  const isAlreadyActive = isActive && getOrbPaletteId() === selectedId;
+
+  const handleApply = () => {
+    setOrbPaletteId(selectedId);
+    onApply(selectedId);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Live mini orb preview */}
+      <div
+        className="w-full rounded-xl overflow-hidden relative select-none"
+        style={{ aspectRatio: '16/9', background: '#060608' }}
+        aria-hidden
+      >
+        <div style={{
+          position: 'absolute', inset: 0,
+          animation: 'fmOrbSpin 48s linear infinite',
+          transformOrigin: '50% 50%',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            position: 'absolute', width: '70%', height: '70%',
+            top: '15%', left: '15%', borderRadius: '50%',
+            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.55) 0%, rgba(${previewRgb},0.18) 45%, transparent 70%)`,
+            filter: 'blur(24px)',
+            animation: 'fmOrbBloom 8s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', width: '45%', height: '45%',
+            top: '5%', right: '5%', borderRadius: '50%',
+            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.32) 0%, transparent 65%)`,
+            filter: 'blur(24px)',
+          }} />
+          <div style={{
+            position: 'absolute', width: '40%', height: '40%',
+            bottom: '5%', left: '5%', borderRadius: '50%',
+            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.20) 0%, transparent 62%)`,
+            filter: 'blur(32px)',
+            animation: 'fmOrbCounter 32s linear infinite',
+            transformOrigin: '50% 50%',
+          }} />
+        </div>
+        {/* Vignette */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, rgba(4,4,6,0.5) 65%, rgba(2,2,4,0.9) 100%)',
+        }} />
+        {isAlreadyActive && (
+          <>
+            <div className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ boxShadow: 'inset 0 0 0 2.5px var(--w-accent)' }} />
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
+              style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', fontSize: 9, fontWeight: 700 }}>
+              <CheckLg size={9} /><span>Active</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Palette swatches — 4-col grid */}
+      <div className="grid grid-cols-4 gap-2">
+        {ORB_PALETTES.map(({ id, label, rgb }) => {
+          const isSel = selectedId === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setSelectedId(id)}
+              className="flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl transition-all focus:outline-none cursor-pointer"
+              style={isSel
+                ? { background: 'var(--w-surface-2)', border: `1px solid rgba(${rgb},0.5)`, boxShadow: `0 0 0 1px rgba(${rgb},0.3)` }
+                : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+            >
+              <div
+                className="w-8 h-8 rounded-full relative shrink-0 flex items-center justify-center"
+                style={{
+                  background: `radial-gradient(circle at 38% 38%, rgb(${rgb}) 0%, rgba(${rgb},0.6) 55%, rgba(${rgb},0.15) 100%)`,
+                  boxShadow: isSel ? `0 0 12px rgba(${rgb},0.55)` : 'none',
+                  transition: 'box-shadow 0.2s',
+                }}
+              >
+                {isSel && (
+                  <CheckLg size={10} style={{ color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+                )}
+              </div>
+              <span
+                className="text-[9px] font-semibold leading-none"
+                style={{ color: isSel ? 'var(--w-ink-1)' : 'var(--w-ink-4)', transition: 'color 0.18s' }}
+              >
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {!isAlreadyActive && (
+        <button
+          onClick={handleApply}
+          className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer transition-opacity hover:opacity-90"
+          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+        >
+          Use Color Motion
+        </button>
+      )}
+    </div>
+  );
+};
 
 // ─── Curated panel ────────────────────────────────────────────────────────────
 
@@ -206,53 +346,64 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
       ) : (
         <>
           {/* ── Thumbnail grid ── */}
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {library.map((ph, i) => {
               const isHead = i === 0;
+              const isPhotoActive = isHead && isActive;
               return (
                 <div
                   key={ph.id}
-                  className="relative group rounded-lg overflow-hidden cursor-pointer"
-                  style={{ aspectRatio: '16/9' }}
+                  className="relative group rounded-xl overflow-hidden cursor-pointer"
+                  style={{ aspectRatio: '16/9', transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onClick={() => handleUse(ph.id)}
+                  onMouseEnter={e => { if (!isPhotoActive) e.currentTarget.style.transform = 'scale(1.03)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                 >
                   <img
                     src={ph.small}
                     alt={ph.id}
-                    className="w-full h-full object-cover transition-opacity duration-150"
-                    style={{ opacity: isHead ? 1 : 0.55 }}
+                    className="w-full h-full object-cover transition-all duration-200"
+                    style={{ opacity: isPhotoActive ? 1 : 0.68 }}
                   />
 
-                  {/* Active ring */}
-                  {isHead && isActive && (
-                    <div
-                      className="absolute inset-0 rounded-lg pointer-events-none"
-                      style={{ boxShadow: 'inset 0 0 0 2px var(--w-accent)' }}
-                    />
+                  {/* Active state — accent ring + badge */}
+                  {isPhotoActive && (
+                    <>
+                      <div
+                        className="absolute inset-0 rounded-xl pointer-events-none"
+                        style={{ boxShadow: 'inset 0 0 0 2.5px var(--w-accent)' }}
+                      />
+                      <div
+                        className="absolute bottom-1.5 right-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', fontSize: 8, fontWeight: 700 }}
+                      >
+                        <CheckLg size={7} /><span>Active</span>
+                      </div>
+                    </>
                   )}
 
-                  {/* Hover overlay */}
-                  <div
-                    className="absolute inset-0 flex items-end justify-between p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 60%, transparent)' }}
-                  >
-                    {(!isHead || !isActive) && (
-                      <span
-                        className="text-[7px] font-bold leading-none px-1.5 py-0.5 rounded-sm"
-                        style={{ background: 'var(--w-accent)', color: '#fff' }}
+                  {/* Hover: centered Use pill */}
+                  {!isPhotoActive && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(0,0,0,0.22)' }}>
+                      <div
+                        className="flex items-center gap-1 px-3 py-1 rounded-full font-bold"
+                        style={{ background: 'rgba(255,255,255,0.92)', color: '#111', fontSize: 10, backdropFilter: 'blur(4px)' }}
                       >
-                        USE
-                      </span>
-                    )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(ph.id); }}
-                      className="ml-auto text-[9px] leading-none px-1 py-0.5 rounded focus:outline-none"
-                      style={{ background: 'rgba(0,0,0,0.5)', color: 'rgba(255,255,255,0.7)' }}
-                      title="Remove from library"
-                    >
-                      ✕
-                    </button>
-                  </div>
+                        Use
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delete — top-right, hover only */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(ph.id); }}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none"
+                    style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.85)', fontSize: 8 }}
+                    title="Remove from library"
+                  >
+                    ✕
+                  </button>
                 </div>
               );
             })}
@@ -522,6 +673,10 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
 
   const handleDefaultApply = () => applySource('default');
   const handleCuratedApply = () => applySource('curated');
+  const handleOrbApply = (orbId) => {
+    setOrbPaletteId(orbId);
+    applySource('orb');
+  };
   const handleCustomApply = (url) => {
     if (url) applySource('custom', url);
     else {
@@ -554,6 +709,12 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
           0%   { transform: translateX(-100%) scaleX(0.4); }
           50%  { transform: translateX(60%) scaleX(0.8); }
           100% { transform: translateX(250%) scaleX(0.4); }
+        }
+        @keyframes fmOrbSpin    { to { transform: rotate(360deg); } }
+        @keyframes fmOrbCounter { to { transform: rotate(-360deg); } }
+        @keyframes fmOrbBloom   {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%      { opacity: 0.82; transform: scale(1.13); }
         }
       `}</style>
 
@@ -629,6 +790,12 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
           className="overflow-y-auto px-5 py-5"
           style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--w-border) transparent' }}
         >
+          {tab === 'orb' && (
+            <OrbPanel
+              isActive={activeSource === 'orb'}
+              onApply={handleOrbApply}
+            />
+          )}
           {tab === 'default' && (
             <DefaultPanel
               isActive={activeSource === 'default'}

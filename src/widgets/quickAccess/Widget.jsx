@@ -1,49 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
-import { extractColorFromUrl } from "../bookmarks/utils";
-
-const getHostname = (url) => {
-  try { return new URL(url).hostname; } catch { return url; }
-};
-
-const getDefaultName = (url) => getHostname(url).replace(/^www\./, "");
-
-// Strip one subdomain level: meals.maitriservices.com → maitriservices.com
-// Returns null when already a bare domain (nothing to strip).
-const parentDomain = (hostname) => {
-  const parts = hostname.split(".");
-  return parts.length > 2 ? parts.slice(1).join(".") : null;
-};
-
-const gstaticFavicon = (origin) =>
-  `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE&url=${encodeURIComponent(origin)}&size=64`;
-
-/**
- * Build the ordered fallback chain for a site URL:
- *  1. chrome-extension://{id}/_favicon/ — Chrome's own favicon DB (real extension only)
- *  2. gstatic with the exact origin       — works for well-known sites
- *  3. gstatic with parent domain          — covers subdomains (meals.example.com → example.com)
- *  4. "" sentinel                         — triggers letter fallback in Favicon
- *
- * Diagnostic test confirmed:
- *   meals.maitriservices.com → gstatic 404, but maitriservices.com → gstatic 200 ✅
- */
-const buildSources = (url) => {
-  const hostname = getHostname(url);
-  const origin = `https://${hostname}/`;
-  const parent = parentDomain(hostname);
-  const sources = [];
-  // gstatic first: fetches real web favicons without needing site history
-  sources.push(gstaticFavicon(origin));
-  if (parent) sources.push(gstaticFavicon(`https://${parent}/`));
-  if (typeof chrome !== "undefined" && chrome.runtime?.id) {
-    sources.push(
-      `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=128`
-    );
-  }
-  sources.push("");  // sentinel → letter
-  return sources;
-};
+import { extractColorFromUrl, getDefaultName, buildFaviconSources, cacheFavicon, faviconCache, getHostname } from "../bookmarks/utils";
 
 const cleanTitle = (raw, url) => {
   if (!raw) return getDefaultName(url);
@@ -54,14 +11,23 @@ const cleanTitle = (raw, url) => {
   return t || getDefaultName(url);
 };
 
-const Favicon = ({ url, onColor }) => {
+const Favicon = ({ url, onColor, onSettled }) => {
+  const hostname = getHostname(url);
   const [idx, setIdx] = useState(0);
-  const sources = React.useMemo(() => buildSources(url), [url]);
+  const sources = React.useMemo(() => buildFaviconSources(url, 128), [url]);
   const letter = getDefaultName(url).charAt(0).toUpperCase();
 
   useEffect(() => { setIdx(0); }, [url]);
 
   const src = sources[idx];
+  const isLetter = src === '';
+
+  useEffect(() => {
+    if (isLetter) {
+      if (!faviconCache.has(hostname)) cacheFavicon(hostname, '');
+      onSettled?.();
+    }
+  }, [isLetter, hostname, onSettled]);
 
   if (src === "") {
     return (
@@ -78,9 +44,12 @@ const Favicon = ({ url, onColor }) => {
       alt=""
       width={22}
       height={22}
-      crossOrigin="anonymous"
       className="rounded-sm object-contain"
-      onLoad={(e) => extractColorFromUrl(e.currentTarget.src, onColor)}
+      onLoad={(e) => {
+        cacheFavicon(hostname, src);
+        onSettled?.();
+        extractColorFromUrl(e.currentTarget.src, onColor);
+      }}
       onError={() => setIdx((i) => i + 1)}
     />
   );
@@ -89,6 +58,8 @@ const Favicon = ({ url, onColor }) => {
 // Named group/tile — hover scoped to individual tile only
 const Tile = ({ href, url, title }) => {
   const [color, setColor] = useState(null);
+  const [loading, setLoading] = useState(() => !faviconCache.has(getHostname(url)));
+  const onSettled = useCallback(() => setLoading(false), []);
 
   return (
     <a
@@ -98,16 +69,16 @@ const Tile = ({ href, url, title }) => {
       className="flex flex-col items-center gap-1 group/tile outline-none min-w-0"
     >
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 group-hover/tile:scale-110 group-active/tile:scale-95"
+        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 group-hover/tile:scale-110 group-active/tile:scale-95${loading ? ' animate-pulse' : ''}`}
         style={color ? {
           backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
           border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
         } : {
-          backgroundColor: 'var(--w-surface-2)',
-          border: '1px solid var(--w-border)',
+          backgroundColor: loading ? 'var(--w-surface-3)' : 'var(--w-surface-2)',
+          border: loading ? '1px solid transparent' : '1px solid var(--w-border)',
         }}
       >
-        <Favicon url={url} onColor={setColor} />
+        <Favicon url={url} onColor={setColor} onSettled={onSettled} />
       </div>
       <span
         className="w-full text-center truncate px-0.5"

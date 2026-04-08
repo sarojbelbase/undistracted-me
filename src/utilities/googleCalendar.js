@@ -65,28 +65,28 @@ export async function loadCachedGcalEvents() {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (Array.isArray(legacy) && legacy.length > 0) {
-        await chrome.storage.local.set({ [GCAL_CACHE_KEY]: legacy }); // eslint-disable-line no-undef
+        await chrome?.storage?.local?.set({ [GCAL_CACHE_KEY]: legacy }); // eslint-disable-line no-undef
         localStorage.setItem(GCAL_HAS_CACHE_FLAG, '1');
       }
     } catch { /* ignore malformed legacy data */ }
     localStorage.removeItem(GCAL_CACHE_KEY);
   }
 
-  const result = await chrome.storage.local.get(GCAL_CACHE_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(GCAL_CACHE_KEY) ?? {}; // eslint-disable-line no-undef
   _eventsMemCache = result[GCAL_CACHE_KEY] ?? [];
   return _eventsMemCache;
 }
 
 async function saveCachedGcalEvents(events) {
   _eventsMemCache = events; // update memory immediately — reads are instant after this
-  await chrome.storage.local.set({ [GCAL_CACHE_KEY]: events }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [GCAL_CACHE_KEY]: events }); // eslint-disable-line no-undef
   localStorage.setItem(GCAL_HAS_CACHE_FLAG, '1');
 }
 
 /** Clear the cache (used on disconnect). */
 export async function clearGcalCache() {
   _eventsMemCache = [];
-  await chrome.storage.local.remove(GCAL_CACHE_KEY); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.remove(GCAL_CACHE_KEY); // eslint-disable-line no-undef
   localStorage.removeItem(GCAL_HAS_CACHE_FLAG);
   localStorage.removeItem(GCAL_SYNCED_AT_KEY);
 }
@@ -107,25 +107,25 @@ export async function loadCachedProfile() {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (legacy) {
-        await chrome.storage.local.set({ [PROFILE_CACHE_KEY]: legacy }); // eslint-disable-line no-undef
+        await chrome?.storage?.local?.set({ [PROFILE_CACHE_KEY]: legacy }); // eslint-disable-line no-undef
       }
     } catch { /* ignore */ }
     localStorage.removeItem(PROFILE_CACHE_KEY);
   }
 
-  const result = await chrome.storage.local.get(PROFILE_CACHE_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(PROFILE_CACHE_KEY) ?? {}; // eslint-disable-line no-undef
   _profileMemCache = result[PROFILE_CACHE_KEY] ?? null;
   return _profileMemCache;
 }
 
 async function saveProfileCache(profile) {
   _profileMemCache = profile;
-  await chrome.storage.local.set({ [PROFILE_CACHE_KEY]: profile }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [PROFILE_CACHE_KEY]: profile }); // eslint-disable-line no-undef
 }
 
 export async function clearProfileCache() {
   _profileMemCache = null;
-  await chrome.storage.local.remove(PROFILE_CACHE_KEY); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.remove(PROFILE_CACHE_KEY); // eslint-disable-line no-undef
 }
 
 /**
