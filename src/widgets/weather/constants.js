@@ -35,115 +35,131 @@ export const QUIPS = {
   // ── Rain ──────────────────────────────────────────────────────────────────
   rain: {
     clearing: [
-      'Sky fixing itself. Tea first.',
-      'Clearing up. The sun apologises.',
-      'Rain almost done. Umbrella had one job.',
-      'Dal bhat ready? Rain is wrapping up.',
-      "Clearing soon. Meeting still won't cancel.",
+      'Sky had its moment. Moving on.',
+      'Rain finally got the hint.',
+      'Sun is clocking back in.',
+      'The sky apologises. Conditionally.',
+      'Rain resigned. Finally.',
+      "Wet chapter's almost closed.",
     ],
     incoming: [
-      'Rain in 2h. Get the laundry in. Now.',
-      'Momo plans might not survive this.',
-      'Pack the umbrella — not negotiable.',
-      'Rain coming. Your bike is nervous.',
-      'Check before leaving. Rain incoming.',
-      'Your friend took their umbrella. Did you?',
+      'Future you will be soaked. Act now.',
+      'Your laundry is thriving outside.',
+      'Rain ETA: soon. Regret ETA: sooner.',
+      "Umbrella at home? Bold.",
+      'Sky loaded. Brace.',
+      'Get inside before clouds get personal.',
+      'Your plans have been weather-checked.',
     ],
     persist: [
-      'Rain all day. Dal bhat and YouTube.',
-      'Wet day. Staying in counts.',
-      'Canteen momo session confirmed.',
-      'Plan for today: umbrella, dal bhat, rest.',
-      'All day rain. Classic.',
+      'All day. Cancel the ambitions.',
+      'It is raining. It will keep raining.',
+      'Sky said no. Plans said maybe. Sky wins.',
+      'Raining until night. Couch is smug.',
+      'Day off — courtesy of the sky.',
+      'Everything outside can wait.',
     ],
     possible: [
-      'Maybe rain. Maybe hot tea. Take both.',
-      'Pack an umbrella just in case.',
-      'Rain or not? Coin toss. Take the umbrella.',
-      'Suspicious clouds. Umbrella is safer.',
+      'Sky is undecided. You should not be.',
+      'Umbrella has better odds than your gut.',
+      'Clouds look suspicious. Carry the umbrella.',
+      'Maybe rain. The sky is being dramatic.',
+      'Low risk. High regret if wrong.',
     ],
   },
 
   // ── Snow ──────────────────────────────────────────────────────────────────
   snow: {
     clearing: [
-      'Snow fading. Roads may still disagree.',
-      'Clearing up. Still wear the jacket.',
-      'Snow ending. Full jacket, not half.',
-      'Fresh air incoming. Hot tea first.',
+      'Snow fading. Roads still not sold on the idea.',
+      "White stuff gone. Cold didn't get the memo.",
+      'Clearing. Sandals still very much off the table.',
+      'Snow out. Everything wet in — stay careful.',
     ],
     incoming: [
-      'Snow in a few hours. Get home early.',
-      "Snow incoming. That old jacket won't cut it.",
-      'Reach home before snow. Seriously.',
-      'Snow coming. Dry clothes, warm socks.',
+      'Snow inbound. That excuse writes itself.',
+      'Everything harder to drive on. Soon.',
+      'Snow coming. Schedule being rerouted.',
+      "Layers. All of them.",
+      'Get home first. Snow argues with plans.',
     ],
     persist: [
-      'Snow all day. No valid reason to leave.',
-      'Snow day. Parotha + tea energy.',
-      'Roads closed. Cancel the plans.',
-      'Snow until tonight. Even grandpa is just sitting.',
+      'Full snow day. Moral authority to stay put.',
+      'Roads have filed a complaint against you.',
+      'Buried. Good intentions included.',
+      "Productivity pardoned. Nature's orders.",
+      'Everything outside is optional today.',
     ],
     possible: [
-      'Snow possible. Jacket ready.',
-      'Maybe snow tonight. Sleep early.',
-      'Possible snow. Micro service unreliable anyway.',
+      'Snow possible. Boots are always the right call.',
+      'Maybe slush, maybe snow, definitely cold.',
+      'Could snow. Adjust plans before the sky adjusts them for you.',
     ],
   },
 
   // ── Thunder ───────────────────────────────────────────────────────────────
   thunder: {
     incoming: [
-      'Storm rolling in. Save the spreadsheet.',
-      'Thunder ahead. Unplug what you like.',
-      'Lightning incoming. Stay on the call from inside.',
-      'Thunderstorm coming. Close the skylights.',
+      'Save the file. Save the file. Save the file.',
+      'Unplug something you actually like.',
+      'Best time to be outside: not.',
+      'Sky is loading something dramatic.',
+      'Storm ETA: soon. Backup plan: figuring it out.',
     ],
     persist: [
-      'Stormy all day. Tea, calm down.',
-      'Storms all day. Reporting from the couch.',
-      'Charge everything now. Stormy out there.',
-      'Dark outside. Momo + movie: confirmed.',
+      'Sky is actively having issues today.',
+      'Inside was the answer all along.',
+      'Nature is venting. Respect it.',
+      'Charge everything now. Power is a weather sport here.',
+      'Couch has been right this whole time.',
+      'Sky in its villain arc. Stay inside.',
     ],
     possible: [
-      'Thunder possible. Save the spreadsheet, bro.',
-      'Lightning maybe. Make a backup plan.',
-      'Storm possible. Stay off open ground.',
+      'God is loading something.',
+      'Save your work. Sky may disagree.',
+      'Consider not standing on high ground.',
+      'Could storm. Backup plans are underpromoted.',
     ],
   },
 
   // ── Clear ─────────────────────────────────────────────────────────────────
   clear: {
     persist: [
-      'Clear skies. No excuses today.',
-      "Sun's out. Vitamin D — free.",
-      'Good day. Put the phone down and go.',
-      'All clear. Grandpa would go outside.',
-      'Open skies. Leave the laptop home.',
-      'Perfect day. Suspicious.',
+      'Beautiful outside. Rude of it.',
+      'Sun is doing its best. The question is you.',
+      'No excuses. Sky cleared all of them.',
+      'Clear skies. The guilt comes free.',
+      'Best weather in days. Tab still open.',
+      'Genuinely nice out. Suspicious.',
+      'Perfect day. Being wasted on you.',
+      'Even the weather wants you to go outside.',
     ],
   },
 
   // ── Cloudy ────────────────────────────────────────────────────────────────
   cloudy: {
     persist: [
-      'Overcast. Will it rain? Probably.',
-      'Overcast. Dal bhat and an afternoon nap.',
-      'Grey all day. Productivity: debatable.',
-      'Cloudy. The sky is also confused.',
-      'Grey skies. Tea is the answer.',
-      'Cloudy. Grandpa says it will rain.',
+      'Sky could go either way. Mood: same.',
+      'The weather is also unbothered.',
+      'Grey all day. Blanket is legally valid.',
+      'Commitment to anything: none.',
+      'At least it matches your energy.',
+      'Not raining. Not sunny. Just grey.',
+      'Sky picked the exact same mood.',
+      'Technically fine. Somehow still off.',
     ],
   },
 
   // ── Fog ───────────────────────────────────────────────────────────────────
   fog: {
     persist: [
-      'Foggy. Ring Road in slow motion today.',
-      'Thick fog. Even GPS is unsure.',
-      'Misty out. Helmet on, ride slow.',
-      'Fog clears by morning. Just patience.',
-      'Thick fog. Leave early or leave late.',
+      'Visibility: optimistic. Speed: slower.',
+      'The whole city is loading. Please wait.',
+      'Fog so thick commute became optional.',
+      'Headlights on. Hope: also on.',
+      'Can see fine-ish. Drive like you cannot.',
+      'Five-minute-late excuse: already written.',
+      'City went offline. Dense fog, sparse luck.',
     ],
   },
 };
@@ -154,76 +170,82 @@ export const QUIPS = {
 // (add temperature_2m to the hourly fields in fetchOpenMeteo).
 
 export const TEMP_QUIPS = {
-  /** Sunny but actually cold (code 0–2, apparent_temperature ≤ 10 °C) */
+  /** Sunny + actually cold (apparent_temperature ≤ 10 °C) */
   cold_sunny: [
-    "Sun's out. Warmth is not. Take the coat.",
-    'Bright and freezing. The window lied.',
-    'Sunny outside. Cold is still very much there.',
-    'Clear sky, bitter cold. Classic combo.',
-    "Sun appeared. Cold didn't get the memo.",
+    'Sunny and freezing. Window is gaslighting you.',
+    'Looks warm. Feels like a personal attack.',
+    'Clear sky, coat required. Nature lied.',
+    'Beautiful outside. Also absolutely brutal.',
+    "Sun out. Heat not invited.",
+    'Step out. Regret in three seconds.',
   ],
 
-  /** Temperature rising steadily through the day */
+  /** Temperature rising through the day */
   warming: [
-    'Heating up through the day. Fan is plotting.',
-    'Getting warmer by noon. Momo window: now.',
-    'Temp climbing all day. Cold water > tea today.',
-    'Morning mild, afternoon hot. Pace yourself.',
-    'Temp rising. Cold shower vindicated by 2pm.',
+    'Getting warmer. Morning was a trap.',
+    'Heating up all day. Fan entered the chat.',
+    'Morning lied about the afternoon.',
+    'Mild now. Angry by 2pm.',
+    'Temperature climbing. Cold shower: vindicated.',
+    'Warm front incoming. You will feel it.',
   ],
 
-  /** Temperature dropping a few degrees (e.g., 24 → 21 °C) */
+  /** Temperature dropping */
   cooling: [
-    'Dropping a few degrees. Light jacket time.',
-    'Cooling off this afternoon. Dal bhat fits.',
-    'Evening gets cooler. Tea makes sense now.',
-    'Temp dropping. Good time for hot dal bhat.',
-    'Getting cooler. Fan finally gets a rest.',
+    'Dropping a few degrees. Jacket was right.',
+    'Cooling off. No further explanation needed.',
+    "Evening gets cold. Hard way incoming.",
+    'Temperature down. Layer up, not regret.',
+    'Cooling down. Fan finally stands down.',
+    'Getting cooler by the hour.',
   ],
 };
 
 // ── Mood / relatable daily-life quips ────────────────────────────────────────
-// Used as fallbacks when condition-based banks are exhausted
-// or on clear persist days with no special event.
+// Used as fallbacks when condition-based banks are exhausted.
 
 export const MOOD_QUIPS = {
   monday: [
-    "Clear sky. It's still Monday though.",
+    "Clear skies. Still Monday, though.",
     'Perfect weather. Wasted on a Monday.',
-    'Clear sky. Motivation: barely there.',
+    'Weather cooperated. Monday did not.',
+    'Nice out. Shame about the day.',
   ],
   friday: [
-    'Clear and Friday. Rare combo.',
-    'Weather cleared just for Friday. Fair.',
-    'Sunny Friday. Rare. Take it.',
+    'Clear and Friday. Rarest combo.',
+    'Sky cleared just for Friday. Fair.',
+    'Sunny Friday. You earned this.',
+    'Weather and Friday aligned. Twice a year.',
   ],
   weekend: [
-    'Perfect weekend weather. Leave the laptop.',
-    'Sunny weekend. Make an outing plan.',
-    'Good day. Even grandpa goes outside on days like this.',
+    'Weekend weather. Screen can wait.',
+    'Sunny and free. Rare double.',
+    'Good day off. Use it.',
+    'No alarm. No rain. System works.',
   ],
-  /** Daytime desk-worker fallback */
+  /** Daytime fallback */
   desk: [
-    'Clear skies. Tea, terrace, five minutes.',
-    'Good weather. A cancelled meeting would help.',
-    'Weather fine. Finish the work, then go outside.',
-    'Nice out. The screen will still be here.',
-    'Could be worse. Could be raining.',
+    'Nice out. Screen will still be here.',
+    'Good weather. Cancelled meeting would help.',
+    'Just five minutes outside. Go.',
+    'Clear skies. To-do list is not going anywhere.',
+    'Could be worse. It has been worse.',
+    "Perfect day. Somebody is stuck at a desk.",
   ],
   /** Clear sky at night */
   clear_night: [
-    'Clear night. Stars are free.',
-    'Quiet and clear out there.',
-    'Still and clear. Good night for nothing.',
-    'Clear skies. Sleep is also an option.',
+    'Clear night. Stars visible and free.',
+    'Still and quiet out there.',
+    'Good night for nothing in particular.',
+    'Sky cleared after you stopped watching.',
   ],
   /** Nighttime fallback */
   desk_night: [
     'Still up? At least it is not raining.',
-    'Late night tab. Weather is fine, at least.',
-    'Clear at this hour. Go to sleep.',
-    'Working late. Tea hot, sky clear.',
-    'Night shift. Weather holds no complaints.',
+    'Clear at this hour. That is something.',
+    'Weather has no complaints. You might.',
+    'Night shift. Sky is cooperating.',
+    'Late night. Clear out. Go to sleep.',
   ],
 };
 
