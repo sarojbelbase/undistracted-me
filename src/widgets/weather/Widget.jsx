@@ -7,6 +7,7 @@ import {
   getWeatherIcon,
   getCoords,
   getCoordsFromIP,
+  reverseGeocode,
   fetchOpenMeteo,
   parseWeather,
   parseForecast,
@@ -312,6 +313,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
           try {
             ({ lat, lon } = await getCoords());
             setLocationDenied(false);
+            resolvedCity = await reverseGeocode(lat, lon);
           } catch {
             // Browser geolocation denied → try IP-based approximate location
             const ip = await getCoordsFromIP();
