@@ -456,7 +456,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
               <div
                 data-testid="weather-quip"
                 className="text-right"
-                style={{ fontSize: '0.70rem', fontWeight: 600, color: 'var(--w-ink-5)', lineHeight: 1.3, maxWidth: '90%', marginTop: '0.12em' }}
+                style={{ fontSize: '0.70rem', fontWeight: 600, color: 'var(--w-ink-5)', lineHeight: 1.3, marginTop: '0.12em' }}
               >
                 {quip}
               </div>
