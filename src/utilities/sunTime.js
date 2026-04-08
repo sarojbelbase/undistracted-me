@@ -121,18 +121,18 @@ export const getCachedCoordsSource = () => {
 };
 
 /**
- * Tier 2 fallback: resolve coordinates from public IP via ipapi.co (no API key
- * required, HTTPS, 1000 req/day per IP). Accuracy is typically city-level
- * (~10–50 km), which causes ≤5 min error in sunrise/sunset — acceptable for
- * a day/night theme switch.
+ * Tier 2 fallback: resolve coordinates from public IP via ipapi.co.
  *
- * Caveats: VPN users get the VPN exit node location; corporate networks may
- * route via a central office. In those cases the Kathmandu hardcoded fallback
- * is no worse.
+ * NOTE: ipapi.co blocks chrome-extension:// and moz-extension:// origins with
+ * a CORS error, so we skip this path entirely when running as an extension.
+ * In that case the Kathmandu hardcoded fallback is used instead.
  *
  * @returns {Promise<{lat:number,lon:number}|null>}
  */
 const _coordsFromIP = async () => {
+  // Skip if running as a browser extension — ipapi.co rejects extension origins.
+  const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
+  if (isExtension) return null;
   try {
     const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;

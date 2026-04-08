@@ -99,6 +99,21 @@ export const eventStartDate = (event) => {
  *
  * gcal events have _source: 'gcal' — treat them as read-only (no delete).
  */
+// ─── Module-level GCal fetch singleton ──────────────────────────────────────
+// Prevents multiple hook instances (Events widget, Focus Mode, etc.) from each
+// triggering their own fetch and spamming identical requests / errors.
+let _gcalInflight = null;          // in-flight Promise<{events,changed}> | null
+let _gcalListeners = [];           // callbacks waiting on the same fetch
+
+const fetchCalendarOnce = () => {
+  if (_gcalInflight) return _gcalInflight;
+  _gcalInflight = getCalendarEvents()
+    .then(result => { _gcalListeners.forEach(cb => cb(null, result)); return result; })
+    .catch(err => { _gcalListeners.forEach(cb => cb(err, null)); throw err; })
+    .finally(() => { _gcalInflight = null; _gcalListeners = []; });
+  return _gcalInflight;
+};
+
 export const useGoogleCalendar = () => {
   const [gcalEvents, setGcalEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -119,7 +134,7 @@ export const useGoogleCalendar = () => {
     setLoading(true);
     setError(null);
     try {
-      const { events, changed } = await getCalendarEvents();
+      const { events, changed } = await fetchCalendarOnce();
       setConnected(true);
       setError(null);
       setSyncedAt(loadGcalSyncedAt());
