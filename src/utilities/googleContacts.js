@@ -27,14 +27,14 @@ export async function loadCachedContacts() {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (Array.isArray(legacy) && legacy.length > 0) {
-        await chrome.storage.local.set({ [CACHE_KEY]: legacy }); // eslint-disable-line no-undef
+        await chrome?.storage?.local?.set({ [CACHE_KEY]: legacy }); // eslint-disable-line no-undef
         localStorage.setItem(HAS_CACHE_FLAG, '1');
       }
     } catch { /* ignore malformed data */ }
     localStorage.removeItem(CACHE_KEY);
   }
 
-  const result = await chrome.storage.local.get(CACHE_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(CACHE_KEY) ?? {}; // eslint-disable-line no-undef
   _contactsMemCache = result[CACHE_KEY] ?? [];
   return _contactsMemCache;
 }
@@ -46,14 +46,14 @@ export function loadContactsSyncedAt() {
 
 async function saveCachedContacts(entries) {
   _contactsMemCache = entries; // update memory immediately
-  await chrome.storage.local.set({ [CACHE_KEY]: entries }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [CACHE_KEY]: entries }); // eslint-disable-line no-undef
   localStorage.setItem(HAS_CACHE_FLAG, '1');
   localStorage.setItem(SYNCED_KEY, String(Date.now()));
 }
 
 export async function clearContactsCache() {
   _contactsMemCache = [];
-  await chrome.storage.local.remove(CACHE_KEY); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.remove(CACHE_KEY); // eslint-disable-line no-undef
   localStorage.removeItem(HAS_CACHE_FLAG);
   localStorage.removeItem(SYNCED_KEY);
 }

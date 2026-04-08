@@ -1,3 +1,72 @@
+// ── Shared favicon helpers ────────────────────────────────────────────────────
+
+// External favicon service URLs — ordered by priority (Google → DDG → Icon Horse)
+export const FAVICON_SERVICES = Object.freeze({
+  google: (domain, size) => `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`,
+  duckduckgo: (domain) => `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+  iconHorse: (domain) => `https://icon.horse/icon/${domain}`,
+});
+
+// In-session favicon cache: hostname → resolved src URL ('' means letter fallback was used)
+export const faviconCache = new Map();
+export const cacheFavicon = (hostname, src) => faviconCache.set(hostname, src);
+
+export const getHostname = (url) => {
+  try { return new URL(url.startsWith('http') ? url : `https://${url}`).hostname; } catch { return url; }
+};
+
+export const getDefaultName = (url) => getHostname(url).replace(/^www\./, '');
+
+// Strip one subdomain level: app.example.com → example.com
+// Returns null when already a bare domain, or when the result would be a
+// known public suffix (e.g. com.np, co.uk) — those aren't real origins.
+const PUBLIC_SUFFIX_RE = /^(com|co|org|net|gov|edu|ac|mil)\.[a-z]{2}$/;
+export const parentDomain = (hostname) => {
+  const parts = hostname.split('.');
+  if (parts.length <= 2) return null;
+  const parent = parts.slice(1).join('.');
+  // Don't use a public suffix as a favicon origin — it will always 404
+  if (PUBLIC_SUFFIX_RE.test(parent)) return null;
+  return parent;
+};
+
+// Base URL for the server-side favicon waterfall API.
+// - Web / dev: relative path works (Vite middleware or Vercel function)
+// - Extension dev (CRXJS): pages are chrome-extension:// origin → needs absolute localhost URL
+// - Extension production: needs the deployed Vercel URL
+const _isExt = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
+const _faviconApiBase = _isExt
+  ? (import.meta.env.DEV
+    ? 'http://localhost:3000'
+    : 'https://whatsthemiti.sarojbelbase.com.np')
+  : '';
+
+/**
+ * Builds an ordered favicon fallback chain for a URL.
+ * The first entry always routes through our server-side waterfall API so the
+ * browser never makes individual service requests that could 404 in the console.
+ * @param {string} url    - Full or protocol-relative URL
+ * @param {number} [size] - Favicon size hint in pixels (default 64)
+ */
+export const buildFaviconSources = (url, size = 64) => {
+  const hostname = getHostname(url);
+  if (faviconCache.has(hostname)) {
+    const cached = faviconCache.get(hostname);
+    // '' means letter fallback was used — skip network entirely
+    return cached ? [cached, ''] : [''];
+  }
+  return [
+    // Server-side waterfall (Google → DDG → Icon Horse) — zero client-side 404s
+    `${_faviconApiBase}/api/favicon?domain=${hostname}&sz=${size}`,
+    // Direct Icon Horse as offline fallback for extension (virtually never 404s)
+    ...(_isExt ? [FAVICON_SERVICES.iconHorse(hostname)] : []),
+    // Empty string → letter initial fallback
+    '',
+  ];
+};
+
+// ── Color helpers ─────────────────────────────────────────────────────────────
+
 // Generates a consistent vivid HSL color from a string (site name).
 // Used for the "Letter" icon mode background.
 export const nameToColor = (str) => {
@@ -22,7 +91,11 @@ const wcagY = (r, g, b) =>
 export const extractColorFromUrl = (src, onColor) => {
   if (!src) return;
   const img = new Image();
-  img.crossOrigin = 'anonymous';
+  // Only request CORS in extension context — in a normal web page this blocks
+  // favicon.ico requests and produces console errors with no benefit.
+  if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
+    img.crossOrigin = 'anonymous';
+  }
   img.onload = () => { runExtraction(img, onColor); };
   img.src = src;
 };

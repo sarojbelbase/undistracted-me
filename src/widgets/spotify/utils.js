@@ -86,7 +86,7 @@ export const connectSpotify = async () => {
     refresh_token: tokens.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome.storage.local.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
   localStorage.setItem(CONNECTED_FLAG, '1'); // sync flag so isSpotifyConnected() is immediate
   return stored.access_token;
 };
@@ -99,14 +99,14 @@ export const getAccessToken = async () => {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (legacy?.access_token) {
-        await chrome.storage.local.set({ [TOKEN_KEY]: legacy }); // eslint-disable-line no-undef
+        await chrome?.storage?.local?.set({ [TOKEN_KEY]: legacy }); // eslint-disable-line no-undef
         localStorage.setItem(CONNECTED_FLAG, '1');
       }
     } catch { /* ignore malformed legacy data */ }
     localStorage.removeItem(TOKEN_KEY); // always clear — even if parse failed
   }
 
-  const result = await chrome.storage.local.get(TOKEN_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
   const stored = result[TOKEN_KEY] ?? null;
   if (!stored) return null;
 
@@ -136,12 +136,12 @@ export const getAccessToken = async () => {
     refresh_token: tokens.refresh_token || stored.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome.storage.local.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
   return updated.access_token;
 };
 
 export const disconnectSpotify = () => {
-  chrome.storage.local.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
+  chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
   localStorage.removeItem(CONNECTED_FLAG);
 };
 
@@ -149,7 +149,7 @@ export const disconnectSpotify = () => {
 export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
 
 export const getSpotifyProfile = async () => {
-  const result = await chrome.storage.local.get(PROFILE_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(PROFILE_KEY) ?? {}; // eslint-disable-line no-undef
   return result[PROFILE_KEY] ?? null;
 };
 
@@ -178,7 +178,7 @@ export const fetchAndCacheProfile = async () => {
       name: data.display_name || data.id || 'Spotify User',
       avatar: data.images?.[0]?.url ?? null,
     };
-    await chrome.storage.local.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
+    await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
     return profile;
   } catch { return null; }
 };

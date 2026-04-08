@@ -32,8 +32,15 @@ const FF_TOKEN_KEY = 'google_ff_tokens';
 // ─── Platform detection ───────────────────────────────────────────────────────
 
 /**
- * Chrome/Chromium: chrome.identity.getAuthToken() is present.
- * Firefox: only launchWebAuthFlow() is available — getAuthToken is undefined.
+ * Returns true when running as a plain website (no chrome.identity available).
+ * This covers both the hosted Vercel site and local `npm run dev` in web mode.
+ */
+function isWebPath() {
+  return typeof chrome === 'undefined' || typeof chrome.identity?.launchWebAuthFlow !== 'function'; // eslint-disable-line no-undef
+}
+
+/**
+ * Returns true when running as a Chrome/Chromium extension.
  */
 function isChromePath() {
   return typeof chrome !== 'undefined' && typeof chrome.identity?.getAuthToken === 'function'; // eslint-disable-line no-undef
@@ -57,6 +64,121 @@ export function isGoogleAuthAvailable() {
 export function getGoogleRedirectUrl() {
   if (typeof chrome === 'undefined' || !chrome.identity?.getRedirectURL) return null; // eslint-disable-line no-undef
   return chrome.identity.getRedirectURL(); // eslint-disable-line no-undef
+}
+
+// ─── Web (website mode) — popup + PKCE + server-side token exchange ─────────
+
+const WEB_TOKEN_KEY = 'google_web_tokens';
+
+/**
+ * Returns a valid stored access token for website mode, or null.
+ * Silently refreshes via /api/auth/google/token when the token is near expiry.
+ */
+async function getValidStoredWebToken() {
+  try {
+    const raw = localStorage.getItem(WEB_TOKEN_KEY);
+    if (!raw) return null;
+    const stored = JSON.parse(raw);
+    // Still valid with 30-second buffer
+    if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
+    if (!stored.refresh_token) return null;
+
+    const res = await fetch('/api/auth/google/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: stored.refresh_token }),
+    });
+    if (!res.ok) return null;
+
+    const tokens = await res.json();
+    const updated = {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token || stored.refresh_token,
+      expires_at: Date.now() + tokens.expires_in * 1000,
+    };
+    localStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(updated));
+    return updated.access_token;
+  } catch { return null; }
+}
+
+/**
+ * Opens a Google OAuth popup, completes the PKCE dance, exchanges the code
+ * via /api/auth/google/token (client_secret stays server-side), and stores
+ * the resulting tokens in localStorage.
+ */
+async function getTokenWeb(interactive) {
+  const stored = await getValidStoredWebToken();
+  if (stored) return stored;
+  if (!interactive) throw new Error('Not authenticated');
+
+  const clientId = FF_CLIENT_ID; // same Desktop-app client, redirect URI just differs
+  if (!clientId) throw new Error('Google sign-in not configured — set VITE_GOOGLE_DESKTOP_CLIENT_ID');
+
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  const redirectUri = `${globalThis.location.origin}/auth-callback.html`;
+
+  const authUrl = new URL(GOOGLE_AUTH_ENDPOINT);
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', GOOGLE_SCOPES);
+  authUrl.searchParams.set('code_challenge', challenge);
+  authUrl.searchParams.set('code_challenge_method', 'S256');
+  authUrl.searchParams.set('access_type', 'offline');
+  authUrl.searchParams.set('prompt', 'consent');
+
+  // Open a centred popup and wait for the callback postMessage
+  const code = await new Promise((resolve, reject) => {
+    const w = 500, h = 620;
+    const left = Math.round(globalThis.screen.width / 2 - w / 2);
+    const top = Math.round(globalThis.screen.height / 2 - h / 2);
+    const popup = globalThis.open(
+      authUrl.toString(), 'google-auth',
+      `width=${w},height=${h},left=${left},top=${top},popup=1,noreferrer`
+    );
+    if (!popup) { reject(new Error('Popup blocked — allow popups for this site')); return; }
+
+    const onMessage = (e) => {
+      if (e.origin !== globalThis.location.origin) return;
+      if (e.data?.type !== 'google-auth-callback') return;
+      globalThis.removeEventListener('message', onMessage);
+      clearInterval(closePoll);
+      if (e.data.error) reject(new Error(e.data.error));
+      else if (e.data.code) resolve(e.data.code);
+      else reject(new Error('No authorization code received'));
+    };
+    globalThis.addEventListener('message', onMessage);
+
+    // Detect popup closed without completing OAuth
+    const closePoll = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(closePoll);
+        globalThis.removeEventListener('message', onMessage);
+        reject(new Error('Sign-in cancelled'));
+      }
+    }, 500);
+  });
+
+  // Exchange code via server-side endpoint — client_secret never touches the client
+  const res = await fetch('/api/auth/google/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, code_verifier: verifier, redirect_uri: redirectUri }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`Google token exchange failed: ${body.error || res.status}`);
+  }
+
+  const tokens = await res.json();
+  const newStored = {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at: Date.now() + tokens.expires_in * 1000,
+  };
+  localStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(newStored));
+  return newStored.access_token;
 }
 
 // ─── Chrome path ──────────────────────────────────────────────────────────────
@@ -98,7 +220,7 @@ async function generateCodeChallenge(verifier) {
 // ─── Firefox token storage ────────────────────────────────────────────────────
 
 async function getValidStoredFFToken() {
-  const result = await chrome.storage.local.get(FF_TOKEN_KEY); // eslint-disable-line no-undef
+  const result = await chrome?.storage?.local?.get(FF_TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
   const stored = result[FF_TOKEN_KEY] ?? null;
   if (!stored) return null;
 
@@ -127,7 +249,7 @@ async function getValidStoredFFToken() {
     refresh_token: tokens.refresh_token || stored.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome.storage.local.set({ [FF_TOKEN_KEY]: updated }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [FF_TOKEN_KEY]: updated }); // eslint-disable-line no-undef
   return updated.access_token;
 }
 
@@ -149,7 +271,8 @@ async function getTokenFirefox(interactive) {
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
   // getRedirectURL() is available in both Chrome and Firefox MV3
-  const redirectUri = chrome.identity.getRedirectURL(); // eslint-disable-line no-undef
+  const redirectUri = chrome?.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
+  if (!redirectUri) throw new Error('chrome.identity not available');
 
   const authUrl = new URL(GOOGLE_AUTH_ENDPOINT);
   authUrl.searchParams.set('client_id', FF_CLIENT_ID);
@@ -197,7 +320,7 @@ async function getTokenFirefox(interactive) {
     refresh_token: tokens.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome.storage.local.set({ [FF_TOKEN_KEY]: newStored }); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.set({ [FF_TOKEN_KEY]: newStored }); // eslint-disable-line no-undef
   return newStored.access_token;
 }
 
@@ -212,6 +335,7 @@ async function getTokenFirefox(interactive) {
  *   already authenticated.
  */
 export async function getGoogleAuthToken(interactive = true) {
+  if (isWebPath()) return getTokenWeb(interactive);
   if (isChromePath()) return getTokenChrome(interactive);
   return getTokenFirefox(interactive);
 }
@@ -223,12 +347,16 @@ export async function getGoogleAuthToken(interactive = true) {
  * @param {string|null} token - The token to remove (used on Chrome path only).
  */
 export async function removeGoogleAuthToken(token) {
+  if (isWebPath()) {
+    localStorage.removeItem(WEB_TOKEN_KEY);
+    return;
+  }
   if (isChromePath()) {
     if (token) await removeCachedTokenChrome(token);
     return;
   }
   // Firefox: clear our stored token — next call will trigger a full re-auth.
-  await chrome.storage.local.remove(FF_TOKEN_KEY); // eslint-disable-line no-undef
+  await chrome?.storage?.local?.remove(FF_TOKEN_KEY); // eslint-disable-line no-undef
 }
 
 /**

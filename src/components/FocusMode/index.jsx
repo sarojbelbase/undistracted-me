@@ -25,7 +25,7 @@ import { ClockDisplay } from './ClockDisplay';
 import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
-import { BackgroundModal, getCustomBgUrl } from './BackgroundModal';
+import { BackgroundModal, getCustomBgUrl, getOrbRgb } from './BackgroundModal';
 import { getBgSource, setBgSource } from '../../utilities/unsplash';
 
 export const FocusMode = ({ onExit }) => {
@@ -43,6 +43,7 @@ export const FocusMode = ({ onExit }) => {
   const [showBgModal, setShowBgModal] = useState(false);
   const [bgSource, setBgSourceState] = useState(() => getBgSource());
   const [customBgUrl, setCustomBgUrlState] = useState(() => getCustomBgUrl());
+  const [orbRgb, setOrbRgb] = useState(getOrbRgb);
   const hideTimerRef = useRef(null);
 
   const weather = useFocusWeather();
@@ -184,6 +185,7 @@ export const FocusMode = ({ onExit }) => {
   const handleBgChange = useCallback((source, customUrl) => {
     setBgSource(source);
     setBgSourceState(source);
+    if (source === 'orb') setOrbRgb(getOrbRgb());
     if (customUrl !== undefined) setCustomBgUrlState(customUrl);
     else if (source !== 'custom') setCustomBgUrlState(null);
   }, []);
@@ -197,18 +199,43 @@ export const FocusMode = ({ onExit }) => {
   const activeBg =
     bgSource === 'custom' ? (customBgUrl || bgImage) :
       bgSource === 'default' ? bgImage :
-        null; // 'curated' → use Unsplash crossfade slots
+        null; // 'curated' | 'orb' → rendered separately
 
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden"
-      style={{ backgroundColor: photoColor }}
+      style={{ backgroundColor: bgSource === 'orb' ? '#060608' : photoColor }}
     >
-      {/* ── Background photo — source drives what's shown ── */}
+      <style>{`
+        @keyframes fmOrbSpin    { to { transform: rotate(360deg);  } }
+        @keyframes fmOrbCounter { to { transform: rotate(-360deg); } }
+        @keyframes fmOrbBloom   {
+          0%, 100% { opacity: 1;    transform: scale(1);    }
+          50%      { opacity: 0.82; transform: scale(1.13); }
+        }
+      `}</style>
+      {/* ── Background — source drives what’s shown ── */}
       {bgSource === 'curated' ? (
         <>
           <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
           <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+        </>
+      ) : bgSource === 'orb' ? (
+        /* ── Orb color motion background ── */
+        <>
+          <div
+            aria-hidden
+            style={{ position: 'absolute', inset: 0, zIndex: 0, animation: 'fmOrbSpin 48s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}
+          >
+            {/* Primary orb — centre bloom */}
+            <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)`, filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
+            {/* Secondary orb — top-right */}
+            <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)`, filter: 'blur(64px)' }} />
+            {/* Tertiary orb — bottom-left, counter-rotation */}
+            <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)`, filter: 'blur(80px)', animation: 'fmOrbCounter 32s linear infinite', transformOrigin: '50% 50%' }} />
+          </div>
+          {/* Conic shimmer */}
+          <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${orbRgb},0.04) 90deg, transparent 180deg, rgba(${orbRgb},0.03) 270deg, transparent 360deg)`, animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
         </>
       ) : (
         <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />
