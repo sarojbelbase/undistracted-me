@@ -97,10 +97,10 @@ const TypeIcon = ({ type, size = 11 }) => {
 
 const ConnectPrompt = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
-    <PersonHeart size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.35 }} />
+    <PersonHeart size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.6 }} />
     <div className="flex flex-col items-center gap-1.5">
       <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Not connected</p>
-      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
         Open the{' '}
         <span
           className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle"
@@ -160,7 +160,7 @@ const ListRow = ({ entry, isLast, highlight }) => {
         >
           {entry.name}
         </div>
-        <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-5)' }}>
+        <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-4)' }}>
           <TypeIcon type={entry.type} size={10} />
           {typeLabel(entry.type)}
         </div>
@@ -263,7 +263,7 @@ export const Widget = ({ id, onRemove }) => {
   const RefreshRow = connected && (
     <div className="flex items-center gap-1.5">
       {ageLabel && (
-        <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>
+        <span className="text-[10px]" style={{ color: 'var(--w-ink-4)' }}>
           {ageLabel}
         </span>
       )}
@@ -273,7 +273,7 @@ export const Widget = ({ id, onRemove }) => {
         aria-label="Refresh contacts"
         onMouseDown={e => e.stopPropagation()}
         className="flex items-center justify-center transition-opacity hover:opacity-70 active:opacity-40 disabled:opacity-30 cursor-pointer"
-        style={{ color: 'var(--w-ink-5)' }}
+        style={{ color: 'var(--w-ink-4)' }}
       >
         <RefreshIcon spinning={loading} />
       </button>
