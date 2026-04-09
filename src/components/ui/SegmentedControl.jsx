@@ -23,7 +23,7 @@ export const SegmentedControl = ({ label, options, value, onChange }) => (
     {label && <span className="w-label">{label}</span>}
     <div
       className="flex rounded-xl p-0.5"
-      style={{ backgroundColor: 'var(--w-surface-2)' }}
+      style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
     >
       {options.map((opt) => (
         <button

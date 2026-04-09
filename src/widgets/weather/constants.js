@@ -148,6 +148,23 @@ export const QUIPS = {
       'Sky picked the exact same mood.',
       'Technically fine. Somehow still off.',
     ],
+    clearing: [
+      'Grey was temporary. Sun reconsidered.',
+      'Clouds moving on. Sky loosening up.',
+      'Overcast lifting. The day improves.',
+      'Clouds clearing. Brief window of optimism.',
+    ],
+    incoming: [
+      'Clear for now. Grey clocking in soon.',
+      'Clouds arriving. Skies going non-committal.',
+      'Overcast incoming. Blue while it lasts.',
+      'Enjoy the light. Clouds are on their way.',
+    ],
+    possible: [
+      'Could cloud over. Sky is deciding.',
+      'Might grey up. Might not. Pick a jacket.',
+      'Overcast possible. The blanket stays close.',
+    ],
   },
 
   // ── Fog ───────────────────────────────────────────────────────────────────
@@ -161,7 +178,62 @@ export const QUIPS = {
       'Five-minute-late excuse: already written.',
       'City went offline. Dense fog, sparse luck.',
     ],
+    clearing: [
+      'Fog lifting. City booting back up.',
+      'Visibility: returning. Slowly.',
+      'Fog clocking out. Roads getting brave.',
+      'Clearing up. The world was still there.',
+    ],
+    incoming: [
+      'Fog rolling in. Blame it already.',
+      'Visibility dropping. Good time to stay put.',
+      'Fog arriving. Headlights on, plans off.',
+      'Incoming fog. The commute will have opinions.',
+    ],
+    possible: [
+      'Fog possible. Drive like you cannot see anyway.',
+      'Could get murky out there.',
+      'Maybe fog. Maybe just extremely moody.',
+    ],
   },
+};
+
+// ── Wind quips ────────────────────────────────────────────────────────────────
+// Keyed by intensity: breezy (20–44 km/h), strong (45–64 km/h), storm (65+ km/h)
+
+export const WIND_QUIPS = {
+  /** 20–44 km/h — noticeably breezy */
+  breezy: [
+    'Wind doing its thing out there. Hold the hat.',
+    'Breezy enough to turn an umbrella inside-out.',
+    'Hair has decided it is doing whatever.',
+    'Wind advisory: coffee lids stay on.',
+    'Gusty. Napkins are now public property.',
+    'Mild chaos outside. Wind said hi.',
+    'Good kite day. Bad hair day.',
+  ],
+  /** 45–64 km/h — genuinely strong gusts */
+  strong: [
+    'Gusts at levels that rethink plans.',
+    'Wind is making decisions for you today.',
+    'Structural commitment to outside: questionable.',
+    'Strong gusts. Walk sideways if needed.',
+    'Umbrella is dead on arrival.',
+    'Wind says no. Listen to it.',
+    'Gusts are at feud with your schedule.',
+    'Hold onto doors. And the dog.',
+  ],
+  /** 65+ km/h — storm-grade, dangerous */
+  storm: [
+    'That is not wind. That is weather with a vendetta.',
+    'Stay inside. This is not negotiable.',
+    'Destructive gusts. Nothing outside is worth it.',
+    'Wind declared a personal emergency.',
+    'Anything not tied down is now someone else\'s problem.',
+    'Storm-grade gusts. Hard pass on going out.',
+    'Nature is actively hostile right now.',
+    'Batten down everything. Wind means it.',
+  ],
 };
 
 // ── Temperature-shift quips ───────────────────────────────────────────────────
@@ -289,8 +361,19 @@ export const getWeatherQuip = (forecast, weather, ctx = {}) => {
   const code = weather?.code ?? 0;
   const feels = weather?.feelsLike ?? weather?.temperature ?? 20;
   const isDay = weather?.isDay ?? true;
-  const group = getConditionGroup(forecast?.code ?? code);
+  const group = getConditionGroup(code);
   const fType = forecast?.type;
+  const windGust = ctx.windGust ?? weather?.windGust ?? 0;
+
+  // ── Wind override — storm/strong gusts take priority (except thunder, which
+  //    already implies extreme conditions and has its own copy) ──────────────
+  if (group !== 'thunder') {
+    if (windGust >= 65) return pickQuip(WIND_QUIPS.storm);
+    // Strong wind only overrides when the condition isn't already dramatic rain/snow
+    if (windGust >= 45 && !['rain', 'snow'].includes(group)) return pickQuip(WIND_QUIPS.strong);
+    // Breezy nudge — only on clear/cloudy days where wind is the main story
+    if (windGust >= 20 && ['clear', 'cloudy'].includes(group)) return pickQuip(WIND_QUIPS.breezy);
+  }
 
   // ── Temperature overrides ──────────────────────────────────────────────
   // 1. Sunny + cold (apparent temp ≤ 10 °C)

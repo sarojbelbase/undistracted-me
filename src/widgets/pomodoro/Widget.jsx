@@ -4,7 +4,7 @@ import { BaseWidget } from '../BaseWidget';
 import { PRESETS, formatTime } from './utils';
 
 const pillActive = { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' };
-const pillInactive = { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' };
+const pillInactive = { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' };
 
 // ─── Persistence helpers (keyed per widget instance id) ─────────────────────
 const persistKey = (id) => `pomodoro_timer_state_${id}`;
@@ -161,7 +161,7 @@ export const Widget = ({ id, onRemove }) => {
                 onChange={e => setCustomInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCustomStart()}
                 className="w-20 border rounded-xl px-2 py-1.5 text-xs outline-none text-center"
-                style={{ borderColor: 'var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
+                style={{ borderColor: 'var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--w-ink-1)' }}
               />
               <button
                 onClick={handleCustomStart}
@@ -184,8 +184,7 @@ export const Widget = ({ id, onRemove }) => {
         <button
           onClick={backToPick}
           className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-          style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
-          title="Change duration"
+          style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
         >
           <ArrowLeft size={12} />
         </button>
@@ -219,7 +218,7 @@ export const Widget = ({ id, onRemove }) => {
         <button
           onClick={reset}
           className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-          style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+          style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
         >
           <ArrowCounterclockwise size={13} />
         </button>

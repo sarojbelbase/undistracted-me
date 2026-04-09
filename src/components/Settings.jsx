@@ -1,5 +1,6 @@
 import { SunFill, MoonFill, CheckLg, CircleHalf } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
+import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 
 const CoffeeIcon = () => (
@@ -12,7 +13,7 @@ const CoffeeIcon = () => (
   </svg>
 );
 
-export const Settings = ({ closeSettings, onPreviewLookAway }) => {
+export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
   const {
     accent, setAccent,
     mode, setMode,
@@ -20,10 +21,12 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
     lookAwayEnabled, setLookAwayEnabled,
     lookAwayInterval, setLookAwayInterval,
     lookAwayNotify, setLookAwayNotify,
+    canvasBg,
+    cardStyle, setCardStyle,
   } = useSettingsStore();
 
   const SectionLabel = ({ children }) => (
-    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-5)' }}>
+    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-3)' }}>
       {children}
     </p>
   );
@@ -35,7 +38,13 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
   return (
     <div
       className="absolute top-12 right-0 z-50 rounded-2xl shadow-xl p-5 w-72 flex flex-col gap-4 animate-fade-in"
-      style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'var(--card-blur)',
+        WebkitBackdropFilter: 'var(--card-blur)',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
+      }}
       onMouseDown={e => e.stopPropagation()}
     >
       {/* ── VIEW ── */}
@@ -51,7 +60,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
                 className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={defaultView === id
                   ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
               >
                 {label}
               </button>
@@ -74,7 +83,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
                 className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={mode === id
                   ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
                 title={id === 'auto' ? 'Auto — follows sunrise & sunset' : id.charAt(0).toUpperCase() + id.slice(1)}
               >
                 {icon}{id.charAt(0).toUpperCase() + id.slice(1)}
@@ -115,6 +124,49 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
 
       <Divider />
 
+      {/* ── BACKGROUND ── */}
+      <div>
+        <SectionLabel>Canvas Background</SectionLabel>
+        <button
+          onClick={() => onOpenBgPicker?.()}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-opacity hover:opacity-80 cursor-pointer focus:outline-none"
+          style={{
+            background: 'var(--card-bg)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            border: '1px solid var(--card-border)',
+            color: 'var(--w-ink-2)',
+          }}
+        >
+          <span>
+            {{ solid: 'Solid Color', orb: 'Color Motion', curated: 'Curated Photos', custom: 'Custom URL' }[canvasBg?.type || 'orb'] ?? 'Color Motion'}
+          </span>
+          <span style={{ color: 'var(--w-ink-4)' }}>Change ›</span>
+        </button>
+      </div>
+
+      {/* ── WIDGET STYLE ── */}
+      <div>
+        <SectionLabel>Widget Style</SectionLabel>
+        <div className="grid grid-cols-2 gap-1.5">
+          {CARD_STYLES.map(({ id, label, hint }) => (
+            <button
+              key={id}
+              onClick={() => setCardStyle(id)}
+              className="flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl text-left transition-all focus:outline-none cursor-pointer"
+              style={cardStyle === id
+                ? { background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--w-accent) 35%, transparent)', color: 'var(--w-accent)' }
+                : { background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', color: 'var(--w-ink-2)' }}
+            >
+              <span className="text-xs font-semibold">{label}</span>
+              <span className="text-[10px] leading-snug" style={{ color: cardStyle === id ? 'color-mix(in srgb, var(--w-accent) 80%, transparent)' : 'var(--w-ink-4)' }}>{hint}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Divider />
+
       {/* ── LOOK AWAY ── */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -127,7 +179,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
               <button
                 onClick={onPreviewLookAway}
                 className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
-                style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
+                style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-2)', border: '1px solid var(--card-border)' }}
               >
                 Preview
               </button>
@@ -138,7 +190,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
               className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
               style={lookAwayEnabled
                 ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+                : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
             >
               {lookAwayEnabled ? 'On' : 'Off'}
             </button>
@@ -146,7 +198,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
         </div>
         {lookAwayEnabled && (
           <div className="flex flex-col gap-1.5 mt-2">
-            <span className="text-[11px] text-center font-medium" style={{ color: 'var(--w-ink-4)' }}>Remind every</span>
+            <span className="text-[11px] text-center font-medium" style={{ color: 'var(--w-ink-3)' }}>Remind every</span>
             <div className="flex justify-center gap-2">
               {[20, 30, 60].map((mins) => {
                 const selected = lookAwayInterval === mins;
@@ -160,9 +212,10 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
                       color: 'var(--w-accent)',
                       border: '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
                     } : {
-                      backgroundColor: 'var(--w-surface-2)',
-                      color: 'var(--w-ink-4)',
-                      border: '1px solid var(--w-border)',
+                      backgroundColor: 'var(--card-bg)',
+                      backdropFilter: 'var(--card-blur)',
+                      color: 'var(--w-ink-3)',
+                      border: '1px solid var(--card-border)',
                     }}
                   >
                     {mins === 60 ? '1 hr' : `${mins} min`}
@@ -172,13 +225,13 @@ export const Settings = ({ closeSettings, onPreviewLookAway }) => {
             </div>
             {/* Notification toggle */}
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] font-medium" style={{ color: 'var(--w-ink-4)' }}>Show notification</span>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--w-ink-3)' }}>Show notification</span>
               <button
                 onClick={() => setLookAwayNotify(!lookAwayNotify)}
                 className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
                 style={lookAwayNotify
                   ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
               >
                 {lookAwayNotify ? 'On' : 'Off'}
               </button>

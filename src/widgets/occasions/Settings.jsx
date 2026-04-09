@@ -60,9 +60,10 @@ const SectionHeading = ({ children }) => (
 );
 
 const inputStyle = {
-  background: 'var(--w-surface)',
+  background: 'var(--card-bg)',
+  backdropFilter: 'var(--card-blur)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--w-border)',
+  border: '1px solid var(--card-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -71,9 +72,10 @@ const inputStyle = {
 };
 
 const selStyle = {
-  background: 'var(--w-surface)',
+  background: 'var(--card-bg)',
+  backdropFilter: 'var(--card-blur)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--w-border)',
+  border: '1px solid var(--card-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -164,7 +166,7 @@ const ManualSection = ({ onManualChange }) => {
 
       {/* Existing entries */}
       {manual.length > 0 && (
-        <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--w-border)' }}>
+        <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
           {manual.map((e, i) => {
             const monthShort = MONTHS.find(m => m.value === e.month)?.short ?? '';
             return (
@@ -172,8 +174,9 @@ const ManualSection = ({ onManualChange }) => {
                 key={e.id}
                 className="flex items-center gap-3 px-4 py-3"
                 style={{
-                  background: 'var(--w-surface-2)',
-                  borderBottom: i < manual.length - 1 ? '1px solid var(--w-border)' : 'none',
+                  background: 'var(--card-bg)',
+                  backdropFilter: 'var(--card-blur)',
+                  borderBottom: i < manual.length - 1 ? '1px solid var(--card-border)' : 'none',
                 }}
               >
                 <SmAvatar name={e.name} />
@@ -181,7 +184,7 @@ const ManualSection = ({ onManualChange }) => {
                   <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
                     {e.name}
                   </div>
-                  <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--w-ink-5)' }}>
+                  <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--w-ink-4)' }}>
                     <TypeIcon type={e.type} size={11} />
                     {typeLabel(e.type)} · {monthShort} {e.day}
                   </div>
@@ -189,7 +192,7 @@ const ManualSection = ({ onManualChange }) => {
                 <button
                   onClick={() => handleRemove(e.id)}
                   className="w-7 h-7 flex items-center justify-center rounded-full transition-all hover:text-red-500 cursor-pointer"
-                  style={{ color: 'var(--w-ink-5)' }}
+                  style={{ color: 'var(--w-ink-4)' }}
                   aria-label={`Remove ${e.name}`}
                 >
                   <XLg size={11} />
@@ -202,7 +205,7 @@ const ManualSection = ({ onManualChange }) => {
 
       {/* Empty hint */}
       {manual.length === 0 && !showAdd && (
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
           Add people not in your Google Contacts — family, close friends, or anyone you don't want to miss.
         </p>
       )}
@@ -211,7 +214,7 @@ const ManualSection = ({ onManualChange }) => {
       {showAdd && (
         <div
           className="rounded-2xl p-4 flex flex-col gap-4"
-          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+          style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)' }}
         >
           {/* Name */}
           <div>
@@ -245,7 +248,7 @@ const ManualSection = ({ onManualChange }) => {
                     className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer"
                     style={active
                       ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: '1.5px solid transparent' }
-                      : { background: 'var(--w-surface)', color: 'var(--w-ink-3)', border: '1.5px solid var(--w-border)' }}
+                      : { background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1.5px solid var(--card-border)' }}
                   >
                     <t.Icon size={14} style={{ color: active ? 'inherit' : t.iconColor }} />
                     {t.label}
@@ -296,7 +299,7 @@ const ManualSection = ({ onManualChange }) => {
             <button
               onClick={cancelAdd}
               className="flex-1 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-              style={{ background: 'var(--w-surface)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+              style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
             >
               Cancel
             </button>

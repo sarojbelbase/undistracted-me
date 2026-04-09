@@ -35,6 +35,12 @@ const fromLegacy = () => {
       lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
       lookAwayInterval: stored.state.lookAwayInterval ?? 20,
       lookAwayNotify: stored.state.lookAwayNotify ?? true,
+      canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null },
+      cardStyle: stored.state.cardStyle ?? 'glass',
+      modePrefs: stored.state.modePrefs ?? {
+        light: { cardStyle: stored.state.cardStyle ?? 'glass', canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null } },
+        dark: { cardStyle: stored.state.cardStyle ?? 'glass', canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null } },
+      },
     };
   } catch { /* ignore */ }
   // Legacy single-key fallback
@@ -48,6 +54,12 @@ const fromLegacy = () => {
     lookAwayEnabled: false,
     lookAwayInterval: 20,
     lookAwayNotify: true,
+    canvasBg: { type: 'orb', orbId: 'blueberry', url: null },
+    cardStyle: 'glass',
+    modePrefs: {
+      light: { cardStyle: 'flat', canvasBg: { type: 'orb', orbId: 'blueberry', url: null } },
+      dark: { cardStyle: 'glass', canvasBg: { type: 'orb', orbId: 'blueberry', url: null } },
+    },
   };
 };
 
@@ -57,6 +69,13 @@ export const useSettingsStore = create(
       // ── State (seeded from legacy keys on first load) ──────────────────
       ...fromLegacy(),
       clockFormat: '24h',
+
+      // ── Helpers ────────────────────────────────────────────────────────
+      /** Returns 'light' or 'dark' key for modePrefs based on current mode */
+      _resolvedModeKey: () => {
+        const m = get().mode;
+        return (m === 'dark' || m === 'auto') ? 'dark' : 'light';
+      },
 
       // ── Actions ────────────────────────────────────────────────────────
 
@@ -78,9 +97,14 @@ export const useSettingsStore = create(
           (mode === 'dark' || mode === 'auto') && prevAccent === 'Default'
             ? 'Blueberry'
             : prevAccent;
-        set({ mode, accent });
+        // Restore cardStyle and canvasBg saved for the target mode
+        const resolvedKey = (mode === 'dark' || mode === 'auto') ? 'dark' : 'light';
+        const savedPrefs = get().modePrefs?.[resolvedKey] ?? {};
+        const cardStyle = savedPrefs.cardStyle ?? 'glass';
+        const canvasBg = savedPrefs.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null };
+        set({ mode, accent, cardStyle, canvasBg });
         // For 'auto', theme will be applied by useAutoTheme hook after mount.
-        if (mode !== 'auto') applyTheme(accent, mode);
+        if (mode !== 'auto') applyTheme(accent, mode, cardStyle);
       },
 
       setDefaultView: (defaultView) => set({ defaultView }),
@@ -94,13 +118,34 @@ export const useSettingsStore = create(
       setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),
       setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),
       setLookAwayNotify: (lookAwayNotify) => set({ lookAwayNotify }),
+
+      /** Canvas background — { type: 'solid'|'orb'|'curated'|'custom', orbId?, url? } */
+      setCanvasBg: (canvasBg) => {
+        const resolvedKey = get()._resolvedModeKey();
+        const modePrefs = {
+          ...get().modePrefs,
+          [resolvedKey]: { ...get().modePrefs?.[resolvedKey], canvasBg },
+        };
+        set({ canvasBg, modePrefs });
+      },
+
+      /** Widget surface style — 'flat' | 'glass' */
+      setCardStyle: (cardStyle) => {
+        const resolvedKey = get()._resolvedModeKey();
+        const modePrefs = {
+          ...get().modePrefs,
+          [resolvedKey]: { ...get().modePrefs?.[resolvedKey], cardStyle },
+        };
+        set({ cardStyle, modePrefs });
+        applyTheme(get().accent, get().mode, cardStyle);
+      },
     }),
     {
       name: STORE_KEY,
       // Re-apply theme CSS vars after Zustand rehydrates from localStorage
       onRehydrateStorage: () => (state) => {
         if (state) {
-          applyTheme(state.accent || 'Default', state.mode || 'light');
+          applyTheme(state.accent || 'Default', state.mode || 'light', state.cardStyle || 'glass');
         }
       },
     },

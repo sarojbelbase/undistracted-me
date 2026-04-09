@@ -147,7 +147,7 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
                   flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
                   cursor-grab active:cursor-grabbing select-none
                   opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', borderTop: 'none' }}
+                style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', borderTop: 'none', boxShadow: 'var(--card-shadow)' }}
                 aria-label="Drag to move"
               >
                 {[0, 1, 2, 3].map(i => (

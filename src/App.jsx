@@ -1,10 +1,14 @@
 import './App.css';
-import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useRef, useEffect, useMemo, Suspense, lazy } from 'react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
 import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
 import { WidgetGrid } from './widgets/WidgetGrid';
+import { OrbBackground } from './components/ui/OrbBackground';
+import { BackgroundPicker, getOrbRgbById } from './components/ui/BackgroundPicker';
+import { getPhotoLibrary } from './utilities/unsplash';
+import { ACCENT_COLORS } from './theme';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 import { useAutoTheme } from './utilities/useAutoTheme';
 
@@ -15,9 +19,14 @@ const WidgetCatalog = lazy(() => import('./widgets/WidgetCatalog').then(m => ({ 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [showBgPicker, setShowBgPicker] = useState(false);
 
   // ── Zustand stores ─────────────────────────────────────────────────────────
-  const { mode, accent, defaultView, lookAwayEnabled, lookAwayInterval, lookAwayNotify } = useSettingsStore();
+  const {
+    mode, accent, defaultView,
+    lookAwayEnabled, lookAwayInterval, lookAwayNotify,
+    canvasBg, setCanvasBg,
+  } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
   // Resolves 'auto' mode to 'light'/'dark' based on sunrise/sunset;
@@ -68,12 +77,50 @@ const App = () => {
   const toggleSettings = () => setShowSettings((s) => !s);
   const closeSettings = () => setShowSettings(false);
 
+  // ── Canvas background computation ─────────────────────────────────────────
+  const bgType = canvasBg?.type || 'orb';
+  const bgOrbId = canvasBg?.orbId || 'blueberry';
+  const bgOrbRgb = useMemo(() => getOrbRgbById(bgOrbId), [bgOrbId]);
+
+  // URL for photo/custom backgrounds. Re-read library lazily at render time
+  // (library is only relevant when bgType === 'curated').
+  const bgImageUrl = useMemo(() => {
+    if (bgType === 'custom') return canvasBg?.url || null;
+    if (bgType === 'curated') return getPhotoLibrary()[0]?.full || getPhotoLibrary()[0]?.small || null;
+    return null;
+  }, [bgType, canvasBg]);
+
+  const pageBg = useMemo(() => {
+    if (bgType === 'curated' || bgType === 'custom') return '#000000';
+    if (bgType === 'orb') return isDark ? '#060608' : 'var(--w-page-bg)';
+    // solid — accent-tinted page colour
+    const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#3689E6';
+    return isDark
+      ? `color-mix(in srgb, ${accentHex} 12%, #141414)`
+      : `color-mix(in srgb, ${accentHex} 9%, #F0F0F2)`;
+  }, [bgType, isDark, accent]);
+
   return (
     <div
       id="fullscreen"
       className="relative h-screen w-screen overflow-auto"
-      style={{ background: 'var(--w-page-bg)' }}
+      style={{ background: pageBg }}
     >
+      {/* ── Canvas background layer ── */}
+      {bgType === 'orb' && <OrbBackground zIndex={0} rgb={bgOrbRgb} isDark={isDark} />}
+      {(bgType === 'curated' || bgType === 'custom') && bgImageUrl && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            backgroundImage: `url(${bgImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
       {/* ── Focus Mode ── top-left ── */}
       <div className="absolute top-5 left-5 z-50">
         <button
@@ -153,6 +200,7 @@ const App = () => {
             <Settings
               closeSettings={closeSettings}
               onPreviewLookAway={() => { setShowLookAway(true); closeSettings(); }}
+              onOpenBgPicker={() => { setShowBgPicker(true); closeSettings(); }}
             />
           </Suspense>
         )}
@@ -184,8 +232,24 @@ const App = () => {
           isDark={isDark}
         />
       )}
+
+      {/* ── Canvas background picker ── */}
+      {showBgPicker && (
+        <BackgroundPicker
+          scope="canvas"
+          initialSource={bgType}
+          initialOrbId={bgOrbId}
+          initialCustomUrl={canvasBg?.url || null}
+          onClose={() => setShowBgPicker(false)}
+          onApply={(type, opts = {}) => {
+            setCanvasBg({ type, orbId: opts.orbId || bgOrbId, url: opts.url ?? null });
+          }}
+        />
+      )}
     </div>
   );
 };
 
 export default App;
+
+

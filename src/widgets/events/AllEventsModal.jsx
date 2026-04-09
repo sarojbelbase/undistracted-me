@@ -32,17 +32,17 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
     >
       <div
         className="rounded-2xl shadow-2xl w-full max-w-[480px] max-h-[80vh] flex flex-col animate-fade-in"
-        style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
+        style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 pt-5 pb-4 shrink-0"
-          style={{ borderBottom: '1px solid var(--w-border)' }}
+          style={{ borderBottom: '1px solid var(--card-border)' }}
         >
           <div>
             <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>All Events</p>
-            <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--w-ink-5)' }}>
+            <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
               {events.length} upcoming
             </p>
           </div>
@@ -58,7 +58,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
-              style={{ background: 'var(--w-surface-2)', color: 'var(--w-ink-4)', border: '1px solid var(--w-border)' }}
+              style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
               aria-label="Close"
             >
               <XLg size={13} />
@@ -70,8 +70,8 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
         <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-6">
           {!hasAny && (
             <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <CalendarEvent size={32} style={{ color: 'var(--w-ink-5)', opacity: 0.35 }} />
-              <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
+              <CalendarEvent size={32} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
+              <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>
                 No upcoming events.<br />Hit + to create one.
               </p>
             </div>
@@ -82,7 +82,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
               {/* Bucket heading */}
               <p
                 className="text-[10px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: 'var(--w-ink-5)', letterSpacing: '0.1em' }}
+                style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}
               >{b}</p>
 
               <div className="flex flex-col gap-4">

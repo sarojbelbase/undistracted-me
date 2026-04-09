@@ -69,7 +69,7 @@ export const Widget = ({ onRemove }) => {
           <div className="flex items-center gap-1.5 min-w-0">
             <span
               className="text-[11px] font-medium truncate"
-              style={{ color: 'var(--w-ink-5)' }}
+              style={{ color: 'var(--w-ink-4)' }}
             >
               {syncLabel}
             </span>
@@ -80,7 +80,7 @@ export const Widget = ({ onRemove }) => {
                 title="Refresh"
                 aria-label="Refresh"
                 className="flex items-center leading-none transition-opacity hover:opacity-50 cursor-pointer select-none shrink-0"
-                style={{ color: 'var(--w-ink-5)' }}
+                style={{ color: 'var(--w-ink-4)' }}
               >
                 <RefreshIcon spinning={loading} />
               </button>
@@ -92,8 +92,8 @@ export const Widget = ({ onRemove }) => {
         {/* ── Event list / empty state ── */}
         {upcomingEvents.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-            <CalendarEvent size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
-            <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
+            <CalendarEvent size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
+            <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>
               No upcoming events
             </p>
           </div>

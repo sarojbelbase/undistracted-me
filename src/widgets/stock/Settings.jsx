@@ -59,7 +59,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
       {/* Section label */}
       <div className="flex items-baseline justify-between pb-2">
         <span className="w-label">Select Stocks</span>
-        <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>pick up to 3</span>
+        <span className="text-[10px]" style={{ color: 'var(--w-ink-4)' }}>pick up to 3</span>
       </div>
 
       {/* Current symbol pills */}
@@ -95,8 +95,10 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
           onChange={(e) => setQuery(e.target.value)}
           className="w-full text-sm px-3 py-2 rounded-xl outline-none"
           style={{
-            backgroundColor: 'var(--w-surface-2)',
-            border: '1px solid var(--w-border)',
+            backgroundColor: 'var(--card-bg)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            border: '1px solid var(--card-border)',
             color: 'var(--w-ink-1)',
           }}
         />
@@ -105,13 +107,13 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
       {/* List — bleeds to modal edges so buttons span full width */}
       <div className="pb-1 mx-[-1rem]">
         {loading && (
-          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-5)' }}>Loading…</p>
+          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>Loading…</p>
         )}
         {error && (
           <p className="text-xs px-4 py-2" style={{ color: '#ef4444' }}>{error}</p>
         )}
         {!loading && !error && query.trim() && filtered.length === 0 && (
-          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-5)' }}>No results</p>
+          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>No results</p>
         )}
         {filtered.map((c) => {
           const isSelected = symbols.includes(c.symbol);
@@ -129,7 +131,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
               }
             >
               <span className="text-xs font-bold w-14 shrink-0">{c.symbol}</span>
-              <span className="text-xs truncate flex-1" style={{ opacity: 0.65 }}>{c.name}</span>
+              <span className="text-xs truncate flex-1" style={{ color: 'var(--w-ink-3)' }}>{c.name}</span>
               {isSelected && (
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                   <polyline points="2,6 5,9 10,3" />

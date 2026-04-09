@@ -26,15 +26,18 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
       <div
         className={`flex flex-col rounded-2xl shadow-2xl ${width} overflow-hidden animate-fade-in`}
         style={{
-          backgroundColor: 'var(--w-surface)',
-          border: '1px solid var(--w-border)',
+          background: 'var(--card-bg)',
+          backdropFilter: 'var(--card-blur)',
+          WebkitBackdropFilter: 'var(--card-blur)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--card-shadow)',
           maxHeight: '70vh',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-          style={{ borderBottom: '1px solid var(--w-border)' }}
+          style={{ borderBottom: '1px solid var(--card-border)' }}
         >
           <span className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>
             {title}
@@ -43,7 +46,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
             onClick={onClose}
             aria-label="Close settings"
             className="w-6 h-6 flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer"
-            style={{ color: 'var(--w-ink-4)' }}
+            style={{ color: 'var(--w-ink-3)' }}
           >
             <XLg size={12} aria-hidden="true" />
           </button>

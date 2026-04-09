@@ -53,8 +53,11 @@ export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 
       ref={ref}
       style={{
         ...style,
-        backgroundColor: 'var(--w-surface)',
-        border: '1px solid var(--w-border)',
+        background: 'var(--card-bg)',
+        backdropFilter: 'var(--card-blur)',
+        WebkitBackdropFilter: 'var(--card-blur)',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
         transition: 'opacity 80ms ease',
       }}
       className={`rounded-xl shadow-xl flex flex-col w-max ${className}`}

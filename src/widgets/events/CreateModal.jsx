@@ -65,8 +65,9 @@ export const CreateModal = ({ onSave, onClose }) => {
 
   const inputCls = 'outline-none transition-colors';
   const inputStyle = {
-    border: '1px solid var(--w-border)',
-    backgroundColor: 'var(--w-surface)',
+    border: '1px solid var(--card-border)',
+    backgroundColor: 'var(--card-bg)',
+    backdropFilter: 'var(--card-blur)',
     color: 'var(--w-ink-1)',
     borderRadius: '0.5rem',
   };
@@ -75,7 +76,7 @@ export const CreateModal = ({ onSave, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
       <div
         className="rounded-2xl shadow-2xl p-5 w-80 animate-fade-in"
-        style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
+        style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -83,8 +84,7 @@ export const CreateModal = ({ onSave, onClose }) => {
           <button
             onClick={onClose}
             className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-            style={{ color: 'var(--w-ink-4)' }}
-            aria-label="Close"
+            style={{ color: 'var(--w-ink-3)' }}
           >
             <XLg size={14} />
           </button>
@@ -106,9 +106,8 @@ export const CreateModal = ({ onSave, onClose }) => {
           {/* When block */}
           <div
             className="rounded-xl overflow-hidden"
-            style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)' }}
+            style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
           >
-            {/* Date chips */}
             <div className="flex gap-1.5 p-3 pb-2">
               {DATE_CHIPS.map(chip => (
                 <PillButton
@@ -136,7 +135,7 @@ export const CreateModal = ({ onSave, onClose }) => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <ClockFill size={11} style={{ color: 'var(--w-ink-5)', flexShrink: 0 }} />
+                  <ClockFill size={11} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
                   <input
                     type="time"
                     value={form.startTime}
@@ -169,9 +168,9 @@ export const CreateModal = ({ onSave, onClose }) => {
           {durType === 'custom' && (
             <div
               className="rounded-xl overflow-hidden"
-              style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)' }}
+              style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
             >
-              <div className="px-3 pb-3 pt-3">
+              <div className="flex flex-col gap-0.5 p-3">
                 <span className="w-label mb-1 block">End date &amp; time</span>
                 <input
                   type="datetime-local"
@@ -192,7 +191,7 @@ export const CreateModal = ({ onSave, onClose }) => {
           <button
             onClick={onClose}
             className="px-4 py-1.5 text-sm"
-            style={{ color: 'var(--w-ink-4)' }}
+            style={{ color: 'var(--w-ink-3)' }}
           >
             Cancel
           </button>
