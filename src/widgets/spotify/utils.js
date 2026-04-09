@@ -10,6 +10,9 @@ const TOKEN_KEY = 'spotify_tokens';
 const PROFILE_KEY = 'spotify_profile';
 const CONNECTED_FLAG = 'spotify_connected';
 
+// Returns true when running as a plain website (not a Chrome extension).
+const isWebMode = () => typeof chrome === 'undefined' || typeof chrome.identity?.launchWebAuthFlow !== 'function'; // eslint-disable-line no-undef
+
 // ─── PKCE helpers ────────────────────────────────────────────────────────────
 
 const generateCodeVerifier = () => {
@@ -27,7 +30,8 @@ const generateCodeChallenge = async (verifier) => {
 };
 
 const getRedirectUri = () => {
-  const id = typeof chrome !== 'undefined' && chrome.runtime?.id;
+  if (isWebMode()) return `${globalThis.location.origin}/auth-callback.html`;
+  const id = typeof chrome !== 'undefined' && chrome.runtime?.id; // eslint-disable-line no-undef
   if (!id) throw new Error('Chrome extension context unavailable. Load the extension from chrome://extensions before connecting.');
   return `https://${id}.chromiumapp.org/`;
 };
@@ -39,7 +43,7 @@ export const connectSpotify = async () => {
   const challenge = await generateCodeChallenge(verifier);
   const redirectUri = getRedirectUri();
 
-  const params = new URLSearchParams({
+  const authParams = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID,
     response_type: 'code',
     redirect_uri: redirectUri,
@@ -48,22 +52,57 @@ export const connectSpotify = async () => {
     code_challenge: challenge,
   });
 
-  const authUrl = `https://accounts.spotify.com/authorize?${params}`;
+  // State param doubles as the postMessage type for the web popup flow.
+  if (isWebMode()) authParams.set('state', 'spotify-auth-callback');
 
-  const responseUrl = await new Promise((resolve, reject) => {
-    if (typeof chrome === 'undefined' || !chrome.identity?.launchWebAuthFlow) {
-      reject(new Error('chrome.identity API not available — load the extension from chrome://extensions'));
-      return;
-    }
-    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (url) => {
-      const lastError = chrome.runtime?.lastError;
-      if (lastError) reject(new Error(lastError.message));
-      else if (!url) reject(new Error('Auth cancelled'));
-      else resolve(url);
+  const authUrl = `https://accounts.spotify.com/authorize?${authParams}`;
+
+  let code;
+  if (isWebMode()) {
+    // Popup-based PKCE flow — mirrors the Google web auth pattern.
+    code = await new Promise((resolve, reject) => {
+      const w = 500, h = 700;
+      const left = Math.round(globalThis.screen.width / 2 - w / 2);
+      const top = Math.round(globalThis.screen.height / 2 - h / 2);
+      const popup = globalThis.open(authUrl, 'spotify-auth', `width=${w},height=${h},left=${left},top=${top},popup=1`);
+      if (!popup) { reject(new Error('Popup blocked — allow popups for this site')); return; }
+
+      const onMessage = (e) => {
+        if (e.origin !== globalThis.location.origin) return;
+        if (e.data?.type !== 'spotify-auth-callback') return;
+        globalThis.removeEventListener('message', onMessage);
+        clearInterval(closePoll);
+        if (e.data.error) reject(new Error(e.data.error));
+        else if (e.data.code) resolve(e.data.code);
+        else reject(new Error('No authorization code received'));
+      };
+      globalThis.addEventListener('message', onMessage);
+
+      const closePoll = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(closePoll);
+          globalThis.removeEventListener('message', onMessage);
+          reject(new Error('Sign-in cancelled'));
+        }
+      }, 500);
     });
-  });
+  } else {
+    // Extension flow: chrome.identity.launchWebAuthFlow
+    const responseUrl = await new Promise((resolve, reject) => {
+      if (typeof chrome === 'undefined' || !chrome.identity?.launchWebAuthFlow) { // eslint-disable-line no-undef
+        reject(new Error('chrome.identity API not available — load the extension from chrome://extensions'));
+        return;
+      }
+      chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (url) => { // eslint-disable-line no-undef
+        const lastError = chrome.runtime?.lastError; // eslint-disable-line no-undef
+        if (lastError) reject(new Error(lastError.message));
+        else if (!url) reject(new Error('Auth cancelled'));
+        else resolve(url);
+      });
+    });
+    code = new URL(responseUrl).searchParams.get('code');
+  }
 
-  const code = new URL(responseUrl).searchParams.get('code');
   if (!code) throw new Error('No authorization code received');
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
@@ -86,12 +125,46 @@ export const connectSpotify = async () => {
     refresh_token: tokens.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
+  if (isWebMode()) {
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
+  } else {
+    await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
+  }
   localStorage.setItem(CONNECTED_FLAG, '1'); // sync flag so isSpotifyConnected() is immediate
   return stored.access_token;
 };
 
 export const getAccessToken = async () => {
+  // Web mode: tokens live entirely in localStorage.
+  if (isWebMode()) {
+    const raw = localStorage.getItem(TOKEN_KEY);
+    if (!raw) return null;
+    let stored;
+    try { stored = JSON.parse(raw); } catch { return null; }
+    if (!stored?.access_token) return null;
+    if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
+    if (!stored.refresh_token) return null;
+
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: stored.refresh_token,
+        client_id: SPOTIFY_CLIENT_ID,
+      }),
+    });
+    if (!res.ok) return null;
+    const tokens = await res.json();
+    const updated = {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token || stored.refresh_token,
+      expires_at: Date.now() + tokens.expires_in * 1000,
+    };
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
+    return updated.access_token;
+  }
+
   // One-time migration: move tokens from old localStorage storage to chrome.storage.local.
   // This runs silently on first invocation after an update and removes the insecure copy.
   const legacyRaw = localStorage.getItem(TOKEN_KEY);
@@ -141,7 +214,12 @@ export const getAccessToken = async () => {
 };
 
 export const disconnectSpotify = () => {
-  chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
+  if (isWebMode()) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(PROFILE_KEY);
+  } else {
+    chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
+  }
   localStorage.removeItem(CONNECTED_FLAG);
 };
 
@@ -149,6 +227,11 @@ export const disconnectSpotify = () => {
 export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
 
 export const getSpotifyProfile = async () => {
+  if (isWebMode()) {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
   const result = await chrome?.storage?.local?.get(PROFILE_KEY) ?? {}; // eslint-disable-line no-undef
   return result[PROFILE_KEY] ?? null;
 };
@@ -178,7 +261,11 @@ export const fetchAndCacheProfile = async () => {
       name: data.display_name || data.id || 'Spotify User',
       avatar: data.images?.[0]?.url ?? null,
     };
-    await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
+    if (isWebMode()) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    } else {
+      await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
+    }
     return profile;
   } catch { return null; }
 };
