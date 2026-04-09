@@ -137,7 +137,7 @@ async function getTokenWeb(interactive) {
     const top = Math.round(globalThis.screen.height / 2 - h / 2);
     const popup = globalThis.open(
       authUrl.toString(), 'google-auth',
-      `width=${w},height=${h},left=${left},top=${top},popup=1,noreferrer`
+      `width=${w},height=${h},left=${left},top=${top},popup=1`
     );
     if (!popup) { reject(new Error('Popup blocked — allow popups for this site')); return; }
 
