@@ -55,7 +55,7 @@ export const ClockWidget = ({ widgetId }) => {
 
   const settingsContent = (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Language</span>
+      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--w-ink-4)' }}>Language</span>
       {[
         { label: 'English', value: LANGUAGES.en },
         { label: 'Nepali', value: LANGUAGES.ne },
@@ -82,7 +82,7 @@ export const ClockWidget = ({ widgetId }) => {
     >
       {/* Weekday (muted) + Month (darker) — mirrors iOS Calendar header */}
       <div className="flex items-baseline gap-1.5">
-        <span className="text-base font-normal text-gray-400">{parts.weekday}</span>
+        <span className="text-base font-normal" style={{ color: 'var(--w-ink-4)' }}>{parts.weekday}</span>
         <span className="text-base font-medium text-gray-700">{parts.month}</span>
       </div>
 

@@ -592,7 +592,7 @@ export const Widget = ({ id, onRemove }) => {
                 {startTimeStr && (
                   <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--w-ink-3)', lineHeight: 1, letterSpacing: '-0.01em' }}>
                     {startTimeStr}
-                    {durStr && <span style={{ color: 'var(--w-ink-5)' }}> · {durStr}</span>}
+                    {durStr && <span style={{ color: 'var(--w-ink-4)' }}> · {durStr}</span>}
                   </p>
                 )}
                 {activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event' && (
@@ -610,9 +610,9 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <HourglassSplit size={28} style={{ color: 'var(--w-ink-6, var(--w-ink-5))' }} />
+          <HourglassSplit size={28} style={{ color: 'var(--w-ink-4)' }} />
           <p className="w-muted text-sm">No countdowns yet.</p>
-          <p className="text-xs" style={{ color: 'var(--w-ink-5)' }}>Add events or open settings to create one.</p>
+          <p className="text-xs" style={{ color: 'var(--w-ink-4)' }}>Add events or open settings to create one.</p>
         </div>
       )}
     </BaseWidget>

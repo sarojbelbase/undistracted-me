@@ -278,7 +278,7 @@ export const Widget = ({ id, onRemove }) => {
           <span className="text-xs font-semibold tabular-nums">
             {isDead ? '0.00' : `${stats?.change > 0 ? '+' : ''}${fmtPrice(stats?.change)}`}
           </span>
-          <span className="text-[10px] font-medium tabular-nums" style={{ opacity: isDead ? 0.4 : 0.8 }}>
+          <span className="text-[10px] font-medium tabular-nums" style={{ opacity: isDead ? 0.4 : 1 }}>
             ({isDead ? '0.00%' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`})
           </span>
         </div>

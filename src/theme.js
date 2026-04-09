@@ -22,8 +22,8 @@ const LIGHT_TOKENS = {
   '--w-ink-2': '#1f2937',
   '--w-ink-3': '#374151',
   '--w-ink-4': '#4b5563',
-  '--w-ink-5': '#9ca3af',
-  '--w-ink-6': '#d1d5db',
+  '--w-ink-5': '#6b7280',  /* gray-500 — 4.8:1 on white  ✓ AA        */
+  '--w-ink-6': '#9ca3af',  /* gray-400 — decorative/inactive           */
   '--w-surface': '#ffffff',
   '--w-surface-2': '#f9fafb',
   '--w-border': '#e5e7eb',
@@ -35,8 +35,8 @@ const DARK_TOKENS = {
   '--w-ink-2': '#e0e0e0',   /* primary labels & display numbers        */
   '--w-ink-3': '#c4c4c4',   /* bold value text, strong secondary       */
   '--w-ink-4': '#8e8e8e',   /* medium context, captions      5.0:1 ✓   */
-  '--w-ink-5': '#636363',   /* muted labels                  3.2:1 ✓   */
-  '--w-ink-6': '#484848',   /* inactive / decorative         2.2:1      */
+  '--w-ink-5': '#909090',   /* muted labels             5.0:1 ✓ AA   */
+  '--w-ink-6': '#6e6e6e',   /* inactive / decorative    3.3:1 ✓ min   */
   '--w-surface': '#1c1c1c', /* mid-point widget card surface            */
   '--w-surface-2': '#252525', /* raised surface — inputs, sub-panels   */
   '--w-border': '#333333',  /* hairline separators                      */

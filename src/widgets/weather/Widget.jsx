@@ -182,9 +182,9 @@ export const Widget = ({ id = 'weather', onRemove }) => {
       {/* ── Location denied ── */}
       {locationDenied && !location ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <GeoAlt size={22} style={{ color: 'var(--w-ink-5)', opacity: 0.4 }} />
+          <GeoAlt size={22} style={{ color: 'var(--w-ink-4)', opacity: 0.65 }} />
           <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Location needed</p>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
             Open{' '}
             <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span>
             {' '}to search for your city.
@@ -194,9 +194,9 @@ export const Widget = ({ id = 'weather', onRemove }) => {
         /* ── Error ── */
       ) : error ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <GeoAlt size={22} style={{ color: 'var(--w-ink-5)', opacity: 0.4 }} />
+          <GeoAlt size={22} style={{ color: 'var(--w-ink-4)', opacity: 0.65 }} />
           <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Couldn&apos;t load weather</p>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
             Open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span> to check your location.
           </p>
         </div>
@@ -262,7 +262,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--w-accent)', textTransform: 'capitalize', lineHeight: 1.2 }}>
                   {forecast.type === 'clearing' ? 'clearing up' : forecast.description}
                 </span>
-                <span style={{ fontSize: '0.66rem', fontWeight: 600, color: 'var(--w-ink-6)', lineHeight: 1.5 }}>
+                <span style={{ fontSize: '0.66rem', fontWeight: 600, color: 'var(--w-ink-5)', lineHeight: 1.5 }}>
                   {forecast.type === 'clearing'
                     ? `in ${forecast.hours} ${forecast.hours === 1 ? 'hour' : 'hours'}`
                     : forecast.type === 'incoming'

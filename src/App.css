@@ -396,7 +396,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   .w-caption {
     font-size: 0.75rem;
     /* text-xs */
-    color: var(--w-ink-5);
+    color: var(--w-ink-4);
   }
 
   /* Level 7 — Label: settings section headers (ALL CAPS + tracking) */
@@ -405,13 +405,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--w-ink-5);
+    color: var(--w-ink-4);
   }
 
   /* Muted: status / error / empty-state messages */
   .w-muted {
     font-size: 0.75rem;
-    color: var(--w-ink-5);
+    color: var(--w-ink-3);
     text-align: center;
   }
 
@@ -420,7 +420,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 9999px;
-    background-color: var(--w-ink-6);
+    background-color: var(--w-ink-4);
     transition: background-color 0.3s ease;
   }
 
@@ -468,11 +468,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 [data-mode="dark"] .text-gray-400 {
-  color: var(--w-ink-5) !important;
+  color: var(--w-ink-4) !important;
 }
 
 [data-mode="dark"] .text-gray-500 {
-  color: var(--w-ink-4) !important;
+  color: var(--w-ink-5) !important;
 }
 
 [data-mode="dark"] .text-gray-900 {
@@ -939,7 +939,7 @@ textarea:focus-visible,
   background: var(--card-bg);
   backdrop-filter: var(--card-blur);
   -webkit-backdrop-filter: var(--card-blur);
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
   border: 1px solid var(--card-border);
   cursor: pointer;
   white-space: nowrap;
@@ -984,7 +984,7 @@ textarea:focus-visible,
   height: 28px;
   border-radius: 50%;
   background: var(--wc-bg-2);
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
   border: 1px solid var(--wc-border);
   cursor: pointer;
   transition: background 0.14s, color 0.14s, border-color 0.14s;
@@ -1087,7 +1087,7 @@ textarea:focus-visible,
   padding: 20px 18px 9px 18px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
 }
 
 .wc-section-header::after {
@@ -1100,7 +1100,7 @@ textarea:focus-visible,
 .wc-section-icon {
   display: flex;
   align-items: center;
-  color: var(--wc-ink-5);
+  color: var(--wc-ink-4);
   flex-shrink: 0;
 }
 
@@ -1111,7 +1111,7 @@ textarea:focus-visible,
 .wc-section-count {
   font-size: 9.5px;
   font-weight: 600;
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
   letter-spacing: 0.04em;
 }
 
@@ -1151,7 +1151,7 @@ textarea:focus-visible,
   background: var(--card-bg);
   backdrop-filter: var(--card-blur);
   -webkit-backdrop-filter: var(--card-blur);
-  color: var(--wc-ink-3);
+  color: var(--wc-ink-2);
   border: 1px solid var(--card-border);
   flex-shrink: 0;
   transition: background 0.14s, color 0.14s;
@@ -1191,7 +1191,7 @@ textarea:focus-visible,
 .wc-desc {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1240,7 +1240,7 @@ textarea:focus-visible,
   background: var(--card-bg);
   backdrop-filter: var(--card-blur);
   -webkit-backdrop-filter: var(--card-blur);
-  color: var(--wc-ink-3);
+  color: var(--wc-ink-2);
   border: 1.5px solid var(--card-border);
 }
 
@@ -1288,7 +1288,7 @@ textarea:focus-visible,
 .wc-footer-hint {
   font-size: 11px;
   font-weight: 600;
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-3);
   letter-spacing: 0.01em;
 }
 
@@ -1302,7 +1302,7 @@ textarea:focus-visible,
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
-  color: var(--wc-ink-5);
+  color: var(--wc-ink-3);
   text-decoration: none;
   transition: color 0.14s;
   letter-spacing: 0.01em;

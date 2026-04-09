@@ -1,20 +1,32 @@
-// In dev (localhost) requests go through the Vite proxy to avoid CORS.
-// In the real extension the chrome-extension:// origin is allowed by the host_permissions.
+// ── Runtime environment detection ───────────────────────────────────────────
+// Extensions bypass third-party CORS via host_permissions.
+// The website (Vercel) needs server-side proxy routes instead.
 const isDev = typeof location !== 'undefined' && location.hostname === 'localhost';
+const isExt = typeof chrome !== 'undefined' && !!chrome?.runtime?.id;
 
-// ── Company list — still served from nepalipaisa.com ─────────────────────────
-const NP_BASE = isDev ? '' : 'https://nepalipaisa.com';
-const NP_API = isDev ? '/np-api' : '/api';
-const COMPANIES_URL = `${NP_BASE}${NP_API}/GetCompanies`;
+// ── Company list — nepalipaisa.com ────────────────────────────────────────────
+const COMPANIES_URL = isDev
+  ? '/np-api/GetCompanies'
+  : isExt
+    ? 'https://nepalipaisa.com/api/GetCompanies'
+    : '/api/stock/companies';
 
 // ── Chart data — merolagani.com TechnicalChartHandler ────────────────────────
 // Response: { t, o, h, l, c, v, s } — standard OHLCV arrays, s === "ok" on success.
-const ML_ORIGIN = isDev ? '' : 'https://www.merolagani.com';
-const ML_PATH = isDev ? '/ml-api' : '/handlers/TechnicalChartHandler.ashx';
+const ML_ORIGIN = isDev ? '' : isExt ? 'https://www.merolagani.com' : '';
+const ML_PATH = isDev
+  ? '/ml-api'
+  : isExt
+    ? '/handlers/TechnicalChartHandler.ashx'
+    : '/api/stock/chart';
 
 function chartUrl(symbol) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 90 * 24 * 60 * 60; // 90 days of daily data for sparkline
+  // Website mode: route through Vercel proxy with query params
+  if (!isDev && !isExt) {
+    return `/api/stock/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
+  }
   return `${ML_ORIGIN}${ML_PATH}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
 }
 

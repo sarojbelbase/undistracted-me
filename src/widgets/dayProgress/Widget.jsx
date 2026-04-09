@@ -29,7 +29,7 @@ export const Widget = ({ id = 'dayProgress', onRemove }) => {
         <div className="flex items-baseline gap-1.5 min-w-0">
           <span className="w-sub-soft truncate">{progress.label} Progress</span>
           {progress.subtitle && (
-            <span style={{ fontSize: '0.65rem', color: 'var(--w-ink-5)', fontWeight: 500, letterSpacing: '0.03em' }}>
+            <span style={{ fontSize: '0.65rem', color: 'var(--w-ink-4)', fontWeight: 500, letterSpacing: '0.03em' }}>
               {calendar.toUpperCase()}
             </span>
           )}
