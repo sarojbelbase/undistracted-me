@@ -29,9 +29,13 @@
         const error = params.get('error');
 
         if (window.opener && window.opener !== window) {
+          // Determine message type from state param (Spotify passes 'spotify-auth-callback').
+          // Fall back to 'google-auth-callback' for backward compatibility.
+          const state = params.get('state');
+          const type = (state === 'spotify-auth-callback') ? 'spotify-auth-callback' : 'google-auth-callback';
           // Send result back to the tab that opened us, then close.
           window.opener.postMessage(
-            { type: 'google-auth-callback', code: code || null, error: error || null },
+            { type, code: code || null, error: error || null },
             location.origin
           );
           window.close();
