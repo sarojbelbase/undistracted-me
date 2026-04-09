@@ -1,5 +1,7 @@
 
 
+import { computeAutoMode } from './utilities/sunTime';
+
 export const ACCENT_COLORS = [
   { name: 'Default', hex: '#111827', fg: '#ffffff' },
   { name: 'Blueberry', hex: '#3689E6', fg: '#ffffff' },
@@ -41,21 +43,22 @@ const DARK_TOKENS = {
 };
 
 const hexToRgb = (hex) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  const r = Number.parseInt(hex.slice(1, 3), 16);
+  const g = Number.parseInt(hex.slice(3, 5), 16);
+  const b = Number.parseInt(hex.slice(5, 7), 16);
   return `${r},${g},${b}`;
 };
 
 export const applyTheme = (accent, mode) => {
+  const resolved = mode === 'auto' ? computeAutoMode() : mode;
   const root = document.documentElement;
-  const tokens = mode === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
+  const tokens = resolved === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
   const color = ACCENT_COLORS.find(a => a.name === accent) || ACCENT_COLORS[0];
   root.style.setProperty('--w-accent', color.hex);
   root.style.setProperty('--w-accent-fg', color.fg);
   root.style.setProperty('--w-accent-rgb', hexToRgb(color.hex));
-  root.setAttribute('data-mode', mode);
+  root.dataset.mode = resolved;
 };
 
 /**

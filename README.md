@@ -23,7 +23,7 @@ A chrome/firefox extension to show distraction free nepali date on your new tab.
 
 - [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
 
-- [Official Website](https://whatsthemiti.sarojbelbase.com.np/)
+- [Official Website](https://undistractedme.sarojbelbase.com.np/)
 
 ## Build Setup
 

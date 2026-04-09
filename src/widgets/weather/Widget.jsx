@@ -331,11 +331,9 @@ export const Widget = ({ id = 'weather', onRemove }) => {
 
         const data = await fetchOpenMeteo(lat, lon, unit);
         const current = parseWeather(data, resolvedCity);
-        console.log('[Weather] Open-Meteo current →', current);
         setWeather(current);
 
         const fc = parseForecast(data);
-        console.log('[Weather] parsed forecast →', fc);
         setForecast(fc);
       } catch (e) {
         setError(e.message);
