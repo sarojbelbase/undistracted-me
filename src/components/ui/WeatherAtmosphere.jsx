@@ -1,0 +1,431 @@
+import React from 'react';
+
+// ── Weather atmosphere CSS animations (always fresh on module load) ────────────
+if (typeof document !== 'undefined') {
+  const existing = document.getElementById('w-atmo-kf');
+  if (existing) existing.remove();
+  const s = document.createElement('style');
+  s.id = 'w-atmo-kf';
+  s.textContent = [
+    '@keyframes wa-sun{0%,100%{transform:scale(1);opacity:.88}50%{transform:scale(1.08);opacity:1}}',
+    '@keyframes wa-moon{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}',
+    // Drop angles vary by wind — base is -15deg, overridden inline for gusts
+    '@keyframes wa-drop{0%{transform:translateY(-22px) rotate(-15deg);opacity:0}8%{opacity:1}85%{opacity:.72}100%{transform:translateY(110px) rotate(-15deg);opacity:0}}',
+    '@keyframes wa-drop-breezy{0%{transform:translateY(-22px) rotate(-25deg);opacity:0}8%{opacity:1}85%{opacity:.80}100%{transform:translateY(110px) rotate(-25deg);opacity:0}}',
+    '@keyframes wa-drop-strong{0%{transform:translateY(-22px) rotate(-38deg);opacity:0}8%{opacity:1}85%{opacity:.88}100%{transform:translateY(110px) rotate(-38deg);opacity:0}}',
+    '@keyframes wa-drizzle{0%{transform:translateY(-16px);opacity:0}10%{opacity:.55}88%{opacity:.38}100%{transform:translateY(105px);opacity:0}}',
+    '@keyframes wa-drizzle-breezy{0%{transform:translateY(-16px) rotate(-18deg);opacity:0}10%{opacity:.65}88%{opacity:.48}100%{transform:translateY(105px) rotate(-18deg);opacity:0}}',
+    '@keyframes wa-flake{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(8px);opacity:0}}',
+    '@keyframes wa-flake-breezy{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(22px);opacity:0}}',
+    '@keyframes wa-flake-strong{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(42px);opacity:0}}',
+    '@keyframes wa-fog-a{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(-14px);opacity:.82}}',
+    '@keyframes wa-fog-a-breezy{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(-28px);opacity:.82}}',
+    '@keyframes wa-fog-a-strong{0%{transform:translateX(0);opacity:.5}100%{transform:translateX(-60px);opacity:.2}}',
+    '@keyframes wa-fog-b{0%,100%{transform:translateX(0);opacity:.36}50%{transform:translateX(12px);opacity:.64}}',
+    '@keyframes wa-fog-b-breezy{0%,100%{transform:translateX(0);opacity:.36}50%{transform:translateX(26px);opacity:.64}}',
+    '@keyframes wa-cloud{0%,100%{transform:translateX(0)}50%{transform:translateX(-8px)}}',
+    '@keyframes wa-cloud-breezy{0%,100%{transform:translateX(0)}50%{transform:translateX(-18px)}}',
+    '@keyframes wa-cloud-strong{0%{transform:translateX(0)}100%{transform:translateX(-36px)}}',
+    '@keyframes wa-flash{0%,87%,100%{opacity:0}89%{opacity:.28}90%{opacity:.04}92%{opacity:.18}93%{opacity:0}}',
+    '@keyframes wa-bolt{0%,88%,91%,94%,100%{opacity:0}89%{opacity:.92}90%{opacity:.08}92%{opacity:.72}93%{opacity:.04}}',
+  ].join('');
+  document.head.appendChild(s);
+}
+
+/**
+ * Returns wind tier and animation variants based on gust speed (km/h).
+ * calm < 20, breezy 20–44, strong 45–64, storm 65+
+ */
+const windTier = (gust) => {
+  if (gust >= 65) return 'storm';
+  if (gust >= 45) return 'strong';
+  if (gust >= 20) return 'breezy';
+  return 'calm';
+};
+
+/**
+ * Given a base keyframe name and wind tier, returns the most specific
+ * animation name that was defined (falls back to base if no variant exists).
+ */
+const windAnim = (base, tier) => {
+  if (tier === 'calm') return base;
+  const variant = `${base}-${tier === 'storm' ? 'strong' : tier}`;
+  // storm reuses 'strong' variants (more extreme speed/timing, not a new shape)
+  return variant;
+};
+
+// ── Finer-grain grouping for visuals (independent of quip getConditionGroup) ─
+const getAtmosphereGroup = (code) => {
+  if (code >= 95) return 'thunder';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+  if (code >= 51 && code <= 57) return 'drizzle';
+  if (code === 45 || code === 48) return 'fog';
+  if (code === 3) return 'cloudy';
+  if (code === 1 || code === 2) return 'partly_cloudy';
+  return 'clear';
+};
+
+/** Human-readable label for the atmospheric effect shown in the widget corner */
+export const getAtmosphereLabel = (code, isDay) => {
+  const group = getAtmosphereGroup(code ?? 0);
+  if (group === 'thunder') return 'Thunderstorm';
+  if (group === 'snow') return 'Snowfall';
+  if (group === 'rain') return 'Rain';
+  if (group === 'drizzle') return 'Drizzle';
+  if (group === 'fog') return 'Foggy';
+  if (group === 'cloudy') return 'Overcast';
+  if (group === 'partly_cloudy') return isDay ? 'Partly cloudy' : 'Partly cloudy night';
+  return isDay ? 'Sunny' : 'Clear night';
+};
+
+// All animations: transform + opacity only (GPU composited, no filter:blur)
+export const WeatherAtmosphere = ({ weatherCode, isDay, windGust = 0 }) => {
+  const group = getAtmosphereGroup(weatherCode ?? 0);
+  const tier = windTier(windGust);
+
+  // Speed multiplier: storm = 2.4×, strong = 1.7×, breezy = 1.3×, calm = 1×
+  const speedMul = tier === 'storm' ? 2.4 : tier === 'strong' ? 1.7 : tier === 'breezy' ? 1.3 : 1;
+  /** Scale a duration string like '8s' by the inverse of speedMul */
+  const faster = (dur) => `${(parseFloat(dur) / speedMul).toFixed(2)}s`;
+
+  // Read resolved mode from the data-mode attribute that applyTheme sets on <html>.
+  // Defaults to dark so SSR / extension background pages don't flash colours.
+  const dk = typeof document !== 'undefined'
+    ? document.documentElement.dataset.mode !== 'light'
+    : true;
+
+  const wrap = {
+    position: 'absolute', inset: '-16px', pointerEvents: 'none',
+    overflow: 'hidden', zIndex: 0, borderRadius: '1rem', contain: 'strict',
+  };
+
+  // ── Clear day: warm golden orb from top-right corner
+  if (group === 'clear' && isDay) {
+    // Dark: subtle golden glow on near-black surface
+    // Light: deeper amber with more opacity to stand out on white
+    const corona = dk ? 'rgba(255,200,45,.82), rgba(255,155,8,.42)' : 'rgba(230,145,0,.22), rgba(210,110,0,.10)';
+    const disc = dk ? 'rgba(255,248,140,1.0), rgba(255,218,70,.72)' : 'rgba(255,195,30,.58), rgba(240,165,0,.28)';
+    const rayAlp = dk ? ['.75', '.60', '.60'] : ['.28', '.20', '.20'];
+    return (
+      <div style={wrap}>
+        {/* corona glow */}
+        <div style={{
+          position: 'absolute', top: -52, right: -52, width: 148, height: 148, borderRadius: '50%',
+          background: `radial-gradient(circle, ${corona}, transparent 70%)`,
+          animation: `wa-sun ${faster('7s')} ease-in-out infinite`,
+        }} />
+        {/* bright inner disc */}
+        <div style={{
+          position: 'absolute', top: -9, right: -9, width: 52, height: 52, borderRadius: '50%',
+          background: `radial-gradient(circle, ${disc}, transparent 80%)`,
+          animation: `wa-sun ${faster('7s')} ease-in-out infinite 0.6s`,
+        }} />
+        {/* ray hints via box-shadow dots */}
+        <div style={{
+          position: 'absolute', top: 13, right: 13, width: 3, height: 3, borderRadius: '50%',
+          background: 'transparent',
+          boxShadow: `20px -20px 0 0 rgba(220,160,0,${rayAlp[0]}), 28px -8px 0 0 rgba(220,160,0,${rayAlp[1]}), 8px -28px 0 0 rgba(220,160,0,${rayAlp[2]})`,
+        }} />
+      </div>
+    );
+  }
+
+  // ── Clear night: crescent + moonlight halo + rich star cluster ────────────
+  if (group === 'clear' && !isDay) {
+    // Dark: cool blue-white moon, light-blue stars on dark sky
+    // Light: slate-blue moon, darker navy stars to contrast white bg
+    const halo = dk ? 'rgba(172,205,255,.65), rgba(128,168,255,.32)' : 'rgba(110,140,210,.18), rgba(80,110,190,.07)';
+    const disc = dk ? 'rgba(225,236,255,.90)' : 'rgba(130,155,210,.80)';
+    const shadow = dk ? 'inset 10px -6px 0 rgba(4,8,28,.88)' : 'inset 10px -6px 0 rgba(20,30,80,.78)';
+    const starC = dk ? 'rgba(208,224,255,.90)' : 'rgba(70,95,160,.55)';
+    const starSh = dk
+      ? '16px -5px 0 1px rgba(205,220,255,.80), -10px 20px 0 0 rgba(205,220,255,.70), 34px 9px 0 0 rgba(205,220,255,.62), -25px 4px 0 1px rgba(205,220,255,.54), 48px -1px 0 0 rgba(205,220,255,.46), 2px 36px 0 0 rgba(205,220,255,.38), -18px 38px 0 1px rgba(205,220,255,.30)'
+      : '16px -5px 0 1px rgba(60,85,150,.40), -10px 20px 0 0 rgba(60,85,150,.32), 34px 9px 0 0 rgba(60,85,150,.28), -25px 4px 0 1px rgba(60,85,150,.22), 48px -1px 0 0 rgba(60,85,150,.18), 2px 36px 0 0 rgba(60,85,150,.14), -18px 38px 0 1px rgba(60,85,150,.12)';
+    return (
+      <div style={wrap}>
+        {/* moonlight halo */}
+        <div style={{
+          position: 'absolute', top: -22, right: -22, width: 100, height: 100, borderRadius: '50%',
+          background: `radial-gradient(circle, ${halo}, transparent 72%)`,
+          animation: `wa-moon ${faster('10s')} ease-in-out infinite`,
+        }} />
+        {/* crescent disc */}
+        <div style={{
+          position: 'absolute', top: 7, right: 9, width: 38, height: 38, borderRadius: '50%',
+          background: disc, boxShadow: shadow,
+          animation: `wa-moon ${faster('10s')} ease-in-out infinite`,
+        }} />
+        {/* star cluster — box-shadow dots, zero animation cost */}
+        <div style={{
+          position: 'absolute', top: 10, right: 60, width: 2, height: 2, borderRadius: '50%',
+          background: starC, boxShadow: starSh,
+        }} />
+      </div>
+    );
+  }
+
+  // ── Partly cloudy day: dimmed sun with drifting cloud blobs ─────────────
+  if (group === 'partly_cloudy' && isDay) {
+    // Clouds: light grey on dark, darker grey on light
+    const cloudA = dk ? 'rgba(200,205,215,.85)' : 'rgba(140,148,170,.34)';
+    const cloudB = dk ? 'rgba(190,196,210,.68)' : 'rgba(130,140,162,.22)';
+    return (
+      <div style={wrap}>
+        {/* muted sun behind cloud */}
+        <div style={{
+          position: 'absolute', top: -38, right: -38, width: 110, height: 110, borderRadius: '50%',
+          background: dk
+            ? 'radial-gradient(circle, rgba(255,200,45,.88) 0%, rgba(255,155,8,.48) 48%, transparent 72%)'
+            : 'radial-gradient(circle, rgba(230,145,0,.16) 0%, rgba(210,110,0,.07) 48%, transparent 72%)',
+          animation: `wa-sun ${faster('8s')} ease-in-out infinite`,
+        }} />
+        <div style={{
+          position: 'absolute', top: -3, right: -3, width: 36, height: 36, borderRadius: '50%',
+          background: dk
+            ? 'radial-gradient(circle, rgba(255,248,140,1.0) 0%, rgba(255,215,60,.78) 55%, transparent 82%)'
+            : 'radial-gradient(circle, rgba(255,195,30,.42) 0%, rgba(240,165,0,.20) 55%, transparent 82%)',
+          animation: `wa-sun ${faster('8s')} ease-in-out infinite 0.5s`,
+        }} />
+        {/* drifting cloud blobs */}
+        <div style={{
+          position: 'absolute', top: -10, right: -14, width: 95, height: 46, borderRadius: '50%',
+          background: `radial-gradient(ellipse at center, ${cloudA} 0%, transparent 70%)`,
+          animation: `${windAnim('wa-cloud', tier)} ${faster('8s')} ease-in-out infinite`,
+        }} />
+        <div style={{
+          position: 'absolute', top: 12, right: 24, width: 62, height: 30, borderRadius: '50%',
+          background: `radial-gradient(ellipse at center, ${cloudB} 0%, transparent 72%)`,
+          animation: `${windAnim('wa-cloud', tier)} ${faster('10s')} ease-in-out infinite 1.5s`,
+        }} />
+      </div>
+    );
+  }
+
+  // ── Partly cloudy night: moon with cloud passing in front ───────────────
+  if (group === 'partly_cloudy' && !isDay) {
+    const disc = dk ? 'rgba(220,232,255,.85)' : 'rgba(120,145,205,.78)';
+    const shadow = dk ? 'inset 9px -5px 0 rgba(4,8,28,.88)' : 'inset 9px -5px 0 rgba(20,30,80,.78)';
+    const starC = dk ? 'rgba(200,218,255,.54)' : 'rgba(65,90,155,.42)';
+    const starSh = dk
+      ? '14px -4px 0 0 rgba(198,215,255,.38), -8px 16px 0 1px rgba(198,215,255,.28), 28px 6px 0 0 rgba(198,215,255,.22)'
+      : '14px -4px 0 0 rgba(55,80,145,.30), -8px 16px 0 1px rgba(55,80,145,.22), 28px 6px 0 0 rgba(55,80,145,.18)';
+    // cloud blob: dark on dark sky, medium-grey on light bg
+    const cloud = dk
+      ? 'radial-gradient(ellipse at 55% 60%, rgba(50,55,70,.58) 0%, rgba(40,45,60,.32) 45%, transparent 72%)'
+      : 'radial-gradient(ellipse at 55% 60%, rgba(155,165,185,.50) 0%, rgba(140,150,170,.26) 45%, transparent 72%)';
+    return (
+      <div style={wrap}>
+        {/* soft moon halo */}
+        <div style={{
+          position: 'absolute', top: -18, right: -18, width: 86, height: 86, borderRadius: '50%',
+          background: dk
+            ? 'radial-gradient(circle, rgba(155,188,248,.78) 0%, rgba(115,155,240,.40) 52%, transparent 74%)'
+            : 'radial-gradient(circle, rgba(90,120,200,.14) 0%, rgba(70,100,185,.06) 52%, transparent 74%)',
+          animation: `wa-moon ${faster('10s')} ease-in-out infinite`,
+        }} />
+        {/* crescent */}
+        <div style={{
+          position: 'absolute', top: 8, right: 10, width: 32, height: 32, borderRadius: '50%',
+          background: disc, boxShadow: shadow,
+          animation: `wa-moon ${faster('10s')} ease-in-out infinite`,
+        }} />
+        {/* sparse stars */}
+        <div style={{
+          position: 'absolute', top: 12, right: 56, width: 2, height: 2, borderRadius: '50%',
+          background: starC, boxShadow: starSh,
+        }} />
+        {/* cloud blob paints over moon — partial occlusion */}
+        <div style={{
+          position: 'absolute', top: -8, right: -18, width: 90, height: 45, borderRadius: '50%',
+          background: cloud,
+          animation: `${windAnim('wa-cloud', tier)} ${faster('9s')} ease-in-out infinite 0.8s`,
+        }} />
+      </div>
+    );
+  }
+
+  // ── Drizzle: 3 light vertical drops + soft mist wash ────────────────────
+  if (group === 'drizzle') {
+    const drops = [
+      { r: 14, h: 12, d: '0s', sp: '1.3s' },
+      { r: 38, h: 10, d: '0.4s', sp: '1.18s' },
+      { r: 60, h: 13, d: '0.18s', sp: '1.4s' },
+    ];
+    // Drops/wash: light blue on dark, deeper blue on light
+    const wash = dk ? 'rgba(155,180,215,.35)' : 'rgba(80,120,195,.12)';
+    const dropC = dk ? 'rgba(160,195,238,.95)' : 'rgba(85,130,210,.60)';
+    return (
+      <div style={wrap}>
+        {/* ambient mist wash — static, zero animation cost */}
+        <div style={{
+          position: 'absolute', top: -16, right: -16, width: 130, height: 80,
+          background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 72%)`,
+        }} />
+        {drops.map((d, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: -16 + (i % 2) * -6, right: d.r,
+            width: 1, height: d.h, borderRadius: 2,
+            background: `linear-gradient(to bottom, transparent, ${dropC}, transparent)`,
+            animation: `${windAnim('wa-drizzle', tier)} ${faster(d.sp)} linear ${d.d} infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Rain: 5 angled drops + blue-grey wash ────────────────────────────────
+  if (group === 'rain') {
+    const drops = [
+      { r: 8, h: 18, d: '0s', sp: '0.68s' },
+      { r: 32, h: 14, d: '0.22s', sp: '0.62s' },
+      { r: 58, h: 20, d: '0.08s', sp: '0.74s' },
+      { r: 18, h: 15, d: '0.38s', sp: '0.65s' },
+      { r: 44, h: 17, d: '0.52s', sp: '0.70s' },
+    ];
+    const wash = dk ? 'rgba(100,140,195,.40)' : 'rgba(65,105,185,.16)';
+    const dropC = dk ? 'rgba(148,192,248,1.0)' : 'rgba(70,130,220,.72)';
+    return (
+      <div style={wrap}>
+        {/* ambient rain wash — static */}
+        <div style={{
+          position: 'absolute', top: -16, right: -16, width: 110, height: 72,
+          background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 70%)`,
+        }} />
+        {drops.map((d, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: -22 + (i % 3) * -8, right: d.r,
+            width: 1.5, height: d.h, borderRadius: 2,
+            background: `linear-gradient(to bottom, transparent, ${dropC}, transparent)`,
+            animation: `${windAnim('wa-drop', tier)} ${faster(d.sp)} linear ${d.d} infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Snow: 4 flakes + cool blue-white wash ────────────────────────────────
+  if (group === 'snow') {
+    const flakes = [
+      { r: 13, sz: 5, d: '0s', sp: '2.2s' },
+      { r: 32, sz: 4, d: '0.55s', sp: '1.85s' },
+      { r: 52, sz: 5, d: '0.28s', sp: '2.4s' },
+      { r: 22, sz: 3, d: '0.82s', sp: '2.0s' },
+    ];
+    // Flakes: near-white on dark, ice-blue on light (white on white = invisible)
+    const wash = dk ? 'rgba(200,218,255,.38)' : 'rgba(90,130,215,.10)';
+    const flakeC = dk ? 'rgba(235,245,255,1.0)' : 'rgba(95,138,218,.62)';
+    return (
+      <div style={wrap}>
+        {/* cool ambient wash — static */}
+        <div style={{
+          position: 'absolute', top: -16, right: -16, width: 140, height: 88,
+          background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 72%)`,
+        }} />
+        {flakes.map((f, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: -10 + (i % 2) * -6, right: f.r,
+            width: f.sz, height: f.sz, borderRadius: '50%',
+            background: flakeC,
+            animation: `${windAnim('wa-flake', tier)} ${faster(f.sp)} ease-in-out ${f.d} infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Fog: 3 soft drifting haze blobs anchored top-right ────────────────────
+  if (group === 'fog') {
+    // Dark: light grey-blue blobs; Light: deeper slate blobs for contrast
+    const [fr, fg, fb] = dk ? [195, 208, 222] : [110, 125, 150];
+    const blobs = [
+      { top: -28, right: -20, w: 130, h: 68, op: dk ? .72 : .28, dur: '7s', del: '0s', kf: 'wa-fog-a' },
+      { top: -6, right: 12, w: 88, h: 46, op: dk ? .55 : .20, dur: '9.5s', del: '2.2s', kf: 'wa-fog-b' },
+      { top: 18, right: -8, w: 68, h: 36, op: dk ? .40 : .13, dur: '8s', del: '1.1s', kf: 'wa-fog-a' },
+    ];
+    return (
+      <div style={wrap}>
+        {blobs.map((b, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: b.top, right: b.right,
+            width: b.w, height: b.h, borderRadius: '50%',
+            background: `radial-gradient(ellipse at 68% 42%, rgba(${fr},${fg},${fb},${b.op}) 0%, rgba(${fr},${fg},${fb},${(b.op * .5).toFixed(2)}) 44%, transparent 76%)`,
+            animation: `${windAnim(b.kf, tier)} ${faster(b.dur)} ease-in-out ${b.del} infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Thunder: heavy rain + lightning bolt + ambient flash ──────────────────
+  if (group === 'thunder') {
+    const drops = [
+      { r: 10, h: 20, d: '0s', sp: '0.57s' },
+      { r: 28, h: 17, d: '0.14s', sp: '0.53s' },
+      { r: 46, h: 22, d: '0.06s', sp: '0.61s' },
+      { r: 20, h: 18, d: '0.30s', sp: '0.56s' },
+    ];
+    const wash = dk ? 'rgba(80,100,200,.50)' : 'rgba(55,75,165,.14)';
+    const dropC = dk ? 'rgba(178,188,248,1.0)' : 'rgba(70,100,215,.72)';
+    const bolt = dk ? 'rgba(235,242,255,1.0)' : 'rgba(55,80,210,.88)';
+    const flash = dk ? 'rgba(210,220,255,.35)' : 'rgba(55,80,210,.08)';
+    return (
+      <div style={wrap}>
+        {/* deep indigo wash — static */}
+        <div style={{
+          position: 'absolute', top: -16, right: -16, width: 100, height: 65,
+          background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 68%)`,
+        }} />
+        {drops.map((d, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: -22 + (i % 2) * -9, right: d.r,
+            width: 2, height: d.h, borderRadius: 2,
+            background: `linear-gradient(to bottom, transparent, ${dropC}, transparent)`,
+            animation: `${windAnim('wa-drop', tier)} ${faster(d.sp)} linear ${d.d} infinite`,
+          }} />
+        ))}
+        {/* lightning bolt via clip-path polygon */}
+        <div style={{
+          position: 'absolute', top: 2, right: 14,
+          width: 16, height: 30,
+          clipPath: 'polygon(65% 0%, 30% 46%, 52% 46%, 18% 100%, 88% 38%, 60% 38%, 92% 0%)',
+          background: bolt,
+          animation: 'wa-bolt 3.8s ease-in-out 0.6s infinite',
+        }} />
+        {/* ambient electric fill */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: `linear-gradient(135deg, transparent 0%, ${flash} 100%)`,
+          animation: 'wa-flash 3.8s ease-in-out infinite',
+        }} />
+      </div>
+    );
+  }
+
+  // ── Cloudy: 3 layered cloud blobs drifting laterally ──────────────────────
+  if (group === 'cloudy') {
+    // Dark: light grey-white blobs on dark surface
+    // Light: medium slate-grey blobs with more opacity for contrast on white
+    const [cr, cg, cb] = dk ? [200, 208, 225] : [120, 130, 155];
+    const scaleOp = dk ? 4 : 1; // dark bg = much more vivid glows
+    const blobs = [
+      { top: -22, right: -14, w: 108, h: 54, op: .24, dur: '8s', del: '0s' },
+      { top: 6, right: 24, w: 72, h: 36, op: .16, dur: '10s', del: '2s' },
+      { top: -8, right: 50, w: 54, h: 27, op: .10, dur: '7s', del: '1s' },
+    ];
+    return (
+      <div style={wrap}>
+        {blobs.map((b, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: b.top, right: b.right,
+            width: b.w, height: b.h, borderRadius: '50%',
+            background: `radial-gradient(ellipse at center, rgba(${cr},${cg},${cb},${Math.min(b.op * scaleOp, .88).toFixed(2)}) 0%, transparent 74%)`,
+            animation: `${windAnim('wa-cloud', tier)} ${faster(b.dur)} ease-in-out ${b.del} infinite`,
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+};

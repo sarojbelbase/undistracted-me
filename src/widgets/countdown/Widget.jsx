@@ -77,11 +77,11 @@ const AddModal = ({ onSave, onClose }) => {
     >
       <div
         className="rounded-2xl shadow-2xl p-5 w-80 animate-fade-in"
-        style={{ backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
+        style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <span className="font-semibold text-base" style={{ color: 'var(--w-ink-1)' }}>New Countdown</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:opacity-70 cursor-pointer" style={{ color: 'var(--w-ink-4)' }}>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:opacity-70 cursor-pointer" style={{ color: 'var(--w-ink-3)' }}>
             <XLg size={14} />
           </button>
         </div>
@@ -95,24 +95,18 @@ const AddModal = ({ onSave, onClose }) => {
             onChange={e => setTitle(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-            style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
+            style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--w-ink-1)' }}
           />
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--w-ink-4)' }}>Date</div>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl px-2.5 py-2 text-xs outline-none"
-                style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
-              />
-            </div>
-            <div>
-              <div className="text-xs font-medium mb-1" style={{ color: 'var(--w-ink-4)' }}>Time (optional)</div>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)}
-                className="w-full rounded-xl px-2.5 py-2 text-xs outline-none"
-                style={{ border: '1px solid var(--w-border)', backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-1)' }}
-              />
-            </div>
+          <div>
+            <div className="text-xs font-medium mb-1" style={{ color: 'var(--w-ink-4)' }}>Date</div>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+              className="w-full rounded-xl px-2.5 py-2 text-xs outline-none"
+              style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--w-ink-1)' }}
+            />
+            <input type="time" value={time} onChange={e => setTime(e.target.value)}
+              className="w-full rounded-xl px-2.5 py-2 text-xs outline-none mt-1.5"
+              style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--w-ink-1)' }}
+            />
           </div>
 
           <div>
@@ -128,7 +122,7 @@ const AddModal = ({ onSave, onClose }) => {
         </div>
 
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={onClose} className="px-4 py-1.5 text-sm hover:opacity-70 cursor-pointer" style={{ color: 'var(--w-ink-4)' }}>Cancel</button>
+          <button onClick={onClose} className="px-4 py-1.5 text-sm hover:opacity-70 cursor-pointer" style={{ color: 'var(--w-ink-3)' }}>Cancel</button>
           <button onClick={handleSave} disabled={!valid}
             className="px-4 py-1.5 text-sm rounded-xl transition-colors disabled:opacity-40 cursor-pointer"
             style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
@@ -150,11 +144,11 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <CalendarEvent size={10} style={{ color: 'var(--w-accent)' }} />
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>From Events</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-4)' }}>From Events</span>
         </div>
 
         {upcomingEvents.length === 0 ? (
-          <p className="text-xs py-2" style={{ color: 'var(--w-ink-5)' }}>No upcoming events. Add some in the Events widget.</p>
+          <p className="text-xs py-2" style={{ color: 'var(--w-ink-4)' }}>No upcoming events. Add some in the Events widget.</p>
         ) : (
           <div className="flex flex-col">
             {upcomingEvents.slice(0, 8).map(ev => {
@@ -193,7 +187,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <HourglassSplit size={10} style={{ color: 'var(--w-accent)' }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>Custom</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-4)' }}>Custom</span>
           </div>
           <button
             onClick={() => setShowAdd(true)}
@@ -205,7 +199,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
         </div>
 
         {custom.length === 0 ? (
-          <p className="text-xs py-1" style={{ color: 'var(--w-ink-5)' }}>No custom countdowns yet.</p>
+          <p className="text-xs py-1" style={{ color: 'var(--w-ink-4)' }}>No custom countdowns yet.</p>
         ) : (
           <div className="flex flex-col">
             {custom.map(cd => {
@@ -472,14 +466,37 @@ export const Widget = ({ id, onRemove }) => {
     return null;
   })();
 
-  const { days: aDays = 0, hours: aHours = 0, minutes: aMins = 0 } =
+  const { days: aDays = 0, hours: aHours = 0, minutes: aMins = 0, totalSeconds: aTotalSecs = 0 } =
     activeTarget ? formatCountdown(activeTarget.nextDate) : {};
+  const aSecs = aTotalSecs % 60;
 
   // ── Human-readable countdown value ─────────────────────────────────────────
+  // Every unit rounds to nearest: e.g. 1d 14h → 2 days, 2h 35m → 3 hrs, 45m 40s → 46 min
   const countdownValue = () => {
-    if (aDays > 0) return { main: String(aDays), unit: aDays === 1 ? 'day' : 'days' };
-    if (aHours > 0) return { main: String(aHours), unit: aHours === 1 ? 'hr' : 'hrs' };
-    if (aMins > 0) return { main: String(aMins), unit: 'min' };
+    // Months (≥ 30 days): round based on remaining days
+    if (aDays >= 30) {
+      const months = Math.floor(aDays / 30);
+      const rounded = aDays % 30 >= 15 ? months + 1 : months;
+      return { main: String(rounded), unit: rounded === 1 ? 'mo' : 'mos' };
+    }
+    // Days: round based on remaining hours
+    if (aDays > 0) {
+      const rounded = aHours >= 12 ? aDays + 1 : aDays;
+      if (rounded >= 30) return { main: '1', unit: 'mo' };
+      return { main: String(rounded), unit: rounded === 1 ? 'day' : 'days' };
+    }
+    // Hours: round based on remaining minutes
+    if (aHours > 0) {
+      const rounded = aMins >= 30 ? aHours + 1 : aHours;
+      if (rounded >= 24) return { main: '1', unit: 'day' };
+      return { main: String(rounded), unit: rounded === 1 ? 'hr' : 'hrs' };
+    }
+    // Minutes: round based on remaining seconds
+    if (aMins > 0 || aSecs >= 30) {
+      const rounded = aSecs >= 30 ? aMins + 1 : aMins;
+      if (rounded >= 60) return { main: '1', unit: 'hr' };
+      return { main: String(rounded), unit: 'min' };
+    }
     return { main: null, unit: null };
   };
 

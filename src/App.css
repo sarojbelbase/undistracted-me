@@ -839,12 +839,11 @@ textarea:focus-visible,
   width: 380px;
   display: flex;
   flex-direction: column;
-  background: var(--wc-bg);
-  border-left: 1px solid var(--wc-border);
-  box-shadow:
-    -1px 0 0 rgba(0, 0, 0, 0.04),
-    -16px 0 60px rgba(0, 0, 0, 0.09),
-    -4px 0 16px rgba(0, 0, 0, 0.05);
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border-left: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   /*
    * Open: spring-decelerate — starts fast, lands softly (iOS/macOS feel)
    * cubic-bezier(0.22, 1, 0.36, 1) is a spring approximation used by
@@ -918,8 +917,11 @@ textarea:focus-visible,
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 20px;
-  background: var(--wc-badge-bg);
-  color: var(--wc-badge-fg);
+  background: var(--card-border);
+  color: var(--wc-ink-1);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   letter-spacing: 0.04em;
   line-height: 1.4;
   flex-shrink: 0;
@@ -934,9 +936,11 @@ textarea:focus-visible,
   border-radius: 20px;
   font-size: 10.5px;
   font-weight: 600;
-  background: var(--wc-bg-2);
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   color: var(--wc-ink-4);
-  border: 1px solid var(--wc-border);
+  border: 1px solid var(--card-border);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.14s, color 0.14s, border-color 0.14s;
@@ -1128,12 +1132,12 @@ textarea:focus-visible,
 }
 
 .wc-row:hover {
-  background: var(--wc-active-fill);
+  background: var(--card-bg);
 }
 
 /* Active: just a thin 1px left hairline — no background fill */
 .wc-row--active {
-  border-left: 2px solid var(--wc-border-med);
+  border-left: 2px solid var(--w-accent);
 }
 
 /* Icon box — bigger, higher contrast icon */
@@ -1144,17 +1148,19 @@ textarea:focus-visible,
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: var(--wc-bg-2);
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   color: var(--wc-ink-3);
-  border: 1px solid var(--wc-border-med);
+  border: 1px solid var(--card-border);
   flex-shrink: 0;
   transition: background 0.14s, color 0.14s;
 }
 
 .wc-icon-box--active {
-  background: var(--wc-bg-3);
+  background: var(--card-border);
   color: var(--wc-ink-1);
-  border-color: var(--wc-border-med);
+  border-color: var(--card-border);
 }
 
 /* Text block */
@@ -1218,32 +1224,34 @@ textarea:focus-visible,
 
 /* Remove (−) — clearly red-tinted, always visible when row is active */
 .wc-stepper-btn--remove {
-  background: rgba(210, 40, 40, 0.09);
-  color: #e05555;
-  border: 1.5px solid rgba(210, 40, 40, 0.22);
+  background: rgba(210, 40, 40, 0.22);
+  color: #f06060;
+  border: 1.5px solid rgba(210, 40, 40, 0.50);
 }
 
 .wc-stepper-btn--remove:hover {
-  background: rgba(210, 40, 40, 0.17);
-  border-color: rgba(210, 40, 40, 0.40);
-  color: #ea3333;
+  background: rgba(210, 40, 40, 0.36);
+  border-color: rgba(210, 40, 40, 0.65);
+  color: #ff4444;
 }
 
 /* Add (+) — neutral, always visible */
 .wc-stepper-btn--add {
-  background: var(--wc-bg-2);
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   color: var(--wc-ink-3);
-  border: 1.5px solid var(--wc-border-med);
+  border: 1.5px solid var(--card-border);
 }
 
 .wc-stepper-btn--add:hover {
-  background: var(--wc-bg-3);
+  background: var(--card-border);
   color: var(--wc-ink-1);
 }
 
 /* Add when row is already active: one step brighter */
 .wc-stepper-btn--add-active {
-  background: var(--wc-bg-3);
+  background: var(--card-border);
   color: var(--wc-ink-2);
 }
 

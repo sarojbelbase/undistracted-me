@@ -18,7 +18,7 @@ export const PillButton = ({ active, tinted = false, onClick, children }) => {
   } else if (active) {
     activeStyle = { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: '1px solid transparent' };
   } else {
-    activeStyle = { backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' };
+    activeStyle = { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' };
   }
 
   return (

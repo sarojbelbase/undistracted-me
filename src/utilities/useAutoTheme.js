@@ -4,7 +4,9 @@ import {
   getSunTimes,
   getEffectiveMode,
   getCachedCoords,
+  getCachedCoordsSource,
   requestAndCacheCoords,
+  computeAutoMode,
 } from './sunTime';
 
 /**
@@ -29,9 +31,8 @@ import {
 export const useAutoTheme = (mode, accent) => {
   const [effectiveMode, setEffectiveMode] = useState(() => {
     if (mode !== 'auto') return mode;
-    // Synchronous initial computation to match what themeInit.js already set.
-    const { lat, lon } = getCachedCoords();
-    return getEffectiveMode(getSunTimes(lat, lon));
+    // Use the centralised resolver — handles both coords-based and OS-preference fallback.
+    return computeAutoMode();
   });
 
   useEffect(() => {
@@ -44,15 +45,29 @@ export const useAutoTheme = (mode, accent) => {
     requestAndCacheCoords();
 
     let timer;
+    const mq = typeof window !== 'undefined' ? window.matchMedia?.('(prefers-color-scheme: dark)') : null;
+
+    const applyEffective = (effective) => {
+      setEffectiveMode(effective);
+      applyTheme(accent, effective);
+    };
 
     const computeAndSchedule = () => {
       const now = new Date();
+      const source = getCachedCoordsSource();
+
+      if (source === 'default') {
+        // No real location — mirror the OS colour-scheme preference.
+        // Re-check every hour in case the user grants geolocation in the meantime.
+        applyEffective(mq?.matches ? 'dark' : 'light');
+        timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
+        return;
+      }
+
       const { lat, lon } = getCachedCoords();
       const sunTimes = getSunTimes(lat, lon, now);
       const effective = getEffectiveMode(sunTimes, now);
-
-      setEffectiveMode(effective);
-      applyTheme(accent, effective);
+      applyEffective(effective);
 
       // Schedule the next re-evaluation precisely at the upcoming transition.
       let msToNext = 60 * 60 * 1000; // fallback: re-check in 1 hour
@@ -77,9 +92,21 @@ export const useAutoTheme = (mode, accent) => {
       timer = setTimeout(computeAndSchedule, msToNext);
     };
 
+    // When there's no location, the OS preference is our source of truth.
+    // Listen for changes (e.g. user switches macOS to dark mode at night).
+    const handleMediaChange = () => {
+      if (getCachedCoordsSource() === 'default') {
+        applyEffective(mq.matches ? 'dark' : 'light');
+      }
+    };
+    mq?.addEventListener('change', handleMediaChange);
+
     computeAndSchedule();
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      mq?.removeEventListener('change', handleMediaChange);
+    };
   }, [mode, accent]);
 
   return effectiveMode;

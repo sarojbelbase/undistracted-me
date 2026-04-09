@@ -73,8 +73,16 @@ export const BaseWidget = forwardRef(({ children,
   return (
     <div ref={ref} className="relative h-full group">
       <div
-        className={`rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col overflow-hidden h-full ${className}`}
-        style={{ backgroundColor: 'var(--w-surface)', color: 'var(--w-ink-1)', ...cardStyle }}
+        className={`rounded-2xl flex flex-col overflow-hidden h-full ${className}`}
+        style={{
+          background: 'var(--card-bg)',
+          backdropFilter: 'var(--card-blur)',
+          WebkitBackdropFilter: 'var(--card-blur)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--card-shadow)',
+          color: 'var(--w-ink-1)',
+          ...cardStyle,
+        }}
       >
         {children}
       </div>
@@ -87,7 +95,7 @@ export const BaseWidget = forwardRef(({ children,
             onClick={() => { setDropStyle(null); setMenuOpen(s => !s); }}
             onMouseDown={e => e.stopPropagation()}
             className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150"
-            style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)', pointerEvents: 'auto' }}
+            style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)', pointerEvents: 'auto' }}
             aria-label="Widget options"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
@@ -109,8 +117,11 @@ export const BaseWidget = forwardRef(({ children,
           className="rounded-xl shadow-lg py-1 animate-fade-in"
           style={{
             ...(dropStyle ?? { position: 'fixed', opacity: 0, pointerEvents: 'none', zIndex: 9999 }),
-            backgroundColor: 'var(--w-surface)',
-            border: '1px solid var(--w-border)',
+            background: 'var(--card-bg)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            border: '1px solid var(--card-border)',
+            boxShadow: 'var(--card-shadow)',
             minWidth: 130,
           }}
         >

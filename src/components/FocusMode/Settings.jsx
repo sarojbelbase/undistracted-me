@@ -37,10 +37,11 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
     <div
       className="absolute right-0 top-11 z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl shadow-xl animate-fade-in"
       style={{
-        background: 'var(--w-surface)',
-        backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)',
-        border: '1px solid var(--w-border)',
+        background: 'var(--card-bg)',
+        backdropFilter: 'var(--card-blur)',
+        WebkitBackdropFilter: 'var(--card-blur)',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
       }}
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}

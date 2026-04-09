@@ -182,12 +182,28 @@ export const requestAndCacheCoords = () => {
 
 /**
  * Synchronously compute the effective mode ('light' | 'dark') for 'auto' setting.
- * Uses cached coords (or Kathmandu fallback). Safe to call at module init.
+ *
+ * Priority:
+ *   1. If real coordinates are cached (from browser geolocation or IP), use sun times.
+ *   2. Otherwise fall back to the OS color-scheme preference — this is correct on
+ *      every platform and handles the common case where the user hasn't granted
+ *      location yet (or is running the extension where IP geo is blocked).
+ *
+ * Safe to call at module init time (no async, no side effects).
  *
  * @param {Date} [date]
  * @returns {'light' | 'dark'}
  */
 export const computeAutoMode = (date = new Date()) => {
+  const source = getCachedCoordsSource();
+  if (source === 'default') {
+    // No real location cached — defer to OS preference so the result is at least
+    // correct for the user's system rather than tied to Kathmandu time.
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  }
   const { lat, lon } = getCachedCoords();
   return getEffectiveMode(getSunTimes(lat, lon, date), date);
 };

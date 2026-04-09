@@ -1,6 +1,7 @@
 
 
 import { computeAutoMode } from './utilities/sunTime';
+import { CARD_STYLE_TOKENS } from './constants/cardStyles';
 
 export const ACCENT_COLORS = [
   { name: 'Default', hex: '#111827', fg: '#ffffff' },
@@ -49,16 +50,32 @@ const hexToRgb = (hex) => {
   return `${r},${g},${b}`;
 };
 
-export const applyTheme = (accent, mode) => {
+/**
+ * Apply theme and card-style CSS custom properties to :root.
+ *
+ * @param {string} accent    - accent color name from ACCENT_COLORS
+ * @param {string} mode      - 'light' | 'dark' | 'auto'
+ * @param {string} cardStyle - 'flat' | 'glass' | 'soft' | 'outlined'
+ */
+export const applyTheme = (accent, mode, cardStyle = 'glass') => {
   const resolved = mode === 'auto' ? computeAutoMode() : mode;
   const root = document.documentElement;
+
+  // Base design tokens
   const tokens = resolved === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
+
+  // Accent colour
   const color = ACCENT_COLORS.find(a => a.name === accent) || ACCENT_COLORS[0];
   root.style.setProperty('--w-accent', color.hex);
   root.style.setProperty('--w-accent-fg', color.fg);
   root.style.setProperty('--w-accent-rgb', hexToRgb(color.hex));
   root.dataset.mode = resolved;
+
+  // Card / surface style tokens
+  const cardTokens =
+    (CARD_STYLE_TOKENS[cardStyle] ?? CARD_STYLE_TOKENS.glass)[resolved];
+  Object.entries(cardTokens).forEach(([k, v]) => root.style.setProperty(k, v));
 };
 
 /**
@@ -73,14 +90,16 @@ const _getInitTheme = () => {
       return {
         accent: stored.state.accent || 'Default',
         mode: stored.state.mode || 'light',
+        cardStyle: stored.state.cardStyle || 'glass',
       };
     }
   } catch { /* ignore */ }
   return {
     accent: localStorage.getItem('app_accent') || 'Default',
     mode: localStorage.getItem('app_mode') || 'light',
+    cardStyle: 'glass',
   };
 };
 
-const { accent: _initAccent, mode: _initMode } = _getInitTheme();
-applyTheme(_initAccent, _initMode);
+const { accent: _initAccent, mode: _initMode, cardStyle: _initCardStyle } = _getInitTheme();
+applyTheme(_initAccent, _initMode, _initCardStyle);
