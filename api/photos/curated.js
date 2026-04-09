@@ -18,9 +18,7 @@
  */
 
 import { list } from '@vercel/blob';
-
-const ALLOWED_ORIGINS = /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/undistractedme\.sarojbelbase\.com/;
-
+import { ALLOWED_ORIGINS } from '../_config.js';
 
 
 const authenticate = (req, res) => {

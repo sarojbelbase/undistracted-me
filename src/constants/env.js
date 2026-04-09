@@ -24,6 +24,11 @@
  * └──────────────────────────────────────────┴──────────┴─────────┘
  */
 
+import manifest from '../../public/manifest.json';
+
+/** The canonical production base URL — sourced from public/manifest.json#homepage_url. */
+export const PRODUCTION_BASE_URL = manifest.homepage_url;
+
 /** True when the app is deployed as a website rather than a browser extension. */
 export const IS_WEBSITE_MODE = import.meta.env.VITE_WEBSITE_MODE === 'true';
 

@@ -13,8 +13,7 @@
  * the production / local origins so all contexts can call this endpoint.
  */
 
-const ALLOWED_ORIGINS =
-  /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/whatsthemiti\.sarojbelbase\.com\.np|^http:\/\/localhost(:\d+)?$/;
+import { ALLOWED_ORIGINS } from '../../_config.js';
 
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
@@ -34,8 +33,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const clientId = process.env.VITE_GOOGLE_DESKTOP_CLIENT_ID;
-  const clientSecret = process.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET;
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     return res.status(503).json({ error: 'Google OAuth not configured on server' });

@@ -15,8 +15,10 @@
  * Attribution: per Unsplash ToS every photo carries author + link.
  */
 
+import { PRODUCTION_BASE_URL } from '../constants/env.js';
+
 const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
-  || 'https://undistractedme.sarojbelbase.com.np/api/photos/curated';
+  || `${PRODUCTION_BASE_URL}/api/photos/curated`;
 /** Shared secret sent as X-API-Key header to the Vercel proxy. */
 const PHOTOS_API_KEY = import.meta.env.VITE_PHOTOS_API_KEY || null;
 

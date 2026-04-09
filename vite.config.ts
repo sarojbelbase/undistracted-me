@@ -19,6 +19,10 @@ const faviconWaterfall = (): Plugin => ({
       const domain = params.get('domain') ?? '';
       const sz = params.get('sz') ?? '64';
       if (!domain) { res.statusCode = 400; res.end(); return; }
+      // Don't proxy private/local hostnames to external favicon services
+      if (/^localhost$|^\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$/.test(domain)) {
+        res.statusCode = 204; res.end(); return;
+      }
 
       const services = [
         `https://www.google.com/s2/favicons?domain=${domain}&sz=${sz}`,
@@ -46,6 +50,14 @@ const faviconWaterfall = (): Plugin => ({
   },
 });
 
+/** Reads the full request body as a parsed JSON object. */
+const readBody = (req: import('node:http').IncomingMessage): Promise<Record<string, string>> =>
+  new Promise(resolve => {
+    const chunks: Buffer[] = [];
+    req.on('data', (c: Buffer) => chunks.push(c));
+    req.on('end', () => resolve(JSON.parse(Buffer.concat(chunks).toString() || '{}')));
+  });
+
 /**
  * Dev-only: proxies POST /api/auth/google/token to Google's token endpoint,
  * injecting the client secret from the local .env file so it never touches
@@ -63,25 +75,23 @@ const googleTokenProxy = (): Plugin => ({
       }
       if (req.method !== 'POST') return next();
 
-      const clientId = process.env.VITE_GOOGLE_DESKTOP_CLIENT_ID ?? '';
-      const clientSecret = process.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? '';
+      const clientId = process.env.GOOGLE_CLIENT_ID ?? '';
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
       if (!clientId || !clientSecret) {
         res.statusCode = 503;
         res.end(JSON.stringify({ error: 'Google OAuth not configured — check .env' }));
         return;
       }
 
-      const chunks: Buffer[] = [];
-      await new Promise<void>(r => { req.on('data', c => chunks.push(c)); req.on('end', r); });
-      const body = JSON.parse(Buffer.concat(chunks).toString() || '{}');
-      const grantType = body.grant_type || 'authorization_code';
+      const parsed = await readBody(req);
+      const grantType = parsed.grant_type || 'authorization_code';
 
       const params = new URLSearchParams({ client_id: clientId, client_secret: clientSecret, grant_type: grantType });
       if (grantType === 'refresh_token') {
-        if (!body.refresh_token) { res.statusCode = 400; res.end(JSON.stringify({ error: 'refresh_token required' })); return; }
-        params.set('refresh_token', body.refresh_token);
+        if (!parsed.refresh_token) { res.statusCode = 400; res.end(JSON.stringify({ error: 'refresh_token required' })); return; }
+        params.set('refresh_token', parsed.refresh_token);
       } else {
-        const { code, code_verifier, redirect_uri } = body;
+        const { code, code_verifier, redirect_uri } = parsed;
         if (!code || !code_verifier || !redirect_uri) { res.statusCode = 400; res.end(JSON.stringify({ error: 'code, code_verifier and redirect_uri are required' })); return; }
         params.set('code', code);
         params.set('code_verifier', code_verifier);
@@ -107,8 +117,6 @@ export default defineConfig({
   plugins: [
     // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
     obscureEnvKeys([
-      'VITE_OWM_API_KEY',
-      'VITE_UNSPLASH_ACCESS_KEY',
       'VITE_SPOTIFY_CLIENT_ID',
       'VITE_GOOGLE_DESKTOP_CLIENT_ID',
       'VITE_GOOGLE_DESKTOP_CLIENT_SECRET',

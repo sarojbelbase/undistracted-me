@@ -1,3 +1,7 @@
+import { PRODUCTION_BASE_URL } from '../../constants/env.js';
+
+const PRIVATE_HOST_RE = /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$/;
+
 // ── Shared favicon helpers ────────────────────────────────────────────────────
 
 // External favicon service URLs — ordered by priority (Google → DDG → Icon Horse)
@@ -38,7 +42,7 @@ const _isExt = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 const _faviconApiBase = _isExt
   ? (import.meta.env.DEV
     ? 'http://localhost:3000'
-    : 'https://whatsthemiti.sarojbelbase.com.np')
+    : PRODUCTION_BASE_URL)
   : '';
 
 /**
@@ -55,6 +59,7 @@ export const buildFaviconSources = (url, size = 64) => {
     // '' means letter fallback was used — skip network entirely
     return cached ? [cached, ''] : [''];
   }
+  if (PRIVATE_HOST_RE.test(hostname)) return [''];
   return [
     // Server-side waterfall (Google → DDG → Icon Horse) — zero client-side 404s
     `${_faviconApiBase}/api/favicon?domain=${hostname}&sz=${size}`,

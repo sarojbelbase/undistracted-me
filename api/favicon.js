@@ -10,14 +10,7 @@
  * CORS: allows GET from chrome-extension://, moz-extension://, and production origins.
  */
 
-const ALLOWED_ORIGINS =
-  /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/whatsthemiti\.sarojbelbase\.com\.np|^https:\/\/undistractedme\.sarojbelbase\.com/;
-
-const SERVICES = [
-  (domain, sz) => `https://www.google.com/s2/favicons?domain=${domain}&sz=${sz}`,
-  (domain) => `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  (domain) => `https://icon.horse/icon/${domain}`,
-];
+import { ALLOWED_ORIGINS, FAVICON_SERVICES, PRIVATE_HOST_RE } from './_config.js';
 
 const applyCors = (req, res) => {
   const origin = req.headers.origin || '';
@@ -37,8 +30,9 @@ export default async function handler(req, res) {
 
   const { domain, sz = '64' } = req.query;
   if (!domain || typeof domain !== 'string') return res.status(400).end();
+  if (PRIVATE_HOST_RE.test(domain)) return res.status(204).end();
 
-  for (const makeUrl of SERVICES) {
+  for (const makeUrl of FAVICON_SERVICES) {
     try {
       const upstream = await fetch(makeUrl(domain, sz));
       if (upstream.ok) {
