@@ -17,6 +17,9 @@ export const ALLOWED_ORIGINS =
  */
 export const assertOrigin = (req, res, methods = 'GET, OPTIONS') => {
   const origin = req.headers.origin || '';
+  // No Origin header = same-origin browser request (Chrome omits it on same-origin fetch).
+  // These can only arrive from the same page, so allow them through without CORS headers.
+  if (!origin) return true;
   if (!ALLOWED_ORIGINS.test(origin)) {
     res.status(403).json({ error: 'Forbidden' });
     return false;

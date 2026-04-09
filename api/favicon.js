@@ -19,14 +19,8 @@ const ALLOWED_SIZES = new Set(['16', '32', '48', '64', '96', '128']);
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { assertOrigin(req, res); return res.status(204).end(); }
+  if (!assertOrigin(req, res)) return;
   if (req.method !== 'GET') return res.status(405).end();
-
-  // <img src> requests never include an Origin header (same-origin page loads).
-  // Only validate cross-origin fetch() calls that do supply one.
-  const origin = req.headers.origin;
-  if (origin) {
-    if (!assertOrigin(req, res)) return;
-  }
 
   const { domain, sz = '64' } = req.query;
   if (!domain || typeof domain !== 'string') return res.status(400).end();
