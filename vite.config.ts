@@ -117,6 +117,7 @@ export default defineConfig({
   plugins: [
     // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
     obscureEnvKeys([
+      'VITE_API_KEY',
       'VITE_SPOTIFY_CLIENT_ID',
       'VITE_GOOGLE_DESKTOP_CLIENT_ID',
       'VITE_GOOGLE_DESKTOP_CLIENT_SECRET',

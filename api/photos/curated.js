@@ -18,42 +18,17 @@
  */
 
 import { list } from '@vercel/blob';
-import { ALLOWED_ORIGINS } from '../_config.js';
-
-
-const authenticate = (req, res) => {
-  const expected = process.env.PHOTOS_API_KEY;
-  if (!expected) return true; // auth disabled in dev / test
-  const provided = req.headers['x-api-key'];
-  if (!provided || provided !== expected) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-};
-
-const cors = (req, res) => {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.test(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
-  res.setHeader('Vary', 'Origin');
-};
+import { assertOrigin, assertApiKey } from '../_config.js';
 
 export default async function handler(req, res) {
-  cors(req, res);
-
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
+  if (req.method === 'OPTIONS') { assertOrigin(req, res); return res.status(204).end(); }
+  if (!assertOrigin(req, res)) return;
+  if (!assertApiKey(req, res)) return;
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!authenticate(req, res)) return;
 
   try {
     // List every blob under the backgrounds/ prefix.
@@ -64,8 +39,8 @@ export default async function handler(req, res) {
     });
 
     const photos = blobs.map(b => {
-      const filename = b.pathname.split('/').pop();       // 'mountain-dawn.jpg'
-      const id = filename.replace(/\.[^.]+$/, '');       // 'mountain-dawn'
+      const filename = b.pathname.split('/').pop();
+      const id = filename.replace(/\.[^.]+$/, '');
       return {
         id,
         url: b.url,
@@ -75,11 +50,11 @@ export default async function handler(req, res) {
       };
     });
 
-    // Short CDN cache — reflects new uploads within an hour without a redeploy.
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=3600');
+    // Client-side cache for 1 hour; no CDN caching — endpoint is key-authenticated
+    res.setHeader('Cache-Control', 'private, max-age=3600');
     return res.status(200).json(photos);
-  } catch (err) {
-    return res.status(502).json({ error: 'Failed to list backgrounds', detail: err.message });
+  } catch {
+    return res.status(502).json({ error: 'Failed to list backgrounds' });
   }
 }
 

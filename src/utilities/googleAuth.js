@@ -27,6 +27,8 @@ const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const FF_CLIENT_ID = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID || '';
 const FF_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET || '';
 
+const API_KEY = import.meta.env.VITE_API_KEY || '';
+
 const FF_TOKEN_KEY = 'google_ff_tokens';
 
 // ─── Platform detection ───────────────────────────────────────────────────────
@@ -85,7 +87,7 @@ async function getValidStoredWebToken() {
 
     const res = await fetch('/api/auth/google/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
       body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: stored.refresh_token }),
     });
     if (!res.ok) return null;
@@ -163,7 +165,7 @@ async function getTokenWeb(interactive) {
   // Exchange code via server-side endpoint — client_secret never touches the client
   const res = await fetch('/api/auth/google/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
     body: JSON.stringify({ code, code_verifier: verifier, redirect_uri: redirectUri }),
   });
   if (!res.ok) {
