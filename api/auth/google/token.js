@@ -13,24 +13,14 @@
  * the production / local origins so all contexts can call this endpoint.
  */
 
-import { ALLOWED_ORIGINS } from '../../_config.js';
+import { assertOrigin, assertApiKey } from '../../_config.js';
 
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
-const applyCors = (req, res) => {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.test(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Vary', 'Origin');
-};
-
 export default async function handler(req, res) {
-  applyCors(req, res);
-
-  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method === 'OPTIONS') { assertOrigin(req, res, 'POST, OPTIONS'); return res.status(204).end(); }
+  if (!assertOrigin(req, res, 'POST, OPTIONS')) return;
+  if (!assertApiKey(req, res)) return;
   if (req.method !== 'POST') return res.status(405).end();
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -69,6 +59,7 @@ export default async function handler(req, res) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params,
+    signal: AbortSignal.timeout(8000),
   });
 
   const data = await upstream.json();

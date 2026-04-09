@@ -4,6 +4,17 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
+  "functions": {
+    "api/favicon.js": {
+      "maxDuration": 10
+    },
+    "api/photos/curated.js": {
+      "maxDuration": 10
+    },
+    "api/auth/google/token.js": {
+      "maxDuration": 15
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
