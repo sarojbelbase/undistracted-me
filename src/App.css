@@ -89,12 +89,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   background: rgba(128, 128, 128, 0.52);
 }
 
-:root {
-  --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
-  --white: #e1e0e4;
-}
-
-/* Keep animations if needed, or move to Tailwind config */
 
 @keyframes highres {
   from {
@@ -310,6 +304,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
      --w-ink-1: #0f172a;  --w-ink-3: #1e40af;  → navy/blue theme
    ═══════════════════════════════════════════════════════════════ */
 :root {
+  --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
+  --white: #e1e0e4;
   --w-ink-1: #111827;
   /* gray-900 — primary: filled dots, strong labels          */
   --w-ink-2: #1f2937;
@@ -773,7 +769,7 @@ textarea:focus-visible,
    Nothing here references var(--w-accent).
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Local neutral tokens (light mode defaults) ──────────────── */
+/* ── Local neutral tokens (light mode defaults) + panel layout ── */
 .wc-panel {
   --wc-bg: #ffffff;
   --wc-bg-2: #f7f7f8;
@@ -794,6 +790,22 @@ textarea:focus-visible,
   --wc-badge-fg: #ffffff;
   --wc-add-hover-bg: #1c1c1e;
   --wc-add-hover-fg: #ffffff;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 201;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border-left: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  overflow: hidden;
 }
 
 /* Dark mode token overrides */
@@ -837,31 +849,6 @@ textarea:focus-visible,
 /* Close: fade out faster (panel is already leaving) */
 .wc-backdrop--leaving {
   transition: opacity 0.22s ease-in !important;
-}
-
-/* ── Drawer panel ──────────────────────────────────────────────── */
-.wc-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 201;
-  width: 380px;
-  display: flex;
-  flex-direction: column;
-  background: var(--card-bg);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  border-left: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
-  /*
-   * Open: spring-decelerate — starts fast, lands softly (iOS/macOS feel)
-   * cubic-bezier(0.22, 1, 0.36, 1) is a spring approximation used by
-   * Radix UI, shadcn/ui Vaul drawer, and Apple's UIKit spring defaults.
-   */
-  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-  overflow: hidden;
 }
 
 /* Close: swift ease-in — panel snaps away decisively */
@@ -963,15 +950,27 @@ textarea:focus-visible,
 }
 
 .wc-pill-btn--danger {
-  color: #c0392b;
-  background: rgba(192, 57, 43, 0.06);
-  border-color: rgba(192, 57, 43, 0.18);
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: rgba(192, 57, 43, 0.35);
 }
 
 .wc-pill-btn--danger:hover {
-  background: rgba(192, 57, 43, 0.11);
-  border-color: rgba(192, 57, 43, 0.30);
-  color: #a93226;
+  background: #fee2e2;
+  border-color: rgba(192, 57, 43, 0.55);
+  color: #7f1d1d;
+}
+
+[data-mode="dark"] .wc-pill-btn--danger {
+  color: #fca5a5;
+  background: rgba(192, 57, 43, 0.14);
+  border-color: rgba(192, 57, 43, 0.35);
+}
+
+[data-mode="dark"] .wc-pill-btn--danger:hover {
+  background: rgba(192, 57, 43, 0.22);
+  border-color: rgba(192, 57, 43, 0.50);
+  color: #fecaca;
 }
 
 /* Vertical separator */
@@ -1000,16 +999,28 @@ textarea:focus-visible,
 }
 
 .wc-close-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: rgb(239, 68, 68);
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #b91c1c;
 }
 
-/* ── Shared close / dismiss icon button ─────────────────────────── */
+[data-mode="dark"] .wc-close-btn:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.40);
+  color: #fca5a5;
+}
+
+/* ── Shared close / dismiss icon button ──────────────────────────────── */
 .btn-close:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
-  border-color: rgba(239, 68, 68, 0.28) !important;
-  color: rgb(239, 68, 68) !important;
+  background: #fef2f2 !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  color: #b91c1c !important;
+}
+
+[data-mode="dark"] .btn-close:hover {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(239, 68, 68, 0.40) !important;
+  color: #fca5a5 !important;
 }
 
 .btn-close:active {
@@ -1244,15 +1255,27 @@ textarea:focus-visible,
 
 /* Remove (−) — clearly red-tinted, always visible when row is active */
 .wc-stepper-btn--remove {
-  background: rgba(210, 40, 40, 0.22);
-  color: #f06060;
-  border: 1.5px solid rgba(210, 40, 40, 0.50);
+  background: #fecaca;
+  color: #7f1d1d;
+  border: 1.5px solid #fca5a5;
 }
 
 .wc-stepper-btn--remove:hover {
+  background: #fca5a5;
+  border-color: #f87171;
+  color: #6b1111;
+}
+
+[data-mode="dark"] .wc-stepper-btn--remove {
+  background: rgba(210, 40, 40, 0.22);
+  color: #fca5a5;
+  border: 1.5px solid rgba(210, 40, 40, 0.50);
+}
+
+[data-mode="dark"] .wc-stepper-btn--remove:hover {
   background: rgba(210, 40, 40, 0.36);
   border-color: rgba(210, 40, 40, 0.65);
-  color: #ff4444;
+  color: #fecaca;
 }
 
 /* Add (+) — neutral, always visible */

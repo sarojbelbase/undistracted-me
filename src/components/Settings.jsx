@@ -3,6 +3,16 @@ import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 
+const SectionLabel = ({ children }) => (
+  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-3)' }}>
+    {children}
+  </p>
+);
+
+const Divider = () => (
+  <div style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
+);
+
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
   const {
     accent, setAccent,
@@ -14,16 +24,6 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
     canvasBg,
     cardStyle, setCardStyle,
   } = useSettingsStore();
-
-  const SectionLabel = ({ children }) => (
-    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-3)' }}>
-      {children}
-    </p>
-  );
-
-  const Divider = () => (
-    <div style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
-  );
 
   return (
     <div
@@ -199,7 +199,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
           </div>
           <button
             onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
-            className="relative flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
+            className="relative shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
             style={{
               width: 36, height: 20,
               backgroundColor: lookAwayEnabled ? 'var(--w-accent)' : 'var(--w-border)',
@@ -269,7 +269,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
                 )}
                 <button
                   onClick={() => setLookAwayNotify(!lookAwayNotify)}
-                  className="relative flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
+                  className="relative shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
                   style={{
                     width: 30, height: 16,
                     backgroundColor: lookAwayNotify ? 'var(--w-accent)' : 'var(--w-border)',

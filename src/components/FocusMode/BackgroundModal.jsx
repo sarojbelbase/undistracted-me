@@ -10,7 +10,6 @@ import {
   downloadCuratedPhotos,
   downloadNewPhoto,
   deletePhoto,
-  jumpToPhotoById,
   LIBRARY_MAX,
 } from '../../utilities/unsplash';
 
@@ -395,7 +394,10 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
                 background: 'var(--w-surface-2)',
                 border: '1px solid var(--w-border)',
                 color: library.length >= LIBRARY_MAX ? 'var(--w-ink-6)' : 'var(--w-ink-2)',
-                cursor: library.length >= LIBRARY_MAX ? 'not-allowed' : (addingOne ? 'wait' : 'pointer'),
+                cursor: (() => {
+                  if (library.length >= LIBRARY_MAX) return 'not-allowed';
+                  return addingOne ? 'wait' : 'pointer';
+                })(),
               }}
             >
               {addingOne && (
@@ -405,7 +407,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
                 />
               )}
               <span className="relative" style={{ zIndex: 1 }}>
-                {library.length >= LIBRARY_MAX ? 'Library full' : addingOne ? 'Fetching…' : '+ Add one'}
+                {library.length >= LIBRARY_MAX ? 'Library full' : (addingOne ? 'Fetching…' : '+ Add one')}
               </span>
             </button>
 
@@ -417,7 +419,10 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
                 background: 'var(--w-surface-2)',
                 border: '1px solid var(--w-border)',
                 color: library.length >= LIBRARY_MAX ? 'var(--w-ink-6)' : 'var(--w-ink-2)',
-                cursor: library.length >= LIBRARY_MAX ? 'not-allowed' : (downloading ? 'wait' : 'pointer'),
+                cursor: (() => {
+                  if (library.length >= LIBRARY_MAX) return 'not-allowed';
+                  return downloading ? 'wait' : 'pointer';
+                })(),
               }}
             >
               {downloading && (
@@ -476,7 +481,7 @@ const CustomPanel = ({ isActive, onApply }) => {
     setErrorMsg('');
     if (checkRef.current) clearTimeout(checkRef.current);
 
-    const img = new window.Image();
+    const img = new globalThis.Image();
     img.crossOrigin = 'anonymous';
     const timeout = setTimeout(() => {
       img.src = '';
@@ -537,13 +542,11 @@ const CustomPanel = ({ isActive, onApply }) => {
               autoComplete="off"
               spellCheck={false}
               icon={<Link45deg size={13} />}
-              suffix={
-                status === 'ok'
-                  ? <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />
-                  : status === 'checking'
-                    ? <span style={{ marginRight: 4 }}><Spinner size={12} /></span>
-                    : null
-              }
+              suffix={(() => {
+                if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
+                if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
+                return null;
+              })()}
             />
           </div>
           <button
@@ -641,11 +644,8 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
   };
   const handleCustomApply = (url) => {
     if (url) applySource('custom', url);
-    else {
-      // Cleared — fall back to default if custom was active
-      if (activeSource === 'custom') applySource('default');
-      else setBgSource(getBgSource()); // keep current, just clear URL
-    }
+    else if (activeSource === 'custom') applySource('default');
+    else setBgSource(getBgSource()); // keep current, just clear URL
   };
 
   return createPortal(
@@ -681,7 +681,7 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
       `}</style>
 
       <div
-        className="flex flex-col w-[480px] max-w-[calc(100vw-24px)] rounded-2xl overflow-hidden"
+        className="flex flex-col w-120 max-w-[calc(100vw-24px)] rounded-2xl overflow-hidden"
         style={{
           maxHeight: 'calc(100vh - 48px)',
           background: 'var(--w-surface)',

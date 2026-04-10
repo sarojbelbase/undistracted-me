@@ -53,8 +53,8 @@ const App = () => {
         setShowFocusMode(v => !v);
       }
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    globalThis.addEventListener('keydown', handleKey);
+    return () => globalThis.removeEventListener('keydown', handleKey);
   }, []);
 
   const topBarRef = useRef(null);
@@ -189,9 +189,10 @@ const App = () => {
               size={15}
               className="transition-transform duration-300 group-hover:rotate-90"
               style={{
-                color: showSettings
-                  ? isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.8)'
-                  : isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)',
+                color: (() => {
+                  if (showSettings) return isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.8)';
+                  return isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)';
+                })(),
               }}
             />
           </button>
