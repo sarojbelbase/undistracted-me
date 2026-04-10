@@ -19,14 +19,15 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { XLg, Link45deg, CheckLg, Image } from 'react-bootstrap-icons';
+import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../assets/img/bg.webp';
 import { SettingsInput } from './SettingsInput';
+import { SegmentedControl } from './SegmentedControl';
 import {
   getPhotoLibrary,
   downloadCuratedPhotos,
-  downloadNewPhoto,
   deletePhoto,
+  jumpToPhotoById,
   LIBRARY_MAX,
 } from '../../utilities/unsplash';
 
@@ -124,203 +125,214 @@ const DefaultPanel = ({ isActive, onApply }) => (
 
 // ─── Orb panel ───────────────────────────────────────────────────────────────
 
-const OrbPanel = ({ isActive, initialOrbId, onApply }) => {
-  const [selectedId, setSelectedId] = useState(initialOrbId || 'blueberry');
-  const selected = ORB_PALETTES.find(p => p.id === selectedId) || ORB_PALETTES[0];
-  const previewRgb = selected.rgb;
-  const isAlreadyActive = isActive && initialOrbId === selectedId;
-
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Mini orb preview */}
-      <div className="w-full rounded-xl overflow-hidden relative select-none"
-        style={{ aspectRatio: '16/9', background: '#060608' }} aria-hidden>
-        <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.55) 0%, rgba(${previewRgb},0.18) 45%, transparent 70%)`, filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', width: '45%', height: '45%', top: '5%', right: '5%', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.32) 0%, transparent 65%)`, filter: 'blur(24px)' }} />
-          <div style={{ position: 'absolute', width: '40%', height: '40%', bottom: '5%', left: '5%', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.20) 0%, transparent 62%)`, filter: 'blur(32px)', animation: 'bpOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
-        </div>
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, rgba(4,4,6,0.5) 65%, rgba(2,2,4,0.9) 100%)' }} />
-        {isAlreadyActive && <ActiveBadge />}
+const OrbPanel = ({ isActive, onApply }) => (
+  <div className="flex flex-col gap-4">
+    {/* Mini orb preview — uses the current accent colour */}
+    <div className="w-full rounded-xl overflow-hidden relative select-none"
+      style={{ aspectRatio: '16/9', background: 'var(--w-page-bg)' }} aria-hidden>
+      <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)', filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: '45%', height: '45%', top: '5%', right: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, transparent 65%)', filter: 'blur(24px)' }} />
+        <div style={{ position: 'absolute', width: '40%', height: '40%', bottom: '5%', left: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.20) 0%, transparent 62%)', filter: 'blur(32px)', animation: 'bpOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
       </div>
-
-      {/* Palette swatches */}
-      <div className="grid grid-cols-4 gap-2">
-        {ORB_PALETTES.map(({ id, label, rgb }) => {
-          const isSel = selectedId === id;
-          return (
-            <button key={id} onClick={() => setSelectedId(id)}
-              className="flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl transition-all focus:outline-none cursor-pointer"
-              style={isSel
-                ? { background: 'var(--w-surface-2)', border: `1px solid rgba(${rgb},0.5)`, boxShadow: `0 0 0 1px rgba(${rgb},0.3)` }
-                : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
-              <div className="w-8 h-8 rounded-full relative shrink-0 flex items-center justify-center"
-                style={{ background: `radial-gradient(circle at 38% 38%, rgb(${rgb}) 0%, rgba(${rgb},0.6) 55%, rgba(${rgb},0.15) 100%)`, boxShadow: isSel ? `0 0 12px rgba(${rgb},0.55)` : 'none', transition: 'box-shadow 0.2s' }}>
-                {isSel && <CheckLg size={10} style={{ color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />}
-              </div>
-              <span className="text-[9px] font-semibold leading-none" style={{ color: isSel ? 'var(--w-ink-1)' : 'var(--w-ink-4)', transition: 'color 0.18s' }}>{label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {!isAlreadyActive && (
-        <button onClick={() => onApply({ orbId: selectedId })}
-          className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer hover:opacity-90"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-          Use Color Motion
-        </button>
-      )}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, color-mix(in srgb, var(--w-page-bg) 55%, transparent) 65%, var(--w-page-bg) 100%)' }} />
+      {isActive && <ActiveBadge />}
     </div>
-  );
-};
+    {!isActive && (
+      <button onClick={() => onApply({ orbId: 'accent' })}
+        className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer hover:opacity-90"
+        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
+        Use Color Motion
+      </button>
+    )}
+  </div>
+);
 
 // ─── Curated panel ────────────────────────────────────────────────────────────
 
-const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate }) => {
+const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefaultActive, onApplyDefault, initialPhotoUrl = null }) => {
   const [library, setLibrary] = useState(() => getPhotoLibrary());
   const [downloading, setDownloading] = useState(false);
-  const [shuffling, setShuffling] = useState(false);
-  const [addingOne, setAddingOne] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
   const refresh = useCallback(() => setLibrary(getPhotoLibrary()), []);
 
+  // Track the active photo ID — seeded from initialPhotoUrl on open,
+  // then updated locally as the user selects photos.
+  const [selectedPhotoId, setSelectedPhotoId] = useState(() => {
+    if (!initialPhotoUrl) return null;
+    const lib = getPhotoLibrary();
+    return lib.find(p => p.regular === initialPhotoUrl || p.url === initialPhotoUrl || p.small === initialPhotoUrl)?.id ?? null;
+  });
+
   const handleDownloadAll = async () => {
-    const wasEmpty = getPhotoLibrary().length === 0;
     setDownloading(true);
+    setDownloadError(null);
     try {
       const photos = await downloadCuratedPhotos();
       if (photos?.length) {
         refresh();
-        if (allowRotate) await onRotatePhoto?.(photos[0].id);
-        if (wasEmpty) onApply();
+        if (allowRotate) {
+          await onRotatePhoto?.(photos[0].id);
+          onApply();
+        } else {
+          const url = photos[0]?.regular || photos[0]?.url || photos[0]?.small || null;
+          setSelectedPhotoId(photos[0]?.id ?? null);
+          onApply(url);
+        }
+      } else {
+        setDownloadError('Could not reach the server. Check your connection and try again.');
       }
-    } finally { setDownloading(false); }
-  };
-
-  const handleShuffle = async () => {
-    if (shuffling || library.length <= 1) return;
-    setShuffling(true);
-    try { await onRotatePhoto?.(); refresh(); }
-    finally { setShuffling(false); }
-  };
-
-  const handleAddOne = async () => {
-    if (addingOne || library.length >= LIBRARY_MAX) return;
-    const wasEmpty = library.length === 0;
-    setAddingOne(true);
-    try {
-      const photo = await downloadNewPhoto();
-      refresh();
-      if (photo) {
-        if (allowRotate) await onRotatePhoto?.(photo.id);
-        if (wasEmpty) onApply();
-      }
-    } finally { setAddingOne(false); }
+    } catch (err) {
+      setDownloadError(err?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const handleUse = async (id) => {
-    if (library[0]?.id === id) return;
-    if (allowRotate) await onRotatePhoto?.(id);
-    refresh();
-    if (!isActive) onApply();
+    if (selectedPhotoId === id && isActive) return;
+    if (allowRotate) {
+      await onRotatePhoto?.(id);
+      refresh();
+      onApply();
+    } else {
+      jumpToPhotoById(id);
+      refresh();
+      setSelectedPhotoId(id);
+      // Pass the photo URL explicitly so canvas bg stores it directly
+      // and doesn't depend on reading the shared photo library[0] at render time.
+      const photo = getPhotoLibrary()[0];
+      const url = photo?.regular || photo?.url || photo?.small || null;
+      onApply(url);
+    }
   };
 
   const handleDelete = async (id) => {
-    const wasActive = library[0]?.id === id;
+    const wasActive = (selectedPhotoId ?? library[0]?.id) === id;
     deletePhoto(id);
-    if (wasActive && allowRotate) await onRotatePhoto?.();
+    const nextLib = getPhotoLibrary();
+    if (wasActive) {
+      if (allowRotate) {
+        await onRotatePhoto?.(nextLib[0]?.id);
+      } else {
+        // In canvas mode: move to the next available photo or fall back to default
+        const next = nextLib[0];
+        const nextUrl = next ? (next.regular || next.url || next.small || null) : null;
+        setSelectedPhotoId(next?.id ?? null);
+        if (nextUrl) {
+          jumpToPhotoById(next.id);
+          onApply(nextUrl);
+        } else {
+          onApplyDefault?.();
+        }
+      }
+    }
     refresh();
   };
 
-  if (library.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-xl py-10 px-6 text-center"
-        style={{ background: 'var(--w-surface-2)', border: '1px dashed var(--w-border)' }}>
-        <Image size={28} style={{ color: 'var(--w-ink-5)' }} />
-        <div>
-          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--w-ink-1)' }}>No photos yet</p>
-          <p className="text-[11px]" style={{ color: 'var(--w-ink-4)' }}>Download the curated set to use handpicked calming landscapes.</p>
-        </div>
-        <button onClick={handleDownloadAll} disabled={downloading}
-          className="relative overflow-hidden flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer disabled:cursor-wait"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', minWidth: 180 }}>
-          {downloading && <span className="absolute inset-0 origin-left" style={{ background: 'rgba(255,255,255,0.18)', animation: 'bpIndeterminate 1.4s ease-in-out infinite' }} />}
-          <span className="relative flex items-center gap-2">
-            {downloading && <Spinner size={12} />}
-            {downloading ? 'Downloading…' : 'Download all backgrounds'}
-          </span>
-        </button>
-      </div>
-    );
-  }
+  const activeId = isActive ? (selectedPhotoId ?? library[0]?.id) : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2">
-        {library.map((ph, i) => {
-          const isHead = i === 0;
-          const isPhotoActive = isHead && isActive;
-          return (
-            <div key={ph.id}
-              className="relative group rounded-xl overflow-hidden cursor-pointer"
-              style={{ aspectRatio: '16/9', transition: 'transform 0.15s' }}
-              onClick={() => handleUse(ph.id)}
-              onMouseEnter={e => { if (!isPhotoActive) e.currentTarget.style.transform = 'scale(1.03)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
-              <img src={ph.small} alt={ph.id} className="w-full h-full object-cover" style={{ opacity: isPhotoActive ? 1 : 0.68 }} />
-              {isPhotoActive && (
-                <>
-                  <div className="absolute inset-0 rounded-xl pointer-events-none" style={{ boxShadow: 'inset 0 0 0 2.5px var(--w-accent)' }} />
-                  <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', fontSize: 8, fontWeight: 700 }}>
-                    <CheckLg size={7} /><span>Active</span>
-                  </div>
-                </>
-              )}
-              {!isPhotoActive && (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: 'rgba(0,0,0,0.22)' }}>
-                  <div className="flex items-center gap-1 px-3 py-1 rounded-full font-bold"
-                    style={{ background: 'rgba(255,255,255,0.92)', color: '#111', fontSize: 10 }}>Use</div>
-                </div>
-              )}
-              <button onClick={(e) => { e.stopPropagation(); handleDelete(ph.id); }}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none"
-                style={{ background: 'rgba(0,0,0,0.65)', color: 'rgba(255,255,255,0.85)', fontSize: 8 }}
-                title="Remove from library">✕</button>
+    <div className="flex flex-col gap-2">
+      {/* ── Unified grid: built-in first, curated after, download card at end ── */}
+      <div className="relative">
+        <div className="grid grid-cols-3 gap-1.5 overflow-y-auto" style={{ maxHeight: 248, scrollbarWidth: 'none' }}>
+
+          {/* Cell 0: Built-in bg.webp */}
+          <button
+            className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
+            style={{ aspectRatio: '4/3', display: 'block', padding: 0, border: 'none' }}
+            onClick={onApplyDefault}
+            aria-label="Use built-in background"
+          >
+            <img src={bgImage} alt="" aria-hidden className="w-full h-full object-cover" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.28)' }} />
+            {isDefaultActive && <ActiveBadge />}
+            <div className="absolute bottom-1 left-1 pointer-events-none">
+              <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.52)', color: '#fff', letterSpacing: '0.06em' }}>Built-in</span>
             </div>
-          );
-        })}
-      </div>
-
-      <div className="flex gap-2">
-        {allowRotate && (
-          <button onClick={handleShuffle} disabled={shuffling || library.length <= 1}
-            className="flex-1 text-[11px] py-2 rounded-lg font-semibold focus:outline-none"
-            style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: library.length <= 1 ? 'var(--w-ink-6)' : 'var(--w-ink-2)', cursor: library.length <= 1 ? 'not-allowed' : 'pointer' }}>
-            {shuffling ? '…' : '↺ Shuffle'}
           </button>
-        )}
-        <button onClick={handleAddOne} disabled={addingOne || library.length >= LIBRARY_MAX}
-          className="flex-1 relative overflow-hidden text-[11px] py-2 rounded-lg font-semibold focus:outline-none"
-          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: library.length >= LIBRARY_MAX ? 'var(--w-ink-6)' : 'var(--w-ink-2)', cursor: library.length >= LIBRARY_MAX ? 'not-allowed' : (addingOne ? 'wait' : 'pointer') }}>
-          {addingOne && <span className="absolute inset-0" style={{ background: 'var(--w-accent)', opacity: 0.12, animation: 'bpIndeterminate 1.4s ease-in-out infinite' }} />}
-          <span className="relative">{library.length >= LIBRARY_MAX ? 'Library full' : addingOne ? 'Fetching…' : '+ Add one'}</span>
-        </button>
-        <button onClick={handleDownloadAll} disabled={downloading || library.length >= LIBRARY_MAX}
-          className="flex-1 relative overflow-hidden text-[11px] py-2 rounded-lg font-semibold focus:outline-none"
-          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: library.length >= LIBRARY_MAX ? 'var(--w-ink-6)' : 'var(--w-ink-2)', cursor: library.length >= LIBRARY_MAX ? 'not-allowed' : (downloading ? 'wait' : 'pointer') }}>
-          {downloading && <span className="absolute inset-0" style={{ background: 'var(--w-accent)', opacity: 0.12, animation: 'bpIndeterminate 1.4s ease-in-out infinite' }} />}
-          <span className="relative">{downloading ? 'Fetching…' : '↓ Refill'}</span>
-        </button>
+
+          {/* Curated photo cells */}
+          {library.map((ph) => {
+            const src = ph.small || ph.url || ph.regular;
+            const isPhotoActive = ph.id === activeId;
+            return (
+              <button
+                key={ph.id}
+                className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
+                style={{ aspectRatio: '4/3', display: 'block', padding: 0, border: 'none' }}
+                onClick={() => handleUse(ph.id)}
+                aria-label="Apply this background"
+              >
+                <img src={src} alt="" aria-hidden className="w-full h-full object-cover" />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }} />
+                {isPhotoActive && <ActiveBadge />}
+                <button
+                  onClick={e => { e.stopPropagation(); handleDelete(ph.id); }}
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
+                  style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid transparent' }}
+                  aria-label="Remove photo"
+                >
+                  <XLg size={7} />
+                </button>
+              </button>
+            );
+          })}
+
+          {/* Locked placeholder cells — one per remaining slot, game-unlock style */}
+          {Array.from({ length: LIBRARY_MAX - library.length }).map((_, i) => {
+            const isFirst = i === 0;
+            const isShimmering = downloading && !isFirst;
+            return (
+              <button
+                key={`locked-${i}`}
+                onClick={isFirst ? handleDownloadAll : undefined}
+                disabled={downloading || !isFirst}
+                className="relative rounded-lg flex flex-col items-center justify-center gap-1 focus:outline-none disabled:cursor-default overflow-hidden"
+                style={{
+                  aspectRatio: '4/3',
+                  background: 'var(--w-surface-2)',
+                  border: '1px solid var(--w-border)',
+                  cursor: isFirst && !downloading ? 'pointer' : 'default',
+                  opacity: (!downloading && !isFirst) ? 0.38 : 1,
+                }}
+                aria-label={isFirst ? 'Download curated collection' : undefined}
+              >
+                {isShimmering && (
+                  <div className="absolute inset-0" style={{
+                    background: 'linear-gradient(90deg, var(--w-surface-2) 0%, var(--w-border) 50%, var(--w-surface-2) 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 1.4s ease-in-out infinite',
+                  }} />
+                )}
+                {isFirst && downloading ? (
+                  <Spinner size={14} style={{ color: 'var(--w-ink-5)' }} />
+                ) : !isShimmering && (
+                  /* Download icon */
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    style={{ color: isFirst ? 'var(--w-ink-4)' : 'var(--w-ink-6)' }}>
+                    <path d="M12 3v11m0 0-3.5-3.5M12 14l3.5-3.5M4 19h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                {isFirst && !downloading && (
+                  <span className="text-[9px] font-semibold text-center leading-tight px-1" style={{ color: 'var(--w-ink-5)' }}>
+                    Download other backgrounds
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {/* Scroll-hint fade — only visible when content overflows */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to bottom, transparent, var(--w-surface))' }} />
       </div>
 
-      {!isActive && (
-        <button onClick={onApply}
-          className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-          Use Curated Photos
-        </button>
+      {/* Error message */}
+      {downloadError && (
+        <p className="text-[10px] font-medium text-center px-2 py-1.5 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: 'rgb(185,28,28)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          {downloadError}
+        </p>
       )}
     </div>
   );
@@ -376,7 +388,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
             <SettingsInput ref={inputRef} id="bpUrlInput" type="url" value={value}
               onChange={(e) => { setValue(e.target.value); setStatus('idle'); setPreviewUrl(null); }}
               onKeyDown={(e) => { if (e.key === 'Enter') verify(); }}
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://buymemomo.com/sarojbelbase"
               autoComplete="off" spellCheck={false}
               icon={<Link45deg size={13} />}
               suffix={
@@ -422,15 +434,15 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
 // ─── Tab config per scope ─────────────────────────────────────────────────────
 
 const CANVAS_TABS = [
-  { id: 'orb', label: 'Motion' },
   { id: 'solid', label: 'Solid' },
+  { id: 'orb', label: 'Motion' },
   { id: 'curated', label: 'Photos' },
   { id: 'custom', label: 'URL' },
 ];
 
 const FOCUS_TABS = [
-  { id: 'orb', label: 'Motion' },
   { id: 'default', label: 'Default' },
+  { id: 'orb', label: 'Motion' },
   { id: 'curated', label: 'Photos' },
   { id: 'custom', label: 'URL' },
 ];
@@ -442,6 +454,7 @@ export const BackgroundPicker = ({
   initialSource = 'orb',
   initialOrbId = 'blueberry',
   initialCustomUrl = null,
+  initialPhotoUrl = null,
   onClose,
   onApply,
   onRotatePhoto,
@@ -451,8 +464,10 @@ export const BackgroundPicker = ({
 
   const tabs = scope === 'focus' ? FOCUS_TABS : CANVAS_TABS;
 
-  // Ensure the initial tab is in the tab list; fall back to first
-  const resolvedTab = tabs.find(t => t.id === tab) ? tab : tabs[0].id;
+  // Ensure the initial tab is in the tab list.
+  // 'default' only exists in focus tabs; in canvas mode map it to 'curated'.
+  const resolvedTab = tabs.find(t => t.id === tab)?.id
+    ?? (tab === 'default' ? 'curated' : tabs[0].id);
 
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose(); };
@@ -505,26 +520,19 @@ export const BackgroundPicker = ({
             </p>
           </div>
           <button onClick={onClose} aria-label="Close"
-            className="w-7 h-7 flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer focus:outline-none"
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer focus:outline-none"
             style={{ color: 'var(--w-ink-4)' }}>
             <XLg size={13} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-0 px-5 pt-4 shrink-0">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold mr-1 transition-all focus:outline-none cursor-pointer"
-              style={resolvedTab === t.id
-                ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { background: 'transparent', color: 'var(--w-ink-4)' }}>
-              {t.label}
-              {activeSource === t.id && resolvedTab !== t.id && (
-                <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full align-middle" style={{ background: 'var(--w-accent)', opacity: 0.7 }} />
-              )}
-            </button>
-          ))}
+        <div className="px-5 pt-4 shrink-0">
+          <SegmentedControl
+            options={tabs.map(t => ({ label: t.label, value: t.id }))}
+            value={resolvedTab}
+            onChange={setTab}
+          />
         </div>
 
         {/* Panel body */}
@@ -538,15 +546,17 @@ export const BackgroundPicker = ({
           {resolvedTab === 'orb' && (
             <OrbPanel
               isActive={activeSource === 'orb'}
-              initialOrbId={initialOrbId}
               onApply={(opts) => handleApply('orb', opts)}
             />
           )}
           {resolvedTab === 'curated' && (
             <CuratedPanel
               isActive={activeSource === 'curated'}
+              isDefaultActive={activeSource === 'default'}
               allowRotate={scope === 'focus'}
-              onApply={() => handleApply('curated')}
+              initialPhotoUrl={initialPhotoUrl}
+              onApply={(url) => handleApply('curated', url ? { url } : {})}
+              onApplyDefault={() => handleApply('default')}
               onRotatePhoto={onRotatePhoto}
             />
           )}

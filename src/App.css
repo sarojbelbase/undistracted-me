@@ -2,6 +2,16 @@
 
 @import "tailwindcss";
 
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @keyframes focusDigitIn {
   from {
     opacity: 0;
@@ -792,7 +802,7 @@ textarea:focus-visible,
   --wc-bg-2: #2b2b2b;
   --wc-bg-3: #363636;
   --wc-border: rgba(255, 255, 255, 0.08);
-  --wc-border-med: rgba(255, 255, 255, 0.13);
+  --wc-border-med: rgba(255, 255, 255, 0.16);
   --wc-ink-1: #f5f5f7;
   --wc-ink-2: #e5e5ea;
   --wc-ink-3: #b0b0b5;
@@ -804,7 +814,7 @@ textarea:focus-visible,
   /* 2.2:1 decorative */
   --wc-active-fill: rgba(255, 255, 255, 0.06);
   --wc-active-bar: rgba(255, 255, 255, 0.78);
-  --wc-tab-active-bg: rgba(255, 255, 255, 0.12);
+  --wc-tab-active-bg: rgba(255, 255, 255, 0.18);
   --wc-tab-active-fg: #f5f5f7;
   --wc-badge-bg: rgba(255, 255, 255, 0.16);
   --wc-badge-fg: #f5f5f7;
@@ -936,11 +946,9 @@ textarea:focus-visible,
   border-radius: 20px;
   font-size: 10.5px;
   font-weight: 600;
-  background: var(--card-bg);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
+  background: var(--wc-bg-2);
   color: var(--wc-ink-3);
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--wc-border-med);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.14s, color 0.14s, border-color 0.14s;
@@ -992,9 +1000,20 @@ textarea:focus-visible,
 }
 
 .wc-close-btn:hover {
-  background: var(--wc-bg-3);
-  border-color: var(--wc-border-med);
-  color: var(--wc-ink-1);
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgb(239, 68, 68);
+}
+
+/* ── Shared close / dismiss icon button ─────────────────────────── */
+.btn-close:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.28) !important;
+  color: rgb(239, 68, 68) !important;
+}
+
+.btn-close:active {
+  background: rgba(239, 68, 68, 0.17) !important;
 }
 
 /* ── Category tabs ─────────────────────────────────────────────── */
@@ -1083,11 +1102,13 @@ textarea:focus-visible,
 .wc-section-header {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 20px 18px 9px 18px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--wc-ink-3);
+  gap: 6px;
+  padding: 20px 18px 8px 18px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--wc-ink-4);
 }
 
 .wc-section-header::after {
@@ -1100,7 +1121,7 @@ textarea:focus-visible,
 .wc-section-icon {
   display: flex;
   align-items: center;
-  color: var(--wc-ink-4);
+  color: var(--wc-ink-5);
   flex-shrink: 0;
 }
 
@@ -1135,9 +1156,10 @@ textarea:focus-visible,
   background: var(--card-bg);
 }
 
-/* Active: just a thin 1px left hairline — no background fill */
+/* Active: accent left bar + subtle fill */
 .wc-row--active {
-  border-left: 2px solid var(--w-accent);
+  border-left: 2.5px solid var(--w-accent);
+  background: rgba(var(--w-accent-rgb), 0.05);
 }
 
 /* Icon box — bigger, higher contrast icon */
@@ -1148,19 +1170,17 @@ textarea:focus-visible,
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: var(--card-bg);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  color: var(--wc-ink-2);
-  border: 1px solid var(--card-border);
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1px solid var(--wc-border);
   flex-shrink: 0;
   transition: background 0.14s, color 0.14s;
 }
 
 .wc-icon-box--active {
-  background: var(--card-border);
-  color: var(--wc-ink-1);
-  border-color: var(--card-border);
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  border-color: transparent;
 }
 
 /* Text block */
@@ -1237,22 +1257,22 @@ textarea:focus-visible,
 
 /* Add (+) — neutral, always visible */
 .wc-stepper-btn--add {
-  background: var(--card-bg);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  color: var(--wc-ink-2);
-  border: 1.5px solid var(--card-border);
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1.5px solid var(--wc-border-med);
 }
 
 .wc-stepper-btn--add:hover {
-  background: var(--card-border);
+  background: var(--wc-bg-3);
   color: var(--wc-ink-1);
+  border-color: var(--wc-border-med);
 }
 
-/* Add when row is already active: one step brighter */
+/* Add when row is already active: accent-tinted */
 .wc-stepper-btn--add-active {
-  background: var(--card-border);
-  color: var(--wc-ink-2);
+  background: rgba(var(--w-accent-rgb), 0.12);
+  color: var(--w-accent);
+  border-color: rgba(var(--w-accent-rgb), 0.25);
 }
 
 /* Count number between − and + */
@@ -1302,6 +1322,7 @@ textarea:focus-visible,
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
+  font-weight: 600;
   color: var(--wc-ink-3);
   text-decoration: none;
   transition: color 0.14s;

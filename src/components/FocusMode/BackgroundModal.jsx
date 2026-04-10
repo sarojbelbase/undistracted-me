@@ -74,7 +74,8 @@ export const getOrbPaletteId = () => {
 };
 export const getOrbRgb = () => {
   const id = getOrbPaletteId();
-  return ORB_PALETTES.find(p => p.id === id)?.rgb || ORB_PALETTES[0].rgb;
+  if (id === 'accent') return null;
+  return ORB_PALETTES.find(p => p.id === id)?.rgb || null;
 };
 const setOrbPaletteId = (id) => {
   try { localStorage.setItem(ORB_PALETTE_KEY, id); } catch { }
@@ -133,22 +134,19 @@ const DefaultPanel = ({ isActive, onApply }) => (
 // ─── Orb panel ───────────────────────────────────────────────────────────────
 
 const OrbPanel = ({ isActive, onApply }) => {
-  const [selectedId, setSelectedId] = useState(getOrbPaletteId);
-  const selected = ORB_PALETTES.find(p => p.id === selectedId) || ORB_PALETTES[0];
-  const previewRgb = selected.rgb;
-  const isAlreadyActive = isActive && getOrbPaletteId() === selectedId;
+  const isAlreadyActive = isActive && getOrbPaletteId() === 'accent';
 
   const handleApply = () => {
-    setOrbPaletteId(selectedId);
-    onApply(selectedId);
+    setOrbPaletteId('accent');
+    onApply('accent');
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Live mini orb preview */}
+      {/* Live mini orb preview — uses the current accent colour */}
       <div
         className="w-full rounded-xl overflow-hidden relative select-none"
-        style={{ aspectRatio: '16/9', background: '#060608' }}
+        style={{ aspectRatio: '16/9', background: 'var(--w-page-bg)' }}
         aria-hidden
       >
         <div style={{
@@ -160,20 +158,20 @@ const OrbPanel = ({ isActive, onApply }) => {
           <div style={{
             position: 'absolute', width: '70%', height: '70%',
             top: '15%', left: '15%', borderRadius: '50%',
-            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.55) 0%, rgba(${previewRgb},0.18) 45%, transparent 70%)`,
+            background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)',
             filter: 'blur(24px)',
             animation: 'fmOrbBloom 8s ease-in-out infinite',
           }} />
           <div style={{
             position: 'absolute', width: '45%', height: '45%',
             top: '5%', right: '5%', borderRadius: '50%',
-            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.32) 0%, transparent 65%)`,
+            background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, transparent 65%)',
             filter: 'blur(24px)',
           }} />
           <div style={{
             position: 'absolute', width: '40%', height: '40%',
             bottom: '5%', left: '5%', borderRadius: '50%',
-            background: `radial-gradient(circle at 50% 50%, rgba(${previewRgb},0.20) 0%, transparent 62%)`,
+            background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.20) 0%, transparent 62%)',
             filter: 'blur(32px)',
             animation: 'fmOrbCounter 32s linear infinite',
             transformOrigin: '50% 50%',
@@ -182,7 +180,7 @@ const OrbPanel = ({ isActive, onApply }) => {
         {/* Vignette */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, rgba(4,4,6,0.5) 65%, rgba(2,2,4,0.9) 100%)',
+          background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, color-mix(in srgb, var(--w-page-bg) 55%, transparent) 65%, var(--w-page-bg) 100%)',
         }} />
         {isAlreadyActive && (
           <>
@@ -194,42 +192,6 @@ const OrbPanel = ({ isActive, onApply }) => {
             </div>
           </>
         )}
-      </div>
-
-      {/* Palette swatches — 4-col grid */}
-      <div className="grid grid-cols-4 gap-2">
-        {ORB_PALETTES.map(({ id, label, rgb }) => {
-          const isSel = selectedId === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setSelectedId(id)}
-              className="flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl transition-all focus:outline-none cursor-pointer"
-              style={isSel
-                ? { background: 'var(--w-surface-2)', border: `1px solid rgba(${rgb},0.5)`, boxShadow: `0 0 0 1px rgba(${rgb},0.3)` }
-                : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
-            >
-              <div
-                className="w-8 h-8 rounded-full relative shrink-0 flex items-center justify-center"
-                style={{
-                  background: `radial-gradient(circle at 38% 38%, rgb(${rgb}) 0%, rgba(${rgb},0.6) 55%, rgba(${rgb},0.15) 100%)`,
-                  boxShadow: isSel ? `0 0 12px rgba(${rgb},0.55)` : 'none',
-                  transition: 'box-shadow 0.2s',
-                }}
-              >
-                {isSel && (
-                  <CheckLg size={10} style={{ color: '#fff', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
-                )}
-              </div>
-              <span
-                className="text-[9px] font-semibold leading-none"
-                style={{ color: isSel ? 'var(--w-ink-1)' : 'var(--w-ink-4)', transition: 'color 0.18s' }}
-              >
-                {label}
-              </span>
-            </button>
-          );
-        })}
       </div>
 
       {!isAlreadyActive && (
@@ -743,10 +705,8 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
           </span>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full focus:outline-none cursor-pointer transition-all"
+            className="w-7 h-7 flex items-center justify-center rounded-full focus:outline-none cursor-pointer transition-colors btn-close"
             style={{ color: 'var(--w-ink-4)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.color = 'rgba(239,68,68,0.9)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--w-ink-4)'; }}
             aria-label="Close"
           >
             <XLg size={11} />

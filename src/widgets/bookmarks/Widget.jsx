@@ -169,7 +169,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
           onChange={e => setPath(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={e => e.key === 'Enter' && handleSave()}
-          placeholder="facebook.com"
+          placeholder="buymemomo.com/sarojbelbase"
         />
       </div>
 
@@ -177,7 +177,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
         <label htmlFor="bm-name" className="w-label">Name</label>
         <SettingsInput
           id="bm-name"
-          placeholder={derivedName || 'Facebook'}
+          placeholder={derivedName || 'Buy Me Momo'}
           value={localName}
           onChange={e => setLocalName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSave()}

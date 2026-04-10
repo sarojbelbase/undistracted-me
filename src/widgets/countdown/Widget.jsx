@@ -81,7 +81,7 @@ const AddModal = ({ onSave, onClose }) => {
       >
         <div className="flex items-center justify-between mb-4">
           <span className="font-semibold text-base" style={{ color: 'var(--w-ink-1)' }}>New Countdown</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:opacity-70 cursor-pointer" style={{ color: 'var(--w-ink-3)' }}>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center transition-colors btn-close cursor-pointer" style={{ color: 'var(--w-ink-3)' }}>
             <XLg size={14} />
           </button>
         </div>

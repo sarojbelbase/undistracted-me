@@ -45,7 +45,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
           <button
             onClick={onClose}
             aria-label="Close settings"
-            className="w-6 h-6 flex items-center justify-center rounded-full transition-opacity hover:opacity-60 cursor-pointer"
+            className="w-6 h-6 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer"
             style={{ color: 'var(--w-ink-3)' }}
           >
             <XLg size={12} aria-hidden="true" />

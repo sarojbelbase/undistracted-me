@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { XLg, ClockFill } from 'react-bootstrap-icons';
 import { PillButton } from '../../components/ui/PillButton';
-import { todayStr } from './utils';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
-  getDateOffset, applyDuration,
+  getDateOffset, applyDuration, todayStr
 } from './utils';
 
 export const CreateModal = ({ onSave, onClose }) => {
@@ -83,7 +82,7 @@ export const CreateModal = ({ onSave, onClose }) => {
           <span className="w-heading">New Event</span>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors btn-close"
             style={{ color: 'var(--w-ink-3)' }}
           >
             <XLg size={14} />
