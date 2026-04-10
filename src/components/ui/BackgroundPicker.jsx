@@ -22,7 +22,7 @@ import { createPortal } from 'react-dom';
 import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../assets/img/bg.webp';
 import { SettingsInput } from './SettingsInput';
-import { SegmentedControl } from './SegmentedControl';
+import { TabRow } from './TabRow';
 import {
   getPhotoLibrary,
   downloadCuratedPhotos,
@@ -72,8 +72,8 @@ const Spinner = ({ size = 14 }) => (
 
 const ActiveBadge = () => (
   <>
-    <div className="absolute inset-0 rounded-xl pointer-events-none"
-      style={{ boxShadow: 'inset 0 0 0 2.5px var(--w-accent)' }} />
+    <div className="absolute inset-0 pointer-events-none"
+      style={{ boxShadow: 'inset 0 0 0 2.5px var(--w-accent)', borderRadius: 'inherit' }} />
     <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
       style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', fontSize: 9, fontWeight: 700 }}>
       <CheckLg size={9} /><span>Active</span>
@@ -125,32 +125,39 @@ const DefaultPanel = ({ isActive, onApply }) => (
 
 // ─── Orb panel ───────────────────────────────────────────────────────────────
 
-const OrbPanel = ({ isActive, onApply }) => (
-  <div className="flex flex-col gap-4">
-    {/* Mini orb preview — uses the current accent colour */}
-    <div className="w-full rounded-xl overflow-hidden relative select-none"
-      style={{ aspectRatio: '16/9', background: 'var(--w-page-bg)' }} aria-hidden>
-      <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)', filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: '45%', height: '45%', top: '5%', right: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, transparent 65%)', filter: 'blur(24px)' }} />
-        <div style={{ position: 'absolute', width: '40%', height: '40%', bottom: '5%', left: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.20) 0%, transparent 62%)', filter: 'blur(32px)', animation: 'bpOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
+const OrbPanel = ({ isActive, onApply, scope = 'canvas' }) => {
+  // Focus mode is always dark (#060608); canvas adapts to the user's theme
+  const previewBg = scope === 'focus' ? '#060608' : 'var(--w-page-bg)';
+  const vignetteBg = scope === 'focus'
+    ? 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, rgba(6,6,8,0.55) 65%, #060608 100%)'
+    : 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, color-mix(in srgb, var(--w-page-bg) 55%, transparent) 65%, var(--w-page-bg) 100%)';
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Mini orb preview — uses the current accent colour */}
+      <div className="w-full rounded-xl overflow-hidden relative select-none"
+        style={{ aspectRatio: '16/9', background: previewBg }} aria-hidden>
+        <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)', filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', width: '45%', height: '45%', top: '5%', right: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, transparent 65%)', filter: 'blur(24px)' }} />
+          <div style={{ position: 'absolute', width: '40%', height: '40%', bottom: '5%', left: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.20) 0%, transparent 62%)', filter: 'blur(32px)', animation: 'bpOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
+        </div>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: vignetteBg }} />
+        {isActive && <ActiveBadge />}
       </div>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 28%, color-mix(in srgb, var(--w-page-bg) 55%, transparent) 65%, var(--w-page-bg) 100%)' }} />
-      {isActive && <ActiveBadge />}
+      {!isActive && (
+        <button onClick={() => onApply({ orbId: 'accent' })}
+          className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer hover:opacity-90"
+          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
+          Use Color Motion
+        </button>
+      )}
     </div>
-    {!isActive && (
-      <button onClick={() => onApply({ orbId: 'accent' })}
-        className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer hover:opacity-90"
-        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-        Use Color Motion
-      </button>
-    )}
-  </div>
-);
+  );
+};
 
 // ─── Curated panel ────────────────────────────────────────────────────────────
 
-const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefaultActive, onApplyDefault, initialPhotoUrl = null }) => {
+const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefaultActive, onApplyDefault, initialPhotoUrl = null, scrollFadeColor = 'var(--w-surface)', dark = false }) => {
   const [library, setLibrary] = useState(() => getPhotoLibrary());
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
@@ -284,6 +291,17 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           {Array.from({ length: LIBRARY_MAX - library.length }).map((_, i) => {
             const isFirst = i === 0;
             const isShimmering = downloading && !isFirst;
+            const slotBg = dark ? 'rgba(255,255,255,0.06)' : 'var(--w-surface-2)';
+            const slotBorder = dark ? '1px solid rgba(255,255,255,0.10)' : '1px solid var(--w-border)';
+            const shimmerBg = dark
+              ? 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)'
+              : 'linear-gradient(90deg, var(--w-surface-2) 0%, var(--w-border) 50%, var(--w-surface-2) 100%)';
+            const iconColor = (() => {
+              if (isFirst) return dark ? 'rgba(255,255,255,0.55)' : 'var(--w-ink-4)';
+              return dark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)';
+            })();
+            const labelColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--w-ink-5)';
+            const spinnerColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--w-ink-5)';
             return (
               <button
                 key={`locked-slot-${library.length + i}`}
@@ -292,8 +310,8 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
                 className="relative rounded-lg flex flex-col items-center justify-center gap-1 focus:outline-none disabled:cursor-default overflow-hidden"
                 style={{
                   aspectRatio: '4/3',
-                  background: 'var(--w-surface-2)',
-                  border: '1px solid var(--w-border)',
+                  background: slotBg,
+                  border: slotBorder,
                   cursor: isFirst && !downloading ? 'pointer' : 'default',
                   opacity: (!downloading && !isFirst) ? 0.38 : 1,
                 }}
@@ -301,22 +319,22 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
               >
                 {isShimmering && (
                   <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(90deg, var(--w-surface-2) 0%, var(--w-border) 50%, var(--w-surface-2) 100%)',
+                    background: shimmerBg,
                     backgroundSize: '200% 100%',
                     animation: 'shimmer 1.4s ease-in-out infinite',
                   }} />
                 )}
                 {isFirst && downloading ? (
-                  <Spinner size={14} style={{ color: 'var(--w-ink-5)' }} />
+                  <Spinner size={14} style={{ color: spinnerColor }} />
                 ) : !isShimmering && (
                   /* Download icon */
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    style={{ color: isFirst ? 'var(--w-ink-4)' : 'var(--w-ink-6)' }}>
+                    style={{ color: iconColor }}>
                     <path d="M12 3v11m0 0-3.5-3.5M12 14l3.5-3.5M4 19h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
                 {isFirst && !downloading && (
-                  <span className="text-[9px] font-semibold text-center leading-tight px-1" style={{ color: 'var(--w-ink-5)' }}>
+                  <span className="text-[9px] font-semibold text-center leading-tight px-1" style={{ color: labelColor }}>
                     Download other backgrounds
                   </span>
                 )}
@@ -325,12 +343,14 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           })}
         </div>
         {/* Scroll-hint fade — only visible when content overflows */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to bottom, transparent, var(--w-surface))' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none rounded-b-lg" style={{ background: `linear-gradient(to bottom, transparent, ${scrollFadeColor})` }} />
       </div>
 
       {/* Error message */}
       {downloadError && (
-        <p className="text-[10px] font-medium text-center px-2 py-1.5 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: 'rgb(185,28,28)', border: '1px solid rgba(239,68,68,0.2)' }}>
+        <p className="text-[10px] font-medium text-center px-2 py-1.5 rounded-lg" style={dark
+          ? { background: 'rgba(239,68,68,0.14)', color: 'rgb(252,129,129)', border: '1px solid rgba(239,68,68,0.32)' }
+          : { background: 'rgba(239,68,68,0.08)', color: 'rgb(185,28,28)', border: '1px solid rgba(239,68,68,0.2)' }}>
           {downloadError}
         </p>
       )}
@@ -340,7 +360,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
 
 // ─── Custom URL panel ─────────────────────────────────────────────────────────
 
-const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
+const CustomPanel = ({ isActive, initialCustomUrl, onApply, dark = false }) => {
   const [value, setValue] = useState(initialCustomUrl || '');
   const [status, setStatus] = useState('idle'); // idle | checking | ok | error
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -380,12 +400,12 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--w-ink-4)' }} htmlFor="bpUrlInput">
+        <label className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: dark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-4)' }} htmlFor="bpUrlInput">
           Image URL
         </label>
         <div className="flex gap-2 items-center">
           <div className="flex-1">
-            <SettingsInput ref={inputRef} id="bpUrlInput" type="url" value={value}
+            <SettingsInput ref={inputRef} id="bpUrlInput" type="url" value={value} dark={dark}
               onChange={(e) => { setValue(e.target.value); setStatus('idle'); setPreviewUrl(null); }}
               onKeyDown={(e) => { if (e.key === 'Enter') verify(); }}
               placeholder="https://buymemomo.com/sarojbelbase"
@@ -396,16 +416,18 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
           </div>
           <button onClick={verify} disabled={!syntaxOk || status === 'checking'}
             className="px-3.5 py-2 rounded-xl text-[11px] font-semibold focus:outline-none disabled:opacity-40 shrink-0"
-            style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-2)', cursor: syntaxOk ? 'pointer' : 'not-allowed' }}>
+            style={dark
+              ? { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.72)', cursor: syntaxOk ? 'pointer' : 'not-allowed' }
+              : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-2)', cursor: syntaxOk ? 'pointer' : 'not-allowed' }}>
             Verify
           </button>
         </div>
         {hint && !errorMsg && <p className="text-[10px]" style={{ color: 'rgba(234,179,8,0.9)' }}>{hint}</p>}
-        {errorMsg && <p className="text-[10px]" style={{ color: 'rgba(220,38,38,0.9)' }}>{errorMsg}</p>}
+        {errorMsg && <p className="text-[10px]" style={{ color: dark ? 'rgba(252,129,129,0.9)' : 'rgba(220,38,38,0.9)' }}>{errorMsg}</p>}
       </div>
 
       {previewUrl && (
-        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: 'var(--w-surface-2)' }}>
+        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: dark ? 'rgba(255,255,255,0.06)' : 'var(--w-surface-2)' }}>
           <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" style={{ opacity: status === 'ok' ? 1 : 0.5 }} />
         </div>
       )}
@@ -414,7 +436,9 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
         {initialCustomUrl && (
           <button onClick={handleClear}
             className="flex-1 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-            style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-3)' }}>
+            style={dark
+              ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.65)' }
+              : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-3)' }}>
             Clear
           </button>
         )}
@@ -429,17 +453,15 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
 };
 
 // ─── Tab config per scope ─────────────────────────────────────────────────────
+// Canvas: only solid + orb (photos/URL live in the canvas widget grid).
+// Focus: photos from curated library and custom URL. Default (bg.webp) is accessible via the "Built-in" cell in Photos tab.
 
 const CANVAS_TABS = [
-  { id: 'solid', label: 'Solid' },
-  { id: 'orb', label: 'Motion' },
-  { id: 'curated', label: 'Photos' },
-  { id: 'custom', label: 'URL' },
+  { id: 'solid', label: 'Solid', hint: 'Accent tint, no motion' },
+  { id: 'orb', label: 'Motion', hint: 'Animated color orb' },
 ];
 
 const FOCUS_TABS = [
-  { id: 'default', label: 'Default' },
-  { id: 'orb', label: 'Motion' },
   { id: 'curated', label: 'Photos' },
   { id: 'custom', label: 'URL' },
 ];
@@ -466,12 +488,37 @@ export const BackgroundPicker = ({
   const [activeSource, setActiveSource] = useState(initialSource);
   const [tab, setTab] = useState(initialSource);
 
+  const dark = scope === 'focus';
   const tabs = scope === 'focus' ? FOCUS_TABS : CANVAS_TABS;
 
-  // Ensure the initial tab is in the tab list.
-  // 'default' only exists in focus tabs; in canvas mode map it to 'curated'.
-  const resolvedTab = tabs.find(t => t.id === tab)?.id
-    ?? (tab === 'default' ? 'curated' : tabs[0].id);
+  // Ensure the initial active tab exists in the current scope's tab list.
+  // e.g. if canvas bg was 'curated' and we open the canvas picker (which no longer has curated),
+  // fall back to the first canvas tab.
+  const resolvedTab = tabs.find(t => t.id === tab)?.id ?? tabs[0].id;
+
+  // Theme tokens — dark glass for focus, surface tokens for canvas.
+  const cardSurface = dark ? 'rgb(12,12,16)' : 'var(--w-surface)';
+  const th = dark
+    ? {
+      cardBg: 'rgba(12,12,16,0.86)',
+      cardBdFilter: 'blur(24px) saturate(160%)',
+      cardBorder: 'rgba(255,255,255,0.11)',
+      cardShadow: '0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)',
+      divider: 'rgba(255,255,255,0.10)',
+      title: 'rgba(255,255,255,0.92)',
+      sub: 'rgba(255,255,255,0.42)',
+      closeBtn: 'rgba(255,255,255,0.42)',
+    }
+    : {
+      cardBg: 'var(--w-surface)',
+      cardBdFilter: undefined,
+      cardBorder: 'var(--w-border)',
+      cardShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+      divider: 'var(--w-border)',
+      title: 'var(--w-ink-1)',
+      sub: 'var(--w-ink-4)',
+      closeBtn: 'var(--w-ink-4)',
+    };
 
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose(); };
@@ -491,6 +538,7 @@ export const BackgroundPicker = ({
       aria-label="Background settings"
       tabIndex={-1}
       className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 90 }}
     >
       <style>{`
         @keyframes bpSpin          { to { transform: rotate(360deg); } }
@@ -502,10 +550,13 @@ export const BackgroundPicker = ({
       `}</style>
 
       <div
-        className="flex flex-col rounded-2xl shadow-2xl overflow-hidden"
+        className="flex flex-col rounded-2xl overflow-hidden"
         style={{
-          background: 'var(--w-surface)',
-          border: '1px solid var(--w-border)',
+          background: th.cardBg,
+          backdropFilter: th.cardBdFilter,
+          WebkitBackdropFilter: th.cardBdFilter,
+          border: `1px solid ${th.cardBorder}`,
+          boxShadow: th.cardShadow ?? '0 25px 50px -12px rgba(0,0,0,0.25)',
           width: 480,
           maxWidth: 'calc(100vw - 32px)',
           maxHeight: 'calc(100vh - 64px)',
@@ -514,29 +565,25 @@ export const BackgroundPicker = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0"
-          style={{ borderBottom: '1px solid var(--w-border)' }}>
+          style={{ borderBottom: `1px solid ${th.divider}` }}>
           <div>
-            <h2 className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>
+            <h2 className="font-semibold text-sm" style={{ color: th.title }}>
               {scope === 'focus' ? 'Focus Mode Background' : 'Canvas Background'}
             </h2>
-            <p className="text-[11px] mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
+            <p className="text-[11px] mt-0.5" style={{ color: th.sub }}>
               Choose how your {scope === 'focus' ? 'focus screen' : 'home canvas'} looks
             </p>
           </div>
           <button onClick={onClose} aria-label="Close"
             className="w-7 h-7 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer focus:outline-none"
-            style={{ color: 'var(--w-ink-4)' }}>
+            style={{ color: th.closeBtn }}>
             <XLg size={13} />
           </button>
         </div>
 
         {/* Tabs */}
         <div className="px-5 pt-4 shrink-0">
-          <SegmentedControl
-            options={tabs.map(t => ({ label: t.label, value: t.id }))}
-            value={resolvedTab}
-            onChange={setTab}
-          />
+          <TabRow tabs={tabs} value={resolvedTab} onChange={setTab} dark={dark} />
         </div>
 
         {/* Panel body */}
@@ -551,6 +598,7 @@ export const BackgroundPicker = ({
             <OrbPanel
               isActive={activeSource === 'orb'}
               onApply={(opts) => handleApply('orb', opts)}
+              scope={scope}
             />
           )}
           {resolvedTab === 'curated' && (
@@ -562,12 +610,15 @@ export const BackgroundPicker = ({
               onApply={(url) => handleApply('curated', url ? { url } : {})}
               onApplyDefault={() => handleApply('default')}
               onRotatePhoto={onRotatePhoto}
+              scrollFadeColor={cardSurface}
+              dark={dark}
             />
           )}
           {resolvedTab === 'custom' && (
             <CustomPanel
               isActive={activeSource === 'custom'}
               initialCustomUrl={initialCustomUrl}
+              dark={dark}
               onApply={(opts) => {
                 if (opts.url) handleApply('custom', opts);
                 else if (activeSource === 'custom') handleApply(scope === 'focus' ? 'default' : 'solid', {});

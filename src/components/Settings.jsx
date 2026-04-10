@@ -160,7 +160,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
               >
                 <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                   <span className="text-xs font-semibold leading-tight">{label}</span>
-                  <span className="text-[10px] leading-tight truncate" style={{ color: selected ? 'rgba(255,255,255,0.65)' : 'var(--w-ink-5)' }}>{hint}</span>
+                  <span className="text-[10px] leading-tight truncate" style={{ color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)' }}>{hint}</span>
                 </div>
               </button>
             );

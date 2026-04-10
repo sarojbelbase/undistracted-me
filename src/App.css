@@ -101,14 +101,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* Reset <dialog> default browser styles so our custom modals render correctly */
-dialog {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  max-width: 100vw;
-  max-height: 100vh;
-  color: inherit;
+@layer base {
+  dialog {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+    color: inherit;
+  }
 }
 
 /* Utility classes for animations */
@@ -338,6 +343,9 @@ dialog {
   --w-accent: #111827;
   --w-accent-fg: #ffffff;
   --w-accent-rgb: 17, 24, 39;
+  --wc-danger-fg: #fca5a5;
+  --wc-danger-fg-hover: #fecaca;
+  --wc-danger-bg: rgba(192, 57, 43, 0.14);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -497,7 +505,7 @@ dialog {
 }
 
 [data-mode="dark"] input,
-[data-mode="dark"] textarea,
+[data-mode="dark"] textarea:not(.notes-textarea),
 [data-mode="dark"] select {
   background-color: var(--w-surface-2) !important;
   color: var(--w-ink-1) !important;
@@ -1203,9 +1211,10 @@ textarea:focus-visible,
 }
 
 .wc-icon-box--active {
-  background: var(--w-accent);
-  color: var(--w-accent-fg);
-  border-color: transparent;
+  background: var(--wc-bg);
+  color: var(--wc-ink-1);
+  border-color: var(--wc-border-med);
+  box-shadow: var(--card-shadow);
 }
 
 /* Text block */
@@ -1305,11 +1314,11 @@ textarea:focus-visible,
   border-color: var(--wc-border-med);
 }
 
-/* Add when row is already active: accent-tinted */
+/* Add when row is already active: neutral */
 .wc-stepper-btn--add-active {
-  background: rgba(var(--w-accent-rgb), 0.12);
-  color: var(--w-accent);
-  border-color: rgba(var(--w-accent-rgb), 0.25);
+  background: var(--wc-bg);
+  color: var(--wc-ink-1);
+  border-color: var(--wc-border-med);
 }
 
 /* Count number between − and + */
