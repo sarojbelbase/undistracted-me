@@ -57,7 +57,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
             </button>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors btn-close cursor-pointer"
               style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
               aria-label="Close"
             >

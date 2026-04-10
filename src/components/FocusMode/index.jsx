@@ -228,14 +228,14 @@ export const FocusMode = ({ onExit }) => {
             style={{ position: 'absolute', inset: 0, zIndex: 0, animation: 'fmOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}
           >
             {/* Primary orb — centre bloom */}
-            <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)`, filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
+            <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.38) 0%, rgba(var(--w-accent-rgb),0.08) 50%, transparent 72%)', filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
             {/* Secondary orb — top-right */}
-            <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)`, filter: 'blur(64px)' }} />
+            <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.22) 0%, transparent 65%)', filter: 'blur(64px)' }} />
             {/* Tertiary orb — bottom-left, counter-rotation */}
-            <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)`, filter: 'blur(80px)', animation: 'fmOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
+            <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.16) 0%, transparent 62%)', filter: 'blur(80px)', animation: 'fmOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
           </div>
           {/* Conic shimmer */}
-          <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${orbRgb},0.04) 90deg, transparent 180deg, rgba(${orbRgb},0.03) 270deg, transparent 360deg)`, animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: orbRgb ? `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${orbRgb},0.04) 90deg, transparent 180deg, rgba(${orbRgb},0.03) 270deg, transparent 360deg)` : 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(var(--w-accent-rgb),0.04) 90deg, transparent 180deg, rgba(var(--w-accent-rgb),0.03) 270deg, transparent 360deg)', animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
         </>
       ) : (
         <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />

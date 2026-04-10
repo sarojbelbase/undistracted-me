@@ -8,6 +8,7 @@ import { WidgetGrid } from './widgets/WidgetGrid';
 import { OrbBackground } from './components/ui/OrbBackground';
 import { BackgroundPicker, getOrbRgbById } from './components/ui/BackgroundPicker';
 import { getPhotoLibrary } from './utilities/unsplash';
+import bgImage from './assets/img/bg.webp';
 import { ACCENT_COLORS } from './theme';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 import { useAutoTheme } from './utilities/useAutoTheme';
@@ -79,19 +80,20 @@ const App = () => {
 
   // ── Canvas background computation ─────────────────────────────────────────
   const bgType = canvasBg?.type || 'orb';
-  const bgOrbId = canvasBg?.orbId || 'blueberry';
-  const bgOrbRgb = useMemo(() => getOrbRgbById(bgOrbId), [bgOrbId]);
+  const bgOrbId = canvasBg?.orbId || 'accent';
+  const bgOrbRgb = useMemo(() => bgOrbId === 'accent' ? null : getOrbRgbById(bgOrbId), [bgOrbId]);
 
   // URL for photo/custom backgrounds. Re-read library lazily at render time
   // (library is only relevant when bgType === 'curated').
   const bgImageUrl = useMemo(() => {
     if (bgType === 'custom') return canvasBg?.url || null;
-    if (bgType === 'curated') return getPhotoLibrary()[0]?.full || getPhotoLibrary()[0]?.small || null;
+    if (bgType === 'curated') return canvasBg?.url || getPhotoLibrary()[0]?.regular || getPhotoLibrary()[0]?.small || null;
+    if (bgType === 'default') return bgImage;
     return null;
   }, [bgType, canvasBg]);
 
   const pageBg = useMemo(() => {
-    if (bgType === 'curated' || bgType === 'custom') return '#000000';
+    if (bgType === 'curated' || bgType === 'custom' || bgType === 'default') return '#000000';
     if (bgType === 'orb') return isDark ? '#060608' : 'var(--w-page-bg)';
     // solid — accent-tinted page colour
     const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#3689E6';
@@ -108,7 +110,7 @@ const App = () => {
     >
       {/* ── Canvas background layer ── */}
       {bgType === 'orb' && <OrbBackground zIndex={0} rgb={bgOrbRgb} isDark={isDark} />}
-      {(bgType === 'curated' || bgType === 'custom') && bgImageUrl && (
+      {(bgType === 'curated' || bgType === 'custom' || bgType === 'default') && bgImageUrl && (
         <div
           aria-hidden
           style={{
@@ -239,7 +241,8 @@ const App = () => {
           scope="canvas"
           initialSource={bgType}
           initialOrbId={bgOrbId}
-          initialCustomUrl={canvasBg?.url || null}
+          initialCustomUrl={bgType === 'custom' ? canvasBg?.url || null : null}
+          initialPhotoUrl={bgType === 'curated' ? canvasBg?.url || null : null}
           onClose={() => setShowBgPicker(false)}
           onApply={(type, opts = {}) => {
             setCanvasBg({ type, orbId: opts.orbId || bgOrbId, url: opts.url ?? null });

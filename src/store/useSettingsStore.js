@@ -38,8 +38,8 @@ const fromLegacy = () => {
       canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null },
       cardStyle: stored.state.cardStyle ?? 'glass',
       modePrefs: stored.state.modePrefs ?? {
-        light: { cardStyle: stored.state.cardStyle ?? 'glass', canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null } },
-        dark: { cardStyle: stored.state.cardStyle ?? 'glass', canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null } },
+        light: { cardStyle: stored.state.cardStyle ?? 'glass' },
+        dark: { cardStyle: stored.state.cardStyle ?? 'glass' },
       },
     };
   } catch { /* ignore */ }
@@ -57,8 +57,8 @@ const fromLegacy = () => {
     canvasBg: { type: 'orb', orbId: 'blueberry', url: null },
     cardStyle: 'glass',
     modePrefs: {
-      light: { cardStyle: 'flat', canvasBg: { type: 'orb', orbId: 'blueberry', url: null } },
-      dark: { cardStyle: 'glass', canvasBg: { type: 'orb', orbId: 'blueberry', url: null } },
+      light: { cardStyle: 'flat' },
+      dark: { cardStyle: 'glass' },
     },
   };
 };
@@ -97,12 +97,11 @@ export const useSettingsStore = create(
           (mode === 'dark' || mode === 'auto') && prevAccent === 'Default'
             ? 'Blueberry'
             : prevAccent;
-        // Restore cardStyle and canvasBg saved for the target mode
+        // Restore only cardStyle saved for the target mode; canvasBg is global
         const resolvedKey = (mode === 'dark' || mode === 'auto') ? 'dark' : 'light';
         const savedPrefs = get().modePrefs?.[resolvedKey] ?? {};
         const cardStyle = savedPrefs.cardStyle ?? 'glass';
-        const canvasBg = savedPrefs.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null };
-        set({ mode, accent, cardStyle, canvasBg });
+        set({ mode, accent, cardStyle });
         // For 'auto', theme will be applied by useAutoTheme hook after mount.
         if (mode !== 'auto') applyTheme(accent, mode, cardStyle);
       },
@@ -121,12 +120,7 @@ export const useSettingsStore = create(
 
       /** Canvas background — { type: 'solid'|'orb'|'curated'|'custom', orbId?, url? } */
       setCanvasBg: (canvasBg) => {
-        const resolvedKey = get()._resolvedModeKey();
-        const modePrefs = {
-          ...get().modePrefs,
-          [resolvedKey]: { ...get().modePrefs?.[resolvedKey], canvasBg },
-        };
-        set({ canvasBg, modePrefs });
+        set({ canvasBg });
       },
 
       /** Widget surface style — 'flat' | 'glass' */

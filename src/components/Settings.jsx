@@ -3,16 +3,6 @@ import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 
-const CoffeeIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 8h1a4 4 0 0 1 0 8h-1" />
-    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-    <line x1="6" y1="2" x2="6" y2="4" />
-    <line x1="10" y1="2" x2="10" y2="4" />
-    <line x1="14" y1="2" x2="14" y2="4" />
-  </svg>
-);
-
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
   const {
     accent, setAccent,
@@ -52,69 +42,92 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         {/* Launch Mode */}
         <div>
           <SectionLabel>Launch Mode</SectionLabel>
-          <div className="flex gap-1.5">
-            {[{ id: 'canvas', label: 'Canvas' }, { id: 'focus', label: 'Focus' }].map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setDefaultView(id)}
-                className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={defaultView === id
-                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {(() => {
+            const modes = [
+              { id: 'canvas', label: 'Canvas', hint: 'Widgets & content on every new tab' },
+              { id: 'focus', label: 'Focus', hint: 'Distraction-free sessions' },
+            ];
+            const activeHint = modes.find(m => m.id === defaultView)?.hint;
+            return (
+              <>
+                <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+                  {modes.map(({ id, label }) => {
+                    const selected = defaultView === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => setDefaultView(id)}
+                        className="flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none cursor-pointer"
+                        style={selected
+                          ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                          : { background: 'transparent', color: 'var(--w-ink-3)' }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeHint && (
+                  <p className="text-[10px] mt-1.5 leading-tight" style={{ color: 'var(--w-ink-5)' }}>{activeHint}</p>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         {/* Appearance */}
         <div>
           <SectionLabel>Appearance</SectionLabel>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
             {[
-              { id: 'light', icon: <SunFill size={11} /> },
-              { id: 'auto', icon: <CircleHalf size={11} /> },
-              { id: 'dark', icon: <MoonFill size={11} /> },
-            ].map(({ id, icon }) => (
-              <button
-                key={id}
-                onClick={() => setMode(id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={mode === id
-                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-                title={id === 'auto' ? 'Auto — follows sunrise & sunset' : id.charAt(0).toUpperCase() + id.slice(1)}
-              >
-                {icon}{id.charAt(0).toUpperCase() + id.slice(1)}
-              </button>
-            ))}
+              { id: 'light', label: 'Light', icon: <SunFill size={11} /> },
+              { id: 'auto', label: 'Auto', icon: <CircleHalf size={11} /> },
+              { id: 'dark', label: 'Dark', icon: <MoonFill size={11} /> },
+            ].map(({ id, label, icon }) => {
+              const selected = mode === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setMode(id)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none cursor-pointer"
+                  style={selected
+                    ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                    : { background: 'transparent', color: 'var(--w-ink-3)' }}
+                  title={id === 'auto' ? 'Auto — follows sunrise & sunset' : label}
+                >
+                  {icon}{label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Accent */}
         <div>
-          <SectionLabel>
-            Accent — <span style={{ color: 'var(--w-accent)', textTransform: 'none', fontWeight: 600, letterSpacing: 0 }}>{accent}</span>
-          </SectionLabel>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-3)' }}>Accent</p>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-accent)' }}>{accent}</span>
+          </div>
+          <div className="grid grid-cols-6 gap-y-2.5" style={{ justifyItems: 'center' }}>
             {ACCENT_COLORS.map(color => {
               const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
+              const selected = accent === color.name;
               return (
                 <button
                   key={color.name}
                   title={locked ? 'Not available in dark mode' : color.name}
                   onClick={() => !locked && setAccent(color.name)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center transition-transform"
+                  className="w-7 h-7 rounded-full flex items-center justify-center transition-all focus:outline-none cursor-pointer"
                   style={{
                     backgroundColor: color.hex,
-                    outline: accent === color.name ? `2.5px solid ${color.hex}` : 'none',
-                    outlineOffset: '3px',
-                    opacity: locked ? 0.4 : 1,
+                    outline: selected ? `2.5px solid ${color.hex}` : 'none',
+                    outlineOffset: selected ? '2.5px' : '0',
+                    transform: selected ? 'scale(1.14)' : 'scale(1)',
+                    opacity: locked ? 0.35 : 1,
                     cursor: locked ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {accent === color.name && <CheckLg size={10} style={{ color: color.fg }} />}
+                  {selected && <CheckLg size={10} style={{ color: color.fg }} />}
                 </button>
               );
             })}
@@ -124,117 +137,156 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
 
       <Divider />
 
+      {/* ── WIDGET STYLE ── */}
+      <div>
+        <SectionLabel>Widget Style</SectionLabel>
+        {/* Segmented control — one pill slides, clear active state */}
+        <div
+          className="flex gap-1 p-1 rounded-xl overflow-hidden"
+          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+        >
+          {CARD_STYLES.map(({ id, label, hint }) => {
+            const selected = cardStyle === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setCardStyle(id)}
+                className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all focus:outline-none cursor-pointer"
+                style={selected
+                  ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  : { background: 'transparent', color: 'var(--w-ink-3)' }}
+              >
+                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                  <span className="text-xs font-semibold leading-tight">{label}</span>
+                  <span className="text-[10px] leading-tight truncate" style={{ color: selected ? 'rgba(255,255,255,0.65)' : 'var(--w-ink-5)' }}>{hint}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ── BACKGROUND ── */}
       <div>
         <SectionLabel>Canvas Background</SectionLabel>
         <button
           onClick={() => onOpenBgPicker?.()}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-opacity hover:opacity-80 cursor-pointer focus:outline-none"
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 cursor-pointer focus:outline-none"
           style={{
-            background: 'var(--card-bg)',
-            backdropFilter: 'var(--card-blur)',
-            WebkitBackdropFilter: 'var(--card-blur)',
-            border: '1px solid var(--card-border)',
+            background: 'var(--w-surface-2)',
+            border: '1px solid var(--w-border)',
             color: 'var(--w-ink-2)',
           }}
         >
           <span>
-            {{ solid: 'Solid Color', orb: 'Color Motion', curated: 'Curated Photos', custom: 'Custom URL' }[canvasBg?.type || 'orb'] ?? 'Color Motion'}
+            {{ solid: 'Solid Color', orb: 'Color Motion', curated: 'Curated Photos', custom: 'Custom URL', default: 'Photo' }[canvasBg?.type] ?? 'Solid Color'}
           </span>
           <span style={{ color: 'var(--w-ink-4)' }}>Change ›</span>
         </button>
       </div>
 
-      {/* ── WIDGET STYLE ── */}
-      <div>
-        <SectionLabel>Widget Style</SectionLabel>
-        <div className="grid grid-cols-2 gap-1.5">
-          {CARD_STYLES.map(({ id, label, hint }) => (
-            <button
-              key={id}
-              onClick={() => setCardStyle(id)}
-              className="flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl text-left transition-all focus:outline-none cursor-pointer"
-              style={cardStyle === id
-                ? { background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--w-accent) 35%, transparent)', color: 'var(--w-accent)' }
-                : { background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', color: 'var(--w-ink-2)' }}
-            >
-              <span className="text-xs font-semibold">{label}</span>
-              <span className="text-[10px] leading-snug" style={{ color: cardStyle === id ? 'color-mix(in srgb, var(--w-accent) 80%, transparent)' : 'var(--w-ink-4)' }}>{hint}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <Divider />
 
       {/* ── LOOK AWAY ── */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <SectionLabel>
-            <span className="flex items-center gap-1.5"><CoffeeIcon />Look Away</span>
-          </SectionLabel>
-          <div className="flex items-center gap-1.5">
-            {/* Preview button — always shown when handler provided */}
-            {onPreviewLookAway && (
-              <button
-                onClick={onPreviewLookAway}
-                className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
-                style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-2)', border: '1px solid var(--card-border)' }}
-              >
-                Preview
-              </button>
-            )}
-            {/* On/Off toggle — always shown */}
-            <button
-              onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
-              className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all"
-              style={lookAwayEnabled
-                ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-            >
-              {lookAwayEnabled ? 'On' : 'Off'}
-            </button>
+      <div className="flex flex-col gap-3">
+        {/* Header row: label + toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <SectionLabel>Look Away</SectionLabel>
+            <p className="text-[10px] leading-tight -mt-1.5" style={{ color: 'var(--w-ink-5)' }}>
+              Remind you to rest your eyes
+            </p>
           </div>
+          <button
+            onClick={() => setLookAwayEnabled(!lookAwayEnabled)}
+            className="relative flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
+            style={{
+              width: 36, height: 20,
+              backgroundColor: lookAwayEnabled ? 'var(--w-accent)' : 'var(--w-border)',
+            }}
+            aria-label={lookAwayEnabled ? 'Disable Look Away' : 'Enable Look Away'}
+          >
+            <span
+              className="absolute top-0.5 rounded-full transition-transform duration-200"
+              style={{
+                width: 16, height: 16,
+                background: '#fff',
+                left: lookAwayEnabled ? 18 : 2,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }}
+            />
+          </button>
         </div>
+
+        {/* Expanded controls — only when enabled */}
         {lookAwayEnabled && (
-          <div className="flex flex-col gap-1.5 mt-2">
-            <span className="text-[11px] text-center font-medium" style={{ color: 'var(--w-ink-3)' }}>Remind every</span>
-            <div className="flex justify-center gap-2">
-              {[20, 30, 60].map((mins) => {
-                const selected = lookAwayInterval === mins;
-                return (
-                  <button
-                    key={mins}
-                    onClick={() => setLookAwayInterval(mins)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-                    style={selected ? {
-                      background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)',
-                      color: 'var(--w-accent)',
-                      border: '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
-                    } : {
-                      backgroundColor: 'var(--card-bg)',
-                      backdropFilter: 'var(--card-blur)',
-                      color: 'var(--w-ink-3)',
-                      border: '1px solid var(--card-border)',
-                    }}
-                  >
-                    {mins === 60 ? '1 hr' : `${mins} min`}
-                  </button>
-                );
-              })}
+          <div
+            className="flex flex-col gap-2.5 rounded-xl p-3"
+            style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+          >
+            {/* Interval */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Remind every</span>
+              <div className="flex gap-1.5">
+                {[20, 30, 60].map((mins) => {
+                  const selected = lookAwayInterval === mins;
+                  return (
+                    <button
+                      key={mins}
+                      onClick={() => setLookAwayInterval(mins)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
+                      style={selected ? {
+                        background: 'var(--w-accent)',
+                        color: 'var(--w-accent-fg)',
+                      } : {
+                        background: 'transparent',
+                        color: 'var(--w-ink-4)',
+                        border: '1px solid var(--w-border)',
+                      }}
+                    >
+                      {mins === 60 ? '1 hr' : `${mins}m`}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            {/* Notification toggle */}
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] font-medium" style={{ color: 'var(--w-ink-3)' }}>Show notification</span>
-              <button
-                onClick={() => setLookAwayNotify(!lookAwayNotify)}
-                className="px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-                style={lookAwayNotify
-                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                  : { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-              >
-                {lookAwayNotify ? 'On' : 'Off'}
-              </button>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'var(--w-border)' }} />
+
+            {/* Notification + Preview */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Notification</span>
+              <div className="flex items-center gap-2">
+                {onPreviewLookAway && (
+                  <button
+                    onClick={onPreviewLookAway}
+                    className="text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer"
+                    style={{ color: 'var(--w-accent)' }}
+                  >
+                    Preview
+                  </button>
+                )}
+                <button
+                  onClick={() => setLookAwayNotify(!lookAwayNotify)}
+                  className="relative flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
+                  style={{
+                    width: 30, height: 16,
+                    backgroundColor: lookAwayNotify ? 'var(--w-accent)' : 'var(--w-border)',
+                  }}
+                  aria-label={lookAwayNotify ? 'Disable notification' : 'Enable notification'}
+                >
+                  <span
+                    className="absolute top-0.5 rounded-full transition-transform duration-200"
+                    style={{
+                      width: 12, height: 12,
+                      background: '#fff',
+                      left: lookAwayNotify ? 16 : 2,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         )}

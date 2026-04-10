@@ -21,7 +21,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '2px',
+        gap: '6px',
         width: '100%',
         boxSizing: 'border-box',
         borderRadius: '12px',
@@ -39,7 +39,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         <span
           style={{
             fontSize: '12px',
-            color: 'var(--w-ink-5)',
+            color: 'var(--w-ink-6)',
             flexShrink: 0,
             userSelect: 'none',
           }}
@@ -53,6 +53,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
           flex: 1,
           minWidth: 0,
           fontSize: '12px',
+          fontWeight: 500,
           background: 'transparent',
           outline: 'none',
           border: 'none',

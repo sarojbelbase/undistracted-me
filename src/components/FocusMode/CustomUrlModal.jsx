@@ -182,7 +182,7 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center rounded-full transition-opacity hover:opacity-70 cursor-pointer focus:outline-none"
+            className="w-6 h-6 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer focus:outline-none"
             style={{ color: 'rgba(255,255,255,0.3)' }}
             aria-label="Close"
           >
