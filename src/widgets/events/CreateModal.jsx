@@ -38,9 +38,10 @@ export const CreateModal = ({ onSave, onClose }) => {
     }
   };
 
-  const datetimeLocalVal = form.startDate && form.startTime
-    ? `${form.startDate}T${form.startTime}`
-    : form.startDate ? `${form.startDate}T` : '';
+  let datetimeLocalVal;
+  if (form.startDate && form.startTime) datetimeLocalVal = `${form.startDate}T${form.startTime}`;
+  else if (form.startDate) datetimeLocalVal = `${form.startDate}T`;
+  else datetimeLocalVal = '';
 
   const handleDateTimeLocal = (val) => {
     const [date, time] = val.split('T');

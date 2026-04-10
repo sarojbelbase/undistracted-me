@@ -26,8 +26,11 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
   } = useSettingsStore();
 
   return (
-    <div
-      className="absolute top-12 right-0 z-50 rounded-2xl shadow-xl p-5 w-72 flex flex-col gap-4 animate-fade-in"
+    <dialog
+      open
+      aria-label="Settings"
+      tabIndex={-1}
+      className="absolute top-12 right-0 z-50 rounded-2xl shadow-xl p-5 w-72 flex flex-col gap-4 animate-fade-in m-0 max-w-none border-0"
       style={{
         background: 'var(--card-bg)',
         backdropFilter: 'var(--card-blur)',
@@ -35,7 +38,6 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         border: '1px solid var(--card-border)',
         boxShadow: 'var(--card-shadow)',
       }}
-      onMouseDown={e => e.stopPropagation()}
     >
       {/* ── VIEW ── */}
       <div className="flex flex-col gap-3">
@@ -292,6 +294,6 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         )}
       </div>
 
-    </div>
+    </dialog>
   );
 };

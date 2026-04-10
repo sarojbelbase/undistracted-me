@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useReducer } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusLg, XLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
@@ -70,10 +70,13 @@ const AddModal = ({ onSave, onClose }) => {
   };
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
+    <dialog
+      open
+      aria-modal="true"
+      aria-label="New Countdown"
+      tabIndex={-1}
+      className="fixed inset-0 z-200 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(3px)' }}
-      onMouseDown={e => e.target === e.currentTarget && onClose()}
     >
       <div
         className="rounded-2xl shadow-2xl p-5 w-80 animate-fade-in"
@@ -129,7 +132,7 @@ const AddModal = ({ onSave, onClose }) => {
           >Save</button>
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body
   );
 };
@@ -209,7 +212,12 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
               const isPast = next < new Date() && cd.repeat === 'none';
 
               // Format sub-meta like EventRow
-              const cdLabel = isPast ? 'Past' : days > 0 ? `${days}d` : hours > 0 ? `${hours}h` : `${mins}m`;
+              const cdLabel = (() => {
+                if (isPast) return 'Past';
+                if (days > 0) return `${days}d`;
+                if (hours > 0) return `${hours}h`;
+                return `${mins}m`;
+              })();
               const cdDate = formatTargetDate(next);
 
               return (
@@ -223,7 +231,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                 >
                   {/* Accent bar (matches EventRow) */}
                   <div
-                    className="w-[6px] rounded-[2px] shrink-0 self-stretch"
+                    className="w-1.5 rounded-xs shrink-0 self-stretch"
                     style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
                   />
 
@@ -280,11 +288,139 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
   );
 };
 
+// ─── Pure helpers (module-level to keep Widget complexity low) ───────────────
+
+// ── Pure countdown value calculation ─────────────────────────────────────────
+
+function monthsTier(days) {
+  const months = Math.floor(days / 30);
+  const rounded = days % 30 >= 15 ? months + 1 : months;
+  return { main: String(rounded), unit: rounded === 1 ? 'mo' : 'mos' };
+}
+
+function daysTier(days, hours) {
+  const rounded = hours >= 12 ? days + 1 : days;
+  if (rounded >= 30) return { main: '1', unit: 'mo' };
+  return { main: String(rounded), unit: rounded === 1 ? 'day' : 'days' };
+}
+
+function hoursTier(hours, mins) {
+  const rounded = mins >= 30 ? hours + 1 : hours;
+  if (rounded >= 24) return { main: '1', unit: 'day' };
+  return { main: String(rounded), unit: rounded === 1 ? 'hr' : 'hrs' };
+}
+
+function minsTier(mins, secs) {
+  const rounded = secs >= 30 ? mins + 1 : mins;
+  if (rounded >= 60) return { main: '1', unit: 'hr' };
+  return { main: String(rounded), unit: 'min' };
+}
+
+// Every unit rounds to nearest: e.g. 1d 14h → 2 days, 2h 35m → 3 hrs, 45m 40s → 46 min
+function countdownValue(aDays, aHours, aMins, aTotalSecs) {
+  const aSecs = aTotalSecs % 60;
+  if (aDays >= 30) return monthsTier(aDays);
+  if (aDays > 0) return daysTier(aDays, aHours);
+  if (aHours > 0) return hoursTier(aHours, aMins);
+  if (aMins > 0 || aSecs >= 30) return minsTier(aMins, aSecs);
+  return { main: null, unit: null };
+}
+
+function getTitleFontSize(titleLen) {
+  if (titleLen <= 12) return 'clamp(1.05rem, 2.4vw, 1.4rem)';
+  if (titleLen <= 22) return 'clamp(0.9rem, 2vw, 1.15rem)';
+  if (titleLen <= 36) return 'clamp(0.8rem, 1.75vw, 1rem)';
+  return 'clamp(0.7rem, 1.5vw, 0.88rem)';
+}
+
+function resolveActiveTarget(target, totalSeconds, upcomingEvents, today, custom) {
+  if (!target || totalSeconds >= 60) return target;
+  const now = new Date();
+  const nextEv = upcomingEvents.find(e =>
+    e.id !== target.id &&
+    new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now
+  );
+  if (nextEv) return {
+    title: nextEv.title,
+    nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`),
+    startTime: nextEv.startTime,
+    endTime: nextEv.endTime,
+    isEvent: true,
+    isGcal: nextEv._source === 'gcal',
+    id: nextEv.id,
+  };
+  const sorted = custom
+    .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
+    .filter(cd => cd._next > now && cd.id !== target.id)
+    .sort((a, b) => a._next - b._next);
+  if (sorted[0]) return {
+    title: sorted[0].title,
+    nextDate: sorted[0]._next,
+    startTime: sorted[0].targetTime,
+    isEvent: false,
+    isGcal: false,
+    id: sorted[0].id,
+    repeat: sorted[0].repeat,
+  };
+  return null;
+}
+
+function calcDurStr(startTime, endTime) {
+  if (!startTime || !endTime) return null;
+  const [sh, sm] = startTime.split(':').map(Number);
+  const [eh, em] = endTime.split(':').map(Number);
+  const diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff <= 0) return null;
+  if (diff < 60) return `${diff}min`;
+  const h = Math.floor(diff / 60), m = diff % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+// Returns { target, shouldClearPin } — shouldClearPin=true if the pinned event is past grace window
+function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
+  if (pinned?.type === 'event') {
+    const ev = allEvents.find(e => e.id === pinned.eventId);
+    if (ev) {
+      const nextDate = new Date(`${ev.startDate}T${ev.startTime || '00:00'}`);
+      if (nextDate >= new Date(Date.now() - 2 * 60 * 1000)) {
+        return { target: { title: ev.title, nextDate, startTime: ev.startTime, endTime: ev.endTime, isEvent: true, isGcal: ev._source === 'gcal', id: ev.id }, shouldClearPin: false };
+      }
+      return { target: null, shouldClearPin: true };
+    }
+  } else if (pinned?.type === 'custom') {
+    const cd = custom.find(c => c.id === pinned.id);
+    if (cd) {
+      return { target: { title: cd.title, nextDate: getNextOccurrence(cd), startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat }, shouldClearPin: false };
+    }
+  }
+
+  // Fallback: auto-pick the next future event
+  const now = new Date();
+  const nextEv = upcomingEvents.find(e => new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now);
+  if (nextEv) {
+    return { target: { title: nextEv.title, nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`), startTime: nextEv.startTime, endTime: nextEv.endTime, isEvent: true, isGcal: nextEv._source === 'gcal', id: nextEv.id }, shouldClearPin: false };
+  }
+
+  // Fallback: auto-pick nearest future custom countdown
+  if (custom.length > 0) {
+    const sorted = custom
+      .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
+      .filter(cd => cd._next > now)
+      .sort((a, b) => a._next - b._next);
+    if (sorted[0]) {
+      const cd = sorted[0];
+      return { target: { title: cd.title, nextDate: cd._next, startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat }, shouldClearPin: false };
+    }
+  }
+
+  return { target: null, shouldClearPin: false };
+}
+
 // ─── Main Widget ──────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
-  const [pinned, setPinnedState] = useState(() => loadPinned(id));
-  const [, setTick] = useState(0);
+  const [pinned, setPinned] = useState(() => loadPinned(id));
+  const [, forceUpdate] = useReducer(n => n + 1, 0);
 
   const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
@@ -304,7 +440,7 @@ export const Widget = ({ id, onRemove }) => {
     });
 
   const setPin = useCallback((p) => {
-    setPinnedState(p);
+    setPinned(p);
     savePinned(id, p);
   }, [id]);
 
@@ -324,7 +460,7 @@ export const Widget = ({ id, onRemove }) => {
 
   const removeCustom = useCallback((id) => {
     setCustom(prev => { const next = prev.filter(c => c.id !== id); saveCustom(next); return next; });
-    setPinnedState(p => {
+    setPinned(p => {
       if (p?.type === 'custom' && p?.id === id) { savePinned(null); return null; }
       return p;
     });
@@ -334,69 +470,17 @@ export const Widget = ({ id, onRemove }) => {
 
   // Re-render every second for live countdown
   useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 1_000);
+    const id = setInterval(() => forceUpdate(), 1_000);
     return () => clearInterval(id);
   }, []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   // target shape: { title, nextDate, startTime?, isEvent, isGcal, id, repeat? }
-  let target = null;
-
-  if (pinned?.type === 'event') {
-    // Search both local AND gcal events for the pinned id
-    const ev = allEvents.find(e => e.id === pinned.eventId);
-    if (ev) {
-      const nextDate = new Date(`${ev.startDate}T${ev.startTime || '00:00'}`);
-      // Only keep pinned event if it hasn't started yet (or within 2 min grace)
-      if (nextDate >= new Date(Date.now() - 2 * 60 * 1000)) {
-        target = { title: ev.title, nextDate, startTime: ev.startTime, endTime: ev.endTime, isEvent: true, isGcal: ev._source === 'gcal', id: ev.id };
-      } else {
-        // Past its grace window — silently clear pin
-        setTimeout(() => setPin(null), 0);
-      }
-    }
-  } else if (pinned?.type === 'custom') {
-    const cd = custom.find(c => c.id === pinned.id);
-    if (cd) {
-      target = { title: cd.title, nextDate: getNextOccurrence(cd), startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat };
-    }
-  }
-
-  // Fallback: auto-pick the next future event
-  if (!target) {
-    const now = new Date();
-    const nextEv = upcomingEvents.find(e => {
-      const dt = new Date(`${e.startDate || today}T${e.startTime || '00:00'}`);
-      return dt > now;
-    });
-    if (nextEv) {
-      target = {
-        title: nextEv.title,
-        nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`),
-        startTime: nextEv.startTime,
-        endTime: nextEv.endTime,
-        isEvent: true,
-        isGcal: nextEv._source === 'gcal',
-        id: nextEv.id,
-      };
-    }
-  }
-
-  // Fallback: auto-pick nearest future custom countdown
-  if (!target && custom.length > 0) {
-    const now = new Date();
-    const sorted = custom
-      .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
-      .filter(cd => cd._next > now)
-      .sort((a, b) => a._next - b._next);
-    if (sorted.length > 0) {
-      const cd = sorted[0];
-      target = { title: cd.title, nextDate: cd._next, startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat };
-    }
-  }
+  const { target, shouldClearPin } = resolveTarget(pinned, allEvents, upcomingEvents, today, custom);
+  if (shouldClearPin) setTimeout(() => setPin(null), 0);
 
   // ── Notifications: fire once per event per day ──────────────────────────────
-  const { days = 0, hours = 0, minutes: mins = 0, totalSeconds = 0 } = target ? formatCountdown(target.nextDate) : {};
+  const { totalSeconds = 0 } = target ? formatCountdown(target.nextDate) : {};
   const notifKey = target ? `${target.id ?? target.title}` : null;
 
   useEffect(() => {
@@ -434,73 +518,13 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   // ── When current event hits zero, advance display to the next upcoming ───────
-  const activeTarget = (() => {
-    if (!target || totalSeconds >= 60) return target;
-    const now = new Date();
-    const nextEv = upcomingEvents.find(e =>
-      e.id !== target.id &&
-      new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now
-    );
-    if (nextEv) return {
-      title: nextEv.title,
-      nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`),
-      startTime: nextEv.startTime,
-      endTime: nextEv.endTime,
-      isEvent: true,
-      isGcal: nextEv._source === 'gcal',
-      id: nextEv.id,
-    };
-    const sorted = custom
-      .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
-      .filter(cd => cd._next > now && cd.id !== target.id)
-      .sort((a, b) => a._next - b._next);
-    if (sorted[0]) return {
-      title: sorted[0].title,
-      nextDate: sorted[0]._next,
-      startTime: sorted[0].targetTime,
-      isEvent: false,
-      isGcal: false,
-      id: sorted[0].id,
-      repeat: sorted[0].repeat,
-    };
-    return null;
-  })();
+  const activeTarget = resolveActiveTarget(target, totalSeconds, upcomingEvents, today, custom);
 
   const { days: aDays = 0, hours: aHours = 0, minutes: aMins = 0, totalSeconds: aTotalSecs = 0 } =
     activeTarget ? formatCountdown(activeTarget.nextDate) : {};
-  const aSecs = aTotalSecs % 60;
 
   // ── Human-readable countdown value ─────────────────────────────────────────
-  // Every unit rounds to nearest: e.g. 1d 14h → 2 days, 2h 35m → 3 hrs, 45m 40s → 46 min
-  const countdownValue = () => {
-    // Months (≥ 30 days): round based on remaining days
-    if (aDays >= 30) {
-      const months = Math.floor(aDays / 30);
-      const rounded = aDays % 30 >= 15 ? months + 1 : months;
-      return { main: String(rounded), unit: rounded === 1 ? 'mo' : 'mos' };
-    }
-    // Days: round based on remaining hours
-    if (aDays > 0) {
-      const rounded = aHours >= 12 ? aDays + 1 : aDays;
-      if (rounded >= 30) return { main: '1', unit: 'mo' };
-      return { main: String(rounded), unit: rounded === 1 ? 'day' : 'days' };
-    }
-    // Hours: round based on remaining minutes
-    if (aHours > 0) {
-      const rounded = aMins >= 30 ? aHours + 1 : aHours;
-      if (rounded >= 24) return { main: '1', unit: 'day' };
-      return { main: String(rounded), unit: rounded === 1 ? 'hr' : 'hrs' };
-    }
-    // Minutes: round based on remaining seconds
-    if (aMins > 0 || aSecs >= 30) {
-      const rounded = aSecs >= 30 ? aMins + 1 : aMins;
-      if (rounded >= 60) return { main: '1', unit: 'hr' };
-      return { main: String(rounded), unit: 'min' };
-    }
-    return { main: null, unit: null };
-  };
-
-  const cv = countdownValue();
+  const cv = countdownValue(aDays, aHours, aMins, aTotalSecs);
 
   const fmtTime = (t) => {
     if (!t) return null;
@@ -509,28 +533,14 @@ export const Widget = ({ id, onRemove }) => {
     return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
   };
 
-  const durStr = (() => {
-    if (!activeTarget?.startTime || !activeTarget?.endTime) return null;
-    const [sh, sm] = activeTarget.startTime.split(':').map(Number);
-    const [eh, em] = activeTarget.endTime.split(':').map(Number);
-    const diff = (eh * 60 + em) - (sh * 60 + sm);
-    if (diff <= 0) return null;
-    if (diff < 60) return `${diff}min`;
-    const h = Math.floor(diff / 60), m = diff % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  })();
+  const durStr = calcDurStr(activeTarget?.startTime, activeTarget?.endTime);
 
   // Start time only — "3:15 PM"
   const startTimeStr = activeTarget?.startTime ? fmtTime(activeTarget.startTime) : null;
 
   // Dynamic title font size
   const titleLen = activeTarget?.title?.length ?? 0;
-  const titleFontSize = (() => {
-    if (titleLen <= 12) return 'clamp(1.05rem, 2.4vw, 1.4rem)';
-    if (titleLen <= 22) return 'clamp(0.9rem, 2vw, 1.15rem)';
-    if (titleLen <= 36) return 'clamp(0.8rem, 1.75vw, 1rem)';
-    return 'clamp(0.7rem, 1.5vw, 0.88rem)';
-  })();
+  const titleFontSize = getTitleFontSize(titleLen);
 
   return (
     <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle="Settings" modalWidth="w-[26rem]" onRemove={onRemove}>

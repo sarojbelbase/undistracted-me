@@ -25,15 +25,17 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
   const hasAny = buckets.some(b => grouped[b].length > 0);
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.55)' }}
-      onClick={onClose}
+    <dialog
+      open
+      aria-modal="true"
+      aria-label="All Events"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 m-0 max-w-none max-h-none border-0 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.55)', padding: '16px' }}
     >
       <div
-        className="rounded-2xl shadow-2xl w-full max-w-[480px] max-h-[80vh] flex flex-col animate-fade-in"
+        className="rounded-2xl shadow-2xl w-full max-w-120 max-h-[80vh] flex flex-col animate-fade-in"
         style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div
@@ -103,7 +105,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
       </div>
 
       {showCreate && <CreateModal onSave={onAdd} onClose={() => setShowCreate(false)} />}
-    </div>,
+    </dialog>,
     document.body
   );
 };

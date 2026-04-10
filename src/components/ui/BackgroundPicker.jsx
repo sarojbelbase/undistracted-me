@@ -391,11 +391,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
               placeholder="https://buymemomo.com/sarojbelbase"
               autoComplete="off" spellCheck={false}
               icon={<Link45deg size={13} />}
-              suffix={(() => {
-                if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
-                if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
-                return null;
-              })()}
+              suffix={<UrlVerifySuffix status={status} />}
             />
           </div>
           <button onClick={verify} disabled={!syntaxOk || status === 'checking'}
@@ -450,6 +446,13 @@ const FOCUS_TABS = [
 
 // ─── Main BackgroundPicker modal ──────────────────────────────────────────────
 
+// ─── Suffix icon for URL verify status ──────────────────────────────────────
+const UrlVerifySuffix = ({ status }) => {
+  if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
+  if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
+  return null;
+};
+
 export const BackgroundPicker = ({
   scope = 'canvas',
   initialSource = 'orb',
@@ -482,11 +485,12 @@ export const BackgroundPicker = ({
   }, [onApply]);
 
   return createPortal(
-    <div
-      role="dialog" aria-modal="true" aria-label="Background settings"
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 80, background: 'rgba(0,0,0,0.60)', backdropFilter: 'blur(6px)' }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    <dialog
+      open
+      aria-modal="true"
+      aria-label="Background settings"
+      tabIndex={-1}
+      className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
     >
       <style>{`
         @keyframes bpSpin          { to { transform: rotate(360deg); } }
@@ -507,7 +511,6 @@ export const BackgroundPicker = ({
           maxHeight: 'calc(100vh - 64px)',
           animation: 'bpIn 0.22s cubic-bezier(.32,.72,0,1) both',
         }}
-        onMouseDown={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0"
@@ -573,7 +576,7 @@ export const BackgroundPicker = ({
           )}
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body,
   );
 };
