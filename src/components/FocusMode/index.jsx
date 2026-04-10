@@ -26,90 +26,12 @@ import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
 import { BackgroundModal, getCustomBgUrl, getOrbRgb } from './BackgroundModal';
-import { getBgSource, setBgSource } from '../../utilities/unsplash';
+import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
 
-export const FocusMode = ({ onExit }) => {
-  const { dateFormat, clockFormat } = useSettingsStore();
-  const fmt = clockFormat || '24h';
-  const [parts, setParts] = useState(() => getTimeParts(fmt));
-  const [dateParts, setDateParts] = useState(() =>
-    dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts()
-  );
-  const [pomodoro, setPomodoro] = useState(null);
+function useFocusSpotify() {
   const [spotify, setSpotify] = useState(null);
   const [spotifyProgress, setSpotifyProgress] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [uiVisible, setUiVisible] = useState(true);
-  const [showBgModal, setShowBgModal] = useState(false);
-  const [bgSource, setBgSourceState] = useState(() => getBgSource());
-  const [customBgUrl, setCustomBgUrlState] = useState(() => getCustomBgUrl());
-  const [orbRgb, setOrbRgb] = useState(getOrbRgb);
-  const hideTimerRef = useRef(null);
 
-  const weather = useFocusWeather();
-  const stocks = useFocusStocks();
-  const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
-  const centerOnDark = useCenterOnDark(slotA, slotB, activeSlot);
-  // For non-curated sources (default image, custom URL) the background is
-  // always treated as dark so the clock never renders with white shadows.
-  const effectiveCenterOnDark = bgSource === 'curated' ? centerOnDark : true;
-  const extraTimezones = useFocusTimezones();
-
-  useWakeLock(isFullscreen);
-
-  useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-
-  const resetHideTimer = useCallback(() => {
-    setUiVisible(true);
-    clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => setUiVisible(false), 3000);
-  }, []);
-
-  useEffect(() => {
-    if (!isFullscreen) {
-      setUiVisible(true);
-      clearTimeout(hideTimerRef.current);
-      return;
-    }
-    window.addEventListener('mousemove', resetHideTimer);
-    window.addEventListener('mousedown', resetHideTimer);
-    resetHideTimer();
-    return () => {
-      window.removeEventListener('mousemove', resetHideTimer);
-      window.removeEventListener('mousedown', resetHideTimer);
-      clearTimeout(hideTimerRef.current);
-    };
-  }, [isFullscreen, resetHideTimer]);
-
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => { });
-    } else {
-      document.exitFullscreen().catch(() => { });
-    }
-  }, []);
-
-  const [localEvents] = useEvents();
-  const { gcalEvents } = useGoogleCalendar();
-  const eventInfo = getNextEventToShow([...localEvents, ...gcalEvents]);
-
-  const update = useCallback(() => {
-    setParts(getTimeParts(fmt));
-    setDateParts(dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts());
-    setPomodoro(readPomodoro());
-  }, [dateFormat, fmt]);
-
-  useEffect(() => {
-    update();
-    const id = setInterval(update, 1_000);
-    return () => clearInterval(id);
-  }, [update]);
-
-  // Spotify — poll every 5s when connected
   useEffect(() => {
     if (!isSpotifyConnected()) return;
     let cancelled = false;
@@ -137,19 +59,13 @@ export const FocusMode = ({ onExit }) => {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  // Smooth local progress tick between Spotify polls
   useEffect(() => {
     if (!spotify?.isPlaying) return;
     const id = setInterval(() => setSpotifyProgress(p => Math.min(p + 1000, spotify.durationMs || p)), 1000);
     return () => clearInterval(id);
   }, [spotify?.isPlaying, spotify?.durationMs]);
 
-  const handleSpotifyToggle = useCallback(async () => {
-    if (!spotify) return;
-    try { await setPlayPause(!spotify.isPlaying); setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s); } catch { }
-  }, [spotify]);
-
-  const refreshSpotifyTrack = useCallback(async () => {
+  const refresh = useCallback(async () => {
     try {
       const data = await getCurrentPlayback();
       if (data?.item) {
@@ -167,13 +83,157 @@ export const FocusMode = ({ onExit }) => {
     } catch { }
   }, []);
 
-  const handleSpotifyNext = useCallback(async () => {
-    try { await skipNext(); setTimeout(refreshSpotifyTrack, 500); } catch { }
-  }, [refreshSpotifyTrack]);
+  const handleToggle = useCallback(async () => {
+    if (!spotify) return;
+    try { await setPlayPause(!spotify.isPlaying); setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s); } catch { }
+  }, [spotify]);
 
-  const handleSpotifyPrev = useCallback(async () => {
-    try { await skipPrev(); setTimeout(refreshSpotifyTrack, 500); } catch { }
-  }, [refreshSpotifyTrack]);
+  const handleNext = useCallback(async () => {
+    try { await skipNext(); setTimeout(refresh, 500); } catch { }
+  }, [refresh]);
+
+  const handlePrev = useCallback(async () => {
+    try { await skipPrev(); setTimeout(refresh, 500); } catch { }
+  }, [refresh]);
+
+  return { spotify, spotifyProgress, handleToggle, handleNext, handlePrev };
+}
+
+function OrbBackground({ orbRgb }) {
+  const rgb = orbRgb || 'var(--w-accent-rgb)';
+  return (
+    <>
+      <div
+        aria-hidden
+        style={{ position: 'absolute', inset: 0, zIndex: 0, animation: 'fmOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}
+      >
+        <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.38) 0%, rgba(${rgb},0.08) 50%, transparent 72%)`, filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.22) 0%, transparent 65%)`, filter: 'blur(64px)' }} />
+        <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.16) 0%, transparent 62%)`, filter: 'blur(80px)', animation: 'fmOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
+      </div>
+      <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${rgb},0.04) 90deg, transparent 180deg, rgba(${rgb},0.03) 270deg, transparent 360deg)`, animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
+    </>
+  );
+}
+
+function FocusBgLayer({ bgSource, slotA, slotB, activeSlot, customBgUrl, orbRgb }) {
+  const bgStyle = { position: 'absolute', inset: 0, backgroundSize: 'cover', backgroundPosition: 'center' };
+
+  let fgBgImage;
+  if (activeSlot === 'a') {
+    fgBgImage = slotA ? `url(${slotA})` : undefined;
+  } else {
+    fgBgImage = slotB ? `url(${slotB})` : undefined;
+  }
+
+  let activeBg = null;
+  if (bgSource === 'custom') activeBg = customBgUrl || bgImage;
+  else if (bgSource === 'default') activeBg = bgImage;
+
+  return (
+    <>
+      {bgSource === 'curated' && (
+        <>
+          <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+          <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
+        </>
+      )}
+      {bgSource === 'orb' && <OrbBackground orbRgb={orbRgb} />}
+      {bgSource !== 'curated' && bgSource !== 'orb' && activeBg && (
+        <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />
+      )}
+      {bgSource === 'curated' && (slotA || slotB) && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
+          backgroundImage: fgBgImage,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          WebkitMaskImage: FG_MASK, maskImage: FG_MASK,
+          opacity: 0.6,
+        }} />
+      )}
+    </>
+  );
+}
+
+export const FocusMode = ({ onExit }) => {
+  const { dateFormat, clockFormat } = useSettingsStore();
+  const fmt = clockFormat || '24h';
+  const [parts, setParts] = useState(() => getTimeParts(fmt));
+  const [dateParts, setDateParts] = useState(() =>
+    dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts()
+  );
+  const [pomodoro, setPomodoro] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false); const [uiVisible, setUiVisible] = useState(true);
+  const [showBgModal, setShowBgModal] = useState(false);
+  const [bgSource, setBgSource] = useState(() => getBgSource());
+  const [customBgUrl, setCustomBgUrl] = useState(() => getCustomBgUrl());
+  const [orbRgb, setOrbRgb] = useState(getOrbRgb);
+  const hideTimerRef = useRef(null);
+
+  const weather = useFocusWeather();
+  const stocks = useFocusStocks();
+  const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
+  const centerOnDark = useCenterOnDark(slotA, slotB, activeSlot);
+  // For non-curated sources (default image, custom URL) the background is
+  // always treated as dark so the clock never renders with white shadows.
+  const effectiveCenterOnDark = bgSource === 'curated' ? centerOnDark : true;
+  const extraTimezones = useFocusTimezones();
+
+  useWakeLock(isFullscreen);
+
+  const { spotify, spotifyProgress, handleToggle: handleSpotifyToggle, handleNext: handleSpotifyNext, handlePrev: handleSpotifyPrev } = useFocusSpotify();
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const resetHideTimer = useCallback(() => {
+    setUiVisible(true);
+    clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setUiVisible(false), 3000);
+  }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setUiVisible(true);
+      clearTimeout(hideTimerRef.current);
+      return;
+    }
+    globalThis.addEventListener('mousemove', resetHideTimer);
+    globalThis.addEventListener('mousedown', resetHideTimer);
+    resetHideTimer();
+    return () => {
+      globalThis.removeEventListener('mousemove', resetHideTimer);
+      globalThis.removeEventListener('mousedown', resetHideTimer);
+      clearTimeout(hideTimerRef.current);
+    };
+  }, [isFullscreen, resetHideTimer]);
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => { });
+    } else {
+      document.documentElement.requestFullscreen().catch(() => { });
+    }
+  }, []);
+
+  const [localEvents] = useEvents();
+  const { gcalEvents } = useGoogleCalendar();
+  const eventInfo = getNextEventToShow([...localEvents, ...gcalEvents]);
+
+  const update = useCallback(() => {
+    setParts(getTimeParts(fmt));
+    setDateParts(dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts());
+    setPomodoro(readPomodoro());
+  }, [dateFormat, fmt]);
+
+  useEffect(() => {
+    update();
+    const id = setInterval(update, 1_000);
+    return () => clearInterval(id);
+  }, [update]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') onExit(); };
@@ -183,23 +243,16 @@ export const FocusMode = ({ onExit }) => {
 
   // Background source change — called by BackgroundModal
   const handleBgChange = useCallback((source, customUrl) => {
+    persistBgSource(source);
     setBgSource(source);
-    setBgSourceState(source);
     if (source === 'orb') setOrbRgb(getOrbRgb());
-    if (customUrl !== undefined) setCustomBgUrlState(customUrl);
-    else if (source !== 'custom') setCustomBgUrlState(null);
+    if (customUrl !== undefined) setCustomBgUrl(customUrl);
+    else if (source !== 'custom') setCustomBgUrl(null);
   }, []);
 
   const leftHasContent = pomodoro || eventInfo || stocks.length > 0;
   const spotifyTrack = spotify ? { ...spotify, progressMs: spotifyProgress } : null;
   const photoColor = photo?.color || '#18191b';
-  const bgStyle = { position: 'absolute', inset: 0, backgroundSize: 'cover', backgroundPosition: 'center' };
-
-  // Resolve the active background from the persisted source preference
-  const activeBg =
-    bgSource === 'custom' ? (customBgUrl || bgImage) :
-      bgSource === 'default' ? bgImage :
-        null; // 'curated' | 'orb' → rendered separately
 
   return (
     <div
@@ -214,32 +267,15 @@ export const FocusMode = ({ onExit }) => {
           50%      { opacity: 0.78; transform: scale(1.18); }
         }
       `}</style>
-      {/* ── Background — source drives what’s shown ── */}
-      {bgSource === 'curated' ? (
-        <>
-          <div style={{ ...bgStyle, zIndex: 0, backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`, opacity: activeSlot === 'a' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
-          <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
-        </>
-      ) : bgSource === 'orb' ? (
-        /* ── Orb color motion background ── */
-        <>
-          <div
-            aria-hidden
-            style={{ position: 'absolute', inset: 0, zIndex: 0, animation: 'fmOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}
-          >
-            {/* Primary orb — centre bloom */}
-            <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.38) 0%, rgba(${orbRgb},0.08) 50%, transparent 72%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.38) 0%, rgba(var(--w-accent-rgb),0.08) 50%, transparent 72%)', filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
-            {/* Secondary orb — top-right */}
-            <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.22) 0%, transparent 65%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.22) 0%, transparent 65%)', filter: 'blur(64px)' }} />
-            {/* Tertiary orb — bottom-left, counter-rotation */}
-            <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: orbRgb ? `radial-gradient(circle at 50% 50%, rgba(${orbRgb},0.16) 0%, transparent 62%)` : 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.16) 0%, transparent 62%)', filter: 'blur(80px)', animation: 'fmOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
-          </div>
-          {/* Conic shimmer */}
-          <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: orbRgb ? `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${orbRgb},0.04) 90deg, transparent 180deg, rgba(${orbRgb},0.03) 270deg, transparent 360deg)` : 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(var(--w-accent-rgb),0.04) 90deg, transparent 180deg, rgba(var(--w-accent-rgb),0.03) 270deg, transparent 360deg)', animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
-        </>
-      ) : (
-        <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />
-      )}
+      {/* ── Background layers (curated/orb/static) + FG depth overlay ── */}
+      <FocusBgLayer
+        bgSource={bgSource}
+        slotA={slotA}
+        slotB={slotB}
+        activeSlot={activeSlot}
+        customBgUrl={customBgUrl}
+        orbRgb={orbRgb}
+      />
 
       {/* ── Cinematic vignette (z 2) ── */}
       <div style={{
@@ -249,19 +285,6 @@ export const FocusMode = ({ onExit }) => {
 
       {/* ── Clock (z 18) ── */}
       <ClockDisplay parts={parts} centerOnDark={effectiveCenterOnDark} />
-
-      {/* ── Foreground depth overlay — gradient mask (z 15) — curated only ── */}
-      {bgSource === 'curated' && (slotA || slotB) && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none',
-          backgroundImage: activeSlot === 'a'
-            ? (slotA ? `url(${slotA})` : undefined)
-            : (slotB ? `url(${slotB})` : undefined),
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          WebkitMaskImage: FG_MASK, maskImage: FG_MASK,
-          opacity: 0.6,
-        }} />
-      )}
 
       {/* ── Greeting (z 20) ── */}
       <GreetingDisplay parts={parts} centerOnDark={effectiveCenterOnDark} />

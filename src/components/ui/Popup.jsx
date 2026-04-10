@@ -16,7 +16,7 @@ const MARGIN = 10; // min gap from every viewport edge
  *   className   — extra classes on the card (e.g. "p-3 gap-2.5 max-w-[260px]")
  *   children    — popup content
  */
-export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 gap-2.5 max-w-[260px]' }) => {
+export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 gap-2.5 max-w-65' }) => {
   const ref = useRef(null);
   const [style, setStyle] = useState({
     position: 'fixed', opacity: 0, pointerEvents: 'none', zIndex: 9999,

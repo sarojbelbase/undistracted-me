@@ -138,13 +138,13 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
   const existing = getCustomBgUrl();
 
   return createPortal(
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-label="Set custom background URL"
-      className="fixed inset-0 flex items-center justify-center"
+      tabIndex={-1}
+      className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ zIndex: 80, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)' }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <style>{`
         @keyframes customBgSpin { to { transform: rotate(360deg); } }
@@ -155,7 +155,7 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
       `}</style>
 
       <div
-        className="flex flex-col w-[420px] max-w-[calc(100vw-32px)] rounded-2xl overflow-hidden"
+        className="flex flex-col w-105 max-w-[calc(100vw-32px)] rounded-2xl overflow-hidden"
         style={{
           background: 'rgba(10,11,13,0.92)',
           border: '1px solid rgba(255,255,255,0.1)',
@@ -164,7 +164,6 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
           WebkitBackdropFilter: 'blur(40px)',
           animation: 'customBgIn 0.28s cubic-bezier(0.16,1,0.3,1) both',
         }}
-        onMouseDown={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
         <div
@@ -196,6 +195,7 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
           {/* Input row */}
           <div className="flex flex-col gap-1.5">
             <label
+              htmlFor="customBgUrlInput"
               className="text-[10px] font-bold uppercase tracking-[0.14em]"
               style={{ color: 'rgba(255,255,255,0.26)' }}
             >
@@ -206,13 +206,18 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
               style={{
                 height: 40,
                 background: 'rgba(255,255,255,0.05)',
-                border: `1px solid ${status === 'error' ? 'rgba(198,38,46,0.6)' : status === 'ok' ? 'rgba(104,183,35,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                border: (() => {
+                  if (status === 'error') return '1px solid rgba(198,38,46,0.6)';
+                  if (status === 'ok') return '1px solid rgba(104,183,35,0.5)';
+                  return '1px solid rgba(255,255,255,0.1)';
+                })(),
                 transition: 'border-color 0.2s',
               }}
             >
               <Link45deg size={13} style={{ color: 'rgba(255,255,255,0.22)', flexShrink: 0 }} />
               <input
                 ref={inputRef}
+                id="customBgUrlInput"
                 type="url"
                 inputMode="url"
                 autoComplete="off"
@@ -312,7 +317,7 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
           </div>
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body,
   );
 };

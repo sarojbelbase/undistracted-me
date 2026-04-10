@@ -64,7 +64,7 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
   // meaning setWidth() is called with an unchanged value and React skips all
   // post-mount re-renders. Without this, 2-3 forced re-renders caused the blink.
   const { width, containerRef } = useContainerWidth({
-    initialWidth: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    initialWidth: globalThis.innerWidth ?? 1280,
   });
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
@@ -151,11 +151,11 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
                 aria-label="Drag to move"
               >
                 {[0, 1, 2, 3].map(i => (
-                  <span key={i} className="block w-[3px] h-[3px] rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
+                  <span key={i} className="block w-0.75 h-0.75 rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
                 ))}
               </div>
-              {/* Stop mousedown from bubbling to the rgl drag listener — only the handle above should initiate drag */}
-              <div className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
+              {/* Intercept mousedown so widget content receives clicks without triggering rgl drag */}
+              <div className="h-full w-full" onMouseDown={e => e.stopPropagation()} aria-hidden="true">
                 {widget}
               </div>
             </div>

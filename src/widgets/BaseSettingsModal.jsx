@@ -15,13 +15,13 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
   }, [onClose]);
 
   return createPortal(
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-label={title}
-      className="fixed inset-0 z-[100] flex items-center justify-center"
+      tabIndex={-1}
+      className="fixed inset-0 z-100 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className={`flex flex-col rounded-2xl shadow-2xl ${width} overflow-hidden animate-fade-in`}
@@ -57,7 +57,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
           {children}
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body
   );
 };

@@ -51,7 +51,7 @@ const CATEGORY_ORDER = ['time', 'planning', 'info', 'tools'];
 const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
   const isActive = count > 0;
   return (
-    <div className={`wc-row${isActive ? ' wc-row--active' : ''}`} role="listitem">
+    <li className={`wc-row${isActive ? ' wc-row--active' : ''}`}>
 
       <span className={`wc-icon-box${isActive ? ' wc-icon-box--active' : ''}`}>
         <WidgetIcon name={widget.icon} size={17} />
@@ -86,7 +86,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
           <PlusLg size={12} />
         </button>
       </div>
-    </div>
+    </li>
   );
 };
 
@@ -129,8 +129,12 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
   };
 
   const handleReset = () => {
-    if (!resetConfirm) { setResetConfirm(true); setTimeout(() => setResetConfirm(false), 4000); }
-    else resetSettings();
+    if (resetConfirm) {
+      resetSettings();
+    } else {
+      setResetConfirm(true);
+      setTimeout(() => setResetConfirm(false), 4000);
+    }
   };
 
   const handleImport = () => {
@@ -155,11 +159,10 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
       />
 
       {/* ── Drawer panel ── */}
-      <aside
+      <dialog
+        open
         className={`wc-panel${phase === 'leaving' ? ' wc-panel--leaving' : ''}`}
         style={{ transform: phase === 'open' ? 'translateX(0)' : 'translateX(100%)' }}
-        onMouseDown={e => e.stopPropagation()}
-        role="dialog"
         aria-modal="true"
         aria-label="Widget catalog"
       >
@@ -194,7 +197,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         </div>
 
         {/* ── Category tabs ── */}
-        <nav className="wc-tabs" role="tablist" aria-label="Widget categories">
+        <div role="tablist" className="wc-tabs" aria-label="Widget categories">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -206,20 +209,20 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
               {tab.label}
             </button>
           ))}
-        </nav>
+        </div>
 
         {/* ── Widget list ── */}
-        <div className="wc-list" role="list">
+        <ul className="wc-list">
           {activeTab === 'all'
             ? CATEGORY_ORDER.map(cat => {
-              const widgets = WIDGET_REGISTRY.filter(w => w.category === cat);
+              const catWidgets = WIDGET_REGISTRY.filter(w => w.category === cat);
               return (
                 <React.Fragment key={cat}>
-                  <div className="wc-section-header" role="presentation">
+                  <li className="wc-section-header" role="none">
                     <span className="wc-section-icon">{CATEGORY_ICONS[cat]}</span>
                     {CATEGORY_LABELS[cat]}
-                  </div>
-                  {widgets.map(w => (
+                  </li>
+                  {catWidgets.map(w => (
                     <WidgetRow
                       key={w.type}
                       widget={w}
@@ -241,9 +244,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
               />
             ))
           }
-        </div>
-
-        {/* ── Footer ── */}
+        </ul>
         <div className="wc-footer">
           {importError
             ? <span className="wc-footer-err">{importError}</span>
@@ -258,7 +259,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
             <BoxArrowUpRight size={9} /><span>Buy Me Momo</span>
           </a>
         </div>
-      </aside>
+      </dialog>
     </>,
     document.body
   );

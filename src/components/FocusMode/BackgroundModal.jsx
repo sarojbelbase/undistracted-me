@@ -312,9 +312,10 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
               const isHead = i === 0;
               const isPhotoActive = isHead && isActive;
               return (
-                <div
+                <button
                   key={ph.id}
-                  className="relative group rounded-xl overflow-hidden cursor-pointer"
+                  type="button"
+                  className="relative group rounded-xl overflow-hidden cursor-pointer text-left"
                   style={{ aspectRatio: '16/9', transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onClick={() => handleUse(ph.id)}
                   onMouseEnter={e => { if (!isPhotoActive) e.currentTarget.style.transform = 'scale(1.03)'; }}
@@ -365,7 +366,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
                   >
                     ✕
                   </button>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -407,7 +408,11 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto }) => {
                 />
               )}
               <span className="relative" style={{ zIndex: 1 }}>
-                {library.length >= LIBRARY_MAX ? 'Library full' : (addingOne ? 'Fetching…' : '+ Add one')}
+                {(() => {
+                  if (library.length >= LIBRARY_MAX) return 'Library full';
+                  if (addingOne) return 'Fetching…';
+                  return '+ Add one';
+                })()}
               </span>
             </button>
 
@@ -542,11 +547,7 @@ const CustomPanel = ({ isActive, onApply }) => {
               autoComplete="off"
               spellCheck={false}
               icon={<Link45deg size={13} />}
-              suffix={(() => {
-                if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
-                if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
-                return null;
-              })()}
+              suffix={<BgUrlVerifySuffix status={status} />}
             />
           </div>
           <button
@@ -619,6 +620,13 @@ const CustomPanel = ({ isActive, onApply }) => {
  *   onBgChange(source, customUrl?)   — called when the active source changes
  *   onRotatePhoto(targetId?)         — shuffle / jump in the curated library
  */
+// ─── Suffix icon for URL verify status ──────────────────────────────────────
+const BgUrlVerifySuffix = ({ status }) => {
+  if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
+  if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
+  return null;
+};
+
 export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
   const [activeSource, setActiveSource] = useState(() => getBgSource());
   const [tab, setTab] = useState(activeSource);
@@ -649,13 +657,13 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
   };
 
   return createPortal(
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-label="Background settings"
-      className="fixed inset-0 flex items-center justify-center"
+      tabIndex={-1}
+      className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ zIndex: 80, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)' }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <style>{`
         @keyframes bgModalSpin { to { transform: rotate(360deg); } }
@@ -690,7 +698,6 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
           WebkitBackdropFilter: 'blur(40px)',
           animation: 'bgModalIn 0.28s cubic-bezier(0.16,1,0.3,1) both',
         }}
-        onMouseDown={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
         <div
@@ -777,7 +784,7 @@ export const BackgroundModal = ({ onClose, onBgChange, onRotatePhoto }) => {
           )}
         </div>
       </div>
-    </div>,
+    </dialog>,
     document.body,
   );
 };

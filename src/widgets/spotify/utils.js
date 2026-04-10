@@ -134,37 +134,38 @@ export const connectSpotify = async () => {
   return stored.access_token;
 };
 
-export const getAccessToken = async () => {
-  // Web mode: tokens live entirely in localStorage.
-  if (isWebMode()) {
-    const raw = localStorage.getItem(TOKEN_KEY);
-    if (!raw) return null;
-    let stored;
-    try { stored = JSON.parse(raw); } catch { return null; }
-    if (!stored?.access_token) return null;
-    if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
-    if (!stored.refresh_token) return null;
+// Web mode: tokens live entirely in localStorage.
+async function getWebAccessToken() {
+  const raw = localStorage.getItem(TOKEN_KEY);
+  if (!raw) return null;
+  let stored;
+  try { stored = JSON.parse(raw); } catch { return null; }
+  if (!stored?.access_token) return null;
+  if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
+  if (!stored.refresh_token) return null;
 
-    const res = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: stored.refresh_token,
-        client_id: SPOTIFY_CLIENT_ID,
-      }),
-    });
-    if (!res.ok) return null;
-    const tokens = await res.json();
-    const updated = {
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || stored.refresh_token,
-      expires_at: Date.now() + tokens.expires_in * 1000,
-    };
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
-    return updated.access_token;
-  }
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: stored.refresh_token,
+      client_id: SPOTIFY_CLIENT_ID,
+    }),
+  });
+  if (!res.ok) return null;
+  const tokens = await res.json();
+  const updated = {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token || stored.refresh_token,
+    expires_at: Date.now() + tokens.expires_in * 1000,
+  };
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
+  return updated.access_token;
+}
 
+// Extension mode: tokens stored in chrome.storage.local with one-time migration from localStorage.
+async function getExtensionAccessToken() {
   // One-time migration: move tokens from old localStorage storage to chrome.storage.local.
   // This runs silently on first invocation after an update and removes the insecure copy.
   const legacyRaw = localStorage.getItem(TOKEN_KEY);
@@ -187,7 +188,7 @@ export const getAccessToken = async () => {
   if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
 
   // Refresh
-  if (!stored.refresh_token) { return null; }
+  if (!stored.refresh_token) return null;
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -201,7 +202,7 @@ export const getAccessToken = async () => {
 
   // Don't clear stored tokens on a transient refresh failure — only disconnectSpotify() should do that.
   // This prevents the connect screen from reappearing after a network hiccup or token expiry.
-  if (!res.ok) { return null; }
+  if (!res.ok) return null;
 
   const tokens = await res.json();
   const updated = {
@@ -211,6 +212,11 @@ export const getAccessToken = async () => {
   };
   await chrome?.storage?.local?.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
   return updated.access_token;
+}
+
+export const getAccessToken = async () => {
+  if (isWebMode()) return getWebAccessToken();
+  return getExtensionAccessToken();
 };
 
 export const disconnectSpotify = () => {
@@ -283,7 +289,9 @@ export const getChromeMedia = () =>
     try {
       chrome.runtime.sendMessage({ type: 'GET_CHROME_MEDIA' }, (data) => {
         if (chrome.runtime.lastError) { resolve([]); return; }
-        const normalized = Array.isArray(data) ? data : (data ? [data] : []);
+        let normalized;
+        if (Array.isArray(data)) normalized = data;
+        else normalized = data ? [data] : [];
         resolve(normalized);
       });
     } catch { resolve([]); }
