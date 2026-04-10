@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { XLg } from 'react-bootstrap-icons';
+import { XLg, Search } from 'react-bootstrap-icons';
 import { fetchCompanies } from './utils';
+import { SettingsInput } from '../../components/ui/SettingsInput';
 
 /**
  * Stock selector content — rendered inside BaseSettingsModal.
@@ -31,6 +32,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
     return () => clearTimeout(t);
   }, []);
 
+  const top20 = companies ? companies.slice(0, 20) : [];
   const filtered = companies && query.trim()
     ? companies
       .filter((c) => {
@@ -38,9 +40,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
         return c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
       })
       .slice(0, 20)
-    : companies
-      ? companies.slice(0, 20)
-      : [];
+    : top20;
 
   const toggle = (sym) => {
     if (symbols.includes(sym)) {
@@ -68,14 +68,14 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
           {symbols.map(sym => (
             <div
               key={sym}
-              className="flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full text-xs font-bold"
-              style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+              className="flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg text-[10px] font-semibold"
+              style={{ background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)', color: 'var(--w-accent)' }}
             >
               {sym}
               <button
                 onClick={() => remove(sym)}
                 className="w-4 h-4 flex items-center justify-center rounded-full transition-opacity hover:opacity-70 cursor-pointer"
-                style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
+                style={{ color: 'inherit' }}
                 title="Remove"
               >
                 <XLg size={8} aria-hidden="true" />
@@ -87,25 +87,18 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
 
       {/* Search */}
       <div className="pb-3">
-        <input
+        <SettingsInput
           ref={inputRef}
           type="text"
           placeholder="Search symbol or name…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full text-sm px-3 py-2 rounded-xl outline-none"
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            backdropFilter: 'var(--card-blur)',
-            WebkitBackdropFilter: 'var(--card-blur)',
-            border: '1px solid var(--card-border)',
-            color: 'var(--w-ink-1)',
-          }}
+          icon={<Search size={13} />}
         />
       </div>
 
       {/* List — bleeds to modal edges so buttons span full width */}
-      <div className="pb-1 mx-[-1rem]">
+      <div className="pb-1 -mx-4">
         {loading && (
           <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>Loading…</p>
         )}
@@ -126,12 +119,12 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
               className="flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors hover:opacity-80 disabled:opacity-30"
               style={
                 isSelected
-                  ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                  ? { background: 'color-mix(in srgb, var(--w-accent) 10%, transparent)', color: 'var(--w-accent)' }
                   : { color: 'var(--w-ink-1)' }
               }
             >
               <span className="text-xs font-bold w-14 shrink-0">{c.symbol}</span>
-              <span className="text-xs truncate flex-1" style={{ color: 'var(--w-ink-3)' }}>{c.name}</span>
+              <span className="text-xs truncate flex-1" style={{ color: isSelected ? 'var(--w-accent)' : 'var(--w-ink-4)' }}>{c.name}</span>
               {isSelected && (
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                   <polyline points="2,6 5,9 10,3" />

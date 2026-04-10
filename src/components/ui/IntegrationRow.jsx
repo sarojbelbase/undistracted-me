@@ -140,20 +140,6 @@ export const IntegrationRow = ({
               {description}
             </p>
           )}
-          {privacyLabel && (
-            <div className="flex items-center gap-1.5">
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-full"
-                style={{
-                  background: 'color-mix(in srgb, #22c55e 10%, transparent)',
-                  border: '1px solid color-mix(in srgb, #22c55e 20%, transparent)',
-                }}
-              >
-                <LockFill size={8} className="text-green-600 shrink-0" />
-                <span className="text-[10px] font-semibold text-green-600">{privacyLabel}</span>
-              </div>
-            </div>
-          )}
           <button
             onClick={onConnect}
             disabled={loading}
@@ -167,6 +153,12 @@ export const IntegrationRow = ({
             {loading && <ArrowRepeat size={11} className="animate-spin" />}
             {loading ? 'Connecting…' : connectLabel}
           </button>
+          {privacyLabel && (
+            <div className="flex items-center justify-center gap-1">
+              <LockFill size={8} style={{ color: 'var(--w-ink-6)', flexShrink: 0 }} />
+              <span className="text-[10px]" style={{ color: 'var(--w-ink-6)' }}>{privacyLabel}</span>
+            </div>
+          )}
         </div>
       )}
     </div>

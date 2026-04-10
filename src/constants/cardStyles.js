@@ -41,10 +41,10 @@ export const CARD_STYLE_TOKENS = {
       '--card-shadow': 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 4px rgba(0,0,0,0.06)',
     },
     dark: {
-      '--card-bg': 'rgba(255,255,255,0.06)',
-      '--card-border': 'rgba(255,255,255,0.11)',
+      '--card-bg': 'rgba(255,255,255,0.10)',
+      '--card-border': 'rgba(255,255,255,0.16)',
       '--card-blur': 'blur(28px) saturate(180%)',
-      '--card-shadow': 'inset 0 1px 0 rgba(255,255,255,0.14), 0 2px 10px rgba(0,0,0,0.30)',
+      '--card-shadow': 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 16px rgba(0,0,0,0.45)',
     },
   },
 };

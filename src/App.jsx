@@ -34,6 +34,8 @@ const App = () => {
   // no-op (returns mode as-is) for explicit 'light' or 'dark' settings.
   const effectiveMode = useAutoTheme(mode, accent);
   const isDark = effectiveMode === 'dark';
+  const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator?.platform ?? '');
+  const focusShortcut = isMac ? '⌥⇧F' : 'Alt+Shift+F';
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
   const [showLookAway, setShowLookAway] = useState(false);
 
@@ -127,26 +129,28 @@ const App = () => {
       <div className="absolute top-5 left-5 z-50">
         <button
           onClick={() => setShowFocusMode(true)}
-          className="group flex items-center rounded-full transition-all duration-300 focus:outline-none"
+          className="group flex items-center rounded-full transition-all duration-300 focus:outline-none cursor-pointer"
           style={{
             padding: '7px 12px',
-            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)'}`,
-            backdropFilter: 'blur(12px)',
+            background: 'var(--card-bg)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            border: '1px solid var(--card-border)',
+            boxShadow: 'var(--card-shadow)',
           }}
-          title="Focus Mode (Alt+Shift+F)"
+          title={`Focus Mode (${focusShortcut})`}
         >
           <MoonStarsFill
             size={14}
             className="shrink-0 transition-transform duration-200 group-hover:scale-110"
-            style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)' }}
+            style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.45)' }}
           />
-          <span className="max-w-0 overflow-hidden transition-all duration-300 group-hover:max-w-14 opacity-0 group-hover:opacity-100">
+          <span className="max-w-0 overflow-hidden transition-all duration-300 group-hover:max-w-28 opacity-0 group-hover:opacity-100">
             <span
-              className="pl-2 text-xs font-medium whitespace-nowrap select-none tracking-wide"
-              style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)' }}
+              className="pl-2 text-xs font-semibold whitespace-nowrap select-none tracking-wide"
+              style={{ color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)' }}
             >
-              Focus
+              Focus <span style={{ opacity: 0.55, fontSize: '10px', fontWeight: 500 }}>{focusShortcut}</span>
             </span>
           </span>
         </button>
@@ -157,17 +161,16 @@ const App = () => {
         <div
           className="flex items-center rounded-full"
           style={{
-            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.92)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.09)'}`,
-            backdropFilter: 'blur(16px)',
-            boxShadow: isDark
-              ? '0 2px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)'
-              : '0 2px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            boxShadow: 'var(--card-shadow)',
           }}
         >
           {/* Widgets */}
           <button
-            className={`p-2.5 rounded-full transition-all duration-200 focus:outline-none ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+            className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
             onClick={() => { setShowCatalog(true); closeSettings(); }}
             title="Widgets"
           >
@@ -175,13 +178,16 @@ const App = () => {
               size={15}
               style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)' }}
             />
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+              <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>Widgets</span>
+            </span>
           </button>
 
           <div className="w-px h-3.5 shrink-0" style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }} />
 
           {/* Settings */}
           <button
-            className={`group p-2.5 rounded-full transition-all duration-200 focus:outline-none ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+            className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
             onClick={toggleSettings}
             title="Settings"
           >
@@ -195,6 +201,9 @@ const App = () => {
                 })(),
               }}
             />
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+              <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>Settings</span>
+            </span>
           </button>
         </div>
 

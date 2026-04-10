@@ -22,15 +22,15 @@ export const SegmentedControl = ({ label, options, value, onChange }) => (
   <div className="flex flex-col gap-2">
     {label && <span className="w-label">{label}</span>}
     <div
-      className="flex rounded-xl p-0.5"
-      style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
+      className="flex gap-1 p-1 rounded-xl"
+      style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
     >
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className="flex-1 rounded-[10px] text-xs font-semibold py-1.5 transition-all cursor-pointer"
+          className="flex-1 rounded-lg text-xs font-semibold py-1.5 transition-all cursor-pointer"
           style={
             value === opt.value
               ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: 'none', outline: 'none' }

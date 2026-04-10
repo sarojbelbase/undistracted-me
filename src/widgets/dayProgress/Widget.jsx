@@ -28,11 +28,6 @@ export const Widget = ({ id = 'dayProgress', onRemove }) => {
       <div className="flex justify-between mx-2 items-baseline gap-2">
         <div className="flex items-baseline gap-1.5 min-w-0">
           <span className="w-sub-soft truncate">{progress.label} Progress</span>
-          {progress.subtitle && (
-            <span style={{ fontSize: '0.65rem', color: 'var(--w-ink-4)', fontWeight: 500, letterSpacing: '0.03em' }}>
-              {calendar.toUpperCase()}
-            </span>
-          )}
         </div>
         <span className="w-sub-bold shrink-0" style={{ fontSize: '1.05rem' }}>{progress.percentage}%</span>
       </div>

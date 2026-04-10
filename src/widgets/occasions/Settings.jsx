@@ -7,6 +7,7 @@ import {
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
+import { TintedChip } from '../../components/ui/TintedChip';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -60,10 +61,9 @@ const SectionHeading = ({ children }) => (
 );
 
 const inputStyle = {
-  background: 'var(--card-bg)',
-  backdropFilter: 'var(--card-blur)',
+  background: 'var(--w-surface-2)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--card-border)',
+  border: '1px solid var(--w-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -72,10 +72,9 @@ const inputStyle = {
 };
 
 const selStyle = {
-  background: 'var(--card-bg)',
-  backdropFilter: 'var(--card-blur)',
+  background: 'var(--w-surface-2)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--card-border)',
+  border: '1px solid var(--w-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -151,16 +150,12 @@ const ManualSection = ({ onManualChange }) => {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <SectionHeading>Manual Entries</SectionHeading>
+        <SectionHeading>Your Occasions</SectionHeading>
         {!showAdd && (
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            <PlusLg size={11} />
+          <TintedChip size="sm" onClick={() => setShowAdd(true)} className="flex items-center gap-1">
+            <PlusLg size={9} />
             Add
-          </button>
+          </TintedChip>
         )}
       </div>
 
@@ -174,9 +169,8 @@ const ManualSection = ({ onManualChange }) => {
                 key={e.id}
                 className="flex items-center gap-3 px-4 py-3"
                 style={{
-                  background: 'var(--card-bg)',
-                  backdropFilter: 'var(--card-blur)',
-                  borderBottom: i < manual.length - 1 ? '1px solid var(--card-border)' : 'none',
+                  background: 'var(--w-surface-2)',
+                  borderBottom: i < manual.length - 1 ? '1px solid var(--w-border)' : 'none',
                 }}
               >
                 <SmAvatar name={e.name} />
@@ -214,7 +208,7 @@ const ManualSection = ({ onManualChange }) => {
       {showAdd && (
         <div
           className="rounded-2xl p-4 flex flex-col gap-4"
-          style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)' }}
+          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
         >
           {/* Name */}
           <div>
@@ -237,7 +231,7 @@ const ManualSection = ({ onManualChange }) => {
             <label className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: 'var(--w-ink-4)' }}>
               Occasion type
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
               {TYPES.map(t => {
                 const active = form.type === t.value;
                 return (
@@ -245,10 +239,10 @@ const ManualSection = ({ onManualChange }) => {
                     key={t.value}
                     type="button"
                     onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                    className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer"
+                    className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer"
                     style={active
-                      ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: '1.5px solid transparent' }
-                      : { background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1.5px solid var(--card-border)' }}
+                      ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
+                      : { background: 'transparent', color: 'var(--w-ink-3)' }}
                   >
                     <t.Icon size={14} style={{ color: active ? 'inherit' : t.iconColor }} />
                     {t.label}
@@ -299,7 +293,7 @@ const ManualSection = ({ onManualChange }) => {
             <button
               onClick={cancelAdd}
               className="flex-1 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-              style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
+              style={{ background: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
             >
               Cancel
             </button>

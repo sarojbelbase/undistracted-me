@@ -1,4 +1,4 @@
-import { RadioGroup } from '../../components/ui/RadioGroup';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { LANGUAGES } from '../../constants';
 
 const DATE_FORMAT_OPTIONS = [
@@ -7,8 +7,7 @@ const DATE_FORMAT_OPTIONS = [
 ];
 
 export const Settings = ({ id, language, onChange }) => (
-  <RadioGroup
-    name={`${id}-lang`}
+  <SegmentedControl
     label="Date Format"
     options={DATE_FORMAT_OPTIONS}
     value={language}

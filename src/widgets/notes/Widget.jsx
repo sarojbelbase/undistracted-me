@@ -71,7 +71,7 @@ export const Widget = ({ id, onRemove }) => {
   }, [mode, close]);
 
   const widgetCard = (
-    <BaseWidget className="flex flex-col overflow-hidden" cardStyle={{ borderRadius: '14px' }}>
+    <BaseWidget className="flex flex-col overflow-hidden" cardStyle={{ borderRadius: '14px' }} onRemove={onRemove}>
       {/* Header — custom dashed separator always visible, traffic lights fade in on hover */}
       <div
         className="shrink-0 flex items-center"

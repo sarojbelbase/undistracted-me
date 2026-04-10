@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import {
   SPOTIFY_CLIENT_ID,
   connectSpotify, disconnectSpotify, isSpotifyConnected,
@@ -644,24 +643,84 @@ const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisc
   const redirectUri = extensionId ? `https://${extensionId}.chromiumapp.org/` : null;
 
   return (
-    <div className="flex flex-col gap-3">
-      <IntegrationRow
-        icon={<SpotifyMusicIcon />}
-        label="Spotify"
-        connected={connected}
-        loading={loading}
-        profile={connected && profile ? {
-          name: profile.name ?? 'Spotify Account',
-          picture: profile.avatar ?? null,
-          avatarColor: '#1DB954',
-          avatarFgColor: '#000',
-        } : null}
-        description="Plays music and shows your current track."
-        privacyLabel="No data stored · playback controls only"
-        connectLabel="Connect Spotify"
-        onConnect={onConnect}
-        onDisconnect={onDisconnect}
-      />
+    <div className="flex flex-col gap-4">
+
+      {/* ── Spotify connection card ── */}
+      <div className="flex flex-col gap-3 rounded-xl p-3" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+        {/* Header: icon + label + connected badge */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#1DB954' }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="#000">
+                <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z" />
+                <path fillRule="evenodd" d="M9 3v10H8V3h1z" />
+                <path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs font-bold" style={{ color: 'var(--w-ink-1)' }}>Spotify</div>
+              <div className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>Music playback &amp; current track</div>
+            </div>
+          </div>
+          {connected && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #1DB954 12%, transparent)', color: '#1DB954' }}>
+              Connected
+            </span>
+          )}
+        </div>
+
+        {/* Connected: profile row */}
+        {connected && profile && (
+          <div className="flex items-center gap-2.5 py-1">
+            {profile.avatar ? (
+              <img src={profile.avatar} alt="" className="w-8 h-8 rounded-full shrink-0 object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{ background: '#1DB954', color: '#000' }}>
+                {(profile.name?.[0] ?? 'S').toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>{profile.name ?? 'Spotify Account'}</span>
+              <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>Spotify Premium</span>
+            </div>
+          </div>
+        )}
+
+        {/* Not connected: privacy note + CTA */}
+        {!connected && (
+          <>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: 'color-mix(in srgb, #1DB954 8%, transparent)', border: '1px solid color-mix(in srgb, #1DB954 20%, transparent)' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="10" height="10" fill="#1DB954" className="shrink-0">
+                <path fillRule="evenodd" d="M8 0a4 4 0 0 1 4 4v2.05a2.5 2.5 0 0 1 2 2.45v5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 13.5v-5a2.5 2.5 0 0 1 2-2.45V4a4 4 0 0 1 4-4m0 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3" />
+              </svg>
+              <span className="text-[10px] font-semibold" style={{ color: '#1DB954' }}>No data stored — playback controls only</span>
+            </div>
+            <button
+              onClick={onConnect}
+              disabled={loading}
+              className="w-full h-9 rounded-lg text-xs font-bold transition-opacity hover:opacity-90 disabled:opacity-50 cursor-pointer"
+              style={{ background: '#1DB954', color: '#000' }}
+            >
+              {loading ? 'Connecting…' : 'Connect Spotify'}
+            </button>
+          </>
+        )}
+
+        {/* Connected: disconnect */}
+        {connected && (
+          <button
+            onClick={onDisconnect}
+            disabled={loading}
+            className="w-full h-8 rounded-lg text-[11px] font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 cursor-pointer"
+            style={{ background: 'var(--w-surface)', border: '1px solid var(--w-border)', color: 'var(--w-ink-4)' }}
+          >
+            Disconnect
+          </button>
+        )}
+
+        {error && <p className="text-[11px] text-red-400">{error}</p>}
+      </div>
+
       {/* Dev mode only: redirect URI setup helper */}
       {DEBUG_MODE && !connected && redirectUri && (
         <div className="rounded-lg p-2.5" style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
@@ -676,38 +735,43 @@ const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisc
           </code>
         </div>
       )}
-      {error && <p className="text-xs text-red-400">{error}</p>}
 
-      {/* Browser media playback section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-1.5">
-          <span style={{ color: 'var(--w-ink-5)' }}>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+      {/* ── Browser Media card ── */}
+      <div className="flex flex-col gap-2.5 rounded-xl p-3" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--w-surface)', border: '1px solid var(--w-border)' }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--w-ink-4)' }}>
               <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2 2.5.895 2.5 2zm9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2z" />
               <path fillRule="evenodd" d="M14 11V2h1v9h-1zM6 3v10H5V3h1z" />
               <path d="M5 2.905a1 1 0 0 1 .9-.995l8-.8a1 1 0 0 1 1.1.995V3L5 4V2.905z" />
             </svg>
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>Browser Media</span>
+          </div>
+          <div>
+            <div className="text-xs font-bold" style={{ color: 'var(--w-ink-1)' }}>Browser Media</div>
+            <div className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>Automatic fallback when Spotify is idle</div>
+          </div>
         </div>
+
         <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
-          When Spotify is idle, playback from your browser is shown automatically.
+          When Spotify is idle or disconnected, media playing in your browser tabs is shown automatically — no setup needed.
         </p>
-        <div className="flex flex-wrap gap-1.5">
-          <span
-            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: '#FF5500' }}
-          >
-            SoundCloud
-          </span>
-          <span
-            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-5)' }}
-          >
-            + more coming soon
-          </span>
+
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--w-ink-5)' }}>Supported sources</div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #FF5500 10%, transparent)', border: '1px solid color-mix(in srgb, #FF5500 20%, transparent)', color: '#FF5500' }}>
+              SoundCloud
+            </span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #FF0000 10%, transparent)', border: '1px solid color-mix(in srgb, #FF0000 20%, transparent)', color: '#FF0000' }}>
+              YouTube
+            </span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: 'var(--w-surface)', border: '1px solid var(--w-border)', color: 'var(--w-ink-5)' }}>
+              + any site with media
+            </span>
+          </div>
         </div>
       </div>
+
     </div>
   );
 };

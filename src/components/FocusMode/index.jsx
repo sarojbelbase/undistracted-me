@@ -25,7 +25,8 @@ import { ClockDisplay } from './ClockDisplay';
 import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
-import { BackgroundModal, getCustomBgUrl, getOrbRgb } from './BackgroundModal';
+import { BackgroundPicker } from '../ui/BackgroundPicker';
+import { getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from './BackgroundModal';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
 
 function useFocusSpotify() {
@@ -236,18 +237,23 @@ export const FocusMode = ({ onExit }) => {
   }, [update]);
 
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') onExit(); };
+    const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal) onExit(); };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onExit]);
+  }, [onExit, showBgModal]);
 
-  // Background source change — called by BackgroundModal
+  // Background source change — called by BackgroundPicker (focus scope)
   const handleBgChange = useCallback((source, customUrl) => {
     persistBgSource(source);
     setBgSource(source);
     if (source === 'orb') setOrbRgb(getOrbRgb());
-    if (customUrl !== undefined) setCustomBgUrl(customUrl);
-    else if (source !== 'custom') setCustomBgUrl(null);
+    if (customUrl !== undefined) {
+      setCustomBgUrl(customUrl);
+      persistCustomUrl(customUrl); // keep localStorage in sync
+    } else if (source !== 'custom') {
+      setCustomBgUrl(null);
+      persistCustomUrl(null);
+    }
   }, []);
 
   const leftHasContent = pomodoro || eventInfo || stocks.length > 0;
@@ -340,12 +346,18 @@ export const FocusMode = ({ onExit }) => {
         </span>
       </div>
 
-      {/* ── Background modal (z 80) ── */}
+      {/* ── Background picker (focus scope, z 90) ── */}
       {showBgModal && (
-        <BackgroundModal
-          onBgChange={handleBgChange}
-          onRotatePhoto={rotate}
+        <BackgroundPicker
+          scope="focus"
+          initialSource={bgSource}
+          initialCustomUrl={bgSource === 'custom' ? customBgUrl : null}
+          initialPhotoUrl={null}
           onClose={() => setShowBgModal(false)}
+          onApply={(type, opts = {}) => {
+            handleBgChange(type, opts.url);
+          }}
+          onRotatePhoto={rotate}
         />
       )}
     </div>

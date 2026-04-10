@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { XLg, ClockFill } from 'react-bootstrap-icons';
-import { PillButton } from '../../components/ui/PillButton';
+import { XLg, CalendarEvent, Clock, HourglassSplit } from 'react-bootstrap-icons';
+import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
   getDateOffset, applyDuration, todayStr
@@ -38,16 +38,6 @@ export const CreateModal = ({ onSave, onClose }) => {
     }
   };
 
-  let datetimeLocalVal;
-  if (form.startDate && form.startTime) datetimeLocalVal = `${form.startDate}T${form.startTime}`;
-  else if (form.startDate) datetimeLocalVal = `${form.startDate}T`;
-  else datetimeLocalVal = '';
-
-  const handleDateTimeLocal = (val) => {
-    const [date, time] = val.split('T');
-    updateStart(date || '', time || '');
-  };
-
   const handleDurationPill = (p) => {
     if (p.mins === null) {
       setDurType('custom');
@@ -63,35 +53,63 @@ export const CreateModal = ({ onSave, onClose }) => {
     onClose();
   };
 
-  const inputCls = 'outline-none transition-colors';
-  const inputStyle = {
-    border: '1px solid var(--card-border)',
-    backgroundColor: 'var(--card-bg)',
-    backdropFilter: 'var(--card-blur)',
-    color: 'var(--w-ink-1)',
-    borderRadius: '0.5rem',
-  };
+  const sectionLabel = (icon, text) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+      {icon}
+      <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--w-ink-5)' }}>{text}</span>
+    </div>
+  );
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+    >
       <div
-        className="rounded-2xl shadow-2xl p-5 w-80 animate-fade-in"
-        style={{ background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}
+        className="animate-fade-in"
+        style={{
+          width: 340, borderRadius: 20,
+          background: 'var(--w-surface)',
+          border: '1px solid var(--w-border)',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset',
+          overflow: 'hidden',
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="w-heading">New Event</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+              background: 'color-mix(in srgb, var(--w-accent) 18%, transparent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <CalendarEvent size={14} style={{ color: 'var(--w-accent)' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--w-ink-1)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>New Event</div>
+              <div style={{ fontSize: '11px', color: 'var(--w-ink-5)', marginTop: 1 }}>Add to your calendar</div>
+            </div>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors btn-close"
-            style={{ color: 'var(--w-ink-3)' }}
+            aria-label="Close"
+            style={{
+              width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--w-border)', background: 'var(--w-surface-2)',
+              color: 'var(--w-ink-4)', cursor: 'pointer',
+            }}
           >
-            <XLg size={14} />
+            <XLg size={11} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {/* Event name */}
+        <div style={{ height: 1, background: 'var(--w-border)' }} />
+
+        {/* Body */}
+        <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Title */}
           <input
             autoFocus
             type="text"
@@ -99,110 +117,121 @@ export const CreateModal = ({ onSave, onClose }) => {
             value={form.title}
             onChange={e => set('title', e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
-            className={`w-full px-3 py-2.5 text-sm ${inputCls}`}
-            style={{ ...inputStyle, borderRadius: '0.75rem' }}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              padding: '10px 14px', fontSize: '14px', fontWeight: 500,
+              color: 'var(--w-ink-1)', background: 'var(--w-surface-2)',
+              border: '1px solid var(--w-border)', borderRadius: 12, outline: 'none',
+              transition: 'border-color 0.15s',
+            }}
           />
 
-          {/* When block */}
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
-          >
-            <div className="flex gap-1.5 p-3 pb-2">
+          {/* Starts at */}
+          <div>
+            {sectionLabel(<Clock size={10} style={{ color: 'var(--w-ink-5)' }} />, 'Starts at')}
+
+            {/* Segmented day picker */}
+            <div style={{
+              display: 'flex', background: 'var(--w-surface-2)',
+              borderRadius: 11, padding: 3, border: '1px solid var(--w-border)',
+              marginBottom: 10,
+            }}>
               {DATE_CHIPS.map(chip => (
-                <PillButton
-                  key={chip.key}
-                  active={dateChip === chip.key}
+                <button key={chip.key} type="button"
                   onClick={() => handleDateChip(chip)}
-                >
-                  {chip.label}
-                </PillButton>
+                  style={{
+                    flex: 1, padding: '6px 0', borderRadius: 8,
+                    fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.15s',
+                    background: dateChip === chip.key ? 'var(--w-surface)' : 'transparent',
+                    color: dateChip === chip.key ? 'var(--w-ink-1)' : 'var(--w-ink-5)',
+                    boxShadow: dateChip === chip.key ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+                  }}
+                >{chip.label}</button>
               ))}
             </div>
 
-            {/* Time row */}
-            <div className="px-3 pb-3">
-              {dateChip === 'custom' ? (
-                <div className="flex flex-col gap-0.5">
-                  <span className="w-label mb-1">Date &amp; time</span>
-                  <input
-                    type="datetime-local"
-                    value={datetimeLocalVal}
-                    onChange={e => handleDateTimeLocal(e.target.value)}
-                    className={`w-full px-2.5 py-1.5 text-xs ${inputCls}`}
-                    style={inputStyle}
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <ClockFill size={11} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
-                  <input
-                    type="time"
-                    value={form.startTime}
-                    onChange={e => updateStart(form.startDate, e.target.value)}
-                    placeholder="Add time"
-                    className={`flex-1 px-2.5 py-1.5 text-xs ${inputCls}`}
-                    style={inputStyle}
-                  />
-                </div>
-              )}
-            </div>
+            {/* Date + time fields */}
+            {dateChip === 'custom' ? (
+              <SegmentedDateTime
+                mode="datetime"
+                date={form.startDate}
+                time={form.startTime}
+                onDateChange={(d) => updateStart(d, form.startTime)}
+                onTimeChange={(t) => updateStart(form.startDate, t)}
+              />
+            ) : (
+              <SegmentedDateTime
+                mode="time"
+                time={form.startTime}
+                onTimeChange={(t) => updateStart(form.startDate, t)}
+              />
+            )}
           </div>
 
-          {/* Duration */}
-          <div className="flex flex-col gap-1.5">
-            <span className="w-label">Duration</span>
-            <div className="flex gap-1.5 flex-wrap">
+          {/* Ends at (duration) */}
+          <div>
+            {sectionLabel(<HourglassSplit size={10} style={{ color: 'var(--w-ink-5)' }} />, 'Ends at')}
+            <div style={{
+              display: 'flex', background: 'var(--w-surface-2)',
+              borderRadius: 11, padding: 3, border: '1px solid var(--w-border)',
+              marginBottom: durType === 'custom' ? 10 : 0,
+            }}>
               {DURATION_PILLS.map(p => {
                 const active = p.mins === null ? durType === 'custom' : durType === p.mins;
                 return (
-                  <PillButton key={p.label} active={active} onClick={() => handleDurationPill(p)}>
-                    {p.label}
-                  </PillButton>
+                  <button key={p.label} type="button"
+                    onClick={() => handleDurationPill(p)}
+                    style={{
+                      flex: 1, padding: '6px 0', borderRadius: 8,
+                      fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                      textAlign: 'center', transition: 'all 0.15s',
+                      background: active ? 'var(--w-surface)' : 'transparent',
+                      color: active ? 'var(--w-ink-1)' : 'var(--w-ink-5)',
+                      boxShadow: active ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+                    }}
+                  >{p.label}</button>
                 );
               })}
             </div>
+            {durType === 'custom' && (
+              <SegmentedDateTime
+                mode="datetime"
+                date={form.endDate}
+                time={form.endTime}
+                onDateChange={(d) => setForm(f => ({ ...f, endDate: d }))}
+                onTimeChange={(t) => setForm(f => ({ ...f, endTime: t }))}
+              />
+            )}
           </div>
-
-          {/* Custom end when duration=custom */}
-          {durType === 'custom' && (
-            <div
-              className="rounded-xl overflow-hidden"
-              style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)' }}
-            >
-              <div className="flex flex-col gap-0.5 p-3">
-                <span className="w-label mb-1 block">End date &amp; time</span>
-                <input
-                  type="datetime-local"
-                  value={form.endDate && form.endTime ? `${form.endDate}T${form.endTime}` : ''}
-                  onChange={e => {
-                    const [d, t] = e.target.value.split('T');
-                    setForm(f => ({ ...f, endDate: d || '', endTime: t || '' }));
-                  }}
-                  className={`w-full px-2.5 py-1.5 text-xs ${inputCls}`}
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="flex justify-end gap-2 mt-5">
+        {/* Footer */}
+        <div style={{ height: 1, background: 'var(--w-border)' }} />
+        <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm"
-            style={{ color: 'var(--w-ink-3)' }}
-          >
-            Cancel
-          </button>
+            style={{
+              flex: 1, padding: '9px 0', borderRadius: 10,
+              fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+              border: '1px solid var(--w-border)', background: 'transparent',
+              color: 'var(--w-ink-3)', transition: 'all 0.15s',
+            }}
+          >Cancel</button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={!valid}
-            className="px-4 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-40"
-            style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            Save
-          </button>
+            style={{
+              flex: 2, padding: '9px 0', borderRadius: 10,
+              fontSize: '13px', fontWeight: 600,
+              border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
+              opacity: valid ? 1 : 0.4, cursor: valid ? 'pointer' : 'default',
+              transition: 'all 0.15s',
+            }}
+          >Save Event</button>
         </div>
       </div>
     </div>,

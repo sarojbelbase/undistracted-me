@@ -12,7 +12,7 @@ import React from 'react';
  *   All other props are spread onto the <input> element.
  */
 export const SettingsInput = React.forwardRef(function SettingsInput(
-  { icon, prefix, suffix, wrapperRef, ...inputProps },
+  { icon, prefix, suffix, wrapperRef, dark = false, ...inputProps },
   ref,
 ) {
   return (
@@ -27,11 +27,12 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         borderRadius: '12px',
         padding: '0 12px',
         height: '36px',
-        backgroundColor: 'var(--w-surface-2)',
+        backgroundColor: dark ? 'rgba(255,255,255,0.07)' : 'var(--w-surface-2)',
+        border: dark ? '1px solid rgba(255,255,255,0.12)' : undefined,
       }}
     >
       {icon && (
-        <span style={{ flexShrink: 0, color: 'var(--w-ink-5)', lineHeight: 0 }}>
+        <span style={{ flexShrink: 0, color: dark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-5)', lineHeight: 0 }}>
           {icon}
         </span>
       )}
@@ -39,7 +40,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         <span
           style={{
             fontSize: '12px',
-            color: 'var(--w-ink-6)',
+            color: dark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)',
             flexShrink: 0,
             userSelect: 'none',
           }}
@@ -57,7 +58,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
           background: 'transparent',
           outline: 'none',
           border: 'none',
-          color: 'var(--w-ink-1)',
+          color: dark ? 'rgba(255,255,255,0.88)' : 'var(--w-ink-1)',
           caretColor: 'var(--w-accent)',
         }}
         {...inputProps}

@@ -26,18 +26,16 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
       <div
         className={`flex flex-col rounded-2xl shadow-2xl ${width} overflow-hidden animate-fade-in`}
         style={{
-          background: 'var(--card-bg)',
-          backdropFilter: 'var(--card-blur)',
-          WebkitBackdropFilter: 'var(--card-blur)',
-          border: '1px solid var(--card-border)',
-          boxShadow: 'var(--card-shadow)',
+          background: 'var(--w-surface)',
+          border: '1px solid var(--w-border)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
           maxHeight: '70vh',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-          style={{ borderBottom: '1px solid var(--card-border)' }}
+          style={{ borderBottom: '1px solid var(--w-border)' }}
         >
           <span className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>
             {title}
