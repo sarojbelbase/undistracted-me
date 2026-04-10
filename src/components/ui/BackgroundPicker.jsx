@@ -286,7 +286,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             const isShimmering = downloading && !isFirst;
             return (
               <button
-                key={`locked-${i}`}
+                key={`locked-slot-${library.length + i}`}
                 onClick={isFirst ? handleDownloadAll : undefined}
                 disabled={downloading || !isFirst}
                 className="relative rounded-lg flex flex-col items-center justify-center gap-1 focus:outline-none disabled:cursor-default overflow-hidden"
@@ -358,7 +358,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
     if (!classifyUrl(url).ok) { setErrorMsg('Enter an https:// image URL to continue.'); setStatus('error'); return; }
     setStatus('checking'); setPreviewUrl(null); setErrorMsg('');
 
-    const img = new window.Image();
+    const img = new globalThis.Image();
     img.crossOrigin = 'anonymous';
     const timeout = setTimeout(() => { img.src = ''; setPreviewUrl(url); setStatus('ok'); }, 5000);
     img.onload = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); };
@@ -391,10 +391,11 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
               placeholder="https://buymemomo.com/sarojbelbase"
               autoComplete="off" spellCheck={false}
               icon={<Link45deg size={13} />}
-              suffix={
-                status === 'ok' ? <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} /> :
-                  status === 'checking' ? <span style={{ marginRight: 4 }}><Spinner size={12} /></span> : null
-              }
+              suffix={(() => {
+                if (status === 'ok') return <CheckLg size={12} style={{ color: 'rgb(34,197,94)', marginRight: 4, flexShrink: 0 }} />;
+                if (status === 'checking') return <span style={{ marginRight: 4 }}><Spinner size={12} /></span>;
+                return null;
+              })()}
             />
           </div>
           <button onClick={verify} disabled={!syntaxOk || status === 'checking'}

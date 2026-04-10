@@ -18,15 +18,15 @@ const isWebMode = () => typeof chrome === 'undefined' || typeof chrome.identity?
 const generateCodeVerifier = () => {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
-  return btoa(String.fromCharCode(...arr))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCodePoint(...arr))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll(/=+$/g, '');
 };
 
 const generateCodeChallenge = async (verifier) => {
   const data = new TextEncoder().encode(verifier);
   const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCodePoint(...new Uint8Array(digest)))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll(/=+$/g, '');
 };
 
 const getRedirectUri = () => {
@@ -96,8 +96,8 @@ export const connectSpotify = async () => {
       chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (url) => { // eslint-disable-line no-undef
         const lastError = chrome.runtime?.lastError; // eslint-disable-line no-undef
         if (lastError) reject(new Error(lastError.message));
-        else if (!url) reject(new Error('Auth cancelled'));
-        else resolve(url);
+        else if (url) resolve(url);
+        else reject(new Error('Auth cancelled'));
       });
     });
     code = new URL(responseUrl).searchParams.get('code');
@@ -283,7 +283,8 @@ export const getChromeMedia = () =>
     try {
       chrome.runtime.sendMessage({ type: 'GET_CHROME_MEDIA' }, (data) => {
         if (chrome.runtime.lastError) { resolve([]); return; }
-        resolve(Array.isArray(data) ? data : (data ? [data] : []));
+        const normalized = Array.isArray(data) ? data : (data ? [data] : []);
+        resolve(normalized);
       });
     } catch { resolve([]); }
   });
