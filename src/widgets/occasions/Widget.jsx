@@ -301,7 +301,7 @@ export const Widget = ({ id, onRemove }) => {
       {error && connected && (
         <div
           className="mx-3 mb-2 px-3 py-2 rounded-xl text-[11px]"
-          style={{ background: '#fff5f5', color: '#c0392b', border: '1px solid #fecaca' }}
+          style={{ background: 'color-mix(in srgb, var(--w-danger) 8%, transparent)', color: 'var(--w-danger)', border: '1px solid color-mix(in srgb, var(--w-danger) 25%, transparent)' }}
         >
           {error}
         </div>

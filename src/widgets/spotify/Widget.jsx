@@ -69,7 +69,7 @@ const ChromeMediaStrip = ({ session, isPending, onPromote, onPlayPause }) => {
         <div
           className="w-1.5 h-1.5 rounded-full"
           style={{
-            backgroundColor: isPlaying ? '#22c55e' : 'rgba(255,255,255,0.22)',
+            backgroundColor: isPlaying ? 'var(--w-success)' : 'rgba(255,255,255,0.22)',
             transition: 'background-color 0.3s',
           }}
         />

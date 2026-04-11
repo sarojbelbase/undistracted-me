@@ -28,7 +28,7 @@ export const RadioGroup = ({ name, label, options, value, onChange }) => (
           value={opt.value}
           checked={value === opt.value}
           onChange={() => onChange(opt.value)}
-          className="accent-blue-500"
+          className="accent-[color:var(--w-accent)]"
         />
         <span className="w-body font-normal">{opt.label}</span>
       </label>

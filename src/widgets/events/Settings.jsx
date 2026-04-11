@@ -39,7 +39,7 @@ export const Settings = () => {
         onDisconnect={handleDisconnect}
       />
       {!connected && error && (
-        <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{error}</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--w-danger)' }}>{error}</p>
       )}
     </>
   );

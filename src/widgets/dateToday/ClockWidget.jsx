@@ -67,9 +67,9 @@ export const ClockWidget = ({ widgetId }) => {
             value={value}
             checked={language === value}
             onChange={() => updateSetting('language', value)}
-            className="accent-blue-500"
+            className="accent-[color:var(--w-accent)]"
           />
-          <span className="text-sm text-gray-700">{label}</span>
+          <span className="text-sm" style={{ color: 'var(--w-ink-3)' }}>{label}</span>
         </label>
       ))}
     </div>
@@ -83,7 +83,7 @@ export const ClockWidget = ({ widgetId }) => {
       {/* Weekday (muted) + Month (darker) — mirrors iOS Calendar header */}
       <div className="flex items-baseline gap-1.5">
         <span className="text-base font-normal" style={{ color: 'var(--w-ink-4)' }}>{parts.weekday}</span>
-        <span className="text-base font-medium text-gray-700">{parts.month}</span>
+        <span className="text-base font-medium" style={{ color: 'var(--w-ink-3)' }}>{parts.month}</span>
       </div>
 
       {/* Huge date number — bottom of card */}

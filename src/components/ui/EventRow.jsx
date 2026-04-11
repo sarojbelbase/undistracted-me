@@ -12,11 +12,11 @@ function EventTitle({ event, live, titleSz, compact, meetLink }) {
             target="_blank"
             rel="noreferrer"
             className={`${titleSz} font-semibold leading-snug hover:opacity-80 block transition-opacity`}
-            style={{ color: live ? '#22c55e' : 'var(--w-accent)' }}
+            style={{ color: live ? 'var(--w-success)' : 'var(--w-accent)' }}
           >{event.title}</a>
           : <p
             className={`${titleSz} font-semibold leading-snug`}
-            style={{ color: live ? '#22c55e' : 'var(--w-ink-1)' }}
+            style={{ color: live ? 'var(--w-success)' : 'var(--w-ink-1)' }}
           >{event.title}</p>
         }
       </div>
@@ -33,7 +33,7 @@ function EventMeta({ live, metaParts, endLabel, metaSz }) {
   if (live) {
     return (
       <div className="flex items-center gap-1">
-        <span className={`${metaSz} font-semibold`} style={{ color: 'rgba(34,197,94,0.75)' }}>
+        <span className={`${metaSz} font-semibold`} style={{ color: 'color-mix(in srgb, var(--w-success) 75%, transparent)' }}>
           in progress{endLabel ? ` \u00B7 ends ${endLabel}` : ''}
         </span>
       </div>
@@ -104,7 +104,7 @@ export const EventRow = ({
       {/* Accent bar - pulses when live */}
       <div
         className={`${barW} rounded-xs shrink-0 self-stretch${live ? ' animate-pulse' : ''}`}
-        style={{ backgroundColor: live ? '#22c55e' : 'var(--w-accent)', minHeight: minH }}
+        style={{ backgroundColor: live ? 'var(--w-success)' : 'var(--w-accent)', minHeight: minH }}
       />
 
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
@@ -116,7 +116,9 @@ export const EventRow = ({
         {!compact && event._source !== 'gcal' && onRemove && (
           <button
             onClick={() => onRemove(event.id)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 cursor-pointer"
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
             style={{ color: 'var(--w-ink-4)' }}
             aria-label={`Remove ${event.title}`}
           >

@@ -91,12 +91,12 @@ export const IntegrationRow = ({
               <div
                 className="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full"
                 style={{
-                  background: 'color-mix(in srgb, #22c55e 12%, transparent)',
-                  border: '1px solid color-mix(in srgb, #22c55e 25%, transparent)',
+                  background: 'color-mix(in srgb, var(--w-success) 12%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--w-success) 25%, transparent)',
                 }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                <span className="text-[10px] font-semibold text-green-600">Synced</span>
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--w-success)' }} />
+                <span className="text-[10px] font-semibold" style={{ color: 'var(--w-success)' }}>Synced</span>
               </div>
             </div>
           )}

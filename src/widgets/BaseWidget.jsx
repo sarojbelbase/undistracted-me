@@ -143,7 +143,7 @@ export const BaseWidget = forwardRef(({ children,
               onClick={() => { setMenuOpen(false); onRemove(); }}
               onMouseDown={e => e.stopPropagation()}
               className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
-              style={{ color: '#ef4444' }}
+              style={{ color: 'var(--w-danger)' }}
             >
               Remove
             </button>

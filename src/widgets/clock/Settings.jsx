@@ -71,7 +71,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
                 <button
                   onClick={() => removeTz(idx)}
                   className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full cursor-pointer transition-opacity hover:opacity-70 ml-3"
-                  style={{ background: 'var(--w-accent)', color: '#fff' }}
+                  style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
                   title="Remove"
                 >
                   <XLg size={7} aria-hidden="true" />
