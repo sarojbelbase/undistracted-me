@@ -1,20 +1,43 @@
 import React from 'react';
+import { useSettingsStore } from '../../store';
+import { Input } from './Input';
 
 /**
- * SettingsInput — borderless, surface-2 pill input.
- * Matches the weather location bar style.
+ * SettingsInput — pill-shaped input with glass/flat awareness.
+ * Wraps Input with a styled container. Caller `style` is merged into
+ * the inner Input (never overwrites outline/border/flex).
  *
  * Props:
- *   icon     — leading icon element (e.g. <GeoAlt size={13} />)
- *   prefix   — leading text prefix (e.g. "https://")
- *   suffix   — trailing element (e.g. a clear button)
- *   wrapperRef — ref forwarded to the outer div (needed for dropdown positioning)
- *   All other props are spread onto the <input> element.
+ *   icon       — leading icon element
+ *   prefix     — leading text prefix
+ *   suffix     — trailing element
+ *   wrapperRef — ref forwarded to the outer div
+ *   wrapperStyle — extra styles for the wrapper div
+ *   dark       — use dark (inverted) surface
+ *   All other props (including style) are forwarded to the inner Input.
  */
 export const SettingsInput = React.forwardRef(function SettingsInput(
-  { icon, prefix, suffix, wrapperRef, dark = false, ...inputProps },
+  { icon, prefix, suffix, wrapperRef, wrapperStyle, dark = false, style, ...inputProps },
   ref,
 ) {
+  const { cardStyle, mode } = useSettingsStore();
+  const isGlass = cardStyle === 'glass';
+  const isDarkMode = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
+  const isEffectiveDark = dark || isDarkMode;
+  let wrapBg, wrapBorder;
+  if (isEffectiveDark && isGlass) {
+    wrapBg = 'rgba(255,255,255,0.12)';
+    wrapBorder = '1px solid rgba(255,255,255,0.16)';
+  } else if (isEffectiveDark) {
+    wrapBg = 'var(--w-surface-2)';
+    wrapBorder = '1px solid var(--w-border)';
+  } else if (isGlass) {
+    wrapBg = 'rgba(255,255,255,0.45)';
+    wrapBorder = '1px solid rgba(0,0,0,0.09)';
+  } else {
+    wrapBg = 'var(--w-surface-2)';
+    wrapBorder = undefined;
+  }
   return (
     <div
       ref={wrapperRef}
@@ -27,12 +50,13 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         borderRadius: '12px',
         padding: '0 12px',
         height: '36px',
-        backgroundColor: dark ? 'rgba(255,255,255,0.07)' : 'var(--w-surface-2)',
-        border: dark ? '1px solid rgba(255,255,255,0.12)' : undefined,
+        backgroundColor: wrapBg,
+        border: wrapBorder,
+        ...wrapperStyle,
       }}
     >
       {icon && (
-        <span style={{ flexShrink: 0, color: dark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-5)', lineHeight: 0 }}>
+        <span style={{ flexShrink: 0, color: isEffectiveDark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-5)', lineHeight: 0 }}>
           {icon}
         </span>
       )}
@@ -40,7 +64,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         <span
           style={{
             fontSize: '12px',
-            color: dark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)',
+            color: isEffectiveDark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)',
             flexShrink: 0,
             userSelect: 'none',
           }}
@@ -48,18 +72,12 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
           {prefix}
         </span>
       )}
-      <input
+      <Input
         ref={ref}
         style={{
-          flex: 1,
-          minWidth: 0,
           fontSize: '12px',
           fontWeight: 500,
-          background: 'transparent',
-          outline: 'none',
-          border: 'none',
-          color: dark ? 'rgba(255,255,255,0.88)' : 'var(--w-ink-1)',
-          caretColor: 'var(--w-accent)',
+          ...style,
         }}
         {...inputProps}
       />
