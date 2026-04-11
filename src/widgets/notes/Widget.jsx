@@ -8,7 +8,7 @@ const PAD = 16;
 
 // Dotted separator — rendered as background image so no extra DOM node needed.
 const DASH_SEP = {
-  backgroundImage: 'radial-gradient(circle, rgba(128,128,128,0.45) 1.5px, transparent 3px)',
+  backgroundImage: 'radial-gradient(circle, var(--w-ink-6) 1.5px, transparent 3px)',
   backgroundPosition: 'bottom center',
   backgroundSize: '9px 1.5px',
   backgroundRepeat: 'repeat-x',
@@ -29,7 +29,7 @@ const TrafficLights = ({
       disabled={disabled}
       className="w-3 h-3 rounded-full shrink-0 transition-opacity"
       style={{
-        backgroundColor: disabled ? 'rgba(128,128,128,0.35)' : color,
+        backgroundColor: disabled ? 'var(--w-ink-6)' : color,
         cursor: disabled ? 'default' : 'pointer',
       }}
     />

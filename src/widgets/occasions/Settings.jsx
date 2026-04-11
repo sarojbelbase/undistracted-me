@@ -104,7 +104,7 @@ const ContactsSection = ({ connected, loading, ageLabel, profile, error, onConne
       onDisconnect={onDisconnect}
     />
     {error && (
-      <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>
+      <p className="text-xs" style={{ color: 'var(--w-danger)' }}>{error}</p>
     )}
   </div>
 );
@@ -185,7 +185,9 @@ const ManualSection = ({ onManualChange }) => {
                 </div>
                 <button
                   onClick={() => handleRemove(e.id)}
-                  className="w-7 h-7 flex items-center justify-center rounded-full transition-all hover:text-red-500 cursor-pointer"
+                  className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
                   style={{ color: 'var(--w-ink-4)' }}
                   aria-label={`Remove ${e.name}`}
                 >
@@ -285,7 +287,7 @@ const ManualSection = ({ onManualChange }) => {
 
           {/* Error */}
           {formError && (
-            <p className="text-xs font-medium -mt-1" style={{ color: '#ef4444' }}>{formError}</p>
+            <p className="text-xs font-medium -mt-1" style={{ color: 'var(--w-danger)' }}>{formError}</p>
           )}
 
           {/* Actions */}

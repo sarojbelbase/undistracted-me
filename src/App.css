@@ -330,19 +330,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   /* gray-700 — bold value text in title/sub pairs           */
   --w-ink-4: #4b5563;
   /* gray-600 — medium context (countdown num, "is" text)    */
-  --w-ink-5: #9ca3af;
-  /* gray-400 — soft/muted labels, captions                  */
-  --w-ink-6: #d1d5db;
-  /* gray-300 — inactive dots, faintest accents              */
-  --w-ink-7: #f3f4f6;
-  /* gray-100 — background of some widgets, lightest accents  */
+  --w-ink-5: #6b7280;
+  /* gray-500 — soft/muted labels, captions                  */
+  --w-ink-6: #9ca3af;
+  /* gray-400 — inactive dots, faintest accents              */
   --w-surface: #ffffff;
   --w-surface-2: #f9fafb;
+  --w-surface-3: #f1f5f9;
   --w-border: #e5e7eb;
   --w-page-bg: #F0F0F2;
   --w-accent: #111827;
   --w-accent-fg: #ffffff;
   --w-accent-rgb: 17, 24, 39;
+  --w-danger: #ef4444;
+  --w-success: #22c55e;
   --wc-danger-fg: #fca5a5;
   --wc-danger-fg-hover: #fecaca;
   --wc-danger-bg: rgba(192, 57, 43, 0.14);
@@ -502,6 +503,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 [data-mode="dark"] .text-gray-900 {
   color: var(--w-ink-1) !important;
+}
+
+[data-mode="dark"] .text-gray-700 {
+  color: var(--w-ink-3) !important;
 }
 
 [data-mode="dark"] input:not([data-ui-input]),

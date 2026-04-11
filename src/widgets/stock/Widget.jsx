@@ -5,8 +5,8 @@ import { Settings } from './Settings';
 import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL, humanizeAge } from './utils';
 
 const DIR_COLOR = {
-  up: '#22c55e',
-  down: '#ef4444',
+  up: 'var(--w-success)',
+  down: 'var(--w-danger)',
   flat: 'var(--w-ink-4)',
 };
 

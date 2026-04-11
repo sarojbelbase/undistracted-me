@@ -26,8 +26,11 @@ const LIGHT_TOKENS = {
   '--w-ink-6': '#9ca3af',  /* gray-400 — decorative/inactive           */
   '--w-surface': '#ffffff',
   '--w-surface-2': '#f9fafb',
+  '--w-surface-3': '#f1f5f9',  /* tertiary surface — icon skeletons    */
   '--w-border': '#e5e7eb',
   '--w-page-bg': '#F0F0F2',
+  '--w-danger': '#ef4444',     /* semantic error / destructive red      */
+  '--w-success': '#22c55e',    /* semantic success / live green         */
 };
 
 const DARK_TOKENS = {
@@ -39,8 +42,11 @@ const DARK_TOKENS = {
   '--w-ink-6': '#6e6e6e',   /* inactive / decorative    3.3:1 ✓ min   */
   '--w-surface': '#1c1c1c', /* mid-point widget card surface            */
   '--w-surface-2': '#252525', /* raised surface — inputs, sub-panels   */
+  '--w-surface-3': '#2a2a2e',  /* tertiary surface — icon skeletons    */
   '--w-border': '#333333',  /* hairline separators                      */
   '--w-page-bg': '#141414', /* page canvas behind widget grid           */
+  '--w-danger': '#f87171',     /* semantic error / destructive red (lighter for dark bg) */
+  '--w-success': '#4ade80',    /* semantic success / live green (lighter for dark bg)    */
 };
 
 const hexToRgb = (hex) => {

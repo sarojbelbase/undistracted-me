@@ -8,7 +8,6 @@ import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
 import { todayStr } from '../../utilities';
 import { EventRow } from '../../components/ui/EventRow';
-import { useSettingsStore } from '../../store';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 
 const STORAGE_KEY = 'countdown_events';
@@ -59,8 +58,6 @@ const sendNotification = (title, body) => {
 
 // ─── Add custom countdown modal ──────────────────────────────────────────────
 const AddModal = ({ onSave, onClose }) => {
-  const { cardStyle } = useSettingsStore();
-  const isGlass = cardStyle === 'glass';
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -107,7 +104,7 @@ const AddModal = ({ onSave, onClose }) => {
 
         <div>
           <div className="text-[10px] font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--w-ink-3)' }}>Repeat</div>
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: isGlass ? 'rgba(255,255,255,0.45)' : 'var(--w-surface-2)', border: isGlass ? '1px solid rgba(0,0,0,0.09)' : '1px solid var(--w-border)' }}>
+          <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
             {REPEAT_OPTIONS.map(r => {
               const active = repeat === r.value;
               return (
@@ -126,7 +123,7 @@ const AddModal = ({ onSave, onClose }) => {
       </div>
 
       <div className="flex justify-end gap-2 px-4 pb-4">
-        <button onClick={onClose} className="px-4 py-1.5 text-sm rounded-xl hover:opacity-70 cursor-pointer" style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--w-ink-2)' }}>Cancel</button>
+        <button onClick={onClose} className="px-4 py-1.5 text-sm rounded-xl hover:opacity-70 cursor-pointer" style={{ background: 'transparent', border: '1px solid var(--w-border)', color: 'var(--w-ink-2)' }}>Cancel</button>
         <button onClick={handleSave} disabled={!valid}
           className="px-4 py-1.5 text-sm rounded-xl transition-colors disabled:opacity-40 cursor-pointer"
           style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
@@ -212,7 +209,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                   <div
                     className="w-0.75 rounded-full self-stretch shrink-0 mx-2 my-2"
                     style={{
-                      background: isPinned ? 'var(--w-accent)' : 'rgba(0,0,0,0.15)',
+                      background: isPinned ? 'var(--w-accent)' : 'var(--w-ink-6)',
                       minHeight: '32px',
                       transition: 'background 0.15s',
                     }}
@@ -260,7 +257,9 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                   {/* Trash */}
                   <button
                     onClick={() => onRemoveCustom(cd.id)}
-                    className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 cursor-pointer shrink-0 mr-1.5"
+                    className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 mr-1.5"
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
                     style={{ color: 'var(--w-ink-4)' }}
                     aria-label={`Remove ${cd.title}`}
                   >
@@ -274,7 +273,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       </div>
 
       {/* Divider */}
-      <div className="mb-4" style={{ height: '1px', background: 'rgba(0,0,0,0.09)' }} />
+      <div className="mb-4" style={{ height: '1px', background: 'var(--w-border)' }} />
 
       {/* ── From Calendar Events ── */}
       <div>
@@ -332,7 +331,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                   <div
                     className="w-0.75 rounded-full self-stretch shrink-0 mx-2 my-2"
                     style={{
-                      background: isPinned ? 'var(--w-accent)' : 'rgba(0,0,0,0.15)',
+                      background: isPinned ? 'var(--w-accent)' : 'var(--w-ink-6)',
                       minHeight: '32px',
                       transition: 'background 0.15s',
                     }}
