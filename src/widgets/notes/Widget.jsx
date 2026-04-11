@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
+import { Modal } from '../../components/ui/Modal';
 
 const PAD = 16;
 
@@ -98,32 +99,21 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   // ── Modal ──
-  const modalOverlay = mode === 'modal' && createPortal(
-    <div
-      className="fixed inset-0 flex items-center justify-center animate-fade-in"
-      style={{ background: 'rgba(0,0,0,0.45)', zIndex: 150 }}
-      onMouseDown={e => { if (e.target === e.currentTarget) close(); }}
-    >
-      <div
-        className="flex flex-col rounded-xl shadow-2xl overflow-hidden animate-fade-in"
-        style={{ width: 640, height: 460, backgroundColor: 'var(--w-surface)' }}
-        onMouseDown={e => e.stopPropagation()}
-      >
-        <div className="flex items-center shrink-0" style={{ height: 36, paddingLeft: PAD }}>
-          <TrafficLights onRed={close} onYellow={close} onGreen={openPage} redLabel="Close" yellowLabel="Close" greenLabel="Full page" yellowDisabled />
-        </div>
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={e => updateSetting('text', e.target.value)}
-          placeholder="New note…"
-          spellCheck={false}
-          className="notes-textarea flex-1 w-full resize-none outline-none text-sm leading-relaxed min-h-0"
-          style={{ color: 'var(--w-ink-1)', background: 'var(--w-surface-2)', padding: PAD, paddingTop: 8 }}
-        />
+  const modalOverlay = mode === 'modal' && (
+    <Modal onClose={close} className="flex flex-col" style={{ width: 640, height: 460 }} ariaLabel="Notes">
+      <div className="flex items-center shrink-0" style={{ height: 36, paddingLeft: PAD }}>
+        <TrafficLights onRed={close} onYellow={close} onGreen={openPage} redLabel="Close" yellowLabel="Close" greenLabel="Full page" yellowDisabled />
       </div>
-    </div>,
-    document.body
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={e => updateSetting('text', e.target.value)}
+        placeholder="New note…"
+        spellCheck={false}
+        className="notes-textarea flex-1 w-full resize-none outline-none text-sm leading-relaxed min-h-0"
+        style={{ color: 'var(--w-ink-1)', background: 'var(--w-surface-2)', padding: PAD, paddingTop: 8 }}
+      />
+    </Modal>
   );
 
   // ── Full-page ──

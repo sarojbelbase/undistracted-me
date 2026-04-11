@@ -97,11 +97,9 @@ export const useSettingsStore = create(
           (mode === 'dark' || mode === 'auto') && prevAccent === 'Default'
             ? 'Blueberry'
             : prevAccent;
-        // Restore only cardStyle saved for the target mode; canvasBg is global
-        const resolvedKey = (mode === 'dark' || mode === 'auto') ? 'dark' : 'light';
-        const savedPrefs = get().modePrefs?.[resolvedKey] ?? {};
-        const cardStyle = savedPrefs.cardStyle ?? 'glass';
-        set({ mode, accent, cardStyle });
+        // cardStyle is a global preference — never overwritten by mode changes
+        const cardStyle = get().cardStyle;
+        set({ mode, accent });
         // For 'auto', theme will be applied by useAutoTheme hook after mount.
         if (mode !== 'auto') applyTheme(accent, mode, cardStyle);
       },

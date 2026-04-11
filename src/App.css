@@ -504,7 +504,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   color: var(--w-ink-1) !important;
 }
 
-[data-mode="dark"] input,
+[data-mode="dark"] input:not([data-ui-input]),
 [data-mode="dark"] textarea:not(.notes-textarea),
 [data-mode="dark"] select {
   background-color: var(--w-surface-2) !important;

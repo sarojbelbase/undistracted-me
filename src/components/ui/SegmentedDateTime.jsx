@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarEvent, Clock, ChevronLeft, ChevronRight } from 'react-bootstrap-icons';
+import { useSettingsStore } from '../../store';
 
 const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -22,9 +23,15 @@ const makeSegStyle = (isActive, hasValue, minW) => ({
   flexShrink: 0,
 });
 
-const VSep = () => (
-  <div style={{ width: '1px', background: 'var(--w-border)', alignSelf: 'stretch', margin: '8px 5px', flexShrink: 0 }} />
-);
+const VSep = ({ isGlass, isDark }) => {
+  let sepBg;
+  if (isGlass) {
+    sepBg = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+  } else {
+    sepBg = 'var(--w-border)';
+  }
+  return <div style={{ width: '1px', background: sepBg, alignSelf: 'stretch', margin: '8px 5px', flexShrink: 0 }} />;
+};
 
 const Slash = () => (
   <span style={{ color: 'var(--w-ink-6)', fontSize: '11px', userSelect: 'none', padding: '0 1px', lineHeight: 1, flexShrink: 0 }}>/</span>
@@ -77,6 +84,20 @@ const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const MINUTES_COARSE = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
 const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinute, onSetAmPm, onTabChange, onClose }) => {
+  const { cardStyle, mode: themeMode } = useSettingsStore();
+  const isGlass = cardStyle === 'glass';
+  const isDark = themeMode === 'dark' || (themeMode === 'auto' && document.documentElement.dataset.mode === 'dark');
+  let popBg, popBorder, trackBg;
+  if (isGlass) {
+    popBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)';
+    popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+    trackBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.35)';
+  } else {
+    popBg = 'var(--w-surface)';
+    popBorder = '1px solid var(--w-border)';
+    trackBg = 'var(--w-surface-2)';
+  }
+  const popBlur = isGlass ? 'blur(20px) saturate(180%)' : undefined;
   const [pos, setPos] = useState(null);
 
   useEffect(() => {
@@ -118,7 +139,8 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
       <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={onClose} aria-hidden="true" />
       <div style={{
         position: 'fixed', top: pos.top, left: pos.left, zIndex: 300,
-        background: 'var(--w-surface)', border: '1px solid var(--w-border)',
+        background: popBg, border: popBorder,
+        backdropFilter: popBlur, WebkitBackdropFilter: popBlur,
         borderRadius: '14px', padding: '10px', width: '188px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15)',
       }}>
@@ -134,7 +156,7 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
             >{tab === 'hour' ? v : String(v).padStart(2, '0')}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '4px', padding: '2px', background: 'var(--w-surface-2)', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', gap: '4px', padding: '2px', background: trackBg, borderRadius: '8px' }}>
           <button type="button" style={makeAmPmStyle(ampm === 'AM')} onClick={() => onSetAmPm('AM')}>AM</button>
           <button type="button" style={makeAmPmStyle(ampm === 'PM')} onClick={() => onSetAmPm('PM')}>PM</button>
         </div>
@@ -145,6 +167,18 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
 };
 
 const CalendarPopover = ({ anchorEl, navYear, navMonth, selYear, selMonth, selDay, onSelectDay, onNavMonth, onClose }) => {
+  const { cardStyle, mode } = useSettingsStore();
+  const isGlass = cardStyle === 'glass';
+  const isDark = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
+  let popBg, popBorder;
+  if (isGlass) {
+    popBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)';
+    popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+  } else {
+    popBg = 'var(--w-surface)';
+    popBorder = '1px solid var(--w-border)';
+  }
+  const popBlur = isGlass ? 'blur(20px) saturate(180%)' : undefined;
   const [pos, setPos] = useState(null);
 
   useEffect(() => {
@@ -186,7 +220,8 @@ const CalendarPopover = ({ anchorEl, navYear, navMonth, selYear, selMonth, selDa
       <div style={{ position: 'fixed', inset: 0, zIndex: 299 }} onClick={onClose} aria-hidden="true" />
       <div style={{
         position: 'fixed', top: pos.top, left: pos.left, zIndex: 300,
-        background: 'var(--w-surface)', border: '1px solid var(--w-border)',
+        background: popBg, border: popBorder,
+        backdropFilter: popBlur, WebkitBackdropFilter: popBlur,
         borderRadius: '14px', padding: '12px', width: '228px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15)',
       }}>
@@ -228,6 +263,9 @@ export const SegmentedDateTime = ({
   time = '',
   onTimeChange,
 }) => {
+  const { cardStyle, mode: themeMode } = useSettingsStore();
+  const isGlass = cardStyle === 'glass';
+  const isDark = themeMode === 'dark' || (themeMode === 'auto' && document.documentElement.dataset.mode === 'dark');
   const wrapRef = useRef(null);
   const [active, setActive] = useState(null);
   const [buf, setBuf] = useState('');
@@ -453,6 +491,22 @@ export const SegmentedDateTime = ({
   else if (mode === 'time') legendLabel = 'Time';
   else legendLabel = 'Date and Time';
 
+  let borderVal;
+  if (isFocused || showCal || showTimePicker) {
+    borderVal = '1px solid color-mix(in srgb, var(--w-accent) 35%, transparent)';
+  } else if (isGlass) {
+    borderVal = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+  } else {
+    borderVal = '1px solid var(--w-border)';
+  }
+
+  let fieldsetBg;
+  if (isGlass) {
+    fieldsetBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.45)';
+  } else {
+    fieldsetBg = 'var(--w-surface-2)';
+  }
+
   return (
     <>
       <fieldset
@@ -463,10 +517,8 @@ export const SegmentedDateTime = ({
           display: 'flex', alignItems: 'center', gap: '2px',
           width: '100%', boxSizing: 'border-box',
           borderRadius: '12px', padding: '0 10px', height: '36px',
-          backgroundColor: 'var(--w-surface-2)',
-          border: (isFocused || showCal || showTimePicker)
-            ? '1px solid color-mix(in srgb, var(--w-accent) 35%, transparent)'
-            : '1px solid var(--w-border)',
+          backgroundColor: fieldsetBg,
+          border: borderVal,
           transition: 'border-color 0.15s', margin: 0,
         }}
       >
@@ -481,15 +533,15 @@ export const SegmentedDateTime = ({
           </>
         )}
 
-        {showDate && showTime && <VSep />}
+        {showDate && showTime && <VSep isGlass={isGlass} isDark={isDark} />}
 
         {showTime && (
           <>
-            {!showDate && <Clock size={12} style={{ color: 'var(--w-ink-5)', flexShrink: 0, marginRight: '4px' }} />}
+            {!showDate && <Clock size={12} style={{ color: 'var(--w-ink-4)', flexShrink: 0, marginRight: '4px' }} />}
             <button type="button" style={makeSegStyle(active === 'hour', hasTime, '26px')} onFocus={() => stepTo('hour')} onKeyDown={(e) => onKey('hour', e)} onClick={() => openTimePicker('hour')}>{dispHour()}</button>
             <Colon />
             <button type="button" style={makeSegStyle(active === 'minute', hasTime, '26px')} onFocus={() => stepTo('minute')} onKeyDown={(e) => onKey('minute', e)} onClick={() => openTimePicker('minute')}>{dispMin()}</button>
-            <VSep />
+            <VSep isGlass={isGlass} isDark={isDark} />
             <button type="button" style={makeSegStyle(active === 'ampm', hasTime, '32px')} onFocus={() => stepTo('ampm')} onKeyDown={(e) => onKey('ampm', e)} onClick={() => openTimePicker('ampm')}>{hasTime ? timeParts.ampm : 'AM'}</button>
           </>
         )}
