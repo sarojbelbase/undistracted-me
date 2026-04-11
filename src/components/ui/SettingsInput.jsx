@@ -29,13 +29,13 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
     wrapBg = 'rgba(255,255,255,0.12)';
     wrapBorder = '1px solid rgba(255,255,255,0.16)';
   } else if (isEffectiveDark) {
-    wrapBg = 'var(--w-surface-2)';
-    wrapBorder = '1px solid var(--w-border)';
+    wrapBg = 'var(--w-panel-bg)';
+    wrapBorder = '1px solid var(--card-border)';
   } else if (isGlass) {
     wrapBg = 'rgba(255,255,255,0.45)';
     wrapBorder = '1px solid rgba(0,0,0,0.09)';
   } else {
-    wrapBg = 'var(--w-surface-2)';
+    wrapBg = 'var(--w-panel-bg)';
     wrapBorder = undefined;
   }
   return (
@@ -77,6 +77,10 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         style={{
           fontSize: '12px',
           fontWeight: 500,
+          ...(isEffectiveDark && {
+            color: 'rgba(255,255,255,0.88)',
+            WebkitTextFillColor: 'rgba(255,255,255,0.88)',
+          }),
           ...style,
         }}
         {...inputProps}

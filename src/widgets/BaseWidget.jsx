@@ -30,17 +30,25 @@ export const BaseWidget = forwardRef(({ children,
   // Computed drop position — null until measured
   const [dropStyle, setDropStyle] = useState(null);
 
-  // Close context menu on outside click — check both button and portal dropdown
+  // Close context menu on outside click or Escape
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => {
+      if (e.type === 'keydown') {
+        if (e.key === 'Escape') { setMenuOpen(false); btnRef.current?.focus(); }
+        return;
+      }
       // Close if click is outside the ⋯ button AND outside the portal dropdown
       const inBtn = menuRef.current?.contains(e.target);
       const inDrop = dropRef.current?.contains(e.target);
       if (!inBtn && !inDrop) setMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', handler);
+    };
   }, [menuOpen]);
 
   // When the dropdown mounts, measure it and compute the best position before paint

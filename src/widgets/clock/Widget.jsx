@@ -65,7 +65,7 @@ export const Widget = ({ id, onRemove }) => {
       {hasTZ && (
         <div
           className={`w-full flex ${extraTimes.length === 1 ? 'justify-center' : 'justify-evenly'} gap-2 pt-2`}
-          style={{ borderTop: '1px solid var(--w-border)' }}
+          style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}
         >
           {extraTimes.map(({ time, period, label }) => (
             <div key={label} className="flex flex-col items-center gap-0.5">

@@ -77,7 +77,7 @@ const StockRow = ({ sym, data, isLast }) => {
   return (
     <div
       className="flex items-center justify-between px-3 py-2 gap-2"
-      style={{ borderBottom: isLast ? 'none' : '1px solid var(--w-border)' }}
+      style={{ borderBottom: isLast ? 'none' : '1px solid var(--card-border)' }}
     >
       {/* Left: symbol on top, price below */}
       <div className="flex flex-col gap-0.5 min-w-0">

@@ -4,13 +4,13 @@ import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 
 const SectionLabel = ({ children }) => (
-  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--w-ink-3)' }}>
+  <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
     {children}
   </p>
 );
 
 const Divider = () => (
-  <div style={{ height: '1px', backgroundColor: 'var(--w-border)' }} />
+  <div style={{ height: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }} />
 );
 
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
@@ -39,6 +39,36 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         boxShadow: 'var(--card-shadow)',
       }}
     >
+      {/* ── Caret arrow pointing up to the gear button ── */}
+      {/* Clip container: only reveals the top triangle of the rotated square */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: -10,
+          right: 8,
+          width: 20,
+          height: 10,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 3,
+            left: 3,
+            width: 14,
+            height: 14,
+            background: 'var(--card-bg)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+            border: '1px solid var(--card-border)',
+            transform: 'rotate(45deg)',
+            transformOrigin: 'center',
+          }}
+        />
+      </div>
+
       {/* ── VIEW ── */}
       <div className="flex flex-col gap-3">
         {/* Launch Mode */}
@@ -52,7 +82,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             const activeHint = modes.find(m => m.id === defaultView)?.hint;
             return (
               <>
-                <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+                <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
                   {modes.map(({ id, label }) => {
                     const selected = defaultView === id;
                     return (
@@ -80,7 +110,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         {/* Appearance */}
         <div>
           <SectionLabel>Appearance</SectionLabel>
-          <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+          <div className="flex gap-1 p-1 rounded-xl overflow-hidden" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
             {[
               { id: 'light', label: 'Light', icon: <SunFill size={11} /> },
               { id: 'auto', label: 'Auto', icon: <CircleHalf size={11} /> },
@@ -107,7 +137,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         {/* Accent */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-3)' }}>Accent</p>
+            <p className="text-[10px] font-bold" style={{ color: 'var(--w-ink-3)' }}>Accent</p>
             <span className="text-[11px] font-semibold" style={{ color: 'var(--w-accent)' }}>{accent}</span>
           </div>
           <div className="grid grid-cols-6 gap-y-2.5" style={{ justifyItems: 'center' }}>
@@ -145,7 +175,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         {/* Segmented control — one pill slides, clear active state */}
         <div
           className="flex gap-1 p-1 rounded-xl overflow-hidden"
-          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+          style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
         >
           {CARD_STYLES.map(({ id, label, hint }) => {
             const selected = cardStyle === id;
@@ -175,8 +205,8 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
           onClick={() => onOpenBgPicker?.()}
           className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 cursor-pointer focus:outline-none"
           style={{
-            background: 'var(--w-surface-2)',
-            border: '1px solid var(--w-border)',
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--card-border)',
             color: 'var(--w-ink-2)',
           }}
         >
@@ -204,7 +234,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             className="relative shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
             style={{
               width: 36, height: 20,
-              backgroundColor: lookAwayEnabled ? 'var(--w-accent)' : 'var(--w-border)',
+              backgroundColor: lookAwayEnabled ? 'var(--w-accent)' : 'var(--w-ink-6)',
             }}
             aria-label={lookAwayEnabled ? 'Disable Look Away' : 'Enable Look Away'}
           >
@@ -224,7 +254,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
         {lookAwayEnabled && (
           <div
             className="flex flex-col gap-2.5 rounded-xl p-3"
-            style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+            style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
           >
             {/* Interval */}
             <div className="flex items-center justify-between">
@@ -243,7 +273,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
                       } : {
                         background: 'transparent',
                         color: 'var(--w-ink-4)',
-                        border: '1px solid var(--w-border)',
+                        border: '1px solid var(--card-border)',
                       }}
                     >
                       {mins === 60 ? '1 hr' : `${mins}m`}
@@ -254,7 +284,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'var(--w-border)' }} />
+            <div style={{ height: 1, background: 'rgba(0,0,0,0.08)' }} />
 
             {/* Notification + Preview */}
             <div className="flex items-center justify-between">
@@ -274,7 +304,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
                   className="relative shrink-0 rounded-full transition-colors duration-200 focus:outline-none"
                   style={{
                     width: 30, height: 16,
-                    backgroundColor: lookAwayNotify ? 'var(--w-accent)' : 'var(--w-border)',
+                    backgroundColor: lookAwayNotify ? 'var(--w-accent)' : 'var(--w-ink-6)',
                   }}
                   aria-label={lookAwayNotify ? 'Disable notification' : 'Enable notification'}
                 >

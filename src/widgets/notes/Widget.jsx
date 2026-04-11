@@ -111,7 +111,7 @@ export const Widget = ({ id, onRemove }) => {
         placeholder="New note…"
         spellCheck={false}
         className="notes-textarea flex-1 w-full resize-none outline-none text-sm leading-relaxed min-h-0"
-        style={{ color: 'var(--w-ink-1)', background: 'var(--w-surface-2)', padding: PAD, paddingTop: 8 }}
+        style={{ color: 'var(--w-ink-1)', background: 'var(--panel-bg)', padding: PAD, paddingTop: 8 }}
       />
     </Modal>
   );
@@ -136,7 +136,7 @@ export const Widget = ({ id, onRemove }) => {
           flex: 1,
           width: '100%',
           resize: 'none',
-          background: 'var(--w-surface-2)',
+          background: 'var(--panel-bg)',
           outline: 'none',
           border: 'none',
           padding: PAD,

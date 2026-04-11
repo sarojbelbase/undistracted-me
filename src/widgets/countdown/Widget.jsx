@@ -7,8 +7,8 @@ import { Modal } from '../../components/ui/Modal';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
 import { todayStr } from '../../utilities';
-import { EventRow } from '../../components/ui/EventRow';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
+import { fmt12, calcDuration } from '../events/utils';
 
 const STORAGE_KEY = 'countdown_events';
 // pinned: { type: 'event', eventId } | { type: 'custom', id } | null
@@ -98,13 +98,13 @@ const AddModal = ({ onSave, onClose }) => {
         />
 
         <div>
-          <div className="text-[10px] font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--w-ink-3)' }}>When</div>
+          <div className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--w-ink-3)' }}>When</div>
           <SegmentedDateTime mode="datetime" date={date} onDateChange={setDate} time={time} onTimeChange={setTime} />
         </div>
 
         <div>
-          <div className="text-[10px] font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--w-ink-3)' }}>Repeat</div>
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+          <div className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--w-ink-3)' }}>Repeat</div>
+          <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
             {REPEAT_OPTIONS.map(r => {
               const active = repeat === r.value;
               return (
@@ -123,7 +123,7 @@ const AddModal = ({ onSave, onClose }) => {
       </div>
 
       <div className="flex justify-end gap-2 px-4 pb-4">
-        <button onClick={onClose} className="px-4 py-1.5 text-sm rounded-xl hover:opacity-70 cursor-pointer" style={{ background: 'transparent', border: '1px solid var(--w-border)', color: 'var(--w-ink-2)' }}>Cancel</button>
+        <button onClick={onClose} className="px-4 py-1.5 text-sm rounded-xl hover:opacity-70 cursor-pointer" style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--w-ink-2)' }}>Cancel</button>
         <button onClick={handleSave} disabled={!valid}
           className="px-4 py-1.5 text-sm rounded-xl transition-colors disabled:opacity-40 cursor-pointer"
           style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
@@ -140,25 +140,22 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       {/* ── Custom Countdowns ── */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-5.5 h-5.5 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: 'color-mix(in srgb, var(--w-accent) 13%, transparent)' }}
-            >
-              <HourglassSplit size={11} style={{ color: 'var(--w-accent)' }} />
-            </div>
-            <span className="text-[12px] font-bold" style={{ color: 'var(--w-ink-1)', letterSpacing: '-0.01em' }}>My Countdowns</span>
-          </div>
-          <TintedChip size="sm" onClick={() => setShowAdd(true)} className="flex items-center gap-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}>My Countdowns</p>
+          <button
+            type="button"
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[10px] px-2.5 py-1"
+            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+          >
             <PlusLg size={9} />
             New
-          </TintedChip>
+          </button>
         </div>
 
         {custom.length === 0 ? (
           <div
             className="rounded-2xl flex flex-col items-center text-center py-7 px-5"
-            style={{ background: 'var(--w-surface-2)', border: '1.5px dashed var(--w-border)' }}
+            style={{ background: 'var(--panel-bg)', border: '1.5px dashed var(--card-border)' }}
           >
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
@@ -166,8 +163,8 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
             >
               <HourglassSplit size={22} style={{ color: 'var(--w-accent)', opacity: 0.75 }} />
             </div>
-            <p className="text-[13px] font-semibold mb-1" style={{ color: 'var(--w-ink-1)' }}>Nothing to count down to</p>
-            <p className="text-[11.5px] leading-relaxed mb-4" style={{ color: 'var(--w-ink-5)', maxWidth: '180px' }}>
+            <p className="w-body font-semibold mb-1">Nothing to count down to</p>
+            <p className="w-muted leading-relaxed mb-4" style={{ maxWidth: '180px' }}>
               Track birthdays, trips, launches — anything that matters.
             </p>
             <TintedChip size="sm" onClick={() => setShowAdd(true)} className="flex items-center gap-1.5">
@@ -194,58 +191,38 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
               return (
                 <div
                   key={cd.id}
-                  className="flex items-center rounded-xl group transition-all"
-                  style={{
-                    opacity: isPast ? 0.4 : 1,
-                    background: isPinned
-                      ? 'color-mix(in srgb, var(--w-accent) 9%, transparent)'
-                      : 'transparent',
-                    border: isPinned
-                      ? '1px solid color-mix(in srgb, var(--w-accent) 22%, transparent)'
-                      : '1px solid transparent',
-                  }}
+                  className="relative flex items-stretch gap-3 group"
+                  style={{ opacity: isPast ? 0.4 : 1 }}
                 >
-                  {/* Left accent bar */}
                   <div
-                    className="w-0.75 rounded-full self-stretch shrink-0 mx-2 my-2"
-                    style={{
-                      background: isPinned ? 'var(--w-accent)' : 'var(--w-ink-6)',
-                      minHeight: '32px',
-                      transition: 'background 0.15s',
-                    }}
+                    className="w-1.5 rounded-xs shrink-0 self-stretch"
+                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
                   />
-
-                  {/* Main clickable content */}
                   <button
                     className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2 pr-1"
                     onClick={() => { onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      {isPinned && (
-                        <div
-                          className="flex items-center gap-1"
-                          style={{ color: 'var(--w-accent)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
-                        >
-                          <svg width="7" height="7" viewBox="0 0 10 10" fill="currentColor"><path d="M5 0L6.2 3.8H10L6.9 6.2 8.1 10 5 7.6 1.9 10 3.1 6.2 0 3.8H3.8Z" /></svg>
-                          Pinned
-                        </div>
-                      )}
                       <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
                         {cd.title}
                       </p>
-                      <div className="flex items-center gap-1" style={{ color: 'var(--w-ink-5)', fontSize: '11px' }}>
-                        <span>{cdDate}</span>
+                      <div className="flex items-center gap-1">
+                        {isPinned && (
+                          <>
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                          </>
+                        )}
+                        <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cdDate}</span>
                         {cd.repeat !== 'none' && (
                           <>
-                            <span style={{ color: 'var(--w-ink-6)' }}>·</span>
-                            <ArrowRepeat size={9} />
-                            <span>{cd.repeat}</span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                            <ArrowRepeat size={9} style={{ color: 'var(--w-ink-5)' }} />
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cd.repeat}</span>
                           </>
                         )}
                       </div>
                     </div>
-
-                    {/* Countdown value badge */}
                     <span
                       className="text-[13px] font-bold shrink-0 tabular-nums"
                       style={{ color: isPast ? 'var(--w-ink-5)' : 'var(--w-accent)' }}
@@ -253,8 +230,6 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                       {cdLabel}
                     </span>
                   </button>
-
-                  {/* Trash */}
                   <button
                     onClick={() => onRemoveCustom(cd.id)}
                     className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 mr-1.5"
@@ -273,24 +248,16 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       </div>
 
       {/* Divider */}
-      <div className="mb-4" style={{ height: '1px', background: 'var(--w-border)' }} />
+      <div className="mb-4" style={{ height: '1px', background: 'rgba(0,0,0,0.1)' }} />
 
       {/* ── From Calendar Events ── */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <div
-            className="w-5.5 h-5.5 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: 'color-mix(in srgb, var(--w-accent) 13%, transparent)' }}
-          >
-            <CalendarEvent size={11} style={{ color: 'var(--w-accent)' }} />
-          </div>
-          <span className="text-[12px] font-bold" style={{ color: 'var(--w-ink-1)', letterSpacing: '-0.01em' }}>From Calendar</span>
-        </div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}>From Calendar</p>
 
         {upcomingEvents.length === 0 ? (
           <div
             className="rounded-2xl flex flex-col items-center text-center py-6 px-5"
-            style={{ background: 'var(--w-surface-2)', border: '1.5px dashed var(--w-border)' }}
+            style={{ background: 'var(--panel-bg)', border: '1.5px dashed var(--card-border)' }}
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center mb-2.5"
@@ -298,8 +265,8 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
             >
               <CalendarEvent size={18} style={{ color: 'var(--w-accent)', opacity: 0.75 }} />
             </div>
-            <p className="text-[13px] font-semibold mb-1" style={{ color: 'var(--w-ink-1)' }}>No upcoming events</p>
-            <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--w-ink-5)', maxWidth: '180px' }}>
+            <p className="w-body font-semibold mb-1">No upcoming events</p>
+            <p className="w-muted leading-relaxed" style={{ maxWidth: '180px' }}>
               Add events in the Events widget and pin them here as countdowns.
             </p>
           </div>
@@ -315,49 +282,36 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                 return `${evMins}m`;
               })();
 
+              const evStartLabel = fmt12(ev.startTime);
+              const evDuration = calcDuration(ev.startTime, ev.endTime, ev.startDate, ev.endDate);
+
               return (
-                <div
-                  key={ev.id}
-                  className="flex items-center rounded-xl group transition-all"
-                  style={{
-                    background: isPinned
-                      ? 'color-mix(in srgb, var(--w-accent) 9%, transparent)'
-                      : 'transparent',
-                    border: isPinned
-                      ? '1px solid color-mix(in srgb, var(--w-accent) 22%, transparent)'
-                      : '1px solid transparent',
-                  }}
-                >
+                <div key={ev.id} className="relative flex items-stretch gap-3 group">
                   <div
-                    className="w-0.75 rounded-full self-stretch shrink-0 mx-2 my-2"
-                    style={{
-                      background: isPinned ? 'var(--w-accent)' : 'var(--w-ink-6)',
-                      minHeight: '32px',
-                      transition: 'background 0.15s',
-                    }}
+                    className="w-1.5 rounded-xs shrink-0 self-stretch"
+                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
                   />
                   <button
-                    className="flex-1 min-w-0 text-left py-2 pr-1 flex items-center justify-between gap-2"
+                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2"
                     onClick={() => { onPin({ type: 'event', eventId: ev.id }); onClose?.(); }}
                   >
-                    <div className="flex-1 min-w-0">
-                      {isPinned && (
-                        <div
-                          className="flex items-center gap-1 mb-1"
-                          style={{ color: 'var(--w-accent)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
-                        >
-                          <svg width="7" height="7" viewBox="0 0 10 10" fill="currentColor"><path d="M5 0L6.2 3.8H10L6.9 6.2 8.1 10 5 7.6 1.9 10 3.1 6.2 0 3.8H3.8Z" /></svg>
-                          Pinned
-                        </div>
-                      )}
-                      <div style={{ pointerEvents: 'none' }}>
-                        <EventRow event={ev} showMeet={false} showPrefix />
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                        {ev.title}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {isPinned && (
+                          <>
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                          </>
+                        )}
+                        {evStartLabel && <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{evStartLabel}</span>}
+                        {evStartLabel && evDuration && <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>}
+                        {evDuration && <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{evDuration}</span>}
                       </div>
                     </div>
-                    <span
-                      className="text-[13px] font-bold shrink-0 tabular-nums"
-                      style={{ color: 'var(--w-accent)' }}
-                    >
+                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: 'var(--w-accent)' }}>
                       {evLabel}
                     </span>
                   </button>
@@ -665,7 +619,7 @@ export const Widget = ({ id, onRemove }) => {
           </div>
 
           {/* Divider — not full height, centered */}
-          <div className="shrink-0 my-auto" style={{ width: '1px', height: '65%', backgroundColor: 'var(--w-border)' }} />
+          <div className="shrink-0 my-auto" style={{ width: '1px', height: '65%', backgroundColor: 'rgba(0,0,0,0.1)' }} />
 
           {/* Right: title + time */}
           <div className="flex-1 flex flex-col justify-center gap-2 pl-4 min-w-0 overflow-hidden">
@@ -698,7 +652,7 @@ export const Widget = ({ id, onRemove }) => {
                 {activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event' && (
                   <span
                     className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'var(--w-surface-2)', color: 'var(--w-ink-4)' }}
+                    style={{ backgroundColor: 'var(--panel-bg)', color: 'var(--w-ink-4)' }}
                   >
                     <ArrowRepeat size={8} />{activeTarget.repeat}
                   </span>

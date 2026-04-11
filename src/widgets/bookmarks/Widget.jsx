@@ -58,7 +58,7 @@ const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
       {!loaded && (
         <div
           className="absolute inset-0 rounded-lg animate-pulse"
-          style={{ backgroundColor: 'var(--w-surface-3)' }}
+          style={{ backgroundColor: 'var(--panel-bg)' }}
         />
       )}
       <img
@@ -121,10 +121,10 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
     <div className="flex flex-col gap-4">
       {/* Live icon preview */}
       {fullUrl && (
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--w-surface-2)' }}>
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--panel-bg)' }}>
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: 'var(--w-surface-3)' }}
+            style={{ backgroundColor: 'var(--panel-bg)' }}
           >
             <FaviconHero
               key={`preview-${fullUrl}-${iconMode}-${previewKey}`}

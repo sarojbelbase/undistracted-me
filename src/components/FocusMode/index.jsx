@@ -25,8 +25,7 @@ import { ClockDisplay } from './ClockDisplay';
 import { GreetingDisplay } from './GreetingDisplay';
 import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
-import { BackgroundPicker } from '../ui/BackgroundPicker';
-import { getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from './BackgroundModal';
+import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from '../ui/BackgroundPicker';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
 
 function useFocusSpotify() {

@@ -124,7 +124,7 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
         />
 
         {/* Helper text */}
-        <p className="text-[11px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>
+        <p className="text-[11px] leading-snug" style={{ color: 'var(--w-ink-4)' }}>
           {location
             ? `Showing weather for ${location.name}`
             : locationDenied
@@ -137,7 +137,7 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
       {suggestions.length > 0 && createPortal(
         <ul
           className="rounded-xl shadow-xl overflow-hidden py-1"
-          style={{ ...dropdownStyle, backgroundColor: 'var(--w-surface)', border: '1px solid var(--w-border)' }}
+          style={{ ...dropdownStyle, background: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
         >
           {suggestions.map((item, i) => {
             const name = [item.name, item.admin1, item.country].filter(Boolean).join(', ');
@@ -145,10 +145,10 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
               <li
                 key={i}
                 onMouseDown={(e) => { e.preventDefault(); select(item); }}
-                className="flex items-center gap-2 px-3 py-2.5 text-xs cursor-pointer transition-colors hover:bg-[var(--w-surface-2)]"
+                className="flex items-center gap-2 px-3 py-2.5 text-xs cursor-pointer transition-colors hover:bg-[rgba(0,0,0,0.05)]"
                 style={{ color: 'var(--w-ink-2)' }}
               >
-                <GeoAlt size={11} style={{ color: 'var(--w-ink-5)', flexShrink: 0 }} />
+                <GeoAlt size={11} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
                 <span className="truncate">{name}</span>
               </li>
             );

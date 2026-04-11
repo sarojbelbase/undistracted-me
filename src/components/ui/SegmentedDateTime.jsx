@@ -28,7 +28,7 @@ const VSep = ({ isGlass, isDark }) => {
   if (isGlass) {
     sepBg = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
   } else {
-    sepBg = 'var(--w-border)';
+    sepBg = 'var(--card-border)';
   }
   return <div style={{ width: '1px', background: sepBg, alignSelf: 'stretch', margin: '8px 5px', flexShrink: 0 }} />;
 };
@@ -93,9 +93,9 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
     popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
     trackBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.35)';
   } else {
-    popBg = 'var(--w-surface)';
-    popBorder = '1px solid var(--w-border)';
-    trackBg = 'var(--w-surface-2)';
+    popBg = 'var(--modal-bg)';
+    popBorder = '1px solid var(--card-border)';
+    trackBg = 'var(--panel-bg)';
   }
   const popBlur = isGlass ? 'blur(20px) saturate(180%)' : undefined;
   const [pos, setPos] = useState(null);
@@ -175,8 +175,8 @@ const CalendarPopover = ({ anchorEl, navYear, navMonth, selYear, selMonth, selDa
     popBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)';
     popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
   } else {
-    popBg = 'var(--w-surface)';
-    popBorder = '1px solid var(--w-border)';
+    popBg = 'var(--modal-bg)';
+    popBorder = '1px solid var(--card-border)';
   }
   const popBlur = isGlass ? 'blur(20px) saturate(180%)' : undefined;
   const [pos, setPos] = useState(null);
@@ -497,14 +497,14 @@ export const SegmentedDateTime = ({
   } else if (isGlass) {
     borderVal = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
   } else {
-    borderVal = '1px solid var(--w-border)';
+    borderVal = '1px solid var(--card-border)';
   }
 
   let fieldsetBg;
   if (isGlass) {
     fieldsetBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.45)';
   } else {
-    fieldsetBg = 'var(--w-surface-2)';
+    fieldsetBg = 'var(--panel-bg)';
   }
 
   return (

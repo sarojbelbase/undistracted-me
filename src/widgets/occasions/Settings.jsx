@@ -55,15 +55,15 @@ const TypeIcon = ({ type, size = 11 }) => {
 };
 
 const SectionHeading = ({ children }) => (
-  <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--w-ink-4)', letterSpacing: '0.09em' }}>
+  <p className="w-label mb-3">
     {children}
   </p>
 );
 
 const inputStyle = {
-  background: 'var(--w-surface-2)',
+  background: 'var(--panel-bg)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--w-border)',
+  border: '1px solid var(--card-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -72,9 +72,9 @@ const inputStyle = {
 };
 
 const selStyle = {
-  background: 'var(--w-surface-2)',
+  background: 'var(--panel-bg)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--w-border)',
+  border: '1px solid var(--card-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -169,8 +169,8 @@ const ManualSection = ({ onManualChange }) => {
                 key={e.id}
                 className="flex items-center gap-3 px-4 py-3"
                 style={{
-                  background: 'var(--w-surface-2)',
-                  borderBottom: i < manual.length - 1 ? '1px solid var(--w-border)' : 'none',
+                  background: 'var(--panel-bg)',
+                  borderBottom: i < manual.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
                 }}
               >
                 <SmAvatar name={e.name} />
@@ -210,11 +210,11 @@ const ManualSection = ({ onManualChange }) => {
       {showAdd && (
         <div
           className="rounded-2xl p-4 flex flex-col gap-4"
-          style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+          style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
         >
           {/* Name */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: 'var(--w-ink-4)' }}>
+            <label className="w-label block mb-2">
               Name
             </label>
             <input
@@ -230,10 +230,10 @@ const ManualSection = ({ onManualChange }) => {
 
           {/* Type */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: 'var(--w-ink-4)' }}>
+            <label className="w-label block mb-2">
               Occasion type
             </label>
-            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}>
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
               {TYPES.map(t => {
                 const active = form.type === t.value;
                 return (
@@ -256,7 +256,7 @@ const ManualSection = ({ onManualChange }) => {
 
           {/* Date */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-widest block mb-2" style={{ color: 'var(--w-ink-4)' }}>
+            <label className="w-label block mb-2">
               Date
             </label>
             <div className="flex gap-2">
@@ -295,7 +295,7 @@ const ManualSection = ({ onManualChange }) => {
             <button
               onClick={cancelAdd}
               className="flex-1 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-              style={{ background: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
+              style={{ background: 'transparent', color: 'var(--w-ink-2)', border: '1px solid rgba(0,0,0,0.12)' }}
             >
               Cancel
             </button>
@@ -337,7 +337,7 @@ export const OccasionsSettings = ({
       onSync={onSync}
       onDisconnect={onDisconnect}
     />
-    <div style={{ height: 1, background: 'var(--w-border)' }} />
+    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)' }} />
     <ManualSection onManualChange={onManualChange} />
   </div>
 );

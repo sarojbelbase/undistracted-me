@@ -5,10 +5,7 @@ import { useSettingsStore } from '../../store';
 // tokens rather than theme CSS variables (which may be light-mode in canvas).
 
 const FMLabel = ({ children }) => (
-  <p
-    className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em]"
-    style={{ color: 'rgba(255,255,255,0.38)' }}
-  >
+  <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--w-ink-5)' }}>
     {children}
   </p>
 );

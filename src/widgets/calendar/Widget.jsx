@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect,  useRef, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
@@ -148,7 +147,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
 
       <div className="mt-2 grid grid-cols-7 gap-x-1 gap-y-0.5 text-center text-sm flex-1 content-start">
         {WEEK_DAYS.map((day) => (
-          <div key={day} className="font-bold pb-1" style={{ color: 'var(--w-ink-3)' }}>{day}</div>
+          <div key={day} className="w-label pb-1">{day}</div>
         ))}
         {calendarData.days.map((day, index) => {
           const col = index % 7;

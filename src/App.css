@@ -425,12 +425,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     color: var(--w-ink-4);
   }
 
-  /* Level 7 — Label: settings section headers (ALL CAPS + tracking) */
+  /* Level 7 — Label: settings section headers */
   .w-label {
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--w-ink-4);
   }
 
@@ -1140,13 +1138,11 @@ textarea:focus-visible,
 .wc-section-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   padding: 20px 18px 8px 18px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--wc-ink-4);
+  font-weight: 500;
+  color: var(--wc-ink-5);
 }
 
 .wc-section-header::after {
@@ -1159,7 +1155,10 @@ textarea:focus-visible,
 .wc-section-icon {
   display: flex;
   align-items: center;
-  color: var(--wc-ink-5);
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--wc-ink-3);
   flex-shrink: 0;
 }
 
@@ -1219,7 +1218,6 @@ textarea:focus-visible,
   background: var(--wc-bg);
   color: var(--wc-ink-1);
   border-color: var(--wc-border-med);
-  box-shadow: var(--card-shadow);
 }
 
 /* Text block */
@@ -1365,7 +1363,7 @@ textarea:focus-visible,
 
 .wc-footer-err {
   font-size: 10.5px;
-  color: #b71c1c;
+  color: var(--wc-danger-fg);
 }
 
 .wc-momo-link {

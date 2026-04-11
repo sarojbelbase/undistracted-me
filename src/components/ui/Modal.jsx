@@ -49,9 +49,19 @@ export const Modal = ({
       tabIndex={-1}
       className="fixed inset-0 z-100 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
     >
+      {/* Backdrop overlay — dark scrim in flat mode, blur in glass mode */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background: 'var(--modal-overlay-bg)',
+          backdropFilter: 'var(--modal-overlay-blur)',
+          WebkitBackdropFilter: 'var(--modal-overlay-blur)',
+        }}
+      />
       {title ? (
         <div
-          className={`flex flex-col rounded-2xl overflow-hidden animate-fade-in ${className}`}
+          className={`relative flex flex-col rounded-2xl overflow-hidden animate-fade-in ${className}`}
           style={{ ...panelStyle, maxHeight }}
         >
           <div
@@ -76,7 +86,7 @@ export const Modal = ({
         </div>
       ) : (
         <div
-          className={`rounded-2xl overflow-hidden animate-fade-in ${className}`}
+          className={`relative rounded-2xl overflow-hidden animate-fade-in ${className}`}
           style={panelStyle}
         >
           {children}

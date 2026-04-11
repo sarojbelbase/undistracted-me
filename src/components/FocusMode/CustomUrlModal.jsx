@@ -196,7 +196,7 @@ export const CustomUrlModal = ({ onApply, onClose }) => {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="customBgUrlInput"
-              className="text-[10px] font-bold uppercase tracking-[0.14em]"
+              className="text-[10px] font-bold tracking-[0.14em]"
               style={{ color: 'rgba(255,255,255,0.26)' }}
             >
               Image URL
