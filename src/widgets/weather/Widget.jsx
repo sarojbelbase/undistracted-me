@@ -21,7 +21,7 @@ import { Popup } from '../../components/ui/Popup.jsx';
 const Bone = ({ width, height, className = '' }) => (
   <div
     className={`animate-pulse rounded ${className}`}
-    style={{ width, height, backgroundColor: 'var(--w-surface-2)', flexShrink: 0 }}
+    style={{ width, height, backgroundColor: 'var(--panel-bg)', flexShrink: 0 }}
   />
 );
 
@@ -65,7 +65,7 @@ const PrecipBars = ({ popSlots, eventHour }) => (
             width: '5px',
             height: `${Math.max(2, Math.round((pop / 100) * 16))}px`,
             borderRadius: '1.5px',
-            backgroundColor: isActive ? 'var(--w-ink-3)' : 'var(--w-surface-2)',
+            backgroundColor: isActive ? 'var(--w-ink-3)' : 'var(--panel-bg)',
             opacity: isActive ? Math.max(0.2, pop / 100) : 1,
           }}
         />
@@ -183,8 +183,8 @@ export const Widget = ({ id = 'weather', onRemove }) => {
       {locationDenied && !location ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
           <GeoAlt size={22} style={{ color: 'var(--w-ink-4)', opacity: 0.65 }} />
-          <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Location needed</p>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
+          <p className="w-muted font-semibold">Location needed</p>
+          <p className="w-caption leading-relaxed">
             Open{' '}
             <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span>
             {' '}to search for your city.
@@ -195,8 +195,8 @@ export const Widget = ({ id = 'weather', onRemove }) => {
       ) : error ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
           <GeoAlt size={22} style={{ color: 'var(--w-ink-4)', opacity: 0.65 }} />
-          <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Couldn&apos;t load weather</p>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
+          <p className="w-muted font-semibold">Couldn&apos;t load weather</p>
+          <p className="w-caption leading-relaxed">
             Open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span> to check your location.
           </p>
         </div>

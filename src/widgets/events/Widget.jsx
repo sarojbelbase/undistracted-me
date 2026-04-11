@@ -93,7 +93,7 @@ export const Widget = ({ onRemove }) => {
         {upcomingEvents.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
             <CalendarEvent size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
-            <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>
+            <p className="w-muted font-semibold">
               No upcoming events
             </p>
           </div>

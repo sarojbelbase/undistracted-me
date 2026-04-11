@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import {
   getTimeZoneAwareDayJsInstance,
   convertEnglishToNepali,
@@ -55,23 +56,15 @@ export const ClockWidget = ({ widgetId }) => {
 
   const settingsContent = (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--w-ink-4)' }}>Language</span>
-      {[
-        { label: 'English', value: LANGUAGES.en },
-        { label: 'Nepali', value: LANGUAGES.ne },
-      ].map(({ label, value }) => (
-        <label key={value} className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name={`${widgetId}-lang`}
-            value={value}
-            checked={language === value}
-            onChange={() => updateSetting('language', value)}
-            className="accent-[color:var(--w-accent)]"
-          />
-          <span className="text-sm" style={{ color: 'var(--w-ink-3)' }}>{label}</span>
-        </label>
-      ))}
+      <SegmentedControl
+        label="Language"
+        options={[
+          { label: 'English', value: LANGUAGES.en },
+          { label: 'Nepali', value: LANGUAGES.ne },
+        ]}
+        value={language}
+        onChange={(v) => updateSetting('language', v)}
+      />
     </div>
   );
 
@@ -88,7 +81,7 @@ export const ClockWidget = ({ widgetId }) => {
 
       {/* Huge date number — bottom of card */}
       <div className="flex-1 flex items-end">
-        <span className="text-[clamp(4.5rem,10vw,8rem)] font-bold leading-none text-gray-900">
+        <span className="w-display text-[clamp(4.5rem,10vw,8rem)]">
           {parts.day}
         </span>
       </div>

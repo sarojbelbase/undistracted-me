@@ -74,15 +74,15 @@ const Tile = ({ href, url, title }) => {
           backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
           border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
         } : {
-          backgroundColor: loading ? 'var(--w-surface-3)' : 'var(--w-surface-2)',
-          border: loading ? '1px solid transparent' : '1px solid var(--w-border)',
+          backgroundColor: loading ? 'var(--w-surface-3)' : 'var(--panel-bg)',
+          border: loading ? '1px solid transparent' : '1px solid var(--card-border)',
         }}
       >
         <Favicon url={url} onColor={setColor} onSettled={onSettled} />
       </div>
       <span
         className="w-full text-center truncate px-0.5"
-        style={{ fontSize: "9px", lineHeight: "1.2", color: "var(--w-ink-5)", fontWeight: 500 }}
+        style={{ fontSize: "9px", lineHeight: "1.2", color: "var(--w-ink-4)", fontWeight: 500 }}
       >
         {title}
       </span>

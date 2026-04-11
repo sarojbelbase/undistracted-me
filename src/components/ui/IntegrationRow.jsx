@@ -37,8 +37,8 @@ export const IntegrationRow = ({
       {/* ── Section label row: icon + label left · synced-at right ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          {icon && <span style={{ color: 'var(--w-ink-5)' }}>{icon}</span>}
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--w-ink-5)' }}>
+          {icon && <span style={{ color: 'var(--w-ink-4)' }}>{icon}</span>}
+          <span className="text-[10px] font-bold" style={{ color: 'var(--w-ink-4)' }}>
             {label}
           </span>
         </div>

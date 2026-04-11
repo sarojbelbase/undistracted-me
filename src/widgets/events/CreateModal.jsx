@@ -1,28 +1,15 @@
 import { useState } from 'react';
 import { XLg, CalendarEvent, Clock, HourglassSplit } from 'react-bootstrap-icons';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Modal } from '../../components/ui/Modal';
-import { useSettingsStore } from '../../store';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
   getDateOffset, applyDuration, todayStr
 } from './utils';
 
 export const CreateModal = ({ onSave, onClose }) => {
-  const { cardStyle, mode } = useSettingsStore();
-  const isGlass = cardStyle === 'glass';
-  const isDark = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
-  const divider = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-  const cancelBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.12)';
-  let trackBg, trackBorder;
-  if (isGlass) {
-    trackBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.45)';
-    trackBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
-  } else {
-    trackBg = 'var(--w-surface-2)';
-    trackBorder = '1px solid var(--w-border)';
-  }
   const [form, setForm] = useState({ ...EMPTY_FORM, startDate: todayStr() });
   const [dateChip, setDateChip] = useState('today');
   const [durType, setDurType] = useState(null);
@@ -65,9 +52,18 @@ export const CreateModal = ({ onSave, onClose }) => {
   const sectionLabel = (icon, text) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
       {icon}
-      <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--w-ink-3)' }}>{text}</span>
+      <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>{text}</span>
     </div>
   );
+
+  const dateOptions = DATE_CHIPS.map(c => ({ label: c.label, value: c.key }));
+  const durOptions = DURATION_PILLS.map(p => ({ label: p.label, value: p.mins === null ? 'custom' : String(p.mins) }));
+  let durValue = null;
+  if (durType === 'custom') {
+    durValue = 'custom';
+  } else if (durType !== null) {
+    durValue = String(durType);
+  }
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel="New Event">
@@ -82,8 +78,8 @@ export const CreateModal = ({ onSave, onClose }) => {
             <CalendarEvent size={14} style={{ color: 'var(--w-accent-fg)' }} />
           </div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--w-ink-1)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>New Event</div>
-            <div style={{ fontSize: '11px', color: 'var(--w-ink-4)', marginTop: 1 }}>Add to your calendar</div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>New Event</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>Add to your calendar</div>
           </div>
         </div>
         <button
@@ -97,7 +93,7 @@ export const CreateModal = ({ onSave, onClose }) => {
         </button>
       </div>
 
-      <div style={{ height: 1, background: divider }} />
+      <div style={{ height: 1, background: 'var(--card-border)' }} />
 
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -117,85 +113,55 @@ export const CreateModal = ({ onSave, onClose }) => {
         <div>
           {sectionLabel(<Clock size={10} style={{ color: 'var(--w-ink-3)' }} />, 'Starts at')}
 
-          {/* Segmented day picker */}
-          <div style={{
-            display: 'flex', background: trackBg,
-            borderRadius: 11, padding: 3, border: trackBorder,
-            marginBottom: 10,
-          }}>
-            {DATE_CHIPS.map(chip => (
-              <button key={chip.key} type="button"
-                onClick={() => handleDateChip(chip)}
-                style={{
-                  flex: 1, padding: '6px 0', borderRadius: 8,
-                  fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.15s',
-                  background: dateChip === chip.key ? 'var(--w-accent)' : 'transparent',
-                  color: dateChip === chip.key ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                  boxShadow: dateChip === chip.key ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
-                }}
-              >{chip.label}</button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={dateOptions}
+            value={dateChip}
+            onChange={(key) => handleDateChip(DATE_CHIPS.find(c => c.key === key))}
+          />
 
-          {/* Date + time fields */}
-          {dateChip === 'custom' ? (
-            <SegmentedDateTime
-              mode="datetime"
-              date={form.startDate}
-              time={form.startTime}
-              onDateChange={(d) => updateStart(d, form.startTime)}
-              onTimeChange={(t) => updateStart(form.startDate, t)}
-            />
-          ) : (
-            <SegmentedDateTime
-              mode="time"
-              time={form.startTime}
-              onTimeChange={(t) => updateStart(form.startDate, t)}
-            />
-          )}
+          <div style={{ marginTop: 10 }}>
+            {dateChip === 'custom' ? (
+              <SegmentedDateTime
+                mode="datetime"
+                date={form.startDate}
+                time={form.startTime}
+                onDateChange={(d) => updateStart(d, form.startTime)}
+                onTimeChange={(t) => updateStart(form.startDate, t)}
+              />
+            ) : (
+              <SegmentedDateTime
+                mode="time"
+                time={form.startTime}
+                onTimeChange={(t) => updateStart(form.startDate, t)}
+              />
+            )}
+          </div>
         </div>
 
         {/* Ends at (duration) */}
         <div>
           {sectionLabel(<HourglassSplit size={10} style={{ color: 'var(--w-ink-3)' }} />, 'Ends at')}
-          <div style={{
-            display: 'flex', background: trackBg,
-            borderRadius: 11, padding: 3, border: trackBorder,
-            marginBottom: durType === 'custom' ? 10 : 0,
-          }}>
-            {DURATION_PILLS.map(p => {
-              const active = p.mins === null ? durType === 'custom' : durType === p.mins;
-              return (
-                <button key={p.label} type="button"
-                  onClick={() => handleDurationPill(p)}
-                  style={{
-                    flex: 1, padding: '6px 0', borderRadius: 8,
-                    fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
-                    textAlign: 'center', transition: 'all 0.15s',
-                    background: active ? 'var(--w-accent)' : 'transparent',
-                    color: active ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
-                  }}
-                >{p.label}</button>
-              );
-            })}
-          </div>
+          <SegmentedControl
+            options={durOptions}
+            value={durValue}
+            onChange={(val) => handleDurationPill(DURATION_PILLS.find(p => (p.mins === null ? 'custom' : String(p.mins)) === val))}
+          />
           {durType === 'custom' && (
-            <SegmentedDateTime
-              mode="datetime"
-              date={form.endDate}
-              time={form.endTime}
-              onDateChange={(d) => setForm(f => ({ ...f, endDate: d }))}
-              onTimeChange={(t) => setForm(f => ({ ...f, endTime: t }))}
-            />
+            <div style={{ marginTop: 10 }}>
+              <SegmentedDateTime
+                mode="datetime"
+                date={form.endDate}
+                time={form.endTime}
+                onDateChange={(d) => setForm(f => ({ ...f, endDate: d }))}
+                onTimeChange={(t) => setForm(f => ({ ...f, endTime: t }))}
+              />
+            </div>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ height: 1, background: divider }} />
+      <div style={{ height: 1, background: 'var(--card-border)' }} />
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
         <button
           type="button"
@@ -203,7 +169,7 @@ export const CreateModal = ({ onSave, onClose }) => {
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: cancelBorder, background: 'transparent',
+            border: '1px solid rgba(0,0,0,0.12)', background: 'transparent',
             color: 'var(--w-ink-2)', transition: 'all 0.15s',
           }}
         >Cancel</button>

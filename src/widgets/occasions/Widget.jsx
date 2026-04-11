@@ -66,7 +66,7 @@ const DaysChip = ({ days }) => {
     return (
       <span
         className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-        style={{ background: 'var(--w-surface-2)', color: 'var(--w-ink-3)', border: '1px solid var(--w-border)' }}
+        style={{ background: 'var(--panel-bg)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
       >
         Tomorrow
       </span>
@@ -99,12 +99,12 @@ const ConnectPrompt = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
     <PersonHeart size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.6 }} />
     <div className="flex flex-col items-center gap-1.5">
-      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Not connected</p>
+      <p className="w-muted font-semibold">Not connected</p>
       <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
         Open the{' '}
         <span
           className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle"
-          style={{ backgroundColor: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+          style={{ backgroundColor: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
         >
           <svg width="10" height="3" viewBox="0 0 14 4" fill="currentColor" style={{ color: 'var(--w-ink-3)' }}>
             <circle cx="2" cy="2" r="1.5" /><circle cx="7" cy="2" r="1.5" /><circle cx="12" cy="2" r="1.5" />
@@ -119,7 +119,7 @@ const ConnectPrompt = () => (
 const EmptyState = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-1.5 px-4 py-2">
     <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>🎊</span>
-    <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Nothing coming up</p>
+    <p className="w-muted font-semibold">Nothing coming up</p>
     <p className="w-muted">No birthdays in your contacts</p>
   </div>
 );
@@ -131,7 +131,7 @@ const ListRow = ({ entry, isLast, highlight }) => {
     <div
       className="flex items-center gap-2.5 px-4 py-2.5"
       style={{
-        borderBottom: isLast ? 'none' : '1px solid var(--w-border)',
+        borderBottom: isLast ? 'none' : '1px solid rgba(0,0,0,0.1)',
         background: highlight
           ? 'color-mix(in srgb, var(--w-accent) 5%, transparent)'
           : undefined,

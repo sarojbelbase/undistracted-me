@@ -37,7 +37,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
           <span className="w-label">Extra Clocks</span>
           <span
             className="text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded"
-            style={{ color: 'var(--w-accent)', background: 'var(--w-surface-2)' }}
+            style={{ color: 'var(--w-accent)', background: 'var(--panel-bg)' }}
           >
             {timezones.length} / 2
           </span>
@@ -56,7 +56,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
                 key={idx}
                 className="flex items-center justify-between rounded-xl px-3 py-2.5"
                 style={{
-                  background: 'var(--w-surface-2)',
+                  background: 'var(--panel-bg)',
                   border: '1.5px solid var(--w-accent)',
                 }}
               >
@@ -89,7 +89,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
                 className="w-full text-xs px-3 py-2 rounded-xl cursor-pointer outline-none"
                 style={{
                   background: 'transparent',
-                  border: '1.5px dashed var(--w-border)',
+                  border: '1.5px dashed var(--card-border)',
                   color: 'var(--w-ink-4)',
                   appearance: 'none',
                   WebkitAppearance: 'none',

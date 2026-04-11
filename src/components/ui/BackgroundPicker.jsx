@@ -33,6 +33,18 @@ import {
 
 // ─── Orb colour palettes (shared + exported) ────────────────────────────────
 
+// ─── Focus mode localStorage helpers (exported so BackgroundModal.jsx is no longer needed) ──
+const CUSTOM_URL_KEY = 'fm_custom_bg_url';
+export const getCustomBgUrl = () => { try { return localStorage.getItem(CUSTOM_URL_KEY) || null; } catch { return null; } };
+export const setCustomBgUrl = (url) => { try { if (url) localStorage.setItem(CUSTOM_URL_KEY, url); else localStorage.removeItem(CUSTOM_URL_KEY); } catch { } };
+
+const ORB_PALETTE_KEY = 'fm_orb_palette_id';
+const getOrbPaletteId = () => { try { return localStorage.getItem(ORB_PALETTE_KEY) || 'blueberry'; } catch { return 'blueberry'; } };
+export const getOrbRgb = () => {
+  const id = getOrbPaletteId();
+  return id === 'accent' ? null : (ORB_PALETTES.find(p => p.id === id)?.rgb || null);
+};
+
 export const ORB_PALETTES = [
   { id: 'blueberry', label: 'Blueberry', rgb: '54,133,230' },
   { id: 'strawberry', label: 'Strawberry', rgb: '198,38,46' },
@@ -85,7 +97,13 @@ const ActiveBadge = () => (
 
 const SolidPanel = ({ isActive, onApply }) => (
   <div className="flex flex-col items-center gap-4">
-    <div className="w-full rounded-xl overflow-hidden relative" style={{ aspectRatio: '16/9' }}>
+    <div
+      className={`w-full rounded-xl overflow-hidden relative${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      style={{ aspectRatio: '16/9' }}
+      onClick={!isActive ? onApply : undefined}
+      role={!isActive ? 'button' : undefined}
+      aria-label={!isActive ? 'Use Solid' : undefined}
+    >
       {/* Preview: accent-tinted page colour — mirrors App.jsx pageBg computation */}
       <div className="w-full h-full" style={{
         background: 'color-mix(in srgb, var(--w-accent) 10%, var(--w-page-bg))',
@@ -95,13 +113,6 @@ const SolidPanel = ({ isActive, onApply }) => (
     <p className="text-xs text-center" style={{ color: 'var(--w-ink-4)' }}>
       A solid tint of your current accent colour — no animations.
     </p>
-    {!isActive && (
-      <button onClick={onApply}
-        className="px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-        Use Solid
-      </button>
-    )}
   </div>
 );
 
@@ -109,17 +120,16 @@ const SolidPanel = ({ isActive, onApply }) => (
 
 const DefaultPanel = ({ isActive, onApply }) => (
   <div className="flex flex-col items-center gap-4">
-    <div className="w-full rounded-xl overflow-hidden relative" style={{ aspectRatio: '16/9', background: 'var(--w-surface-2)' }}>
+    <div
+      className={`w-full rounded-xl overflow-hidden relative${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      style={{ aspectRatio: '16/9', background: 'var(--panel-bg)' }}
+      onClick={!isActive ? onApply : undefined}
+      role={!isActive ? 'button' : undefined}
+      aria-label={!isActive ? 'Use Default' : undefined}
+    >
       <img src={bgImage} alt="Default background" className="w-full h-full object-cover" />
       {isActive && <ActiveBadge />}
     </div>
-    {!isActive && (
-      <button onClick={onApply}
-        className="px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-        Use Default
-      </button>
-    )}
   </div>
 );
 
@@ -134,8 +144,13 @@ const OrbPanel = ({ isActive, onApply, scope = 'canvas' }) => {
   return (
     <div className="flex flex-col gap-4">
       {/* Mini orb preview — uses the current accent colour */}
-      <div className="w-full rounded-xl overflow-hidden relative select-none"
-        style={{ aspectRatio: '16/9', background: previewBg }} aria-hidden>
+      <div
+        className={`w-full rounded-xl overflow-hidden relative select-none${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+        style={{ aspectRatio: '16/9', background: previewBg }}
+        onClick={!isActive ? () => onApply({ orbId: 'accent' }) : undefined}
+        role={!isActive ? 'button' : undefined}
+        aria-label={!isActive ? 'Use Color Motion' : undefined}
+      >
         <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
           <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)', filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
           <div style={{ position: 'absolute', width: '45%', height: '45%', top: '5%', right: '5%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.32) 0%, transparent 65%)', filter: 'blur(24px)' }} />
@@ -144,13 +159,6 @@ const OrbPanel = ({ isActive, onApply, scope = 'canvas' }) => {
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: vignetteBg }} />
         {isActive && <ActiveBadge />}
       </div>
-      {!isActive && (
-        <button onClick={() => onApply({ orbId: 'accent' })}
-          className="w-full py-2 rounded-xl text-xs font-semibold cursor-pointer hover:opacity-90"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}>
-          Use Color Motion
-        </button>
-      )}
     </div>
   );
 };
@@ -256,7 +264,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.28)' }} />
             {isDefaultActive && <ActiveBadge />}
             <div className="absolute bottom-1 left-1 pointer-events-none">
-              <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.52)', color: '#fff', letterSpacing: '0.06em' }}>Built-in</span>
+              <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.52)', color: '#fff', letterSpacing: '0.06em' }}>Default</span>
             </div>
           </button>
 
@@ -291,11 +299,11 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           {Array.from({ length: LIBRARY_MAX - library.length }).map((_, i) => {
             const isFirst = i === 0;
             const isShimmering = downloading && !isFirst;
-            const slotBg = dark ? 'rgba(255,255,255,0.06)' : 'var(--w-surface-2)';
-            const slotBorder = dark ? '1px solid rgba(255,255,255,0.10)' : '1px solid var(--w-border)';
+            const slotBg = dark ? 'rgba(255,255,255,0.06)' : 'var(--panel-bg)';
+            const slotBorder = dark ? '1px solid rgba(255,255,255,0.10)' : '1px solid var(--card-border)';
             const shimmerBg = dark
               ? 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)'
-              : 'linear-gradient(90deg, var(--w-surface-2) 0%, var(--w-border) 50%, var(--w-surface-2) 100%)';
+              : 'linear-gradient(90deg, var(--panel-bg) 0%, var(--card-border) 50%, var(--panel-bg) 100%)';
             const iconColor = (() => {
               if (isFirst) return dark ? 'rgba(255,255,255,0.55)' : 'var(--w-ink-4)';
               return dark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)';
@@ -399,8 +407,8 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply, dark = false }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: dark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-4)' }} htmlFor="bpUrlInput">
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-semibold" style={{ color: dark ? 'rgba(255,255,255,0.65)' : 'var(--w-ink-3)' }} htmlFor="bpUrlInput">
           Image URL
         </label>
         <div className="flex gap-2 items-center">
@@ -415,19 +423,19 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply, dark = false }) => {
             />
           </div>
           <button onClick={verify} disabled={!syntaxOk || status === 'checking'}
-            className="px-3.5 py-2 rounded-xl text-[11px] font-semibold focus:outline-none disabled:opacity-40 shrink-0"
+            className="px-3.5 py-2 rounded-xl text-[11px] font-semibold focus:outline-none disabled:opacity-40 shrink-0 cursor-pointer"
             style={dark
-              ? { background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.13)', color: 'rgba(255,255,255,0.72)', cursor: syntaxOk ? 'pointer' : 'not-allowed' }
-              : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-2)', cursor: syntaxOk ? 'pointer' : 'not-allowed' }}>
+              ? { background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }
+              : { background: 'var(--panel-bg)', border: '1px solid var(--card-border)', color: 'var(--w-ink-2)' }}>
             Verify
           </button>
         </div>
-        {hint && !errorMsg && <p className="text-[10px]" style={{ color: 'rgba(234,179,8,0.9)' }}>{hint}</p>}
-        {errorMsg && <p className="text-[10px]" style={{ color: dark ? 'rgba(252,129,129,0.9)' : 'rgba(220,38,38,0.9)' }}>{errorMsg}</p>}
+        {hint && !errorMsg && <p className="text-xs" style={{ color: dark ? 'rgba(251,191,36,0.95)' : 'rgba(161,118,0,0.9)' }}>{hint}</p>}
+        {errorMsg && <p className="text-xs font-medium" style={{ color: dark ? 'rgba(252,129,129,1)' : 'rgba(220,38,38,0.9)' }}>{errorMsg}</p>}
       </div>
 
       {previewUrl && (
-        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: dark ? 'rgba(255,255,255,0.06)' : 'var(--w-surface-2)' }}>
+        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: dark ? 'rgba(255,255,255,0.06)' : 'var(--panel-bg)' }}>
           <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" style={{ opacity: status === 'ok' ? 1 : 0.5 }} />
         </div>
       )}
@@ -435,15 +443,15 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply, dark = false }) => {
       <div className="flex gap-2">
         {initialCustomUrl && (
           <button onClick={handleClear}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+            className="flex-1 py-2 rounded-xl text-xs font-semibold cursor-pointer focus:outline-none"
             style={dark
-              ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.65)' }
-              : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)', color: 'var(--w-ink-3)' }}>
+              ? { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.78)' }
+              : { background: 'var(--panel-bg)', border: '1px solid var(--card-border)', color: 'var(--w-ink-3)' }}>
             Clear
           </button>
         )}
         <button onClick={handleApply} disabled={!value.trim()}
-          className="flex-1 py-2 rounded-xl text-xs font-semibold focus:outline-none disabled:opacity-40"
+          className="flex-1 py-2 rounded-xl text-xs font-semibold focus:outline-none disabled:opacity-40 cursor-pointer"
           style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', cursor: value.trim() ? 'pointer' : 'not-allowed' }}>
           {isActive ? 'Update URL' : 'Use This URL'}
         </button>
@@ -512,9 +520,9 @@ export const BackgroundPicker = ({
     : {
       cardBg: 'var(--w-surface)',
       cardBdFilter: undefined,
-      cardBorder: 'var(--w-border)',
+      cardBorder: 'var(--card-border)',
       cardShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-      divider: 'var(--w-border)',
+      divider: 'var(--card-border)',
       title: 'var(--w-ink-1)',
       sub: 'var(--w-ink-4)',
       closeBtn: 'var(--w-ink-4)',

@@ -11,6 +11,9 @@
  *   --card-border  border-color (rgba)
  *   --card-blur    backdropFilter value, or 'none'
  *   --card-shadow  box-shadow value, or 'none'
+ *   --panel-bg     inner sub-panel / section background —
+ *                  translucent in glass (preserves frosted look),
+ *                  solid surface-2 equivalent in flat
  */
 
 export const CARD_STYLES = [
@@ -27,6 +30,9 @@ export const CARD_STYLE_TOKENS = {
       '--card-shadow': '0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
       '--modal-bg': '#ffffff',
       '--modal-shadow': '0 8px 40px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)',
+      '--modal-overlay-bg': 'rgba(0,0,0,0.38)',
+      '--modal-overlay-blur': 'none',
+      '--panel-bg': '#f9fafb',
     },
     dark: {
       '--card-bg': '#1c1c1c',
@@ -35,6 +41,9 @@ export const CARD_STYLE_TOKENS = {
       '--card-shadow': '0 2px 10px rgba(0,0,0,0.45)',
       '--modal-bg': '#1c1c1c',
       '--modal-shadow': '0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.3)',
+      '--modal-overlay-bg': 'rgba(0,0,0,0.55)',
+      '--modal-overlay-blur': 'none',
+      '--panel-bg': '#252525',
     },
   },
   glass: {
@@ -45,6 +54,9 @@ export const CARD_STYLE_TOKENS = {
       '--card-shadow': 'inset 0 1px 0 rgba(255,255,255,0.90), 0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
       '--modal-bg': '#ffffff',
       '--modal-shadow': '0 8px 40px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.07)',
+      '--modal-overlay-bg': 'rgba(0,0,0,0.10)',
+      '--modal-overlay-blur': 'blur(10px) saturate(150%)',
+      '--panel-bg': 'rgba(255,255,255,0.55)',
     },
     dark: {
       '--card-bg': 'rgba(255,255,255,0.10)',
@@ -53,6 +65,9 @@ export const CARD_STYLE_TOKENS = {
       '--card-shadow': 'inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 16px rgba(0,0,0,0.45)',
       '--modal-bg': '#1c1c1e',
       '--modal-shadow': '0 8px 40px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.35)',
+      '--modal-overlay-bg': 'rgba(0,0,0,0.22)',
+      '--modal-overlay-blur': 'blur(10px) saturate(150%)',
+      '--panel-bg': 'rgba(255,255,255,0.07)',
     },
   },
 };

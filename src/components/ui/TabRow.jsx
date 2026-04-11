@@ -16,7 +16,7 @@ export const TabRow = ({ tabs, value, onChange, dark = false }) => {
       className="flex gap-1 p-1 rounded-xl"
       style={dark
         ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }
-        : { background: 'var(--w-surface-2)', border: '1px solid var(--w-border)' }}
+        : { background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
     >
       {tabs.map(({ id, label, hint }) => {
         const selected = value === id;
@@ -26,8 +26,8 @@ export const TabRow = ({ tabs, value, onChange, dark = false }) => {
             type="button"
             onClick={() => onChange(id)}
             className={`flex-1 transition-all focus:outline-none cursor-pointer rounded-lg ${hasHints
-                ? 'flex items-start gap-2 px-3 py-2 text-left'
-                : 'flex items-center justify-center py-1.5 text-xs font-semibold'
+              ? 'flex items-start gap-2 px-3 py-2 text-left'
+              : 'flex items-center justify-center py-1.5 text-xs font-semibold'
               }`}
             style={selected
               ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
