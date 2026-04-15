@@ -70,7 +70,7 @@ const resolveInitialInstances = () => {
   } catch { /* ignore */ }
 
   return WIDGET_REGISTRY.filter((w) => w.enabled).map((w) => ({
-    id: w.id,
+    id: w.type,
     type: w.type,
   }));
 };

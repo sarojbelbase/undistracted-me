@@ -56,7 +56,17 @@ export const Widget = ({ id, onRemove }) => {
     }
   }, []);
 
-  if (!topSites.length) return null;
+  const isUnsupported = typeof chrome === 'undefined' || !chrome.topSites;
+
+  if (isUnsupported || !topSites.length) {
+    return (
+      <BaseWidget className="justify-center items-center" onRemove={onRemove}>
+        <span style={{ fontSize: '11px', color: 'var(--w-ink-5)' }}>
+          {isUnsupported ? 'Not supported outside the extension' : 'No top sites available'}
+        </span>
+      </BaseWidget>
+    );
+  }
 
   return (
     <BaseWidget className="justify-center" onRemove={onRemove}>

@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { BalloonFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'birthdays',
-  type: 'birthdays',
-  label: 'Occasions',
+  type: 'ocasions',
+  title: 'Occasions',
+  category: 'planning',
+  icon: BalloonFill,
+  description: 'Birthdays, anniversaries & special occasions',
+  enabled: true,
   x: 9, y: 4, w: 2, h: 2.5,
   breakpoints: {
     md: { x: 0, y: 4.5, w: 4, h: 2.5 },

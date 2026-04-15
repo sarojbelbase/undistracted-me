@@ -1,10 +1,14 @@
 import { Widget } from './Widget';
+import { BookmarkStarFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'bookmark',
   type: 'bookmark',
-  label: 'Bookmark',
-  x: 8, y: 1, w: 0.7, h: 0.9,
+  title: 'Bookmarks',
+  category: 'tools',
+  icon: BookmarkStarFill,
+  description: 'Quick-access bookmarks',
+  enabled: true,
+  x: 8, y: 1, w: 1, h: 1,
   breakpoints: {
     md: { x: 8, y: 1, w: 2, h: 0.9 },
     sm: { x: 2, y: 3, w: 2, h: 2 },

@@ -295,6 +295,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 /* Subtle lift while dragging — stronger shadow elevation to feel "picked up" */
 .react-grid-item.react-draggable-dragging>* {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
   cursor: grabbing !important;
 }
 

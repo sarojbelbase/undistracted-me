@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { CalendarEventFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'events',
   type: 'events',
-  label: 'Upcoming Events',
+  title: 'Upcoming Events',
+  category: 'planning',
+  icon: CalendarEventFill,
+  description: "Today's events from your calendar",
+  enabled: true,
   x: 3, y: 2, w: 3.5, h: 2.5,
   breakpoints: {
     md: { x: 0, y: 2, w: 4, h: 2.5 },

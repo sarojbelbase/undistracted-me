@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
+import config from './config';
 import { BaseWidget } from '../BaseWidget';
 import {
   SPOTIFY_CLIENT_ID,
@@ -317,7 +318,7 @@ export const Widget = ({ onRemove }) => {
           className="p-4 flex flex-col items-center justify-center gap-3"
           onRemove={onRemove}
           settingsContent={settingsPanel}
-          settingsTitle="Spotify"
+          settingsTitle={config.title}
         >
           <MusicNoteBeamed size={28} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
           <div className="flex flex-col items-center gap-1.5 text-center">
@@ -349,7 +350,7 @@ export const Widget = ({ onRemove }) => {
         className="p-4 flex flex-col items-center justify-center gap-2"
         cardStyle={bgStyle}
         settingsContent={settingsPanel}
-        settingsTitle="Spotify"
+        settingsTitle={config.title}
         onRemove={onRemove}
       >
         <MusicNoteBeamed size={28} style={{ color: muteColor }} />
@@ -367,7 +368,7 @@ export const Widget = ({ onRemove }) => {
         className="relative p-0 flex flex-col"
         cardStyle={chromeBgStyle}
         settingsContent={settingsPanel}
-        settingsTitle="Spotify"
+        settingsTitle={config.title}
         onRemove={onRemove}
       >
         {/* Full-bleed blurred artwork behind active session */}
@@ -531,7 +532,7 @@ export const Widget = ({ onRemove }) => {
       className="relative p-0 flex flex-col"
       cardStyle={bgStyle}
       settingsContent={settingsPanel}
-      settingsTitle="Spotify"
+      settingsTitle={config.title}
       onRemove={onRemove}
     >
       {/* Album art — full-bleed, faded + dark scrim; clipped to card corners */}

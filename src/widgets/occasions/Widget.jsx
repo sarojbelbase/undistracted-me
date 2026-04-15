@@ -20,6 +20,7 @@ import {
   avatarLetter,
 } from './utils';
 import { OccasionsSettings } from './Settings';
+import config from './config';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 
@@ -276,7 +277,7 @@ export const Widget = ({ id, onRemove }) => {
       className="flex flex-col overflow-hidden"
       onRemove={onRemove}
       settingsContent={settingsContent}
-      settingsTitle="Occasions"
+      settingsTitle={config.title}
       modalWidth="w-96"
     >
       {/* ── Header ─────────────────────────────────────────────────────────── */}

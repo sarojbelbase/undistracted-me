@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { Calendar3 } from 'react-bootstrap-icons';
 
 export default {
-  id: 'calendar',
   type: 'calendar',
-  label: 'Calendar',
+  title: 'Calendar',
+  category: 'planning',
+  icon: Calendar3,
+  description: 'Monthly calendar at a glance',
+  enabled: true,
   x: 0, y: 2, w: 3, h: 3,
   breakpoints: {
     md: { x: 4, y: 2, w: 3, h: 3 },

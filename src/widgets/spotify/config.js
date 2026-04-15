@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { MusicNoteBeamed } from 'react-bootstrap-icons';
 
 export default {
-  id: 'spotify',
   type: 'spotify',
-  label: 'Spotify',
+  title: 'Spotify',
+  category: 'tools',
+  icon: MusicNoteBeamed,
+  description: 'Spotify playback controls',
+  enabled: true,
   x: 4, y: 5, w: 2, h: 2.5,
   breakpoints: {
     md: { x: 4, y: 7, w: 3, h: 2.5 },

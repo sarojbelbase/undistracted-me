@@ -9,6 +9,7 @@ import { useEvents, useGoogleCalendar } from '../useEvents';
 import { todayStr, makeUid } from '../../utilities';
 import { notifyUser } from '../../utilities/chrome';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
+import config from './config';
 import { fmt12, calcDuration } from '../events/utils';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
 import { onClockTick } from '../../utilities/sharedClock';
@@ -575,7 +576,7 @@ export const Widget = ({ id, onRemove }) => {
   const titleFontSize = getTitleFontSize(titleLen);
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle="Settings" modalWidth="w-[26rem]" onRemove={onRemove}>
+    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle={config.title} modalWidth="w-[26rem]" onRemove={onRemove}>
       {activeTarget ? (
         <div className="flex-1 flex flex-row items-center gap-0 min-w-0 overflow-hidden">
 
