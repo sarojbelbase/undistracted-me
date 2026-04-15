@@ -120,7 +120,6 @@ export default defineConfig({
       'VITE_API_KEY',
       'VITE_SPOTIFY_CLIENT_ID',
       'VITE_GOOGLE_DESKTOP_CLIENT_ID',
-      'VITE_GOOGLE_DESKTOP_CLIENT_SECRET',
     ]),
     react(),
     crx({ manifest }),

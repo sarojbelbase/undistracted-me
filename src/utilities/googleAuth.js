@@ -6,12 +6,12 @@
  *           setup required.  Tokens are managed entirely by the browser.
  *
  * Firefox → PKCE authorization-code flow via chrome.identity.launchWebAuthFlow()
- *           + manual token exchange against https://oauth2.googleapis.com/token.
+ *           + server-side token exchange via /api/auth/google/token (Vercel).
  *           Requires a "Desktop app" OAuth client set up once in Google Cloud
- *           Console.  Client ID and secret are XOR-encoded at build time via the
- *           obscureEnvKeys Vite plugin — they never appear as plain text in the
- *           bundle.
+ *           Console.  The client_secret lives only in the Vercel environment;
+ *           the bundle contains only the client_id (XOR-encoded at build time).
  */
+import { PRODUCTION_BASE_URL } from '../constants/env.js';
 
 const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/calendar.readonly',
@@ -21,13 +21,14 @@ const GOOGLE_SCOPES = [
 ].join(' ');
 
 const GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
-const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
 // Obfuscated by obscureEnvKeys Vite plugin at build time.
 const FF_CLIENT_ID = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID || '';
-const FF_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_SECRET || '';
 
 const API_KEY = import.meta.env.VITE_API_KEY || '';
+
+// Absolute URL — works from moz-extension:// and chrome-extension:// origins.
+const FF_BACKEND_TOKEN_URL = `${PRODUCTION_BASE_URL}/api/auth/google/token`;
 
 const FF_TOKEN_KEY = 'google_ff_tokens';
 
@@ -232,15 +233,10 @@ async function getValidStoredFFToken() {
   // Try to refresh
   if (!stored.refresh_token) return null;
 
-  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+  const res = await fetch(FF_BACKEND_TOKEN_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: FF_CLIENT_ID,
-      client_secret: FF_CLIENT_SECRET,
-      refresh_token: stored.refresh_token,
-      grant_type: 'refresh_token',
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: stored.refresh_token }),
   });
 
   if (!res.ok) return null; // let caller decide whether to re-auth
@@ -298,22 +294,15 @@ async function getTokenFirefox(interactive) {
   const code = new URL(responseUrl).searchParams.get('code');
   if (!code) throw new Error('No authorization code in response');
 
-  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+  const res = await fetch(FF_BACKEND_TOKEN_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: FF_CLIENT_ID,
-      client_secret: FF_CLIENT_SECRET,
-      code,
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-      code_verifier: verifier,
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ code, code_verifier: verifier, redirect_uri: redirectUri }),
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(`Google token exchange failed: ${body.error_description || res.status}`);
+    throw new Error(`Google token exchange failed: ${body.error || res.status}`);
   }
 
   const tokens = await res.json();

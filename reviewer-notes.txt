@@ -1,0 +1,162 @@
+Undistracted Me — Extension Reviewer Notes
+==========================================
+Extension ID (Firefox): {1071d037-0f17-4c92-b06c-704050d2e2c3}
+Version: 3.0.0
+
+
+BUILD INSTRUCTIONS
+------------------
+  npm install
+  npm run build
+
+Output lands in dist/. No third-party build services. All source is in this
+repository. The build uses Vite + @crxjs/vite-plugin for MV3 packaging.
+
+
+NON-OBVIOUS PATTERNS
+--------------------
+
+1. XOR-encoded configuration values (plugins/obscureEnvKeys.ts)
+   ---------------------------------------------------------------
+   The Vite plugin at plugins/obscureEnvKeys.ts XOR-encodes three build-time
+   configuration values before they are written into the bundle:
+     - VITE_API_KEY            (shared secret for our own Vercel proxy)
+     - VITE_SPOTIFY_CLIENT_ID  (Spotify PKCE client — public by Spotify's model)
+     - VITE_GOOGLE_DESKTOP_CLIENT_ID (Google Desktop-app client)
+
+   What this is NOT:
+   - It does not obfuscate any code logic.
+   - The decoding routine is a one-liner IIFE that is fully readable.
+   - There is no encrypted or hidden behaviour anywhere in the extension.
+
+   Why it exists:
+   - Automated string-pattern scanners (used by security researchers and CI
+     pipelines) flag alphanumeric 32-char strings as potential leaked secrets.
+     XOR byte arrays do not match those patterns.
+   - Equivalent practice: base64-encoding a value in a JSON config file.
+
+   The decoding IIFE looks like:
+     (()=>{ const _b=[...bytes], _s=seed; return _b.map((b,i) =>
+       String.fromCharCode(b^((_s*17+i*7)%256))).join('') })()
+
+
+2. Google OAuth — Firefox path
+   ----------------------------
+   Firefox uses PKCE via chrome.identity.launchWebAuthFlow. The authorization
+   code is exchanged server-side through our Vercel endpoint:
+     https://undistractedme.sarojbelbase.com.np/api/auth/google/token
+
+   The client_secret (GOOGLE_CLIENT_SECRET) lives only in the Vercel
+   environment variable. It is NOT present in the extension bundle in any form.
+
+   The extension bundle contains only:
+     - VITE_GOOGLE_DESKTOP_CLIENT_ID (XOR-encoded — a public client identifier)
+
+   Neither the initial token exchange nor the token refresh call Google's
+   token endpoint directly from the extension. Both go through the Vercel
+   backend, which injects the client_secret server-side.
+   Source: src/utilities/googleAuth.js, functions getValidStoredFFToken()
+           and getTokenFirefox().
+
+
+3. Google OAuth — Chrome path
+   ---------------------------
+   Uses chrome.identity.getAuthToken() with the client_id declared in the
+   manifest oauth2 block. Token management is fully handled by the browser.
+   No client_secret is needed or used on this path.
+
+
+4. Spotify OAuth — PKCE (both Chrome and Firefox)
+   ------------------------------------------------
+   Standard PKCE flow. The Spotify API does not require a client_secret for
+   PKCE token exchange — only the client_id and code_verifier are sent.
+   Token exchange goes directly to accounts.spotify.com/api/token.
+   Tokens are stored in chrome.storage.local (extension) or localStorage
+   (website mode).
+   Source: src/widgets/spotify/utils.js
+
+
+5. Content script — SoundCloud only
+   -----------------------------------
+   Injected into *://*.soundcloud.com/* (manifest content_scripts).
+   File: src/utilities/media.js
+
+   What it does:
+   - Polls navigator.mediaSession every second for metadata changes.
+   - Sends MEDIA_SESSION_UPDATE / MEDIA_SESSION_CLEAR messages to the
+     background service worker via chrome.runtime.sendMessage.
+   - Receives MEDIA_ACTION commands from the SW and clicks SoundCloud's
+     own player buttons (.playControl, .skipControl__next, etc).
+
+   What it does NOT do:
+   - No innerHTML / outerHTML / document.write / eval.
+   - No data sent to any external server.
+   - No DOM injection that could be spoofed.
+
+
+PERMISSIONS USED
+----------------
+
+  identity     — Google OAuth (Chrome: getAuthToken) and Spotify OAuth
+                 (chrome.identity.launchWebAuthFlow for PKCE).
+
+  storage      — Widget configuration, Spotify tokens, Google Calendar
+                 event cache. Sensitive data uses chrome.storage.local only.
+
+  geolocation  — Weather widget auto-location. User is prompted by the
+                 browser before any coordinates are read.
+
+  topSites     — Quick Access widget shows the user's top-visited sites.
+                 Data is displayed inline and never sent anywhere.
+
+  tabs         — Two uses:
+                 (a) chrome.tabs.query: check if active tab is already
+                     the new tab page before showing an OS look-away
+                     notification (avoids double-notifying).
+                 (b) chrome.tabs.sendMessage: route MEDIA_ACTION commands
+                     (play/pause/next/prev) to the SoundCloud content script.
+
+  notifications — Event reminders (Google Calendar), pomodoro timer done,
+                  look-away break timer.
+
+  alarms       — Periodic alarm (every minute) drives event reminder checks
+                 and look-away timer. Required because MV3 service workers
+                 do not persist between events.
+
+
+THIRD-PARTY SERVICES CONTACTED
+-------------------------------
+
+  Service                          Purpose                     PII sent?
+  -------------------------------- --------------------------- ----------
+  api.open-meteo.com               Weather data (no key)       No
+  geocoding-api.open-meteo.com     City name search            No
+  nominatim.openstreetmap.org      Reverse geocoding           IP only
+  freeipapi.com                    IP-based location fallback  IP only
+  ipapi.co                         IP-based location (web mode IP only
+                                   only; extension blocked)
+  nepalipaisa.com                  Nepali stock company list   No
+  www.merolagani.com               Nepali stock chart data     No
+  api.spotify.com                  Spotify playback control    OAuth token
+  accounts.spotify.com             Spotify OAuth               Credentials
+  www.googleapis.com               Google Calendar API         OAuth token
+  people.googleapis.com            Google Contacts API         OAuth token
+  oauth2.googleapis.com            Google token endpoint (FF)  via server
+  undistractedme.sarojbelbase.com  Our Vercel proxy backend    API key
+
+  IP-based geolocation is used only as a last-resort fallback when the user
+  has not granted browser geolocation permission and has not set a city
+  manually in Weather widget settings. No persistent identifier is stored.
+
+
+WEBSITE MODE
+------------
+The same codebase is deployed as a website at:
+  https://undistractedme.sarojbelbase.com.np
+
+In website mode (VITE_WEBSITE_MODE=true):
+  - All chrome.* API calls are guarded and silently skipped.
+  - Google and Spotify OAuth use a popup + PKCE flow instead of
+    chrome.identity.
+  - Tokens are stored in localStorage (no chrome.storage available).
+  - Extension badge, topSites, and content script features are disabled.

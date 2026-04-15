@@ -382,6 +382,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'CHROME_MEDIA_ACTION') {
+    const VALID_MEDIA_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
+    if (!VALID_MEDIA_ACTIONS.has(msg.action)) return;
     const sessions = self.chromeSessions ?? {};
     const order = self.chromeSessionOrder ?? [];
     // If requester specifies a tabId use it, otherwise fall back to most recently updated tab

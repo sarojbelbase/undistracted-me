@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -19,23 +19,11 @@ const loadLayouts = () => {
   return {};
 };
 
-// Minimal card-shaped placeholder — shown while a lazy widget chunk loads.
-const WidgetSkeleton = () => (
-  <div
-    className="w-full h-full rounded-2xl animate-pulse"
-    style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
-  />
-);
-
 // Self-registering render — new widgets just need a Component in their config.
 const renderWidget = (id, type, onRemove) => {
   const reg = REG_MAP[type];
   if (!reg?.Component) return null;
-  return (
-    <Suspense fallback={<WidgetSkeleton />}>
-      <reg.Component id={id} onRemove={onRemove} />
-    </Suspense>
-  );
+  return <reg.Component id={id} onRemove={onRemove} />;
 };
 
 export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance }) {
