@@ -507,6 +507,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   color: var(--w-ink-3) !important;
 }
 
+[data-ui-input]::placeholder {
+  color: var(--w-ink-6);
+  opacity: 1;
+}
+
 [data-mode="dark"] input:not([data-ui-input]),
 [data-mode="dark"] textarea:not(.notes-textarea),
 [data-mode="dark"] select {

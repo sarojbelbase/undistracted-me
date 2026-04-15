@@ -11,13 +11,14 @@ import { Input } from './Input';
  *   icon       — leading icon element
  *   prefix     — leading text prefix
  *   suffix     — trailing element
+ *   gap        — gap between icon/prefix and input (default: 4px for icon, 2px for prefix, 6px otherwise)
  *   wrapperRef — ref forwarded to the outer div
  *   wrapperStyle — extra styles for the wrapper div
  *   dark       — use dark (inverted) surface
  *   All other props (including style) are forwarded to the inner Input.
  */
 export const SettingsInput = React.forwardRef(function SettingsInput(
-  { icon, prefix, suffix, wrapperRef, wrapperStyle, dark = false, style, ...inputProps },
+  { icon, prefix, suffix, gap, wrapperRef, wrapperStyle, dark = false, style, ...inputProps },
   ref,
 ) {
   const { cardStyle, mode } = useSettingsStore();
@@ -44,7 +45,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
+        gap: gap ?? (icon ? '4px' : prefix ? '2px' : '6px'),
         width: '100%',
         boxSizing: 'border-box',
         borderRadius: '12px',

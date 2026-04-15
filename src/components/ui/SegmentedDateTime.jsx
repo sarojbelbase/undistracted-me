@@ -515,29 +515,54 @@ export const SegmentedDateTime = ({
         onBlur={(e) => { if (!wrapRef.current?.contains(e.relatedTarget)) { setActive(null); setBuf(''); } }}
         style={{
           display: 'flex', alignItems: 'center', gap: '2px',
-          width: '100%', boxSizing: 'border-box',
+          width: showDate ? '100%' : 'fit-content',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
           borderRadius: '12px', padding: '0 10px', height: '36px',
           backgroundColor: fieldsetBg,
           border: borderVal,
           transition: 'border-color 0.15s', margin: 0,
+          overflow: 'hidden',
         }}
       >
-        {showDate && (
-          <>
-            <CalendarEvent size={12} style={{ color: 'var(--w-ink-5)', flexShrink: 0, marginRight: '3px' }} />
-            <button type="button" style={makeSegStyle(active === 'month', hasDate, '30px')} onFocus={() => stepTo('month')} onKeyDown={(e) => onKey('month', e)} onClick={() => openCal('month')}>{dispMonth()}</button>
-            <Slash />
-            <button type="button" style={makeSegStyle(active === 'day', hasDate, '30px')} onFocus={() => stepTo('day')} onKeyDown={(e) => onKey('day', e)} onClick={() => openCal('day')}>{dispDay()}</button>
-            <Slash />
-            <button type="button" style={makeSegStyle(active === 'year', hasDate, '42px')} onFocus={() => stepTo('year')} onKeyDown={(e) => onKey('year', e)} onClick={() => openCal('year')}>{dispYear()}</button>
-          </>
-        )}
+        {/* Date portion — animates in/out via max-width */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0,
+          overflow: 'hidden',
+          maxWidth: showDate ? '220px' : '0px',
+          opacity: showDate ? 1 : 0,
+          transition: 'max-width 0.28s ease-in-out, opacity 0.2s ease-in-out',
+        }}>
+          <CalendarEvent size={12} style={{ color: 'var(--w-ink-5)', flexShrink: 0, marginRight: '3px' }} />
+          <button type="button" style={makeSegStyle(active === 'month', hasDate, '30px')} onFocus={() => stepTo('month')} onKeyDown={(e) => onKey('month', e)} onClick={() => openCal('month')}>{dispMonth()}</button>
+          <Slash />
+          <button type="button" style={makeSegStyle(active === 'day', hasDate, '30px')} onFocus={() => stepTo('day')} onKeyDown={(e) => onKey('day', e)} onClick={() => openCal('day')}>{dispDay()}</button>
+          <Slash />
+          <button type="button" style={makeSegStyle(active === 'year', hasDate, '42px')} onFocus={() => stepTo('year')} onKeyDown={(e) => onKey('year', e)} onClick={() => openCal('year')}>{dispYear()}</button>
+        </div>
 
-        {showDate && showTime && <VSep isGlass={isGlass} isDark={isDark} />}
+        {/* Separator between date and time — animates with date */}
+        {showTime && (
+          <div style={{
+            display: 'flex', flexShrink: 0, overflow: 'hidden',
+            maxWidth: showDate ? '20px' : '0px',
+            transition: 'max-width 0.28s ease-in-out',
+          }}>
+            <VSep isGlass={isGlass} isDark={isDark} />
+          </div>
+        )}
 
         {showTime && (
           <>
-            {!showDate && <Clock size={12} style={{ color: 'var(--w-ink-4)', flexShrink: 0, marginRight: '4px' }} />}
+            {/* Clock icon — only for time-only mode, fades out when date appears */}
+            <div style={{
+              display: 'flex', alignItems: 'center', flexShrink: 0, overflow: 'hidden',
+              maxWidth: showDate ? '0px' : '20px',
+              opacity: showDate ? 0 : 1,
+              transition: 'max-width 0.28s ease-in-out, opacity 0.2s ease-in-out',
+            }}>
+              <Clock size={12} style={{ color: 'var(--w-ink-4)', flexShrink: 0, marginRight: '4px' }} />
+            </div>
             <button type="button" style={makeSegStyle(active === 'hour', hasTime, '26px')} onFocus={() => stepTo('hour')} onKeyDown={(e) => onKey('hour', e)} onClick={() => openTimePicker('hour')}>{dispHour()}</button>
             <Colon />
             <button type="button" style={makeSegStyle(active === 'minute', hasTime, '26px')} onFocus={() => stepTo('minute')} onKeyDown={(e) => onKey('minute', e)} onClick={() => openTimePicker('minute')}>{dispMin()}</button>

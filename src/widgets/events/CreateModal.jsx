@@ -120,21 +120,13 @@ export const CreateModal = ({ onSave, onClose }) => {
           />
 
           <div style={{ marginTop: 10 }}>
-            {dateChip === 'custom' ? (
-              <SegmentedDateTime
-                mode="datetime"
-                date={form.startDate}
-                time={form.startTime}
-                onDateChange={(d) => updateStart(d, form.startTime)}
-                onTimeChange={(t) => updateStart(form.startDate, t)}
-              />
-            ) : (
-              <SegmentedDateTime
-                mode="time"
-                time={form.startTime}
-                onTimeChange={(t) => updateStart(form.startDate, t)}
-              />
-            )}
+            <SegmentedDateTime
+              mode={dateChip === 'custom' ? 'datetime' : 'time'}
+              date={form.startDate}
+              time={form.startTime}
+              onDateChange={(d) => updateStart(d, form.startTime)}
+              onTimeChange={(t) => updateStart(form.startDate, t)}
+            />
           </div>
         </div>
 
