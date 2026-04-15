@@ -14,22 +14,6 @@ import factsConfig from './facts/config';
 import stockConfig from './stock/config';
 import occasionsConfig from './occasions/config';
 
-export { Widget as ClockWidget } from './clock/Widget';
-export { Widget as DateTodayWidget } from './dateToday/Widget';
-export { Widget as DayProgressWidget } from './dayProgress/Widget';
-export { Widget as EventsWidget } from './events/Widget';
-export { Widget as WeatherWidget } from './weather/Widget';
-export { Widget as CalendarWidget } from './calendar/Widget';
-export { Widget as CountdownWidget } from './countdown/Widget';
-export { Widget as NotesWidget } from './notes/Widget';
-export { Widget as BookmarksWidget } from './bookmarks/Widget';
-export { Widget as QuickAccessWidget } from './quickAccess/Widget';
-export { Widget as PomodoroWidget } from './pomodoro/Widget';
-export { Widget as SpotifyWidget } from './spotify/Widget';
-export { Widget as FactsWidget } from './facts/Widget';
-export { Widget as StockWidget } from './stock/Widget';
-export { Widget as BirthdaysWidget } from './occasions/Widget';
-
 export const WIDGET_TYPES = Object.freeze({
   CLOCK: 'clock',
   DATE_TODAY: 'dateToday',

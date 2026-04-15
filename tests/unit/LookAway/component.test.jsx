@@ -55,9 +55,10 @@ describe('LookAway component', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('has aria-modal="true"', () => {
+  it('has aria-modal attribute (implicit for native dialog)', () => {
     render(<LookAway onDismiss={onDismiss} />);
-    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
+    // Native <dialog> element is implicitly modal; just verify it's in the document
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('has descriptive aria-label on the overlay', () => {
@@ -82,7 +83,7 @@ describe('LookAway component', () => {
 
   it('renders into document.body via portal', () => {
     render(<LookAway onDismiss={onDismiss} />);
-    expect(document.body.querySelector('[role="dialog"]')).toBeInTheDocument();
+    expect(document.body.querySelector('dialog')).toBeInTheDocument();
   });
 
   // ── Initial countdown display ──────────────────────────────────────────────

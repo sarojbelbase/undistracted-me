@@ -1,26 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { getCoords, fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { fetchChart } from '../../widgets/stock/utils';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
+import { getCurrentPlayback, isSpotifyConnected, setPlayPause, skipNext, skipPrev } from '../../widgets/spotify/utils';
 import { useWidgetInstancesStore } from '../../store';
 
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
 export const useFocusWeather = () => {
   const [weather, setWeather] = useState(null);
+  // Read from Zustand widgetSettings — reactive to same-tab setting changes.
+  const weatherSettings = useWidgetInstancesStore(s => {
+    const inst = s.instances.find(i => i.type === 'weather');
+    const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['weather']) : s.widgetSettings['weather'];
+    return ws ?? null;
+  });
+
   useEffect(() => {
-    let location = null, unit = 'metric';
-    try {
-      // Try fixed legacy key first, then scan instances for the actual UUID-based key
-      let ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || 'null');
-      if (!ws) {
-        const raw = JSON.parse(localStorage.getItem('widget_instances') || 'null');
-        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances || []);
-        const wid = instancesList.find(i => i.type === 'weather')?.id;
-        if (wid) ws = JSON.parse(localStorage.getItem(`widgetSettings_${wid}`) || 'null');
-      }
-      if (ws) { location = ws.location || null; unit = ws.unit || 'metric'; }
-    } catch { }
+    const location = weatherSettings?.location ?? null;
+    const unit = weatherSettings?.unit ?? 'metric';
     const load = async () => {
       try {
         let lat, lon;
@@ -34,7 +33,7 @@ export const useFocusWeather = () => {
     load();
     const timerId = setInterval(load, 30 * 60_000);
     return () => clearInterval(timerId);
-  }, []);
+  }, [weatherSettings]);
   return weather;
 };
 
@@ -42,45 +41,42 @@ export const useFocusWeather = () => {
 
 export const useFocusStocks = () => {
   const [stocks, setStocks] = useState([]);
+  // Read from Zustand widgetSettings — reactive to same-tab setting changes.
+  const symbols = useWidgetInstancesStore(useShallow(s => {
+    const inst = s.instances.find(i => i.type === 'stock');
+    const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['stock']) : s.widgetSettings['stock'];
+    return ws?.symbols ?? [];
+  }));
+
   useEffect(() => {
-    let symbols = [];
-    try {
-      const direct = JSON.parse(localStorage.getItem('widgetSettings_stock') || 'null');
-      if (direct?.symbols?.length) {
-        symbols = direct.symbols;
-      } else {
-        const raw = JSON.parse(localStorage.getItem('widget_instances') || 'null');
-        const instancesList = Array.isArray(raw) ? raw : (raw?.state?.instances || []);
-        const id = instancesList.find(i => i.type === 'stock')?.id;
-        if (id) {
-          const ws = JSON.parse(localStorage.getItem(`widgetSettings_${id}`) || 'null');
-          if (ws?.symbols?.length) symbols = ws.symbols;
-        }
-      }
-    } catch { }
-    if (!symbols.length) return;
+    if (!symbols.length) { setStocks([]); return; }
+    const loadSymbol = (sym) => fetchChart(sym).catch(() => null);
     const load = async () => {
-      const results = await Promise.all(symbols.map(s => fetchChart(s).catch(() => null)));
+      const results = await Promise.all(symbols.map(loadSymbol));
       setStocks(symbols.map((sym, i) => ({ sym, data: results[i] })));
     };
     load();
-    const id = setInterval(load, 5 * 60_000);
-    return () => clearInterval(id);
-  }, []);
+    const timerId = setInterval(load, 5 * 60_000);
+    return () => clearInterval(timerId);
+  }, [symbols]);
   return stocks;
 };
 
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
 export const useFocusPhoto = () => {
-  const [photo, setPhoto] = useState(() => getCachedPhotoSync());
-  const [slotA, setSlotA] = useState(() => getCachedPhotoSync()?.regular || null);
+  // Read cached photo once at mount via useRef — avoids repeated localStorage reads.
+  const initRef = useRef(undefined);
+  if (initRef.current === undefined) initRef.current = getCachedPhotoSync() ?? null;
+  const cached = initRef.current;
+  const [photo, setPhoto] = useState(cached);
+  const [slotA, setSlotA] = useState(cached?.regular ?? null);
   const [slotB, setSlotB] = useState(null);
   const [activeSlot, setActiveSlot] = useState('a');
   // Seed with the already-displayed URL so the mount effect's applyPhoto
   // short-circuits when getCachedPhotoSync and getCurrentPhoto return the same
   // photo — preventing a spurious slot-switch on first render.
-  const cachedUrl = getCachedPhotoSync()?.regular || getCachedPhotoSync()?.url || null;
+  const cachedUrl = cached?.regular ?? cached?.url ?? null;
   const prevUrlRef = useRef(cachedUrl);
 
   const applyPhoto = useCallback((p) => {
@@ -199,29 +195,110 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 // ─── Focus Mode world clocks (reads from the first clock widget's settings) ──
 
 export const useFocusTimezones = () => {
-  const [timezones, setTimezones] = useState([]);
-  // Use the store directly — reliable even when widget_instances hasn't been
-  // written to localStorage yet (Zustand persist only writes on first change).
-  const instances = useWidgetInstancesStore(s => s.instances);
+  // Read directly from Zustand widgetSettings — reactive to same-tab changes,
+  // no polling interval or storage event listener needed.
+  const timezones = useWidgetInstancesStore(useShallow(s => {
+    const clockInst = s.instances.find(i => i.type === 'clock');
+    if (!clockInst) return [];
+    const ws = s.widgetSettings[clockInst.id] ?? s.widgetSettings['clock'];
+    return ws?.timezones ?? [];
+  }));
+  return timezones;
+};
+
+// ─── Spotify ──────────────────────────────────────────────────────────────────
+
+export const useFocusSpotify = () => {
+  const [spotify, setSpotify] = useState(null);
+  const [spotifyProgress, setSpotifyProgress] = useState(0);
+  const [pending, setPending] = useState(false);
+  const [skipPending, setSkipPending] = useState(null); // 'next' | 'prev' | null
+  // Track connection state reactively so the polling effect re-runs when the
+  // user authenticates after Focus Mode is already open (fixes stale [] closure).
+  const [connected, setConnected] = useState(() => isSpotifyConnected());
 
   useEffect(() => {
-    const clockInst = instances.find(i => i.type === 'clock');
-    if (!clockInst) { setTimezones([]); return; }
-
-    const read = () => {
-      try {
-        const ws = JSON.parse(localStorage.getItem(`widgetSettings_${clockInst.id}`) || '{}');
-        setTimezones(ws.timezones || []);
-      } catch { setTimezones([]); }
+    const onStorage = (e) => {
+      if (e.key === 'spotify_connected') setConnected(isSpotifyConnected());
     };
+    globalThis.addEventListener('storage', onStorage);
+    return () => globalThis.removeEventListener('storage', onStorage);
+  }, []);
 
-    read();
-    // Poll every 5 s to pick up same-tab changes (storage event is cross-tab only).
-    const pollId = setInterval(read, 5_000);
-    const onStorage = (e) => { if (e.key?.startsWith('widgetSettings_')) read(); };
-    window.addEventListener('storage', onStorage);
-    return () => { clearInterval(pollId); window.removeEventListener('storage', onStorage); };
-  }, [instances]);
+  useEffect(() => {
+    if (!connected) { setSpotify(null); return; }
+    let cancelled = false;
+    const fetchSpotify = async () => {
+      try {
+        const data = await getCurrentPlayback();
+        if (cancelled) return;
+        if (!data?.item) { setSpotify(null); return; }
+        const p = {
+          isPlaying: data.is_playing,
+          title: data.item.name,
+          artist: data.item.artists.map(a => a.name).join(', '),
+          albumArt: data.item.album.images[0]?.url ?? null,
+          durationMs: data.item.duration_ms,
+          progressMs: data.progress_ms ?? 0,
+        };
+        setSpotify(p);
+        setSpotifyProgress(p.progressMs);
+      } catch {
+        if (!cancelled) setSpotify(null);
+      }
+    };
+    fetchSpotify();
+    const timerId = setInterval(fetchSpotify, 5000);
+    return () => { cancelled = true; clearInterval(timerId); };
+  }, [connected]);
 
-  return timezones;
+  useEffect(() => {
+    if (!spotify?.isPlaying) return;
+    const timerId = setInterval(
+      () => setSpotifyProgress(p => Math.min(p + 1000, spotify.durationMs || p)),
+      1000,
+    );
+    return () => clearInterval(timerId);
+  }, [spotify?.isPlaying, spotify?.durationMs]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const data = await getCurrentPlayback();
+      if (data?.item) {
+        const p = {
+          isPlaying: data.is_playing,
+          title: data.item.name,
+          artist: data.item.artists.map(a => a.name).join(', '),
+          albumArt: data.item.album.images[0]?.url ?? null,
+          durationMs: data.item.duration_ms,
+          progressMs: data.progress_ms ?? 0,
+        };
+        setSpotify(p);
+        setSpotifyProgress(p.progressMs);
+      }
+    } catch { }
+  }, []);
+
+  const handleToggle = useCallback(async () => {
+    if (!spotify) return;
+    setPending(true);
+    try {
+      await setPlayPause(!spotify.isPlaying);
+      setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s);
+    } catch { } finally {
+      setPending(false);
+    }
+  }, [spotify]);
+
+  const handleNext = useCallback(async () => {
+    setSkipPending('next');
+    try { await skipNext(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
+  }, [refresh]);
+
+  const handlePrev = useCallback(async () => {
+    setSkipPending('prev');
+    try { await skipPrev(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
+  }, [refresh]);
+
+  return { spotify, spotifyProgress, handleToggle, handleNext, handlePrev, pending, skipPending };
 };

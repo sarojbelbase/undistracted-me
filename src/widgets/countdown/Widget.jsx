@@ -6,27 +6,23 @@ import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { Modal } from '../../components/ui/Modal';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
-import { todayStr } from '../../utilities';
+import { todayStr, makeUid } from '../../utilities';
+import { notifyUser } from '../../utilities/chrome';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 import { fmt12, calcDuration } from '../events/utils';
+import { STORAGE_KEYS } from '../../constants/storageKeys';
 
-const STORAGE_KEY = 'countdown_events';
-// pinned: { type: 'event', eventId } | { type: 'custom', id } | null
-// PINNED_KEY is scoped per-instance so multiple countdown widgets can each pin a different event.
-const pinnedKey = (id) => `countdown_pinned_${id}`;
-
+const makeId = () => makeUid('cd');
 const loadCustom = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_EVENTS) || '[]'); }
   catch { return []; }
 };
-const saveCustom = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+const saveCustom = (list) => localStorage.setItem(STORAGE_KEYS.COUNTDOWN_EVENTS, JSON.stringify(list));
 const loadPinned = (id) => {
-  try { return JSON.parse(localStorage.getItem(pinnedKey(id)) || 'null'); }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.countdownPinned(id)) || 'null'); }
   catch { return null; }
 };
-const savePinned = (id, p) => localStorage.setItem(pinnedKey(id), JSON.stringify(p));
-
-const makeId = () => `cd_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+const savePinned = (id, p) => localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
 
 // ─── Notification helpers ────────────────────────────────────────────────────
 // Stores notified event keys in localStorage keyed by today's date so each
@@ -34,27 +30,21 @@ const makeId = () => `cd_${Date.now()}_${Math.random().toString(36).slice(2, 7)}
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const wasNotified = (id) => {
   try {
-    const map = JSON.parse(localStorage.getItem('cd_notified') || '{}');
+    const map = JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || '{}');
     return map[id] === todayKey();
   } catch { return false; }
 };
 const markNotified = (id) => {
   try {
-    const map = JSON.parse(localStorage.getItem('cd_notified') || '{}');
+    const map = JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || '{}');
     // Prune old dates
     Object.keys(map).forEach(k => { if (map[k] !== todayKey()) delete map[k]; });
     map[id] = todayKey();
-    localStorage.setItem('cd_notified', JSON.stringify(map));
+    localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
   } catch { }
 };
 
-const sendNotification = (title, body) => {
-  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    chrome.runtime.sendMessage({ type: 'COUNTDOWN_DONE', title, body });
-  } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-    new Notification(title, { body, icon: '/favicon/lotus32.png' });
-  }
-};
+const sendNotification = (title, body) => notifyUser(title, body, 'COUNTDOWN_DONE');
 
 // ─── Add custom countdown modal ──────────────────────────────────────────────
 const AddModal = ({ onSave, onClose }) => {

@@ -78,7 +78,11 @@ describe('STORAGE_KEYS', () => {
   });
 
   // ── Legacy ────────────────────────────────────────────────────────────────
-  it('LEGACY_WIDGET_ENABLED_IDS key defined', () => {
-    expect(STORAGE_KEYS.LEGACY_WIDGET_ENABLED_IDS).toBe('widget_enabled_ids');
+  it('_LEGACY.WIDGET_ENABLED_IDS key defined', () => {
+    expect(STORAGE_KEYS._LEGACY.WIDGET_ENABLED_IDS).toBe('widget_enabled_ids');
+  });
+
+  it('_LEGACY is frozen', () => {
+    expect(Object.isFrozen(STORAGE_KEYS._LEGACY)).toBe(true);
   });
 });

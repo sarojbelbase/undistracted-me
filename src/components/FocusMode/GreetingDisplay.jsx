@@ -15,35 +15,39 @@ const shared = (centerOnDark) => ({
     : '0 1px 12px rgba(255,255,255,0.95), 0 4px 24px rgba(255,255,255,0.7)',
 });
 
-export const GreetingDisplay = ({ parts, centerOnDark }) => (
-  <div
-    className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
-    style={{ zIndex: 20 }}
-  >
-    <div className="fm-greeting-spacer" />
-    <p className="fm-greeting-row">
-      <span
-        className="fm-greeting-text"
-        style={{
-          ...shared(centerOnDark),
-          fontWeight: 600,
-          letterSpacing: '0.01em',
-          color: centerOnDark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.60)',
-        }}
-      >
-        {parts.greeting.prefix}{' '}
-      </span>
-      <span
-        className="fm-greeting-text"
-        style={{
-          ...shared(centerOnDark),
-          fontWeight: 700,
-          letterSpacing: '-0.01em',
-          color: centerOnDark ? 'rgba(255,255,255,0.97)' : 'rgba(0,0,0,0.92)',
-        }}
-      >
-        {parts.greeting.label}
-      </span>
-    </p>
-  </div>
-);
+export const GreetingDisplay = ({ parts, centerOnDark }) => {
+  // Compute once per render — avoids two identical object allocations for the two spans.
+  const sharedStyle = shared(centerOnDark);
+  return (
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
+      style={{ zIndex: 20 }}
+    >
+      <div className="fm-greeting-spacer" />
+      <p className="fm-greeting-row">
+        <span
+          className="fm-greeting-text"
+          style={{
+            ...sharedStyle,
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            color: centerOnDark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.60)',
+          }}
+        >
+          {parts.greeting.prefix}{' '}
+        </span>
+        <span
+          className="fm-greeting-text"
+          style={{
+            ...sharedStyle,
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            color: centerOnDark ? 'rgba(255,255,255,0.97)' : 'rgba(0,0,0,0.92)',
+          }}
+        >
+          {parts.greeting.label}
+        </span>
+      </p>
+    </div>
+  );
+};

@@ -4,9 +4,16 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { getGreeting } from '../../data/greetings';
+export { GREETINGS, getGreeting } from '../../data/greetings';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+// dayjs plugins are already extended by utilities/index.js which is always
+// imported first. We only extend here as a safety net in case this file is
+// imported in isolation (e.g. unit tests that don't load the full app).
+if (!dayjs.tz) {
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+}
 
 /** Curated list of major IANA timezones with friendly display labels. */
 export const TZ_OPTIONS = [
@@ -35,20 +42,7 @@ export const TZ_OPTIONS = [
   { tz: 'Pacific/Auckland', label: 'Auckland' },
 ];
 
-export const GREETINGS = [
-  { from: 0, prefix: 'nothing good', label: 'happens after midnight' },
-  { from: 5, prefix: 'early bird', label: 'gets the worm' },
-  { from: 7, prefix: 'time to', label: 'get to work' },
-  { from: 9, prefix: 'deep in the', label: 'morning grind' },
-  { from: 12, prefix: 'fuel up for the', label: 'afternoon push' },
-  { from: 14, prefix: 'stay in', label: 'the zone' },
-  { from: 17, prefix: 'great job,', label: 'wrap it up' },
-  { from: 19, prefix: 'rest up,', label: "tomorrow's coming" },
-  { from: 22, prefix: 'get some', label: 'sleep' },
-];
 
-export const getGreeting = (h24) =>
-  [...GREETINGS].reverse().find(g => h24 >= g.from) || GREETINGS[0];
 
 /**
  * Returns { time, period, greeting } using browser local time (no hardcoded TZ).

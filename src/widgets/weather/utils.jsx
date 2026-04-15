@@ -207,8 +207,8 @@ export const parseForecast = (data) => {
   }
   const [bestCode, bestCount] = Object.entries(tally).sort(([, a], [, b]) => b - a)[0];
   return {
-    description: wmoDescription(parseInt(bestCode)),
-    code: parseInt(bestCode),
+    description: wmoDescription(Number.parseInt(bestCode)),
+    code: Number.parseInt(bestCode),
     hours: bestCount,
     type: 'persist',
   };
@@ -244,4 +244,42 @@ export const getCoordsFromIP = async () => {
     }
   } catch { /* ignore */ }
   return null;
+};
+
+// ── Weather result cache (localStorage) ──────────────────────────────────────
+// Eliminates the loading skeleton on all subsequent new-tab opens.
+// First open fetches normally; every open after that shows data instantly
+// from the cache while a background refresh runs if the cache is stale.
+
+const WEATHER_CACHE_KEY = 'weather_cache_v1';
+const CACHE_TTL_MS = 30 * 60_000; // 30 min — matches the widget's refresh interval
+
+/**
+ * Read cached weather result for a given location + unit combination.
+ * Returns { weather, forecast, fresh } or null if no matching cache entry.
+ * `fresh` is true when the entry is < 30 min old (no network fetch needed).
+ */
+export const readWeatherCache = (locationKey, unit) => {
+  try {
+    const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw);
+    if (entry.locationKey !== locationKey || entry.unit !== unit) return null;
+    return {
+      weather: entry.weather,
+      forecast: entry.forecast,
+      fresh: Date.now() - entry.ts < CACHE_TTL_MS,
+    };
+  } catch { return null; }
+};
+
+/**
+ * Persist a weather result to localStorage so the next tab open can skip the fetch.
+ */
+export const writeWeatherCache = (weather, forecast, locationKey, unit) => {
+  try {
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+      weather, forecast, locationKey, unit, ts: Date.now(),
+    }));
+  } catch { /* storage unavailable — silent */ }
 };

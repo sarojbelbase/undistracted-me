@@ -40,8 +40,26 @@ vi.mock('react-bootstrap-icons', () => ({
   MusicNoteBeamed: () => <span>🎵</span>,
   GraphUpArrow: () => <span>📈</span>,
   InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
   ArrowsFullscreen: () => <span>⛶</span>,
   FullscreenExit: () => <span>⛶x</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  GeoAlt: () => <span>📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  Search: () => <span>🔍</span>,
+  CalendarCheck: () => <span>✅</span>,
+  Trash3: () => <span>🗑</span>,
+  CalendarEvent: () => <span>📅</span>,
+}));
+
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 // Mock BaseWidget
@@ -287,99 +305,59 @@ import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
 describe('FocusModeSettings — photo library', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockHasUnsplashKey.mockReturnValue(true);
-    mockGetPhotoLibrary.mockReturnValue([
-      { id: 'p1', small: 'https://example.com/photo1.jpg', author: 'John Doe', photoUrl: 'https://unsplash.com/p/1' },
-      { id: 'p2', small: 'https://example.com/photo2.jpg', author: 'Jane Smith', photoUrl: 'https://unsplash.com/p/2' },
-    ]);
-    mockDownloadNewPhoto.mockResolvedValue(undefined);
-    mockDeletePhoto.mockImplementation(() => { });
   });
 
-  afterEach(() => {
-    mockHasUnsplashKey.mockReturnValue(false);
-    mockGetPhotoLibrary.mockReturnValue([]);
+  it('renders Date Calendar section', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('Date Calendar')).toBeTruthy();
   });
 
-  it('renders Background Photos section when unsplash key exists', () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText('Background Photos')).toBeTruthy();
+  it('renders CE button', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('CE')).toBeTruthy();
   });
 
-  it('shows photo count', () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText('2/5')).toBeTruthy(); // 2 photos, max 5
+  it('renders BS button', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('BS')).toBeTruthy();
   });
 
-  it('renders Shuffle button', () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText(/Shuffle/i)).toBeTruthy();
+  it('renders Clock Format section', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('Clock Format')).toBeTruthy();
   });
 
-  it('renders Download button', () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText(/Download/i)).toBeTruthy();
+  it('renders 24h button', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('24h')).toBeTruthy();
   });
 
-  it('clicking Shuffle calls onRotatePhoto', async () => {
-    const onRotate = vi.fn().mockResolvedValue(undefined);
-    render(<FocusModeSettings onRotatePhoto={onRotate} />);
-    const shuffleBtn = screen.getByText(/Shuffle/i).closest('button');
-    await act(async () => { fireEvent.click(shuffleBtn); });
-    expect(onRotate).toHaveBeenCalled();
+  it('renders 12h button', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('12h')).toBeTruthy();
   });
 
-  it('clicking Download calls downloadNewPhoto', async () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    const downloadBtn = screen.getByText(/Download/i).closest('button');
-    await act(async () => { fireEvent.click(downloadBtn); });
-    expect(mockDownloadNewPhoto).toHaveBeenCalled();
+  it('renders Background section', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('Background')).toBeTruthy();
   });
 
-  it('clicking photo delete ✕ calls deletePhoto', async () => {
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    const deleteBtn = screen.getAllByTitle('Remove from library')[0];
-    await act(async () => { fireEvent.click(deleteBtn); });
-    expect(mockDeletePhoto).toHaveBeenCalled();
+  it('renders Change background button', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    expect(screen.getByText('Change background')).toBeTruthy();
   });
 
-  it('clicking non-active photo calls onRotatePhoto', async () => {
-    const onRotate = vi.fn().mockResolvedValue(undefined);
-    render(<FocusModeSettings onRotatePhoto={onRotate} />);
-    // Click the second photo (not active)
-    const photoContainers = document.querySelectorAll('.group.rounded');
-    if (photoContainers.length > 1) {
-      await act(async () => { fireEvent.click(photoContainers[1]); });
-      expect(onRotate).toHaveBeenCalled();
-    }
+  it('clicking CE button calls setDateFormat with gregorian', () => {
+    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
+    fireEvent.click(screen.getByText('CE'));
+    expect(mockSetDateFormat).toHaveBeenCalledWith('gregorian');
   });
 
-  it('shows Library empty when library has no photos', () => {
-    mockGetPhotoLibrary.mockReturnValue([]);
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText(/Library empty/i)).toBeTruthy();
-  });
-
-  it('Shuffle button is disabled when library has 0 or 1 photos', () => {
-    mockGetPhotoLibrary.mockReturnValue([
-      { id: 'p1', small: 'https://example.com/photo1.jpg', author: 'John', photoUrl: '' },
-    ]);
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    const shuffleBtn = screen.getByText(/Shuffle/i).closest('button');
-    expect(shuffleBtn.disabled).toBe(true);
-  });
-
-  it('Download button is disabled at max capacity', () => {
-    // 5 photos = max
-    mockGetPhotoLibrary.mockReturnValue([
-      { id: 'p1', small: '', author: 'A', photoUrl: '' },
-      { id: 'p2', small: '', author: 'B', photoUrl: '' },
-      { id: 'p3', small: '', author: 'C', photoUrl: '' },
-      { id: 'p4', small: '', author: 'D', photoUrl: '' },
-      { id: 'p5', small: '', author: 'E', photoUrl: '' },
-    ]);
-    render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    expect(screen.getByText('Library full')).toBeTruthy();
+  it('clicking Background button calls onOpenBgModal', () => {
+    const onOpenBgModal = vi.fn();
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    fireEvent.click(screen.getByText('Change background'));
+    expect(onOpenBgModal).toHaveBeenCalled();
   });
 });
 

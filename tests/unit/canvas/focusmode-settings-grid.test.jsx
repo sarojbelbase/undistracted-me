@@ -23,9 +23,16 @@ vi.mock('../../../src/store', () => ({
     return selector ? selector(state) : state;
   }),
   useWidgetInstancesStore: vi.fn((selector) => {
-    const state = { instances: [] };
+    const state = { instances: [], widgetSettings: {} };
     return selector ? selector(state) : state;
   }),
+}));
+
+// Also mock the direct import path used by widget dependencies
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 vi.mock('../../../src/utilities/unsplash', () => ({
@@ -35,6 +42,10 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   deletePhoto: vi.fn(),
   jumpToPhotoById: vi.fn(),
   LIBRARY_MAX: 10,
+  getBgSource: vi.fn(() => 'unsplash'),
+  setBgSource: vi.fn(),
+  getCachedPhotoSync: vi.fn(() => null),
+  getCurrentPhoto: vi.fn(() => Promise.resolve(null)),
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,10 +81,10 @@ describe('FocusModeSettings', () => {
     expect(screen.getByText('12h')).toBeTruthy();
   });
 
-  it('shows accent color palette', () => {
+  it('shows Background section', () => {
     render(<FocusModeSettings onRotatePhoto={vi.fn()} />);
-    // Accent colors section should exist
-    expect(document.body.textContent).toMatch(/Accent/i);
+    // Background section should exist
+    expect(document.body.textContent).toMatch(/Background/i);
   });
 
   it('clicking CE and BS buttons does not throw', () => {
@@ -112,7 +123,8 @@ describe('WidgetGrid', () => {
 
   it('renders a notes widget', () => {
     render(<WidgetGrid instances={[{ id: 'notes', type: 'notes' }]} onRemoveInstance={vi.fn()} />);
-    expect(screen.getByRole('textbox')).toBeTruthy();
+    // Notes widget renders a textarea — use DOM query since react-grid-layout may affect role detection
+    expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
   it('renders a clock widget', () => {
@@ -136,6 +148,6 @@ describe('WidgetGrid', () => {
         onRemoveInstance={vi.fn()}
       />
     );
-    expect(screen.getByRole('textbox')).toBeTruthy(); // notes
+    expect(document.body.querySelector('textarea')).toBeTruthy(); // notes
   });
 });

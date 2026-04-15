@@ -40,11 +40,10 @@ export const buildCalendarData = (calendarType, monthOffset = 0) => {
       remaining--;
     }
 
-    const yearIdx = targetYear - BASE_NEPALI_YEAR;
     // Clamp to known data range
-    if (!NEPALI_YEARS_AND_DAYS_IN_MONTHS[yearIdx]) return buildCalendarData(calendarType, 0);
+    if (!NEPALI_YEARS_AND_DAYS_IN_MONTHS[targetYear]) return buildCalendarData(calendarType, 0);
 
-    const daysInTargetMonth = NEPALI_YEARS_AND_DAYS_IN_MONTHS[yearIdx][targetMonth];
+    const daysInTargetMonth = NEPALI_YEARS_AND_DAYS_IN_MONTHS[targetYear][targetMonth - 1];
 
     // AD date of day-1 of the current BS month
     let firstOfTarget = now.subtract(nepaliDay - 1, 'day');
@@ -55,14 +54,14 @@ export const buildCalendarData = (calendarType, monthOffset = 0) => {
     let walkRemaining = Math.abs(monthOffset);
     while (walkRemaining > 0) {
       if (dir > 0) {
-        const daysInWalk = NEPALI_YEARS_AND_DAYS_IN_MONTHS[walkYear - BASE_NEPALI_YEAR][walkMonth];
+        const daysInWalk = NEPALI_YEARS_AND_DAYS_IN_MONTHS[walkYear][walkMonth - 1];
         firstOfTarget = firstOfTarget.add(daysInWalk, 'day');
         walkMonth++;
         if (walkMonth > 12) { walkYear++; walkMonth = 1; }
       } else {
         walkMonth--;
         if (walkMonth < 1) { walkYear--; walkMonth = 12; }
-        const daysInWalk = NEPALI_YEARS_AND_DAYS_IN_MONTHS[walkYear - BASE_NEPALI_YEAR][walkMonth];
+        const daysInWalk = NEPALI_YEARS_AND_DAYS_IN_MONTHS[walkYear][walkMonth - 1];
         firstOfTarget = firstOfTarget.subtract(daysInWalk, 'day');
       }
       walkRemaining--;

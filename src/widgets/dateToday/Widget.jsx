@@ -14,8 +14,8 @@ export const Widget = ({ id, onRemove }) => {
 
   useEffect(() => {
     update();
-    const id = setInterval(update, 60_000);
-    return () => clearInterval(id);
+    const timerId = setInterval(update, 60_000);
+    return () => clearInterval(timerId);
   }, [update]);
 
   return (

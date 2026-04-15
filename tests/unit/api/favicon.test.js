@@ -44,11 +44,11 @@ describe('GET /api/favicon', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('rejects no origin with 403', async () => {
+  it('allows same-origin request (empty origin header)', async () => {
     const req = makeReq({ method: 'GET', origin: '', query: { domain: 'example.com' } });
     const res = makeRes();
     await handler(req, res);
-    expect(res._status).toBe(403);
+    expect(res._status).toBe(200);
   });
 
   // ── Method enforcement ────────────────────────────────────────────────────

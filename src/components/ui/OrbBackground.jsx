@@ -9,15 +9,25 @@ import React from 'react';
  *  - zIndex (number)   — stack order, default 0
  */
 
-const KEYFRAMES = `
+// Inject keyframes once at module load — avoids a <style> tag inside the
+// component tree which React would reconcile (and re-insert) on every render.
+// Multiple OrbBackground instances share the same injected rule.
+if (typeof document !== 'undefined') {
+  const _ID = '__orb-keyframes__';
+  if (!document.getElementById(_ID)) {
+    const s = document.createElement('style');
+    s.id = _ID;
+    s.textContent = `
 @keyframes orbSpin    { to { transform: rotate(360deg); } }
 @keyframes orbCounter { to { transform: rotate(-360deg); } }
 @keyframes orbDrift   { to { transform: rotate(360deg); } }
 @keyframes orbBloom {
   0%, 100% { opacity: 1;    transform: scale(1);    }
   50%      { opacity: 0.82; transform: scale(1.12); }
+}`;
+    document.head.appendChild(s);
+  }
 }
-`;
 
 export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
   const c = rgb
@@ -27,18 +37,17 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
   // Light-mode needs stronger opacity so orbs show against the pale canvas
   const op = isDark
     ? { p: 0.52, s: 0.32, t: 0.26, q: 0.18, r: 0.22, sh: 0.05 }
-    : { p: 0.50, s: 0.30, t: 0.24, q: 0.16, r: 0.20, sh: 0.07 };
+    : { p: 0.5, s: 0.3, t: 0.24, q: 0.16, r: 0.2, sh: 0.07 };
 
   return (
     <>
-      <style>{KEYFRAMES}</style>
-
-      {/* ── Group A — main CW spin (22 s) ── */}
+      {/* ── Group A — main CW spin (40 s) ── */}
       <div aria-hidden style={{
         position: 'absolute', inset: 0, zIndex,
         animation: 'orbSpin 40s linear infinite',
         transformOrigin: '50% 50%',
         pointerEvents: 'none',
+        willChange: 'transform',
       }}>
         {/* Primary — centre bloom */}
         <div style={{
@@ -61,12 +70,13 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* ── Group B — CCW spin (15 s) ── */}
+      {/* ── Group B — CCW spin (28 s) ── */}
       <div aria-hidden style={{
         position: 'absolute', inset: 0, zIndex,
         animation: 'orbCounter 28s linear infinite',
         transformOrigin: '50% 50%',
         pointerEvents: 'none',
+        willChange: 'transform',
       }}>
         {/* Tertiary — bottom-left */}
         <div style={{
@@ -88,12 +98,13 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* ── Group C — slow CW drift (35 s) — fills bottom-right & mid voids ── */}
+      {/* ── Group C — slow CW drift (60 s) — fills bottom-right & mid voids ── */}
       <div aria-hidden style={{
         position: 'absolute', inset: 0, zIndex,
         animation: 'orbDrift 60s linear infinite',
         transformOrigin: '50% 50%',
         pointerEvents: 'none',
+        willChange: 'transform',
       }}>
         {/* Quinary — bottom-right */}
         <div style={{

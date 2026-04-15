@@ -2,13 +2,11 @@ import { MusicNoteBeamed, PauseFill, PlayFill, SkipStartFill, SkipEndFill } from
 import { formatTime } from '../../widgets/pomodoro/utils';
 import { priceStats, fmtPrice } from '../../widgets/stock/utils';
 import { GLASS_CARD, getTimeUntilEvent, formatEventStartTime } from './constants';
-import { useSettingsStore } from '../../store';
 
-// ─── Theme tokens driven by light / dark mode ─────────────────────────────────
-
-// Focus Mode is always rendered over a photo — cards always use dark glass
-// regardless of the app's light/dark mode preference.
-const getTheme = (_mode) => ({
+// Focus Mode is always rendered over a photo/dark backdrop — cards always use
+// dark glass regardless of the app's light/dark mode preference.
+// Extracted as a module-level constant: the values never change.
+const THEME = {
   card: GLASS_CARD,
   label: 'rgba(255,255,255,0.60)',
   text: 'rgba(255,255,255,0.96)',
@@ -18,7 +16,7 @@ const getTheme = (_mode) => ({
   btnBorder: 'rgba(255,255,255,0.18)',
   btnColor: 'rgba(255,255,255,0.95)',
   btnIcon: 'rgba(255,255,255,0.65)',
-});
+};
 
 // ─── Card entry animation (spring-in from below, staggered) ──────────────────
 
@@ -106,7 +104,7 @@ const StocksPanelCard = ({ stocks, t }) => (
 
 // ─── Spotify mini card ────────────────────────────────────────────────────────
 
-const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
+const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, pending, skipPending, t }) => (
   <div
     style={{ ...t.card, padding: '10px 12px' }}
     onClick={e => e.stopPropagation()}
@@ -143,13 +141,31 @@ const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
     </div>
     {/* Controls: centered below */}
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
-      <button onClick={onPrev} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex' }}>
+      <button
+        onClick={onPrev}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'prev' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+      >
         <SkipStartFill size={14} />
       </button>
-      <button onClick={onToggle} style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
-      </button>
-      <button onClick={onNext} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex' }}>
+      <div style={{ position: 'relative' }}>
+        {pending && (
+          <div
+            className="animate-spin"
+            style={{ position: 'absolute', inset: -2, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', pointerEvents: 'none' }}
+            aria-hidden="true"
+          />
+        )}
+        <button
+          onClick={onToggle}
+          style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pending ? 0.75 : 1, transition: 'opacity 0.2s' }}
+        >
+          {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
+        </button>
+      </div>
+      <button
+        onClick={onNext}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'next' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+      >
         <SkipEndFill size={14} />
       </button>
     </div>
@@ -158,9 +174,8 @@ const SpotifyMiniCard = ({ track, onToggle, onNext, onPrev, t }) => (
 
 // ─── Left panel wrapper ───────────────────────────────────────────────────────
 
-export const LeftPanel = ({ pomodoro, eventInfo, stocks, spotifyTrack, onToggle, onNext, onPrev }) => {
-  const { mode } = useSettingsStore();
-  const t = getTheme(mode);
+export const LeftPanel = ({ pomodoro, eventInfo, stocks, spotifyTrack, onToggle, onNext, onPrev, spotifyPending, spotifySkipPending }) => {
+  const t = THEME;
   const hasContent = pomodoro || eventInfo || stocks.length > 0 || spotifyTrack;
   if (!hasContent) return null;
 
@@ -192,6 +207,8 @@ export const LeftPanel = ({ pomodoro, eventInfo, stocks, spotifyTrack, onToggle,
             onToggle={onToggle}
             onNext={onNext}
             onPrev={onPrev}
+            pending={spotifyPending}
+            skipPending={spotifySkipPending}
             t={t}
           />
         </AnimatedCard>

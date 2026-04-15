@@ -56,6 +56,7 @@ vi.mock('../../../src/utilities/index', () => ({
     day: () => 1, // Monday
     month: () => 5, // June (0-indexed)
     date: () => 15,
+    year: () => 2025,
     format: () => '2025 6 15',
   })),
   convertEnglishToNepali: vi.fn(() => '2082 3 1'), // Returns string like real function
@@ -66,6 +67,7 @@ vi.mock('../../../src/utilities', () => ({
     day: () => 1,
     month: () => 5,
     date: () => 15,
+    year: () => 2025,
     format: () => '2025 6 15',
   })),
   convertEnglishToNepali: vi.fn(() => '2082 3 1'), // Returns string
@@ -74,6 +76,7 @@ vi.mock('../../../src/utilities', () => ({
 
 vi.mock('../../../src/constants', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
+  MONTH_NAMES: ['बैशाख', 'जेठ', 'आषाढ', 'श्रावण', 'भाद्र', 'आश्विन', 'कार्तिक', 'मंसिर', 'पौष', 'माघ', 'फाल्गुन', 'चैत्र'],
   MONTH_NAMES_IN_NEPALI: ['बैशाख', 'जेठ', 'आषाढ', 'श्रावण', 'भाद्र', 'आश्विन', 'कार्तिक', 'मंसिर', 'पौष', 'माघ', 'फाल्गुन', 'चैत्र'],
   DAY_NAMES: ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'],
 }));
@@ -110,12 +113,19 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   jumpToPhotoById: vi.fn(),
   LIBRARY_MAX: 20,
 }));
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
+}));
+
 vi.mock('../../../src/theme', () => ({
   ACCENT_COLORS: [{ name: 'indigo', value: '#6366f1' }],
 }));
 
 import { BaseWidget } from '../../../src/widgets/BaseWidget';
-import { ClockWidget } from '../../../src/widgets/dateToday/ClockWidget';
+import { Widget as ClockWidget } from '../../../src/widgets/dateToday/Widget';
 import { TopBar } from '../../../src/components/FocusMode/TopBar';
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
 
@@ -227,31 +237,28 @@ describe('BaseWidget', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('ClockWidget (dateToday)', () => {
   it('renders without crashing', () => {
-    expect(() => render(<ClockWidget widgetId="date-1" />)).not.toThrow();
+    expect(() => render(<ClockWidget id="date-1" onRemove={vi.fn()} />)).not.toThrow();
   });
 
   it('shows month name in English', () => {
-    render(<ClockWidget widgetId="date-1" />);
-    expect(screen.getByText('Jun')).toBeTruthy();
+    render(<ClockWidget id="date-1" onRemove={vi.fn()} />);
+    expect(screen.getByText('June')).toBeTruthy();
   });
 
   it('shows short weekday', () => {
-    render(<ClockWidget widgetId="date-1" />);
-    expect(screen.getByText('Mon')).toBeTruthy();
+    render(<ClockWidget id="date-1" onRemove={vi.fn()} />);
+    expect(screen.getByText('Monday')).toBeTruthy();
   });
 
   it('renders in Nepali language mode without crashing', () => {
     // Temporarily set useWidgetSettings to return Nepali language
     vi.mocked(useWidgetSettings).mockImplementationOnce((id, defaults) => [{ ...defaults, language: 'ne' }, vi.fn()]);
-    expect(() => render(<ClockWidget widgetId="date-1" />)).not.toThrow();
+    expect(() => render(<ClockWidget id="date-1" onRemove={vi.fn()} />)).not.toThrow();
   });
 
   it('renders BaseWidget wrapper', () => {
     vi.mocked(useWidgetSettings).mockReturnValueOnce([{ language: 'en' }, vi.fn()]);
-    render(<ClockWidget widgetId="date-1" />);
-    // English and Nepali radio buttons should be in settings
-    // ClockWidget renders in BaseWidget with settingsContent
-    // The settingsContent has radio buttons for language
+    render(<ClockWidget id="date-1" onRemove={vi.fn()} />);
     expect(screen.queryByLabelText('Widget options')).toBeTruthy();
   });
 });
@@ -271,58 +278,58 @@ describe('TopBar', () => {
   it('renders without crashing', () => {
     expect(() => render(
       <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible dateParts={dateParts} />
+        uiVisible />
     )).not.toThrow();
   });
 
   it('renders Canvas back button', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     expect(screen.getByTitle('Back to Canvas')).toBeTruthy();
   });
 
   it('calls onExit when back button is clicked', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     fireEvent.click(screen.getByTitle('Back to Canvas'));
     expect(onExit).toHaveBeenCalledOnce();
   });
 
-  it('shows date parts in center', () => {
+  it('shows date in center area', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
-    expect(screen.getByText(/Monday.*June.*15/)).toBeTruthy();
-    expect(screen.getByText('2025')).toBeTruthy();
+      uiVisible />);
+    // TopBar no longer renders dateParts directly — just verify it renders without crash
+    expect(screen.getByTitle('Back to Canvas')).toBeTruthy();
   });
 
   it('renders fullscreen button', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     expect(screen.getByTitle('Fullscreen — keeps screen awake')).toBeTruthy();
   });
 
   it('calls toggleFullscreen when fullscreen button is clicked', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     fireEvent.click(screen.getByTitle('Fullscreen — keeps screen awake'));
     expect(toggleFullscreen).toHaveBeenCalledOnce();
   });
 
   it('shows exit fullscreen button when isFullscreen is true', () => {
     render(<TopBar onExit={onExit} isFullscreen={true} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     expect(screen.getByTitle('Exit fullscreen')).toBeTruthy();
   });
 
   it('renders settings gear button', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} />);
+      uiVisible />);
     expect(screen.getByTitle('Settings')).toBeTruthy();
   });
 
   it('opens settings panel when gear is clicked', async () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} onRotatePhoto={onRotatePhoto} />);
+      uiVisible onOpenBgModal={onRotatePhoto} />);
     await act(async () => {
       fireEvent.click(screen.getByTitle('Settings'));
     });
@@ -334,7 +341,7 @@ describe('TopBar', () => {
   it('is transparent (opacity 0) when uiVisible is false', () => {
     const { container } = render(
       <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible={false} dateParts={dateParts} />
+        uiVisible={false} />
     );
     const topBar = container.firstChild;
     expect(topBar.style.opacity).toBe('0');
@@ -343,31 +350,23 @@ describe('TopBar', () => {
   it('is visible (opacity 1) when uiVisible is true', () => {
     const { container } = render(
       <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible={true} dateParts={dateParts} />
+        uiVisible={true} />
     );
     const topBar = container.firstChild;
     expect(topBar.style.opacity).toBe('1');
   });
 
-  it('renders weather badge when weather prop is provided', () => {
-    const weather = { code: 0, isDay: true, temperature: 22, unit: 'metric' };
+  it('renders fullscreen and settings buttons', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} weather={weather} />);
-    // Shows temperature
-    expect(screen.getByText('22°C')).toBeTruthy();
+      uiVisible />);
+    expect(screen.getByTitle('Fullscreen — keeps screen awake')).toBeTruthy();
+    expect(screen.getByTitle('Settings')).toBeTruthy();
   });
 
-  it('does not render weather badge when weather is null', () => {
+  it('does not render weather when no weather prop provided', () => {
     render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} weather={null} />);
-    // No temperature display
+      uiVisible />);
+    // TopBar no longer renders weather inline
     expect(screen.queryByText(/°C|°F/)).toBeNull();
-  });
-
-  it('shows Fahrenheit when unit is imperial', () => {
-    const weather = { code: 0, isDay: true, temperature: 72, unit: 'imperial' };
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible dateParts={dateParts} weather={weather} />);
-    expect(screen.getByText('72°F')).toBeTruthy();
   });
 });

@@ -15,6 +15,24 @@ vi.mock('react-bootstrap-icons', () => ({
   PauseFill: () => <span>Pause</span>,
   XLg: () => <span aria-hidden="true">✕</span>,
   MusicNoteBeamed: () => <span data-testid="music-icon">Music</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  GeoAlt: () => <span>📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  Search: () => <span>🔍</span>,
+  GraphUpArrow: () => <span>📈</span>,
+  InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
+  CalendarCheck: () => <span>✅</span>,
+}));
+
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 // Mock BaseWidget to just render children
@@ -44,7 +62,8 @@ vi.mock('../../../src/widgets/spotify/utils', () => ({
   skipPrev: vi.fn(),
   extractAlbumColor: vi.fn(() => Promise.resolve(null)),
   fetchAndCacheProfile: vi.fn(() => Promise.resolve(null)),
-  getSpotifyProfile: vi.fn(() => null),
+  getSpotifyProfile: vi.fn(() => Promise.resolve(null)),
+  getChromeMedia: vi.fn(() => Promise.resolve([])),
 }));
 
 // Mock stock utils for Stock widget tests
@@ -183,7 +202,7 @@ describe('Spotify Widget — disconnected state', () => {
       SPOTIFY_CLIENT_ID: 'test-client-id',
       isSpotifyConnected: vi.fn(() => false),
       getCurrentPlayback: vi.fn(() => Promise.resolve(null)),
-      getSpotifyProfile: vi.fn(() => null),
+      getSpotifyProfile: vi.fn(() => Promise.resolve(null)),
       extractAlbumColor: vi.fn(() => Promise.resolve(null)),
     }));
     // The snapshot test is about the initial not-connected state with null SPOTIFY_CLIENT_ID

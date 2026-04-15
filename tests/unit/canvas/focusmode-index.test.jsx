@@ -34,6 +34,11 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   getCachedPhotoSync: vi.fn(() => null),
   LIBRARY_MAX: 20,
   clearPhotoCache: vi.fn(),
+  getBgSource: vi.fn(() => 'unsplash'),
+  setBgSource: vi.fn(),
+  prewarmPhotos: vi.fn(() => Promise.resolve()),
+  BG_SOURCE_KEY: 'fm_bg_source',
+  getCurrentPhoto: vi.fn(() => Promise.resolve(null)),
 }));
 
 // Spotify utils
@@ -94,6 +99,13 @@ vi.mock('../../../src/components/FocusMode/hooks', () => ({
   useWakeLock: vi.fn(),
   useCenterOnDark: vi.fn(() => false),
   useFocusTimezones: vi.fn(() => []),
+  useFocusSpotify: vi.fn(() => ({
+    spotify: null,
+    spotifyProgress: 0,
+    handleToggle: vi.fn(),
+    handleNext: vi.fn(),
+    handlePrev: vi.fn(),
+  })),
 }));
 
 // FocusMode constants — also need to mock the utilities dir dependency

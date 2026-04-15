@@ -37,13 +37,6 @@ export const IS_WEBSITE_MODE = import.meta.env.VITE_WEBSITE_MODE === 'true';
 // mode since the extension context (chrome.action, chrome.identity, etc.) is absent.
 
 /**
- * chrome.action.setBadgeText / setBadgeBackgroundColor
- * Stamps the current Nepali date onto the extension toolbar icon.
- * Website mode replacement: dynamic favicon generated via <canvas>.
- */
-export const FEATURE_EXTENSION_BADGE = !IS_WEBSITE_MODE;
-
-/**
  * chrome.identity.getAuthToken (Chrome) / launchWebAuthFlow (Firefox)
  * Used for Google Calendar, Google Contacts OAuth.
  */
@@ -70,10 +63,4 @@ export const FEATURE_CHROME_MESSAGING = !IS_WEBSITE_MODE;
 
 // ─── Website-mode alternatives ────────────────────────────────────────────────
 
-/**
- * Dynamic browser-tab favicon.
- * In website mode the extension icon badge is unavailable, so we instead
- * render the current Nepali date into a <canvas> and swap it into the
- * page's <link rel="icon"> so the date shows in the browser tab.
- */
-export const FEATURE_WEBSITE_FAVICON = IS_WEBSITE_MODE;
+

@@ -346,7 +346,7 @@ test.describe('Focus Mode — left panel fully filled', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Focus Mode: background modal ("Choose Background")
+// 6. Focus Mode: background picker ("Focus Mode Background")
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Focus Mode — background management', () => {
@@ -364,40 +364,39 @@ test.describe('Focus Mode — background management', () => {
     await expect(page.getByText('Clock Format')).toBeVisible();
   });
 
-  test('Manage button opens the "Choose Background" modal', async ({ page }) => {
+  test('Change background button opens the Background Picker modal', async ({ page }) => {
     const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
     await gearBtn.click();
-    await page.getByText('Manage').click();
-    // Modal title should be "Choose Background"
-    await expect(page.getByText('Choose Background')).toBeVisible({ timeout: 4000 });
+    // Button label is "Change background" in FocusModeSettings panel
+    await page.getByText('Change background').click();
+    // Modal title is "Focus Mode Background" (rendered via BackgroundPicker scope=focus)
+    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
   });
 
-  test('background modal has Default, Curated, URL tabs', async ({ page }) => {
+  test('background picker has Photos and URL tabs for focus scope', async ({ page }) => {
     const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
     await gearBtn.click();
-    await page.getByText('Manage').click();
-    await expect(page.getByText('Choose Background')).toBeVisible({ timeout: 4000 });
-    await expect(page.getByRole('button', { name: 'Default' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Curated' })).toBeVisible();
+    await page.getByText('Change background').click();
+    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
+    // Focus scope shows Photos (curated) and URL (custom) tabs
+    await expect(page.getByRole('button', { name: 'Photos' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'URL' })).toBeVisible();
   });
 
-  test('background modal close button dismisses the modal', async ({ page }) => {
+  test('background picker close button dismisses the modal', async ({ page }) => {
     const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
     await gearBtn.click();
-    await page.getByText('Manage').click();
-    await expect(page.getByText('Choose Background')).toBeVisible({ timeout: 4000 });
+    await page.getByText('Change background').click();
+    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
 
-    // Close button is the × in the top-right of the modal
-    const closeBtn = page.locator('button[aria-label="Close"], button').filter({ hasText: '×' }).first();
-    // Fallback: find the × symbol button near the modal heading
-    const closeBtns = page.locator('button').filter({ hasText: /^[×✕x]$/i });
+    // Close with aria-label button or Escape fallback
+    const closeBtns = page.locator('button[aria-label="Close"]');
     if (await closeBtns.count() > 0) {
       await closeBtns.first().click();
     } else {
       await page.keyboard.press('Escape');
     }
-    await expect(page.getByText('Choose Background')).toHaveCount(0, { timeout: 4000 });
+    await expect(page.getByText('Focus Mode Background')).toHaveCount(0, { timeout: 4000 });
   });
 });
 
@@ -447,17 +446,19 @@ test.describe('Canvas — Countdown widget', () => {
   });
 
   test('countdown widget shows empty state when no events seeded', async ({ page }) => {
-    await mountCountdown(page, { countdown_events: [], countdown_pinned: null });
+    await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
-    await expect(w).toContainText('No countdowns yet');
+    // Empty state message in the countdown widget
+    await expect(w).toContainText('Nothing to count down to');
   });
 
   test('countdown shows pre-seeded future event with days remaining', async ({ page }) => {
     const future = futureDate(30);
     const event = { id: 'cd_pw_1', title: 'Product Launch', targetDate: future, targetTime: '10:00', repeat: 'none' };
+    // pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
     await mountCountdown(page, {
       countdown_events: [event],
-      countdown_pinned: { type: 'custom', id: 'cd_pw_1' },
+      countdown_pinned_countdown: { type: 'custom', id: 'cd_pw_1' },
     });
     const w = page.locator('.react-grid-item').first();
     await expect(w).toContainText('Product Launch');
@@ -465,7 +466,7 @@ test.describe('Canvas — Countdown widget', () => {
   });
 
   test('can create a countdown via widget settings', async ({ page }) => {
-    await mountCountdown(page, { countdown_events: [], countdown_pinned: null });
+    await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
 
     // Open widget options
@@ -527,9 +528,10 @@ test.describe('Canvas — Countdown widget', () => {
       targetTime: '00:00',
       repeat: 'yearly',
     };
+    // pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
     await mountCountdown(page, {
       countdown_events: [event],
-      countdown_pinned: { type: 'custom', id: 'cd_pw_2' },
+      countdown_pinned_countdown: { type: 'custom', id: 'cd_pw_2' },
     });
     const w = page.locator('.react-grid-item').first();
     await expect(w).toContainText('New Year');
@@ -537,7 +539,7 @@ test.describe('Canvas — Countdown widget', () => {
   });
 
   test('countdown widget is not clipped', async ({ page }) => {
-    await mountCountdown(page, { countdown_events: [], countdown_pinned: null });
+    await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
     const inner = w.locator('.rounded-2xl').first();
     const { hClip, scrollW, clientW } = await inner.evaluate(el => ({

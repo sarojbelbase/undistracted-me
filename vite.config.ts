@@ -128,14 +128,17 @@ export default defineConfig({
     googleTokenProxy(),
   ],
   build: {
+    // Strip console.warn/console.error in extension production builds.
+    // console.error is kept for real runtime errors; warn is dev-only noise.
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          if (id.includes('node_modules/react-grid-layout') || id.includes('node_modules/react-resizable')) return 'vendor-grid';
-          if (id.includes('node_modules/react-bootstrap-icons')) return 'vendor-icons';
-          if (id.includes('node_modules/dayjs')) return 'vendor-dayjs';
-          if (id.includes('node_modules/zustand')) return 'vendor-zustand';
-          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'vendor-react';
+          if (id.includes('node_modules/react-grid-layout') || id.includes('node_modules/react-resizable')) return 'grid';
+          if (id.includes('node_modules/react-bootstrap-icons')) return 'icons';
+          if (id.includes('node_modules/dayjs')) return 'datetime';
+          if (id.includes('node_modules/zustand')) return 'store';
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'engine';
         },
       },
     },

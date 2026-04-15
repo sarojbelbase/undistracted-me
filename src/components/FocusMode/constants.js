@@ -1,4 +1,5 @@
 import { getTimeZoneAwareDayJsInstance, convertEnglishToNepali } from '../../utilities';
+import { datePrefixFor } from '../../widgets/events/utils';
 import { MONTH_NAMES } from '../../constants';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
@@ -63,10 +64,14 @@ export const getNextEventToShow = (events) => {
 
 export const getTimeUntilEvent = (event) => {
   const start = new Date(`${event.startDate}T${event.startTime}`);
-  const diffMs = start - new Date();
+  const diffMs = start - Date.now();
   if (diffMs <= 0) return 'now';
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 60) return `in ${diffMin}m`;
+  // For events on a future date use the same relative labels ("Tomorrow", "Next Week", etc.)
+  const prefix = datePrefixFor(event.startDate);
+  if (prefix) return prefix;
+  // Same day but hours away
   const h = Math.floor(diffMin / 60), m = diffMin % 60;
   return m > 0 ? `in ${h}h ${m}m` : `in ${h}h`;
 };

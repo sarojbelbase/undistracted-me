@@ -47,14 +47,20 @@ function getNepaliDate() {
   return { bsYear, bsMonth, bsDay, hours: nepal.getHours(), minutes: nepal.getMinutes() };
 }
 
+// Pre-compute yearly totals once at module load — avoids a 12-element reduce
+// every call to bsDaysInYear (which runs on every minute tick in the widget).
+const _bsYearTotals = {};
+for (const [yr, months] of Object.entries(NEPALI_YEARS_AND_DAYS_IN_MONTHS)) {
+  _bsYearTotals[yr] = months.reduce((a, b) => a + b, 0);
+}
+
 function bsDaysInYear(bsYear) {
-  const row = NEPALI_YEARS_AND_DAYS_IN_MONTHS.find(r => r[0] === bsYear);
-  return row ? row.slice(1).reduce((a, b) => a + b, 0) : 365;
+  return _bsYearTotals[bsYear] ?? 365;
 }
 
 function bsDaysInMonth(bsYear, bsMonth) {
-  const row = NEPALI_YEARS_AND_DAYS_IN_MONTHS.find(r => r[0] === bsYear);
-  return row ? row[bsMonth] : 30;
+  const months = NEPALI_YEARS_AND_DAYS_IN_MONTHS[bsYear];
+  return months ? months[bsMonth - 1] : 30;
 }
 
 function yearProgressAD() {
@@ -71,10 +77,10 @@ function yearProgressBS() {
   const bs = getNepaliDate();
   if (!bs) return { ratio: 0, subtitle: null };
   const { bsYear, bsMonth, bsDay, hours, minutes } = bs;
-  const row = NEPALI_YEARS_AND_DAYS_IN_MONTHS.find(r => r[0] === bsYear);
+  const months = NEPALI_YEARS_AND_DAYS_IN_MONTHS[bsYear];
   let elapsedDays = 0;
-  if (row) {
-    for (let m = 1; m < bsMonth; m++) elapsedDays += row[m];
+  if (months) {
+    for (let m = 0; m < bsMonth - 1; m++) elapsedDays += months[m];
   }
   elapsedDays += (bsDay - 1) + (hours * 60 + minutes) / (24 * 60);
   return {

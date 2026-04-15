@@ -1,11 +1,10 @@
 /**
  * Events widget utilities
  */
+import { todayStr } from '../../utilities';
 
-// ─── Date helpers ────────────────────────────────────────────────────────────
-
-/** Today's date string in YYYY-MM-DD */
-export const todayStr = () => new Date().toISOString().slice(0, 10);
+// Re-export so existing widget-local imports keep working transparently.
+export { todayStr } from '../../utilities';
 
 /** Returns true if an event is in the past */
 export const isPast = (event) => {
@@ -52,16 +51,8 @@ export const groupEventsByBucket = (events) => {
 };
 
 // ─── Age label ───────────────────────────────────────────────────────────────
-
-/** Format a timestamp (ms) as a human-readable age string, e.g. "synced 3m ago". */
-export const humanizeAge = (ts) => {
-  if (!ts) return null;
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-};
+// Sourced from utilities/index.js — single canonical implementation.
+export { humanizeAge } from '../../utilities';
 
 // ─── Layout constants ────────────────────────────────────────────────────────
 

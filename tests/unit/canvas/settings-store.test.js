@@ -236,21 +236,8 @@ describe('setClockFormat', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// setShowMitiInIcon / setDateFormat
+// setDateFormat
 // ────────────────────────────────────────────────────────────────────────────
-
-describe('setShowMitiInIcon', () => {
-  it('can enable badge', () => {
-    useSettingsStore.getState().setShowMitiInIcon('1');
-    expect(useSettingsStore.getState().showMitiInIcon).toBe('1');
-  });
-
-  it('can disable badge', () => {
-    useSettingsStore.getState().setShowMitiInIcon('1');
-    useSettingsStore.getState().setShowMitiInIcon('0');
-    expect(useSettingsStore.getState().showMitiInIcon).toBe('0');
-  });
-});
 
 describe('setDateFormat', () => {
   it('can switch to bikramSambat', () => {
@@ -279,5 +266,78 @@ describe('Zustand persist key', () => {
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw);
     expect(parsed?.state?.accent).toBe('Orange');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// setLookAwayNotify
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('setLookAwayNotify', () => {
+  it('enables notifications', () => {
+    useSettingsStore.getState().setLookAwayNotify(true);
+    expect(useSettingsStore.getState().lookAwayNotify).toBe(true);
+  });
+
+  it('disables notifications', () => {
+    useSettingsStore.getState().setLookAwayNotify(false);
+    expect(useSettingsStore.getState().lookAwayNotify).toBe(false);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// setCanvasBg
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('setCanvasBg', () => {
+  it('sets orb background', () => {
+    useSettingsStore.getState().setCanvasBg({ type: 'orb', orbId: 'blueberry' });
+    expect(useSettingsStore.getState().canvasBg).toEqual({ type: 'orb', orbId: 'blueberry' });
+  });
+
+  it('sets custom url background', () => {
+    useSettingsStore.getState().setCanvasBg({ type: 'custom', url: 'https://example.com/bg.jpg' });
+    expect(useSettingsStore.getState().canvasBg.type).toBe('custom');
+  });
+
+  it('sets solid background', () => {
+    useSettingsStore.getState().setCanvasBg({ type: 'solid' });
+    expect(useSettingsStore.getState().canvasBg.type).toBe('solid');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// setCardStyle + _resolvedModeKey
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('setCardStyle', () => {
+  it('switches card style to flat in light mode', () => {
+    resetStore({ mode: 'light', cardStyle: 'glass' });
+    useSettingsStore.getState().setCardStyle('flat');
+    expect(useSettingsStore.getState().cardStyle).toBe('flat');
+  });
+
+  it('switches card style to glass', () => {
+    resetStore({ mode: 'light', cardStyle: 'flat' });
+    useSettingsStore.getState().setCardStyle('glass');
+    expect(useSettingsStore.getState().cardStyle).toBe('glass');
+  });
+
+  it('updates modePrefs.light when mode is light', () => {
+    resetStore({ mode: 'light' });
+    useSettingsStore.getState().setCardStyle('flat');
+    expect(useSettingsStore.getState().modePrefs?.light?.cardStyle).toBe('flat');
+  });
+
+  it('updates modePrefs.dark when mode is dark (_resolvedModeKey returns "dark")', () => {
+    resetStore({ mode: 'dark' });
+    useSettingsStore.getState().setCardStyle('glass');
+    expect(useSettingsStore.getState().modePrefs?.dark?.cardStyle).toBe('glass');
+  });
+
+  it('updates modePrefs.dark when mode is auto (_resolvedModeKey returns "dark")', () => {
+    resetStore({ mode: 'auto' });
+    useSettingsStore.getState().setCardStyle('flat');
+    expect(useSettingsStore.getState().modePrefs?.dark?.cardStyle).toBe('flat');
   });
 });

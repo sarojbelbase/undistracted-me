@@ -3,9 +3,12 @@ import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import { getTimeParts, getTimeInZone } from './utils';
+import { onClockTick } from '../../utilities/sharedClock';
+
+const DEFAULT_SETTINGS = { format: '24h', timezones: [] };
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { format: '24h', timezones: [] });
+  const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_SETTINGS);
   const { format, timezones = [] } = settings;
 
   const [parts, setParts] = useState(() => getTimeParts(format));
@@ -16,11 +19,7 @@ export const Widget = ({ id, onRemove }) => {
     setExtraTimes(timezones.map(tz => getTimeInZone(tz, format)));
   }, [format, timezones]);
 
-  useEffect(() => {
-    update();
-    const id = setInterval(update, 1_000);
-    return () => clearInterval(id);
-  }, [update]);
+  useEffect(() => onClockTick(update), [update]);
 
   const hasTZ = timezones.length > 0;
 

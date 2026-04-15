@@ -16,11 +16,7 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 // 1) Utilities/index.js — pure function tests
 // ─────────────────────────────────────────────────────────────────────────────
 import {
-  convertEnglishToNepali,
   convertThisNumberToNepali,
-  getNepaliMitiInSelectedLanguage,
-  getLiveClockInSelectedLanguage,
-  getDateTodayInSelectedLanguage,
   getTimeZoneAwareDayJsInstance,
 } from '../../../src/utilities/index';
 
@@ -41,44 +37,6 @@ describe('utilities/index.js — main functions', () => {
     const instance = getTimeZoneAwareDayJsInstance();
     expect(instance).toBeTruthy();
     expect(typeof instance.format).toBe('function');
-  });
-
-  it('getNepaliMitiInSelectedLanguage returns string for English', () => {
-    const result = getNepaliMitiInSelectedLanguage('en');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('getNepaliMitiInSelectedLanguage returns string for Nepali', () => {
-    const result = getNepaliMitiInSelectedLanguage('ne');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('getLiveClockInSelectedLanguage returns time string for English', () => {
-    const result = getLiveClockInSelectedLanguage('en');
-    expect(typeof result).toBe('string');
-    // Should contain dots separating hours, minutes, seconds
-    expect(result).toMatch(/\./);
-  });
-
-  it('getLiveClockInSelectedLanguage returns time string for Nepali', () => {
-    const result = getLiveClockInSelectedLanguage('ne');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('getDateTodayInSelectedLanguage returns date string for English', () => {
-    const result = getDateTodayInSelectedLanguage('en');
-    expect(typeof result).toBe('string');
-    // Should contain a comma separating day+weekday
-    expect(result).toMatch(/,/);
-  });
-
-  it('getDateTodayInSelectedLanguage returns date string for Nepali', () => {
-    const result = getDateTodayInSelectedLanguage('ne');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
   });
 });
 
@@ -158,7 +116,7 @@ describe('PomodoroWidget — timer controls', () => {
     vi.useFakeTimers();
     localStorage.clear();
     vi.stubGlobal('chrome', {
-      runtime: { sendMessage: vi.fn(), id: 'test' },
+      runtime: { sendMessage: vi.fn(() => Promise.resolve()), id: 'test' },
     });
   });
 
@@ -281,73 +239,72 @@ describe('NotesWidget — expand modal', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
 
-  it('renders expand button (ArrowsFullscreen)', () => {
+  it('renders expand button (TrafficLights yellow)', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    expect(screen.getByTestId('expand')).toBeTruthy();
+    // TrafficLights renders buttons with aria-label from the label props
+    expect(screen.getByLabelText('Expand')).toBeTruthy();
   });
 
   it('opens expanded modal when expand is clicked', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand note'));
-    expect(screen.getByText('Note')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Expand'));
+    // Modal is rendered via createPortal — check a dialog[open] appeared
+    expect(document.querySelector('dialog[open]')).toBeTruthy();
   });
 
   it('expanded modal has close button', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand note'));
-    expect(screen.getByLabelText('Close expanded note')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Expand'));
+    // Modal TrafficLights has two "Close" buttons (red enabled, yellow disabled)
+    const closeBtns = screen.getAllByLabelText('Close');
+    expect(closeBtns.length).toBeGreaterThanOrEqual(1);
   });
 
   it('closes expanded modal when close is clicked', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand note'));
-    expect(screen.getByText('Note')).toBeTruthy();
-    fireEvent.click(screen.getByLabelText('Close expanded note'));
-    expect(screen.queryByText('Note')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Expand'));
+    // Click the first (enabled red) Close button in the modal
+    fireEvent.click(screen.getAllByLabelText('Close')[0]);
+    // Back to widget mode — textarea is shown again
+    expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
   it('closes expanded modal when overlay is clicked', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand note'));
+    fireEvent.click(screen.getByLabelText('Expand'));
     // Click the overlay (the outer fixed div)
     const modal = document.querySelector('.fixed.inset-0');
     if (modal) fireEvent.click(modal);
-    // Widget renders but modal is gone
+    // Widget renders without crash
+    expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
   it('can type in expanded modal textarea', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand note'));
-    const textareas = screen.getAllByRole('textbox');
-    // The expanded modal has an autofocused textarea
+    fireEvent.click(screen.getByLabelText('Expand'));
+    const textareas = document.querySelectorAll('textarea');
     const expandedTA = textareas[textareas.length - 1];
     fireEvent.change(expandedTA, { target: { value: 'Expanded text' } });
     expect(expandedTA.value).toBe('Expanded text');
   });
 
-  it('hides text with blur when eye is clicked', () => {
+  it('renders Full page button in widget view', () => {
     render(<NotesWidget id="notes_hide" onRemove={vi.fn()} />);
-    const hideBtn = screen.getByLabelText('Hide note');
-    expect(hideBtn).toBeTruthy();
-    fireEvent.click(hideBtn);
-    // After clicking, label should be "Show note"
-    expect(screen.getByLabelText('Show note')).toBeTruthy();
+    expect(screen.getByLabelText('Full page')).toBeTruthy();
   });
 
-  it('shows text again when eye is clicked again', () => {
+  it('compact textarea is present in widget view', () => {
     render(<NotesWidget id="notes_showhide" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Hide note'));
-    fireEvent.click(screen.getByLabelText('Show note'));
-    expect(screen.getByLabelText('Hide note')).toBeTruthy();
+    expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4) Calendar Settings.jsx (50%)
 // ─────────────────────────────────────────────────────────────────────────────
-// Mock components needed by calendar/Settings
-vi.mock('../../../src/components/ui/RadioGroup', () => ({
-  RadioGroup: ({ label, options, value, onChange }) => (
+// Calendar/DateToday Settings use SegmentedControl (not RadioGroup)
+vi.mock('../../../src/components/ui/SegmentedControl', () => ({
+  SegmentedControl: ({ label, options, value, onChange }) => (
     <div data-testid="radio-group">
       <span>{label}</span>
       {options.map(o => (

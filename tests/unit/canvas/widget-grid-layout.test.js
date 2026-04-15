@@ -20,6 +20,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Prevent store init from loading WIDGET_REGISTRY via circular import
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
+}));
+
 import { WIDGET_TYPES, WIDGET_REGISTRY } from '../../../src/widgets/index.js';
 
 // ── Replicate the LAYOUT_KEY constant as documented in WidgetGrid.jsx ──
@@ -98,7 +106,7 @@ describe('WIDGET_TYPES dispatch exhaustiveness', () => {
   // simply documents which types exist so a missing case is visible.
   const KNOWN_TYPES = [
     'clock', 'dateToday', 'dayProgress', 'events', 'weather',
-    'calendar', 'countdown', 'notes', 'bookmarks', 'pomodoro',
+    'calendar', 'countdown', 'notes', 'bookmark', 'pomodoro',
     'spotify', 'facts', 'stock', 'birthdays',
   ];
 

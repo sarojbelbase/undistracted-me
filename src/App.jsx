@@ -11,11 +11,15 @@ import { getPhotoLibrary } from './utilities/unsplash';
 import bgImage from './assets/img/bg.webp';
 import { ACCENT_COLORS } from './theme';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
-import { useAutoTheme } from './utilities/useAutoTheme';
+import { useAutoTheme } from './hooks/useAutoTheme';
 
 // Settings and catalog are only ever opened on demand — lazy-load them.
 const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
 const WidgetCatalog = lazy(() => import('./widgets/WidgetCatalog').then(m => ({ default: m.WidgetCatalog })));
+
+// Platform detection — evaluated once at module load, never changes at runtime.
+// userAgent is the recommended check after navigator.platform was deprecated.
+const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const App = () => {
   const [showSettings, setShowSettings] = useState(false);
@@ -34,7 +38,6 @@ const App = () => {
   // no-op (returns mode as-is) for explicit 'light' or 'dark' settings.
   const effectiveMode = useAutoTheme(mode, accent);
   const isDark = effectiveMode === 'dark';
-  const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator?.platform ?? '');
   const focusShortcut = isMac ? '⌥⇧F' : 'Alt+Shift+F';
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
   const [showLookAway, setShowLookAway] = useState(false);
@@ -89,7 +92,7 @@ const App = () => {
   // (library is only relevant when bgType === 'curated').
   const bgImageUrl = useMemo(() => {
     if (bgType === 'custom') return canvasBg?.url || null;
-    if (bgType === 'curated') return canvasBg?.url || getPhotoLibrary()[0]?.regular || getPhotoLibrary()[0]?.small || null;
+    if (bgType === 'curated') { const p = getPhotoLibrary()[0]; return canvasBg?.url || p?.regular || p?.small || null; }
     if (bgType === 'default') return bgImage;
     return null;
   }, [bgType, canvasBg]);

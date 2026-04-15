@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
-import { todayStr, humanizeAge } from "./utils";
+import { todayStr } from '../../utilities';
+import { humanizeAge } from "./utils";
 import { CreateModal } from './CreateModal';
 import { AllEventsModal } from './AllEventsModal';
 import config from './config';
@@ -14,7 +15,6 @@ import { Settings } from './Settings';
 export const Widget = ({ onRemove }) => {
   const [localEvents, addEvent, removeEvent] = useEvents();
   const { gcalEvents, loading, connected, syncedAt, refresh } = useGoogleCalendar();
-  const events = [...localEvents, ...gcalEvents];
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [ageLabel, setAgeLabel] = useState(() => humanizeAge(syncedAt));
@@ -35,27 +35,28 @@ export const Widget = ({ onRemove }) => {
 
   const today = todayStr();
 
-  const upcomingEvents = events
-    .filter(e => {
-      if (!e.startDate) return true;
-      // All-day event: keep while the date is still today or future
-      if (!e.startTime) return e.startDate >= today;
-      // Timed event: keep until end time if available, otherwise until start time
-      const cutoff = e.endTime
-        ? new Date(`${e.endDate || e.startDate}T${e.endTime}`)
-        : new Date(`${e.startDate}T${e.startTime}`);
-      return cutoff > now;
-    })
-    .sort((a, b) => {
-      const aKey = `${a.startDate || today}T${a.startTime || '99:99'}`;
-      const bKey = `${b.startDate || today}T${b.startTime || '99:99'}`;
-      return aKey.localeCompare(bKey);
-    });
+  const upcomingEvents = useMemo(() => {
+    const all = [...localEvents, ...gcalEvents];
+    return all
+      .filter(e => {
+        if (!e.startDate) return true;
+        if (!e.startTime) return e.startDate >= today;
+        const cutoff = e.endTime
+          ? new Date(`${e.endDate || e.startDate}T${e.endTime}`)
+          : new Date(`${e.startDate}T${e.startTime}`);
+        return cutoff > now;
+      })
+      .sort((a, b) => {
+        const aKey = `${a.startDate || today}T${a.startTime || '99:99'}`;
+        const bKey = `${b.startDate || today}T${b.startTime || '99:99'}`;
+        return aKey.localeCompare(bKey);
+      });
+  }, [localEvents, gcalEvents, now, today]);
 
   const MAX_VISIBLE = 2;
   const visibleEvents = upcomingEvents.slice(0, MAX_VISIBLE);
 
-  const syncLabel = connected && ageLabel ? `${ageLabel}` : null;
+  const syncLabel = connected && ageLabel ? ageLabel : null;
 
   return (
     <>

@@ -23,6 +23,7 @@ import {
 const buildChrome = ({
   sendMessage = vi.fn().mockResolvedValue(undefined),
   localGet = vi.fn(),
+  localSet = vi.fn(),
   localRemove = vi.fn(),
   onChangedAddListener = vi.fn(),
   onChangedRemoveListener = vi.fn(),
@@ -34,6 +35,7 @@ const buildChrome = ({
   storage: {
     local: {
       get: localGet,
+      set: localSet,
       remove: localRemove,
     },
     onChanged: {
@@ -203,6 +205,7 @@ describe('useLookAwayScheduler – Chrome API paths', () => {
       type: 'LOOKAWAY_SYNC',
       enabled: true,
       intervalMins: 20,
+      notify: true,
     });
   });
 
@@ -360,8 +363,8 @@ describe('useLookAwayScheduler – Chrome API paths', () => {
     expect(onTrigger).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT trigger when lookaway_due is stale (age > 2× intervalMins)', () => {
-    // Interval = 20 min → grace = 40 min. Timestamp 41 min ago → stale.
+  it('does NOT trigger when lookaway_due is stale (age > 1.5× intervalMins)', () => {
+    // Interval = 20 min → grace = 30 min. Timestamp 41 min ago → stale.
     const staleTs = Date.now() - 41 * 60_000;
     const mock = buildChrome({
       localGet: vi.fn((_, cb) => cb({ lookaway_due: staleTs })),
@@ -420,10 +423,10 @@ describe('useLookAwayScheduler – Chrome API paths', () => {
     expect(mock.storage.local.get).not.toHaveBeenCalled();
   });
 
-  it('boundary: exactly at 2× interval is treated as fresh (not stale)', () => {
+  it('boundary: exactly at 1.5× interval is treated as fresh (not stale)', () => {
     // age === gracePeriodMs (not strictly >) → treated as fresh → triggers
     const intervalMins = 10;
-    const borderTs = Date.now() - intervalMins * 60_000 * 2;
+    const borderTs = Date.now() - intervalMins * 60_000 * 1.5;
     const mock = buildChrome({
       localGet: vi.fn((_, cb) => cb({ lookaway_due: borderTs })),
     });

@@ -23,6 +23,9 @@ import {
   bucketLabel,
   groupEventsByBucket,
   applyDuration,
+  calcDuration,
+  datePrefixFor,
+  isLiveNow,
   EMPTY_FORM,
   DATE_CHIPS,
   DURATION_PILLS,
@@ -294,5 +297,136 @@ describe('DURATION_PILLS', () => {
     DURATION_PILLS.filter((p) => p.mins !== null).forEach((p) => {
       expect(p.mins).toBeGreaterThan(0);
     });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// calcDuration
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('calcDuration', () => {
+  it('returns null when startTime is missing', () => {
+    expect(calcDuration(null, '10:00')).toBeNull();
+  });
+
+  it('returns null when endTime is missing', () => {
+    expect(calcDuration('09:00', null)).toBeNull();
+  });
+
+  it('returns null for multi-day event', () => {
+    expect(calcDuration('09:00', '10:00', '2025-06-15', '2025-06-16')).toBeNull();
+  });
+
+  it('returns "30 min" for 30-minute event', () => {
+    expect(calcDuration('09:00', '09:30')).toBe('30 min');
+  });
+
+  it('returns "1h" for exactly 60 minutes', () => {
+    expect(calcDuration('09:00', '10:00')).toBe('1h');
+  });
+
+  it('returns "1h 30m" for 90 minutes', () => {
+    expect(calcDuration('09:00', '10:30')).toBe('1h 30m');
+  });
+
+  it('returns null when end is before start (negative diff)', () => {
+    expect(calcDuration('10:00', '09:00')).toBeNull();
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// datePrefixFor — covers the future-date branches
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('datePrefixFor', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00'));
+  });
+
+  it('returns null for today', () => {
+    expect(datePrefixFor('2025-06-15')).toBeNull();
+  });
+
+  it('returns "Tomorrow" for tomorrow', () => {
+    expect(datePrefixFor('2025-06-16')).toBe('Tomorrow');
+  });
+
+  it('returns "Next Week" for a date in the next calendar week', () => {
+    // June 15 is a Sunday; next week starts June 16 (or next Monday June 23)
+    // Adjust to an unambiguous "Next Week" date
+    expect(datePrefixFor('2025-06-23')).toBe('Next Week');
+  });
+
+  it('returns "Next Month" for a date in the immediate next month', () => {
+    expect(datePrefixFor('2025-07-10')).toBe('Next Month');
+  });
+
+  it('returns "Next Year" for a date in January of next year', () => {
+    expect(datePrefixFor('2026-01-10')).toBe('Next Year');
+  });
+
+  it('returns "in N years" for a date 2+ years out', () => {
+    const result = datePrefixFor('2028-06-15');
+    expect(result).toBe('in 3 years');
+  });
+
+  it('returns "in N months" for 2+ months out but within a year', () => {
+    const result = datePrefixFor('2025-09-15');
+    expect(result).toMatch(/in \d+ months/);
+  });
+
+  it('returns "in N weeks" for 2+ weeks out but within same month', () => {
+    // June 29 is >= endOfNextWeek (June 29) but < startOfNextMonth (July 1)
+    const result = datePrefixFor('2025-06-29');
+    expect(result).toMatch(/in \d+ weeks/);
+  });
+
+  it('returns a weekday+date string for same-week dates beyond tomorrow', () => {
+    expect(datePrefixFor('2025-06-17')).toMatch(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
+  });
+
+  it('returns null for missing/falsy dateStr', () => {
+    expect(datePrefixFor('')).toBeNull();
+    expect(datePrefixFor(null)).toBeNull();
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// isLiveNow
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('isLiveNow', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T10:30:00'));
+  });
+
+  it('returns false for an event on a different date', () => {
+    expect(isLiveNow({ startDate: '2025-06-16', startTime: '10:00' })).toBe(false);
+  });
+
+  it('returns false when event has no startTime', () => {
+    expect(isLiveNow({ startDate: '2025-06-15' })).toBe(false);
+  });
+
+  it('returns false when event has not yet started', () => {
+    expect(isLiveNow({ startDate: '2025-06-15', startTime: '11:00' })).toBe(false);
+  });
+
+  it('returns true for ongoing event with endTime in the future', () => {
+    expect(isLiveNow({ startDate: '2025-06-15', startTime: '10:00', endTime: '11:00' })).toBe(true);
+  });
+
+  it('returns false when endTime is already past', () => {
+    expect(isLiveNow({ startDate: '2025-06-15', startTime: '09:00', endTime: '10:00' })).toBe(false);
+  });
+
+  it('returns true within 30 min of start when no endTime', () => {
+    expect(isLiveNow({ startDate: '2025-06-15', startTime: '10:15' })).toBe(true);
+  });
+
+  it('returns false beyond 30 min of start when no endTime', () => {
+    expect(isLiveNow({ startDate: '2025-06-15', startTime: '09:50' })).toBe(false);
   });
 });

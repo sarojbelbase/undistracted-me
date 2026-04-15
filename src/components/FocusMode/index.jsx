@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { OrbBackground } from '../ui/OrbBackground';
 import bgImage from '../../assets/img/bg.webp';
 import { getTimeParts } from '../../widgets/clock/utils';
 import { useEvents, useGoogleCalendar } from '../../widgets/useEvents';
 import { useSettingsStore } from '../../store';
-import { getCurrentPlayback, isSpotifyConnected, setPlayPause, skipNext, skipPrev } from '../../widgets/spotify/utils';
 import { getWeatherIcon } from '../../widgets/weather/utils.jsx';
+import { onClockTick } from '../../utilities/sharedClock';
 import {
   getGregorianDateParts,
   getBikramSambatDateParts,
@@ -16,6 +17,7 @@ import {
   useFocusWeather,
   useFocusStocks,
   useFocusPhoto,
+  useFocusSpotify,
   useWakeLock,
   useCenterOnDark,
   useFocusTimezones,
@@ -27,94 +29,6 @@ import { LeftPanel } from './LeftPanel';
 import { TopBar } from './TopBar';
 import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from '../ui/BackgroundPicker';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
-
-function useFocusSpotify() {
-  const [spotify, setSpotify] = useState(null);
-  const [spotifyProgress, setSpotifyProgress] = useState(0);
-
-  useEffect(() => {
-    if (!isSpotifyConnected()) return;
-    let cancelled = false;
-    const fetchSpotify = async () => {
-      try {
-        const data = await getCurrentPlayback();
-        if (cancelled) return;
-        if (!data?.item) { setSpotify(null); return; }
-        const p = {
-          isPlaying: data.is_playing,
-          title: data.item.name,
-          artist: data.item.artists.map(a => a.name).join(', '),
-          albumArt: data.item.album.images[0]?.url ?? null,
-          durationMs: data.item.duration_ms,
-          progressMs: data.progress_ms ?? 0,
-        };
-        setSpotify(p);
-        setSpotifyProgress(p.progressMs);
-      } catch {
-        if (!cancelled) setSpotify(null);
-      }
-    };
-    fetchSpotify();
-    const id = setInterval(fetchSpotify, 5000);
-    return () => { cancelled = true; clearInterval(id); };
-  }, []);
-
-  useEffect(() => {
-    if (!spotify?.isPlaying) return;
-    const id = setInterval(() => setSpotifyProgress(p => Math.min(p + 1000, spotify.durationMs || p)), 1000);
-    return () => clearInterval(id);
-  }, [spotify?.isPlaying, spotify?.durationMs]);
-
-  const refresh = useCallback(async () => {
-    try {
-      const data = await getCurrentPlayback();
-      if (data?.item) {
-        const p = {
-          isPlaying: data.is_playing,
-          title: data.item.name,
-          artist: data.item.artists.map(a => a.name).join(', '),
-          albumArt: data.item.album.images[0]?.url ?? null,
-          durationMs: data.item.duration_ms,
-          progressMs: data.progress_ms ?? 0,
-        };
-        setSpotify(p);
-        setSpotifyProgress(p.progressMs);
-      }
-    } catch { }
-  }, []);
-
-  const handleToggle = useCallback(async () => {
-    if (!spotify) return;
-    try { await setPlayPause(!spotify.isPlaying); setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s); } catch { }
-  }, [spotify]);
-
-  const handleNext = useCallback(async () => {
-    try { await skipNext(); setTimeout(refresh, 500); } catch { }
-  }, [refresh]);
-
-  const handlePrev = useCallback(async () => {
-    try { await skipPrev(); setTimeout(refresh, 500); } catch { }
-  }, [refresh]);
-
-  return { spotify, spotifyProgress, handleToggle, handleNext, handlePrev };
-}
-
-function OrbBackground({ orbRgb }) {
-  const rgb = orbRgb || 'var(--w-accent-rgb)';
-  return (
-    <>
-      <div
-        aria-hidden
-        style={{ position: 'absolute', inset: 0, zIndex: 0, animation: 'fmOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}
-      >
-        <div style={{ position: 'absolute', width: '70vmin', height: '70vmin', top: 'calc(50vh - 35vmin)', left: 'calc(50vw - 35vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.38) 0%, rgba(${rgb},0.08) 50%, transparent 72%)`, filter: 'blur(52px)', animation: 'fmOrbBloom 8s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: '50vmin', height: '50vmin', top: 'calc(10vh - 5vmin)', right: 'calc(8vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.22) 0%, transparent 65%)`, filter: 'blur(64px)' }} />
-        <div style={{ position: 'absolute', width: '44vmin', height: '44vmin', bottom: 'calc(8vh - 5vmin)', left: 'calc(6vw - 5vmin)', borderRadius: '50%', background: `radial-gradient(circle at 50% 50%, rgba(${rgb},0.16) 0%, transparent 62%)`, filter: 'blur(80px)', animation: 'fmOrbCounter 9s linear infinite', transformOrigin: '50% 50%' }} />
-      </div>
-      <div aria-hidden style={{ position: 'absolute', inset: '-20%', zIndex: 0, background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(${rgb},0.04) 90deg, transparent 180deg, rgba(${rgb},0.03) 270deg, transparent 360deg)`, animation: 'fmOrbCounter 60s linear infinite', pointerEvents: 'none' }} />
-    </>
-  );
-}
 
 function FocusBgLayer({ bgSource, slotA, slotB, activeSlot, customBgUrl, orbRgb }) {
   const bgStyle = { position: 'absolute', inset: 0, backgroundSize: 'cover', backgroundPosition: 'center' };
@@ -138,7 +52,7 @@ function FocusBgLayer({ bgSource, slotA, slotB, activeSlot, customBgUrl, orbRgb 
           <div style={{ ...bgStyle, zIndex: 1, backgroundImage: slotB ? `url(${slotB})` : 'none', opacity: activeSlot === 'b' ? 1 : 0, transition: 'opacity 2.5s ease' }} />
         </>
       )}
-      {bgSource === 'orb' && <OrbBackground orbRgb={orbRgb} />}
+      {bgSource === 'orb' && <OrbBackground rgb={orbRgb} isDark />}
       {bgSource !== 'curated' && bgSource !== 'orb' && activeBg && (
         <div style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }} />
       )}
@@ -181,7 +95,7 @@ export const FocusMode = ({ onExit }) => {
 
   useWakeLock(isFullscreen);
 
-  const { spotify, spotifyProgress, handleToggle: handleSpotifyToggle, handleNext: handleSpotifyNext, handlePrev: handleSpotifyPrev } = useFocusSpotify();
+  const { spotify, spotifyProgress, handleToggle: handleSpotifyToggle, handleNext: handleSpotifyNext, handlePrev: handleSpotifyPrev, pending: spotifyPending, skipPending: spotifySkipPending } = useFocusSpotify();
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -221,7 +135,11 @@ export const FocusMode = ({ onExit }) => {
 
   const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
-  const eventInfo = getNextEventToShow([...localEvents, ...gcalEvents]);
+  // Memoize — merging and sorting all events runs on every 1s clock tick otherwise
+  const eventInfo = useMemo(
+    () => getNextEventToShow([...localEvents, ...gcalEvents]),
+    [localEvents, gcalEvents],
+  );
 
   const update = useCallback(() => {
     setParts(getTimeParts(fmt));
@@ -229,11 +147,7 @@ export const FocusMode = ({ onExit }) => {
     setPomodoro(readPomodoro());
   }, [dateFormat, fmt]);
 
-  useEffect(() => {
-    update();
-    const id = setInterval(update, 1_000);
-    return () => clearInterval(id);
-  }, [update]);
+  useEffect(() => onClockTick(update), [update]);
 
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal) onExit(); };
@@ -256,7 +170,13 @@ export const FocusMode = ({ onExit }) => {
   }, []);
 
   const leftHasContent = pomodoro || eventInfo || stocks.length > 0;
-  const spotifyTrack = spotify ? { ...spotify, progressMs: spotifyProgress } : null;
+  // Memoize spotifyTrack — `{ ...spotify, progressMs }` re-allocates every second
+  // (the 1s clock tick re-renders FocusMode). LeftPanel gets a stable reference
+  // unless spotify or spotifyProgress actually changes.
+  const spotifyTrack = useMemo(
+    () => spotify ? { ...spotify, progressMs: spotifyProgress } : null,
+    [spotify, spotifyProgress],
+  );
   const photoColor = photo?.color || '#18191b';
 
   return (
@@ -264,14 +184,6 @@ export const FocusMode = ({ onExit }) => {
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ backgroundColor: bgSource === 'orb' ? '#060608' : photoColor }}
     >
-      <style>{`
-        @keyframes fmOrbSpin    { to { transform: rotate(360deg);  } }
-        @keyframes fmOrbCounter { to { transform: rotate(-360deg); } }
-        @keyframes fmOrbBloom   {
-          0%, 100% { opacity: 1;    transform: scale(1);    }
-          50%      { opacity: 0.78; transform: scale(1.18); }
-        }
-      `}</style>
       {/* ── Background layers (curated/orb/static) + FG depth overlay ── */}
       <FocusBgLayer
         bgSource={bgSource}
@@ -309,6 +221,8 @@ export const FocusMode = ({ onExit }) => {
           onToggle={handleSpotifyToggle}
           onNext={handleSpotifyNext}
           onPrev={handleSpotifyPrev}
+          spotifyPending={spotifyPending}
+          spotifySkipPending={spotifySkipPending}
         />
       )}
 

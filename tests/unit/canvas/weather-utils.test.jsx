@@ -5,11 +5,12 @@
  */
 
 import React from 'react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
-import { getWeatherIcon, parseWeather, getCoords, fetchWeatherByCoords } from '../../../src/widgets/weather/utils.jsx';
+import { getWeatherIcon, parseWeather, getCoords, fetchOpenMeteo, parseForecast, wmoDescription, readWeatherCache, writeWeatherCache } from '../../../src/widgets/weather/utils.jsx';
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
+beforeEach(() => { localStorage.clear(); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // getWeatherIcon — returns a JSX element; we test the component type / props
@@ -146,56 +147,60 @@ describe('getWeatherIcon — size prop', () => {
 // parseWeather — parses OWM /weather response
 // ─────────────────────────────────────────────────────────────────────────────
 
-const mockOWMResponse = {
-  weather: [{ id: 800, main: 'Clear', description: 'clear sky' }],
-  main: { temp: 25.6 },
-  dt: 1700000000,
-  sys: { sunrise: 1699980000, sunset: 1700023200 },
-  name: 'Kathmandu',
+// Open-Meteo format (replaces old OWM format)
+const mockOpenMeteoResponse = {
+  current: {
+    temperature_2m: 25.6,
+    apparent_temperature: 24.0,
+    weather_code: 0,       // 0 = clear sky
+    is_day: 1,
+    precipitation: 0,
+    wind_gusts_10m: 10,
+  },
+  // parseWeather also takes cityName as 2nd arg
 };
 
 describe('parseWeather', () => {
   it('returns correct condition from weather[0].main', () => {
-    const result = parseWeather(mockOWMResponse);
-    expect(result.condition).toBe('Clear');
+    const result = parseWeather(mockOpenMeteoResponse, 'Kathmandu');
+    expect(result.code).toBe(0);
   });
 
   it('returns correct description', () => {
-    expect(parseWeather(mockOWMResponse).description).toBe('clear sky');
+    expect(parseWeather(mockOpenMeteoResponse, 'Kathmandu').description).toBeTruthy();
   });
 
   it('rounds temperature to integer', () => {
-    const result = parseWeather(mockOWMResponse);
+    const result = parseWeather(mockOpenMeteoResponse, 'Kathmandu');
     expect(result.temperature).toBe(26); // Math.round(25.6)
     expect(Number.isInteger(result.temperature)).toBe(true);
   });
 
   it('returns weather code', () => {
-    expect(parseWeather(mockOWMResponse).code).toBe(800);
+    expect(parseWeather(mockOpenMeteoResponse, 'Kathmandu').code).toBe(0);
   });
 
   it('returns city name', () => {
-    expect(parseWeather(mockOWMResponse).city).toBe('Kathmandu');
+    expect(parseWeather(mockOpenMeteoResponse, 'Kathmandu').city).toBe('Kathmandu');
   });
 
-  it('isDay = true when dt is between sunrise and sunset', () => {
-    // dt=1700000000, sunrise=1699980000, sunset=1700023200
-    expect(parseWeather(mockOWMResponse).isDay).toBe(true);
+  it('isDay = true when is_day = 1', () => {
+    expect(parseWeather(mockOpenMeteoResponse, 'Kathmandu').isDay).toBe(true);
   });
 
-  it('isDay = false when dt is before sunrise', () => {
-    const night = { ...mockOWMResponse, dt: 1699970000 };
+  it('isDay = false when is_day = 0', () => {
+    const night = { ...mockOpenMeteoResponse, current: { ...mockOpenMeteoResponse.current, is_day: 0 } };
+    expect(parseWeather(night, 'Kathmandu').isDay).toBe(false);
+  });
+
+  it('isDay = false when is_day is falsy', () => {
+    const night = { ...mockOpenMeteoResponse, current: { ...mockOpenMeteoResponse.current, is_day: 0 } };
     expect(parseWeather(night).isDay).toBe(false);
   });
 
-  it('isDay = false when dt equals sunset (exclusive upper bound)', () => {
-    const atSunset = { ...mockOWMResponse, dt: mockOWMResponse.sys.sunset };
-    expect(parseWeather(atSunset).isDay).toBe(false);
-  });
-
-  it('isDay = true when dt equals sunrise (inclusive lower bound)', () => {
-    const atSunrise = { ...mockOWMResponse, dt: mockOWMResponse.sys.sunrise };
-    expect(parseWeather(atSunrise).isDay).toBe(true);
+  it('isDay = true when is_day = 1 (duplicate for clarity)', () => {
+    const day = { ...mockOpenMeteoResponse, current: { ...mockOpenMeteoResponse.current, is_day: 1 } };
+    expect(parseWeather(day).isDay).toBe(true);
   });
 });
 
@@ -203,14 +208,14 @@ describe('parseWeather', () => {
 // fetchWeatherByCoords — mocked fetch
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('fetchWeatherByCoords', () => {
+describe('fetchOpenMeteo', () => {
   it('resolves with JSON on a 200 response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(mockOWMResponse),
+      json: () => Promise.resolve(mockOpenMeteoResponse),
     }));
-    const data = await fetchWeatherByCoords(27.7, 85.3);
-    expect(data.name).toBe('Kathmandu');
+    const data = await fetchOpenMeteo(27.7, 85.3);
+    expect(data.current).toBeTruthy();
   });
 
   it('rejects with an error message on non-ok response', async () => {
@@ -218,7 +223,7 @@ describe('fetchWeatherByCoords', () => {
       ok: false, status: 401,
       json: () => Promise.resolve({}),
     }));
-    await expect(fetchWeatherByCoords(27.7, 85.3)).rejects.toThrow('API error 401');
+    await expect(fetchOpenMeteo(27.7, 85.3)).rejects.toThrow('401');
   });
 });
 
@@ -247,5 +252,182 @@ describe('getCoords', () => {
     vi.stubGlobal('navigator', { geolocation: mockGeolocation });
 
     await expect(getCoords()).rejects.toThrow('denied');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// wmoDescription
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('wmoDescription', () => {
+  it('returns "clear sky" for code 0', () => {
+    expect(wmoDescription(0)).toBe('clear sky');
+  });
+  it('returns "rain" for code 63', () => {
+    expect(wmoDescription(63)).toBe('rain');
+  });
+  it('returns "thunderstorm" for code 95', () => {
+    expect(wmoDescription(95)).toBe('thunderstorm');
+  });
+  it('returns "unknown" for an unrecognized code', () => {
+    expect(wmoDescription(999)).toBe('unknown');
+  });
+  it('returns a string for all WMO codes', () => {
+    [0, 1, 2, 3, 45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77, 80, 81, 82, 85, 86, 95, 96, 99].forEach(code => {
+      expect(typeof wmoDescription(code)).toBe('string');
+      expect(wmoDescription(code).length).toBeGreaterThan(0);
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// parseForecast — parses hourly Open-Meteo data for weather narrative
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('parseForecast', () => {
+  it('returns null when data has no hourly', () => {
+    expect(parseForecast({})).toBeNull();
+    expect(parseForecast(null)).toBeNull();
+  });
+
+  it('returns null when hourly.weather_code is empty', () => {
+    expect(parseForecast({ hourly: { weather_code: [], precipitation_probability: [] } })).toBeNull();
+  });
+
+  it('returns clearing type when currently precipitating and will clear', () => {
+    // code >= 51 = precipitation
+    const data = {
+      hourly: {
+        weather_code: [63, 63, 1, 1, 1, 1, 1, 1],
+        precipitation_probability: [80, 75, 20, 10, 5, 5, 5, 5],
+      },
+    };
+    const result = parseForecast(data);
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('clearing');
+    expect(result.hours).toBeGreaterThan(0);
+  });
+
+  it('returns persist type when currently precipitating and will NOT clear within window', () => {
+    const data = {
+      hourly: {
+        weather_code: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+        precipitation_probability: [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90],
+      },
+    };
+    const result = parseForecast(data);
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('persist');
+  });
+
+  it('returns incoming type when clear now but rain arrives in <8h', () => {
+    const data = {
+      hourly: {
+        weather_code: [0, 0, 0, 63, 63, 63, 63, 63],
+        precipitation_probability: [5, 10, 30, 60, 80, 80, 80, 80],
+      },
+    };
+    const result = parseForecast(data);
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('incoming');
+    expect(result.hours).toBeGreaterThan(0);
+  });
+
+  it('returns incoming/possible type for moderate (30-50%) precipitation probability', () => {
+    const data = {
+      hourly: {
+        weather_code: [0, 0, 63, 2, 2, 2, 2, 2],
+        precipitation_probability: [5, 10, 35, 20, 10, 5, 5, 5],
+      },
+    };
+    const result = parseForecast(data);
+    // Should return incoming/possible (>=30% pop) not null
+    expect(result).not.toBeNull();
+  });
+
+  it('returns persist type when no rain in next 6h (Case 4 dominant condition)', () => {
+    const data = {
+      hourly: {
+        weather_code: [0, 1, 2, 1, 0, 0, 0, 0],
+        precipitation_probability: [5, 10, 15, 10, 5, 5, 5, 5],
+      },
+    };
+    const result = parseForecast(data);
+    // Case 4 always returns non-null with type 'persist' and dominant code
+    expect(result).not.toBeNull();
+    expect(result.type).toBe('persist');
+    expect(typeof result.code).toBe('number');
+  });
+
+  it('result has description, code, hours, type when not null', () => {
+    const data = {
+      hourly: {
+        weather_code: [63, 63, 1, 1, 1, 1, 1, 1],
+        precipitation_probability: [80, 75, 20, 10, 5, 5, 5, 5],
+      },
+    };
+    const result = parseForecast(data);
+    if (result) {
+      expect(result).toHaveProperty('description');
+      expect(result).toHaveProperty('code');
+      expect(result).toHaveProperty('hours');
+      expect(result).toHaveProperty('type');
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// readWeatherCache / writeWeatherCache
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FAKE_WEATHER_RESULT = { temperature: 25, code: 0, city: 'Kathmandu' };
+const FAKE_FORECAST_RESULT = { description: 'clear sky', type: 'persist' };
+
+describe('writeWeatherCache / readWeatherCache', () => {
+  it('readWeatherCache returns null when nothing cached', () => {
+    expect(readWeatherCache('loc:27.7:85.3', 'metric')).toBeNull();
+  });
+
+  it('writeWeatherCache then readWeatherCache returns the cached data', () => {
+    writeWeatherCache(FAKE_WEATHER_RESULT, FAKE_FORECAST_RESULT, 'loc:27.7:85.3', 'metric');
+    const result = readWeatherCache('loc:27.7:85.3', 'metric');
+    expect(result).not.toBeNull();
+    expect(result.weather).toEqual(FAKE_WEATHER_RESULT);
+    expect(result.forecast).toEqual(FAKE_FORECAST_RESULT);
+  });
+
+  it('readWeatherCache marks entry as fresh when recently written', () => {
+    writeWeatherCache(FAKE_WEATHER_RESULT, FAKE_FORECAST_RESULT, 'loc:27.7:85.3', 'metric');
+    const result = readWeatherCache('loc:27.7:85.3', 'metric');
+    expect(result.fresh).toBe(true);
+  });
+
+  it('readWeatherCache returns null when locationKey does not match', () => {
+    writeWeatherCache(FAKE_WEATHER_RESULT, FAKE_FORECAST_RESULT, 'loc:27.7:85.3', 'metric');
+    expect(readWeatherCache('loc:51.5:-0.1', 'metric')).toBeNull();
+  });
+
+  it('readWeatherCache returns null when unit does not match', () => {
+    writeWeatherCache(FAKE_WEATHER_RESULT, FAKE_FORECAST_RESULT, 'loc:27.7:85.3', 'metric');
+    expect(readWeatherCache('loc:27.7:85.3', 'imperial')).toBeNull();
+  });
+
+  it('readWeatherCache returns null when localStorage is malformed', () => {
+    localStorage.setItem('weather_cache_v1', 'INVALID_JSON{{{');
+    expect(readWeatherCache('loc:27.7:85.3', 'metric')).toBeNull();
+  });
+
+  it('readWeatherCache marks stale entry as not fresh (>30 min old)', () => {
+    const staleEntry = {
+      weather: FAKE_WEATHER_RESULT,
+      forecast: FAKE_FORECAST_RESULT,
+      locationKey: 'loc:27.7:85.3',
+      unit: 'metric',
+      ts: Date.now() - 31 * 60 * 1000, // 31 minutes ago
+    };
+    localStorage.setItem('weather_cache_v1', JSON.stringify(staleEntry));
+    const result = readWeatherCache('loc:27.7:85.3', 'metric');
+    expect(result).not.toBeNull();
+    expect(result.fresh).toBe(false);
   });
 });
