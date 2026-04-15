@@ -35,24 +35,25 @@ export const WIDGET_TYPES = Object.freeze({
 /**
  * WIDGET_REGISTRY — assembled from each widget's config.js.
  *
- * ✅ To enable/disable a widget: change `enabled` here.
- * 📐 To change grid position or size: edit the widget's config.js.
- * ➕ To add a new widget: add its config to this list.
+ * ✅ To enable/disable a widget: set `enabled` in the widget's config.js.
+ * 📐 To change grid position or size: edit `x, y, w, h` in the widget's config.js.
+ * 🏷️  To change title, category, icon, description: edit the widget's config.js.
+ * ➕ To add a new widget: create its config.js and add it here.
  */
 export const WIDGET_REGISTRY = [
-  { ...clockConfig, enabled: true, category: 'time', icon: 'ClockFill', description: 'Live clock with extra time zones' },
-  { ...dateTodayConfig, enabled: true, category: 'time', icon: 'CalendarDateFill', description: 'English & Nepali date display' },
-  { ...dayProgressConfig, enabled: true, category: 'time', icon: 'BarChartFill', description: "Visual progress bar for the day" },
-  { ...countdownConfig, enabled: true, category: 'time', icon: 'HourglassSplit', description: 'Count down to any event' },
-  { ...eventsConfig, enabled: true, category: 'planning', icon: 'CalendarEventFill', description: "Today's events from your calendar" },
-  { ...calendarConfig, enabled: true, category: 'planning', icon: 'Calendar3', description: 'Monthly calendar at a glance' },
-  { ...pomodoroConfig, enabled: true, category: 'planning', icon: 'StopwatchFill', description: 'Focus timer (Pomodoro)' },
-  { ...notesConfig, enabled: true, category: 'planning', icon: 'StickyFill', description: 'Quick sticky note' },
-  { ...weatherConfig, enabled: true, category: 'info', icon: 'CloudSunFill', description: 'Local weather & forecast' },
-  { ...factsConfig, enabled: true, category: 'info', icon: 'LightbulbFill', description: 'Daily interesting fact' },
-  { ...bookmarksConfig, enabled: true, category: 'tools', icon: 'BookmarkStarFill', description: 'Quick-access bookmarks' },
-  { ...quickAccessConfig, enabled: true, category: 'tools', icon: 'Grid3x3GapFill', description: 'Top visited sites dock' },
-  { ...spotifyConfig, enabled: true, category: 'tools', icon: 'MusicNoteBeamed', description: 'Spotify playback controls' },
-  { ...stockConfig, enabled: true, category: 'info', icon: 'GraphUpArrow', description: 'NEPSE stock watchlist' },
-  { ...occasionsConfig, enabled: true, category: 'planning', icon: 'BalloonFill', description: 'Birthdays, anniversaries & special occasions' },
+  clockConfig,
+  dateTodayConfig,
+  dayProgressConfig,
+  countdownConfig,
+  eventsConfig,
+  calendarConfig,
+  pomodoroConfig,
+  notesConfig,
+  weatherConfig,
+  factsConfig,
+  bookmarksConfig,
+  quickAccessConfig,
+  spotifyConfig,
+  stockConfig,
+  occasionsConfig,
 ];

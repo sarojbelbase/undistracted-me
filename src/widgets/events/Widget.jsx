@@ -60,11 +60,11 @@ export const Widget = ({ onRemove }) => {
 
   return (
     <>
-      <BaseWidget className="p-4 flex flex-col gap-3" onRemove={onRemove} settingsContent={<Settings />} settingsTitle="Settings">
+      <BaseWidget className="p-4 flex flex-col gap-3" onRemove={onRemove} settingsContent={<Settings />} settingsTitle={config.title}>
 
         {/* ── Header: title left · meta+refresh+add right ── */}
         <div className="flex items-center gap-2 shrink-0">
-          <h3 className="w-heading leading-tight flex-1">{config.label}</h3>
+          <h3 className="w-heading leading-tight flex-1">{config.title}</h3>
 
           {/* Meta info: sync age · refresh (only when calendar is connected) */}
           <div className="flex items-center gap-1.5 min-w-0">

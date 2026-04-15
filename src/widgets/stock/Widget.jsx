@@ -3,6 +3,7 @@ import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
+import config from './config';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 
 const DEFAULT_STOCK_SETTINGS = { symbols: ['NEPSE'] };
@@ -204,7 +205,7 @@ export const Widget = ({ id, onRemove }) => {
         ref={cardRef}
         className="flex flex-col overflow-hidden"
         settingsContent={settingsContent}
-        settingsTitle="Settings"
+        settingsTitle={config.title}
         onRemove={onRemove}
       >
         <div className="flex items-center justify-between px-3 pt-2 pb-1 shrink-0">
@@ -231,7 +232,7 @@ export const Widget = ({ id, onRemove }) => {
       ref={cardRef}
       className="flex flex-col overflow-hidden"
       settingsContent={settingsContent}
-      settingsTitle="Settings"
+      settingsTitle={config.title}
       onRemove={onRemove}
     >
       {/* ── Top bar ── */}

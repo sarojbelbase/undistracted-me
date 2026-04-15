@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { CalendarDateFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'dateToday',
   type: 'dateToday',
-  label: 'Date Today',
+  title: 'Date Today',
+  category: 'time',
+  icon: CalendarDateFill,
+  description: 'English & Nepali date display',
+  enabled: true,
   x: 2, y: 0, w: 2, h: 2,
   breakpoints: {
     md: { x: 2, y: 0, w: 2, h: 2 },

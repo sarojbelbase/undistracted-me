@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { CloudSunFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'weather',
   type: 'weather',
-  label: 'Weather',
+  title: 'Weather',
+  category: 'info',
+  icon: CloudSunFill,
+  description: 'Local weather & forecast',
+  enabled: true,
   x: 6, y: 0, w: 2, h: 2,
   breakpoints: {
     md: { x: 6, y: 0, w: 2, h: 2 },

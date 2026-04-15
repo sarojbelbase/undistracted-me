@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
+import config from './config';
 import { useEvents, useGoogleCalendar } from '../useEvents';
 import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
@@ -96,7 +97,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   useEffect(() => { setMonthOffset(0); }, [calendarType]);
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={<Settings id={id} calendarType={calendarType} onChange={updateSetting} />} onRemove={onRemove}>
+    <BaseWidget className="p-4 flex flex-col" settingsTitle={config.title} settingsContent={<Settings id={id} calendarType={calendarType} onChange={updateSetting} />} onRemove={onRemove}>
       {/* Header: month + year on the left, nav arrows on the right */}
       <div className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">

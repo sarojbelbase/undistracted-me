@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
+import config from './config';
 import { LANGUAGES } from '../../constants';
 import { getDateParts } from './utils';
 
@@ -21,6 +22,7 @@ export const Widget = ({ id, onRemove }) => {
   return (
     <BaseWidget
       className="p-4 flex flex-col items-center justify-center"
+      settingsTitle={config.title}
       settingsContent={<Settings id={id} language={language} onChange={updateSetting} />}
       onRemove={onRemove}
     >

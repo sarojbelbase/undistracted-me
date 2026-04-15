@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
+import config from './config';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import { GeoAlt } from 'react-bootstrap-icons';
@@ -184,6 +185,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
   return (
     <BaseWidget
       className={`p-4 flex flex-col${style !== 'expressive' ? ' items-center justify-center' : ''}`}
+      settingsTitle={config.title}
       settingsContent={settingsContent}
       onRemove={onRemove}
     >

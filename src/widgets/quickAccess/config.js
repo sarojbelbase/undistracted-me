@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { Grid3x3GapFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'quickAccess',
   type: 'quickAccess',
-  label: 'Quick Access',
+  title: 'Quick Access',
+  category: 'tools',
+  icon: Grid3x3GapFill,
+  description: 'Top visited sites dock',
+  enabled: true,
   x: 8, y: 0, w: 3.5, h: 1,
   breakpoints: {
     md: { x: 8, y: 0, w: 2, h: 1 },

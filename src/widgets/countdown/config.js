@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { HourglassSplit } from 'react-bootstrap-icons';
 
 export default {
-  id: 'countdown',
   type: 'countdown',
-  label: 'Countdown',
+  title: 'Countdown',
+  category: 'time',
+  icon: HourglassSplit,
+  description: 'Count down to any event',
+  enabled: true,
   x: 0, y: 5, w: 2, h: 2,
   breakpoints: {
     md: { x: 0, y: 7, w: 2, h: 2 },

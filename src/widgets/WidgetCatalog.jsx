@@ -3,26 +3,11 @@ import { createPortal } from 'react-dom';
 import {
   XLg, PlusLg, DashLg,
   BoxArrowUpRight, Upload, Download, ArrowCounterclockwise,
-  ClockFill, CalendarDateFill, BarChartFill, HourglassSplit,
-  CalendarEventFill, Calendar3, StopwatchFill, StickyFill,
-  CloudSunFill, LightbulbFill, BookmarkStarFill, MusicNoteBeamed,
-  GraphUpArrow, InfoCircleFill, GearFill, BalloonFill, Grid3x3GapFill,
+  InfoCircleFill, GearFill, ClockFill, CalendarEventFill,
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { exportSettings, importFromFile, resetSettings } from './settingsIO';
 
-// ─── Static icon map — avoids dynamic import() in hot path ────────────────────
-const ICON_MAP = {
-  ClockFill, CalendarDateFill, BarChartFill, HourglassSplit,
-  CalendarEventFill, Calendar3, StopwatchFill, StickyFill,
-  CloudSunFill, LightbulbFill, BookmarkStarFill, MusicNoteBeamed,
-  GraphUpArrow, BalloonFill, Grid3x3GapFill,
-};
-
-const WidgetIcon = ({ name, size = 14 }) => {
-  const Icon = ICON_MAP[name];
-  return Icon ? <Icon size={size} /> : null;
-};
 
 // ─── Category config ───────────────────────────────────────────────────────────
 const TABS = [
@@ -50,15 +35,16 @@ const CATEGORY_ORDER = ['time', 'planning', 'info', 'tools'];
 // ─── Individual widget row ─────────────────────────────────────────────────────
 const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
   const isActive = count > 0;
+  const Icon = widget.icon;
   return (
     <li className={`wc-row${isActive ? ' wc-row--active' : ''}`}>
 
       <span className={`wc-icon-box${isActive ? ' wc-icon-box--active' : ''}`}>
-        <WidgetIcon name={widget.icon} size={17} />
+        {Icon ? <Icon size={17} /> : null}
       </span>
 
       <div className="wc-text">
-        <span className="wc-label">{widget.label}</span>
+        <span className="wc-label">{widget.title}</span>
         <span className="wc-desc">{widget.description}</span>
       </div>
 
@@ -69,7 +55,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
             <button
               className="wc-stepper-btn wc-stepper-btn--remove"
               onClick={e => { e.stopPropagation(); onRemove(); }}
-              aria-label={`Remove ${widget.label}`}
+              aria-label={`Remove ${widget.title}`}
               title="Remove one"
             >
               <DashLg size={12} />
@@ -80,7 +66,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
         <button
           className={`wc-stepper-btn wc-stepper-btn--add${isActive ? ' wc-stepper-btn--add-active' : ''}`}
           onClick={onAdd}
-          aria-label={`Add ${widget.label}`}
+          aria-label={`Add ${widget.title}`}
           title="Add to canvas"
         >
           <PlusLg size={12} />
@@ -153,8 +139,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
       {/* ── Backdrop ── */}
       <div
         className={`wc-backdrop${phase === 'leaving' ? ' wc-backdrop--leaving' : ''}`}
-        style={{ opacity: phase === 'open' ? 1 : 0 }}
-        onMouseDown={handleClose}
+        style={{ opacity: phase === 'open' ? 1 : 0, pointerEvents: 'none' }}
         aria-hidden="true"
       />
 

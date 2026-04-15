@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { StopwatchFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'pomodoro',
   type: 'pomodoro',
-  label: 'Pomodoro',
+  title: 'Pomodoro',
+  category: 'planning',
+  icon: StopwatchFill,
+  description: 'Focus timer (Pomodoro)',
+  enabled: true,
   x: 2, y: 5, w: 2, h: 2.5,
   breakpoints: {
     md: { x: 2, y: 7, w: 2, h: 2.5 },

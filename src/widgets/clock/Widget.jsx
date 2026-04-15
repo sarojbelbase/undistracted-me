@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
+import config from './config';
 import { getTimeParts, getTimeInZone } from './utils';
 import { onClockTick } from '../../utilities/sharedClock';
 
@@ -30,6 +31,7 @@ export const Widget = ({ id, onRemove }) => {
   return (
     <BaseWidget
       className="p-4 flex flex-col items-center justify-center gap-2"
+      settingsTitle={config.title}
       settingsContent={
         <Settings
           format={format}

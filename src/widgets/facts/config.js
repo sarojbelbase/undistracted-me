@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { LightbulbFill } from 'react-bootstrap-icons';
 
 export default {
-  id: 'facts',
   type: 'facts',
-  label: 'Did You Know',
+  title: 'Did You Know',
+  category: 'info',
+  icon: LightbulbFill,
+  description: 'Daily interesting fact',
+  enabled: true,
   x: 9, y: 2, w: 3, h: 2,
   breakpoints: {
     md: { x: 7, y: 4, w: 3, h: 2 },

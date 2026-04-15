@@ -3,6 +3,7 @@ import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { getProgress, DEFAULT_PERIOD, DEFAULT_CALENDAR } from './utils';
 import { Settings } from './Settings';
+import config from './config';
 import { onClockTick } from '../../utilities/sharedClock';
 
 const DEFAULT_SETTINGS = { period: DEFAULT_PERIOD, calendar: DEFAULT_CALENDAR };
@@ -12,6 +13,11 @@ export const Widget = ({ id = 'dayProgress', onRemove }) => {
   const { period, calendar } = settings;
 
   const [progress, setProgress] = useState(() => getProgress(period, calendar));
+
+  // Immediately reflect setting changes without waiting for the next minute tick
+  useEffect(() => {
+    setProgress(getProgress(period, calendar));
+  }, [period, calendar]);
 
   const lastMinuteRef = useRef(-1);
   useEffect(() => {
@@ -30,7 +36,7 @@ export const Widget = ({ id = 'dayProgress', onRemove }) => {
   );
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} onRemove={onRemove}>
+    <BaseWidget className="p-4 flex flex-col" settingsTitle={config.title} settingsContent={settingsContent} onRemove={onRemove}>
       <div className="flex justify-between mx-2 items-baseline gap-2">
         <div className="flex items-baseline gap-1.5 min-w-0">
           <span className="w-sub-soft truncate">{progress.label} Progress</span>

@@ -1,9 +1,13 @@
 import { Widget } from './Widget';
+import { GraphUpArrow } from 'react-bootstrap-icons';
 
 export default {
-  id: 'stock',
   type: 'stock',
-  label: 'NEPSE Stock',
+  title: 'Stock',
+  category: 'info',
+  icon: GraphUpArrow,
+  description: 'NEPSE stock watchlist',
+  enabled: true,
   x: 7, y: 5, w: 1.5, h: 2,
   breakpoints: {
     md: { x: 7, y: 7, w: 3, h: 2 },
