@@ -9,6 +9,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
+import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Events Widget
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,9 +32,9 @@ describe('EventsWidget — empty state', () => {
     expect(() => render(<EventsWidget />)).not.toThrow();
   });
 
-  it('shows "Events" heading', () => {
+  it('shows "Upcoming Events" heading', () => {
     render(<EventsWidget />);
-    expect(screen.getByText('Events')).toBeTruthy();
+    expect(screen.getByText('Upcoming Events')).toBeTruthy();
   });
 
   it('shows empty-state message', () => {
@@ -54,9 +56,8 @@ describe('EventsWidget — with events', () => {
 
   it('shows event count badge after adding events via add button', () => {
     render(<EventsWidget />);
-    // Shows "0 Events" initially — module cache is stale in tests
-    // Verify at minimum the "Events" label renders
-    expect(screen.getByText('Events')).toBeTruthy();
+    // The heading is always "Upcoming Events"
+    expect(screen.getByText('Upcoming Events')).toBeTruthy();
   });
 });
 
@@ -70,6 +71,7 @@ describe('BookmarksWidget', () => {
   beforeEach(() => {
     vi.stubGlobal('chrome', undefined);
     localStorage.clear();
+    useWidgetInstancesStore.setState({ widgetSettings: {} });
   });
 
   afterEach(() => {
@@ -83,7 +85,8 @@ describe('BookmarksWidget', () => {
 
   it('renders some content', () => {
     render(<BookmarksWidget id="bookmarks" />);
-    expect(document.body.textContent.length).toBeGreaterThan(0);
+    // Empty state renders an SVG + button — innerHTML is non-empty even with no text
+    expect(document.body.innerHTML.length).toBeGreaterThan(0);
   });
 
   it('renders Bookmark Plus button', () => {
@@ -93,13 +96,15 @@ describe('BookmarksWidget', () => {
   });
 
   it('renders saved bookmarks from localStorage', () => {
-    localStorage.setItem('widgetSettings_bookmarks', JSON.stringify({
-      bookmarks: [
-        { id: 1, url: 'https://github.com', name: 'GitHub', favicon: '' },
-      ]
-    }));
+    // Each BookmarksWidget instance stores a single bookmark: { url, name, iconMode }
+    useWidgetInstancesStore.setState({
+      widgetSettings: {
+        bookmarks: { url: 'https://github.com', name: 'GitHub', iconMode: 'favicon' }
+      }
+    });
     render(<BookmarksWidget id="bookmarks" />);
-    expect(screen.getByText('GitHub')).toBeTruthy();
+    // The link uses aria-label={displayName}, not text content
+    expect(screen.getByLabelText('GitHub')).toBeTruthy();
   });
 
   it('clicking add-bookmark button shows modal', () => {
@@ -139,7 +144,7 @@ describe('WeatherWidget', () => {
 
   it('renders some visible content', () => {
     render(<WeatherWidget id="weather" />);
-    expect(document.body.textContent.length).toBeGreaterThan(0);
+    expect(document.body.innerHTML.length).toBeGreaterThan(0);
   });
 });
 

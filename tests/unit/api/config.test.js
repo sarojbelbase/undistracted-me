@@ -17,7 +17,7 @@ describe('ALLOWED_ORIGINS regex', () => {
     ['localhost dev', ORIGINS.localhost, true],
     ['localhost no port', 'http://localhost', true],
     ['unknown domain', ORIGINS.bad, false],
-    ['empty origin', ORIGINS.none, false],
+    ['empty origin (same-origin)', ORIGINS.none, false],
     ['subdomain of production', 'https://sub.undistractedme.sarojbelbase.com.np', false],
   ])('%s → %s', (_, origin, expected) => {
     expect(ALLOWED_ORIGINS.test(origin)).toBe(expected);
@@ -42,11 +42,11 @@ describe('assertOrigin', () => {
     expect(res._body).toMatchObject({ error: 'Forbidden' });
   });
 
-  it('rejects empty origin with 403', () => {
+  it('allows same-origin request (empty origin header)', () => {
     const req = makeReq({ origin: '' });
     const res = makeRes();
-    expect(assertOrigin(req, res)).toBe(false);
-    expect(res._status).toBe(403);
+    expect(assertOrigin(req, res)).toBe(true);
+    expect(res._status).toBeNull();
   });
 
   it('sets custom methods when provided', () => {

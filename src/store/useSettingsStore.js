@@ -14,8 +14,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { applyTheme } from '../theme';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
-export const STORE_KEY = 'undistracted_settings';
+export const STORE_KEY = STORAGE_KEYS.SETTINGS;
 
 /**
  * Seed initial state. Reads from the Zustand persist key first so accents
@@ -24,14 +25,13 @@ export const STORE_KEY = 'undistracted_settings';
  */
 const fromLegacy = () => {
   try {
-    const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
     if (stored?.state) return {
       language: stored.state.language ?? 'en',
       accent: stored.state.accent ?? 'Default',
       mode: stored.state.mode ?? 'light',
       defaultView: stored.state.defaultView ?? 'canvas',
       dateFormat: stored.state.dateFormat ?? 'gregorian',
-      showMitiInIcon: stored.state.showMitiInIcon ?? '0',
       lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
       lookAwayInterval: stored.state.lookAwayInterval ?? 20,
       lookAwayNotify: stored.state.lookAwayNotify ?? true,
@@ -45,12 +45,11 @@ const fromLegacy = () => {
   } catch { /* ignore */ }
   // Legacy single-key fallback
   return {
-    language: localStorage.getItem('language') || 'en',
-    accent: localStorage.getItem('app_accent') || 'Default',
-    mode: localStorage.getItem('app_mode') || 'light',
-    defaultView: localStorage.getItem('defaultView') || 'canvas',
-    dateFormat: localStorage.getItem('focusDateFormat') || 'gregorian',
-    showMitiInIcon: localStorage.getItem('showMitiInIcon') || '0',
+    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || 'en',
+    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || 'Default',
+    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || 'light',
+    defaultView: localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || 'canvas',
+    dateFormat: localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || 'gregorian',
     lookAwayEnabled: false,
     lookAwayInterval: 20,
     lookAwayNotify: true,
@@ -79,7 +78,11 @@ export const useSettingsStore = create(
 
       // ── Actions ────────────────────────────────────────────────────────
 
-      setLanguage: (language) => set({ language }),
+      setLanguage: (language) => {
+        set({ language });
+        // Mirror to legacy key — Playwright tests assert localStorage.getItem('language').
+        try { localStorage.setItem(STORAGE_KEYS._LEGACY.LANGUAGE, language); } catch { /* storage unavailable */ }
+      },
 
       /** Clock time format shown in Focus Mode: '24h' | '12h' */
       setClockFormat: (clockFormat) => set({ clockFormat }),
@@ -100,6 +103,8 @@ export const useSettingsStore = create(
         // cardStyle is a global preference — never overwritten by mode changes
         const cardStyle = get().cardStyle;
         set({ mode, accent });
+        // Mirror to legacy key — Playwright tests assert localStorage.getItem('app_mode').
+        try { localStorage.setItem(STORAGE_KEYS._LEGACY.MODE, mode); } catch { /* storage unavailable */ }
         // For 'auto', theme will be applied by useAutoTheme hook after mount.
         if (mode !== 'auto') applyTheme(accent, mode, cardStyle);
       },
@@ -108,8 +113,6 @@ export const useSettingsStore = create(
 
       /** Date calendar format shown in Focus Mode: 'gregorian' | 'bikramSambat' */
       setDateFormat: (dateFormat) => set({ dateFormat }),
-
-      setShowMitiInIcon: (showMitiInIcon) => set({ showMitiInIcon }),
 
       /** LookAway eye-break reminders */
       setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),

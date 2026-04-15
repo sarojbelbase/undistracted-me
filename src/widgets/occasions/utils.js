@@ -112,15 +112,6 @@ export const avatarColor = (name) => {
 /** First letter of the first word, uppercase. */
 export const avatarLetter = (name) => (name || '?')[0].toUpperCase();
 
-// ─── Age formatting (same pattern as stock widget) ────────────────────────────
-
-export const humanizeAge = (ts) => {
-  if (!ts) return '';
-  const diff = Math.floor((Date.now() - ts) / 1_000);
-  if (diff < 60) return 'just now';
-  const mins = Math.floor(diff / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-};
+// ─── Age formatting ───────────────────────────────────────────────────────────
+// Sourced from utilities/index.js — single canonical implementation.
+export { humanizeAge } from '../../utilities';

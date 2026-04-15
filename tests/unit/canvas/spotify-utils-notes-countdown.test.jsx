@@ -14,10 +14,8 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 // Setup mocks before component test files
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Mock chrome (for spotify utils)
-const mockLaunchWebAuthFlow = vi.fn();
+// Mock chrome globally (without launchWebAuthFlow so isWebMode() returns true, enabling localStorage path)
 vi.stubGlobal('chrome', {
-  identity: { launchWebAuthFlow: mockLaunchWebAuthFlow, getAuthToken: vi.fn() },
   runtime: { id: 'test-extension-id', lastError: null },
 });
 
@@ -36,6 +34,24 @@ vi.mock('react-bootstrap-icons', () => ({
   HourglassSplit: () => <span>⏳</span>,
   ArrowRepeat: () => <span>🔄</span>,
   CalendarEvent: () => <span>📅</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  GeoAlt: () => <span>📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  Search: () => <span>🔍</span>,
+  GraphUpArrow: () => <span>📈</span>,
+  InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
+  CalendarCheck: () => <span>✅</span>,
+}));
+
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 // Mock BaseWidget
@@ -129,8 +145,9 @@ describe('Spotify Utils — localStorage', () => {
       expect(isSpotifyConnected()).toBe(false);
     });
 
-    it('returns true when tokens exist in localStorage', () => {
-      localStorage.setItem(TOKEN_KEY, JSON.stringify({ access_token: 'tok', expires_at: Date.now() + 3600000 }));
+    it('returns true when spotify_connected flag is set', () => {
+      // isSpotifyConnected reads from 'spotify_connected' flag, not the token key
+      localStorage.setItem('spotify_connected', '1');
       expect(isSpotifyConnected()).toBe(true);
     });
   });
@@ -150,19 +167,19 @@ describe('Spotify Utils — localStorage', () => {
   });
 
   describe('getSpotifyProfile', () => {
-    it('returns null when no profile cached', () => {
-      expect(getSpotifyProfile()).toBeNull();
+    it('returns null when no profile cached', async () => {
+      expect(await getSpotifyProfile()).toBeNull();
     });
 
-    it('returns profile object when cached', () => {
+    it('returns profile object when cached', async () => {
       const profile = { name: 'Bob', avatar: null };
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-      expect(getSpotifyProfile()).toEqual(profile);
+      expect(await getSpotifyProfile()).toEqual(profile);
     });
 
-    it('returns null for invalid JSON', () => {
+    it('returns null for invalid JSON', async () => {
       localStorage.setItem(PROFILE_KEY, 'not-json');
-      expect(getSpotifyProfile()).toBeNull();
+      expect(await getSpotifyProfile()).toBeNull();
     });
   });
 
@@ -202,7 +219,7 @@ describe('Spotify Utils — localStorage', () => {
       expect(result.name).toBe('Alice');
       expect(result.avatar).toBe('https://img.spotify.com/avatar.jpg');
       // Should be cached
-      const cached = getSpotifyProfile();
+      const cached = await getSpotifyProfile();
       expect(cached).toEqual(result);
     });
   });
@@ -215,7 +232,7 @@ import { Widget as NotesWidget } from '../../../src/widgets/notes/Widget';
 
 describe('Notes Widget', () => {
   beforeEach(() => {
-    vi.mocked(useWidgetSettings).mockReturnValue([{ text: '', bgColor: null }, vi.fn()]);
+    vi.mocked(useWidgetSettings).mockReturnValue([{ text: '' }, vi.fn()]);
   });
 
   it('renders without crashing', () => {
@@ -228,60 +245,41 @@ describe('Notes Widget', () => {
   });
 
   it('renders with existing text in textarea', () => {
-    vi.mocked(useWidgetSettings).mockReturnValue([{ text: 'Hello World', bgColor: null }, vi.fn()]);
+    vi.mocked(useWidgetSettings).mockReturnValue([{ text: 'Hello World' }, vi.fn()]);
     render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
     expect(screen.getByDisplayValue('Hello World')).toBeTruthy();
   });
 
-  it('renders color palette in settings', () => {
+  it('renders traffic-light header buttons', () => {
     render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    expect(screen.getByTestId('settings-content')).toBeTruthy();
-    // Color buttons should be rendered
-    const settingsEl = screen.getByTestId('settings-content');
-    expect(settingsEl.querySelectorAll('button').length).toBeGreaterThan(0);
+    // Notes uses TrafficLights (Full page, Expand, Remove buttons)
+    expect(screen.getByLabelText('Full page')).toBeTruthy();
+    expect(screen.getByLabelText('Expand')).toBeTruthy();
   });
 
-  it('renders eye (hide) button', () => {
+  it('opens expanded modal when Expand button is clicked', () => {
     render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    expect(screen.getByTestId('eye')).toBeTruthy();
-  });
-
-  it('toggles hide state when eye button is clicked', () => {
-    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    const eyeBtn = screen.getByTestId('eye').closest('button');
-    fireEvent.click(eyeBtn);
-    // After hiding, eye-slash should appear
-    expect(screen.getByTestId('eye-slash')).toBeTruthy();
-  });
-
-  it('toggles back to shown when eye-slash button is clicked', () => {
-    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    const eyeBtn = screen.getByTestId('eye').closest('button');
-    fireEvent.click(eyeBtn); // hide
-    const eyeSlashBtn = screen.getByTestId('eye-slash').closest('button');
-    fireEvent.click(eyeSlashBtn); // show again
-    expect(screen.getByTestId('eye')).toBeTruthy();
-  });
-
-  it('renders expand button', () => {
-    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    // ArrowsFullscreen icon should be visible
-    expect(screen.getByText('⛶')).toBeTruthy();
-  });
-
-  it('opens expanded view when expand button is clicked', () => {
-    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    const expandBtn = screen.getByText('⛶').closest('button');
+    const expandBtn = screen.getByLabelText('Expand');
     fireEvent.click(expandBtn);
-    // Should show expanded modal with FullscreenExit button
-    expect(screen.getByText('⛶exit')).toBeTruthy();
+    // Modal should contain a Notes aria-label dialog
+    expect(screen.getByLabelText('Notes')).toBeTruthy();
   });
 
-  it('applies custom bgColor from settings', () => {
-    vi.mocked(useWidgetSettings).mockReturnValue([{ text: '', bgColor: '#6366f1' }, vi.fn()]);
-    const { getByTestId } = render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
-    const widget = getByTestId('base-widget');
-    expect(widget.style.backgroundColor).toBe('rgb(99, 102, 241)');
+  it('opens full-page view when Full page button is clicked', () => {
+    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
+    const fullPageBtn = screen.getByLabelText('Full page');
+    fireEvent.click(fullPageBtn);
+    // Full page mode renders a second textarea
+    expect(screen.getAllByRole('textbox').length).toBeGreaterThan(1);
+  });
+
+  it('textarea accepts text input', () => {
+    const mockUpdate = vi.fn();
+    vi.mocked(useWidgetSettings).mockReturnValue([{ text: '' }, mockUpdate]);
+    render(<NotesWidget id="notes-1" onRemove={vi.fn()} />);
+    const textarea = screen.getByRole('textbox');
+    fireEvent.change(textarea, { target: { value: 'New text' } });
+    expect(textarea.value).toBe('New text');
   });
 });
 

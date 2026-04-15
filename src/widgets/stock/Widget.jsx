@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL, humanizeAge } from './utils';
+import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
+import { useAgeLabel } from '../../hooks/useAgeLabel';
+
+const DEFAULT_STOCK_SETTINGS = { symbols: ['NEPSE'] };
 
 const DIR_COLOR = {
   up: 'var(--w-success)',
@@ -117,21 +120,13 @@ const StockRow = ({ sym, data, isLast }) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { symbols: ['NEPSE'] });
+  const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_STOCK_SETTINGS);
   const { symbols = [] } = settings;
 
   const [chartMap, setChartMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState(null);
-  const [ageLabel, setAgeLabel] = useState('');
-
-  // Keep age label fresh every 30s
-  useEffect(() => {
-    if (!refreshedAt) return;
-    setAgeLabel(humanizeAge(refreshedAt));
-    const id = setInterval(() => setAgeLabel(humanizeAge(refreshedAt)), 30_000);
-    return () => clearInterval(id);
-  }, [refreshedAt]);
+  const ageLabel = useAgeLabel(refreshedAt);
 
   const cardRef = useRef(null);
   const [cardWidth, setCardWidth] = useState(200);

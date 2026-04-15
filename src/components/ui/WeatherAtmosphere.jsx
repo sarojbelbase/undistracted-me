@@ -1,9 +1,7 @@
 import React from 'react';
 
-// ── Weather atmosphere CSS animations (always fresh on module load) ────────────
-if (typeof document !== 'undefined') {
-  const existing = document.getElementById('w-atmo-kf');
-  if (existing) existing.remove();
+// ── Weather atmosphere CSS animations (injected once on module load) ──────────
+if (typeof document !== 'undefined' && !document.getElementById('w-atmo-kf')) {
   const s = document.createElement('style');
   s.id = 'w-atmo-kf';
   s.textContent = [

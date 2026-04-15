@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getTimeInZone } from '../../widgets/clock/utils';
+import { onClockTick } from '../../utilities/sharedClock';
 
 export const WorldClocksPanel = ({ timezones, clockFormat }) => {
   const [times, setTimes] = useState([]);
@@ -8,9 +9,7 @@ export const WorldClocksPanel = ({ timezones, clockFormat }) => {
     if (!timezones?.length) return;
     const fmt = clockFormat || '24h';
     const tick = () => setTimes(timezones.map(tz => getTimeInZone(tz, fmt)));
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
+    return onClockTick(tick);
   }, [timezones, clockFormat]);
 
   if (!times.length) return null;

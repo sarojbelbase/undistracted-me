@@ -48,6 +48,24 @@ export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, { text: '' });
   const { text } = settings;
 
+  // Local state for instant UI updates; debounce the Zustand persist write
+  // so fast typing doesn't serialise + write localStorage on every keystroke.
+  const [localText, setLocalText] = useState(text);
+  const saveTimerRef = useRef(null);
+
+  // Sync if the text changes externally (e.g. settings import/restore).
+  useEffect(() => { setLocalText(text); }, [text]);
+
+  // Flush any pending save immediately on unmount so no text is lost.
+  useEffect(() => () => clearTimeout(saveTimerRef.current), []);
+
+  const handleTextChange = useCallback((e) => {
+    const val = e.target.value;
+    setLocalText(val);
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => updateSetting('text', val), 600);
+  }, [updateSetting]);
+
   const [mode, setMode] = useState('widget');
   const textareaRef = useRef(null);
   const pageTextareaRef = useRef(null);
@@ -83,8 +101,8 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       </div>
       <textarea
-        value={text}
-        onChange={e => updateSetting('text', e.target.value)}
+        value={localText}
+        onChange={handleTextChange}
         placeholder="New note…"
         spellCheck={false}
         className="notes-textarea flex-1 w-full resize-none bg-transparent outline-none text-sm leading-relaxed min-h-0"
@@ -106,8 +124,8 @@ export const Widget = ({ id, onRemove }) => {
       </div>
       <textarea
         ref={textareaRef}
-        value={text}
-        onChange={e => updateSetting('text', e.target.value)}
+        value={localText}
+        onChange={handleTextChange}
         placeholder="New note…"
         spellCheck={false}
         className="notes-textarea flex-1 w-full resize-none outline-none text-sm leading-relaxed min-h-0"
@@ -127,8 +145,8 @@ export const Widget = ({ id, onRemove }) => {
       </div>
       <textarea
         ref={pageTextareaRef}
-        value={text}
-        onChange={e => updateSetting('text', e.target.value)}
+        value={localText}
+        onChange={handleTextChange}
         placeholder="Write something…"
         spellCheck={false}
         className="notes-textarea"

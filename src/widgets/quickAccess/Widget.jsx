@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
-import { extractColorFromUrl, getDefaultName, buildFaviconSources, cacheFavicon, faviconCache, getHostname } from "../bookmarks/utils";
+import { FaviconIcon } from "../../components/ui/FaviconIcon";
+import { getDefaultName, faviconCache, getHostname } from "../../utilities/favicon";
 
 const cleanTitle = (raw, url) => {
   if (!raw) return getDefaultName(url);
@@ -9,50 +10,6 @@ const cleanTitle = (raw, url) => {
     .replace(/\s*[-|]\s+.+/, "")
     .trim();
   return t || getDefaultName(url);
-};
-
-const Favicon = ({ url, onColor, onSettled }) => {
-  const hostname = getHostname(url);
-  const [idx, setIdx] = useState(0);
-  const sources = React.useMemo(() => buildFaviconSources(url, 128), [url]);
-  const letter = getDefaultName(url).charAt(0).toUpperCase();
-
-  useEffect(() => { setIdx(0); }, [url]);
-
-  const src = sources[idx];
-  const isLetter = src === '';
-
-  useEffect(() => {
-    if (isLetter) {
-      if (!faviconCache.has(hostname)) cacheFavicon(hostname, '');
-      onSettled?.();
-    }
-  }, [isLetter, hostname, onSettled]);
-
-  if (src === "") {
-    return (
-      <span className="text-xs font-bold select-none" style={{ color: "var(--w-ink-3)" }}>
-        {letter}
-      </span>
-    );
-  }
-
-  return (
-    <img
-      key={src}
-      src={src}
-      alt=""
-      width={22}
-      height={22}
-      className="rounded-sm object-contain"
-      onLoad={(e) => {
-        cacheFavicon(hostname, src);
-        onSettled?.();
-        extractColorFromUrl(e.currentTarget.src, onColor);
-      }}
-      onError={() => setIdx((i) => i + 1)}
-    />
-  );
 };
 
 // Named group/tile — hover scoped to individual tile only
@@ -78,7 +35,7 @@ const Tile = ({ href, url, title }) => {
           border: loading ? '1px solid transparent' : '1px solid var(--card-border)',
         }}
       >
-        <Favicon url={url} onColor={setColor} onSettled={onSettled} />
+        <FaviconIcon url={url} size={22} onColor={setColor} onSettled={onSettled} />
       </div>
       <span
         className="w-full text-center truncate px-0.5"

@@ -25,7 +25,17 @@ export const STORAGE_KEYS = Object.freeze({
   EVENTS: 'widget_events',
   COUNTDOWN_EVENTS: 'countdown_events',
   COUNTDOWN_PINNED: 'countdown_pinned',
+  /** Per-widget-instance key for the countdown "already notified" map. */
+  COUNTDOWN_NOTIFIED: 'cd_notified',
+  /** Returns the per-instance pinned state key for the countdown widget. */
+  countdownPinned: (widgetId) => `countdown_pinned_${widgetId}`,
   POMODORO: 'fm_pomodoro',
+  /** Returns the per-instance timer persist key for the pomodoro widget. */
+  pomodoroTimerState: (widgetId) => `pomodoro_timer_state_${widgetId}`,
+
+  // ── Auto-theme / geolocation ──────────────────────────────────────────
+  AUTO_THEME_COORDS: 'auto_theme_coords',
+  AUTO_THEME_COORDS_SOURCE: 'auto_theme_coords_source',
 
   // ── Focus mode ────────────────────────────────────────────────────────
   UNSPLASH_CACHE: 'fm_unsplash_cache',
@@ -38,7 +48,13 @@ export const STORAGE_KEYS = Object.freeze({
   SPOTIFY_TOKENS: 'spotify_tokens',
   SPOTIFY_PROFILE: 'spotify_profile',
 
-  // ── Legacy / migration ────────────────────────────────────────────────
-  /** @deprecated Migrated to WIDGET_INSTANCES */
-  LEGACY_WIDGET_ENABLED_IDS: 'widget_enabled_ids',
+  // ── Legacy / migration keys (read-only, never written by new code) ────
+  _LEGACY: Object.freeze({
+    LANGUAGE: 'language',
+    ACCENT: 'app_accent',
+    MODE: 'app_mode',
+    DEFAULT_VIEW: 'defaultView',
+    DATE_FORMAT: 'focusDateFormat',
+    WIDGET_ENABLED_IDS: 'widget_enabled_ids',
+  }),
 });

@@ -153,10 +153,10 @@ describe('humanizeAge', () => {
     expect(humanizeAge(now)).toBe('just now');
   });
 
-  it('returns seconds ago for 30s old timestamp', () => {
+  it('returns "just now" for 30s old timestamp (< 60s threshold)', () => {
     const now = Date.now();
     vi.setSystemTime(new Date(now + 30000));
-    expect(humanizeAge(now)).toBe('30s ago');
+    expect(humanizeAge(now)).toBe('just now');
   });
 
   it('returns minutes ago for 2m old timestamp', () => {

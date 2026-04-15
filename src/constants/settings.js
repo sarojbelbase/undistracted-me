@@ -1,9 +1,2 @@
-export const LANGUAGES = {
-  "Nepali": "ne",
-  "English": "en"
-}
-
-export const SHOW_MITI_IN_ICON = {
-  "Show": "1",
-  "Hide": "0"
-}
+/** @deprecated Import LANGUAGE_OPTIONS directly from '../constants' instead. */
+export { LANGUAGE_OPTIONS as LANGUAGES } from './index';

@@ -108,7 +108,7 @@ describe('src/store/index.js re-exports', () => {
 // src/constants/settings.js — language/setting constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { LANGUAGES, SHOW_MITI_IN_ICON } from '../../../src/constants/settings';
+import { LANGUAGES } from '../../../src/constants/settings';
 
 describe('constants/settings.js', () => {
   it('LANGUAGES has ne and en values', () => {
@@ -116,8 +116,7 @@ describe('constants/settings.js', () => {
     expect(Object.values(LANGUAGES)).toContain('en');
   });
 
-  it('SHOW_MITI_IN_ICON has Show and Hide values', () => {
-    expect(SHOW_MITI_IN_ICON).toHaveProperty('Show');
-    expect(SHOW_MITI_IN_ICON).toHaveProperty('Hide');
+  it('LANGUAGES is frozen', () => {
+    expect(Object.isFrozen(LANGUAGES)).toBe(true);
   });
 });

@@ -1,21 +1,47 @@
 /**
  * Widget instances store.
  *
- * Replaces the `useWidgetInstances` React hook with a Zustand store so that
- * any component can subscribe to the active widget list without prop-drilling.
+ * Single source of truth for:
+ *   - `instances`      : the list of active widget slots (id + type)
+ *   - `widgetSettings` : per-instance settings map { [widgetId]: { ...settings } }
  *
- * Persistence key matches the existing `widget_instances` localStorage key so
- * current user layouts are migrated transparently.
+ * Widget settings were previously written directly to localStorage under
+ * `widgetSettings_${id}`. This store migrates those keys on first hydration
+ * so existing data is preserved transparently.
+ *
+ * Playwright tests seed `widgetSettings_clock` etc. in localStorage before
+ * page load. The `merge` function in the persist config reads those entries
+ * so tests continue to work without any changes.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { WIDGET_REGISTRY } from '../widgets';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
-const STORE_KEY = 'widget_instances';
+const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;
 
 const mkId = (type) =>
   `${type}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+/**
+ * Scan localStorage for any `widgetSettings_*` keys and collect them into
+ * { [widgetId]: parsedValue }. Used for initial hydration and migration.
+ */
+const collectLegacyWidgetSettings = () => {
+  const result = {};
+  try {
+    const prefix = 'widgetSettings_';
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith(prefix)) continue;
+      const widgetId = key.slice(prefix.length);
+      try { result[widgetId] = JSON.parse(localStorage.getItem(key)); }
+      catch { /* skip malformed entries */ }
+    }
+  } catch { /* storage unavailable */ }
+  return result;
+};
 
 /**
  * Determine the initial instances list with three-level fall-through:
@@ -30,7 +56,7 @@ const resolveInitialInstances = () => {
   } catch { /* ignore */ }
 
   try {
-    const old = JSON.parse(localStorage.getItem('widget_enabled_ids'));
+    const old = JSON.parse(localStorage.getItem(STORAGE_KEYS._LEGACY.WIDGET_ENABLED_IDS));
     if (Array.isArray(old) && old.length)
       return old.map((id) => ({ id, type: id }));
   } catch { /* ignore */ }
@@ -46,9 +72,40 @@ export const useWidgetInstancesStore = create(
     (set, get) => ({
       instances: resolveInitialInstances(),
 
+      // ── Per-widget settings ────────────────────────────────────────────────
+      // Shape: { [widgetId]: { ...settingValues } }
+      // Migration from legacy `widgetSettings_*` localStorage keys happens in
+      // the `merge` function below so existing user data is never lost.
+      widgetSettings: collectLegacyWidgetSettings(),
+
+      /**
+       * Update a single setting key for a widget.
+       * Also writes to the legacy localStorage key so Playwright tests that
+       * read `widgetSettings_*` directly continue to work.
+       */
+      updateWidgetSetting: (widgetId, key, value) => {
+        set((state) => {
+          const current = state.widgetSettings[widgetId] ?? {};
+          const updated = { ...current, [key]: value };
+          // Mirror to legacy key — keeps Playwright tests and any external
+          // readers in sync with the Zustand store.
+          try {
+            localStorage.setItem(
+              STORAGE_KEYS.widgetSettings(widgetId),
+              JSON.stringify(updated),
+            );
+          } catch { /* storage unavailable */ }
+          return {
+            widgetSettings: {
+              ...state.widgetSettings,
+              [widgetId]: updated,
+            },
+          };
+        });
+      },
+
       addInstance: (type) => {
         set((state) => {
-          // First instance of a type keeps id === type for layout compatibility
           const firstOccupied = state.instances.some((i) => i.id === type);
           const id = firstOccupied ? mkId(type) : type;
           return { instances: [...state.instances, { id, type }] };
@@ -66,8 +123,21 @@ export const useWidgetInstancesStore = create(
     }),
     {
       name: STORE_KEY,
-      // Only persist the instances array, not the action functions
-      partialize: (state) => ({ instances: state.instances }),
+      partialize: (state) => ({
+        instances: state.instances,
+        widgetSettings: state.widgetSettings,
+      }),
+      // Custom merge: if the persisted snapshot is missing widgetSettings
+      // (e.g. existing user on the old schema), scan localStorage for legacy
+      // `widgetSettings_*` keys so no settings are lost on upgrade.
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        widgetSettings: {
+          ...collectLegacyWidgetSettings(),
+          ...persisted?.widgetSettings,
+        },
+      }),
     },
   ),
 );

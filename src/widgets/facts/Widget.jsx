@@ -1,5 +1,5 @@
 import { BaseWidget } from '../BaseWidget';
-import { FACTS } from './facts';
+import { FACTS } from '../../data/facts';
 
 const getDailyIndex = () => {
   const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);

@@ -3,29 +3,12 @@ import { Responsive, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-import {
-  WIDGET_TYPES,
-  WIDGET_REGISTRY,
-  ClockWidget,
-  DateTodayWidget,
-  DayProgressWidget,
-  EventsWidget,
-  WeatherWidget,
-  CalendarWidget,
-  CountdownWidget,
-  NotesWidget,
-  BookmarksWidget,
-  QuickAccessWidget,
-  PomodoroWidget,
-  SpotifyWidget,
-  FactsWidget,
-  StockWidget,
-  BirthdaysWidget,
-} from './index';
+import { WIDGET_REGISTRY } from './index';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
-const LAYOUT_KEY = 'widget_grid_layouts';
+const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
-// O(1) lookup: type → registry entry
+// O(1) lookup: type → registry entry (includes Component)
 const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map(w => [w.type, w]));
 
 const loadLayouts = () => {
@@ -36,25 +19,11 @@ const loadLayouts = () => {
   return {};
 };
 
+// Self-registering render — new widgets just need a Component in their config.
 const renderWidget = (id, type, onRemove) => {
-  switch (type) {
-    case WIDGET_TYPES.CLOCK: return <ClockWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.DATE_TODAY: return <DateTodayWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.DAY_PROGRESS: return <DayProgressWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.EVENTS: return <EventsWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.WEATHER: return <WeatherWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.CALENDAR: return <CalendarWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.COUNTDOWN: return <CountdownWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.NOTES: return <NotesWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.BOOKMARKS: return <BookmarksWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.QUICK_ACCESS: return <QuickAccessWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.POMODORO: return <PomodoroWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.SPOTIFY: return <SpotifyWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.FACTS: return <FactsWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.STOCK: return <StockWidget id={id} onRemove={onRemove} />;
-    case WIDGET_TYPES.BIRTHDAYS: return <BirthdaysWidget id={id} onRemove={onRemove} />;
-    default: return null;
-  }
+  const reg = REG_MAP[type];
+  if (!reg?.Component) return null;
+  return <reg.Component id={id} onRemove={onRemove} />;
 };
 
 export const WidgetGrid = ({ instances, onRemoveInstance }) => {
@@ -83,9 +52,17 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
   const handleLayoutChange = useCallback((_current, allLayouts) => {
     setLayouts(prev => {
       const next = { ...prev, ...allLayouts };
-      // Return same reference if lg positions are unchanged — prevents mount re-render
-      // (react-grid-layout calls onLayoutChange once on mount even with no changes)
-      if (JSON.stringify(prev.lg) === JSON.stringify(next.lg)) return prev;
+      // Fast structural compare — avoids serialising the full array to strings.
+      // Only check the fields that affect persistence (i, x, y, w, h).
+      const prevLg = prev.lg || [];
+      const nextLg = next.lg || [];
+      if (prevLg.length === nextLg.length) {
+        const unchanged = nextLg.every((item, idx) => {
+          const old = prevLg[idx];
+          return old && old.i === item.i && old.x === item.x && old.y === item.y && old.w === item.w && old.h === item.h;
+        });
+        if (unchanged) return prev;
+      }
       localStorage.setItem(LAYOUT_KEY, JSON.stringify(next));
       return next;
     });

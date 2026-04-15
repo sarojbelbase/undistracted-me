@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { PersonHeart, BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import {
@@ -17,7 +18,6 @@ import {
   urgencyColor,
   avatarColor,
   avatarLetter,
-  humanizeAge,
 } from './utils';
 import { OccasionsSettings } from './Settings';
 
@@ -181,20 +181,12 @@ export const Widget = ({ id, onRemove }) => {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(() => isContactsConnected());
   const [error, setError] = useState(null);
-  const [ageLabel, setAgeLabel] = useState(() => humanizeAge(loadContactsSyncedAt()));
+  const ageLabel = useAgeLabel(syncedAt);
 
   // Load cached contacts from chrome.storage.local on mount (async).
   useEffect(() => {
     loadCachedContacts().then(entries => { if (entries.length > 0) setRaw(entries); });
   }, []);
-
-  // Re-tick the age label every 30s
-  useEffect(() => {
-    if (!syncedAt) return;
-    setAgeLabel(humanizeAge(syncedAt));
-    const tid = setInterval(() => setAgeLabel(humanizeAge(syncedAt)), 30_000);
-    return () => clearInterval(tid);
-  }, [syncedAt]);
 
   // Silent refresh on mount if already connected
   useEffect(() => {
@@ -210,7 +202,6 @@ export const Widget = ({ id, onRemove }) => {
       setRaw(entries);
       const ts = Date.now();
       setSyncedAt(ts);
-      setAgeLabel(humanizeAge(ts));
       setConnected(true);
     } catch (err) {
       if (interactive) {
@@ -253,7 +244,6 @@ export const Widget = ({ id, onRemove }) => {
         setRaw([]);
         setConnected(false);
         setSyncedAt(null);
-        setAgeLabel('');
       }}
       onManualChange={(updated) => setManual(updated)}
     />

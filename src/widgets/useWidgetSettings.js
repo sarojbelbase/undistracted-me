@@ -1,31 +1,40 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { useWidgetInstancesStore } from '../store/useWidgetInstancesStore';
 
 /**
- * Persists per-widget settings in localStorage keyed by widgetId.
+ * Reads and writes per-widget settings from the Zustand widget instances store.
  *
- * Usage:
- *   const [settings, updateSetting] = useWidgetSettings('clock', { language: 'en' });
- *   updateSetting('language', 'ne');
+ * API is identical to the previous localStorage-direct version so all widget
+ * components are unchanged:
+ *
+ *   const [settings, updateSetting] = useWidgetSettings('clock', { format: '24h' });
+ *   updateSetting('format', '12h');
+ *
+ * Migration: on first load, settings are read from existing `widgetSettings_*`
+ * localStorage keys via the store's `merge` function — so no user data is lost.
+ * The legacy localStorage key is also kept in sync on every write so Playwright
+ * tests that seed / read it directly continue to work.
  */
 export const useWidgetSettings = (widgetId, defaults) => {
-  const storageKey = `widgetSettings_${widgetId}`;
+  // Read — shallow-compare the merged settings object so only real changes cause re-renders
+  const settings = useWidgetInstancesStore(
+    useShallow((s) => {
+      const stored = s.widgetSettings[widgetId];
+      return stored ? { ...defaults, ...stored } : defaults;
+    }),
+  );
 
-  const [settings, setSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
-    } catch {
-      return defaults;
-    }
-  });
+  const updateWidgetSetting = useWidgetInstancesStore(
+    (s) => s.updateWidgetSetting,
+  );
 
-  const updateSetting = (key, value) => {
-    setSettings(prev => {
-      const updated = { ...prev, [key]: value };
-      localStorage.setItem(storageKey, JSON.stringify(updated));
-      return updated;
-    });
-  };
+  const updateSetting = useCallback(
+    (key, value) => updateWidgetSetting(widgetId, key, value),
+    [updateWidgetSetting, widgetId],
+  );
 
   return [settings, updateSetting];
 };
+
+

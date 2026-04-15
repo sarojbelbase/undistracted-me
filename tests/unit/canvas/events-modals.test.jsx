@@ -10,10 +10,29 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 // Mock react-bootstrap-icons
 vi.mock('react-bootstrap-icons', () => ({
   XLg: () => <span data-testid="icon-x">X</span>,
-  ClockFill: () => <span data-testid="icon-clock">C</span>,
-  PlusLg: () => <span data-testid="icon-plus">+</span>,
+  ClockFill: () => <span data-testid="icon-clock">C</span>, Clock: () => <span data-testid="icon-clock2">C</span>, PlusLg: () => <span data-testid="icon-plus">+</span>,
+  Trash: () => <span data-testid="icon-trash-plain">🗑</span>,
   Trash3: () => <span data-testid="icon-trash">Trash</span>,
   CalendarEvent: () => <span data-testid="icon-cal">Cal</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  GeoAlt: () => <span>📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  Search: () => <span>🔍</span>,
+  GraphUpArrow: () => <span>📈</span>,
+  InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
+  CalendarCheck: () => <span>✅</span>,
+  HourglassSplit: () => <span data-testid="icon-hourglass">⏳</span>,
+}));
+
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 // Mock todayStr and other utils to return stable values
@@ -27,12 +46,47 @@ vi.mock('../../../src/widgets/events/utils', async (importOriginal) => {
       d.setDate(d.getDate() + offset);
       return d.toISOString().slice(0, 10);
     },
+    // Mock bucketLabel so tests are not sensitive to the "real" today date
+    bucketLabel: (dateStr) => {
+      if (dateStr === '2025-07-01') return 'Today';
+      if (dateStr === '2025-07-02') return 'Tomorrow';
+      if (dateStr > '2025-07-02') return 'Later';
+      return 'Past';
+    },
+    isPast: () => false,
   };
 });
 
 // Mock useEvents to avoid localStorage module-level cache issues
 vi.mock('../../../src/widgets/useEvents', () => ({
   formatEventTime: (event) => event.startTime || 'All day',
+}));
+
+// Mock SegmentedDateTime so tests can find predictable inputs
+vi.mock('../../../src/components/ui/SegmentedDateTime', () => ({
+  SegmentedDateTime: ({ mode, date, time, onDateChange, onTimeChange }) => (
+    <div data-testid={`segmented-dt-${mode}`}>
+      {(mode === 'datetime' || mode === 'date') && (
+        <input type="date" value={date || ''} onChange={e => onDateChange?.(e.target.value)} aria-label="Date" />
+      )}
+      {(mode === 'datetime' || mode === 'time') && (
+        <input type="time" value={time || ''} onChange={e => onTimeChange?.(e.target.value)} aria-label="Time" />
+      )}
+    </div>
+  ),
+}));
+
+// Mock SegmentedControl so button labels are predictable
+vi.mock('../../../src/components/ui/SegmentedControl', () => ({
+  SegmentedControl: ({ options, value, onChange }) => (
+    <div>
+      {(options || []).map(o => (
+        <button key={o.value} onClick={() => onChange(o.value)} aria-pressed={value === o.value}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  ),
 }));
 
 import { CreateModal } from '../../../src/widgets/events/CreateModal';
@@ -118,7 +172,7 @@ describe('CreateModal', () => {
 
   it('does not call onSave when title is empty', () => {
     render(<CreateModal onSave={onSave} onClose={onClose} />);
-    const saveBtn = screen.getByText('Save');
+    const saveBtn = screen.getByText('Save Event');
     fireEvent.click(saveBtn);
     expect(onSave).not.toHaveBeenCalled();
   });
@@ -127,7 +181,7 @@ describe('CreateModal', () => {
     render(<CreateModal onSave={onSave} onClose={onClose} />);
     const titleInput = screen.getByPlaceholderText("What's happening?");
     fireEvent.change(titleInput, { target: { value: 'My New Event' } });
-    const saveBtn = screen.getByText('Save');
+    const saveBtn = screen.getByText('Save Event');
     fireEvent.click(saveBtn);
     expect(onSave).toHaveBeenCalledOnce();
     const savedForm = onSave.mock.calls[0][0];
@@ -152,7 +206,7 @@ describe('CreateModal', () => {
 
   it('shows time input when a non-custom date chip is selected', () => {
     render(<CreateModal onSave={onSave} onClose={onClose} />);
-    // Default is "today" chip active → time input with type=time should be visible
+    // Default is "today" chip active → SegmentedDateTime in time mode renders input[type=time]
     const timeInputs = document.querySelectorAll('input[type="time"]');
     expect(timeInputs.length).toBeGreaterThan(0);
   });
@@ -167,22 +221,21 @@ describe('CreateModal', () => {
 
   it('clicking Custom date chip shows datetime-local input', () => {
     render(<CreateModal onSave={onSave} onClose={onClose} />);
-    // Get date chip buttons (first group, before duration section)
     const allCustomBtns = screen.getAllByText('Custom');
     // First Custom button is the date chip
     fireEvent.click(allCustomBtns[0]);
-    // Should show 'Date & time' label and datetime-local input
-    expect(screen.getByText(/Date & time|Date.+time/i)).toBeTruthy();
+    // In datetime mode, SegmentedDateTime mock renders both date and time inputs
+    expect(document.querySelector('[data-testid="segmented-dt-datetime"]')).toBeTruthy();
   });
 
   it('clicking Custom duration pill shows "End date & time"', () => {
     render(<CreateModal onSave={onSave} onClose={onClose} />);
-    // Fill title first
     fireEvent.change(screen.getByPlaceholderText("What's happening?"), { target: { value: 'Test' } });
     const allCustomBtns = screen.getAllByText('Custom');
     // Last Custom button is the duration pill
     fireEvent.click(allCustomBtns[allCustomBtns.length - 1]);
-    expect(screen.getByText(/End date/i)).toBeTruthy();
+    // After clicking Custom duration, a second SegmentedDateTime (for end time) should appear
+    expect(document.querySelectorAll('[data-testid="segmented-dt-datetime"]').length).toBeGreaterThan(0);
   });
 });
 
@@ -205,7 +258,7 @@ describe('AllEventsModal', () => {
 
   it('shows empty state when no events', () => {
     render(<AllEventsModal events={[]} onClose={onClose} onAdd={onAdd} onRemove={onRemove} />);
-    expect(screen.getByText(/No events yet/i)).toBeTruthy();
+    expect(screen.getByText(/No upcoming events/i)).toBeTruthy();
   });
 
   it('calls onClose when X button is clicked', () => {
@@ -245,13 +298,13 @@ describe('AllEventsModal', () => {
     render(<AllEventsModal events={[todayEvent, tomorrowEvent]} onClose={onClose} onAdd={onAdd} onRemove={onRemove} />);
     // todayEvent._source = 'local' → should have remove button
     // tomorrowEvent._source = 'gcal' → should NOT have remove button
-    const removeBtns = screen.queryAllByLabelText('Remove event');
+    const removeBtns = screen.queryAllByLabelText(/^Remove /);
     expect(removeBtns).toHaveLength(1);
   });
 
   it('calls onRemove with event id when delete button is clicked', () => {
     render(<AllEventsModal events={[todayEvent]} onClose={onClose} onAdd={onAdd} onRemove={onRemove} />);
-    const removeBtn = screen.getByLabelText('Remove event');
+    const removeBtn = screen.getByLabelText('Remove Meeting today');
     fireEvent.click(removeBtn);
     expect(onRemove).toHaveBeenCalledWith('e1');
   });
@@ -271,7 +324,7 @@ describe('AllEventsModal', () => {
     // Fill in title
     const titleInput = screen.getByPlaceholderText("What's happening?");
     fireEvent.change(titleInput, { target: { value: 'New from modal' } });
-    fireEvent.click(screen.getByText('Save'));
+    fireEvent.click(screen.getByText('Save Event'));
     expect(onAdd).toHaveBeenCalledOnce();
     const savedForm = onAdd.mock.calls[0][0];
     expect(savedForm.title).toBe('New from modal');

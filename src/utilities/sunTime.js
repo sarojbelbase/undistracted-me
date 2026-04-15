@@ -6,11 +6,13 @@
  * https://web.archive.org/web/20161202180207/http://williams.best.vwh.net/sunrise_sunset_algorithm.htm
  */
 
+import { STORAGE_KEYS } from '../constants/storageKeys';
+
 /** Kathmandu coordinates — used as fallback when geolocation is unavailable */
 const KATHMANDU = { lat: 27.7172, lon: 85.324 };
 
 /** localStorage key for cached user coordinates */
-const COORDS_KEY = 'auto_theme_coords';
+const COORDS_KEY = STORAGE_KEYS.AUTO_THEME_COORDS;
 
 const RAD = Math.PI / 180;
 const DEG = 180 / Math.PI;
@@ -88,7 +90,7 @@ export const getEffectiveMode = (sunTimes, now = new Date()) => {
 };
 
 /** localStorage flag: 'browser' | 'ip' | 'default' — tracks how coords were obtained */
-const COORDS_SOURCE_KEY = 'auto_theme_coords_source';
+const COORDS_SOURCE_KEY = STORAGE_KEYS.AUTO_THEME_COORDS_SOURCE;
 
 const _saveCoords = (lat, lon, source) => {
   try {
@@ -199,8 +201,8 @@ export const computeAutoMode = (date = new Date()) => {
   if (source === 'default') {
     // No real location cached — defer to OS preference so the result is at least
     // correct for the user's system rather than tied to Kathmandu time.
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (globalThis.window?.matchMedia) {
+      return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     return 'light';
   }

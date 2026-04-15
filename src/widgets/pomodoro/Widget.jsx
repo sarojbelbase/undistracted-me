@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlayFill, PauseFill, ArrowCounterclockwise, ArrowLeft } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
+import { sendToServiceWorker } from '../../utilities/chrome';
 import { PRESETS, formatTime } from './utils';
+import { STORAGE_KEYS } from '../../constants/storageKeys';
 
 const pillActive = { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' };
 const pillInactive = { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' };
 
 // ─── Persistence helpers (keyed per widget instance id) ─────────────────────
-const persistKey = (id) => `pomodoro_timer_state_${id}`;
-
 const loadTimer = (id) => {
   try {
-    const raw = JSON.parse(localStorage.getItem(persistKey(id)));
-    if (!raw || raw.phase !== 'timer') return null;
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.pomodoroTimerState(id)));
+    if (raw?.phase !== 'timer') return null;
     if (raw.running && raw.endTime) {
       // Compute how much time is left accounting for time elapsed while tab was closed
       const remaining = Math.max(0, Math.round((raw.endTime - Date.now()) / 1000));
@@ -23,8 +23,8 @@ const loadTimer = (id) => {
 };
 
 const saveTimer = (id, state) => {
-  if (state.phase !== 'timer') { localStorage.removeItem(persistKey(id)); return; }
-  localStorage.setItem(persistKey(id), JSON.stringify({
+  if (state.phase !== 'timer') { localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id)); return; }
+  localStorage.setItem(STORAGE_KEYS.pomodoroTimerState(id), JSON.stringify({
     ...state,
     // Store absolute end time when running so elapsed time is recovered on restore
     endTime: state.running ? Date.now() + state.remaining * 1000 : undefined,
@@ -32,14 +32,13 @@ const saveTimer = (id, state) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  // Restore from localStorage on mount so a refresh doesn't reset the timer
-  const _init = loadTimer(id);
-
-  const [phase, setPhase] = useState(_init?.phase ?? 'pick');   // 'pick' | 'timer'
-  const [preset, setPreset] = useState(_init?.preset ?? null);
-  const [duration, setDuration] = useState(_init?.duration ?? 0);
-  const [remaining, setRemaining] = useState(_init?.remaining ?? 0);
-  const [running, setRunning] = useState(_init?.running ?? false);
+  // Restore from localStorage exactly once at mount — lazy useState initializers
+  // guarantee the function runs only on the first render, never on re-renders.
+  const [phase, setPhase] = useState(() => loadTimer(id)?.phase ?? 'pick');
+  const [preset, setPreset] = useState(() => loadTimer(id)?.preset ?? null);
+  const [duration, setDuration] = useState(() => loadTimer(id)?.duration ?? 0);
+  const [remaining, setRemaining] = useState(() => loadTimer(id)?.remaining ?? 0);
+  const [running, setRunning] = useState(() => loadTimer(id)?.running ?? false);
   const [customInput, setCustomInput] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const intervalRef = useRef(null);
@@ -63,7 +62,7 @@ export const Widget = ({ id, onRemove }) => {
   };
 
   const handleCustomStart = () => {
-    const mins = parseFloat(customInput);
+    const mins = Number.parseFloat(customInput);
     if (!mins || mins <= 0) return;
     startTimer(Math.round(mins * 60), `${mins}m`);
     setCustomInput('');
@@ -79,7 +78,7 @@ export const Widget = ({ id, onRemove }) => {
     setRunning(false);
     setPhase('pick');
     setShowCustom(false);
-    localStorage.removeItem(persistKey(id));
+    localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
   };
 
   useEffect(() => {
@@ -90,11 +89,9 @@ export const Widget = ({ id, onRemove }) => {
           const next = r <= 1 ? 0 : r - 1;
           if (next === 0) {
             setRunning(false);
-            localStorage.removeItem(persistKey(id));
+            localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
             // Notify via service worker so it works even when tab isn't focused
-            if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-              chrome.runtime.sendMessage({ type: 'POMODORO_DONE', preset });
-            }
+            sendToServiceWorker({ type: 'POMODORO_DONE', preset });
           } else {
             // Refresh persisted endTime every tick so it stays accurate
             saveTimer(id, { phase: 'timer', preset, duration, remaining: next, running: true });
@@ -111,19 +108,19 @@ export const Widget = ({ id, onRemove }) => {
     if (phase === 'timer' && !running && remaining > 0) {
       saveTimer(id, { phase: 'timer', preset, duration, remaining, running: false });
     }
-  }, [running]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, phase, running, remaining, preset, duration]);
 
   // Sync running state to localStorage so FocusMode can read it
   useEffect(() => {
     if (phase === 'timer' && running && remaining > 0) {
-      localStorage.setItem('fm_pomodoro', JSON.stringify({
+      localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
         running: true,
         remaining,
         total: duration,
         preset,
       }));
     } else {
-      localStorage.removeItem('fm_pomodoro');
+      localStorage.removeItem(STORAGE_KEYS.POMODORO);
     }
   }, [phase, running, remaining, duration, preset]);
 

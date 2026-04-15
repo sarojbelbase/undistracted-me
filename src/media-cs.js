@@ -16,7 +16,7 @@ function getArtwork() {
   const artwork = navigator.mediaSession?.metadata?.artwork;
   if (!artwork?.length) return null;
   // Prefer the largest entry; some sites put best quality last
-  return artwork[artwork.length - 1].src;
+  return artwork.at(-1).src;
 }
 
 /**

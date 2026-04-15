@@ -6,77 +6,10 @@ import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
-import { extractColorFromUrl, getDefaultName, buildFaviconSources, faviconCache, cacheFavicon, getHostname } from './utils';
+import { FaviconIcon } from '../../components/ui/FaviconIcon';
+import { getDefaultName, faviconCache, getHostname } from '../../utilities/favicon';
 
 const normalizeUrl = (url) => (url.startsWith('http') ? url : `https://${url}`);
-
-// Favicon with cascade fallback. key={url+iconMode} at usage site forces remount on any change.
-
-const FaviconHero = ({ url, size = 40, onColor, iconMode = 'favicon' }) => {
-  const hostname = getHostname(url);
-  const [idx, setIdx] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const sources = React.useMemo(() => buildFaviconSources(url, size), [url, size]);
-  const letter = getDefaultName(url).charAt(0).toUpperCase();
-
-  useEffect(() => { setIdx(0); setLoaded(false); }, [url]);
-
-  // Letter mode — no network fetch, design-system accent colour fills the card.
-  if (iconMode === 'letter') {
-    return (
-      <span
-        className="font-black select-none"
-        style={{
-          fontSize: Math.round(size * 0.58) + 'px',
-          color: 'var(--w-accent-fg)',
-          lineHeight: 1,
-          letterSpacing: '-0.02em',
-          textShadow: '0 1px 4px rgba(0,0,0,0.18)',
-        }}
-      >
-        {letter}
-      </span>
-    );
-  }
-
-  const src = sources[idx];
-
-  if (src === '') {
-    if (!faviconCache.has(hostname)) cacheFavicon(hostname, '');
-    return (
-      <span
-        className="font-bold select-none"
-        style={{ fontSize: Math.round(size * 0.5) + 'px', color: 'var(--w-ink-2)', lineHeight: 1 }}
-      >
-        {letter}
-      </span>
-    );
-  }
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      {!loaded && (
-        <div
-          className="absolute inset-0 rounded-lg animate-pulse"
-          style={{ backgroundColor: 'var(--panel-bg)' }}
-        />
-      )}
-      <img
-        key={src}
-        src={src}
-        alt=""
-        style={{ width: size, height: size, opacity: loaded ? 1 : 0, transition: 'opacity 0.15s' }}
-        className="rounded-lg object-contain"
-        onLoad={(e) => {
-          setLoaded(true);
-          cacheFavicon(hostname, src);
-          if (onColor) extractColorFromUrl(e.currentTarget.src, onColor);
-        }}
-        onError={() => setIdx(i => i + 1)}
-      />
-    </div>
-  );
-};
 
 const ICON_MODE_OPTIONS = [
   { label: 'Favicon', value: 'favicon' },
@@ -126,7 +59,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'var(--panel-bg)' }}
           >
-            <FaviconHero
+            <FaviconIcon
               key={`preview-${fullUrl}-${iconMode}-${previewKey}`}
               url={fullUrl}
               size={36}
@@ -259,7 +192,7 @@ export const Widget = ({ id, onRemove }) => {
             }}
             onMouseLeave={() => setAnchor(null)}
           >
-            <FaviconHero
+            <FaviconIcon
               key={`${url}-${iconMode}`}
               url={url}
               size={40}

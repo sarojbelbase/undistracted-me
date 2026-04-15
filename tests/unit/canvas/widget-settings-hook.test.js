@@ -17,9 +17,28 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
+import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
 
-beforeEach(() => localStorage.clear());
-afterEach(() => localStorage.clear());
+// Reset both localStorage and the Zustand store between tests
+beforeEach(() => {
+  localStorage.clear();
+  useWidgetInstancesStore.setState({ widgetSettings: {} });
+});
+afterEach(() => {
+  localStorage.clear();
+  useWidgetInstancesStore.setState({ widgetSettings: {} });
+});
+
+/**
+ * Seed a widget's settings into both localStorage (legacy mirror) and
+ * the Zustand store so useWidgetSettings picks it up correctly.
+ */
+const seedSettings = (widgetId, value) => {
+  localStorage.setItem(`widgetSettings_${widgetId}`, JSON.stringify(value));
+  useWidgetInstancesStore.setState((s) => ({
+    widgetSettings: { ...s.widgetSettings, [widgetId]: value },
+  }));
+};
 
 // ────────────────────────────────────────────────────────────────────────────
 // Initial read
@@ -35,7 +54,7 @@ describe('initial read', () => {
   });
 
   it('reads saved settings and merges with defaults', () => {
-    localStorage.setItem('widgetSettings_clock', JSON.stringify({ language: 'ne' }));
+    seedSettings('clock', { language: 'ne' });
     const { result } = renderHook(() =>
       useWidgetSettings('clock', { language: 'en', format: '24h' })
     );
@@ -46,7 +65,7 @@ describe('initial read', () => {
   });
 
   it('uses key pattern "widgetSettings_<id>"', () => {
-    localStorage.setItem('widgetSettings_weather', JSON.stringify({ unit: 'imperial' }));
+    seedSettings('weather', { unit: 'imperial' });
     const { result } = renderHook(() =>
       useWidgetSettings('weather', { unit: 'metric' })
     );
@@ -55,7 +74,7 @@ describe('initial read', () => {
   });
 
   it('does NOT read from a key with a different id prefix', () => {
-    localStorage.setItem('widgetSettings_clock', JSON.stringify({ language: 'ne' }));
+    seedSettings('clock', { language: 'ne' });
     const { result } = renderHook(() =>
       useWidgetSettings('weather', { language: 'en' })
     );
@@ -64,6 +83,7 @@ describe('initial read', () => {
   });
 
   it('gracefully falls back to defaults on malformed JSON', () => {
+    // Only seed localStorage (no valid JSON) — store remains empty → defaults
     localStorage.setItem('widgetSettings_clock', 'NOT_VALID_JSON{{{');
     const { result } = renderHook(() =>
       useWidgetSettings('clock', { language: 'en' })
@@ -74,7 +94,7 @@ describe('initial read', () => {
 
   it('default field added later is present in merged output', () => {
     // Simulate saved settings from older build that did not have "showSeconds"
-    localStorage.setItem('widgetSettings_clock', JSON.stringify({ language: 'ne' }));
+    seedSettings('clock', { language: 'ne' });
     const { result } = renderHook(() =>
       useWidgetSettings('clock', { language: 'en', showSeconds: false })
     );
@@ -109,7 +129,7 @@ describe('updateSetting', () => {
   });
 
   it('writes the full merged object to localStorage (not just the changed key)', () => {
-    localStorage.setItem('widgetSettings_clock', JSON.stringify({ language: 'en', format: '12h' }));
+    seedSettings('clock', { language: 'en', format: '12h' });
     const { result } = renderHook(() =>
       useWidgetSettings('clock', { language: 'en', format: '24h' })
     );

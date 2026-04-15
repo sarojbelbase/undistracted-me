@@ -14,7 +14,15 @@
  *  – WIDGET_TYPES must be frozen to prevent accidental runtime mutation.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Prevent store init from loading WIDGET_REGISTRY via circular import
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
+}));
+
 import { WIDGET_REGISTRY, WIDGET_TYPES } from '../../../src/widgets/index.js';
 
 // ────────────────────────────────────────────────────────────────────────────

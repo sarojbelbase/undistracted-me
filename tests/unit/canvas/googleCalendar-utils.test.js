@@ -1,401 +1,338 @@
 /**
  * Tests for src/utilities/googleCalendar.js
- * Focuses on the localStorage-based cache functions (no Chrome identity needed)
- * and tests getCalendarEvents / isCalendarConnected / disconnectCalendar with
- * a stubbed chrome.identity.
+ *
+ * Uses vi.resetModules() + dynamic imports in beforeEach to reset
+ * module-level memory caches (_eventsMemCache, _profileMemCache) between tests.
+ * chrome.storage.local is mocked via an in-memory chromeMockStorage object.
+ * chrome.identity.launchWebAuthFlow is included so isWebPath() returns false
+ * and getTokenChrome() is used (not the web popup path).
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-// ── Stub chrome.identity BEFORE importing the module ──────────────────────
+const chromeMockStorage = {};
 const mockGetAuthToken = vi.fn();
 const mockRemoveCachedAuthToken = vi.fn();
 
-vi.stubGlobal('chrome', {
-  identity: {
-    getAuthToken: mockGetAuthToken,
-    removeCachedAuthToken: mockRemoveCachedAuthToken,
-  },
-  runtime: { lastError: null },
-});
+function setupChromeMock() {
+  vi.stubGlobal("chrome", {
+    identity: {
+      getAuthToken: mockGetAuthToken,
+      removeCachedAuthToken: mockRemoveCachedAuthToken,
+      launchWebAuthFlow: vi.fn(),
+    },
+    runtime: { lastError: null },
+    storage: {
+      local: {
+        get: vi.fn((key) =>
+          Promise.resolve(key in chromeMockStorage ? { [key]: chromeMockStorage[key] } : {}),
+        ),
+        set: vi.fn((obj) => { Object.assign(chromeMockStorage, obj); return Promise.resolve(); }),
+        remove: vi.fn((key) => { delete chromeMockStorage[key]; return Promise.resolve(); }),
+      },
+    },
+  });
+}
 
-// Also stub fetch so google API calls don't go out
-vi.stubGlobal('fetch', vi.fn());
+vi.stubGlobal("fetch", vi.fn());
 
-import {
-  loadCachedGcalEvents,
-  clearGcalCache,
-  loadCachedProfile,
-  clearProfileCache,
-  getGoogleProfile,
-  getCalendarEvents,
-  isCalendarConnected,
-  disconnectCalendar,
-} from '../../../src/utilities/googleCalendar.js';
+let loadCachedGcalEvents, clearGcalCache, loadCachedProfile, clearProfileCache,
+  getGoogleProfile, getCalendarEvents, isCalendarConnected, disconnectCalendar;
 
-// ── Helpers ───────────────────────────────────────────────────────────────
-const GCAL_KEY = 'gcal_events_cache';
-const PROFILE_KEY = 'gcal_profile_cache';
-
-const sampleEvent = {
-  id: 'gcal_abc123',
-  title: 'Test Event',
-  description: '',
-  startDate: '2025-06-10',
-  startTime: '09:00',
-  endDate: '2025-06-10',
-  endTime: '10:00',
-  htmlLink: null,
-  _source: 'gcal',
-};
-
-beforeEach(() => {
+beforeEach(async () => {
+  Object.keys(chromeMockStorage).forEach((k) => delete chromeMockStorage[k]);
   localStorage.clear();
   vi.clearAllMocks();
-  // Reset chrome.runtime.lastError
+  setupChromeMock();
+  vi.resetModules();
+  const mod = await import("../../../src/utilities/googleCalendar.js");
+  ({
+    loadCachedGcalEvents, clearGcalCache, loadCachedProfile, clearProfileCache,
+    getGoogleProfile, getCalendarEvents, isCalendarConnected, disconnectCalendar
+  } = mod);
   global.chrome.runtime.lastError = null;
 });
 
 afterEach(() => {
   localStorage.clear();
+  Object.keys(chromeMockStorage).forEach((k) => delete chromeMockStorage[k]);
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// loadCachedGcalEvents
-// ─────────────────────────────────────────────────────────────────────────────
-describe('loadCachedGcalEvents', () => {
-  it('returns [] when cache is empty', () => {
-    expect(loadCachedGcalEvents()).toEqual([]);
+const GCAL_KEY = "gcal_events_cache";
+const PROFILE_KEY = "gcal_profile_cache";
+
+const sampleEvent = {
+  id: "gcal_abc123", title: "Test Event", description: "",
+  startDate: "2025-06-10", startTime: "09:00",
+  endDate: "2025-06-10", endTime: "10:00",
+  htmlLink: null, meetLink: null, _source: "gcal",
+};
+
+describe("loadCachedGcalEvents", () => {
+  it("returns [] when cache is empty", async () => {
+    expect(await loadCachedGcalEvents()).toEqual([]);
   });
 
-  it('returns parsed events when cache exists', () => {
+  it("returns parsed events when cache exists in chrome.storage.local", async () => {
+    chromeMockStorage[GCAL_KEY] = [sampleEvent];
+    expect(await loadCachedGcalEvents()).toEqual([sampleEvent]);
+  });
+
+  it("returns [] when chrome.storage.local has no entry", async () => {
+    expect(await loadCachedGcalEvents()).toEqual([]);
+  });
+
+  it("migrates legacy localStorage key to chrome.storage.local on first read", async () => {
     localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-    expect(loadCachedGcalEvents()).toEqual([sampleEvent]);
-  });
-
-  it('returns [] when cache is invalid JSON', () => {
-    localStorage.setItem(GCAL_KEY, 'not-json}}}');
-    expect(loadCachedGcalEvents()).toEqual([]);
+    const result = await loadCachedGcalEvents();
+    expect(localStorage.getItem(GCAL_KEY)).toBeNull();
+    expect(result).toEqual([sampleEvent]);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// clearGcalCache
-// ─────────────────────────────────────────────────────────────────────────────
-describe('clearGcalCache', () => {
-  it('removes the cache key from localStorage', () => {
-    localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-    clearGcalCache();
-    expect(localStorage.getItem(GCAL_KEY)).toBeNull();
+describe("clearGcalCache", () => {
+  it("removes the cache key from chrome.storage.local", async () => {
+    chromeMockStorage[GCAL_KEY] = [sampleEvent];
+    await clearGcalCache();
+    expect(chromeMockStorage[GCAL_KEY]).toBeUndefined();
   });
 
-  it('is a no-op when cache is already empty', () => {
-    expect(() => clearGcalCache()).not.toThrow();
-    expect(localStorage.getItem(GCAL_KEY)).toBeNull();
+  it("is a no-op when cache is already empty", async () => {
+    await expect(clearGcalCache()).resolves.not.toThrow();
+    expect(chromeMockStorage[GCAL_KEY]).toBeUndefined();
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// loadCachedProfile
-// ─────────────────────────────────────────────────────────────────────────────
-describe('loadCachedProfile', () => {
-  it('returns null when no profile cached', () => {
-    expect(loadCachedProfile()).toBeNull();
+describe("loadCachedProfile", () => {
+  it("returns null when no profile cached", async () => {
+    expect(await loadCachedProfile()).toBeNull();
   });
 
-  it('returns profile object when cached', () => {
-    const profile = { name: 'John', email: 'john@example.com', picture: null };
+  it("returns profile object when cached in chrome.storage.local", async () => {
+    const profile = { name: "John", email: "john@example.com", picture: null };
+    chromeMockStorage[PROFILE_KEY] = profile;
+    expect(await loadCachedProfile()).toEqual(profile);
+  });
+
+  it("migrates legacy localStorage profile", async () => {
+    const profile = { name: "Legacy", email: "l@test.com", picture: null };
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    expect(loadCachedProfile()).toEqual(profile);
-  });
-
-  it('returns null for invalid JSON', () => {
-    localStorage.setItem(PROFILE_KEY, 'not-json');
-    expect(loadCachedProfile()).toBeNull();
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// clearProfileCache
-// ─────────────────────────────────────────────────────────────────────────────
-describe('clearProfileCache', () => {
-  it('removes the profile cache key', () => {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: 'John' }));
-    clearProfileCache();
+    const result = await loadCachedProfile();
     expect(localStorage.getItem(PROFILE_KEY)).toBeNull();
+    expect(result).toEqual(profile);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// getGoogleProfile
-// ─────────────────────────────────────────────────────────────────────────────
-describe('getGoogleProfile', () => {
-  it('returns null when getAuthToken fails (no token)', async () => {
+describe("clearProfileCache", () => {
+  it("removes the profile cache key from chrome.storage.local", async () => {
+    chromeMockStorage[PROFILE_KEY] = { name: "John" };
+    await clearProfileCache();
+    expect(chromeMockStorage[PROFILE_KEY]).toBeUndefined();
+  });
+});
+
+describe("getGoogleProfile", () => {
+  it("returns null when getAuthToken fails", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = { message: 'Not signed in' };
+      global.chrome.runtime.lastError = { message: "Not signed in" };
       cb(undefined);
     });
-    const result = await getGoogleProfile();
-    expect(result).toBeNull();
+    expect(await getGoogleProfile()).toBeNull();
   });
 
-  it('returns null when fetch fails', async () => {
+  it("returns null when fetch fails", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
       global.chrome.runtime.lastError = null;
-      cb('fake-token');
+      cb("fake-token");
     });
     global.fetch.mockResolvedValueOnce({ ok: false, status: 401 });
-    const result = await getGoogleProfile();
-    expect(result).toBeNull();
+    expect(await getGoogleProfile()).toBeNull();
   });
 
-  it('returns profile and caches it when fetch succeeds', async () => {
+  it("returns profile and caches it when fetch succeeds", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
       global.chrome.runtime.lastError = null;
-      cb('valid-token');
+      cb("valid-token");
     });
     global.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ name: 'Alice', email: 'alice@test.com', picture: 'http://img.test/p.jpg' }),
+      json: async () => ({ name: "Alice", email: "alice@test.com", picture: "http://img.test/p.jpg" }),
     });
     const result = await getGoogleProfile();
-    expect(result).toEqual({ name: 'Alice', email: 'alice@test.com', picture: 'http://img.test/p.jpg' });
-    // Should have saved to localStorage
-    const cached = loadCachedProfile();
+    expect(result).toEqual({ name: "Alice", email: "alice@test.com", picture: "http://img.test/p.jpg" });
+    const cached = await loadCachedProfile();
     expect(cached).toEqual(result);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// isCalendarConnected
-// ─────────────────────────────────────────────────────────────────────────────
-describe('isCalendarConnected', () => {
-  it('returns false when token is undefined', async () => {
+describe("isCalendarConnected", () => {
+  it("returns false when token is undefined", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = { message: 'Not signed in' };
+      global.chrome.runtime.lastError = { message: "Not signed in" };
       cb(undefined);
     });
     expect(await isCalendarConnected()).toBe(false);
   });
 
-  it('returns false when token is empty string', async () => {
+  it("returns false when token is empty string", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
       global.chrome.runtime.lastError = null;
-      cb('');
+      cb("");
     });
     expect(await isCalendarConnected()).toBe(false);
   });
 
-  it('returns true when token is valid', async () => {
+  it("returns true when token is valid", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
       global.chrome.runtime.lastError = null;
-      cb('valid-token-123');
+      cb("valid-token-123");
     });
     expect(await isCalendarConnected()).toBe(true);
   });
 
-  it('returns false when getAuthToken throws', async () => {
+  it("returns false when getAuthToken throws", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = { message: 'Error' };
+      global.chrome.runtime.lastError = { message: "Error" };
       cb(undefined);
     });
     expect(await isCalendarConnected()).toBe(false);
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// disconnectCalendar
-// ─────────────────────────────────────────────────────────────────────────────
-describe('disconnectCalendar', () => {
-  it('clears both caches', async () => {
-    localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: 'Bob' }));
-
+describe("disconnectCalendar", () => {
+  it("clears both caches from chrome.storage.local", async () => {
+    chromeMockStorage[GCAL_KEY] = [sampleEvent];
+    chromeMockStorage[PROFILE_KEY] = { name: "Bob" };
     mockGetAuthToken.mockImplementation((_opts, cb) => {
       global.chrome.runtime.lastError = null;
-      cb('some-token');
+      cb("some-token");
     });
     mockRemoveCachedAuthToken.mockImplementation((_opts, cb) => cb());
-
     await disconnectCalendar();
-
-    expect(localStorage.getItem(GCAL_KEY)).toBeNull();
-    expect(localStorage.getItem(PROFILE_KEY)).toBeNull();
+    await Promise.resolve();
+    expect(chromeMockStorage[GCAL_KEY]).toBeUndefined();
+    expect(chromeMockStorage[PROFILE_KEY]).toBeUndefined();
   });
 
-  it('still clears caches even when getAuthToken returns no token', async () => {
-    localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-
+  it("still clears caches even when getAuthToken returns no token", async () => {
+    chromeMockStorage[GCAL_KEY] = [sampleEvent];
     mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = { message: 'no token' };
+      global.chrome.runtime.lastError = { message: "no token" };
       cb(undefined);
     });
-
     await disconnectCalendar();
-
-    expect(localStorage.getItem(GCAL_KEY)).toBeNull();
+    await Promise.resolve();
+    expect(chromeMockStorage[GCAL_KEY]).toBeUndefined();
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// getCalendarEvents
-// ─────────────────────────────────────────────────────────────────────────────
-describe('getCalendarEvents', () => {
+describe("getCalendarEvents", () => {
   const makeGoogleEvent = (id, summary, start) => ({
-    id,
-    summary,
-    eventType: 'default',
-    description: 'desc',
-    start: { dateTime: `${start}T09:00:00Z` },
-    end: { dateTime: `${start}T10:00:00Z` },
-    htmlLink: `https://calendar.google.com/event?eid=${id}`,
+    id, summary, eventType: "default", description: "desc",
+    start: { dateTime: start + "T09:00:00Z" },
+    end: { dateTime: start + "T10:00:00Z" },
+    htmlLink: "https://calendar.google.com/event?eid=" + id,
   });
 
-  it('fetches events and returns them with changed=true when cache was empty', async () => {
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb('valid-token');
-    });
-
-    const googleEvents = [makeGoogleEvent('e1', 'Team Standup', '2025-07-01')];
+  it("fetches events and returns them with changed=true when cache was empty", async () => {
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("valid-token"); });
     global.fetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({ items: googleEvents }),
+      ok: true, status: 200,
+      json: async () => ({ items: [makeGoogleEvent("e1", "Team Standup", "2025-07-01")] }),
     });
-
     const result = await getCalendarEvents();
     expect(result.changed).toBe(true);
     expect(result.events).toHaveLength(1);
-    expect(result.events[0].title).toBe('Team Standup');
-    expect(result.events[0]._source).toBe('gcal');
-    expect(result.events[0].id).toBe('gcal_e1');
+    expect(result.events[0].title).toBe("Team Standup");
+    expect(result.events[0]._source).toBe("gcal");
+    expect(result.events[0].id).toBe("gcal_e1");
   });
 
-  it('returns changed=false when fetched events match cache', async () => {
-    // Pre-populate cache with the same event we'll "fetch"
+  it("returns changed=false when fetched events match cache", async () => {
     const cachedEvents = [{
-      id: 'gcal_e1', title: 'Same Event', description: '', startDate: '2025-07-01',
-      startTime: '09:00', endDate: '2025-07-01', endTime: '10:00', htmlLink: null, _source: 'gcal'
+      id: "gcal_e1", title: "Same Event", description: "",
+      startDate: "2025-07-01", startTime: "09:00",
+      endDate: "2025-07-01", endTime: "10:00",
+      htmlLink: "https://calendar.google.com/event?eid=e1",
+      meetLink: null, _source: "gcal"
     }];
-    localStorage.setItem(GCAL_KEY, JSON.stringify(cachedEvents));
-
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb('valid-token');
-    });
-
+    chromeMockStorage[GCAL_KEY] = cachedEvents;
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("valid-token"); });
     global.fetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
+      ok: true, status: 200,
       json: async () => ({
         items: [{
-          id: 'e1', summary: 'Same Event', eventType: 'default', description: '',
-          start: { dateTime: '2025-07-01T09:00:00Z' },
-          end: { dateTime: '2025-07-01T10:00:00Z' },
-          htmlLink: null,
+          id: "e1", summary: "Same Event", eventType: "default", description: "",
+          start: { dateTime: "2025-07-01T09:00:00Z" },
+          end: { dateTime: "2025-07-01T10:00:00Z" },
+          htmlLink: "https://calendar.google.com/event?eid=e1",
         }]
       }),
     });
-
     const result = await getCalendarEvents();
     expect(result.changed).toBe(false);
   });
 
-  it('filters out non-default event types', async () => {
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb('valid-token');
-    });
-
+  it("filters out non-default event types", async () => {
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("valid-token"); });
     global.fetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
+      ok: true, status: 200,
       json: async () => ({
         items: [
-          makeGoogleEvent('e1', 'Regular event', '2025-07-01'),
-          { id: 'e2', summary: 'Birthday', eventType: 'birthday', start: { date: '2025-07-01' }, end: { date: '2025-07-01' } }
+          makeGoogleEvent("e1", "Regular event", "2025-07-01"),
+          { id: "e2", summary: "Birthday", eventType: "birthday", start: { date: "2025-07-01" }, end: { date: "2025-07-01" } }
         ]
       }),
     });
-
     const result = await getCalendarEvents();
     expect(result.events).toHaveLength(1);
-    expect(result.events[0].title).toBe('Regular event');
+    expect(result.events[0].title).toBe("Regular event");
   });
 
-  it('handles 401 by retrying after removing cached token', async () => {
+  it("handles 401 by retrying after removing cached token", async () => {
     let callCount = 0;
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb(`token-${++callCount}`);
-    });
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("token-" + (++callCount)); });
     mockRemoveCachedAuthToken.mockImplementation((_opts, cb) => cb());
-
-    // First fetch returns 401
     global.fetch
-      .mockResolvedValueOnce({ ok: false, status: 401, statusText: 'Unauthorized' })
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" })
       .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ items: [makeGoogleEvent('retry1', 'Retry Event', '2025-07-01')] }),
+        ok: true, status: 200,
+        json: async () => ({ items: [makeGoogleEvent("retry1", "Retry Event", "2025-07-01")] }),
       });
-
     const result = await getCalendarEvents();
     expect(result.events).toHaveLength(1);
-    expect(result.events[0].title).toBe('Retry Event');
+    expect(result.events[0].title).toBe("Retry Event");
   });
 
-  it('falls back to cache when auth token is unavailable', async () => {
-    localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-
+  it("throws when auth token is unavailable", async () => {
     mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = { message: 'Not authorized' };
+      global.chrome.runtime.lastError = { message: "Not authorized" };
       cb(undefined);
     });
-
-    const result = await getCalendarEvents();
-    expect(result.events).toEqual([sampleEvent]);
-    expect(result.changed).toBe(false);
+    await expect(getCalendarEvents()).rejects.toThrow();
   });
 
-  it('handles API error and falls back to cache', async () => {
-    localStorage.setItem(GCAL_KEY, JSON.stringify([sampleEvent]));
-
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb('valid-token');
-    });
-
-    global.fetch.mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Server Error' });
-
-    const result = await getCalendarEvents();
-    expect(result.events).toEqual([sampleEvent]);
-    expect(result.changed).toBe(false);
+  it("throws on API error", async () => {
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("valid-token"); });
+    global.fetch.mockResolvedValueOnce({ ok: false, status: 500, statusText: "Server Error" });
+    await expect(getCalendarEvents()).rejects.toThrow();
   });
 
-  it('handles events with date-only (all-day) format', async () => {
-    mockGetAuthToken.mockImplementation((_opts, cb) => {
-      global.chrome.runtime.lastError = null;
-      cb('valid-token');
-    });
-
+  it("handles events with date-only (all-day) format", async () => {
+    mockGetAuthToken.mockImplementation((_opts, cb) => { global.chrome.runtime.lastError = null; cb("valid-token"); });
     global.fetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
+      ok: true, status: 200,
       json: async () => ({
         items: [{
-          id: 'allday1', summary: 'All Day Event', eventType: 'default',
-          start: { date: '2025-07-04' },
-          end: { date: '2025-07-05' },
-          htmlLink: 'https://cal.google.com/allday1',
+          id: "allday1", summary: "All Day Event", eventType: "default",
+          start: { date: "2025-07-04" }, end: { date: "2025-07-05" },
+          htmlLink: "https://cal.google.com/allday1",
         }]
       }),
     });
-
     const result = await getCalendarEvents();
-    expect(result.events[0].startTime).toBe('');
-    expect(result.events[0].endTime).toBe('');
-    expect(result.events[0].startDate).toBe('2025-07-04');
+    expect(result.events[0].startTime).toBe("");
+    expect(result.events[0].endTime).toBe("");
+    expect(result.events[0].startDate).toBe("2025-07-04");
   });
 });

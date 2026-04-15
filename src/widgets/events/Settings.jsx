@@ -1,21 +1,13 @@
-import { useState, useEffect } from 'react';
 import { CalendarCheck } from 'react-bootstrap-icons';
 import { useGoogleCalendar, useGoogleProfile } from '../useEvents';
 import { disconnectCalendar } from '../../utilities/googleCalendar';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
-import { humanizeAge } from './utils';
+import { useAgeLabel } from '../../hooks/useAgeLabel';
 
 export const Settings = () => {
   const { connected, loading, error, refresh, syncedAt } = useGoogleCalendar();
   const profile = useGoogleProfile();
-  const [syncedAtLabel, setSyncedAtLabel] = useState(() => humanizeAge(syncedAt));
-
-  useEffect(() => {
-    setSyncedAtLabel(humanizeAge(syncedAt));
-    if (!syncedAt) return;
-    const tid = setInterval(() => setSyncedAtLabel(humanizeAge(syncedAt)), 30_000);
-    return () => clearInterval(tid);
-  }, [syncedAt]);
+  const syncedAtLabel = useAgeLabel(syncedAt);
 
   const handleDisconnect = async () => {
     await disconnectCalendar();

@@ -103,7 +103,7 @@ describe('GET /api/photos/curated', () => {
     const req = makeReq({ method: 'GET', origin: allowedOrigin, headers: { 'x-api-key': KEY } });
     const res = makeRes();
     await handler(req, res);
-    expect(res._headers['cache-control']).toMatch(/s-maxage/);
+    expect(res._headers['cache-control']).toBe('private, max-age=3600');
   });
 
   it('returns 200 with empty array when no blobs exist', async () => {

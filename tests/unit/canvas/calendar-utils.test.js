@@ -210,3 +210,77 @@ describe('buildEventDateSet', () => {
     expect(buildEventDateSet(events).size).toBe(1);
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// buildCalendarData with monthOffset — covers the month-walking code paths
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('buildCalendarData("ad") with monthOffset', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
+  });
+
+  it('monthOffset=+1 returns July 2025', () => {
+    const { label, year, month } = buildCalendarData('ad', 1);
+    expect(label).toBe('July');
+    expect(year).toBe(2025);
+    expect(month).toBe(7);
+  });
+
+  it('monthOffset=-1 returns May 2025', () => {
+    const { label, year, month } = buildCalendarData('ad', -1);
+    expect(label).toBe('May');
+    expect(year).toBe(2025);
+    expect(month).toBe(5);
+  });
+
+  it('monthOffset=+1 result has no isCurrent=true days (not current month)', () => {
+    const { days } = buildCalendarData('ad', 1);
+    expect(days.filter((d) => d.isCurrent)).toHaveLength(0);
+  });
+
+  it('monthOffset=-1 result has no isCurrent=true days (not current month)', () => {
+    const { days } = buildCalendarData('ad', -1);
+    expect(days.filter((d) => d.isCurrent)).toHaveLength(0);
+  });
+
+  it('monthOffset=+7 crosses year boundary to January 2026', () => {
+    const { year, month } = buildCalendarData('ad', 7);
+    expect(year).toBe(2026);
+    expect(month).toBe(1);
+  });
+});
+
+describe('buildCalendarData("bs") with monthOffset', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
+  });
+
+  it('monthOffset=+1 returns next BS month with no current-day marker', () => {
+    const result = buildCalendarData('bs', 1);
+    expect(result).toHaveProperty('label');
+    expect(result.days.filter((d) => d.isCurrent)).toHaveLength(0);
+  });
+
+  it('monthOffset=-1 returns prev BS month with no current-day marker', () => {
+    const result = buildCalendarData('bs', -1);
+    expect(result).toHaveProperty('label');
+    expect(result.days.filter((d) => d.isCurrent)).toHaveLength(0);
+  });
+
+  it('monthOffset=+1 days are valid (numbers and nulls)', () => {
+    const { days } = buildCalendarData('bs', 1);
+    const numbered = days.filter((d) => d.date !== null);
+    expect(numbered.length).toBeGreaterThan(28);
+    expect(numbered.length).toBeLessThanOrEqual(32);
+  });
+
+  it('monthOffset=-1 days have adDate strings', () => {
+    const { days } = buildCalendarData('bs', -1);
+    days.filter((d) => d.date !== null).forEach((d) => {
+      expect(d.adDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+  });
+});

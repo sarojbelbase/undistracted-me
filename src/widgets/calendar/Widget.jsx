@@ -1,4 +1,4 @@
-import React, { useState, useEffect,  useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
@@ -12,7 +12,7 @@ const TOOLTIP_MARGIN = 10; // min px gap from every viewport edge
 
 // DayTooltip uses the shared Popup component — same two-phase portal positioning
 const DayTooltip = React.memo(({ events, anchor }) => (
-  <Popup anchor={anchor} className="p-3 gap-2.5 max-w-[260px]">
+  <Popup anchor={anchor} className="p-3 gap-2.5 max-w-65">
     {events.map(e => (
       <EventRow key={e.id} event={e} showPrefix={false} showMeet={false} compact />
     ))}
@@ -77,7 +77,8 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
   const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
-  const events = [...localEvents, ...gcalEvents];
+  // Memoize to avoid re-creating the merged array on every re-render
+  const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
 
   const rebuild = useCallback(() => {
     setCalendarData(buildCalendarData(calendarType, monthOffset));
@@ -105,19 +106,16 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
           )}
         </div>
         <div className="flex items-center gap-0.5">
-          {monthOffset !== 0 && (() => {
-            const currentLabel = buildCalendarData(calendarType, 0).label;
-            return (
-              <TintedChip
-                onClick={() => setMonthOffset(0)}
-                title={currentLabel}
-                aria-label={`Go to ${currentLabel} Month (Current Month)`}
-                size="sm"
-              >
-                Go To {currentLabel}
-              </TintedChip>
-            );
-          })()}
+          {monthOffset !== 0 && (
+            <TintedChip
+              onClick={() => setMonthOffset(0)}
+              title={buildCalendarData(calendarType, 0).label}
+              aria-label={`Go to current month`}
+              size="sm"
+            >
+              Go To Today
+            </TintedChip>
+          )}
           <button
             onClick={() => setMonthOffset(o => o - 1)}
             className="p-1 rounded transition-colors group/btn"

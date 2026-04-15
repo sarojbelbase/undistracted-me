@@ -13,9 +13,11 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
+
+import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pomodoro Widget
@@ -113,7 +115,10 @@ describe('PomodoroWidget — timer phase', () => {
 import { Widget as NotesWidget } from '../../../src/widgets/notes/Widget';
 
 describe('NotesWidget', () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    useWidgetInstancesStore.setState({ widgetSettings: {} });
+  });
   afterEach(() => localStorage.clear());
 
   it('renders without crashing', () => {
@@ -132,7 +137,7 @@ describe('NotesWidget', () => {
   });
 
   it('textarea shows saved text from localStorage', () => {
-    localStorage.setItem('widgetSettings_notes', JSON.stringify({ text: 'hello world', bgColor: null }));
+    useWidgetInstancesStore.setState({ widgetSettings: { notes: { text: 'hello world' } } });
     render(<NotesWidget id="notes" />);
     const ta = screen.getByRole('textbox');
     expect(ta.value).toBe('hello world');
@@ -145,12 +150,19 @@ describe('NotesWidget', () => {
     expect(ta.value).toBe('new text');
   });
 
-  it('saves text to localStorage on change', () => {
+  it('saves text to the store on change after debounce', async () => {
+    vi.useFakeTimers();
     render(<NotesWidget id="notes" />);
     const ta = screen.getByRole('textbox');
-    fireEvent.change(ta, { target: { value: 'saved!' } });
-    const saved = JSON.parse(localStorage.getItem('widgetSettings_notes'));
-    expect(saved?.text).toBe('saved!');
+    await act(async () => {
+      fireEvent.change(ta, { target: { value: 'saved!' } });
+      // Advance past the 600ms debounce; use advanceTimersByTimeAsync to avoid
+      // infinite loops that runAllTimersAsync can trigger with Zustand re-renders.
+      await vi.advanceTimersByTimeAsync(700);
+    });
+    vi.useRealTimers();
+    const widgetSettings = useWidgetInstancesStore.getState().widgetSettings;
+    expect(widgetSettings.notes?.text).toBe('saved!');
   });
 });
 
@@ -161,8 +173,14 @@ describe('NotesWidget', () => {
 import { Widget as CountdownWidget } from '../../../src/widgets/countdown/Widget';
 
 describe('CountdownWidget — empty state', () => {
-  beforeEach(() => localStorage.clear());
-  afterEach(() => localStorage.clear());
+  beforeEach(() => {
+    vi.stubGlobal('chrome', undefined);
+    localStorage.clear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
 
   it('renders without crashing when no countdowns saved', () => {
     expect(() => render(<CountdownWidget id="countdown" />)).not.toThrow();
@@ -176,6 +194,7 @@ describe('CountdownWidget — empty state', () => {
 
 describe('CountdownWidget — with a saved custom countdown', () => {
   beforeEach(() => {
+    vi.stubGlobal('chrome', undefined);
     localStorage.clear();
     // Store a future custom countdown
     const future = new Date(Date.now() + 7 * 86400_000).toISOString().slice(0, 10);
@@ -190,7 +209,10 @@ describe('CountdownWidget — with a saved custom countdown', () => {
     localStorage.setItem('countdown_pinned', JSON.stringify({ type: 'custom', id: 'cd_test' }));
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
 
   it('renders the countdown label when data exists', () => {
     render(<CountdownWidget id="countdown" />);

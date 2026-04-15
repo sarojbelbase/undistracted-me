@@ -7,6 +7,7 @@
  *   conditionGroup : rain | snow | thunder | clear | cloudy | fog
  *   forecastType   : clearing | incoming | persist | possible
  *
+ * WIND_QUIPS  — wind intensity overrides (breezy / strong / storm)
  * TEMP_QUIPS  — temperature-shift scenarios (cold_sunny / warming / cooling)
  * MOOD_QUIPS  — relatable daily-life lines used as fallbacks
  *
@@ -229,7 +230,7 @@ export const WIND_QUIPS = {
     'Stay inside. This is not negotiable.',
     'Destructive gusts. Nothing outside is worth it.',
     'Wind declared a personal emergency.',
-    'Anything not tied down is now someone else\'s problem.',
+    "Anything not tied down is now someone else's problem.",
     'Storm-grade gusts. Hard pass on going out.',
     'Nature is actively hostile right now.',
     'Batten down everything. Wind means it.',

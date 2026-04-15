@@ -253,6 +253,7 @@ import { Widget as CalendarWidget } from '../../../src/widgets/calendar/Widget';
 
 describe('CalendarWidget', () => {
   beforeEach(() => {
+    vi.stubGlobal('chrome', undefined);
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-10T12:00:00Z'));
     localStorage.clear();
@@ -260,6 +261,7 @@ describe('CalendarWidget', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     localStorage.clear();
   });
 

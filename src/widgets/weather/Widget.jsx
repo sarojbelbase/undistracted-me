@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
@@ -11,8 +11,10 @@ import {
   fetchOpenMeteo,
   parseWeather,
   parseForecast,
+  readWeatherCache,
+  writeWeatherCache,
 } from './utils.jsx';
-import { getWeatherQuip } from './constants.js';
+import { getWeatherQuip } from '../../data/weatherQuips';
 import { WeatherAtmosphere, getAtmosphereLabel } from '../../components/ui/WeatherAtmosphere.jsx';
 import { Popup } from '../../components/ui/Popup.jsx';
 
@@ -97,19 +99,21 @@ export const Widget = ({ id = 'weather', onRemove }) => {
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
 
-  // Reset to skeleton immediately when location changes so stale city data
-  // doesn't remain visible while new data loads.
-  const prevLocationRef = useRef(location);
-
   useEffect(() => {
-    if (prevLocationRef.current !== location) {
+    setError(null);
+
+    // ── Instant pre-population from cache ──────────────────────────────────
+    // Eliminates the skeleton on every subsequent new-tab open.
+    // The background fetch below still runs if data is stale (> 30 min).
+    const cacheKey = location ? `${location.lat},${location.lon}` : 'auto';
+    const cached = readWeatherCache(cacheKey, unit);
+    if (cached?.weather) {
+      setWeather(cached.weather);
+      setForecast(cached.forecast);
+    } else {
       setWeather(null);
       setForecast(null);
-      setError(null);
     }
-    prevLocationRef.current = location;
-
-    setError(null);
 
     const load = async () => {
       try {
@@ -146,12 +150,16 @@ export const Widget = ({ id = 'weather', onRemove }) => {
 
         const fc = parseForecast(data);
         setForecast(fc);
+
+        // Persist fresh result so next tab open is instant
+        writeWeatherCache(current, fc, cacheKey, unit);
       } catch (e) {
         setError(e.message);
       }
     };
 
-    load();
+    // Skip network if cache is fresh (< 30 min old); still schedule the interval
+    if (!cached?.fresh) load();
     const timerId = setInterval(load, 30 * 60_000);
     return () => clearInterval(timerId);
   }, [location, unit]);

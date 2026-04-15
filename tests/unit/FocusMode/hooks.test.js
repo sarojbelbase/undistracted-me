@@ -13,7 +13,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 vi.mock('../../../src/widgets/weather/utils.jsx', () => ({
   API_KEY: 'test-key',
   getCoords: vi.fn(),
-  fetchWeatherByCoords: vi.fn(),
+  fetchOpenMeteo: vi.fn(),
   parseWeather: vi.fn(),
 }));
 
@@ -32,12 +32,21 @@ vi.mock('../../../src/store', () => ({
   useWidgetInstancesStore: vi.fn(),
 }));
 
+// Prevent heavy spotify utils import chain from loading
+vi.mock('../../../src/widgets/spotify/utils', () => ({
+  getCurrentPlayback: vi.fn(),
+  isSpotifyConnected: vi.fn(() => false),
+  setPlayPause: vi.fn(),
+  skipNext: vi.fn(),
+  skipPrev: vi.fn(),
+}));
+
 // ─── Import mocked modules so we can configure their behaviour per-test ───────
 
 import {
   API_KEY as _,        // used only to confirm the mock was applied
   getCoords,
-  fetchWeatherByCoords,
+  fetchOpenMeteo,
   parseWeather,
 } from '../../../src/widgets/weather/utils.jsx';
 
@@ -67,6 +76,17 @@ const FAKE_WEATHER = { temp: 22, description: 'Sunny', icon: '01d', unit: 'metri
 const FAKE_PHOTO = { regular: 'https://example.com/photo.jpg', id: 'abc123' };
 const FAKE_PHOTO_2 = { regular: 'https://example.com/photo2.jpg', id: 'def456' };
 
+/**
+ * Configure the useWidgetInstancesStore mock to work with selector calls.
+ * The hooks call: useWidgetInstancesStore(s => { ... s.instances ... s.widgetSettings ... })
+ * So we need mockImplementation to invoke the selector with a fake state object.
+ */
+function mockStore(instances = [], widgetSettings = {}) {
+  useWidgetInstancesStore.mockImplementation((selector) =>
+    selector({ instances, widgetSettings })
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // useFocusWeather
 // ═════════════════════════════════════════════════════════════════════════════
@@ -75,22 +95,18 @@ const FAKE_PHOTO_2 = { regular: 'https://example.com/photo2.jpg', id: 'def456' }
 // break waitFor()'s internal setTimeout polling. We test setInterval via spy.
 describe('useFocusWeather', () => {
   beforeEach(() => {
-    localStorage.clear();
     vi.clearAllMocks();
-
+    // Default store state: no instances, no settings → weatherSettings = null
+    mockStore([], {});
     // Default: location lookup succeeds
     getCoords.mockResolvedValue({ lat: 40.7128, lon: -74.006 });
-    fetchWeatherByCoords.mockResolvedValue({});
+    fetchOpenMeteo.mockResolvedValue({});
     parseWeather.mockReturnValue(FAKE_WEATHER);
-  });
-
-  afterEach(() => {
-    localStorage.clear();
   });
 
   it('returns null initially (before async fetch resolves)', () => {
     // Don't resolve the fetch yet
-    fetchWeatherByCoords.mockReturnValue(new Promise(() => { }));
+    fetchOpenMeteo.mockReturnValue(new Promise(() => { }));
     const { result } = renderHook(() => useFocusWeather());
     expect(result.current).toBeNull();
   });
@@ -101,30 +117,27 @@ describe('useFocusWeather', () => {
     expect(result.current).toMatchObject({ ...FAKE_WEATHER, unit: 'metric' });
   });
 
-  it('uses location from legacy widgetSettings_weather key', async () => {
-    localStorage.setItem(
-      'widgetSettings_weather',
-      JSON.stringify({ location: { lat: 27.7, lon: 85.3 }, unit: 'imperial' })
+  it('uses location from Zustand widgetSettings (weather widget)', async () => {
+    // Seed the store with a weather instance and its settings
+    mockStore(
+      [{ type: 'weather', id: 'weather' }],
+      { weather: { location: { lat: 27.7, lon: 85.3 }, unit: 'imperial' } }
     );
     renderHook(() => useFocusWeather());
-    await waitFor(() => expect(fetchWeatherByCoords).toHaveBeenCalled(), { timeout: 3000 });
-    expect(fetchWeatherByCoords).toHaveBeenCalledWith(27.7, 85.3, 'imperial');
+    await waitFor(() => expect(fetchOpenMeteo).toHaveBeenCalled(), { timeout: 3000 });
+    expect(fetchOpenMeteo).toHaveBeenCalledWith(27.7, 85.3, 'imperial');
     expect(getCoords).not.toHaveBeenCalled();
   });
 
-  it('falls back to scanning widget_instances when legacy key is absent', async () => {
+  it('uses location from instance-id-scoped widgetSettings when instance id differs', async () => {
     const instanceId = 'wid-uuid-001';
-    localStorage.setItem(
-      'widget_instances',
-      JSON.stringify([{ type: 'weather', id: instanceId }])
-    );
-    localStorage.setItem(
-      `widgetSettings_${instanceId}`,
-      JSON.stringify({ location: { lat: 51.5, lon: -0.1 }, unit: 'metric' })
+    mockStore(
+      [{ type: 'weather', id: instanceId }],
+      { [instanceId]: { location: { lat: 51.5, lon: -0.1 }, unit: 'metric' } }
     );
     renderHook(() => useFocusWeather());
-    await waitFor(() => expect(fetchWeatherByCoords).toHaveBeenCalled(), { timeout: 3000 });
-    expect(fetchWeatherByCoords).toHaveBeenCalledWith(51.5, -0.1, 'metric');
+    await waitFor(() => expect(fetchOpenMeteo).toHaveBeenCalled(), { timeout: 3000 });
+    expect(fetchOpenMeteo).toHaveBeenCalledWith(51.5, -0.1, 'metric');
   });
 
   it('calls getCoords when no saved location is found', async () => {
@@ -162,13 +175,10 @@ describe('useFocusWeather', () => {
 
 describe('useFocusStocks', () => {
   beforeEach(() => {
-    localStorage.clear();
     vi.clearAllMocks();
+    // Default: no stock instances in store → symbols = []
+    mockStore([], {});
     fetchChart.mockResolvedValue({ close: 150 });
-  });
-
-  afterEach(() => {
-    localStorage.clear();
   });
 
   it('returns [] initially', () => {
@@ -182,10 +192,10 @@ describe('useFocusStocks', () => {
     expect(fetchChart).not.toHaveBeenCalled();
   });
 
-  it('loads stocks from legacy widgetSettings_stock key', async () => {
-    localStorage.setItem(
-      'widgetSettings_stock',
-      JSON.stringify({ symbols: ['AAPL', 'GOOGL'] })
+  it('loads stocks from Zustand widgetSettings (stock widget)', async () => {
+    mockStore(
+      [{ type: 'stock', id: 'stock' }],
+      { stock: { symbols: ['AAPL', 'GOOGL'] } }
     );
 
     const { result } = renderHook(() => useFocusStocks());
@@ -198,15 +208,11 @@ describe('useFocusStocks', () => {
     expect(result.current[1].sym).toBe('GOOGL');
   });
 
-  it('scans widget_instances when legacy key has no symbols', async () => {
+  it('reads symbols from instance-id-scoped widgetSettings when instance id differs', async () => {
     const instanceId = 'stock-uuid-001';
-    localStorage.setItem(
-      'widget_instances',
-      JSON.stringify([{ type: 'stock', id: instanceId }])
-    );
-    localStorage.setItem(
-      `widgetSettings_${instanceId}`,
-      JSON.stringify({ symbols: ['TSLA'] })
+    mockStore(
+      [{ type: 'stock', id: instanceId }],
+      { [instanceId]: { symbols: ['TSLA'] } }
     );
 
     const { result } = renderHook(() => useFocusStocks());
@@ -216,9 +222,9 @@ describe('useFocusStocks', () => {
   });
 
   it('includes null data for symbols whose fetch failed', async () => {
-    localStorage.setItem(
-      'widgetSettings_stock',
-      JSON.stringify({ symbols: ['FAIL', 'OK'] })
+    mockStore(
+      [{ type: 'stock', id: 'stock' }],
+      { stock: { symbols: ['FAIL', 'OK'] } }
     );
     fetchChart
       .mockRejectedValueOnce(new Error('Network error'))
@@ -232,9 +238,9 @@ describe('useFocusStocks', () => {
   });
 
   it('sets up a 5-minute refresh interval', () => {
-    localStorage.setItem(
-      'widgetSettings_stock',
-      JSON.stringify({ symbols: ['AAPL'] })
+    mockStore(
+      [{ type: 'stock', id: 'stock' }],
+      { stock: { symbols: ['AAPL'] } }
     );
     const setIntervalSpy = vi.spyOn(global, 'setInterval');
     const { unmount } = renderHook(() => useFocusStocks());
@@ -253,9 +259,9 @@ describe('useFocusStocks', () => {
   });
 
   it('clears the interval on unmount', () => {
-    localStorage.setItem(
-      'widgetSettings_stock',
-      JSON.stringify({ symbols: ['AAPL'] })
+    mockStore(
+      [{ type: 'stock', id: 'stock' }],
+      { stock: { symbols: ['AAPL'] } }
     );
     const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
     const { unmount } = renderHook(() => useFocusStocks());
@@ -385,8 +391,8 @@ describe('useFocusTimezones', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    // By default: no widget instances
-    useWidgetInstancesStore.mockReturnValue([]);
+    // Default: no widget instances in the store
+    mockStore([], {});
   });
 
   afterEach(() => {
@@ -399,46 +405,41 @@ describe('useFocusTimezones', () => {
   });
 
   it('returns [] when instances exist but none is a clock widget', () => {
-    useWidgetInstancesStore.mockReturnValue([
-      { type: 'weather', id: 'w1' },
-      { type: 'stock', id: 's1' },
-    ]);
+    mockStore(
+      [{ type: 'weather', id: 'w1' }, { type: 'stock', id: 's1' }],
+      {}
+    );
     const { result } = renderHook(() => useFocusTimezones());
     expect(result.current).toEqual([]);
   });
 
-  it('reads timezone settings from the clock widget\'s localStorage entry', () => {
+  it('reads timezone settings from the clock widget\'s Zustand entry', () => {
     const clockId = 'clock-uuid-001';
-    useWidgetInstancesStore.mockReturnValue([
-      { type: 'clock', id: clockId },
-    ]);
     const timezones = [
       { label: 'New York', timezone: 'America/New_York' },
       { label: 'London', timezone: 'Europe/London' },
     ];
-    localStorage.setItem(
-      `widgetSettings_${clockId}`,
-      JSON.stringify({ timezones })
+    mockStore(
+      [{ type: 'clock', id: clockId }],
+      { [clockId]: { timezones } }
     );
 
     const { result } = renderHook(() => useFocusTimezones());
-
     expect(result.current).toEqual(timezones);
   });
 
-  it('returns [] when the clock widget settings key is absent', () => {
-    useWidgetInstancesStore.mockReturnValue([
-      { type: 'clock', id: 'clock-no-settings' },
-    ]);
+  it('returns [] when the clock widget settings are absent from the store', () => {
+    mockStore([{ type: 'clock', id: 'clock-no-settings' }], {});
     const { result } = renderHook(() => useFocusTimezones());
     expect(result.current).toEqual([]);
   });
 
   it('returns [] when clock settings has no timezones array', () => {
     const clockId = 'clock-uuid-002';
-    useWidgetInstancesStore.mockReturnValue([{ type: 'clock', id: clockId }]);
-    localStorage.setItem(`widgetSettings_${clockId}`, JSON.stringify({ format: '12h' }));
-
+    mockStore(
+      [{ type: 'clock', id: clockId }],
+      { [clockId]: { format: '12h' } }
+    );
     const { result } = renderHook(() => useFocusTimezones());
     expect(result.current).toEqual([]);
   });

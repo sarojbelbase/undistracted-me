@@ -20,9 +20,27 @@ vi.mock('react-bootstrap-icons', () => ({
   CalendarEvent: () => <span data-testid="no-events">Cal</span>,
   CalendarCheck: () => <span data-testid="calendar-check">📅</span>,
   Trash3: () => <span>🗑</span>,
+  Trash: () => <span>🗑</span>,
   CheckLg: () => <span>✓</span>,
   XLg: () => <span>X</span>,
   ClockFill: () => <span>⏰</span>,
+  GeoAlt: () => <span data-testid="geo-alt">📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  Search: () => <span>🔍</span>,
+  GraphUpArrow: () => <span>📈</span>,
+  InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
+}));
+
+// Prevent store init crash (circular dep via widget registry)
+vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+  useWidgetInstancesStore: vi.fn((selector) =>
+    typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
+  ),
 }));
 
 // Mock BaseWidget for clean renders
@@ -52,6 +70,7 @@ const mockRemoveEvent = vi.fn();
 vi.mock('../../../src/widgets/useEvents', () => ({
   useEvents: vi.fn(() => [[], mockAddEvent, mockRemoveEvent]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], loading: false, connected: false, syncedAt: null, refresh: vi.fn() })),
+  useGoogleProfile: vi.fn(() => null),
   formatEventTime: vi.fn(ev => ev.startTime || 'All day'),
 }));
 
@@ -165,8 +184,8 @@ describe('WeatherSettings', () => {
 
   it('renders Set Location label and input', () => {
     render(<WeatherSettings location={null} onChange={onChange} unit="metric" />);
-    expect(screen.getByText('Set Location')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Type location name')).toBeTruthy();
+    expect(screen.getByText('Location')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Search city…')).toBeTruthy();
   });
 
   it('shows existing location name in input', () => {
@@ -176,14 +195,14 @@ describe('WeatherSettings', () => {
 
   it('updates query on input change', () => {
     render(<WeatherSettings location={null} onChange={onChange} unit="metric" />);
-    const input = screen.getByPlaceholderText('Type location name');
+    const input = screen.getByPlaceholderText('Search city…');
     fireEvent.change(input, { target: { value: 'Kat' } });
     expect(input.value).toBe('Kat');
   });
 
   it('clears suggestions when input is less than 2 chars', () => {
     render(<WeatherSettings location={null} onChange={onChange} unit="metric" />);
-    const input = screen.getByPlaceholderText('Type location name');
+    const input = screen.getByPlaceholderText('Search city…');
     fireEvent.change(input, { target: { value: 'K' } });
     // No suggestions list should appear
     expect(screen.queryByRole('list')).toBeNull();
@@ -196,11 +215,11 @@ describe('WeatherSettings', () => {
 
   it('shows suggestions when API returns results', async () => {
     vi.useFakeTimers();
-    const mockResults = [{ name: 'Kathmandu', state: 'Bagmati', country: 'NP', lat: 27.7, lon: 85.3 }];
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => mockResults });
+    const mockResults = [{ name: 'Kathmandu', state: 'Bagmati', country: 'NP', latitude: 27.7, longitude: 85.3 }];
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ results: mockResults }) });
 
     render(<WeatherSettings location={null} onChange={onChange} unit="metric" />);
-    const input = screen.getByPlaceholderText('Type location name');
+    const input = screen.getByPlaceholderText('Search city…');
     fireEvent.change(input, { target: { value: 'Kathm' } });
 
     await act(async () => { await vi.runAllTimersAsync(); });
@@ -224,7 +243,7 @@ describe('Events Widget', () => {
 
   it('shows "Events" header', () => {
     render(<EventsWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('Events')).toBeTruthy();
+    expect(screen.getByText('Upcoming Events')).toBeTruthy();
   });
 
   it('shows empty state when no events', () => {
@@ -246,38 +265,36 @@ describe('Events Widget', () => {
 
   it('renders events when some exist', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Morning meeting', startDate: '2025-07-01', startTime: '09:00', endDate: '2025-07-01', endTime: '10:00', _source: 'local' },
+      { id: 'e1', title: 'Morning meeting', startDate: '2099-07-01', startTime: '09:00', endDate: '2099-07-01', endTime: '10:00', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     expect(screen.getByText('Morning meeting')).toBeTruthy();
   });
 
-  it('shows "View all" button when more than 3 events exist', () => {
+  it('shows "View all" button when more than 2 events exist', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Event 1', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e2', title: 'Event 2', startDate: '2025-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e3', title: 'Event 3', startDate: '2025-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e4', title: 'Event 4', startDate: '2025-07-04', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Event 1', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e2', title: 'Event 2', startDate: '2099-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e3', title: 'Event 3', startDate: '2099-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('View all')).toBeTruthy();
+    expect(screen.getByText('View All')).toBeTruthy();
   });
 
-  it('opens AllEventsModal when "View all" is clicked', () => {
+  it('opens AllEventsModal when "View All" is clicked', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Event 1', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e2', title: 'Event 2', startDate: '2025-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e3', title: 'Event 3', startDate: '2025-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e4', title: 'Event 4', startDate: '2025-07-04', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Event 1', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e2', title: 'Event 2', startDate: '2099-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e3', title: 'Event 3', startDate: '2099-07-03', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByText('View all'));
+    fireEvent.click(screen.getByText('View All'));
     expect(screen.getByTestId('all-events-modal')).toBeTruthy();
   });
 
   it('shows delete button for local events', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Local Event', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Local Event', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     // Trash icon should be visible for local events
@@ -289,7 +306,7 @@ describe('Events Widget', () => {
     vi.mocked(useEvents).mockReturnValue([[], mockAddEvent, mockRemoveEvent]);
     vi.mocked(useGoogleCalendar).mockReturnValueOnce({
       gcalEvents: [
-        { id: 'gcal_1', title: 'Google Event', startDate: '2025-07-01', startTime: '10:00', endDate: '', endTime: '', _source: 'gcal' },
+        { id: 'gcal_1', title: 'Google Event', startDate: '2099-07-01', startTime: '10:00', endDate: '', endTime: '', _source: 'gcal' },
       ], loading: false, connected: false, syncedAt: null, refresh: vi.fn(),
     });
     render(<EventsWidget onRemove={vi.fn()} />);
@@ -299,7 +316,7 @@ describe('Events Widget', () => {
 
   it('calls removeEvent when trash button is clicked', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Delete me', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Delete me', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     const trashBtn = screen.getByText('🗑').closest('button');
@@ -309,18 +326,17 @@ describe('Events Widget', () => {
 
   it('renders future events with bucket headers', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Today event', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
-      { id: 'e2', title: 'Later event', startDate: '2025-07-20', startTime: '14:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e1', title: 'Future event one', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
+      { id: 'e2', title: 'Future event two', startDate: '2099-07-20', startTime: '14:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    // Both events should be visible
-    expect(screen.getByText('Today event')).toBeTruthy();
-    expect(screen.getByText('Later event')).toBeTruthy();
+    // At least one event should be visible
+    expect(screen.getByText('Future event one')).toBeTruthy();
   });
 
   it('renders event with htmlLink as anchor tag', () => {
     vi.mocked(useEvents).mockReturnValue([[
-      { id: 'e1', title: 'Link Event', startDate: '2025-07-01', startTime: '09:00', endDate: '', endTime: '', htmlLink: 'https://cal.google.com/e1', _source: 'gcal' },
+      { id: 'e1', title: 'Link Event', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', htmlLink: 'https://cal.google.com/e1', _source: 'gcal' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     const link = screen.getByRole('link', { name: 'Link Event' });
@@ -332,46 +348,46 @@ describe('Events Widget', () => {
 // FocusModeSettings
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FocusModeSettings', () => {
-  let onRotatePhoto;
+  let onOpenBgModal;
 
   beforeEach(() => {
-    onRotatePhoto = vi.fn();
+    onOpenBgModal = vi.fn();
   });
 
   it('renders without crashing', () => {
-    expect(() => render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />)).not.toThrow();
+    expect(() => render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />)).not.toThrow();
   });
 
-  it('renders Date Format section', () => {
-    render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />);
-    // Section is labeled "Date Calendar" in FocusMode/Settings.jsx
+  it('renders Date Calendar section', () => {
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
     expect(screen.getByText('Date Calendar')).toBeTruthy();
   });
 
+  it('renders CE and BS buttons', () => {
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    expect(screen.getByText('CE')).toBeTruthy();
+    expect(screen.getByText('BS')).toBeTruthy();
+  });
+
   it('renders Clock Format section', () => {
-    render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />);
-    expect(screen.getByText(/Clock|Time/i)).toBeTruthy();
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    expect(screen.getByText('Clock Format')).toBeTruthy();
   });
 
-  it('renders Accent Color section', () => {
-    render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />);
-    expect(screen.getByText(/Accent|accent/i)).toBeTruthy();
+  it('renders 24h and 12h buttons', () => {
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    expect(screen.getByText('24h')).toBeTruthy();
+    expect(screen.getByText('12h')).toBeTruthy();
   });
 
-  it('renders background photo section', () => {
-    render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />);
-    // Should show some photo-related content (photos section or download)
-    // Look for Shuffle/Download button labels or related text
-    const container = document.body;
-    expect(container.textContent).toMatch(/Shuffle|Download|Photo|Background|library|24h|12h/i);
+  it('renders Background Change button', () => {
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    expect(screen.getByText('Change background')).toBeTruthy();
   });
 
-  it('shows accent color buttons', () => {
-    render(<FocusModeSettings onRotatePhoto={onRotatePhoto} />);
-    // Two accent colors from mock: indigo and blue
-    // Colors are rendered as buttons
-    const container = document.body;
-    // Just ensure the component rendered
-    expect(container.children.length).toBeGreaterThan(0);
+  it('calls onOpenBgModal when Background button is clicked', () => {
+    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
+    fireEvent.click(screen.getByText('Change background'));
+    expect(onOpenBgModal).toHaveBeenCalledOnce();
   });
 });

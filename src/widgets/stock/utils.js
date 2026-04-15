@@ -189,14 +189,8 @@ export function priceStats(chartData) {
   return { change, pct, dir };
 }
 
-export function humanizeAge(ts) {
-  if (!ts) return null;
-  const secs = Math.floor((Date.now() - ts) / 1000);
-  if (secs < 5) return 'just now';
-  if (secs < 60) return `${secs}s ago`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
-  return `${Math.floor(secs / 3600)}h ago`;
-}
+// humanizeAge is sourced from utilities/index.js — single canonical implementation.
+export { humanizeAge } from '../../utilities';
 
 export function fmtPrice(n) {
   if (n == null) return '—';
