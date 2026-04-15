@@ -99,11 +99,18 @@ export const eventStartDate = (event) => {
 
 // Module-level in-flight dedup: if multiple hook instances call fetchCalendarOnce()
 // concurrently they all await the same Promise rather than firing duplicate requests.
+// Keyed by interactive flag so an interactive sign-in doesn't collide with a background sync.
 let _gcalInflight = null;
+let _gcalInflightInteractive = null;
 
-const fetchCalendarOnce = () => {
+const fetchCalendarOnce = (interactive = false) => {
+  if (interactive) {
+    if (_gcalInflightInteractive) return _gcalInflightInteractive;
+    _gcalInflightInteractive = getCalendarEvents(true).finally(() => { _gcalInflightInteractive = null; });
+    return _gcalInflightInteractive;
+  }
   if (_gcalInflight) return _gcalInflight;
-  _gcalInflight = getCalendarEvents().finally(() => { _gcalInflight = null; });
+  _gcalInflight = getCalendarEvents(false).finally(() => { _gcalInflight = null; });
   return _gcalInflight;
 };
 
@@ -121,11 +128,34 @@ export const useGoogleCalendar = () => {
     });
   }, []);
 
+  // Background sync — non-interactive, never triggers OAuth UI
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { events, changed } = await fetchCalendarOnce();
+      const { events, changed } = await fetchCalendarOnce(false);
+      setConnected(true);
+      setError(null);
+      setSyncedAt(loadGcalSyncedAt());
+      if (changed) setGcalEvents(events);
+    } catch {
+      const cached = await loadCachedGcalEvents();
+      if (cached.length > 0) {
+        setConnected(true);
+      } else {
+        setConnected(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Explicit user-initiated sign-in — interactive, shows OAuth UI
+  const connect = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { events, changed } = await fetchCalendarOnce(true);
       setConnected(true);
       setError(null);
       setSyncedAt(loadGcalSyncedAt());
@@ -136,11 +166,13 @@ export const useGoogleCalendar = () => {
         setConnected(true);
       } else {
         setConnected(false);
-        setError(
-          err.message?.includes('403') || err.message?.includes('SERVICE_DISABLED')
-            ? 'Calendar API not enabled. Check your Google Cloud Console.'
-            : 'Could not connect. Try again.'
-        );
+        let msg = 'Could not connect. Try again.';
+        if (err.message?.includes('403') || err.message?.includes('SERVICE_DISABLED')) {
+          msg = 'Calendar API not enabled. Check your Google Cloud Console.';
+        } else if (err.message?.includes('bad client id') || err.message?.includes('OAuth2')) {
+          msg = 'Sign-in failed: extension not configured for OAuth. Contact the developer.';
+        }
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -167,7 +199,7 @@ export const useGoogleCalendar = () => {
     return () => clearInterval(tid);
   }, [connected, refresh]);
 
-  return { gcalEvents, loading, connected, error, syncedAt, refresh };
+  return { gcalEvents, loading, connected, error, syncedAt, refresh, connect };
 };
 
 export const useGoogleProfile = () => {

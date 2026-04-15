@@ -5,7 +5,7 @@ import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 
 export const Settings = () => {
-  const { connected, loading, error, refresh, syncedAt } = useGoogleCalendar();
+  const { connected, loading, error, refresh, connect, syncedAt } = useGoogleCalendar();
   const profile = useGoogleProfile();
   const syncedAtLabel = useAgeLabel(syncedAt);
 
@@ -26,7 +26,7 @@ export const Settings = () => {
         description="Shows upcoming events from your primary calendar."
         privacyLabel="Read-only · nothing stored on servers"
         connectLabel="Sign in with Google"
-        onConnect={refresh}
+        onConnect={connect}
         onSync={refresh}
         onDisconnect={handleDisconnect}
       />

@@ -185,11 +185,18 @@ async function fetchEventsWithToken(token) {
   }));
 }
 
-/** Returns fetched events and whether the set of IDs changed vs the cache. */
-export async function getCalendarEvents() {
+/**
+ * Returns fetched events and whether the set of IDs changed vs the cache.
+ *
+ * @param {boolean} interactive - Whether to prompt the user for auth.
+ *   Pass false (default) for background syncs so the extension never triggers
+ *   the OAuth UI silently — Chrome reports those failures to the Errors panel.
+ *   Pass true only when the user explicitly requests sign-in.
+ */
+export async function getCalendarEvents(interactive = false) {
   let token;
   try {
-    token = await getGoogleAuthToken(true);
+    token = await getGoogleAuthToken(interactive);
     const fresh = await fetchEventsWithToken(token);
     const cached = await loadCachedGcalEvents();
     const cachedIds = new Set(cached.map(e => e.id));
@@ -205,17 +212,30 @@ export async function getCalendarEvents() {
     if (err.message === 'TOKEN_EXPIRED' && token) {
       await removeGoogleAuthToken(token);
       try {
-        const freshToken = await getGoogleAuthToken(true);
+        const freshToken = await getGoogleAuthToken(interactive);
         const fresh = await fetchEventsWithToken(freshToken);
         await saveCachedGcalEvents(fresh);
         return { events: fresh, changed: true };
       } catch (retryErr) {
         console.warn('[GoogleCalendar] Retry failed:', retryErr.message);
-        throw retryErr; // propagate so callers can show error
+        throw retryErr;
       }
     }
+    // Auth-config errors (bad client id, access denied, not logged in etc.) should
+    // never surface as unhandled rejections in Chrome's extension Errors panel.
+    // Treat them as "not authenticated" so callers fall back to stale cache.
+    const isAuthError =
+      err.message?.includes('bad client id') ||
+      err.message?.includes('access_denied') ||
+      err.message?.includes('OAuth2') ||
+      err.message?.includes('Not authenticated') ||
+      err.message?.includes('cancelled');
+    if (isAuthError) {
+      setDisconnectedFlag();
+      throw err; // caller catches and falls back to cache — no unhandled rejection
+    }
     console.warn('[GoogleCalendar]', err.message);
-    throw err; // propagate — callers decide whether to use stale cache
+    throw err;
   }
 }
 

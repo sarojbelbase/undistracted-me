@@ -35,7 +35,12 @@ const fromLegacy = () => {
       lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
       lookAwayInterval: stored.state.lookAwayInterval ?? 20,
       lookAwayNotify: stored.state.lookAwayNotify ?? true,
-      canvasBg: stored.state.canvasBg ?? { type: 'orb', orbId: 'blueberry', url: null },
+      canvasBg: (() => {
+        const cb = stored.state.canvasBg ?? { type: 'orb', orbId: 'accent', url: null };
+        return cb.type === 'orb' && cb.orbId && cb.orbId !== 'accent'
+          ? { ...cb, orbId: 'accent' }
+          : cb;
+      })(),
       cardStyle: stored.state.cardStyle ?? 'glass',
       modePrefs: stored.state.modePrefs ?? {
         light: { cardStyle: stored.state.cardStyle ?? 'glass' },
@@ -53,7 +58,7 @@ const fromLegacy = () => {
     lookAwayEnabled: false,
     lookAwayInterval: 20,
     lookAwayNotify: true,
-    canvasBg: { type: 'orb', orbId: 'blueberry', url: null },
+    canvasBg: { type: 'orb', orbId: 'accent', url: null },
     cardStyle: 'glass',
     modePrefs: {
       light: { cardStyle: 'flat' },
