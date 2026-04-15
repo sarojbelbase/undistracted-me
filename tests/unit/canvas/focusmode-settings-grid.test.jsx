@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
@@ -46,6 +46,26 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   setBgSource: vi.fn(),
   getCachedPhotoSync: vi.fn(() => null),
   getCurrentPhoto: vi.fn(() => Promise.resolve(null)),
+}));
+
+// react-grid-layout uses ResizeObserver + DOM measurements that don't work in
+// JSDOM. Mock Responsive to simply render its children and useContainerWidth
+// to return a stable width so WidgetGrid can be tested without a real browser.
+vi.mock('react-grid-layout', () => ({
+  Responsive: ({ children }) => <>{children}</>,
+  useContainerWidth: () => ({ width: 1024, containerRef: { current: null } }),
+}));
+
+// The real WIDGET_REGISTRY imports heavy Widget components. Stub them with
+// lightweight synchronous components so WidgetGrid tests stay fast and isolated.
+vi.mock('../../../src/widgets/index', () => ({
+  WIDGET_REGISTRY: [
+    { type: 'facts', id: 'facts', x: 0, y: 0, w: 3, h: 2, Component: () => <div>A fact about the world</div> },
+    { type: 'notes', id: 'notes', x: 0, y: 0, w: 2, h: 2, Component: () => <textarea defaultValue="note" /> },
+    { type: 'clock', id: 'clock', x: 0, y: 0, w: 2, h: 2, Component: () => <div>12:00</div> },
+    { type: 'dayProgress', id: 'dayProgress', x: 0, y: 0, w: 2, h: 2, Component: () => <div>Day Progress</div> },
+  ],
+  WIDGET_TYPES: {},
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,30 +135,34 @@ describe('WidgetGrid', () => {
     expect(() => render(<WidgetGrid instances={[]} onRemoveInstance={vi.fn()} />)).not.toThrow();
   });
 
-  it('renders a facts widget when instances contains one', () => {
+  it('renders a facts widget when instances contains one', async () => {
     render(<WidgetGrid instances={[{ id: 'facts', type: 'facts' }]} onRemoveInstance={vi.fn()} />);
+    await act(async () => { });
     // Facts widget renders fact text
     expect(document.body.textContent.length).toBeGreaterThan(0);
   });
 
-  it('renders a notes widget', () => {
+  it('renders a notes widget', async () => {
     render(<WidgetGrid instances={[{ id: 'notes', type: 'notes' }]} onRemoveInstance={vi.fn()} />);
+    await act(async () => { });
     // Notes widget renders a textarea — use DOM query since react-grid-layout may affect role detection
     expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
-  it('renders a clock widget', () => {
+  it('renders a clock widget', async () => {
     render(<WidgetGrid instances={[{ id: 'clock', type: 'clock' }]} onRemoveInstance={vi.fn()} />);
+    await act(async () => { });
     // Clock shows HH:MM pattern
     expect(document.body.textContent).toMatch(/\d:\d/);
   });
 
-  it('renders a dayProgress widget', () => {
+  it('renders a dayProgress widget', async () => {
     render(<WidgetGrid instances={[{ id: 'dayProgress', type: 'dayProgress' }]} onRemoveInstance={vi.fn()} />);
+    await act(async () => { });
     expect(document.body.textContent).toMatch(/Day Progress/);
   });
 
-  it('renders multiple widgets', () => {
+  it('renders multiple widgets', async () => {
     render(
       <WidgetGrid
         instances={[
@@ -148,6 +172,7 @@ describe('WidgetGrid', () => {
         onRemoveInstance={vi.fn()}
       />
     );
+    await act(async () => { });
     expect(document.body.querySelector('textarea')).toBeTruthy(); // notes
   });
 });
