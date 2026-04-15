@@ -4,6 +4,12 @@ export default {
   id: 'events',
   type: 'events',
   label: 'Upcoming Events',
-  x: 4, y: 0, w: 3.5, h: 2.5,
+  x: 3, y: 2, w: 3.5, h: 2.5,
+  breakpoints: {
+    md: { x: 0, y: 2, w: 4, h: 2.5 },
+    sm: { x: 0, y: 4, w: 3, h: 2.5 },
+    xs: { x: 0, y: 5, w: 4, h: 2.5 },
+    xxs: { x: 0, y: 9, w: 2, h: 2.5 },
+  },
   Component: Widget,
 };

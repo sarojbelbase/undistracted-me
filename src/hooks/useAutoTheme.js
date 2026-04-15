@@ -33,7 +33,7 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   return 60 * 60 * 1000;
 };
 
-export const useAutoTheme = (mode, accent) => {
+export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
   const [effectiveMode, setEffectiveMode] = useState(() => {
     if (mode !== 'auto') return mode;
     return computeAutoMode();
@@ -52,7 +52,7 @@ export const useAutoTheme = (mode, accent) => {
 
     const applyEffective = (effective) => {
       setEffectiveMode(effective);
-      applyTheme(accent, effective);
+      applyTheme(accent, effective, cardStyle);
     };
 
     const computeAndSchedule = () => {
@@ -86,7 +86,7 @@ export const useAutoTheme = (mode, accent) => {
       clearTimeout(timer);
       mq?.removeEventListener('change', handleMediaChange);
     };
-  }, [mode, accent]);
+  }, [mode, accent, cardStyle]);
 
   return effectiveMode;
 };

@@ -38,15 +38,29 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
-  // Build layout items from current instances — skip unknown types (no REG_MAP entry)
+  // Build layout items for all breakpoints.
+  // lg uses positions from each widget's config.js.
+  // Other breakpoints use saved layouts (returning users) or BREAKPOINT_DEFAULTS (fresh install).
   const layoutItems = useMemo(() => {
-    const savedMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
-    return (instances || []).flatMap(({ id, type }) => {
+    const savedLgMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
+    const lgItems = (instances || []).flatMap(({ id, type }) => {
       const reg = REG_MAP[type];
       if (!reg) return [];  // unknown type — skip to avoid ghost grid cells
-      if (savedMap[id]) return [savedMap[id]];
-      return [{ i: id, x: reg.x, y: Infinity, w: reg.w, h: reg.h }];
+      if (savedLgMap[id]) return [savedLgMap[id]];
+      return [{ i: id, x: reg.x, y: reg.y ?? Infinity, w: reg.w, h: reg.h }];
     });
+
+    const bpItems = bp => {
+      if (layouts[bp]?.length) return layouts[bp];
+      return (instances || []).flatMap(({ id, type }) => {
+        const reg = REG_MAP[type];
+        if (!reg) return [];
+        const pos = reg.breakpoints?.[bp];
+        return [{ i: id, x: pos?.x ?? 0, y: pos?.y ?? Infinity, w: pos?.w ?? reg.w, h: pos?.h ?? reg.h }];
+      });
+    };
+
+    return { lg: lgItems, md: bpItems('md'), sm: bpItems('sm'), xs: bpItems('xs'), xxs: bpItems('xxs') };
   }, [instances, layouts]);
 
   const handleLayoutChange = useCallback((_current, allLayouts) => {
@@ -94,7 +108,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
       />
       <Responsive
         className="layout"
-        layouts={{ lg: layoutItems }}
+        layouts={layoutItems}
         width={width}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
@@ -102,8 +116,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
         isDraggable={true}
         draggableHandle=".widget-drag-handle"
         isResizable={false}
-        margin={[16, 16]}
-        containerPadding={[16, 16]}
+        compactType={null}
+        preventCollision={false}
+        margin={{ lg: [8, 8], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
+        containerPadding={{ lg: [8, 8], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
         useCSSTransforms={false}
         onLayoutChange={handleLayoutChange}
         onDragStart={handleDragStart}

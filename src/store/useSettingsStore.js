@@ -89,7 +89,7 @@ export const useSettingsStore = create(
 
       setAccent: (accent) => {
         set({ accent });
-        applyTheme(accent, get().mode);
+        applyTheme(accent, get().mode, get().cardStyle);
       },
 
       setMode: (mode) => {

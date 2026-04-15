@@ -49,16 +49,24 @@ const collectLegacyWidgetSettings = () => {
  *  2. Migrate from legacy `widget_enabled_ids` array
  *  3. Seed from WIDGET_REGISTRY defaults
  */
+const KNOWN_TYPES = new Set(WIDGET_REGISTRY.map(w => w.type));
+const isValidInstance = (inst) => inst?.id && inst?.type && KNOWN_TYPES.has(inst.type);
+
 const resolveInitialInstances = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (Array.isArray(saved) && saved.length) return saved;
+    if (Array.isArray(saved) && saved.length) {
+      const valid = saved.filter(isValidInstance);
+      if (valid.length) return valid;
+    }
   } catch { /* ignore */ }
 
   try {
     const old = JSON.parse(localStorage.getItem(STORAGE_KEYS._LEGACY.WIDGET_ENABLED_IDS));
-    if (Array.isArray(old) && old.length)
-      return old.map((id) => ({ id, type: id }));
+    if (Array.isArray(old) && old.length) {
+      const valid = old.map((id) => ({ id, type: id })).filter(isValidInstance);
+      if (valid.length) return valid;
+    }
   } catch { /* ignore */ }
 
   return WIDGET_REGISTRY.filter((w) => w.enabled).map((w) => ({

@@ -5,5 +5,11 @@ export default {
   type: 'clock',
   label: 'Clock',
   x: 0, y: 0, w: 2, h: 2,
+  breakpoints: {
+    md: { x: 0, y: 0, w: 2, h: 2 },
+    sm: { x: 0, y: 0, w: 2, h: 2 },
+    xs: { x: 0, y: 0, w: 2, h: 2 },
+    xxs: { x: 0, y: 0, w: 2, h: 2 },
+  },
   Component: Widget,
 };

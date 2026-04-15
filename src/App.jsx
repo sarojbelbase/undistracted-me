@@ -14,8 +14,13 @@ import { useSettingsStore, useWidgetInstancesStore } from './store';
 import { useAutoTheme } from './hooks/useAutoTheme';
 
 // Settings and catalog are only ever opened on demand — lazy-load them.
-const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
-const WidgetCatalog = lazy(() => import('./widgets/WidgetCatalog').then(m => ({ default: m.WidgetCatalog })));
+const settingsImport = () => import('./components/Settings').then(m => ({ default: m.Settings }));
+const catalogImport = () => import('./widgets/WidgetCatalog').then(m => ({ default: m.WidgetCatalog }));
+const Settings = lazy(settingsImport);
+const WidgetCatalog = lazy(catalogImport);
+// Hover preloaders — kick off the network request before the user clicks.
+const preloadSettings = () => settingsImport();
+const preloadCatalog = () => catalogImport();
 
 // Platform detection — evaluated once at module load, never changes at runtime.
 // userAgent is the recommended check after navigator.platform was deprecated.
@@ -31,12 +36,13 @@ const App = () => {
     mode, accent, defaultView,
     lookAwayEnabled, lookAwayInterval, lookAwayNotify,
     canvasBg, setCanvasBg,
+    cardStyle,
   } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
 
   // Resolves 'auto' mode to 'light'/'dark' based on sunrise/sunset;
   // no-op (returns mode as-is) for explicit 'light' or 'dark' settings.
-  const effectiveMode = useAutoTheme(mode, accent);
+  const effectiveMode = useAutoTheme(mode, accent, cardStyle);
   const isDark = effectiveMode === 'dark';
   const focusShortcut = isMac ? '⌥⇧F' : 'Alt+Shift+F';
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
@@ -147,7 +153,6 @@ const App = () => {
             border: '1px solid var(--card-border)',
             boxShadow: 'var(--card-shadow)',
           }}
-          title={`Focus Mode (${focusShortcut})`}
         >
           <MoonStarsFill
             size={14}
@@ -181,7 +186,7 @@ const App = () => {
           <button
             className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
             onClick={() => { setShowCatalog(true); closeSettings(); }}
-            title="Widgets"
+            onMouseEnter={preloadCatalog}
           >
             <Grid3x3GapFill
               size={15}
@@ -198,7 +203,7 @@ const App = () => {
           <button
             className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
             onClick={toggleSettings}
-            title="Settings"
+            onMouseEnter={preloadSettings}
           >
             <GearFill
               size={15}
