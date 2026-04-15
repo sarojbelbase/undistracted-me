@@ -11,6 +11,7 @@ import { notifyUser } from '../../utilities/chrome';
 import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 import { fmt12, calcDuration } from '../events/utils';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
+import { onClockTick } from '../../utilities/sharedClock';
 
 const makeId = () => makeUid('cd');
 const loadCustom = () => {
@@ -502,11 +503,8 @@ export const Widget = ({ id, onRemove }) => {
     removeEventFromStore(id);
   }, [removeEventFromStore]);
 
-  // Re-render every second for live countdown
-  useEffect(() => {
-    const id = setInterval(() => forceUpdate(), 1_000);
-    return () => clearInterval(id);
-  }, []);
+  // Re-render every second for live countdown — shared timer, no extra setInterval
+  useEffect(() => onClockTick(forceUpdate), []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   // target shape: { title, nextDate, startTime?, isEvent, isGcal, id, repeat? }

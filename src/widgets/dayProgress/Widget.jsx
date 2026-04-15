@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { getProgress, DEFAULT_PERIOD, DEFAULT_CALENDAR } from './utils';
 import { Settings } from './Settings';
+import { onClockTick } from '../../utilities/sharedClock';
 
 const DEFAULT_SETTINGS = { period: DEFAULT_PERIOD, calendar: DEFAULT_CALENDAR };
 
@@ -12,11 +13,16 @@ export const Widget = ({ id = 'dayProgress', onRemove }) => {
 
   const [progress, setProgress] = useState(() => getProgress(period, calendar));
 
+  const lastMinuteRef = useRef(-1);
   useEffect(() => {
-    const update = () => setProgress(getProgress(period, calendar));
-    update();
-    const timer = setInterval(update, 60_000);
-    return () => clearInterval(timer);
+    // Gate on minute change — zero drift, updates at same wall-clock second as the clock widget
+    return onClockTick(() => {
+      const m = new Date().getMinutes();
+      if (m !== lastMinuteRef.current) {
+        lastMinuteRef.current = m;
+        setProgress(getProgress(period, calendar));
+      }
+    });
   }, [period, calendar]);
 
   const settingsContent = (

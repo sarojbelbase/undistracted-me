@@ -1,4 +1,5 @@
-import { Widget } from './Widget';
+import { lazy } from 'react';
+const Widget = lazy(() => import('./Widget').then(m => ({ default: m.Widget })));
 
 export default {
   id: 'quickAccess',
