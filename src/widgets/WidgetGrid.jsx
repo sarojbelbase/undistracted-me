@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -19,14 +19,26 @@ const loadLayouts = () => {
   return {};
 };
 
+// Minimal card-shaped placeholder — shown while a lazy widget chunk loads.
+const WidgetSkeleton = () => (
+  <div
+    className="w-full h-full rounded-2xl animate-pulse"
+    style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+  />
+);
+
 // Self-registering render — new widgets just need a Component in their config.
 const renderWidget = (id, type, onRemove) => {
   const reg = REG_MAP[type];
   if (!reg?.Component) return null;
-  return <reg.Component id={id} onRemove={onRemove} />;
+  return (
+    <Suspense fallback={<WidgetSkeleton />}>
+      <reg.Component id={id} onRemove={onRemove} />
+    </Suspense>
+  );
 };
 
-export const WidgetGrid = ({ instances, onRemoveInstance }) => {
+export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance }) {
   // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
   // This makes offsetWidth === contentRect.width === window.innerWidth, so
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
@@ -141,4 +153,4 @@ export const WidgetGrid = ({ instances, onRemoveInstance }) => {
       </Responsive>
     </div>
   );
-};
+});

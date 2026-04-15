@@ -40,6 +40,9 @@ const App = () => {
   const isDark = effectiveMode === 'dark';
   const focusShortcut = isMac ? '⌥⇧F' : 'Alt+Shift+F';
   const [showFocusMode, setShowFocusMode] = useState(() => defaultView === 'focus');
+  // Keep FocusMode permanently mounted after first activation so state/hooks
+  // persist — re-entry is instant (no cold start). Only first open is cold.
+  const [focusModeEverShown, setFocusModeEverShown] = useState(() => defaultView === 'focus');
   const [showLookAway, setShowLookAway] = useState(false);
 
   useLookAwayScheduler({
@@ -55,7 +58,10 @@ const App = () => {
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'f') {
         const tag = document.activeElement?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-        setShowFocusMode(v => !v);
+        setShowFocusMode(v => {
+          if (!v) setFocusModeEverShown(true);
+          return !v;
+        });
       }
     };
     globalThis.addEventListener('keydown', handleKey);
@@ -131,7 +137,7 @@ const App = () => {
       {/* ── Focus Mode ── top-left ── */}
       <div className="absolute top-5 left-5 z-50">
         <button
-          onClick={() => setShowFocusMode(true)}
+          onClick={() => { setFocusModeEverShown(true); setShowFocusMode(true); }}
           className="group flex items-center rounded-full transition-all duration-300 focus:outline-none cursor-pointer"
           style={{
             padding: '7px 12px',
@@ -236,8 +242,13 @@ const App = () => {
         <WidgetGrid instances={instances} onRemoveInstance={removeInstance} />
       </div>
 
-      {showFocusMode && (
-        <FocusMode onExit={() => setShowFocusMode(false)} />
+      {focusModeEverShown && (
+        <div
+          style={{ display: showFocusMode ? 'block' : 'none', pointerEvents: showFocusMode ? 'auto' : 'none' }}
+          aria-hidden={!showFocusMode}
+        >
+          <FocusMode onExit={() => setShowFocusMode(false)} />
+        </div>
       )}
 
       {showLookAway && (
