@@ -169,7 +169,14 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
   const [library, setLibrary] = useState(() => getPhotoLibrary());
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
+  // Progressive reveal: after download, images appear 2 per rAF frame to keep the tab responsive.
+  const [revealedCount, setRevealedCount] = useState(() => getPhotoLibrary().length);
+  const rafRef = useRef(null);
+
   const refresh = useCallback(() => setLibrary(getPhotoLibrary()), []);
+
+  // Cancel any in-flight reveal loop on unmount.
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
   // Track the active photo ID — seeded from initialPhotoUrl on open,
   // then updated locally as the user selects photos.
@@ -186,10 +193,19 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
       const photos = await downloadCuratedPhotos();
       if (photos?.length) {
         refresh();
-        if (allowRotate) {
-          await onRotatePhoto?.(photos[0].id);
-          onApply();
-        } else {
+        // Progressively reveal thumbnails (2 per animation frame) so the browser
+        // doesn't try to fetch + decode all images simultaneously.
+        setRevealedCount(0);
+        let count = 0;
+        const total = photos.length;
+        const step = () => {
+          count = Math.min(count + 2, total);
+          setRevealedCount(count);
+          if (count < total) rafRef.current = requestAnimationFrame(step);
+        };
+        rafRef.current = requestAnimationFrame(step);
+
+        if (!allowRotate) {
           const url = photos[0]?.regular || photos[0]?.url || photos[0]?.small || null;
           setSelectedPhotoId(photos[0]?.id ?? null);
           onApply(url);
@@ -260,7 +276,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             onClick={onApplyDefault}
             aria-label="Use built-in background"
           >
-            <img src={bgImage} alt="" aria-hidden className="w-full h-full object-cover" />
+            <img src={bgImage} alt="" aria-hidden decoding="async" className="w-full h-full object-cover" />
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.28)' }} />
             {isDefaultActive && <ActiveBadge />}
             <div className="absolute bottom-1 left-1 pointer-events-none">
@@ -268,8 +284,8 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             </div>
           </button>
 
-          {/* Curated photo cells */}
-          {library.map((ph) => {
+          {/* Curated photo cells — only reveal up to revealedCount after download */}
+          {library.slice(0, revealedCount).map((ph) => {
             const src = ph.small || ph.url || ph.regular;
             const isPhotoActive = ph.id === activeId;
             return (
@@ -280,7 +296,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
                 onClick={() => handleUse(ph.id)}
                 aria-label="Apply this background"
               >
-                <img src={src} alt="" aria-hidden className="w-full h-full object-cover" />
+                <img src={src} alt="" aria-hidden decoding="async" loading="lazy" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }} />
                 {isPhotoActive && <ActiveBadge />}
                 <button
@@ -296,7 +312,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           })}
 
           {/* Locked placeholder cells — one per remaining slot, game-unlock style */}
-          {Array.from({ length: LIBRARY_MAX - library.length }).map((_, i) => {
+          {Array.from({ length: LIBRARY_MAX - Math.min(revealedCount, library.length) }).map((_, i) => {
             const isFirst = i === 0;
             const isShimmering = downloading && !isFirst;
             const slotBg = dark ? 'rgba(255,255,255,0.06)' : 'var(--panel-bg)';
