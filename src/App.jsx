@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState, useRef, useEffect, useMemo, Suspense, lazy } from 'react';
-import { MoonStarsFill, Grid3x3GapFill, GearFill } from 'react-bootstrap-icons';
+import { MoonStarsFill, Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
 import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
@@ -30,6 +30,7 @@ const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showCatalog, setShowCatalog] = useState(false);
   const [showBgPicker, setShowBgPicker] = useState(false);
+  const [arrangeMode, setArrangeMode] = useState(false);
 
   // ── Zustand stores ─────────────────────────────────────────────────────────
   const {
@@ -95,6 +96,14 @@ const App = () => {
   const toggleSettings = () => setShowSettings((s) => !s);
   const closeSettings = () => setShowSettings(false);
 
+  // ESC closes arrange mode
+  useEffect(() => {
+    if (!arrangeMode) return;
+    const handler = (e) => { if (e.key === 'Escape') setArrangeMode(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [arrangeMode]);
+
   // ── Canvas background computation ─────────────────────────────────────────
   const bgType = canvasBg?.type || 'orb';
   const bgOrbId = canvasBg?.orbId || 'accent';
@@ -112,11 +121,17 @@ const App = () => {
   const pageBg = useMemo(() => {
     if (bgType === 'curated' || bgType === 'custom' || bgType === 'default') return '#000000';
     if (bgType === 'orb') return isDark ? '#060608' : 'var(--w-page-bg)';
-    // solid — accent-tinted page colour
+    // solid — rich accent-tinted gradient
     const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#3689E6';
-    return isDark
-      ? `color-mix(in srgb, ${accentHex} 12%, #141414)`
-      : `color-mix(in srgb, ${accentHex} 9%, #F0F0F2)`;
+    const base = isDark ? '#141414' : '#F0F0F2';
+    const disc = isDark ? 32 : 26;
+    const cone = isDark ? 20 : 16;
+    const haze = isDark ? 10 : 8;
+    return [
+      `radial-gradient(ellipse 28% 20% at 55% 0%, color-mix(in srgb, ${accentHex} ${disc}%, ${base}) 0%, transparent 60%)`,
+      `radial-gradient(ellipse 80% 110% at 55% -25%, color-mix(in srgb, ${accentHex} ${cone}%, ${base}) 0%, color-mix(in srgb, ${accentHex} ${Math.round(cone * 0.3)}%, ${base}) 55%, transparent 80%)`,
+      `linear-gradient(to bottom, color-mix(in srgb, ${accentHex} ${haze}%, ${base}) 0%, ${base} 55%)`,
+    ].join(', ');
   }, [bgType, isDark, accent]);
 
   return (
@@ -182,6 +197,23 @@ const App = () => {
             boxShadow: 'var(--card-shadow)',
           }}
         >
+          {/* Arrange */}
+          <button
+            className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${arrangeMode ? '' : isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+            onClick={() => setArrangeMode(s => !s)}
+            style={arrangeMode ? { background: 'var(--w-accent)', borderRadius: '9999px' } : {}}
+          >
+            <Grid1x2Fill
+              size={15}
+              style={{ color: arrangeMode ? 'var(--w-accent-fg)' : isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)' }}
+            />
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+              <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>{arrangeMode ? 'Done (Esc)' : 'Arrange'}</span>
+            </span>
+          </button>
+
+          <div className="w-px h-3.5 shrink-0" style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }} />
+
           {/* Widgets */}
           <button
             className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
@@ -244,7 +276,7 @@ const App = () => {
       )}
 
       <div className="w-full h-full pt-16">
-        <WidgetGrid instances={instances} onRemoveInstance={removeInstance} />
+        <WidgetGrid instances={instances} onRemoveInstance={removeInstance} arrangeMode={arrangeMode} />
       </div>
 
       {focusModeEverShown && (
