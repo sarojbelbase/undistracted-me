@@ -132,6 +132,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         zIndex,
         background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, ${c(op.sh)} 90deg, transparent 180deg, ${c(op.sh * 0.7)} 270deg, transparent 360deg)`,
         animation: 'orbCounter 50s linear infinite',
+        filter: 'blur(48px)',
         pointerEvents: 'none',
       }} />
     </>

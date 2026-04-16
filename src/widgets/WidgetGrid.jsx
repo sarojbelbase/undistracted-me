@@ -26,7 +26,7 @@ const renderWidget = (id, type, onRemove) => {
   return <reg.Component id={id} onRemove={onRemove} />;
 };
 
-export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance }) {
+export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance, arrangeMode = false }) {
   // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
   // This makes offsetWidth === contentRect.width === window.innerWidth, so
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
@@ -98,13 +98,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   }, []);
 
   const isDragging = draggingId !== null;
+  const showOverlay = isDragging || arrangeMode;
 
   return (
     <div className="w-full h-full relative" ref={containerRef}>
-      {/* Dot grid — only visible while dragging */}
+      {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
-        style={{ opacity: isDragging ? 0.5 : 0 }}
+        style={{ opacity: showOverlay ? 0.5 : 0 }}
       />
       <Responsive
         className="layout"
@@ -113,7 +114,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={75}
-        isDraggable={true}
+        isDraggable={arrangeMode}
         draggableHandle=".widget-drag-handle"
         isResizable={false}
         compactType={null}
@@ -134,12 +135,12 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
               className="group relative w-full h-full transition-opacity duration-200"
               style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1 }}
             >
-              {/* Drag handle — single notch pill with 3 dots in one row */}
+              {/* Drag handle — visible only in arrange mode */}
               <div
-                className="widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
+                className={`widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
                   flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
                   cursor-grab active:cursor-grabbing select-none
-                  opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  transition-opacity duration-200 ${arrangeMode ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', borderTop: 'none', boxShadow: 'var(--card-shadow)' }}
                 aria-label="Drag to move"
               >
