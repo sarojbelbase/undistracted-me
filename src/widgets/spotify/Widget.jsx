@@ -105,6 +105,8 @@ const ChromeMediaStrip = ({ session, isPending, onPromote, onPlayPause }) => {
 export const Widget = ({ onRemove }) => {
   const [connected, setConnected] = useState(() => isSpotifyConnected());
   const [track, setTrack] = useState(null);
+  const [trackAnimKey, setTrackAnimKey] = useState(0);
+  const prevTrackIdRef = useRef(null);
   const [albumColor, setAlbumColor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -112,12 +114,25 @@ export const Widget = ({ onRemove }) => {
 
   // Load profile from chrome.storage.local on mount (async)
   useEffect(() => { getSpotifyProfile().then(p => { if (p) setProfile(p); }); }, []);
+  // Detect track changes for entrance animation
+  useEffect(() => {
+    if (!track) return;
+    const id = track.title + track.artist;
+    if (id !== prevTrackIdRef.current) {
+      prevTrackIdRef.current = id;
+      setTrackAnimKey(k => k + 1);
+    }
+  }, [track?.title, track?.artist]);
+
   const lastArtRef = useRef(null);
   const tickRef = useRef(null);
   const [chromeMediaSessions, setChromeMediaSessions] = useState([]);
   const [chromeAlbumColors, setChromeAlbumColors] = useState({});
   const chromeArtRef = useRef({});
   const [activeChromeTabId, setActiveChromeTabId] = useState(null);
+  // Animate chrome media track changes too
+  const [chromeTrackAnimKey, setChromeTrackAnimKey] = useState(0);
+  const prevChromeTrackIdRef = useRef(null);
   const [chromePendingTabId, setChromePendingTabId] = useState(null);
   const chromePendingTimeoutRef = useRef(null);
   const [spotifyPending, setSpotifyPending] = useState(false);
@@ -278,6 +293,16 @@ export const Widget = ({ onRemove }) => {
   const activeSession = chromeMediaSessions.find(s => s.tabId === activeChromeTabId)
     ?? chromeMediaSessions[0]
     ?? null;
+
+  // Animate when chrome media track changes
+  useEffect(() => {
+    if (!activeSession) return;
+    const id = (activeSession.title ?? '') + (activeSession.artist ?? '');
+    if (id !== prevChromeTrackIdRef.current) {
+      prevChromeTrackIdRef.current = id;
+      setChromeTrackAnimKey(k => k + 1);
+    }
+  }, [activeSession?.title, activeSession?.artist]);
   const otherSessions = chromeMediaSessions.filter(s => s !== activeSession);
   const activeChromeColor = activeSession ? (chromeAlbumColors[activeSession.tabId] ?? null) : null;
   const chromeHasBg = !!activeSession?.artwork && !!activeChromeColor;
@@ -414,29 +439,32 @@ export const Widget = ({ onRemove }) => {
             </div>
           )}
 
-          {/* Album art square — slightly smaller when strips are present to leave room */}
-          {activeSession?.artwork && (
-            <div className="flex justify-center">
-              <img
-                src={activeSession.artwork}
-                alt=""
-                className="rounded-xl shadow-lg object-cover"
-                style={{
-                  width: otherSessions.length ? 64 : 80,
-                  height: otherSessions.length ? 64 : 80,
-                  transition: 'width 0.25s ease, height 0.25s ease',
-                }}
-              />
-            </div>
-          )}
+          {/* Album art square — animates on track change */}
+          <div key={chromeTrackAnimKey} className="flex flex-col gap-2" style={chromeTrackAnimKey > 0 ? { animation: 'spotifyTrackIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : undefined}>
+            {activeSession?.artwork && (
+              <div className="flex justify-center">
+                <img
+                  src={activeSession.artwork}
+                  alt=""
+                  decoding="async"
+                  className="rounded-xl shadow-lg object-cover"
+                  style={{
+                    width: otherSessions.length ? 64 : 80,
+                    height: otherSessions.length ? 64 : 80,
+                    transition: 'width 0.25s ease, height 0.25s ease',
+                  }}
+                />
+              </div>
+            )}
 
-          {/* Track info */}
-          <div className="flex flex-col gap-0.5 min-w-0 mt-1">
-            <div className="truncate text-sm font-semibold" style={{ color: chromeInk }}>
-              {activeSession?.title || 'Playing'}
-            </div>
-            <div className="truncate text-xs" style={{ color: chromeMute }}>
-              {activeSession?.artist || activeSession?.host || 'Browser'}
+            {/* Track info */}
+            <div className="flex flex-col gap-0.5 min-w-0 mt-1">
+              <div className="truncate text-sm font-semibold" style={{ color: chromeInk }}>
+                {activeSession?.title || 'Playing'}
+              </div>
+              <div className="truncate text-xs" style={{ color: chromeMute }}>
+                {activeSession?.artist || activeSession?.host || 'Browser'}
+              </div>
             </div>
           </div>
 
@@ -545,17 +573,20 @@ export const Widget = ({ onRemove }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full p-4 gap-2">
-        {/* Album art square */}
-        {track.albumArt && (
-          <div className="flex justify-center">
-            <img src={track.albumArt} alt="" className="w-20 h-20 rounded-xl shadow-lg object-cover" />
-          </div>
-        )}
+        {/* Album art + track info — animates on track change */}
+        <div key={trackAnimKey} className="flex flex-col gap-2" style={trackAnimKey > 0 ? { animation: 'spotifyTrackIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : undefined}>
+          {/* Album art square */}
+          {track.albumArt && (
+            <div className="flex justify-center">
+              <img src={track.albumArt} alt="" decoding="async" className="w-20 h-20 rounded-xl shadow-lg object-cover" />
+            </div>
+          )}
 
-        {/* Track info */}
-        <div className="flex flex-col gap-0.5 min-w-0 mt-1">
-          <div className="truncate text-sm font-semibold" style={{ color: inkColor }}>{track.title}</div>
-          <div className="truncate text-xs" style={{ color: muteColor }}>{track.artist}</div>
+          {/* Track info */}
+          <div className="flex flex-col gap-0.5 min-w-0 mt-1">
+            <div className="truncate text-sm font-semibold" style={{ color: inkColor }}>{track.title}</div>
+            <div className="truncate text-xs" style={{ color: muteColor }}>{track.artist}</div>
+          </div>
         </div>
 
         {/* Controls — centered */}

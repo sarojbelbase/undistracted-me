@@ -3,13 +3,13 @@
  * https://open-meteo.com — free, no API key required
  */
 import {
-  Sun, MoonStars,
-  CloudSun, CloudMoon,
-  Cloud, Clouds,
-  CloudRain, CloudRainHeavy,
-  CloudDrizzle, CloudSleet,
-  CloudSnow, CloudLightningRain,
-  CloudFog,
+  SunFill, MoonStarsFill,
+  CloudSunFill, CloudMoonFill,
+  CloudFill, CloudsFill,
+  CloudRainFill, CloudRainHeavyFill,
+  CloudDrizzleFill, CloudSleetFill,
+  CloudSnowFill, CloudLightningRainFill,
+  CloudFogFill,
 } from 'react-bootstrap-icons';
 
 /** No longer needed — kept so any lingering import doesn't crash. */
@@ -52,19 +52,19 @@ export const wmoDescription = (code) => WMO[code] ?? 'unknown';
 // ── Icon mapping (WMO codes 0–99) ─────────────────────────────────────────────
 export const getWeatherIcon = (code, isDay, size = 52) => {
   const p = { size, style: { color: 'var(--w-ink-4)', flexShrink: 0 } };
-  if (code === 0) return isDay ? <Sun {...p} /> : <MoonStars {...p} />;
-  if (code <= 2) return isDay ? <CloudSun {...p} /> : <CloudMoon {...p} />;
-  if (code === 3) return <Clouds {...p} />;
-  if (code === 45 || code === 48) return <CloudFog {...p} />;
-  if (code >= 51 && code <= 57) return <CloudDrizzle {...p} />;
-  if (code === 66 || code === 67) return <CloudSleet {...p} />;
-  if (code === 61 || code === 80) return <CloudRain {...p} />;
-  if (code === 63 || code === 81) return <CloudRain {...p} />;
-  if (code === 65 || code === 82) return <CloudRainHeavy {...p} />;
-  if (code >= 71 && code <= 77) return <CloudSnow {...p} />;
-  if (code === 85 || code === 86) return <CloudSnow {...p} />;
-  if (code >= 95) return <CloudLightningRain {...p} />;
-  return <Cloud {...p} />;
+  if (code === 0) return isDay ? <SunFill {...p} /> : <MoonStarsFill {...p} />;
+  if (code <= 2) return isDay ? <CloudSunFill {...p} /> : <CloudMoonFill {...p} />;
+  if (code === 3) return <CloudsFill {...p} />;
+  if (code === 45 || code === 48) return <CloudFogFill {...p} />;
+  if (code >= 51 && code <= 57) return <CloudDrizzleFill {...p} />;
+  if (code === 66 || code === 67) return <CloudSleetFill {...p} />;
+  if (code === 61 || code === 80) return <CloudRainFill {...p} />;
+  if (code === 63 || code === 81) return <CloudRainFill {...p} />;
+  if (code === 65 || code === 82) return <CloudRainHeavyFill {...p} />;
+  if (code >= 71 && code <= 77) return <CloudSnowFill {...p} />;
+  if (code === 85 || code === 86) return <CloudSnowFill {...p} />;
+  if (code >= 95) return <CloudLightningRainFill {...p} />;
+  return <CloudFill {...p} />;
 };
 
 /**

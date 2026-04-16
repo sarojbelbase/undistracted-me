@@ -784,6 +784,19 @@ textarea:focus-visible,
   }
 }
 
+/* ── Spotify track change crossfade ── */
+@keyframes spotifyTrackIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    WIDGET CATALOG DRAWER  (.wc-*)
    Right-side macOS-style panel — accent-free, theme-aware.
