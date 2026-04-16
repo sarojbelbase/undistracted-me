@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { getTimeInZone } from '../../widgets/clock/utils';
-import { onClockTick } from '../../utilities/sharedClock';
+// ─── Right zone ───────────────────────────────────────────────────────────────
+//
+// Ambient world clocks — rendered as right-side floating text (no glass card).
+// Hidden on screens narrower than 900 px via .fm-world-panel CSS.
 
-export const WorldClocksPanel = ({ timezones, clockFormat }) => {
+import React, { useState, useEffect } from 'react';
+import { getTimeInZone } from '../../../widgets/clock/utils';
+import { onClockTick } from '../../../utilities/sharedClock';
+import { useSettingsStore } from '../../../store';
+import { useFocusTimezones } from '../hooks';
+import { ZONES } from '../config';
+
+const RIGHT = ZONES.right.items;
+
+export const RightZone = () => {
+  const clockFormat = useSettingsStore(s => s.clockFormat) || '24h';
+  const timezones = useFocusTimezones();
   const [times, setTimes] = useState([]);
 
   useEffect(() => {
@@ -12,12 +24,11 @@ export const WorldClocksPanel = ({ timezones, clockFormat }) => {
     return onClockTick(tick);
   }, [timezones, clockFormat]);
 
-  if (!times.length) return null;
+  if (!RIGHT.worldClocks.enable || !times.length) return null;
 
   return (
     <div className="fm-world-panel">
       {times.map(({ time, period, label }, i) => {
-        // "New York (ET)" → "New York" for a cleaner ambient look
         const city = label.replace(/\s*\([^)]+\)/, '').trim() || label;
         return (
           <div
@@ -30,7 +41,6 @@ export const WorldClocksPanel = ({ timezones, clockFormat }) => {
               gap: 3,
             }}
           >
-            {/* City label — small, uppercase, dim */}
             <span style={{
               fontSize: 9,
               letterSpacing: '0.14em',
@@ -42,8 +52,6 @@ export const WorldClocksPanel = ({ timezones, clockFormat }) => {
             }}>
               {city}
             </span>
-
-            {/* Time — ambient, right-aligned, no glass card */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
               <span style={{
                 fontSize: 'clamp(1.4rem, 2.2vw, 2rem)',

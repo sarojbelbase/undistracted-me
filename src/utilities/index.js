@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-import { NUMBER_MAPPING } from "../constants";
+import { NUMBER_MAPPING, MONTH_NAMES } from "../constants";
 import {
     NEPALI_YEARS_AND_DAYS_IN_MONTHS,
     BS_TABLE_START_YEAR,
@@ -104,6 +104,28 @@ const convertThisNumberToNepali = (theNumber) => {
 };
 
 const getTimeZoneAwareDayJsInstance = () => dayjs().tz('Asia/Kathmandu');
+
+export const ENGLISH_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const GREGORIAN_MONTHS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/** Returns { dow, month, day, year } for today in the Gregorian calendar. */
+export const getGregorianDateParts = () => {
+    const now = getTimeZoneAwareDayJsInstance();
+    return { dow: ENGLISH_DAYS[now.day()], month: GREGORIAN_MONTHS[now.month()], day: now.date(), year: now.year() };
+};
+
+/** Returns { dow, month, day, year } for today in the Bikram Sambat calendar. */
+export const getBikramSambatDateParts = () => {
+    const now = getTimeZoneAwareDayJsInstance();
+    const [year, month, day] = now.format('YYYY M D').split(' ').map(Number);
+    const result = convertEnglishToNepali(year, month, day);
+    if (result === 'Invalid date!') return { dow: ENGLISH_DAYS[now.day()], month: '—', day: 0, year: 0 };
+    const [ny, nm, nd] = result.split(' ').map(Number);
+    return { dow: ENGLISH_DAYS[now.day()], month: MONTH_NAMES[nm - 1], day: nd, year: ny };
+};
 
 export {
     convertEnglishToNepali,

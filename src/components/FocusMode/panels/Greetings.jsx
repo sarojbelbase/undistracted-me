@@ -15,7 +15,7 @@ const shared = (centerOnDark) => ({
     : '0 1px 12px rgba(255,255,255,0.95), 0 4px 24px rgba(255,255,255,0.7)',
 });
 
-export const GreetingDisplay = ({ parts, centerOnDark }) => {
+export const Greetings = ({ parts, centerOnDark }) => {
   // Compute once per render — avoids two identical object allocations for the two spans.
   const sharedStyle = shared(centerOnDark);
   return (

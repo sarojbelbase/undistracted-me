@@ -58,11 +58,14 @@ vi.mock('../../../src/widgets/useEvents', () => ({
 }));
 
 // FocusMode sub-components
-vi.mock('../../../src/components/FocusMode/ClockDisplay', () => ({
+vi.mock('../../../src/components/FocusMode/panels/Clock', () => ({
+  Clock: ({ parts }) => <div data-testid="clock-display">{parts?.h}:{parts?.m}</div>,
   ClockDisplay: ({ parts }) => <div data-testid="clock-display">{parts?.h}:{parts?.m}</div>,
+  default: ({ char }) => <span>{char}</span>,
 }));
 
-vi.mock('../../../src/components/FocusMode/GreetingDisplay', () => ({
+vi.mock('../../../src/components/FocusMode/panels/Greetings', () => ({
+  Greetings: () => <div data-testid="greeting-display">Good morning</div>,
   GreetingDisplay: () => <div data-testid="greeting-display">Good morning</div>,
 }));
 
@@ -112,23 +115,39 @@ vi.mock('../../../src/components/FocusMode/hooks', () => ({
 vi.mock('../../../src/utilities/index', () => ({
   getTimeZoneAwareDayJsInstance: vi.fn(),
   convertEnglishToNepali: vi.fn(() => [2082, 3, 15]),
+  getGregorianDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'June', day: 15, year: 2025 })),
+  getBikramSambatDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'Ashadh', day: 1, year: 2082 })),
+  ENGLISH_DAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  GREGORIAN_MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 }));
 
 vi.mock('../../../src/utilities', () => ({
   getTimeZoneAwareDayJsInstance: vi.fn(),
   convertEnglishToNepali: vi.fn(() => [2082, 3, 15]),
+  getGregorianDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'June', day: 15, year: 2025 })),
+  getBikramSambatDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'Ashadh', day: 1, year: 2082 })),
+  ENGLISH_DAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  GREGORIAN_MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+}));
+
+vi.mock('../../../src/widgets/pomodoro/utils', () => ({
+  readPomodoro: vi.fn(() => null),
+}));
+
+vi.mock('../../../src/widgets/events/utils', () => ({
+  getNextEventToShow: vi.fn(() => null),
+  getTimeUntilEvent: vi.fn(() => 'in 5m'),
+  formatEventStartTime: vi.fn(() => '9:00 AM'),
+  isLiveNow: vi.fn(() => false),
+  datePrefixFor: vi.fn(() => null),
 }));
 
 vi.mock('../../../src/constants', () => ({
   MONTH_NAMES: ['Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'],
 }));
 
-vi.mock('../../../src/components/FocusMode/constants', () => ({
-  getGregorianDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'June', day: 15, year: 2025 })),
-  getBikramSambatDateParts: vi.fn(() => ({ dow: 'Sunday', month: 'Ashadh', day: 1, year: 2082 })),
-  readPomodoro: vi.fn(() => null),
-  getNextEventToShow: vi.fn(() => null),
-  FG_MASK: 'none',
+vi.mock('../../../src/components/FocusMode/config', () => ({
+  ZONES: { top: true, center: true, left: true, right: true, bottom: false },
 }));
 
 // Widget clock utils
@@ -154,7 +173,8 @@ vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
 import { FocusMode } from '../../../src/components/FocusMode/index';
 import { useFocusTimezones, useFocusStocks, useFocusPhoto } from '../../../src/components/FocusMode/hooks';
-import { readPomodoro, getNextEventToShow } from '../../../src/components/FocusMode/constants';
+import { readPomodoro } from '../../../src/widgets/pomodoro/utils';
+import { getNextEventToShow } from '../../../src/widgets/events/utils';
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FocusMode', () => {
