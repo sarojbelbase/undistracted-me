@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { getCoords, fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
-import { fetchChart } from '../../widgets/stock/utils';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
-import { getCurrentPlayback, isSpotifyConnected, setPlayPause, skipNext, skipPrev } from '../../widgets/spotify/utils';
 import { useWidgetInstancesStore } from '../../store';
+// Shared hooks — also usable by canvas-mode widgets
+import { useSpotify } from '../../widgets/spotify/useSpotify';
+import { useStocks } from '../../widgets/stock/useStocks';
 
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
@@ -37,30 +38,9 @@ export const useFocusWeather = () => {
   return weather;
 };
 
-// ─── Stocks ───────────────────────────────────────────────────────────────────
+// ─── Stocks (delegates to shared hook) ───────────────────────────────────────
 
-export const useFocusStocks = () => {
-  const [stocks, setStocks] = useState([]);
-  // Read from Zustand widgetSettings — reactive to same-tab setting changes.
-  const symbols = useWidgetInstancesStore(useShallow(s => {
-    const inst = s.instances.find(i => i.type === 'stock');
-    const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['stock']) : s.widgetSettings['stock'];
-    return ws?.symbols ?? [];
-  }));
-
-  useEffect(() => {
-    if (!symbols.length) { setStocks([]); return; }
-    const loadSymbol = (sym) => fetchChart(sym).catch(() => null);
-    const load = async () => {
-      const results = await Promise.all(symbols.map(loadSymbol));
-      setStocks(symbols.map((sym, i) => ({ sym, data: results[i] })));
-    };
-    load();
-    const timerId = setInterval(load, 5 * 60_000);
-    return () => clearInterval(timerId);
-  }, [symbols]);
-  return stocks;
-};
+export const useFocusStocks = useStocks;
 
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
@@ -206,99 +186,11 @@ export const useFocusTimezones = () => {
   return timezones;
 };
 
-// ─── Spotify ──────────────────────────────────────────────────────────────────
-
+// ─── Spotify (delegates to shared hook) ──────────────────────────────────────
+//
+// useFocusSpotify is an alias of useSpotify with the old return shape
+// (spotifyProgress) preserved for backward-compat with index.jsx.
 export const useFocusSpotify = () => {
-  const [spotify, setSpotify] = useState(null);
-  const [spotifyProgress, setSpotifyProgress] = useState(0);
-  const [pending, setPending] = useState(false);
-  const [skipPending, setSkipPending] = useState(null); // 'next' | 'prev' | null
-  // Track connection state reactively so the polling effect re-runs when the
-  // user authenticates after Focus Mode is already open (fixes stale [] closure).
-  const [connected, setConnected] = useState(() => isSpotifyConnected());
-
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'spotify_connected') setConnected(isSpotifyConnected());
-    };
-    globalThis.addEventListener('storage', onStorage);
-    return () => globalThis.removeEventListener('storage', onStorage);
-  }, []);
-
-  useEffect(() => {
-    if (!connected) { setSpotify(null); return; }
-    let cancelled = false;
-    const fetchSpotify = async () => {
-      try {
-        const data = await getCurrentPlayback();
-        if (cancelled) return;
-        if (!data?.item) { setSpotify(null); return; }
-        const p = {
-          isPlaying: data.is_playing,
-          title: data.item.name,
-          artist: data.item.artists.map(a => a.name).join(', '),
-          albumArt: data.item.album.images[0]?.url ?? null,
-          durationMs: data.item.duration_ms,
-          progressMs: data.progress_ms ?? 0,
-        };
-        setSpotify(p);
-        setSpotifyProgress(p.progressMs);
-      } catch {
-        if (!cancelled) setSpotify(null);
-      }
-    };
-    fetchSpotify();
-    const timerId = setInterval(fetchSpotify, 5000);
-    return () => { cancelled = true; clearInterval(timerId); };
-  }, [connected]);
-
-  useEffect(() => {
-    if (!spotify?.isPlaying) return;
-    const timerId = setInterval(
-      () => setSpotifyProgress(p => Math.min(p + 1000, spotify.durationMs || p)),
-      1000,
-    );
-    return () => clearInterval(timerId);
-  }, [spotify?.isPlaying, spotify?.durationMs]);
-
-  const refresh = useCallback(async () => {
-    try {
-      const data = await getCurrentPlayback();
-      if (data?.item) {
-        const p = {
-          isPlaying: data.is_playing,
-          title: data.item.name,
-          artist: data.item.artists.map(a => a.name).join(', '),
-          albumArt: data.item.album.images[0]?.url ?? null,
-          durationMs: data.item.duration_ms,
-          progressMs: data.progress_ms ?? 0,
-        };
-        setSpotify(p);
-        setSpotifyProgress(p.progressMs);
-      }
-    } catch { }
-  }, []);
-
-  const handleToggle = useCallback(async () => {
-    if (!spotify) return;
-    setPending(true);
-    try {
-      await setPlayPause(!spotify.isPlaying);
-      setSpotify(s => s ? { ...s, isPlaying: !s.isPlaying } : s);
-    } catch { } finally {
-      setPending(false);
-    }
-  }, [spotify]);
-
-  const handleNext = useCallback(async () => {
-    setSkipPending('next');
-    try { await skipNext(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
-  }, [refresh]);
-
-  const handlePrev = useCallback(async () => {
-    setSkipPending('prev');
-    try { await skipPrev(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
-  }, [refresh]);
-
-  return { spotify, spotifyProgress, handleToggle, handleNext, handlePrev, pending, skipPending };
+  const { spotify, progress: spotifyProgress, ...rest } = useSpotify();
+  return { spotify, spotifyProgress, ...rest };
 };

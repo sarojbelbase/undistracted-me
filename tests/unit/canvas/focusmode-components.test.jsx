@@ -21,7 +21,7 @@ vi.mock('../../../src/utilities/sharedClock', () => ({
 // DigitRoller
 // ─────────────────────────────────────────────────────────────────────────────
 
-import DigitRoller from '../../../src/components/FocusMode/DigitRoller';
+import DigitRoller from '../../../src/components/FocusMode/panels/Clock';
 
 describe('DigitRoller', () => {
   it('renders the digit character', () => {
@@ -49,7 +49,7 @@ describe('DigitRoller', () => {
 // ClockDisplay
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { ClockDisplay } from '../../../src/components/FocusMode/ClockDisplay';
+import { Clock as ClockDisplay } from '../../../src/components/FocusMode/panels/Clock';
 
 const make24hParts = (time = '14:30') => ({ time, period: '' });
 const make12hParts = (time = '02:30', period = 'PM') => ({ time, period });
@@ -98,7 +98,7 @@ describe('ClockDisplay', () => {
 // GreetingDisplay
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { GreetingDisplay } from '../../../src/components/FocusMode/GreetingDisplay';
+import { Greetings as GreetingDisplay } from '../../../src/components/FocusMode/panels/Greetings';
 
 describe('GreetingDisplay', () => {
   const greetParts = {

@@ -1,20 +1,19 @@
 /**
- * Unit tests for pure helper functions in FocusMode/constants.js.
- *
- * All functions are pure or read from well-defined singletons (localStorage,
- * the JS Date), making them straightforward to test in isolation.
+ * Unit tests for shared Focus Mode helper functions.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readPomodoro } from '../../../src/widgets/pomodoro/utils.js';
 import {
-  readPomodoro,
   getNextEventToShow,
-  getGregorianDateParts,
-  getBikramSambatDateParts,
   getTimeUntilEvent,
   formatEventStartTime,
+} from '../../../src/widgets/events/utils.js';
+import {
+  getGregorianDateParts,
+  getBikramSambatDateParts,
   ENGLISH_DAYS,
   GREGORIAN_MONTHS,
-} from '../../../src/components/FocusMode/constants.js';
+} from '../../../src/utilities/index.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

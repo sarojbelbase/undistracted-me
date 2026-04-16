@@ -694,6 +694,15 @@ textarea:focus-visible,
 }
 
 .fm-left-panel {
+  --w-ink-1: #f2f2f2;
+  --w-ink-2: #e0e0e0;
+  --w-ink-3: #c4c4c4;
+  --w-ink-4: #8e8e8e;
+  --w-ink-5: #909090;
+  --w-ink-6: #6e6e6e;
+  --w-surface: rgba(255, 255, 255, 0.10);
+  --w-surface-2: rgba(255, 255, 255, 0.16);
+  --w-border: rgba(255, 255, 255, 0.12);
   position: absolute;
   display: flex;
   flex-direction: column;

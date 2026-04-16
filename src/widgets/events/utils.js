@@ -180,3 +180,58 @@ export const isLiveNow = (event) => {
   // No end time — treat the event as live for 30 min after start
   return (now - start) < 30 * 60 * 1000;
 };
+
+// ─── Focus Mode / Canvas shared event pickers ─────────────────────────────────
+
+/**
+ * Returns the next event to show: the currently active one or the nearest
+ * upcoming one. Returns null when there are no relevant events.
+ */
+export const getNextEventToShow = (events) => {
+  const now = new Date();
+  const active = events.find(e => {
+    if (!e.startDate || !e.endDate || !e.startTime || !e.endTime) return false;
+    const start = new Date(`${e.startDate}T${e.startTime}`);
+    const end = new Date(`${e.endDate}T${e.endTime}`);
+    return now >= start && now <= end;
+  });
+  if (active) return { event: active, isActive: true };
+
+  const upcoming = events
+    .filter(e => {
+      if (!e.startDate || !e.startTime) return false;
+      return new Date(`${e.startDate}T${e.startTime}`) > now;
+    })
+    .sort((a, b) =>
+      new Date(`${a.startDate}T${a.startTime}`) - new Date(`${b.startDate}T${b.startTime}`)
+    );
+  if (upcoming.length > 0) return { event: upcoming[0], isActive: false };
+  return null;
+};
+
+/**
+ * Returns a human-readable "time until" string for an upcoming event,
+ * e.g. "in 5m", "in 1h 30m", "Tomorrow".
+ */
+export const getTimeUntilEvent = (event) => {
+  const start = new Date(`${event.startDate}T${event.startTime}`);
+  const diffMs = start - Date.now();
+  if (diffMs <= 0) return 'now';
+  const diffMin = Math.ceil(diffMs / 60000);
+  if (diffMin < 60) return `in ${diffMin}m`;
+  const prefix = datePrefixFor(event.startDate);
+  if (prefix) return prefix;
+  const h = Math.floor(diffMin / 60), m = diffMin % 60;
+  return m > 0 ? `in ${h}h ${m}m` : `in ${h}h`;
+};
+
+/**
+ * Formats an event's startTime as a 12-hour clock string, e.g. "9:30 AM".
+ */
+export const formatEventStartTime = (event) => {
+  if (!event.startTime) return '';
+  const [h, min] = event.startTime.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(min).padStart(2, '0')} ${ampm}`;
+};

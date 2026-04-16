@@ -1,6 +1,16 @@
-import DigitRoller from './DigitRoller';
+const DigitRoller = ({ char }) => (
+  <span
+    style={{
+      display: 'inline-block',
+      fontVariantNumeric: 'tabular-nums',
+      animation: 'focusDigitIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
+    }}
+  >
+    {char}
+  </span>
+);
 
-export const ClockDisplay = ({ parts, centerOnDark }) => (
+export const Clock = ({ parts, centerOnDark }) => (
   <div
     className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
     style={{ zIndex: 18 }}
@@ -58,3 +68,6 @@ export const ClockDisplay = ({ parts, centerOnDark }) => (
     </div>
   </div>
 );
+
+export default DigitRoller;
+export { Clock as ClockDisplay };

@@ -44,8 +44,6 @@ export default defineConfig({
         '**/config.js',
         // Complex Spotify OAuth + media control (Spotify API connectivity required)
         'src/widgets/spotify/**',
-        // Complex modal UIs — hard to test without full app context
-        'src/components/FocusMode/CustomUrlModal.jsx',
         // Occasions widget — complex date-based calendar widget, low priority
         'src/widgets/occasions/**',
         // Quick Access widget — minimal logic, external URL handling
