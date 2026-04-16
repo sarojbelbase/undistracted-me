@@ -111,7 +111,7 @@ const SolidPanel = ({ isActive, onApply }) => (
       {isActive && <ActiveBadge />}
     </div>
     <p className="text-xs text-center" style={{ color: 'var(--w-ink-4)' }}>
-      A solid tint of your current accent colour — no animations.
+      A solid tint of your current accent color.
     </p>
   </div>
 );
