@@ -272,7 +272,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--w-accent)', textTransform: 'capitalize', lineHeight: 1.2 }}>
                   {forecast.type === 'clearing' ? 'clearing up' : forecast.description}
                 </span>
-                <span style={{ fontSize: '0.66rem', fontWeight: 600, color: 'var(--w-ink-5)', lineHeight: 1.5 }}>
+                <span style={{ fontSize: '0.55rem', fontWeight: 600, color: 'var(--w-ink-5)', lineHeight: 1.5 }}>
                   {forecast.type === 'clearing'
                     ? `in ${forecast.hours} ${forecast.hours === 1 ? 'hour' : 'hours'}`
                     : forecast.type === 'incoming'
