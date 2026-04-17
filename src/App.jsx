@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useState, useRef, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { MoonStarsFill, Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
+import { MoonStarsFill, CollectionFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
 import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
@@ -256,6 +256,23 @@ const App = () => {
             boxShadow: 'var(--card-shadow)',
           }}
         >
+          {/* Widgets */}
+          <button
+            className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+            onClick={() => { setShowCatalog(true); closeSettings(); }}
+            onMouseEnter={preloadCatalog}
+          >
+            <CollectionFill
+              size={16}
+              style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)' }}
+            />
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+              <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>Widgets</span>
+            </span>
+          </button>
+
+          <div className="w-px h-3.5 shrink-0" style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }} />
+
           {/* Arrange */}
           <button
             className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${arrangeMode ? '' : isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
@@ -263,28 +280,11 @@ const App = () => {
             style={arrangeMode ? { background: 'var(--w-accent)', borderRadius: '9999px' } : {}}
           >
             <Grid1x2Fill
-              size={15}
+              size={16}
               style={{ color: arrangeMode ? 'var(--w-accent-fg)' : isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)' }}
             />
             <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
               <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>{arrangeMode ? 'Done (Esc)' : 'Arrange'}</span>
-            </span>
-          </button>
-
-          <div className="w-px h-3.5 shrink-0" style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }} />
-
-          {/* Widgets */}
-          <button
-            className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
-            onClick={() => { setShowCatalog(true); closeSettings(); }}
-            onMouseEnter={preloadCatalog}
-          >
-            <Grid3x3GapFill
-              size={15}
-              style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)' }}
-            />
-            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
-              <span className="block text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'var(--card-blur)', WebkitBackdropFilter: 'var(--card-blur)', color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)' }}>Widgets</span>
             </span>
           </button>
 
@@ -297,7 +297,7 @@ const App = () => {
             onMouseEnter={preloadSettings}
           >
             <GearFill
-              size={15}
+              size={16}
               className="transition-transform duration-300 group-hover:rotate-90"
               style={{
                 color: (() => {
