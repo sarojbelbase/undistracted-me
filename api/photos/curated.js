@@ -38,14 +38,29 @@ export default async function handler(req, res) {
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
+    // Prefer the stable production URL; fall back to the current deployment URL.
+    // Both expose /_vercel/image which Vercel Image Optimization uses to serve
+    // resized WebP/AVIF variants on the fly — no extra infrastructure needed.
+    const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : null;
+
     const photos = blobs.map(b => {
       const filename = b.pathname.split('/').pop();
       const id = filename.replace(/\.[^.]+$/, '');
+      // thumb: ~200 px wide WebP served by Vercel Image Optimization.
+      // Falls back to the full URL when running locally (no /_vercel/image).
+      const thumb = origin
+        ? `${origin}/_vercel/image?url=${encodeURIComponent(b.url)}&w=200&q=70`
+        : b.url;
       return {
         id,
         url: b.url,
         regular: b.url,
         small: b.url,
+        thumb,
         color: '#18191b',
       };
     });

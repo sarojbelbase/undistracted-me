@@ -25,6 +25,20 @@ const PHOTOS_API_KEY = import.meta.env.VITE_API_KEY || null;
 const CACHE_KEY = 'fm_unsplash_cache';
 export const LIBRARY_MAX = 10;        // max photos stored in library
 
+/**
+ * Compute a ~200 px thumbnail URL for a cached photo entry.
+ * Uses Vercel Image Optimization served from the production deployment so
+ * it works from any environment — local dev, staging, or extension.
+ * Falls back to the full-res URL when no source URL is available.
+ */
+export const getThumbUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.thumb) return photo.thumb;
+  const src = photo.regular || photo.url || photo.small;
+  if (!src) return null;
+  return `${PRODUCTION_BASE_URL}/_vercel/image?url=${encodeURIComponent(src)}&w=200&q=70`;
+};
+
 // ─── Cache helpers ────────────────────────────────────────────────────────────
 
 const readCache = () => {
@@ -78,6 +92,18 @@ export const downloadNewPhoto = async () => {
 /** Remove a photo from the library by id. */
 export const deletePhoto = (id) => {
   writeCache(readCache().filter(c => c.id !== id));
+};
+
+/**
+ * Persist a dominant color extracted from a photo's thumbnail back into
+ * the cache entry so it survives page refresh as an immediate placeholder.
+ */
+export const updatePhotoColor = (id, color) => {
+  const cache = readCache();
+  const idx = cache.findIndex(p => p.id === id);
+  if (idx < 0) return;
+  cache[idx] = { ...cache[idx], color };
+  writeCache(cache);
 };
 
 /**
