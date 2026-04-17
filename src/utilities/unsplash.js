@@ -22,8 +22,7 @@ const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
 /** Shared secret sent as X-API-Key header to the Vercel proxy. */
 const PHOTOS_API_KEY = import.meta.env.VITE_API_KEY || null;
 
-const CACHE_KEY = 'fm_unsplash_cache';
-export const LIBRARY_MAX = 10;        // max photos stored in library
+const CACHE_KEY = 'fm_unsplash_cache';       // max photos stored in library
 
 /**
  * Compute a ~200 px thumbnail URL for a cached photo entry.
