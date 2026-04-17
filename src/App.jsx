@@ -2,6 +2,7 @@ import './App.css';
 import React, { useState, useRef, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
+import { Analytics } from '@vercel/analytics/react';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
 import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
@@ -375,5 +376,3 @@ const App = () => {
 };
 
 export default App;
-
-
