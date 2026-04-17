@@ -463,7 +463,7 @@ export const SegmentedDateTime = ({
       const idx = Number.parseInt(buf, 10) - 1;
       return (idx >= 0 && idx < 12) ? MONTH_ABBR[idx] : buf;
     }
-    return hasDate ? MONTH_ABBR[dateParts.month - 1] : 'Mon';
+    return hasDate ? MONTH_ABBR[dateParts.month - 1] : 'MM';
   };
 
   const dispDay = () => {
