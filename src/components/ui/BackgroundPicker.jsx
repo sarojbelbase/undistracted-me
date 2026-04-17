@@ -23,13 +23,15 @@ import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../assets/img/bg.webp';
 import { SettingsInput } from './SettingsInput';
 import { TabRow } from './TabRow';
-import {
-  getPhotoLibrary,
+import { getPhotoLibrary,
   downloadCuratedPhotos,
   deletePhoto,
   jumpToPhotoById,
   LIBRARY_MAX,
+  updatePhotoColor,
+  getThumbUrl,
 } from '../../utilities/unsplash';
+import { extractColorFromImage } from '../../utilities/favicon';
 
 // ─── Orb colour palettes (shared + exported) ────────────────────────────────
 
@@ -186,6 +188,15 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
     return lib.find(p => p.regular === initialPhotoUrl || p.url === initialPhotoUrl || p.small === initialPhotoUrl)?.id ?? null;
   });
 
+  // Dominant colours extracted from thumbnails as they load — keyed by photo id.
+  const [photoColors, setPhotoColors] = useState({});
+  const handleColorExtracted = useCallback((id, color) => {
+    setPhotoColors(prev => ({ ...prev, [id]: color }));
+    // Persist to the library cache so the color survives picker close/reopen
+    // and is immediately available in App.jsx as a pageBg placeholder.
+    updatePhotoColor(id, color);
+  }, []);
+
   const handleDownloadAll = async () => {
     setDownloading(true);
     setDownloadError(null);
@@ -234,7 +245,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
       // and doesn't depend on reading the shared photo library[0] at render time.
       const photo = getPhotoLibrary()[0];
       const url = photo?.regular || photo?.url || photo?.small || null;
-      onApply(url);
+      onApply(url, photoColors[id] ?? null);
     }
   };
 
@@ -286,17 +297,33 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
 
           {/* Curated photo cells — only reveal up to revealedCount after download */}
           {library.slice(0, revealedCount).map((ph) => {
-            const src = ph.small || ph.url || ph.regular;
+            // getThumbUrl computes a 200px /_vercel/image URL from PRODUCTION_BASE_URL
+            // so it works for cached entries that predate the `thumb` API field.
+            const src = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
             const isPhotoActive = ph.id === activeId;
             return (
               <button
                 key={ph.id}
                 className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
-                style={{ aspectRatio: '4/3', display: 'block', padding: 0, border: 'none' }}
+                style={{
+                  aspectRatio: '4/3', display: 'block', padding: 0, border: 'none',
+                  // Show the cached dominant colour while the thumbnail is still loading.
+                  // Falls back to the API-provided color (initially '#18191b').
+                  background: photoColors[ph.id] || ph.color || 'var(--panel-bg)',
+                }}
                 onClick={() => handleUse(ph.id)}
                 aria-label="Apply this background"
               >
-                <img src={src} alt="" aria-hidden decoding="async" loading="lazy" className="w-full h-full object-cover" />
+                <img
+                  src={src}
+                  alt=""
+                  aria-hidden
+                  decoding="async"
+                  loading="lazy"
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-cover"
+                  onLoad={e => extractColorFromImage(e.currentTarget, c => handleColorExtracted(ph.id, c))}
+                />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }} />
                 {isPhotoActive && <ActiveBadge />}
                 <button
@@ -631,7 +658,7 @@ export const BackgroundPicker = ({
               isDefaultActive={activeSource === 'default'}
               allowRotate={scope === 'focus'}
               initialPhotoUrl={initialPhotoUrl}
-              onApply={(url) => handleApply('curated', url ? { url } : {})}
+              onApply={(url, color) => handleApply('curated', url ? { url, ...(color ? { color } : {}) } : {})}
               onApplyDefault={() => handleApply('default')}
               onRotatePhoto={onRotatePhoto}
               scrollFadeColor={cardSurface}

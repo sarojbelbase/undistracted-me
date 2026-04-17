@@ -7,7 +7,8 @@ import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/ho
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { OrbBackground } from './components/ui/OrbBackground';
 import { BackgroundPicker, getOrbRgbById } from './components/ui/BackgroundPicker';
-import { getPhotoLibrary } from './utilities/unsplash';
+import { getPhotoLibrary, getThumbUrl } from './utilities/unsplash';
+import { extractColorFromImage } from './utilities/favicon';
 import bgImage from './assets/img/bg.webp';
 import { ACCENT_COLORS } from './theme';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
@@ -118,8 +119,20 @@ const App = () => {
     return null;
   }, [bgType, canvasBg]);
 
+  // Thumbnail URL for the active curated photo — drives both color extraction
+  // and the blur-up blurry preview layer. Computed client-side from the library
+  // head so it works even for cached entries that predate the `thumb` API field.
+  const bgThumbUrl = useMemo(() => {
+    if (bgType !== 'curated') return null;
+    const p = getPhotoLibrary()[0];
+    return getThumbUrl(p);
+  }, [bgType, canvasBg?.url]);
+
   const pageBg = useMemo(() => {
-    if (bgType === 'curated' || bgType === 'custom' || bgType === 'default') return '#000000';
+    // Use the stored dominant colour as the instant placeholder so there's no
+    // black flash while the full-resolution background image is loading.
+    if (bgType === 'curated') return canvasBg?.color || '#0c0c10';
+    if (bgType === 'custom' || bgType === 'default') return '#000000';
     if (bgType === 'orb') return isDark ? '#060608' : 'var(--w-page-bg)';
     // solid — rich accent-tinted gradient
     const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#3689E6';
@@ -132,7 +145,16 @@ const App = () => {
       `radial-gradient(ellipse 80% 110% at 55% -25%, color-mix(in srgb, ${accentHex} ${cone}%, ${base}) 0%, color-mix(in srgb, ${accentHex} ${Math.round(cone * 0.3)}%, ${base}) 55%, transparent 80%)`,
       `linear-gradient(to bottom, color-mix(in srgb, ${accentHex} ${haze}%, ${base}) 0%, ${base} 55%)`,
     ].join(', ');
-  }, [bgType, isDark, accent]);
+  }, [bgType, isDark, accent, canvasBg?.color]);
+
+  // ── Blur-up load tracking ──────────────────────────────────────────────────
+  // Compare loaded URLs against current targets — comparison becomes false
+  // automatically when URLs change, driving the blur-up sequence without an
+  // explicit phase reset: pageBg color → blurry thumb → sharp full-res.
+  const [thumbLoadedUrl, setThumbLoadedUrl] = useState(null);
+  const [fullLoadedUrl, setFullLoadedUrl]   = useState(null);
+  const thumbReady = !!bgThumbUrl && thumbLoadedUrl === bgThumbUrl;
+  const fullReady  = !!bgImageUrl && fullLoadedUrl  === bgImageUrl;
 
   return (
     <div
@@ -142,14 +164,50 @@ const App = () => {
     >
       {/* ── Canvas background layer ── */}
       {bgType === 'orb' && <OrbBackground zIndex={0} rgb={bgOrbRgb} isDark={isDark} />}
-      {(bgType === 'curated' || bgType === 'custom' || bgType === 'default') && bgImageUrl && (
-        <div
+
+      {/* Blur-up sequence for curated photos:
+            Layer 0 (zIndex 0): blurry thumbnail — fades in fast.
+                                Also drives the color-extraction side-effect.
+            Layer 1 (zIndex 1): full-res — crossfades in sharply over the thumb.
+          The dominant `pageBg` colour shows through until layer 0 is ready. */}
+      {bgType === 'curated' && bgThumbUrl && (
+        <img
+          key={bgThumbUrl}
+          src={bgThumbUrl}
+          alt=""
           aria-hidden
+          crossOrigin="anonymous"
+          onLoad={e => {
+            extractColorFromImage(e.currentTarget, color =>
+              setCanvasBg(prev => ({ ...prev, color }))
+            );
+            setThumbLoadedUrl(bgThumbUrl);
+          }}
           style={{
             position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: `url(${bgImageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            filter: 'blur(18px)',
+            transform: 'scale(1.08)', // hide blur edges
+            opacity: thumbReady ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {(bgType === 'curated' || bgType === 'custom' || bgType === 'default') && bgImageUrl && (
+        <img
+          key={bgImageUrl}
+          src={bgImageUrl}
+          alt=""
+          aria-hidden
+          onLoad={() => setFullLoadedUrl(bgImageUrl)}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            opacity: fullReady ? 1 : 0,
+            transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
           }}
         />
@@ -306,7 +364,7 @@ const App = () => {
           initialPhotoUrl={bgType === 'curated' ? canvasBg?.url || null : null}
           onClose={() => setShowBgPicker(false)}
           onApply={(type, opts = {}) => {
-            setCanvasBg({ type, orbId: opts.orbId || bgOrbId, url: opts.url ?? null });
+            setCanvasBg({ type, orbId: opts.orbId || bgOrbId, url: opts.url ?? null, color: opts.color ?? null });
           }}
         />
       )}

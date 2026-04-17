@@ -4,6 +4,14 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
+  "images": {
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "**.public.blob.vercel-storage.com"
+      }
+    ]
+  },
   "functions": {
     "api/favicon.js": {
       "maxDuration": 10
