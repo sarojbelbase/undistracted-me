@@ -1,21 +1,34 @@
 // In dev (localhost) requests go through the Vite proxy to avoid CORS.
-// In the real extension the chrome-extension:// origin is allowed by the host_permissions.
-const isDev = typeof location !== 'undefined' && location.hostname === 'localhost';
+// In production (web app) requests go through Vercel API proxy routes.
+// In the browser extension the chrome-extension:// origin is allowed by host_permissions.
+const hostname = typeof location !== 'undefined' ? location.hostname : '';
+const isDev = hostname === 'localhost';
+const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
-// ── Company list — still served from nepalipaisa.com ─────────────────────────
-const NP_BASE = isDev ? '' : 'https://nepalipaisa.com';
-const NP_API = isDev ? '/np-api' : '/api';
-const COMPANIES_URL = `${NP_BASE}${NP_API}/GetCompanies`;
+// ── Company list ──────────────────────────────────────────────────────────────
+// dev → Vite proxy (/np-api → nepalipaisa.com)
+// extension → direct (allowed by host_permissions)
+// web → Vercel proxy route (/api/stocks/companies)
+const COMPANIES_URL = isDev
+  ? '/np-api/GetCompanies'
+  : isExtension
+    ? 'https://nepalipaisa.com/api/GetCompanies'
+    : '/api/stocks/companies';
 
-// ── Chart data — merolagani.com TechnicalChartHandler ────────────────────────
-// Response: { t, o, h, l, c, v, s } — standard OHLCV arrays, s === "ok" on success.
-const ML_ORIGIN = isDev ? '' : 'https://www.merolagani.com';
-const ML_PATH = isDev ? '/ml-api' : '/handlers/TechnicalChartHandler.ashx';
-
+// ── Chart data ────────────────────────────────────────────────────────────────
+// dev → Vite proxy (/ml-api → merolagani.com)
+// extension → direct (allowed by host_permissions)
+// web → Vercel proxy route (/api/stocks/chart?symbol=...)
 function chartUrl(symbol) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 90 * 24 * 60 * 60; // 90 days of daily data for sparkline
-  return `${ML_ORIGIN}${ML_PATH}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+  if (isDev) {
+    return `/ml-api?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+  }
+  if (isExtension) {
+    return `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+  }
+  return `/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
