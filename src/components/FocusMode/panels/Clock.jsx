@@ -10,14 +10,13 @@ const DigitRoller = ({ char }) => (
   </span>
 );
 
-export const Clock = ({ parts, centerOnDark }) => (
+export const Clock = ({ parts, centerOnDark, compact = false }) => (
   <div
-    className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none"
-    style={{ zIndex: 18 }}
+    className={compact ? 'fm-clock-compact flex items-center select-none pointer-events-none' : 'flex items-center select-none pointer-events-none'}
   >
     <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-start' }}>
       <div
-        className="fm-clock-text flex items-center"
+        className={compact ? 'fm-clock-text-compact flex items-center' : 'fm-clock-text flex items-center'}
         style={{
           fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
           fontWeight: 700,
@@ -32,7 +31,7 @@ export const Clock = ({ parts, centerOnDark }) => (
         {parts.time.split('').map((char, i) =>
           char === ':' ? (
             <span
-              key={i}
+              key={`sep-${i}`}
               style={{
                 fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
                 lineHeight: 1, height: '1em', display: 'flex', alignItems: 'center',
@@ -48,7 +47,7 @@ export const Clock = ({ parts, centerOnDark }) => (
       </div>
       {parts.period && (
         <span style={{
-          fontSize: 'clamp(1.2rem, 2vw, 2.4rem)',
+          fontSize: compact ? 'clamp(0.9rem, 1.4vw, 1.6rem)' : 'clamp(1.2rem, 2vw, 2.4rem)',
           fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
           fontWeight: 700,
           letterSpacing: '0.08em',

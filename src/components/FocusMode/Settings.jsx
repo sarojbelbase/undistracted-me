@@ -33,10 +33,20 @@ const ToggleRow = ({ label, options, value, onChange }) => (
   </div>
 );
 
+const OnOffRow = ({ label, value, onChange }) => (
+  <ToggleRow
+    label={label}
+    options={[{ id: true, label: 'On' }, { id: false, label: 'Off' }]}
+    value={value}
+    onChange={v => onChange(v === true || v === 'true' || v === 'on')}
+  />
+);
+
 export const FocusModeSettings = ({ onOpenBgModal }) => {
   const {
     dateFormat, setDateFormat,
     clockFormat, setClockFormat,
+    focusSearchBar, setFocusSearchBar,
   } = useSettingsStore();
 
   return (
@@ -66,6 +76,14 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
         options={[{ id: '24h', label: '24h' }, { id: '12h', label: '12h' }]}
         value={clockFormat || '24h'}
         onChange={setClockFormat}
+      />
+
+      {/* Search bar */}
+      <ToggleRow
+        label="Search Bar"
+        options={[{ id: true, label: 'Show' }, { id: false, label: 'Hide' }]}
+        value={focusSearchBar ?? true}
+        onChange={setFocusSearchBar}
       />
 
       {/* Background */}

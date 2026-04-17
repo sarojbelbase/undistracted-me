@@ -73,6 +73,7 @@ export const useSettingsStore = create(
       // ── State (seeded from legacy keys on first load) ──────────────────
       ...fromLegacy(),
       clockFormat: '24h',
+      focusSearchBar: true,
 
       // ── Helpers ────────────────────────────────────────────────────────
       /** Returns 'light' or 'dark' key for modePrefs based on current mode */
@@ -91,6 +92,9 @@ export const useSettingsStore = create(
 
       /** Clock time format shown in Focus Mode: '24h' | '12h' */
       setClockFormat: (clockFormat) => set({ clockFormat }),
+
+      /** Toggle search bar visibility in Focus Mode */
+      setFocusSearchBar: (focusSearchBar) => set({ focusSearchBar }),
 
       setAccent: (accent) => {
         set({ accent });

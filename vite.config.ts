@@ -113,6 +113,47 @@ const googleTokenProxy = (): Plugin => ({
   },
 });
 
+/**
+ * Dev-only: proxies /api/suggest?client=chrome&q=... to suggestqueries.google.com
+ * and /api/suggest/ddg?q=... to duckduckgo.com server-side, bypassing CORS.
+ * In the real extension, host_permissions handles this natively.
+ */
+const suggestProxy = (): Plugin => ({
+  name: 'suggest-proxy',
+  configureServer(server) {
+    server.middlewares.use('/api/suggest', async (req, res) => {
+      if (req.method !== 'GET') { res.statusCode = 405; res.end(); return; }
+      const qs = (req.url ?? '').split('?')[1] ?? '';
+      const params = new URLSearchParams(qs);
+      const q = params.get('q') ?? '';
+      const client = params.get('client') ?? 'chrome';
+      const ds = params.get('ds') ?? '';
+
+      const upstream = ds
+        ? `https://suggestqueries.google.com/complete/search?client=${client}&ds=${ds}&q=${encodeURIComponent(q)}`
+        : client === 'ddg'
+          ? `https://duckduckgo.com/ac/?type=list&q=${encodeURIComponent(q)}`
+          : `https://suggestqueries.google.com/complete/search?client=${client}&q=${encodeURIComponent(q)}`;
+
+      try {
+        const r = await fetch(upstream, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        let text = await r.text();
+        // Google returns JSONP (window.google.ac.h([...])) when called from non-browser agents.
+        // Strip the wrapper so the client always receives plain JSON.
+        const jsonpMatch = text.match(/^window\.google\.ac\.h\((.+)\)$/s);
+        if (jsonpMatch) text = jsonpMatch[1];
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.statusCode = r.status;
+        res.end(text);
+      } catch (e) {
+        res.statusCode = 502;
+        res.end('[]');
+      }
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
@@ -125,6 +166,7 @@ export default defineConfig({
     crx({ manifest }),
     faviconWaterfall(),
     googleTokenProxy(),
+    suggestProxy(),
   ],
   build: {
     // Strip console.warn/console.error in extension production builds.

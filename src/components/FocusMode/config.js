@@ -7,9 +7,9 @@
 // │  [← Canvas]         weather · date         [⛶] [⚙]   │
 // ├──────────────────────────────────────────────────────────┤
 // │       LEFT            CENTER             RIGHT           │
-// │    (panels)       clock + greeting    (world clock)      │
+// │    (panels)       clock + search      (world clock)      │
 // ├──────────────────────── BOTTOM ─────────────────────────┤
-// │                    (reserved)                            │
+// │                      greeting                            │
 // └──────────────────────────────────────────────────────────┘
 
 export const ZONES = {
@@ -26,7 +26,7 @@ export const ZONES = {
     enable: true,
     items: {
       clock: { enable: true, order: 0 },
-      greeting: { enable: true, order: 1 },
+      searchBar: { enable: true, order: 1 },
     },
   },
   left: {
@@ -46,7 +46,9 @@ export const ZONES = {
     },
   },
   bottom: {
-    enable: false,
-    items: {},
+    enable: true,
+    items: {
+      greeting: { enable: true, order: 0 },
+    },
   },
 };
