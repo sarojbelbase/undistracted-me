@@ -155,7 +155,7 @@ export const FocusMode = ({ onExit }) => {
           scope="focus"
           initialSource={bgSource}
           initialCustomUrl={bgSource === 'custom' ? customBgUrl : null}
-          initialPhotoUrl={null}
+          initialPhotoUrl={bgSource === 'curated' ? (photo?.regular || photo?.url || null) : null}
           onClose={() => setShowBgModal(false)}
           onApply={(type, opts = {}) => handleBgChange(type, opts.url)}
           onRotatePhoto={rotate}
