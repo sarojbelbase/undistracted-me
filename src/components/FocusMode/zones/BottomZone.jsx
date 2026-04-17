@@ -1,6 +1,33 @@
 // ─── Bottom zone ──────────────────────────────────────────────────────────────
 //
-// Reserved for future content (e.g. a now-playing bar, quick actions, etc.).
-// Currently renders nothing. Enable via ZONES.bottom in layout.config.js.
+// Renders the greeting text pinned to the bottom of Focus Mode.
 
-export const BottomZone = () => null;
+import { useState, useEffect, useCallback } from 'react';
+import { getTimeParts } from '../../../widgets/clock/utils';
+import { onClockTick } from '../../../utilities/sharedClock';
+import { Greetings } from '../panels/Greetings';
+import { ZONES } from '../config';
+
+export const BottomZone = ({ centerOnDark }) => {
+  const [parts, setParts] = useState(() => getTimeParts('24h'));
+  const update = useCallback(() => setParts(getTimeParts('24h')), []);
+  useEffect(() => onClockTick(update), [update]);
+
+  if (!ZONES.bottom.items.greeting.enable) return null;
+
+  return (
+    <div
+      className="fm-bottom-zone absolute pointer-events-none select-none"
+      style={{
+        bottom: 'clamp(2rem, 4.5vh, 4rem)',
+        left: 0,
+        right: 0,
+        zIndex: 20,
+        textAlign: 'center',
+      }}
+    >
+      <Greetings parts={parts} centerOnDark={centerOnDark} compact={false} />
+    </div>
+  );
+};
+

@@ -10,6 +10,7 @@ import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, g
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
 import { TopZone } from './zones/TopZone';
 import { CenterZone } from './zones/CenterZone';
+import { BottomZone } from './zones/BottomZone';
 import { LeftZone } from './zones/LeftZone';
 import { RightZone } from './zones/RightZone';
 import { ZONES } from './config';
@@ -138,6 +139,7 @@ export const FocusMode = ({ onExit }) => {
       }} />
 
       {ZONES.center.enable && <CenterZone centerOnDark={effectiveCenterOnDark} />}
+      {ZONES.bottom.enable && <BottomZone centerOnDark={effectiveCenterOnDark} />}
       {ZONES.right.enable && <RightZone />}
       {ZONES.left.enable && <LeftZone />}
       {ZONES.top.enable && (

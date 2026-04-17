@@ -585,18 +585,70 @@ textarea:focus-visible,
 
 /* ── Clock size (responsive) ── */
 .fm-clock-text {
-  font-size: clamp(6rem, 18vw, 24rem);
+  font-size: clamp(5rem, 15vw, 20rem);
+}
+
+/* ── Compact clock (search bar mode) ── */
+/* Formula: inner container = min(560px, 90vw-40px)
+   Clock text "HH:MM" ≈ 2.5em wide → font-size = (90vw-40px)/2.5 = 36vw-16px
+   Scaled down ~15%: 31vw-1rem, cap at 12rem */
+.fm-clock-text-compact {
+  font-size: clamp(2.5rem, calc(31vw - 1rem), 12rem);
+}
+
+.fm-greeting-compact {
+  margin-top: clamp(0.5rem, 1vw, 1rem);
+  text-align: center;
+}
+
+/* ── Search bar drop animation ── */
+@keyframes fmDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fmBounce {
+  0% {
+    transform: scale(1);
+  }
+
+  18% {
+    transform: scale(0.96);
+  }
+
+  45% {
+    transform: scale(1.04);
+  }
+
+  65% {
+    transform: scale(0.98);
+  }
+
+  80% {
+    transform: scale(1.015);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 899px) and (min-width: 641px) {
   .fm-clock-text {
-    font-size: clamp(6rem, 16vw, 16rem);
+    font-size: clamp(5rem, 13vw, 13rem);
   }
 }
 
 @media (max-width: 640px) {
   .fm-clock-text {
-    font-size: clamp(5.5rem, 18vw, 8rem);
+    font-size: clamp(4.5rem, 15vw, 7rem);
   }
 }
 
@@ -740,6 +792,11 @@ textarea:focus-visible,
   .fm-left-panel>* {
     flex-shrink: 0;
     width: 188px;
+  }
+
+  /* Lift greeting above the left panel row (24px offset + ~82px cards + 16px gap) */
+  .fm-bottom-zone {
+    bottom: calc(24px + 6rem + 16px) !important;
   }
 }
 

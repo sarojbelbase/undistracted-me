@@ -7,6 +7,9 @@ import { useWidgetInstancesStore } from '../../store';
 import { useSpotify } from '../../widgets/spotify/useSpotify';
 import { useStocks } from '../../widgets/stock/useStocks';
 
+const HISTORY_KEY = 'fm_search_history';
+const MAX_HISTORY = 12;
+
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
 export const useFocusWeather = () => {
@@ -194,3 +197,78 @@ export const useFocusSpotify = () => {
   const { spotify, progress: spotifyProgress, ...rest } = useSpotify();
   return { spotify, spotifyProgress, ...rest };
 };
+
+// ─── Search bar utilities (used by panels/SearchBar.jsx) ──────────────────────
+
+export function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+}
+
+export function pushHistory(query) {
+  if (!query.trim()) return;
+  const prev = getHistory().filter(q => q !== query);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify([query, ...prev].slice(0, MAX_HISTORY)));
+}
+
+// Autocomplete fetch — CORS is bypassed in the extension via host_permissions;
+// in Vite dev mode the suggestProxy middleware in vite.config.ts handles it.
+const IS_DEV = typeof location !== 'undefined' && location.hostname === 'localhost';
+
+function suggestUrl(engine) {
+  if (!engine.suggest) return null;
+  if (!IS_DEV) return engine.suggest;
+  const u = new URL(engine.suggest);
+  const client = u.searchParams.get('client') || 'chrome';
+  const ds = u.searchParams.get('ds') || '';
+  if (ds) return `/api/suggest?client=${client}&ds=${ds}&q=`;
+  if (client === 'ddg') return '/api/suggest?client=ddg&q=';
+  return `/api/suggest?client=${client}&q=`;
+}
+
+export async function fetchSuggestionsAsync(engine, query) {
+  const url = suggestUrl(engine);
+  if (!query.trim() || !url) return [];
+  try {
+    const res = await fetch(`${url}${encodeURIComponent(query)}`, {
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    let raw = [];
+    if (Array.isArray(data) && Array.isArray(data[1])) {
+      // Google/YouTube (flat):   ["query", ["s1", "s2", ...]]
+      // Google/YouTube (nested): ["query", [["s1", 0, [...]], ...]]
+      // DDG type=list:            ["query", ["s1", "s2", ...]]
+      raw = data[1].map(item => (typeof item === 'string' ? item : item?.[0]));
+    } else if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0]?.phrase) {
+      raw = data.map(d => d.phrase); // DDG legacy: [{phrase: '...'}, ...]
+    }
+    return raw.filter(s => typeof s === 'string').slice(0, 6);
+  } catch { return []; }
+}
+
+export function searchOpenTabs(query) {
+  return new Promise(resolve => {
+    /* eslint-disable no-undef */
+    if (typeof chrome === 'undefined' || !chrome.tabs?.query) { resolve([]); return; }
+    try {
+      chrome.tabs.query({ currentWindow: true }, (tabs) => {
+        if (chrome.runtime?.lastError) { resolve([]); return; }
+        const q = query.toLowerCase();
+        const matches = (tabs || [])
+          .filter(t => t.title?.toLowerCase().includes(q) || t.url?.toLowerCase().includes(q))
+          .slice(0, 3);
+        resolve(matches);
+      });
+    } catch { resolve([]); }
+    /* eslint-enable no-undef */
+  });
+}
+
+export function switchToTab(tab) {
+  /* eslint-disable no-undef */
+  if (typeof chrome === 'undefined' || !chrome.tabs?.update) return;
+  chrome.tabs.update(tab.id, { active: true });
+  if (chrome.windows?.update) chrome.windows.update(tab.windowId, { focused: true });
+  /* eslint-enable no-undef */
+}

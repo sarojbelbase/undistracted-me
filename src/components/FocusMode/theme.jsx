@@ -33,3 +33,65 @@ export const AnimatedCard = ({ delay, children }) => (
     {children}
   </div>
 );
+
+// ─── Search bar inline style tokens ───────────────────────────────────────────
+//
+// The search bar switches between dark/light palettes based on image luminance
+// (centerOnDark). These are JS objects used as inline styles — not CSS vars —
+// because the choice is made at runtime, not at theme-load time.
+
+const DARK_TOKENS = {
+  pillBg: 'rgba(255,255,255,0.10)',
+  pillBgFocused: 'rgba(255,255,255,0.15)',
+  pillBorder: 'rgba(255,255,255,0.16)',
+  pillBorderFoc: 'rgba(255,255,255,0.28)',
+  shadowFocused: '0 4px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
+  shadow: '0 2px 16px rgba(0,0,0,0.28)',
+  textColor: 'rgba(255,255,255,0.92)',
+  placeholder: 'rgba(255,255,255,0.38)',
+  divider: 'rgba(255,255,255,0.10)',
+  dropBg: 'rgba(10,10,14,0.88)',
+  dropBorder: 'rgba(255,255,255,0.10)',
+  dropShadow: '0 8px 32px rgba(0,0,0,0.55)',
+  hoverBg: 'rgba(255,255,255,0.07)',
+  activeBg: 'rgba(255,255,255,0.12)',
+  selectedBg: 'rgba(255,255,255,0.10)',
+  btnHoverBg: 'rgba(255,255,255,0.18)',
+  btnBg: 'rgba(255,255,255,0.10)',
+  suggText: 'rgba(255,255,255,0.82)',
+  selectedText: 'rgba(255,255,255,0.92)',
+  label: 'rgba(255,255,255,0.35)',
+  caret: 'rgba(255,255,255,0.7)',
+  iconStroke: 'rgba(255,255,255,0.78)',
+  chevron: 'white',
+};
+
+const LIGHT_TOKENS = {
+  pillBg: 'rgba(0,0,0,0.07)',
+  pillBgFocused: 'rgba(0,0,0,0.10)',
+  pillBorder: 'rgba(0,0,0,0.12)',
+  pillBorderFoc: 'rgba(0,0,0,0.22)',
+  shadowFocused: '0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+  shadow: '0 2px 12px rgba(0,0,0,0.07)',
+  textColor: 'rgba(0,0,0,0.88)',
+  placeholder: 'rgba(0,0,0,0.30)',
+  divider: 'rgba(0,0,0,0.08)',
+  dropBg: 'rgba(255,255,255,0.94)',
+  dropBorder: 'rgba(0,0,0,0.08)',
+  dropShadow: '0 8px 24px rgba(0,0,0,0.14)',
+  hoverBg: 'rgba(0,0,0,0.05)',
+  activeBg: 'rgba(0,0,0,0.08)',
+  selectedBg: 'rgba(0,0,0,0.06)',
+  btnHoverBg: 'rgba(0,0,0,0.13)',
+  btnBg: 'rgba(0,0,0,0.07)',
+  suggText: 'rgba(0,0,0,0.78)',
+  selectedText: 'rgba(0,0,0,0.88)',
+  label: 'rgba(0,0,0,0.30)',
+  caret: 'rgba(0,0,0,0.6)',
+  iconStroke: 'rgba(0,0,0,0.60)',
+  chevron: 'black',
+};
+
+export function getTokens(dark) {
+  return dark ? DARK_TOKENS : LIGHT_TOKENS;
+}
