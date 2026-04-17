@@ -6,6 +6,7 @@
   "outputDirectory": "dist",
   "images": {
     "sizes": [
+      200,
       640,
       750,
       828,
