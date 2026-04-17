@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
 import { bucketLabel, isPast } from './utils';
-import { CreateModal } from './CreateModal';
+import { AddEvent } from './AddEvent';
 import { EventRow } from '../../components/ui/EventRow';
 import { Modal } from '../../components/ui/Modal';
 
@@ -86,7 +86,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
         ))}
       </div>
 
-      {showCreate && <CreateModal onSave={onAdd} onClose={() => setShowCreate(false)} />}
+      {showCreate && <AddEvent onSave={onAdd} onClose={() => setShowCreate(false)} />}
     </Modal>
   );
 };

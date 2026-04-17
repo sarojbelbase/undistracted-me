@@ -4,7 +4,7 @@ import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
 import { todayStr } from '../../utilities';
 import { humanizeAge } from "./utils";
-import { CreateModal } from './CreateModal';
+import { AddEvent } from './AddEvent';
 import { AllEventsModal } from './AllEventsModal';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
@@ -130,7 +130,7 @@ export const Widget = ({ onRemove }) => {
 
       </BaseWidget>
 
-      {showCreate && <CreateModal onSave={addEvent} onClose={() => setShowCreate(false)} />}
+      {showCreate && <AddEvent onSave={addEvent} onClose={() => setShowCreate(false)} />}
       {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} />}
     </>
   );
