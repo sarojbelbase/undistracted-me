@@ -305,25 +305,31 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             const isApplying = ph.id === applyingId;
             const isLoaded = loadedIds.has(ph.id);
             return (
-              <button
+              // Use div+role instead of nested <button><button> (invalid HTML).
+              <div
                 key={ph.id}
-                className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
+                className="relative rounded-lg overflow-hidden cursor-pointer group"
                 style={{
-                  aspectRatio: '4/3', display: 'block', padding: 0, border: 'none',
+                  aspectRatio: '4/3',
                   background: photoColors[ph.id] || ph.color || 'var(--panel-bg)',
                 }}
-                onClick={() => handleUse(ph.id)}
-                aria-label="Apply this background"
-                disabled={isApplying}
               >
+                {/* Main click target */}
+                <button
+                  className="absolute inset-0 w-full h-full focus:outline-none"
+                  style={{ border: 'none', background: 'transparent', padding: 0, cursor: isApplying ? 'default' : 'pointer' }}
+                  onClick={() => handleUse(ph.id)}
+                  aria-label="Apply this background"
+                  disabled={isApplying}
+                />
+
                 <img
                   src={src}
                   alt=""
                   aria-hidden
                   decoding="async"
                   loading="lazy"
-                  crossOrigin="anonymous"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none"
                   style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
                   onLoad={e => handleImgLoad(ph.id, e.currentTarget)}
                 />
@@ -355,7 +361,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
 
                 {/* Center apply icon — shown on hover when not active/applying */}
                 {!isPhotoActive && !isApplying && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: 'rgba(0,0,0,0.3)' }}>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.32)' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -366,15 +372,16 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
 
                 {isPhotoActive && <ActiveBadge />}
 
+                {/* Delete button — sibling, not child of the main button */}
                 <button
-                  onClick={e => { e.stopPropagation(); handleDelete(ph.id); }}
-                  className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
+                  onClick={() => handleDelete(ph.id)}
+                  className="absolute top-1 right-1 z-10 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
                   style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid transparent' }}
                   aria-label="Remove photo"
                 >
                   <XLg size={7} />
                 </button>
-              </button>
+              </div>
             );
           })}
 

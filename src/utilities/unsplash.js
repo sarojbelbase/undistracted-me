@@ -32,8 +32,11 @@ const CACHE_KEY = 'fm_unsplash_cache';       // max photos stored in library
  */
 export const getThumbUrl = (photo) => {
   if (!photo) return null;
-  if (photo.thumb) return photo.thumb;
+  // In local dev, /_vercel/image is cross-origin and CORS-blocked. Use the raw blob URL directly.
+  const isLocalDev = typeof location !== 'undefined' && location.hostname === 'localhost';
   const src = photo.regular || photo.url || photo.small;
+  if (isLocalDev) return src || null;
+  if (photo.thumb) return photo.thumb;
   if (!src) return null;
   return `${PRODUCTION_BASE_URL}/_vercel/image?url=${encodeURIComponent(src)}&w=200&q=70`;
 };
