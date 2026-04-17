@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useState, useRef, useEffect, useMemo, Suspense, lazy } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { MoonStarsFill, Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
@@ -152,9 +153,9 @@ const App = () => {
   // automatically when URLs change, driving the blur-up sequence without an
   // explicit phase reset: pageBg color → blurry thumb → sharp full-res.
   const [thumbLoadedUrl, setThumbLoadedUrl] = useState(null);
-  const [fullLoadedUrl, setFullLoadedUrl]   = useState(null);
+  const [fullLoadedUrl, setFullLoadedUrl] = useState(null);
   const thumbReady = !!bgThumbUrl && thumbLoadedUrl === bgThumbUrl;
-  const fullReady  = !!bgImageUrl && fullLoadedUrl  === bgImageUrl;
+  const fullReady = !!bgImageUrl && fullLoadedUrl === bgImageUrl;
 
   return (
     <div
@@ -368,6 +369,7 @@ const App = () => {
           }}
         />
       )}
+      <Analytics />
     </div>
   );
 };
