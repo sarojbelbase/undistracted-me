@@ -23,11 +23,11 @@ import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../assets/img/bg.webp';
 import { SettingsInput } from './SettingsInput';
 import { TabRow } from './TabRow';
-import { getPhotoLibrary,
+import {
+  getPhotoLibrary,
   downloadCuratedPhotos,
   deletePhoto,
   jumpToPhotoById,
-  LIBRARY_MAX,
   updatePhotoColor,
   getThumbUrl,
 } from '../../utilities/unsplash';
@@ -167,21 +167,19 @@ const OrbPanel = ({ isActive, onApply, scope = 'canvas' }) => {
 
 // ─── Curated panel ────────────────────────────────────────────────────────────
 
+const WIPE_MS = 650;
+
 const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefaultActive, onApplyDefault, initialPhotoUrl = null, scrollFadeColor = 'var(--w-surface)', dark = false }) => {
-  const [library, setLibrary] = useState(() => getPhotoLibrary());
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState(null);
-  // Progressive reveal: after download, images appear 2 per rAF frame to keep the tab responsive.
-  const [revealedCount, setRevealedCount] = useState(() => getPhotoLibrary().length);
-  const rafRef = useRef(null);
+  // Seed immediately from cache, then refresh from API on open.
+  const [allPhotos, setAllPhotos] = useState(() => getPhotoLibrary());
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
-  const refresh = useCallback(() => setLibrary(getPhotoLibrary()), []);
+  // ID of the photo currently being "applied" (wipe animation running).
+  const [applyingId, setApplyingId] = useState(null);
+  const wipeTimerRef = useRef(null);
 
-  // Cancel any in-flight reveal loop on unmount.
-  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
-
-  // Track the active photo ID — seeded from initialPhotoUrl on open,
-  // then updated locally as the user selects photos.
+  // Track the active photo ID.
   const [selectedPhotoId, setSelectedPhotoId] = useState(() => {
     if (!initialPhotoUrl) return null;
     const lib = getPhotoLibrary();
@@ -192,91 +190,78 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
   const [photoColors, setPhotoColors] = useState({});
   const handleColorExtracted = useCallback((id, color) => {
     setPhotoColors(prev => ({ ...prev, [id]: color }));
-    // Persist to the library cache so the color survives picker close/reopen
-    // and is immediately available in App.jsx as a pageBg placeholder.
     updatePhotoColor(id, color);
   }, []);
 
-  const handleDownloadAll = async () => {
-    setDownloading(true);
-    setDownloadError(null);
-    try {
-      const photos = await downloadCuratedPhotos();
-      if (photos?.length) {
-        refresh();
-        // Progressively reveal thumbnails (2 per animation frame) so the browser
-        // doesn't try to fetch + decode all images simultaneously.
-        setRevealedCount(0);
-        let count = 0;
-        const total = photos.length;
-        const step = () => {
-          count = Math.min(count + 2, total);
-          setRevealedCount(count);
-          if (count < total) rafRef.current = requestAnimationFrame(step);
-        };
-        rafRef.current = requestAnimationFrame(step);
+  // Track which thumbnails have finished loading so we can hide their skeleton.
+  const [loadedIds, setLoadedIds] = useState(() => new Set());
+  const handleImgLoad = useCallback((id, imgEl) => {
+    setLoadedIds(prev => { const next = new Set(prev); next.add(id); return next; });
+    extractColorFromImage(imgEl, c => handleColorExtracted(id, c));
+  }, [handleColorExtracted]);
 
-        if (!allowRotate) {
-          const url = photos[0]?.regular || photos[0]?.url || photos[0]?.small || null;
-          setSelectedPhotoId(photos[0]?.id ?? null);
-          onApply(url);
-        }
-      } else {
-        setDownloadError('Could not reach the server. Check your connection and try again.');
-      }
-    } catch (err) {
-      setDownloadError(err?.message || 'Something went wrong. Please try again.');
-    } finally {
-      setDownloading(false);
-    }
-  };
+  // Fetch all photos from the API on open — always show the latest set.
+  useEffect(() => {
+    setFetching(true);
+    setFetchError(null);
+    downloadCuratedPhotos()
+      .then(photos => {
+        if (photos?.length) setAllPhotos(photos);
+        else if (!getPhotoLibrary().length) setFetchError('Could not reach the server. Check your connection.');
+      })
+      .catch(() => { if (!getPhotoLibrary().length) setFetchError('Something went wrong. Please try again.'); })
+      .finally(() => setFetching(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleUse = async (id) => {
+  useEffect(() => () => { if (wipeTimerRef.current) clearTimeout(wipeTimerRef.current); }, []);
+
+  const handleUse = (id) => {
+    if (applyingId === id) return;
     if (selectedPhotoId === id && isActive) return;
-    if (allowRotate) {
-      await onRotatePhoto?.(id);
-      refresh();
-      onApply();
-    } else {
-      jumpToPhotoById(id);
-      refresh();
-      setSelectedPhotoId(id);
-      // Pass the photo URL explicitly so canvas bg stores it directly
-      // and doesn't depend on reading the shared photo library[0] at render time.
-      const photo = getPhotoLibrary()[0];
-      const url = photo?.regular || photo?.url || photo?.small || null;
-      onApply(url, photoColors[id] ?? null);
-    }
+
+    setApplyingId(id);
+    setSelectedPhotoId(id);
+    jumpToPhotoById(id);
+
+    if (wipeTimerRef.current) clearTimeout(wipeTimerRef.current);
+    wipeTimerRef.current = setTimeout(async () => {
+      setApplyingId(null);
+      if (allowRotate) {
+        await onRotatePhoto?.(id);
+        onApply();
+      } else {
+        const photo = getPhotoLibrary()[0];
+        const url = photo?.regular || photo?.url || photo?.small || null;
+        onApply(url, photoColors[id] ?? null);
+      }
+    }, WIPE_MS);
   };
 
   const handleDelete = async (id) => {
-    const wasActive = (selectedPhotoId ?? library[0]?.id) === id;
+    if (applyingId === id) { clearTimeout(wipeTimerRef.current); setApplyingId(null); }
+    const wasActive = id === (selectedPhotoId ?? allPhotos[0]?.id);
     deletePhoto(id);
-    const nextLib = getPhotoLibrary();
+    setAllPhotos(prev => prev.filter(p => p.id !== id));
     if (wasActive) {
-      if (allowRotate) {
-        await onRotatePhoto?.(nextLib[0]?.id);
+      const nextLib = getPhotoLibrary();
+      const next = nextLib[0];
+      const nextUrl = next ? (next.regular || next.url || next.small || null) : null;
+      setSelectedPhotoId(next?.id ?? null);
+      if (nextUrl) {
+        jumpToPhotoById(next.id);
+        if (allowRotate) { await onRotatePhoto?.(next.id); onApply(); }
+        else onApply(nextUrl);
       } else {
-        // In canvas mode: move to the next available photo or fall back to default
-        const next = nextLib[0];
-        const nextUrl = next ? (next.regular || next.url || next.small || null) : null;
-        setSelectedPhotoId(next?.id ?? null);
-        if (nextUrl) {
-          jumpToPhotoById(next.id);
-          onApply(nextUrl);
-        } else {
-          onApplyDefault?.();
-        }
+        onApplyDefault?.();
       }
     }
-    refresh();
   };
 
-  const activeId = isActive ? (selectedPhotoId ?? library[0]?.id) : null;
+  const activeId = isActive ? (selectedPhotoId ?? allPhotos[0]?.id) : null;
+  const showShimmers = fetching && allPhotos.length === 0;
 
   return (
     <div className="flex flex-col gap-2">
-      {/* ── Unified grid: built-in first, curated after, download card at end ── */}
       <div className="relative">
         <div className="grid grid-cols-3 gap-1.5 overflow-y-auto" style={{ maxHeight: 248, scrollbarWidth: 'none' }}>
 
@@ -295,24 +280,23 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             </div>
           </button>
 
-          {/* Curated photo cells — only reveal up to revealedCount after download */}
-          {library.slice(0, revealedCount).map((ph) => {
-            // getThumbUrl computes a 200px /_vercel/image URL from PRODUCTION_BASE_URL
-            // so it works for cached entries that predate the `thumb` API field.
+          {/* Curated photo tiles — all shown upfront from API */}
+          {allPhotos.map((ph) => {
             const src = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
             const isPhotoActive = ph.id === activeId;
+            const isApplying = ph.id === applyingId;
+            const isLoaded = loadedIds.has(ph.id);
             return (
               <button
                 key={ph.id}
                 className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
                 style={{
                   aspectRatio: '4/3', display: 'block', padding: 0, border: 'none',
-                  // Show the cached dominant colour while the thumbnail is still loading.
-                  // Falls back to the API-provided color (initially '#18191b').
                   background: photoColors[ph.id] || ph.color || 'var(--panel-bg)',
                 }}
                 onClick={() => handleUse(ph.id)}
                 aria-label="Apply this background"
+                disabled={isApplying}
               >
                 <img
                   src={src}
@@ -322,10 +306,48 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
                   loading="lazy"
                   crossOrigin="anonymous"
                   className="w-full h-full object-cover"
-                  onLoad={e => extractColorFromImage(e.currentTarget, c => handleColorExtracted(ph.id, c))}
+                  style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
+                  onLoad={e => handleImgLoad(ph.id, e.currentTarget)}
                 />
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }} />
+
+                {/* Shimmer skeleton overlay — hidden once the thumbnail loads */}
+                {!isLoaded && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: dark
+                        ? 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)'
+                        : 'linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.04) 100%)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shimmer 1.4s ease-in-out infinite',
+                    }}
+                  />
+                )}
+
+                {/* Left-to-right wipe sweep when applying */}
+                {isApplying && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0.0) 100%)',
+                      animation: `bpWipe ${WIPE_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
+                    }}
+                  />
+                )}
+
+                {/* Center apply icon — shown on hover when not active/applying */}
+                {!isPhotoActive && !isApplying && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.32)' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <path d="M12 3v11m0 0-3.5-3.5M12 14l3.5-3.5M4 19h16" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+
                 {isPhotoActive && <ActiveBadge />}
+
                 <button
                   onClick={e => { e.stopPropagation(); handleDelete(ph.id); }}
                   className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
@@ -338,71 +360,36 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             );
           })}
 
-          {/* Locked placeholder cells — one per remaining slot, game-unlock style */}
-          {Array.from({ length: LIBRARY_MAX - Math.min(revealedCount, library.length) }).map((_, i) => {
-            const isFirst = i === 0;
-            const isShimmering = downloading && !isFirst;
-            const slotBg = dark ? 'rgba(255,255,255,0.06)' : 'var(--panel-bg)';
-            const slotBorder = dark ? '1px solid rgba(255,255,255,0.10)' : '1px solid var(--card-border)';
-            const shimmerBg = dark
-              ? 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)'
-              : 'linear-gradient(90deg, var(--panel-bg) 0%, var(--card-border) 50%, var(--panel-bg) 100%)';
-            const iconColor = (() => {
-              if (isFirst) return dark ? 'rgba(255,255,255,0.55)' : 'var(--w-ink-4)';
-              return dark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)';
-            })();
-            const labelColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--w-ink-5)';
-            const spinnerColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--w-ink-5)';
-            return (
-              <button
-                key={`locked-slot-${library.length + i}`}
-                onClick={isFirst ? handleDownloadAll : undefined}
-                disabled={downloading || !isFirst}
-                className="relative rounded-lg flex flex-col items-center justify-center gap-1 focus:outline-none disabled:cursor-default overflow-hidden"
-                style={{
-                  aspectRatio: '4/3',
-                  background: slotBg,
-                  border: slotBorder,
-                  cursor: isFirst && !downloading ? 'pointer' : 'default',
-                  opacity: (!downloading && !isFirst) ? 0.38 : 1,
-                }}
-                aria-label={isFirst ? 'Download curated collection' : undefined}
-              >
-                {isShimmering && (
-                  <div className="absolute inset-0" style={{
-                    background: shimmerBg,
-                    backgroundSize: '200% 100%',
-                    animation: 'shimmer 1.4s ease-in-out infinite',
-                  }} />
-                )}
-                {isFirst && downloading ? (
-                  <Spinner size={14} style={{ color: spinnerColor }} />
-                ) : !isShimmering && (
-                  /* Download icon */
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    style={{ color: iconColor }}>
-                    <path d="M12 3v11m0 0-3.5-3.5M12 14l3.5-3.5M4 19h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {isFirst && !downloading && (
-                  <span className="text-[9px] font-semibold text-center leading-tight px-1" style={{ color: labelColor }}>
-                    Download other backgrounds
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {/* Shimmer placeholders while fetching on first open */}
+          {showShimmers && Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={`shimmer-${i}`}
+              className="relative rounded-lg overflow-hidden"
+              style={{
+                aspectRatio: '4/3',
+                background: dark ? 'rgba(255,255,255,0.06)' : 'var(--panel-bg)',
+                border: dark ? '1px solid rgba(255,255,255,0.10)' : '1px solid var(--card-border)',
+              }}
+            >
+              <div className="absolute inset-0" style={{
+                background: dark
+                  ? 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)'
+                  : 'linear-gradient(90deg, var(--panel-bg) 0%, var(--card-border) 50%, var(--panel-bg) 100%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.4s ease-in-out infinite',
+              }} />
+            </div>
+          ))}
         </div>
-        {/* Scroll-hint fade — only visible when content overflows */}
+        {/* Scroll-hint fade */}
         <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none rounded-b-lg" style={{ background: `linear-gradient(to bottom, transparent, ${scrollFadeColor})` }} />
       </div>
 
-      {/* Error message */}
-      {downloadError && (
+      {fetchError && (
         <p className="text-[10px] font-medium text-center px-2 py-1.5 rounded-lg" style={dark
           ? { background: 'rgba(239,68,68,0.14)', color: 'rgb(252,129,129)', border: '1px solid rgba(239,68,68,0.32)' }
           : { background: 'rgba(239,68,68,0.08)', color: 'rgb(185,28,28)', border: '1px solid rgba(239,68,68,0.2)' }}>
-          {downloadError}
+          {fetchError}
         </p>
       )}
     </div>
@@ -598,6 +585,8 @@ export const BackgroundPicker = ({
         @keyframes bpOrbBloom      { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)} }
         @keyframes bpIn            { from{opacity:0;transform:scale(.97) translateY(8px)} to{opacity:1;transform:none} }
         @keyframes bpIndeterminate { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
+        @keyframes bpWipe          { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+        @keyframes shimmer         { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
       `}</style>
 
       <div
