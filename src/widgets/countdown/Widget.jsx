@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import { PlusLg, XLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { PlusLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
 import { TintedChip } from '../../components/ui/TintedChip';
-import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
-import { Modal } from '../../components/ui/Modal';
+import { AddCountdown } from './AddCountdown';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
-import { todayStr, makeUid } from '../../utilities';
+import { todayStr } from '../../utilities';
 import { notifyUser } from '../../utilities/chrome';
-import { REPEAT_OPTIONS, getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
+import { getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
 import config from './config';
 import { fmt12, calcDuration } from '../events/utils';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
 import { onClockTick } from '../../utilities/sharedClock';
 
-const makeId = () => makeUid('cd');
 const loadCustom = () => {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_EVENTS) || '[]'); }
   catch { return []; }
@@ -48,82 +45,6 @@ const markNotified = (id) => {
 
 const sendNotification = (title, body) => notifyUser(title, body, 'COUNTDOWN_DONE');
 
-// ─── Add custom countdown modal ──────────────────────────────────────────────
-const AddModal = ({ onSave, onClose }) => {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [repeat, setRepeat] = useState('none');
-
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  const valid = title.trim() && date;
-
-  const handleSave = () => {
-    if (!valid) return;
-    onSave({ id: makeId(), title: title.trim(), targetDate: date, targetTime: time, repeat });
-    onClose();
-  };
-
-  return (
-    <Modal onClose={onClose} className="w-80">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-        <span className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>New Countdown</span>
-        <button onClick={onClose} className="w-6 h-6 rounded-full flex items-center justify-center transition-colors btn-close cursor-pointer" style={{ color: 'var(--w-ink-3)' }}>
-          <XLg size={12} />
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-3 px-4 py-4">
-        <SettingsInput
-          autoFocus
-          type="text"
-          placeholder="What are you counting down to?"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSave()}
-        />
-
-        <div>
-          <div className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--w-ink-3)' }}>When</div>
-          <SegmentedDateTime mode="datetime" date={date} onDateChange={setDate} time={time} onTimeChange={setTime} />
-        </div>
-
-        <div>
-          <div className="text-[10px] font-semibold mb-1.5" style={{ color: 'var(--w-ink-3)' }}>Repeat</div>
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-            {REPEAT_OPTIONS.map(r => {
-              const active = repeat === r.value;
-              return (
-                <button
-                  key={r.value}
-                  onClick={() => setRepeat(r.value)}
-                  className="flex-1 rounded-lg text-xs font-semibold py-1.5 transition-all cursor-pointer"
-                  style={active
-                    ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: 'none', outline: 'none' }
-                    : { background: 'transparent', color: 'var(--w-ink-3)', border: 'none', outline: 'none' }}
-                >{r.label}</button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-2 px-4 pb-4">
-        <button onClick={onClose} className="px-4 py-1.5 text-sm rounded-xl hover:opacity-70 cursor-pointer" style={{ background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--w-ink-2)' }}>Cancel</button>
-        <button onClick={handleSave} disabled={!valid}
-          className="px-4 py-1.5 text-sm rounded-xl transition-colors disabled:opacity-40 cursor-pointer"
-          style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-        >Save</button>
-      </div>
-    </Modal>
-  );
-};
 const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemoveCustom, onPin, onClose }) => {
   const [showAdd, setShowAdd] = useState(false);
 
@@ -315,7 +236,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       </div>
 
       {showAdd && (
-        <AddModal
+        <AddCountdown
           onSave={(cd) => { onAddCustom(cd); onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
           onClose={() => setShowAdd(false)}
         />

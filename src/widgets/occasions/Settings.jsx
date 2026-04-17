@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { XLg, BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
+import { AddOccasion } from './AddOccasion';
 import {
   loadManualBirthdays,
   addManualBirthday,
@@ -7,7 +8,6 @@ import {
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
-import { TintedChip } from '../../components/ui/TintedChip';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -113,25 +113,13 @@ const ContactsSection = ({ connected, loading, ageLabel, profile, error, onConne
 
 const ManualSection = ({ onManualChange }) => {
   const [manual, setManual] = useState(() => loadManualBirthdays());
-  const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: '', type: 'birthday', month: '', day: '' });
-  const [formError, setFormError] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
-  const days = form.month
-    ? Array.from({ length: daysInMonth(Number(form.month)) }, (_, i) => i + 1)
-    : Array.from({ length: 31 }, (_, i) => i + 1);
-
-  const handleAdd = () => {
-    if (!form.name.trim()) { setFormError('Name is required'); return; }
-    if (!form.month) { setFormError('Pick a month'); return; }
-    if (!form.day) { setFormError('Pick a day'); return; }
-    setFormError('');
-    addManualBirthday(form.name.trim(), form.type, Number(form.month), Number(form.day));
+  const handleSave = ({ name, type, month, day }) => {
+    addManualBirthday(name, type, month, day);
     const updated = loadManualBirthdays();
     setManual(updated);
     onManualChange(updated);
-    setForm({ name: '', type: 'birthday', month: '', day: '' });
-    setShowAdd(false);
   };
 
   const handleRemove = (id) => {
@@ -141,175 +129,77 @@ const ManualSection = ({ onManualChange }) => {
     onManualChange(updated);
   };
 
-  const cancelAdd = () => {
-    setShowAdd(false);
-    setFormError('');
-    setForm({ name: '', type: 'birthday', month: '', day: '' });
-  };
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <SectionHeading>Your Occasions</SectionHeading>
-        {!showAdd && (
-          <TintedChip size="sm" onClick={() => setShowAdd(true)} className="flex items-center gap-1">
+    <>
+      {showModal && (
+        <AddOccasion
+          onSave={handleSave}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <SectionHeading>Your Occasions</SectionHeading>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[10px] px-2.5 py-1"
+            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+          >
             <PlusLg size={9} />
             Add
-          </TintedChip>
+          </button>
+        </div>
+
+        {/* Existing entries */}
+        {manual.length > 0 && (
+          <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
+            {manual.map((e, i) => {
+              const monthShort = MONTHS.find(m => m.value === e.month)?.short ?? '';
+              return (
+                <div
+                  key={e.id}
+                  className="flex items-center gap-3 px-4 py-3"
+                  style={{
+                    background: 'var(--panel-bg)',
+                    borderBottom: i < manual.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  <SmAvatar name={e.name} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
+                      {e.name}
+                    </div>
+                    <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--w-ink-4)' }}>
+                      <TypeIcon type={e.type} size={11} />
+                      {typeLabel(e.type)} · {monthShort} {e.day}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemove(e.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
+                    style={{ color: 'var(--w-ink-4)' }}
+                    aria-label={`Remove ${e.name}`}
+                  >
+                    <XLg size={11} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Empty hint */}
+        {manual.length === 0 && (
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
+            Add people not in your Google Contacts — family, close friends, or anyone you don't want to miss.
+          </p>
         )}
       </div>
-
-      {/* Existing entries */}
-      {manual.length > 0 && (
-        <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
-          {manual.map((e, i) => {
-            const monthShort = MONTHS.find(m => m.value === e.month)?.short ?? '';
-            return (
-              <div
-                key={e.id}
-                className="flex items-center gap-3 px-4 py-3"
-                style={{
-                  background: 'var(--panel-bg)',
-                  borderBottom: i < manual.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
-                }}
-              >
-                <SmAvatar name={e.name} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
-                    {e.name}
-                  </div>
-                  <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--w-ink-4)' }}>
-                    <TypeIcon type={e.type} size={11} />
-                    {typeLabel(e.type)} · {monthShort} {e.day}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleRemove(e.id)}
-                  className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
-                  style={{ color: 'var(--w-ink-4)' }}
-                  aria-label={`Remove ${e.name}`}
-                >
-                  <XLg size={11} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Empty hint */}
-      {manual.length === 0 && !showAdd && (
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
-          Add people not in your Google Contacts — family, close friends, or anyone you don't want to miss.
-        </p>
-      )}
-
-      {/* Add form */}
-      {showAdd && (
-        <div
-          className="rounded-2xl p-4 flex flex-col gap-4"
-          style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
-        >
-          {/* Name */}
-          <div>
-            <label className="w-label block mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Mom, Arjun, Alex…"
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && handleAdd()}
-              style={inputStyle}
-              autoFocus
-            />
-          </div>
-
-          {/* Type */}
-          <div>
-            <label className="w-label block mb-2">
-              Occasion type
-            </label>
-            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-              {TYPES.map(t => {
-                const active = form.type === t.value;
-                return (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                    className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer"
-                    style={active
-                      ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-                      : { background: 'transparent', color: 'var(--w-ink-3)' }}
-                  >
-                    <t.Icon size={14} style={{ color: active ? 'inherit' : t.iconColor }} />
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Date */}
-          <div>
-            <label className="w-label block mb-2">
-              Date
-            </label>
-            <div className="flex gap-2">
-              <select
-                value={form.month}
-                onChange={e => setForm(f => ({ ...f, month: e.target.value, day: '' }))}
-                className="flex-1 cursor-pointer"
-                style={selStyle}
-              >
-                <option value="">Month</option>
-                {MONTHS.map(m => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-              <select
-                value={form.day}
-                onChange={e => setForm(f => ({ ...f, day: e.target.value }))}
-                className="w-20 cursor-pointer"
-                style={selStyle}
-              >
-                <option value="">Day</option>
-                {days.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Error */}
-          {formError && (
-            <p className="text-xs font-medium -mt-1" style={{ color: 'var(--w-danger)' }}>{formError}</p>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={cancelAdd}
-              className="flex-1 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-              style={{ background: 'transparent', color: 'var(--w-ink-2)', border: '1px solid rgba(0,0,0,0.12)' }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleAdd}
-              className="flex-1 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-85 cursor-pointer"
-              style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 
