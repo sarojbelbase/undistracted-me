@@ -21,22 +21,33 @@ const DayTooltip = React.memo(({ events, anchor }) => (
   </Popup>
 ));
 
+// Small tooltip shown when hovering the + add button
+const AddTooltip = ({ anchor }) => (
+  <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
+    <span style={{ fontSize: '11px', color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>Add new event</span>
+  </Popup>
+);
+
 const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent }) => {
   const [anchor, setAnchor] = useState(null);
+  const [hoverRect, setHoverRect] = useState(null);
   const [hovered, setHovered] = useState(false);
   const ref = useRef(null);
   const hasEvents = !isCurrent && eventsForDay.length > 0;
 
   const handleMouseEnter = () => {
     setHovered(true);
-    if (!hasEvents || !ref.current) return;
+    if (!ref.current) return;
     const r = ref.current.getBoundingClientRect();
-    setAnchor({ left: r.left, top: r.top, bottom: r.bottom, width: r.width, height: r.height });
+    const rect = { left: r.left, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+    setHoverRect(rect);
+    if (hasEvents) setAnchor(rect);
   };
 
   const handleMouseLeave = () => {
     setHovered(false);
     setAnchor(null);
+    setHoverRect(null);
   };
 
   const handleClick = () => {
@@ -94,6 +105,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
           />
         )}
       </button>
+      {hovered && hoverRect && <AddTooltip anchor={hoverRect} />}
       {anchor && (
         <DayTooltip events={eventsForDay} anchor={anchor} />
       )}

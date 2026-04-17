@@ -794,11 +794,8 @@ const SpotifySettings = ({ connected, profile, loading, error, onConnect, onDisc
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #FF5500 10%, transparent)', border: '1px solid color-mix(in srgb, #FF5500 20%, transparent)', color: '#FF5500' }}>
               SoundCloud
             </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #FF0000 10%, transparent)', border: '1px solid color-mix(in srgb, #FF0000 20%, transparent)', color: '#FF0000' }}>
-              YouTube
-            </span>
             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)', color: 'var(--w-ink-4)' }}>
-              + any site with media
+              + more on demand
             </span>
           </div>
         </div>
