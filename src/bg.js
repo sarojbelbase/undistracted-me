@@ -236,7 +236,30 @@ chrome.runtime.onInstalled.addListener(() => {
   updateBadge();
   chrome.alarms.create(ALARM_TICK, { periodInMinutes: 1 });
   chrome.alarms.create(ALARM_BADGE, { periodInMinutes: 24 * 60 });
+  injectMediaScript();
 });
+
+// Also inject on service worker startup — covers the case where Chrome restarts
+// or the extension is reloaded while tabs are already open.
+chrome.runtime.onStartup.addListener(injectMediaScript);
+
+/**
+ * Programmatically injects media.js into any already-open tabs that match the
+ * content_scripts patterns. Necessary because manifest content_scripts are only
+ * auto-injected into pages that load *after* the extension is installed/reloaded.
+ */
+function injectMediaScript() {
+  const patterns = ['*://*.soundcloud.com/*'];
+  chrome.tabs.query({ url: patterns }, (tabs) => {
+    for (const tab of tabs ?? []) {
+      if (!tab.id) continue;
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['src/utilities/media.js'],
+      }).catch(() => { /* tab may be discarded or restricted */ });
+    }
+  });
+}
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_BADGE) updateBadge();

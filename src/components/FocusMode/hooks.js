@@ -4,6 +4,7 @@ import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
 import { useLocationStore } from '../../store/useLocationStore';
+import { searchDriveFiles } from '../../utilities/googleDrive';
 // Shared hooks — also usable by canvas-mode widgets
 import { useSpotify } from '../../widgets/spotify/useSpotify';
 
@@ -283,4 +284,67 @@ export function switchToTab(tab) {
   chrome.tabs.update(tab.id, { active: true });
   if (chrome.windows?.update) chrome.windows.update(tab.windowId, { focused: true });
   /* eslint-enable no-undef */
+}
+
+/** Search Google Drive files by name. Silent no-op if Drive not authorised. */
+export async function searchDriveFilesAsync(query) {
+  if (!query?.trim()) return [];
+  return searchDriveFiles(query).catch(() => []);
+}
+
+// ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───
+
+import { getChromeMedia, sendChromeMediaAction } from '../../widgets/spotify/utils';
+
+/**
+ * Polls the background SW for browser media sessions every 3s.
+ * Returns the top session (most recently active) as a normalized track object,
+ * or null when nothing is playing.
+ * Also returns a `sendAction(action)` helper for play/pause/next/previous.
+ */
+export function useChromeMedia() {
+  const [sessions, setSessions] = useState([]);
+  const [pending, setPending] = useState(false);
+  const [skipPending, setSkipPending] = useState(null); // 'next' | 'prev' | null
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetch = async () => {
+      const data = await getChromeMedia();
+      if (!cancelled) {
+        setSessions(data);
+        // Clear pending indicators once the next poll arrives — the action has
+        // propagated to the source tab by this point.
+        setPending(false);
+        setSkipPending(null);
+      }
+    };
+    fetch();
+    const id = setInterval(fetch, 3000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const top = sessions[0] ?? null;
+
+  const track = top ? {
+    title: top.title || 'Playing',
+    artist: top.artist || top.host || '',
+    albumArt: top.artwork || null,
+    isPlaying: top.playbackState === 'playing',
+    tabId: top.tabId,
+    host: top.host,
+    // No duration info from mediaSession, so progress bar is omitted.
+    durationMs: null,
+    progressMs: null,
+  } : null;
+
+  const sendAction = useCallback((action) => {
+    if (!top) return;
+    if (action === 'play' || action === 'pause') setPending(true);
+    if (action === 'next') setSkipPending('next');
+    if (action === 'previous') setSkipPending('prev');
+    sendChromeMediaAction(action, top.tabId);
+  }, [top]);
+
+  return { track, sendAction, pending, skipPending };
 }

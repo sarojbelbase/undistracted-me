@@ -7,7 +7,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchToTab } from '../hooks';
+import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchToTab, searchDriveFilesAsync } from '../hooks';
 import { getTokens } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 
@@ -62,6 +62,39 @@ const TabIcon = ({ color }) => (
     <polyline points="2,11 8,11 9,7 15,7 16,11 22,11" />
   </svg>
 );
+
+const GlobeIcon = ({ color }) => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" />
+  </svg>
+);
+
+const DriveIcon = ({ mimeType, size = 13 }) => {
+  const s = { flexShrink: 0 };
+  if (mimeType === 'application/vnd.google-apps.document')
+    return <svg width={size} height={size} viewBox="0 0 24 24" style={s}><rect x="3" y="1" width="15" height="20" rx="2" fill="#4285F4" /><rect x="6" y="8" width="9" height="1.5" rx="0.75" fill="white" opacity="0.9" /><rect x="6" y="11.5" width="9" height="1.5" rx="0.75" fill="white" opacity="0.9" /><rect x="6" y="15" width="6" height="1.5" rx="0.75" fill="white" opacity="0.9" /></svg>;
+  if (mimeType === 'application/vnd.google-apps.spreadsheet')
+    return <svg width={size} height={size} viewBox="0 0 24 24" style={s}><rect x="3" y="1" width="15" height="20" rx="2" fill="#0F9D58" /><line x1="11" y1="1" x2="11" y2="21" stroke="white" strokeWidth="1.5" opacity="0.9" /><line x1="3" y1="9" x2="18" y2="9" stroke="white" strokeWidth="1.5" opacity="0.9" /><line x1="3" y1="15" x2="18" y2="15" stroke="white" strokeWidth="1.5" opacity="0.9" /></svg>;
+  if (mimeType === 'application/vnd.google-apps.presentation')
+    return <svg width={size} height={size} viewBox="0 0 24 24" style={s}><rect x="1" y="4" width="22" height="14" rx="2" fill="#F4B400" /><rect x="9" y="18" width="6" height="3" fill="#F4B400" /></svg>;
+  if (mimeType === 'application/vnd.google-apps.folder')
+    return <svg width={size} height={size} viewBox="0 0 24 24" style={s}><path d="M2 6a2 2 0 012-2h4l2 2h10a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" fill="#9e9e9e" /></svg>;
+  if (mimeType === 'application/pdf')
+    return <svg width={size} height={size} viewBox="0 0 24 24" style={s}><rect x="3" y="1" width="15" height="20" rx="2" fill="#EA4335" /><text x="5.5" y="14" fontSize="5.5" fontWeight="800" fill="white">PDF</text></svg>;
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={s}><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9l-7-7z" fill="currentColor" opacity="0.45" /><path d="M13 2v7h7" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>;
+};
+
+/** Returns a navigable URL if the query looks like a hostname/URL, else null. */
+function detectUrl(q) {
+  const s = q.trim();
+  if (!s || s.includes(' ')) return null;
+  if (/^https?:\/\//i.test(s)) return s;
+  // hostname.tld or hostname.tld/path — at least one dot, no spaces
+  if (/^[a-zA-Z0-9]([a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}/.test(s)) return `https://${s}`;
+  return null;
+}
+
 // ── Engine Picker ──────────────────────────────────────────────────────────────
 const EnginePicker = ({ engineId, onSelect, t }) => (
   <div
@@ -112,96 +145,117 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
 );
 
 // ── Suggestions Dropdown ───────────────────────────────────────────────────────
-const SuggestionsDropdown = ({ suggestions, tabResults, activeSugg, isHistory, onSelect, onTabSelect, onHover, t }) => (
-  <div
-    style={{
-      position: 'absolute',
-      top: 'calc(100% + 8px)',
-      left: 0, right: 0,
-      zIndex: 60,
-      background: t.dropBg,
-      border: `1px solid ${t.dropBorder}`,
-      borderRadius: 16,
-      backdropFilter: 'blur(28px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-      boxShadow: t.dropShadow,
-      padding: 6,
-      animation: 'fmDropIn 0.16s cubic-bezier(0.16,1,0.3,1) both',
-    }}
-  >
-    {isHistory && suggestions.length > 0 && (
-      <p style={{
-        fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.07em',
-        textTransform: 'uppercase', color: t.label, padding: '4px 12px 2px',
-      }}>Recent</p>
-    )}
-    {suggestions.map((s, i) => (
-      <button
-        key={s}
-        onMouseDown={e => { e.preventDefault(); onSelect(s); }}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          width: '100%', padding: '7px 12px', borderRadius: 10,
-          border: 'none', cursor: 'pointer',
-          background: activeSugg === i ? t.activeBg : 'transparent',
-          transition: 'background 0.1s ease', textAlign: 'left',
-        }}
-        onMouseEnter={() => onHover(i)}
-        onMouseLeave={() => onHover(-1)}
-      >
-        {isHistory ? <ClockIcon color={t.label} /> : <SearchIcon stroke={t.label} />}
-        <span style={{
-          fontSize: '0.84rem',
-          fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
-          color: t.suggText,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontWeight: 400,
-        }}>{s}</span>
-      </button>
-    ))}
-    {tabResults.length > 0 && (
-      <>
-        {suggestions.length > 0 && (
-          <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />
-        )}
-        <p style={{
-          fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.07em',
-          textTransform: 'uppercase', color: t.label, padding: '4px 12px 2px',
-        }}>Open Tabs</p>
-        {tabResults.map((tab, j) => {
-          const idx = suggestions.length + j;
-          return (
+const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onHover, t }) => {
+  // New index order: [url?][tabs][drive][suggestions]
+  const tabStart = urlOffset;
+  const driveStart = tabStart + tabResults.length;
+  const suggStart = driveStart + driveResults.length;
+  const rowStyle = (active) => ({
+    display: 'flex', alignItems: 'center', gap: 10,
+    width: '100%', padding: '7px 12px', borderRadius: 10,
+    border: 'none', cursor: 'pointer',
+    background: active ? t.activeBg : 'transparent',
+    transition: 'background 0.1s ease', textAlign: 'left',
+  });
+  const textStyle = { fontSize: '0.84rem', fontFamily: "'Google Sans', ui-sans-serif, sans-serif", color: t.suggText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 400, flex: 1 };
+  const badgeStyle = { fontSize: '0.7rem', color: t.label, flexShrink: 0, fontFamily: "'Google Sans', sans-serif" };
+  const sectionLabel = { fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.label, padding: '4px 12px 2px' };
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 'calc(100% + 8px)',
+        left: 0, right: 0,
+        zIndex: 60,
+        background: t.dropBg,
+        border: `1px solid ${t.dropBorder}`,
+        borderRadius: 16,
+        backdropFilter: 'blur(28px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+        boxShadow: t.dropShadow,
+        padding: 6,
+        animation: 'fmDropIn 0.16s cubic-bezier(0.16,1,0.3,1) both',
+      }}
+    >
+      {/* ── Navigate to URL ── */}
+      {urlTarget && (
+        <button
+          onMouseDown={e => { e.preventDefault(); goToUrl(urlTarget); }}
+          style={rowStyle(activeSugg === 0)}
+          onMouseEnter={() => onHover(0)}
+          onMouseLeave={() => onHover(-1)}
+        >
+          <GlobeIcon color={t.label} />
+          <span style={textStyle}>Open {urlTarget}</span>
+        </button>
+      )}
+
+      {/* ── Open tabs ── */}
+      {tabResults.length > 0 && (
+        <>
+          {urlTarget && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
+          <p style={sectionLabel}>Open Tabs</p>
+          {tabResults.map((tab, k) => (
             <button
               key={tab.id}
               onMouseDown={e => { e.preventDefault(); onTabSelect(tab); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                width: '100%', padding: '7px 12px', borderRadius: 10,
-                border: 'none', cursor: 'pointer',
-                background: activeSugg === idx ? t.activeBg : 'transparent',
-                transition: 'background 0.1s ease', textAlign: 'left',
-              }}
-              onMouseEnter={() => onHover(idx)}
+              style={rowStyle(activeSugg === tabStart + k)}
+              onMouseEnter={() => onHover(tabStart + k)}
               onMouseLeave={() => onHover(-1)}
             >
               {tab.favIconUrl
                 ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
                 : <TabIcon color={t.label} />}
-              <span style={{
-                fontSize: '0.84rem',
-                fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
-                color: t.suggText,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                fontWeight: 400, flex: 1,
-              }}>{tab.title || tab.url}</span>
-              <span style={{ fontSize: '0.7rem', color: t.label, flexShrink: 0, fontFamily: "'Google Sans', sans-serif" }}>Switch</span>
+              <span style={textStyle}>{tab.title || tab.url}</span>
+              <span style={badgeStyle}>Switch</span>
             </button>
-          );
-        })}
-      </>
-    )}
-  </div>
-);
+          ))}
+        </>
+      )}
+
+      {/* ── Google Drive results ── */}
+      {driveResults.length > 0 && (
+        <>
+          {(tabResults.length > 0 || urlTarget) && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
+          <p style={sectionLabel}>Google Drive</p>
+          {driveResults.map((file, j) => (
+            <button
+              key={file.id}
+              onMouseDown={e => { e.preventDefault(); onDriveSelect(file); }}
+              style={rowStyle(activeSugg === driveStart + j)}
+              onMouseEnter={() => onHover(driveStart + j)}
+              onMouseLeave={() => onHover(-1)}
+            >
+              <DriveIcon mimeType={file.mimeType} size={13} />
+              <span style={textStyle}>{file.name}</span>
+              <span style={badgeStyle}>Drive</span>
+            </button>
+          ))}
+        </>
+      )}
+
+      {/* ── History / autocomplete suggestions ── */}
+      {suggestions.length > 0 && (
+        <>
+          {(tabResults.length > 0 || driveResults.length > 0 || urlTarget) && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
+          {isHistory && <p style={sectionLabel}>Recent</p>}
+          {suggestions.map((s, i) => (
+            <button
+              key={s}
+              onMouseDown={e => { e.preventDefault(); onSelect(s); }}
+              style={rowStyle(activeSugg === suggStart + i)}
+              onMouseEnter={() => onHover(suggStart + i)}
+              onMouseLeave={() => onHover(-1)}
+            >
+              {isHistory ? <ClockIcon color={t.label} /> : <SearchIcon stroke={t.label} />}
+              <span style={{ ...textStyle, flex: 'unset' }}>{s}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export const SearchBar = ({ centerOnDark = true }) => {
@@ -213,6 +267,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
   const [focused, setFocused] = useState(false);
   const [bouncing, setBouncing] = useState(false);
   const [tabResults, setTabResults] = useState([]);
+  const [driveResults, setDriveResults] = useState([]);
 
   const inputRef = useRef(null);
   const wrapRef = useRef(null);
@@ -223,23 +278,26 @@ export const SearchBar = ({ centerOnDark = true }) => {
   const engine = ENGINES.find(e => e.id === engineId) || ENGINES[0];
   const t = getTokens(centerOnDark);
 
-  // ── Suggestions + tab search ─────────────────────────────────────────────────
+  // ── Suggestions + tab + Drive search ────────────────────────────────────────
   useEffect(() => {
     if (isNavRef.current) { isNavRef.current = false; return; }
     clearTimeout(debounceRef.current);
     if (!query.trim()) {
       setSuggestions(getHistory().slice(0, 6));
       setTabResults([]);
+      setDriveResults([]);
       setActiveSugg(-1);
       return;
     }
     debounceRef.current = setTimeout(async () => {
-      const [suggs, tabs] = await Promise.all([
+      const [suggs, tabs, drive] = await Promise.all([
         fetchSuggestionsAsync(engine, query),
         searchOpenTabs(query),
+        searchDriveFilesAsync(query),
       ]);
       setSuggestions(suggs);
       setTabResults(tabs);
+      setDriveResults(drive);
       setActiveSugg(-1);
     }, 220);
     return () => clearTimeout(debounceRef.current);
@@ -257,32 +315,54 @@ export const SearchBar = ({ centerOnDark = true }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Submit ───────────────────────────────────────────────────────────────────
+  // ── Navigate directly to a URL ───────────────────────────────────────────────
+  const goToUrl = useCallback((url) => {
+    setBouncing(true);
+    setTimeout(() => setBouncing(false), 420);
+    window.open(url, '_blank', 'noopener');
+    setQuery(''); originalQueryRef.current = '';
+    setSuggestions([]); setDriveResults([]); setTabResults([]);
+    setFocused(false); setActiveSugg(-1);
+  }, []);
+
+  // ── Submit search ────────────────────────────────────────────────────────────
   const submit = useCallback((q) => {
     const term = (q || query).trim();
     if (!term) return;
+    // When no explicit suggestion is selected and term looks like a URL, navigate.
+    if (!q) {
+      const url = detectUrl(term);
+      if (url) { goToUrl(url); return; }
+    }
     pushHistory(term);
-    // Bounce feedback
     setBouncing(true);
     setTimeout(() => setBouncing(false), 420);
     window.open(`${engine.url}${encodeURIComponent(term)}`, '_blank', 'noopener');
     setQuery('');
     originalQueryRef.current = '';
-    setSuggestions([]);
+    setSuggestions([]); setDriveResults([]);
     setFocused(false);
     setActiveSugg(-1);
-  }, [query, engine]);
+  }, [query, engine, goToUrl]);
 
-  // ── Keyboard nav — Google-style for suggestions; Enter on tabs switches ───────
+  // ── Keyboard nav ─────────────────────────────────────────────────────────────
+  // Index order: [url?][tabs][drive][suggestions]
+  const urlTarget = detectUrl(query);
+  const urlOffset = urlTarget ? 1 : 0;
+  const tabStart = urlOffset;
+  const driveStart = tabStart + tabResults.length;
+  const suggStart = driveStart + driveResults.length;
+  const totalItems = suggStart + suggestions.length;
+
   const handleArrowDown = (e) => {
     e.preventDefault();
-    const totalItems = suggestions.length + tabResults.length;
     const next = Math.min(activeSugg + 1, totalItems - 1);
     if (activeSugg === -1) originalQueryRef.current = query;
     setActiveSugg(next);
-    if (next < suggestions.length) {
+    // Only fill input for suggestion items (bottom section)
+    if (next >= suggStart) {
       isNavRef.current = true;
-      setQuery(suggestions[next] ?? originalQueryRef.current);
+      setQuery(suggestions[next - suggStart] ?? originalQueryRef.current);
     }
   };
 
@@ -290,9 +370,9 @@ export const SearchBar = ({ centerOnDark = true }) => {
     e.preventDefault();
     const next = Math.max(activeSugg - 1, -1);
     setActiveSugg(next);
-    if (next >= 0 && next < suggestions.length) {
+    if (next >= suggStart) {
       isNavRef.current = true;
-      setQuery(suggestions[next]);
+      setQuery(suggestions[next - suggStart]);
     } else if (next === -1) {
       isNavRef.current = true;
       setQuery(originalQueryRef.current);
@@ -301,13 +381,22 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
   const handleEnter = (e) => {
     e.preventDefault();
-    const isTabItem = activeSugg >= suggestions.length && activeSugg >= 0;
-    if (isTabItem) {
-      switchToTab(tabResults[activeSugg - suggestions.length]);
-      setFocused(false);
-    } else {
-      const selected = activeSugg >= 0 && activeSugg < suggestions.length ? suggestions[activeSugg] : undefined;
-      submit(selected);
+    if (activeSugg === -1) {
+      // No item highlighted — URL nav takes priority over search
+      submit();
+      return;
+    }
+    if (urlTarget && activeSugg === 0) {
+      goToUrl(urlTarget);
+    } else if (activeSugg >= tabStart && activeSugg < driveStart) {
+      switchToTab(tabResults[activeSugg - tabStart]);
+      setFocused(false); setActiveSugg(-1);
+    } else if (activeSugg >= driveStart && activeSugg < suggStart) {
+      const file = driveResults[activeSugg - driveStart];
+      window.open(file.webViewLink, '_blank', 'noopener');
+      setFocused(false); setActiveSugg(-1);
+    } else if (activeSugg >= suggStart) {
+      submit(suggestions[activeSugg - suggStart]);
     }
   };
 
@@ -318,6 +407,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     setFocused(false);
     inputRef.current?.blur();
     setSuggestions([]);
+    setDriveResults([]);
     setTabResults([]);
   };
 
@@ -335,7 +425,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     setTimeout(() => inputRef.current?.focus(), 60);
   };
 
-  const showDropdown = focused && (suggestions.length > 0 || tabResults.length > 0 || !query.trim());
+  const showDropdown = focused && (suggestions.length > 0 || tabResults.length > 0 || driveResults.length > 0 || urlTarget || !query.trim());
   const isHistory = !query.trim();
 
   return (
@@ -419,13 +509,18 @@ export const SearchBar = ({ centerOnDark = true }) => {
       )}
 
       {/* ── Suggestions dropdown ── */}
-      {showDropdown && !showPicker && (suggestions.length > 0 || tabResults.length > 0) && (
+      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0) && (
         <SuggestionsDropdown
+          urlTarget={urlTarget}
+          goToUrl={goToUrl}
+          urlOffset={urlOffset}
           suggestions={suggestions}
+          driveResults={driveResults}
           tabResults={tabResults}
           activeSugg={activeSugg}
           isHistory={isHistory}
           onSelect={submit}
+          onDriveSelect={(file) => { window.open(file.webViewLink, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); }}
           onTabSelect={(tab) => { switchToTab(tab); setFocused(false); setActiveSugg(-1); }}
           onHover={setActiveSugg}
           t={t}
