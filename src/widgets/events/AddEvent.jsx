@@ -104,6 +104,8 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
         {/* Title */}
         <SettingsInput
           ref={titleRef}
+          id="event-title"
+          name="event-title"
           autoFocus
           type="text"
           placeholder="What's happening?"

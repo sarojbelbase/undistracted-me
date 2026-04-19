@@ -468,7 +468,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply, dark = false }) => {
         </label>
         <div className="flex gap-2 items-center">
           <div className="flex-1">
-            <SettingsInput ref={inputRef} id="bpUrlInput" type="url" value={value} dark={dark}
+            <SettingsInput ref={inputRef} id="bpUrlInput" name="bpUrlInput" type="url" value={value} dark={dark}
               onChange={(e) => { setValue(e.target.value); setStatus('idle'); setPreviewUrl(null); }}
               onKeyDown={(e) => { if (e.key === 'Enter') verify(); }}
               placeholder="https://buymemomo.com/sarojbelbase"

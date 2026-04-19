@@ -65,6 +65,8 @@ export const AddCountdown = ({ onSave, onClose }) => {
         {/* Title */}
         <SettingsInput
           ref={titleRef}
+          id="countdown-title"
+          name="countdown-title"
           autoFocus
           type="text"
           placeholder="Trip to Japan, Launch day…"

@@ -57,6 +57,10 @@ export const buildFaviconSources = (url, size = 64) => {
     return cached ? [cached, ''] : [''];
   }
   if (PRIVATE_HOST_RE.test(hostname)) return [''];
+  // Guard: non-web hostnames (e.g. chrome-extension, moz-extension) must never
+  // be sent to external favicon services — they always 400/404.
+  const isWebHostname = hostname.includes('.') && !hostname.startsWith('chrome-') && !hostname.startsWith('moz-');
+  if (!isWebHostname) return [''];
   return [
     // Server-side waterfall (Google → DDG → Icon Horse) — zero client-side 404s
     `${_faviconApiBase}/api/favicon?domain=${hostname}&sz=${size}`,

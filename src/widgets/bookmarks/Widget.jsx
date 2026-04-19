@@ -97,6 +97,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
         <label htmlFor="bm-url" className="w-label">URL</label>
         <SettingsInput
           id="bm-url"
+          name="bm-url"
           autoFocus
           prefix="https://"
           value={path}
@@ -111,6 +112,7 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
         <label htmlFor="bm-name" className="w-label">Name</label>
         <SettingsInput
           id="bm-name"
+          name="bm-name"
           placeholder={derivedName || 'Buy Me Momo'}
           value={localName}
           onChange={e => setLocalName(e.target.value)}

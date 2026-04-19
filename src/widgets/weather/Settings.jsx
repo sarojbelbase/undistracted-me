@@ -102,6 +102,8 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
         <span className="w-label">Location</span>
 
         <SettingsInput
+          id="weather-location"
+          name="weather-location"
           wrapperRef={inputWrapRef}
           icon={<GeoAlt size={13} />}
           type="text"
