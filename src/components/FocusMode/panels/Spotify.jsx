@@ -17,7 +17,7 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
   }, [track.title, track.artist]);
 
   return (
-    <div style={{ ...t.card, padding: '10px 12px' }} onClick={e => e.stopPropagation()}>
+    <div role="none" style={{ ...t.card, padding: '10px 12px' }} onClick={e => e.stopPropagation()}>
       {/* Album art + title + artist */}
       <div key={animKey} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', animation: animKey > 0 ? 'spotifyTrackIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both' : undefined }}>
         {track.albumArt

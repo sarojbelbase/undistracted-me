@@ -1,5 +1,5 @@
 import { FOCUS_THEME } from '../theme';
-import { daysLabel, typeLabel } from '../../../widgets/occasions/utils';
+import { daysLabel } from '../../../widgets/occasions/utils';
 
 const OCCASION_ICONS = { birthday: '🎂', anniversary: '💑', other: '⭐' };
 

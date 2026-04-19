@@ -5,7 +5,6 @@ import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } fro
 import { useWidgetInstancesStore } from '../../store';
 // Shared hooks — also usable by canvas-mode widgets
 import { useSpotify } from '../../widgets/spotify/useSpotify';
-import { useStocks } from '../../widgets/stock/useStocks';
 
 const HISTORY_KEY = 'fm_search_history';
 const MAX_HISTORY = 12;
@@ -43,7 +42,7 @@ export const useFocusWeather = () => {
 
 // ─── Stocks (delegates to shared hook) ───────────────────────────────────────
 
-export const useFocusStocks = useStocks;
+export { useStocks as useFocusStocks } from '../../widgets/stock/useStocks';
 
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
