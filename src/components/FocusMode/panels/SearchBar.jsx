@@ -137,7 +137,7 @@ const SuggestionsDropdown = ({ suggestions, tabResults, activeSugg, isHistory, o
     )}
     {suggestions.map((s, i) => (
       <button
-        key={`sugg-${i}`}
+        key={s}
         onMouseDown={e => { e.preventDefault(); onSelect(s); }}
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
@@ -274,52 +274,58 @@ export const SearchBar = ({ centerOnDark = true }) => {
   }, [query, engine]);
 
   // ── Keyboard nav — Google-style for suggestions; Enter on tabs switches ───────
-  const handleKeyDown = (e) => {
+  const handleArrowDown = (e) => {
+    e.preventDefault();
     const totalItems = suggestions.length + tabResults.length;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const next = Math.min(activeSugg + 1, totalItems - 1);
-      if (activeSugg === -1) originalQueryRef.current = query;
-      setActiveSugg(next);
-      // Fill input only for web suggestion items (not tab items)
-      if (next < suggestions.length) {
-        isNavRef.current = true;
-        setQuery(suggestions[next] ?? originalQueryRef.current);
-      }
-      return;
+    const next = Math.min(activeSugg + 1, totalItems - 1);
+    if (activeSugg === -1) originalQueryRef.current = query;
+    setActiveSugg(next);
+    if (next < suggestions.length) {
+      isNavRef.current = true;
+      setQuery(suggestions[next] ?? originalQueryRef.current);
     }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const next = Math.max(activeSugg - 1, -1);
-      setActiveSugg(next);
-      if (next < suggestions.length && next >= 0) {
-        isNavRef.current = true;
-        setQuery(suggestions[next]);
-      } else if (next === -1) {
-        isNavRef.current = true;
-        setQuery(originalQueryRef.current);
-      }
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeSugg >= suggestions.length && activeSugg >= 0) {
-        switchToTab(tabResults[activeSugg - suggestions.length]);
-        setFocused(false);
-      } else {
-        submit(activeSugg >= 0 && activeSugg < suggestions.length ? suggestions[activeSugg] : undefined);
-      }
-      return;
-    }
-    if (e.key === 'Escape') {
+  };
+
+  const handleArrowUp = (e) => {
+    e.preventDefault();
+    const next = Math.max(activeSugg - 1, -1);
+    setActiveSugg(next);
+    if (next >= 0 && next < suggestions.length) {
+      isNavRef.current = true;
+      setQuery(suggestions[next]);
+    } else if (next === -1) {
       isNavRef.current = true;
       setQuery(originalQueryRef.current);
-      setActiveSugg(-1);
-      setFocused(false);
-      inputRef.current?.blur();
-      setSuggestions([]);
-      setTabResults([]);
     }
+  };
+
+  const handleEnter = (e) => {
+    e.preventDefault();
+    const isTabItem = activeSugg >= suggestions.length && activeSugg >= 0;
+    if (isTabItem) {
+      switchToTab(tabResults[activeSugg - suggestions.length]);
+      setFocused(false);
+    } else {
+      const selected = activeSugg >= 0 && activeSugg < suggestions.length ? suggestions[activeSugg] : undefined;
+      submit(selected);
+    }
+  };
+
+  const handleEscape = () => {
+    isNavRef.current = true;
+    setQuery(originalQueryRef.current);
+    setActiveSugg(-1);
+    setFocused(false);
+    inputRef.current?.blur();
+    setSuggestions([]);
+    setTabResults([]);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') { handleArrowDown(e); return; }
+    if (e.key === 'ArrowUp') { handleArrowUp(e); return; }
+    if (e.key === 'Enter') { handleEnter(e); return; }
+    if (e.key === 'Escape') handleEscape();
   };
 
   const handleEngineSelect = (id) => {

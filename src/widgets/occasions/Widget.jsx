@@ -23,6 +23,7 @@ import { OccasionsSettings } from './Settings';
 import config from './config';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -221,21 +222,12 @@ export const Widget = ({ id, onRemove }) => {
   const allRaw = useMemo(() => [...raw, ...manual], [raw, manual]);
   const upcoming = useMemo(() => computeUpcoming(allRaw), [allRaw]);
 
-  // Hero logic: spotlight the single entry if exactly ONE is within 30 days
-  const within30 = upcoming.filter(e => e.daysAway <= 30);
-  const isHero = within30.length === 1;
-  const hero = isHero ? within30[0] : null;
-  // Secondary rows shown below the hero (up to 2 more from all upcoming, excluding hero)
-  const secondary = isHero
-    ? upcoming.filter(e => e.id !== hero.id).slice(0, 2)
-    : upcoming;
-
   // ── Settings panel ─────────────────────────────────────────────────────────
   const settingsContent = (
     <OccasionsSettings
       connected={connected}
       loading={loading}
-      error={!connected ? error : null}
+      error={connected ? null : error}
       ageLabel={ageLabel}
       profile={loadCachedProfile()}
       onConnect={() => sync(true)}
@@ -258,7 +250,8 @@ export const Widget = ({ id, onRemove }) => {
           {ageLabel}
         </span>
       )}
-      <button
+      <TooltipBtn
+        tooltip="Refresh contacts"
         onClick={() => sync(true)}
         disabled={loading}
         aria-label="Refresh contacts"
@@ -267,11 +260,30 @@ export const Widget = ({ id, onRemove }) => {
         style={{ color: 'var(--w-ink-4)' }}
       >
         <RefreshIcon spinning={loading} />
-      </button>
+      </TooltipBtn>
     </div>
   );
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Content ──────────────────────────────────────────────────────────────
+  function renderContent() {
+    if (!connected && manual.length === 0) return <ConnectPrompt />;
+    if (upcoming.length === 0) return <EmptyState />;
+    return (
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+        {/* Render all rows; hero gets a tinted background highlight */}
+        {upcoming.map((entry, i) => (
+          <ListRow
+            key={entry.id}
+            entry={entry}
+            highlight={i === 0}
+            isLast={i === upcoming.length - 1}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────────────────
   return (
     <BaseWidget
       className="flex flex-col overflow-hidden"
@@ -298,24 +310,7 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       )}
 
-      {/* ── Content ──────────────────────────────────────────────────── */}
-      {!connected && manual.length === 0 ? (
-        <ConnectPrompt />
-      ) : upcoming.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-          {/* Render all rows; hero gets a tinted background highlight */}
-          {upcoming.map((entry, i) => (
-            <ListRow
-              key={entry.id}
-              entry={entry}
-              highlight={i === 0}
-              isLast={i === upcoming.length - 1}
-            />
-          ))}
-        </div>
-      )}
+      {renderContent()}
     </BaseWidget>
   );
 };

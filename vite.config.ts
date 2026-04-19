@@ -129,24 +129,28 @@ const suggestProxy = (): Plugin => ({
       const client = params.get('client') ?? 'chrome';
       const ds = params.get('ds') ?? '';
 
-      const upstream = ds
-        ? `https://suggestqueries.google.com/complete/search?client=${client}&ds=${ds}&q=${encodeURIComponent(q)}`
-        : client === 'ddg'
-          ? `https://duckduckgo.com/ac/?type=list&q=${encodeURIComponent(q)}`
-          : `https://suggestqueries.google.com/complete/search?client=${client}&q=${encodeURIComponent(q)}`;
+      let upstream: string;
+      if (ds) {
+        upstream = `https://suggestqueries.google.com/complete/search?client=${client}&ds=${ds}&q=${encodeURIComponent(q)}`;
+      } else if (client === 'ddg') {
+        upstream = `https://duckduckgo.com/ac/?type=list&q=${encodeURIComponent(q)}`;
+      } else {
+        upstream = `https://suggestqueries.google.com/complete/search?client=${client}&q=${encodeURIComponent(q)}`;
+      }
 
       try {
         const r = await fetch(upstream, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         let text = await r.text();
         // Google returns JSONP (window.google.ac.h([...])) when called from non-browser agents.
         // Strip the wrapper so the client always receives plain JSON.
-        const jsonpMatch = text.match(/^window\.google\.ac\.h\((.+)\)$/s);
+        const jsonpMatch = /^window\.google\.ac\.h\((.+)\)$/s.exec(text);
         if (jsonpMatch) text = jsonpMatch[1];
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.statusCode = r.status;
         res.end(text);
       } catch (e) {
+        console.error('Suggest proxy error:', e);
         res.statusCode = 502;
         res.end('[]');
       }

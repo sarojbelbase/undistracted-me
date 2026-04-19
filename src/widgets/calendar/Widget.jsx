@@ -8,6 +8,7 @@ import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
 import { Popup } from '../../components/ui/Popup';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { AddEvent } from '../events/AddEvent';
 
 const TOOLTIP_MARGIN = 10; // min px gap from every viewport edge
@@ -57,15 +58,13 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
   if (!day) return <div className="w-7 h-7" />;
 
   return (
-    <div
-      ref={ref}
-      className="relative flex flex-col items-center"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <>
       <button
+        ref={ref}
         type="button"
         onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className="relative text-sm font-semibold w-7 h-7 mx-auto flex items-center justify-center rounded-full cursor-pointer transition-colors focus:outline-none overflow-hidden"
         style={isCurrent
           ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
@@ -109,7 +108,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
       {anchor && (
         <DayTooltip events={eventsForDay} anchor={anchor} />
       )}
-    </div>
+    </>
   );
 };
 
@@ -174,30 +173,32 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 Go To Today
               </TintedChip>
             )}
-            <button
+            <TooltipBtn
               onClick={() => setMonthOffset(o => o - 1)}
+              tooltip="Previous month"
               className="p-1 rounded transition-colors group/btn"
               style={{ color: 'var(--w-ink-5)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--w-ink-5)'}
-              onMouseDown={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
-              onMouseUp={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-5)'; }}
+              onMouseDown={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              onMouseUp={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
               aria-label="Previous month"
             >
               <ChevronLeft />
-            </button>
-            <button
+            </TooltipBtn>
+            <TooltipBtn
               onClick={() => setMonthOffset(o => o + 1)}
+              tooltip="Next month"
               className="p-1 rounded transition-colors"
               style={{ color: 'var(--w-ink-5)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--w-ink-5)'}
-              onMouseDown={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
-              onMouseUp={e => e.currentTarget.style.color = 'var(--w-ink-3)'}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-5)'; }}
+              onMouseDown={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              onMouseUp={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
               aria-label="Next month"
             >
               <ChevronRight />
-            </button>
+            </TooltipBtn>
           </div>
         </div>
 
@@ -216,7 +217,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
               : [];
             return (
               <DayCell
-                key={index}
+                key={dateStr ?? `empty-${index}`}
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}

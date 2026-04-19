@@ -77,6 +77,7 @@ export const LeftZone = () => {
 
   return (
     <div
+      role="none"
       className="fm-left-panel pointer-events-auto"
       style={{ zIndex: 22 }}
       onClick={e => e.stopPropagation()}

@@ -31,7 +31,7 @@ export const Clock = ({ parts, centerOnDark, compact = false }) => (
         {parts.time.split('').map((char, i) =>
           char === ':' ? (
             <span
-              key={`sep-${i}`}
+              key={`sep-${i}-${char}`} // NOSONAR: time string chars at fixed positions — array index is the stable position identifier
               style={{
                 fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
                 lineHeight: 1, height: '1em', display: 'flex', alignItems: 'center',

@@ -6,6 +6,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { Popup } from '../../components/ui/Popup';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 // Only fetched the first time a user opens a note in modal or full-page mode.
 const LexicalEditor = lazy(() => import('./LexicalEditor'));
@@ -93,48 +94,29 @@ const TrafficLights = ({
 );
 
 // ─── Segmented-control button (with Popup tooltip) ────────────────────────────
-const SegBtn = ({ onClick, disabled, label, children }) => {
-  const btnRef = useRef(null);
-  const [anchor, setAnchor] = useState(null);
-  return (
-    <>
-      <button
-        ref={btnRef}
-        type="button"
-        aria-label={label}
-        onClick={disabled ? undefined : onClick}
-        disabled={disabled}
-        style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          gap: 4, border: 'none', borderRadius: 6, padding: '2px 5px',
-          fontSize: '0.6875rem', fontWeight: 600, lineHeight: 1,
-          background: 'transparent',
-          color: disabled ? 'var(--w-ink-6)' : 'var(--w-ink-3)',
-          cursor: disabled ? 'default' : 'pointer',
-          transition: 'background 0.12s, color 0.12s',
-          minHeight: 22,
-        }}
-        onMouseEnter={e => {
-          if (!disabled) e.currentTarget.style.background = 'rgba(0,0,0,0.06)';
-          if (label && !disabled) setAnchor(btnRef.current?.getBoundingClientRect() ?? null);
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = 'transparent';
-          setAnchor(null);
-        }}
-      >
-        {children}
-      </button>
-      {label && anchor && (
-        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
-          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>
-            {label}
-          </span>
-        </Popup>
-      )}
-    </>
-  );
-};
+const SegBtn = ({ onClick, disabled, label, children }) => (
+  <TooltipBtn
+    type="button"
+    aria-label={label}
+    onClick={disabled ? undefined : onClick}
+    disabled={disabled}
+    tooltip={disabled ? undefined : label}
+    style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      gap: 4, border: 'none', borderRadius: 6, padding: '2px 5px',
+      fontSize: '0.6875rem', fontWeight: 600, lineHeight: 1,
+      background: 'transparent',
+      color: disabled ? 'var(--w-ink-6)' : 'var(--w-ink-3)',
+      cursor: disabled ? 'default' : 'pointer',
+      transition: 'background 0.12s, color 0.12s',
+      minHeight: 22,
+    }}
+    onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
+    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+  >
+    {children}
+  </TooltipBtn>
+);
 
 // ─── Circular icon button ─────────────────────────────────────────────────────
 function circleBtnStyle(disabled, danger, size) {
