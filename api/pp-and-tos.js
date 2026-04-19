@@ -6,8 +6,8 @@
  * via a <link> so it degrades gracefully offline). No JS required.
  */
 
-const LAST_UPDATED = 'April 20, 2026';
-const CONTACT_EMAIL = 'hello@sarojbelbase.com.np';
+const LAST_UPDATED = 'April 21, 2026';
+const CONTACT_EMAIL = 'hey@sarojbelbase.com.np';
 const WEBSITE = 'https://undistractedme.sarojbelbase.com.np';
 
 const html = /* html */ `<!DOCTYPE html>

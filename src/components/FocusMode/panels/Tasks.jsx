@@ -10,6 +10,7 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { FOCUS_THEME } from '../theme';
+import { IntegrationRow } from '../../ui/IntegrationRow';
 
 const t = FOCUS_THEME;
 
@@ -274,64 +275,16 @@ const AddTaskInput = ({ onAdd }) => {
   );
 };
 
-// ─── Connect empty state ──────────────────────────────────────────────────────
+// ─── Dark CSS-var context for IntegrationRow inside the dark panel ───────────
 
-const ConnectState = ({ onConnect, connecting }) => (
-  <div style={{ padding: '28px 20px 24px', textAlign: 'center' }}>
-    <div
-      style={{
-        width: 40, height: 40,
-        borderRadius: 12,
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.09)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 14px',
-      }}
-    >
-      <IconGoogle />
-    </div>
-    <p style={{ fontSize: 13, fontWeight: 600, color: MED, margin: '0 0 5px' }}>
-      Google Tasks
-    </p>
-    <p style={{ fontSize: 11.5, color: DIM, margin: '0 0 20px', lineHeight: 1.55 }}>
-      Sign in to see and manage<br />your tasks in Focus Mode.
-    </p>
-    <button
-      onClick={onConnect}
-      disabled={connecting}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        padding: '8px 18px',
-        borderRadius: 8,
-        background: connecting ? 'rgba(255,255,255,0.07)' : ACCENT,
-        color: connecting ? DIM : ACCENT_FG,
-        border: 'none',
-        fontSize: 12.5,
-        fontWeight: 600,
-        cursor: connecting ? 'default' : 'pointer',
-        transition: 'background 0.15s',
-        letterSpacing: '0.01em',
-      }}
-    >
-      {connecting ? (
-        <>
-          <span style={{
-            display: 'inline-block', width: 11, height: 11,
-            border: `1.5px solid ${DIM}`, borderTopColor: 'transparent',
-            borderRadius: '50%', animation: 'spin 0.7s linear infinite',
-          }} />{' '}Connecting…
-        </>
-      ) : (
-        <>
-          <IconGoogle />
-          Connect Google
-        </>
-      )}
-    </button>
-  </div>
-);
+const darkVars = {
+  '--w-ink-1': 'rgba(255,255,255,0.92)',
+  '--w-ink-4': 'rgba(255,255,255,0.55)',
+  '--w-ink-5': 'rgba(255,255,255,0.40)',
+  '--w-ink-6': 'rgba(255,255,255,0.30)',
+  '--w-accent': '#818cf8',
+  '--w-accent-fg': '#ffffff',
+};
 
 // ─── Pill label ───────────────────────────────────────────────────────────────
 
@@ -497,7 +450,19 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, connect
               <AddTaskInput onAdd={add} />
             </>
           ) : (
-            <ConnectState onConnect={onConnect} connecting={connecting} />
+            <div style={{ padding: '20px 16px 18px', ...darkVars }}>
+              <IntegrationRow
+                icon={<IconGoogle />}
+                label="Google Tasks"
+                connected={false}
+                loading={connecting}
+                description="Sign in to see and manage your tasks."
+                privacyLabel="Read-only data · nothing stored on servers"
+                connectLabel="Connect Google"
+                onConnect={onConnect}
+                onDisconnect={() => { }}
+              />
+            </div>
           )}
         </div>
       )}
