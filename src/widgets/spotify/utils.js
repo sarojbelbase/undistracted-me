@@ -164,7 +164,8 @@ async function getWebAccessToken() {
   };
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
   return updated.access_token;
-} with one - time migration from localStorage.
+}
+
 async function getExtensionAccessToken() {
   // One-time migration: move tokens from old localStorage storage to chrome.storage.local.
   // This runs silently on first invocation after an update and removes the insecure copy.
