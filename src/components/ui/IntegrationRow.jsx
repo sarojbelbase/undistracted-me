@@ -159,6 +159,17 @@ export const IntegrationRow = ({
               <span className="text-[10px]" style={{ color: 'var(--w-ink-6)' }}>{privacyLabel}</span>
             </div>
           )}
+          <div className="flex items-center justify-center">
+            <a
+              href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] transition-opacity hover:opacity-100"
+              style={{ color: 'var(--w-ink-6)', opacity: 0.65, textDecoration: 'none' }}
+            >
+              Privacy Policy &amp; Terms
+            </a>
+          </div>
         </div>
       )}
     </div>
