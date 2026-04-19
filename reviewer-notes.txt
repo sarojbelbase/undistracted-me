@@ -71,8 +71,8 @@ NON-OBVIOUS PATTERNS
    Standard PKCE flow. The Spotify API does not require a client_secret for
    PKCE token exchange — only the client_id and code_verifier are sent.
    Token exchange goes directly to accounts.spotify.com/api/token.
-   Tokens are stored in chrome.storage.local (extension) or localStorage
-   (website mode).
+   Tokens are stored in chrome.storage.local (extension) or sessionStorage
+   (website mode — scoped to the browser session, cleared on close).
    Source: src/widgets/spotify/utils.js
 
 
@@ -158,5 +158,8 @@ In website mode (VITE_WEBSITE_MODE=true):
   - All chrome.* API calls are guarded and silently skipped.
   - Google and Spotify OAuth use a popup + PKCE flow instead of
     chrome.identity.
-  - Tokens are stored in localStorage (no chrome.storage available).
+  - OAuth tokens (access_token, refresh_token) are stored in sessionStorage
+    only — scoped to the browser session and never persisted to disk.
+    The CONNECTED_FLAG boolean (non-sensitive) remains in localStorage for
+    a synchronous isConnected() check.
   - Extension badge, topSites, and content script features are disabled.

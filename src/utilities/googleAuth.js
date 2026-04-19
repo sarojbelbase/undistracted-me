@@ -71,6 +71,9 @@ export function getGoogleRedirectUrl() {
 
 // ─── Web (website mode) — popup + PKCE + server-side token exchange ─────────
 
+// sessionStorage keeps web-mode OAuth tokens scoped to the browser session only.
+// This prevents cross-tab token leakage and reduces XSS exposure window compared
+// to localStorage. Extension paths use chrome.storage.local instead (never this key).
 const WEB_TOKEN_KEY = 'google_web_tokens';
 
 /**
@@ -79,7 +82,7 @@ const WEB_TOKEN_KEY = 'google_web_tokens';
  */
 async function getValidStoredWebToken() {
   try {
-    const raw = localStorage.getItem(WEB_TOKEN_KEY);
+    const raw = sessionStorage.getItem(WEB_TOKEN_KEY);
     if (!raw) return null;
     const stored = JSON.parse(raw);
     // Still valid with 30-second buffer
@@ -99,7 +102,7 @@ async function getValidStoredWebToken() {
       refresh_token: tokens.refresh_token || stored.refresh_token,
       expires_at: Date.now() + tokens.expires_in * 1000,
     };
-    localStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(updated));
+    sessionStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(updated));
     return updated.access_token;
   } catch { return null; }
 }
@@ -180,7 +183,7 @@ async function getTokenWeb(interactive) {
     refresh_token: tokens.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  localStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(newStored));
+  sessionStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(newStored));
   return newStored.access_token;
 }
 
@@ -209,15 +212,15 @@ function removeCachedTokenChrome(token) {
 function generateCodeVerifier() {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
-  return btoa(String.fromCharCode(...arr))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCodePoint(...arr))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
 async function generateCodeChallenge(verifier) {
   const data = new TextEncoder().encode(verifier);
   const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCodePoint(...new Uint8Array(digest)))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
 // ─── Firefox token storage ────────────────────────────────────────────────────
@@ -286,8 +289,8 @@ async function getTokenFirefox(interactive) {
     chrome.identity.launchWebAuthFlow({ url: authUrl.toString(), interactive: true }, (url) => { // eslint-disable-line no-undef
       const err = chrome.runtime?.lastError; // eslint-disable-line no-undef
       if (err) reject(new Error(err.message));
-      else if (!url) reject(new Error('Auth cancelled'));
-      else resolve(url);
+      else if (url) resolve(url);
+      else reject(new Error('Auth cancelled'));
     });
   });
 
@@ -339,7 +342,7 @@ export async function getGoogleAuthToken(interactive = true) {
  */
 export async function removeGoogleAuthToken(token) {
   if (isWebPath()) {
-    localStorage.removeItem(WEB_TOKEN_KEY);
+    sessionStorage.removeItem(WEB_TOKEN_KEY);
     return;
   }
   if (isChromePath()) {
