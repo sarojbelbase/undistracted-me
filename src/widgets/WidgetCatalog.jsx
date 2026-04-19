@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ConfirmButton } from '../components/ui/ConfirmButton';
+import { TooltipBtn } from '../components/ui/TooltipBtn';
 import { createPortal } from 'react-dom';
 import {
   XLg, PlusLg, DashLg,
@@ -53,25 +54,25 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
       <div className="wc-stepper">
         {isActive ? (
           <>
-            <button
+            <TooltipBtn
               className="wc-stepper-btn wc-stepper-btn--remove"
               onClick={e => { e.stopPropagation(); onRemove(); }}
               aria-label={`Remove ${widget.title}`}
-              title="Remove one"
+              tooltip="Remove one"
             >
               <DashLg size={12} />
-            </button>
+            </TooltipBtn>
             <span className="wc-stepper-count">{count}</span>
           </>
         ) : null}
-        <button
+        <TooltipBtn
           className={`wc-stepper-btn wc-stepper-btn--add${isActive ? ' wc-stepper-btn--add-active' : ''}`}
           onClick={onAdd}
           aria-label={`Add ${widget.title}`}
-          title="Add to canvas"
+          tooltip="Add to canvas"
         >
           <PlusLg size={12} />
-        </button>
+        </TooltipBtn>
       </div>
     </li>
   );
@@ -149,12 +150,12 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
           </div>
 
           <div className="wc-header-center">
-            <button className="wc-pill-btn" onClick={exportSettings} title="Export settings">
+            <TooltipBtn className="wc-pill-btn" onClick={exportSettings} tooltip="Export settings">
               <Upload size={11} /><span>Export</span>
-            </button>
-            <button className="wc-pill-btn" onClick={handleImport} title="Import settings">
+            </TooltipBtn>
+            <TooltipBtn className="wc-pill-btn" onClick={handleImport} tooltip="Import settings">
               <Download size={11} /><span>{importOk ? 'Done!' : 'Import'}</span>
-            </button>
+            </TooltipBtn>
             <ConfirmButton
               onConfirm={resetSettings}
               label="Reset settings"

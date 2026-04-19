@@ -2,6 +2,7 @@ import { SunFill, MoonFill, CheckLg, CircleHalf } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
+import { TooltipBtn } from './ui/TooltipBtn';
 
 const SectionLabel = ({ children }) => (
   <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
@@ -118,17 +119,17 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             ].map(({ id, label, icon }) => {
               const selected = mode === id;
               return (
-                <button
+                <TooltipBtn
                   key={id}
+                  tooltip={id === 'auto' ? 'Auto — follows sunrise & sunset' : undefined}
                   onClick={() => setMode(id)}
                   className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-none cursor-pointer"
                   style={selected
                     ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
                     : { background: 'transparent', color: 'var(--w-ink-3)' }}
-                  title={id === 'auto' ? 'Auto — follows sunrise & sunset' : label}
                 >
                   {icon}{label}
-                </button>
+                </TooltipBtn>
               );
             })}
           </div>
@@ -145,9 +146,9 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
               const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
               const selected = accent === color.name;
               return (
-                <button
+                <TooltipBtn
                   key={color.name}
-                  title={locked ? 'Not available in dark mode' : color.name}
+                  tooltip={locked ? 'Not available in dark mode' : color.name}
                   onClick={() => !locked && setAccent(color.name)}
                   className="w-7 h-7 rounded-full flex items-center justify-center transition-all focus:outline-none cursor-pointer"
                   style={{
@@ -160,7 +161,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
                   }}
                 >
                   {selected && <CheckLg size={10} style={{ color: color.fg }} />}
-                </button>
+                </TooltipBtn>
               );
             })}
           </div>

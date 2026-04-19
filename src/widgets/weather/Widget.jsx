@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import config from './config';
 import { useWidgetSettings } from '../useWidgetSettings';
@@ -52,28 +52,44 @@ const SimpleSkeleton = () => (
  * Active bars (before the event hour) fade proportionally to their pop value;
  * bars after the event are flat — making the transition visually obvious.
  */
+const PrecipBarItem = ({ pop, i, isActive }) => {
+  const ref = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  return (
+    <>
+      <div
+        ref={ref}
+        style={{
+          width: '5px',
+          height: `${Math.max(2, Math.round((pop / 100) * 16))}px`,
+          borderRadius: '1.5px',
+          backgroundColor: isActive ? 'var(--w-ink-3)' : 'var(--panel-bg)',
+          opacity: isActive ? Math.max(0.2, pop / 100) : 1,
+          cursor: 'default',
+        }}
+        onMouseEnter={() => setAnchor(ref.current?.getBoundingClientRect() ?? null)}
+        onMouseLeave={() => setAnchor(null)}
+      />
+      {anchor && (
+        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
+          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>
+            {`+${i}h: ${pop}%`}
+          </span>
+        </Popup>
+      )}
+    </>
+  );
+};
+
 const PrecipBars = ({ popSlots, eventHour }) => (
   <div
     className="flex items-end gap-px mt-2"
     style={{ height: '18px' }}
     aria-label="Hourly precipitation probability"
   >
-    {popSlots.map((pop, i) => {
-      const isActive = i < eventHour;
-      return (
-        <div
-          key={i}
-          title={`+${i}h: ${pop}%`}
-          style={{
-            width: '5px',
-            height: `${Math.max(2, Math.round((pop / 100) * 16))}px`,
-            borderRadius: '1.5px',
-            backgroundColor: isActive ? 'var(--w-ink-3)' : 'var(--panel-bg)',
-            opacity: isActive ? Math.max(0.2, pop / 100) : 1,
-          }}
-        />
-      );
-    })}
+    {popSlots.map((pop, i) => (
+      <PrecipBarItem key={i} pop={pop} i={i} isActive={i < eventHour} />
+    ))}
     <span
       style={{
         fontSize: '0.6rem',

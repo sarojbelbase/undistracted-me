@@ -4,6 +4,7 @@ import { BaseSettingsModal } from '../BaseSettingsModal';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 import { FaviconIcon } from '../../components/ui/FaviconIcon';
@@ -72,15 +73,15 @@ const BookmarkSettings = ({ url, name, iconMode: initialIconMode = 'favicon', on
             </div>
             <div className="text-xs truncate" style={{ color: 'var(--w-ink-5)' }}>{previewHostname}</div>
           </div>
-          <button
+          <TooltipBtn
             type="button"
             onClick={handleRefresh}
             className="p-1.5 rounded-lg transition-opacity hover:opacity-70 active:opacity-40 shrink-0"
             style={{ color: 'var(--w-ink-4)' }}
-            title="Refresh icon"
+            tooltip="Refresh icon"
           >
             <RefreshIcon />
-          </button>
+          </TooltipBtn>
         </div>
       )}
 

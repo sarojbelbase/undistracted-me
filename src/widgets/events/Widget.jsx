@@ -11,6 +11,7 @@ import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 import { Settings } from './Settings';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 export const Widget = ({ onRemove }) => {
   const [localEvents, addEvent, removeEvent] = useEvents();
@@ -75,16 +76,16 @@ export const Widget = ({ onRemove }) => {
               {syncLabel}
             </span>
             {connected && (
-              <button
+              <TooltipBtn
                 onClick={refresh}
                 disabled={loading}
-                title="Refresh"
+                tooltip="Refresh"
                 aria-label="Refresh"
                 className="flex items-center leading-none transition-opacity hover:opacity-50 cursor-pointer select-none shrink-0"
                 style={{ color: 'var(--w-ink-4)' }}
               >
                 <RefreshIcon spinning={loading} />
-              </button>
+              </TooltipBtn>
             )}
           </div>
 
@@ -116,16 +117,16 @@ export const Widget = ({ onRemove }) => {
             <div />
           )}
 
-          <button
+          <TooltipBtn
             onClick={() => setShowCreate(true)}
             onMouseDown={e => e.stopPropagation()}
-            title="New event"
+            tooltip="New event"
             aria-label="New event"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-85 cursor-pointer shrink-0"
             style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
           >
             <PlusLg size={22} />
-          </button>
+          </TooltipBtn>
         </div>
 
       </BaseWidget>
