@@ -20,8 +20,16 @@
 		"test:report": "playwright show-report tests/playwright/report"
 	},
 	"dependencies": {
+		"@lexical/code": "^0.43.0",
+		"@lexical/history": "^0.43.0",
+		"@lexical/link": "^0.43.0",
+		"@lexical/list": "^0.43.0",
+		"@lexical/markdown": "^0.43.0",
+		"@lexical/react": "^0.43.0",
+		"@lexical/rich-text": "^0.43.0",
 		"@vercel/analytics": "^2.0.1",
 		"dayjs": "^1.11.20",
+		"lexical": "^0.43.0",
 		"react": "^19.2.5",
 		"react-bootstrap-icons": "^1.11.6",
 		"react-dom": "^19.2.5",

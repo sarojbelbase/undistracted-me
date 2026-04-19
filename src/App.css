@@ -45,6 +45,16 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   width: 0 !important;
 }
 
+/* Notes title input (telegra.ph-style first-line title) */
+.notes-title::placeholder {
+  color: var(--w-ink-6);
+  font-weight: 400;
+}
+
+.notes-title:focus {
+  outline: none;
+}
+
 /* Notes textarea — hide scrollbar entirely, scroll via wheel/touch only */
 .notes-textarea::-webkit-scrollbar {
   display: none;
@@ -53,9 +63,480 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .notes-textarea {
   scrollbar-width: none;
   outline: none !important;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  resize: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  color: var(--w-ink-1);
 }
 
-/* Firefox */
+.notes-textarea::placeholder {
+  color: var(--w-ink-6);
+}
+
+/* ── Lexical WYSIWYG editor ──────────────────────────────────────────────── */
+
+/* ContentEditable element — flex so it fills available height */
+.lex-content {
+  flex: 1;
+  min-height: 0;
+  outline: none;
+  word-break: break-word;
+  line-height: 1.85;
+  overflow-y: auto;
+  scrollbar-width: none;
+  direction: ltr;
+  text-align: left;
+  padding-left: 6px;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+}
+
+.lex-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Lexical sets dir="auto" on every block — force LTR */
+.lex-content [dir] {
+  direction: ltr !important;
+  unicode-bidi: normal !important;
+  text-align: left !important;
+}
+
+/* Placeholder — absolutely positioned inside the relative wrapper */
+.lex-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-left: 6px;
+  /* mirrors .lex-content padding-left so cursor aligns */
+  pointer-events: none;
+  color: var(--w-ink-6);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Paragraph */
+.lex-p {
+  margin: 0 0 0.2em;
+}
+
+/* Headings */
+.lex-h1 {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--w-ink-1);
+  margin: 1.1em 0 0.35em;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.lex-h2 {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--w-ink-1);
+  margin: 0.9em 0 0.3em;
+  line-height: 1.3;
+}
+
+.lex-h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--w-ink-2);
+  margin: 0.75em 0 0.25em;
+}
+
+/* Inline text formatting */
+.lex-bold {
+  font-weight: 700;
+}
+
+.lex-italic {
+  font-style: italic;
+}
+
+.lex-strike {
+  text-decoration: line-through;
+}
+
+.lex-underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Inline code — backtick */
+.lex-inline-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.82em;
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--w-accent);
+}
+
+/* Code block */
+.lex-code-block {
+  display: block;
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  margin: 6px 0;
+  font-size: 0.8em;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  line-height: 1.6;
+  color: var(--w-ink-2);
+  white-space: pre;
+}
+
+/* Blockquote */
+.lex-blockquote {
+  border-left: 3px solid var(--w-border);
+  padding-left: 12px;
+  margin: 4px 0;
+  color: var(--w-ink-4);
+  font-style: italic;
+}
+
+/* Lists */
+.lex-ul {
+  list-style: disc;
+  padding-left: 1.6em;
+  margin: 0.2em 0;
+}
+
+.lex-ol {
+  list-style: decimal;
+  padding-left: 2em;
+  margin: 0.2em 0;
+}
+
+.lex-li {
+  margin: 0.1em 0;
+}
+
+.lex-li>p,
+.lex-nested-li>p {
+  margin: 0;
+}
+
+/* Checklist items */
+.lex-li-unchecked,
+.lex-li-checked {
+  list-style: none;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-left: -1.4em;
+  padding-left: 0;
+}
+
+.lex-li-unchecked::before,
+.lex-li-checked::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 3px;
+  border: 1.5px solid var(--w-border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.lex-li-checked::before {
+  background: var(--w-accent);
+  border-color: var(--w-accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.lex-li-checked>span {
+  text-decoration: line-through;
+  color: var(--w-ink-5);
+}
+
+/* Links */
+.lex-link {
+  color: var(--w-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+}
+
+.lex-link:hover {
+  opacity: 0.8;
+}
+
+/* Selection highlight */
+.lex-content ::selection {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+
+/* ── Notes Markdown Preview ───────────────────────────────────────────────── */
+
+.md-preview {
+  padding: 0;
+  color: var(--w-ink-1);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+/* Headings */
+.md-h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--w-ink-1);
+  margin: 14px 0 4px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.md-h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--w-ink-2);
+  margin: 12px 0 3px;
+  line-height: 1.35;
+}
+
+.md-h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--w-ink-3);
+  margin: 8px 0 2px;
+  line-height: 1.4;
+}
+
+.md-h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--w-ink-4);
+  margin: 6px 0 1px;
+}
+
+.md-h5 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  margin: 4px 0 1px;
+}
+
+.md-h6 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  margin: 4px 0 1px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.md-h1:first-child,
+.md-h2:first-child,
+.md-h3:first-child,
+.md-h4:first-child,
+.md-h5:first-child,
+.md-h6:first-child {
+  margin-top: 0;
+}
+
+/* Paragraph */
+.md-p {
+  margin: 0;
+  line-height: 1.75;
+}
+
+/* Spacer between blank lines */
+.md-sp {
+  height: 6px;
+}
+
+/* Horizontal rule */
+.md-hr {
+  border: none;
+  border-top: 1px solid var(--w-border);
+  margin: 12px 0;
+}
+
+/* Inline code */
+.md-ic {
+  font-family: inherit;
+  font-size: 0.75rem;
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--w-accent);
+}
+
+/* Code block */
+.md-pre {
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  margin: 4px 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--w-ink-2);
+}
+
+.md-pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Links */
+.md-link {
+  color: var(--w-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+/* Blockquote */
+.md-bq {
+  border-left: 2px solid var(--w-accent);
+  padding-left: 9px;
+  color: var(--w-ink-4);
+  margin: 2px 0;
+}
+
+/* List items (bullets + numbered) */
+.md-li {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.md-bullet {
+  color: var(--w-ink-4);
+  flex-shrink: 0;
+  line-height: inherit;
+}
+
+.md-num {
+  color: var(--w-ink-5);
+  min-width: 2ch;
+  flex-shrink: 0;
+  font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Checkboxes */
+.md-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1px 0;
+}
+
+.md-checkbox {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.5px solid var(--w-ink-5);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--w-accent);
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.md-checkbox:hover {
+  border-color: var(--w-ink-3);
+}
+
+.md-checkbox--checked {
+  border-color: var(--w-accent);
+  background: color-mix(in srgb, var(--w-accent) 14%, transparent);
+}
+
+.md-checked {
+  text-decoration: line-through;
+  color: var(--w-ink-5);
+}
+
+/* Code language label */
+.md-code-lang {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--w-ink-5);
+  margin-bottom: 4px;
+}
+
+/* Tables */
+.md-table-wrap {
+  overflow-x: auto;
+  margin: 6px 0;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.md-th,
+.md-td {
+  padding: 5px 12px 5px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--w-border);
+}
+
+.md-th {
+  font-weight: 600;
+  color: var(--w-ink-2);
+  border-bottom-width: 2px;
+}
+
+.md-td {
+  color: var(--w-ink-3);
+}
+
+/* Hex color swatch — Antinote-style inline color preview */
+.md-color-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.md-color-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+
 * {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -513,7 +994,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   opacity: 0.45;
 }
 
-[data-mode="dark"] input:not([data-ui-input]),
+[data-mode="dark"] input:not([data-ui-input]):not(.notes-title),
 [data-mode="dark"] textarea:not(.notes-textarea),
 [data-mode="dark"] select {
   background-color: var(--w-surface-2) !important;

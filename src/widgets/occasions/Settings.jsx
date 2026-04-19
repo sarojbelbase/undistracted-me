@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { XLg, BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import { AddOccasion } from './AddOccasion';
+import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import {
   loadManualBirthdays,
   addManualBirthday,
@@ -176,16 +177,14 @@ const ManualSection = ({ onManualChange }) => {
                       {typeLabel(e.type)} · {monthShort} {e.day}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleRemove(e.id)}
+                  <ConfirmButton
+                    onConfirm={() => handleRemove(e.id)}
+                    label={`Remove ${e.name}`}
                     className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
-                    style={{ color: 'var(--w-ink-4)' }}
-                    aria-label={`Remove ${e.name}`}
+                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
                   >
                     <XLg size={11} />
-                  </button>
+                  </ConfirmButton>
                 </div>
               );
             })}
