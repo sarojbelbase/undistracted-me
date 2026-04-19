@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 import { PlusLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
 import { TintedChip } from '../../components/ui/TintedChip';
+import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { AddCountdown } from './AddCountdown';
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../useEvents';
@@ -143,16 +144,14 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                       {cdLabel}
                     </span>
                   </button>
-                  <button
-                    onClick={() => onRemoveCustom(cd.id)}
+                  <ConfirmButton
+                    onConfirm={() => onRemoveCustom(cd.id)}
+                    label={`Remove ${cd.title}`}
                     className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 mr-1.5"
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
-                    style={{ color: 'var(--w-ink-4)' }}
-                    aria-label={`Remove ${cd.title}`}
+                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
                   >
                     <Trash3 size={13} />
-                  </button>
+                  </ConfirmButton>
                 </div>
               );
             })}

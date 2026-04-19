@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { BaseSettingsModal } from './BaseSettingsModal';
+import { ConfirmButton } from '../components/ui/ConfirmButton';
 
 /**
  * Base card wrapper for all widgets.
@@ -146,15 +147,15 @@ export const BaseWidget = forwardRef(({ children,
             </button>
           )}
           {onRemove && (
-            <button
+            <ConfirmButton
               role="menuitem"
-              onClick={() => { setMenuOpen(false); onRemove(); }}
-              onMouseDown={e => e.stopPropagation()}
+              onConfirm={() => { setMenuOpen(false); onRemove(); }}
+              label="Remove widget"
               className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
-              style={{ color: 'var(--w-danger)' }}
+              style={{ color: 'var(--w-danger)', justifyContent: 'flex-start', borderRadius: 0, background: 'none' }}
             >
               Remove
-            </button>
+            </ConfirmButton>
           )}
         </div>,
         document.body

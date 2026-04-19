@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ConfirmButton } from '../components/ui/ConfirmButton';
 import { createPortal } from 'react-dom';
 import {
   XLg, PlusLg, DashLg,
@@ -78,7 +79,6 @@ const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
 
 // ─── Main catalog ──────────────────────────────────────────────────────────────
 export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onClose }) => {
-  const [resetConfirm, setResetConfirm] = useState(false);
   const [importError, setImportError] = useState(null);
   const [importOk, setImportOk] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -112,15 +112,6 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
   const removeLastOfType = (type) => {
     const last = [...(instances || [])].reverse().find(i => i.type === type);
     if (last) onRemoveInstance(last.id);
-  };
-
-  const handleReset = () => {
-    if (resetConfirm) {
-      resetSettings();
-    } else {
-      setResetConfirm(true);
-      setTimeout(() => setResetConfirm(false), 4000);
-    }
   };
 
   const handleImport = () => {
@@ -164,14 +155,14 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
             <button className="wc-pill-btn" onClick={handleImport} title="Import settings">
               <Download size={11} /><span>{importOk ? 'Done!' : 'Import'}</span>
             </button>
-            <button
-              className={`wc-pill-btn${resetConfirm ? ' wc-pill-btn--danger' : ''}`}
-              onClick={handleReset}
-              title={resetConfirm ? 'Click again to confirm reset' : 'Reset all settings'}
+            <ConfirmButton
+              onConfirm={resetSettings}
+              label="Reset settings"
+              className="wc-pill-btn"
+              timeout={4000}
             >
-              <ArrowCounterclockwise size={11} />
-              <span>{resetConfirm ? 'Sure?' : 'Reset'}</span>
-            </button>
+              <ArrowCounterclockwise size={11} /><span>Reset</span>
+            </ConfirmButton>
           </div>
 
           <div className="wc-header-right">

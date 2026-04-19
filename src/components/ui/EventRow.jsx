@@ -1,4 +1,5 @@
 import { Trash } from 'react-bootstrap-icons';
+import { ConfirmButton } from './ConfirmButton';
 import { TintedChip } from './TintedChip';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from '../../widgets/events/utils';
 
@@ -114,16 +115,14 @@ export const EventRow = ({
 
         {/* Trash - absolutely positioned top-right, never affects row width */}
         {!compact && event._source !== 'gcal' && onRemove && (
-          <button
-            onClick={() => onRemove(event.id)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-danger)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-4)'; }}
-            style={{ color: 'var(--w-ink-4)' }}
-            aria-label={`Remove ${event.title}`}
+          <ConfirmButton
+            onConfirm={() => onRemove(event.id)}
+            label={`Remove ${event.title}`}
+            className="absolute right-0 top-1/2 -translate-y-1/2 min-w-7 h-7 px-1 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            style={{ color: 'var(--w-ink-4)', background: 'none' }}
           >
             <Trash size={14} />
-          </button>
+          </ConfirmButton>
         )}
 
         {/* Meta: prefix / time / duration  OR  in progress / ends HH:MM */}
