@@ -126,7 +126,9 @@ export const connectSpotify = async () => {
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
   if (isWebMode()) {
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
+    // sessionStorage: tokens scoped to the browser session, not persisted across visits.
+    // CONNECTED_FLAG intentionally stays in localStorage (non-sensitive boolean).
+    sessionStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
   } else {
     await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
   }
@@ -134,9 +136,9 @@ export const connectSpotify = async () => {
   return stored.access_token;
 };
 
-// Web mode: tokens live entirely in localStorage.
+// Web mode: tokens live in sessionStorage (scoped to browser session).
 async function getWebAccessToken() {
-  const raw = localStorage.getItem(TOKEN_KEY);
+  const raw = sessionStorage.getItem(TOKEN_KEY);
   if (!raw) return null;
   let stored;
   try { stored = JSON.parse(raw); } catch { return null; }
@@ -160,11 +162,9 @@ async function getWebAccessToken() {
     refresh_token: tokens.refresh_token || stored.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
+  sessionStorage.setItem(TOKEN_KEY, JSON.stringify(updated));
   return updated.access_token;
-}
-
-// Extension mode: tokens stored in chrome.storage.local with one-time migration from localStorage.
+} with one - time migration from localStorage.
 async function getExtensionAccessToken() {
   // One-time migration: move tokens from old localStorage storage to chrome.storage.local.
   // This runs silently on first invocation after an update and removes the insecure copy.
@@ -221,8 +221,8 @@ export const getAccessToken = async () => {
 
 export const disconnectSpotify = () => {
   if (isWebMode()) {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(PROFILE_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(PROFILE_KEY);
   } else {
     chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
   }
@@ -234,7 +234,7 @@ export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
 
 export const getSpotifyProfile = async () => {
   if (isWebMode()) {
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = sessionStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
   }
@@ -268,7 +268,7 @@ export const fetchAndCacheProfile = async () => {
       avatar: data.images?.[0]?.url ?? null,
     };
     if (isWebMode()) {
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     } else {
       await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
     }
