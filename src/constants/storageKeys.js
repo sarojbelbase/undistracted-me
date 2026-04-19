@@ -33,6 +33,9 @@ export const STORAGE_KEYS = Object.freeze({
   /** Returns the per-instance timer persist key for the pomodoro widget. */
   pomodoroTimerState: (widgetId) => `pomodoro_timer_state_${widgetId}`,
 
+  // ── Location (centralized coords + sun times) ─────────────────────────
+  LOCATION_STATE: 'location_state',
+
   // ── Auto-theme / geolocation ──────────────────────────────────────────
   AUTO_THEME_COORDS: 'auto_theme_coords',
   AUTO_THEME_COORDS_SOURCE: 'auto_theme_coords_source',

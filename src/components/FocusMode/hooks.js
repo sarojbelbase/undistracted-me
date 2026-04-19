@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { getCoords, fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
+import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
+import { useLocationStore } from '../../store/useLocationStore';
 // Shared hooks — also usable by canvas-mode widgets
 import { useSpotify } from '../../widgets/spotify/useSpotify';
 
@@ -20,14 +21,26 @@ export const useFocusWeather = () => {
     return ws ?? null;
   });
 
+  // Fall back to the centralized location store when no manual location is set
+  const { geoLat, geoLon, geoSource } = useLocationStore(
+    useShallow(s => ({ geoLat: s.lat, geoLon: s.lon, geoSource: s.source })),
+  );
+
   useEffect(() => {
     const location = weatherSettings?.location ?? null;
     const unit = weatherSettings?.unit ?? 'metric';
     const load = async () => {
       try {
         let lat, lon;
-        if (location) { lat = location.lat; lon = location.lon; }
-        else { try { ({ lat, lon } = await getCoords()); } catch { return; } }
+        if (location) {
+          lat = location.lat;
+          lon = location.lon;
+        } else if (geoSource !== 'default' && geoLat != null) {
+          lat = geoLat;
+          lon = geoLon;
+        } else {
+          return; // No usable location
+        }
         const cityName = location?.name || '';
         const data = await fetchOpenMeteo(lat, lon, unit);
         setWeather({ ...parseWeather(data, cityName), unit });
@@ -36,7 +49,7 @@ export const useFocusWeather = () => {
     load();
     const timerId = setInterval(load, 30 * 60_000);
     return () => clearInterval(timerId);
-  }, [weatherSettings]);
+  }, [weatherSettings, geoLat, geoLon, geoSource]);
   return weather;
 };
 

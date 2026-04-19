@@ -2,18 +2,14 @@
  * Canonical hook location: src/hooks/useAutoTheme.js
  *
  * Activates the auto dark/light theme based on sunrise and sunset.
+ * Coordinates and sun times come from useLocationStore (single source of truth).
  * See utilities/useAutoTheme.js (re-export stub) for historical context.
  */
 import { useEffect, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { applyTheme } from '../theme';
-import {
-  getSunTimes,
-  getEffectiveMode,
-  getCachedCoords,
-  getCachedCoordsSource,
-  requestAndCacheCoords,
-  computeAutoMode,
-} from '../utilities/sunTime';
+import { getSunTimes, getEffectiveMode, computeAutoMode } from '../utilities/sunTime';
+import { useLocationStore } from '../store/useLocationStore';
 
 /** Pure helper — no React. Computes ms until the next dark↔light transition. */
 const msUntilNext = (effective, sunTimes, lat, lon, now) => {
@@ -34,6 +30,11 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
 };
 
 export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
+  // Read location + sun data from the centralized store
+  const { lat, lon, source, sunrise, sunset } = useLocationStore(
+    useShallow(s => ({ lat: s.lat, lon: s.lon, source: s.source, sunrise: s.sunrise, sunset: s.sunset })),
+  );
+
   const [effectiveMode, setEffectiveMode] = useState(() => {
     if (mode !== 'auto') return mode;
     return computeAutoMode();
@@ -45,8 +46,6 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
       return;
     }
 
-    requestAndCacheCoords();
-
     let timer;
     const mq = globalThis.window?.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
 
@@ -57,16 +56,15 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
 
     const computeAndSchedule = () => {
       const now = new Date();
-      const source = getCachedCoordsSource();
 
-      if (source === 'default') {
+      // Fall back to OS color-scheme when location is unavailable or defaulted
+      if (!source || source === 'default' || !sunrise || !sunset) {
         applyEffective(mq?.matches ? 'dark' : 'light');
         timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
         return;
       }
 
-      const { lat, lon } = getCachedCoords();
-      const sunTimes = getSunTimes(lat, lon, now);
+      const sunTimes = { sunrise: new Date(sunrise), sunset: new Date(sunset) };
       const effective = getEffectiveMode(sunTimes, now);
       applyEffective(effective);
 
@@ -74,7 +72,7 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
     };
 
     const handleMediaChange = () => {
-      if (getCachedCoordsSource() === 'default') {
+      if (!source || source === 'default') {
         applyEffective(mq.matches ? 'dark' : 'light');
       }
     };
@@ -86,7 +84,7 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
       clearTimeout(timer);
       mq?.removeEventListener('change', handleMediaChange);
     };
-  }, [mode, accent, cardStyle]);
+  }, [mode, accent, cardStyle, source, sunrise, sunset, lat, lon]);
 
   return effectiveMode;
 };
