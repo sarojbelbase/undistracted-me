@@ -62,9 +62,11 @@ export const FocusMode = ({ onExit }) => {
   const [customBgUrl, setCustomBgUrl] = useState(() => getCustomBgUrl());
   const [orbRgb, setOrbRgb] = useState(getOrbRgb);
   const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
-  const centerOnDark = useCenterOnDark(slotA, slotB, activeSlot);
+  const { clock: clockDark, search: searchDark, greet: greetDark } = useCenterOnDark(slotA, slotB, activeSlot);
   // Non-curated sources are always dark — prevents white-shadow flash.
-  const effectiveCenterOnDark = bgSource === 'curated' ? centerOnDark : true;
+  const effectiveClockDark = bgSource === 'curated' ? clockDark : true;
+  const effectiveSearchDark = bgSource === 'curated' ? searchDark : true;
+  const effectiveGreetDark = bgSource === 'curated' ? greetDark : true;
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -138,8 +140,8 @@ export const FocusMode = ({ onExit }) => {
         background: 'radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.5) 100%), linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, transparent 28%, transparent 62%, rgba(0,0,0,0.42) 100%)',
       }} />
 
-      {ZONES.center.enable && <CenterZone centerOnDark={effectiveCenterOnDark} />}
-      {ZONES.bottom.enable && <BottomZone centerOnDark={effectiveCenterOnDark} />}
+      {ZONES.center.enable && <CenterZone clockOnDark={effectiveClockDark} searchOnDark={effectiveSearchDark} greetOnDark={effectiveClockDark} />}
+      {ZONES.bottom.enable && <BottomZone greetOnDark={effectiveGreetDark} />}
       {ZONES.right.enable && <RightZone />}
       {ZONES.left.enable && <LeftZone />}
       {ZONES.top.enable && (

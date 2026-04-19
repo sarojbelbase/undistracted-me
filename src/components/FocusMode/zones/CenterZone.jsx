@@ -17,19 +17,19 @@ const CENTER = ZONES.center.items;
 
 // Renderers defined outside the component to avoid lint "component inside component" warning.
 // Each factory receives the current render context and returns a keyed JSX node (or null).
-const renderClock = (parts, centerOnDark, showSearch) => (
+const renderClock = (parts, clockOnDark, showSearch) => (
   <div key="clock" className="select-none pointer-events-none" style={{ display: 'flex', justifyContent: 'center' }}>
-    <Clock parts={parts} centerOnDark={centerOnDark} compact={showSearch} />
+    <Clock parts={parts} centerOnDark={clockOnDark} compact={showSearch} />
   </div>
 );
 
-const renderSearchBar = (centerOnDark, showSearch) => showSearch ? (
+const renderSearchBar = (searchOnDark, showSearch) => showSearch ? (
   <div key="searchBar" className="pointer-events-auto">
-    <SearchBar centerOnDark={centerOnDark} />
+    <SearchBar centerOnDark={searchOnDark} />
   </div>
 ) : null;
 
-export const CenterZone = ({ centerOnDark }) => {
+export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDark = true }) => {
   const clockFormat = useSettingsStore(s => s.clockFormat) || '24h';
   const focusSearchBar = useSettingsStore(s => s.focusSearchBar ?? true);
   const [parts, setParts] = useState(() => getTimeParts(clockFormat));
@@ -39,8 +39,8 @@ export const CenterZone = ({ centerOnDark }) => {
   const showSearch = CENTER.searchBar.enable && focusSearchBar;
 
   const ITEM_RENDERERS = {
-    clock: () => renderClock(parts, centerOnDark, showSearch),
-    searchBar: () => renderSearchBar(centerOnDark, showSearch),
+    clock: () => renderClock(parts, clockOnDark, showSearch),
+    searchBar: () => renderSearchBar(searchOnDark, showSearch),
   };
 
   const orderedItems = Object.entries(CENTER)

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
-import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync } from '../../utilities/unsplash';
+import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync, getPhotoLibrary } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
 import { useLocationStore } from '../../store/useLocationStore';
 import { searchDriveFiles } from '../../utilities/googleDrive';
@@ -88,12 +88,18 @@ export const useFocusPhoto = () => {
   }, []);
 
   // Called with no args: advance to next photo (shuffle).
-  // Called with a photo id: jump to that specific photo without advancing others.
-  const rotate = useCallback(async (targetId) => {
+  // Called with a photo id (+ optional photo object): jump to that specific photo.
+  // The photo object, when provided, is used directly — skipping the cache lookup
+  // that was prone to returning the wrong photo when a concurrent download
+  // rewrote the cache between the user's click and the timer firing.
+  const rotate = useCallback(async (targetId, targetPhoto) => {
     prevUrlRef.current = null; // force re-apply even if same URL
     if (targetId) {
       jumpToPhotoById(targetId);
-      const p = await getCurrentPhoto();
+      // Use the passed photo object if available; otherwise fall back to cache lookup.
+      const p = targetPhoto
+        ?? getPhotoLibrary().find(ph => ph.id === targetId)
+        ?? await getCurrentPhoto();
       if (p) applyPhoto(p);
       return p;
     }
@@ -108,7 +114,13 @@ export const useFocusPhoto = () => {
 
   useEffect(() => {
     let mounted = true;
-    getCurrentPhoto().then(p => { if (mounted && p) applyPhoto(p); });
+    const init = async () => {
+      // Always restore the user's last explicit selection to cache head before
+      // reading — handles the 45-min auto-rotate and concurrent download cases.
+      const p = await getCurrentPhoto();
+      if (mounted && p) applyPhoto(p);
+    };
+    init();
     const id = setInterval(() => {
       if (!mounted) return;
       rotatePhoto().then(p => { if (mounted && p) applyPhoto(p); });
@@ -146,17 +158,28 @@ export const useWakeLock = (active) => {
 
 // ─── Center-zone contrast sampler ─────────────────────────────────────────────
 
+/**
+ * Per-zone luminance detection — samples three image regions independently
+ * so each text element can adapt to the background directly behind it.
+ *
+ * Approach (Samsung / iOS lock screen pattern):
+ *   • Sample a region that covers only the area where the text actually appears.
+ *   • Compute relative luminance (WCAG formula, gamma-corrected sRGB).
+ *   • Return a boolean per zone: true = text zone is dark → use white text.
+ *   • Default to true (safe: white text never disappears on dark photos).
+ *
+ * Returns: { clock: bool, greet: bool }
+ */
 export const useCenterOnDark = (slotA, slotB, activeSlot) => {
-  const [centerOnDark, setCenterOnDark] = useState(true);
+  const [zones, setZones] = useState({ clock: true, search: true, greet: true });
   useEffect(() => {
     // slotA/slotB hold CDN image URLs (p.regular). Never use the Unsplash page
     // URL (p.url) here — that origin blocks cross-origin canvas reads.
     const url = activeSlot === 'a' ? slotA : slotB;
     if (!url || url.includes('unsplash.com/photos/')) return;
 
-    // Immediately assume dark (safe default) while the analysis runs, so the
-    // white-shadow style never flashes on during a transition.
-    setCenterOnDark(true);
+    // Immediately assume dark (safe default) while the analysis runs.
+    setZones({ clock: true, greet: true });
 
     let cancelled = false;
     const img = new Image();
@@ -164,28 +187,74 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
     img.onload = () => {
       if (cancelled) return;
       try {
+        // Render the full image into a fixed-size canvas for sampling.
+        const W = 320;
+        const H = Math.round((img.naturalHeight / img.naturalWidth) * W);
         const canvas = document.createElement('canvas');
-        const W = 320, H = 140;
         canvas.width = W; canvas.height = H;
         const ctx = canvas.getContext('2d');
-        const srcX = img.naturalWidth * 0.2;
-        const srcW = img.naturalWidth * 0.6;
-        const srcY = img.naturalHeight * 0.35;
-        const srcH = img.naturalHeight * 0.33;
-        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, W, H);
-        const d = ctx.getImageData(0, 0, W, H).data;
-        let r = 0, g = 0, b = 0;
-        const pixels = d.length / 4;
-        for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
-        r /= pixels; g /= pixels; b /= pixels;
-        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        setCenterOnDark(lum < 0.5);
+        ctx.drawImage(img, 0, 0, W, H);
+
+        // Helper: compute a perceptual luminance estimate for a pixel rectangle.
+        //
+        // Algorithm: percentile-weighted blend with complexity bias.
+        //  • p20 (dark quintile) weighted most  — ensures text stays readable
+        //    against the brightest patches too, not just the average.
+        //  • Median (p50) for the "typical" look of the zone.
+        //  • p80 (bright quintile) weighted least.
+        //  • complexityBias: when the zone has a large bright↔dark range (sunset,
+        //    edge of window, etc.), nudge the score downward so we lean toward
+        //    white text. White + a subtle shadow is legible on BOTH light and dark
+        //    patches; pure black text has no fallback on a dark patch.
+        //
+        // Uses gamma-corrected sRGB → relative luminance (WCAG 2.1).
+        const lumOf = (x, y, w, h) => {
+          x = Math.max(0, Math.round(x)); y = Math.max(0, Math.round(y));
+          w = Math.min(W - x, Math.round(w)); h = Math.min(H - y, Math.round(h));
+          if (w <= 0 || h <= 0) return 0.5;
+          const d = ctx.getImageData(x, y, w, h).data;
+          const n = d.length / 4;
+          const vals = new Float32Array(n);
+          for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+            const r = (d[i] / 255) ** 2.2;
+            const g = (d[i + 1] / 255) ** 2.2;
+            const b = (d[i + 2] / 255) ** 2.2;
+            vals[j] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          }
+          vals.sort(); // Float32Array sorts numerically by default
+          const p20 = vals[Math.floor(n * 0.2)];
+          const p50 = vals[Math.floor(n * 0.5)];
+          const p80 = vals[Math.floor(n * 0.8)];
+          // Clamp bias to 0.10 — prevents overcorrection on very contrasty images.
+          const complexityBias = Math.min((p80 - p20) * 0.4, 0.1);
+          return 0.35 * p20 + 0.45 * p50 + 0.2 * p80 - complexityBias;
+        };
+
+        // Clock zone: center 56% wide × middle 30% of height.
+        const clockLum = lumOf(W * 0.22, H * 0.33, W * 0.56, H * 0.3);
+
+        // Search bar zone: center 64% wide × band at 52–70% of height.
+        // The search bar sits just below the clock, often over the horizon or
+        // water — a region that can be much lighter than the sky above.
+        const searchLum = lumOf(W * 0.18, H * 0.52, W * 0.64, H * 0.18);
+
+        // Greeting zone: center 72% wide × bottom 22% of height.
+        // Samples where the greeting text actually sits (near the bottom).
+        const greetLum = lumOf(W * 0.14, H * 0.74, W * 0.72, H * 0.22);
+
+        setZones({
+          // Use 0.45 threshold (slightly below midpoint) — biases toward
+          // keeping white text on ambiguous backgrounds for safety.
+          clock: clockLum < 0.45,
+          search: searchLum < 0.45,
+          greet: greetLum < 0.45,
+        });
       } catch { }
     };
     img.src = url;
     return () => { cancelled = true; };
   }, [slotA, slotB, activeSlot]);
-  return centerOnDark;
+  return zones;
 };
 
 // ─── Focus Mode world clocks (reads from the first clock widget's settings) ──

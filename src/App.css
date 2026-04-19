@@ -612,6 +612,18 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   }
 }
 
+@keyframes fm-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* react-grid-layout: no transitions at all — widgets appear in place instantly */
 .react-grid-item,
 .react-grid-item.cssTransforms,

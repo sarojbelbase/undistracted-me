@@ -21,6 +21,11 @@ const TOP = ZONES.top.items;
 
 const FocusModeSettings = lazy(() => import('../Settings').then(m => ({ default: m.FocusModeSettings })));
 
+// Preload Settings panel on hover so it opens instantly
+const preloadSettings = () => {
+  import('../Settings');
+};
+
 // ── Info strip (weather + date) ───────────────────────────────────────────────
 
 const ITEM_RENDERERS = {
@@ -82,7 +87,9 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
     let handler = null;
     const id = setTimeout(() => {
       handler = (e) => {
-        if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
+        const inBtn = settingsRef.current?.contains(e.target);
+        const inDialog = e.target.closest?.('[aria-label="Focus mode settings"]');
+        if (!inBtn && !inDialog) setShowSettings(false);
       };
       document.addEventListener('mousedown', handler);
     }, 0);
@@ -118,7 +125,22 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
       </TooltipBtn>
 
       {/* Right side: fullscreen + settings */}
-      <div ref={settingsRef} className="flex items-center gap-1">
+      <div
+        ref={settingsRef}
+        className="flex items-center gap-1"
+        style={{
+          background: 'rgba(255,255,255,0.07)',
+          border: '1px solid rgba(255,255,255,0.11)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: 999,
+          padding: '2px',
+          opacity: 0.52,
+          transition: 'opacity 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = '0.52'; }}
+      >
         <TooltipBtn
           onClick={toggleFullscreen}
           onMouseEnter={fadeIn}
@@ -134,7 +156,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
 
         <TooltipBtn
           onClick={() => setShowSettings(s => !s)}
-          onMouseEnter={fadeIn}
+          onMouseEnter={(e) => { fadeIn(e); preloadSettings(); }}
           onMouseLeave={e => { e.currentTarget.style.opacity = showSettings ? '0.88' : '0.38'; }}
           className="group p-2.5 rounded-full focus:outline-none"
           style={{ opacity: showSettings ? 0.92 : 0.52, transition: 'opacity 0.2s' }}

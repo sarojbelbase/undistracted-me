@@ -23,9 +23,11 @@ export const Clock = ({ parts, centerOnDark, compact = false }) => (
           letterSpacing: '-0.02em',
           color: centerOnDark ? 'rgba(255,255,255,0.97)' : 'rgba(0,0,0,0.88)',
           lineHeight: 1,
+          // On dark photos: a single diffuse shadow gives depth without harsh outlines.
+          // On light photos: no shadow — dark text has enough contrast naturally.
           textShadow: centerOnDark
-            ? '0 2px 4px rgba(0,0,0,0.5), 0 4px 32px rgba(0,0,0,0.72), 0 8px 64px rgba(0,0,0,0.4)'
-            : '0 1px 0 rgba(255,255,255,0.9), 0 2px 16px rgba(255,255,255,0.7), 0 4px 32px rgba(0,0,0,0.08)',
+            ? '0 1px 3px rgba(0,0,0,0.50), 0 2px 18px rgba(0,0,0,0.28)'
+            : 'none',
         }}
       >
         {parts.time.split('').map((char, i) =>
@@ -57,9 +59,7 @@ export const Clock = ({ parts, centerOnDark, compact = false }) => (
           left: 'calc(100% + 0.15em)',
           top: '0.3em',
           color: centerOnDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)',
-          textShadow: centerOnDark
-            ? '0 1px 8px rgba(0,0,0,0.7)'
-            : '0 1px 8px rgba(255,255,255,0.95)',
+          textShadow: centerOnDark ? '0 1px 4px rgba(0,0,0,0.45)' : 'none',
         }}>
           {parts.period}
         </span>

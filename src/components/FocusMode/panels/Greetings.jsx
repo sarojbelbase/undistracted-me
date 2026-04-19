@@ -10,9 +10,11 @@
 
 const shared = (centerOnDark) => ({
   fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
+  // On dark photos: a soft shadow for readability.
+  // On light photos: no shadow — dark text contrasts naturally.
   textShadow: centerOnDark
-    ? '0 1px 12px rgba(0,0,0,0.85), 0 4px 32px rgba(0,0,0,0.5)'
-    : '0 1px 12px rgba(255,255,255,0.95), 0 4px 24px rgba(255,255,255,0.7)',
+    ? '0 1px 4px rgba(0,0,0,0.60), 0 2px 14px rgba(0,0,0,0.28)'
+    : 'none',
 });
 
 export const Greetings = ({ parts, centerOnDark, compact = false }) => {
