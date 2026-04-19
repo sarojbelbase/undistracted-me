@@ -11,6 +11,7 @@ import { ControlCluster } from './components/ui/ControlCluster';
 import { FocusModeButton } from './components/ui/FocusModeButton';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 import { useAutoTheme } from './hooks/useAutoTheme';
+import { useLocation } from './hooks/useLocation';
 import { useFocusMode } from './hooks/useFocusMode';
 import { useSettingsPanel } from './hooks/useSettingsPanel';
 import { useArrangeMode } from './hooks/useArrangeMode';
@@ -34,6 +35,9 @@ const App = () => {
     canvasBg, setCanvasBg, cardStyle,
   } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
+
+  // ── Location (centralized coords, sun times, VPN detection) ─────────────────
+  useLocation();
 
   // ── Theme ───────────────────────────────────────────────────────────────────
   const effectiveMode = useAutoTheme(mode, accent, cardStyle);

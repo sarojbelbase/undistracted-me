@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { BaseWidget } from '../BaseWidget';
 import config from './config';
 import { useWidgetSettings } from '../useWidgetSettings';
@@ -6,15 +7,13 @@ import { Settings } from './Settings';
 import { GeoAlt } from 'react-bootstrap-icons';
 import {
   getWeatherIcon,
-  getCoords,
-  getCoordsFromIP,
-  reverseGeocode,
   fetchOpenMeteo,
   parseWeather,
   parseForecast,
   readWeatherCache,
   writeWeatherCache,
 } from './utils.jsx';
+import { useLocationStore } from '../../store/useLocationStore';
 import { getWeatherQuip } from '../../data/weatherQuips';
 import { WeatherAtmosphere, getAtmosphereLabel } from '../../components/ui/WeatherAtmosphere.jsx';
 import { Popup } from '../../components/ui/Popup.jsx';
@@ -262,13 +261,34 @@ export const Widget = ({ id = 'weather', onRemove }) => {
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
 
+  // Read auto-location from the centralized location store.
+  // When the store updates (e.g. VPN switch), geoLat/geoLon change and
+  // the effect below re-runs, fetching fresh weather for the new position.
+  const { geoLat, geoLon, geoCity, geoSource } = useLocationStore(
+    useShallow(s => ({
+      geoLat: s.lat,
+      geoLon: s.lon,
+      geoCity: s.city,
+      geoSource: s.source,
+    })),
+  );
+
   useEffect(() => {
     setError(null);
 
     // ── Instant pre-population from cache ──────────────────────────────────
     // Eliminates the skeleton on every subsequent new-tab open.
     // The background fetch below still runs if data is stale (> 30 min).
-    const cacheKey = location ? `${location.lat},${location.lon}` : 'auto';
+    // Auto-location key includes actual coords so the cache naturally misses
+    // when the user switches VPNs or upgrades from the Kathmandu fallback.
+    let cacheKey;
+    if (location) {
+      cacheKey = `${location.lat},${location.lon}`;
+    } else if (geoLat === null || geoLat === undefined) {
+      cacheKey = 'auto';
+    } else {
+      cacheKey = `geo:${geoLat},${geoLon}`;
+    }
     const cached = readWeatherCache(cacheKey, unit);
     if (cached?.weather) {
       setWeather(cached.weather);
@@ -288,23 +308,16 @@ export const Widget = ({ id = 'weather', onRemove }) => {
           // "Jāwalākhel, Bagmati Province, Nepal" → "Jāwalākhel"
           resolvedCity = location.name?.split(',')[0]?.trim() || '';
         } else {
-          try {
-            ({ lat, lon } = await getCoords());
-            setLocationDenied(false);
-            resolvedCity = await reverseGeocode(lat, lon);
-          } catch {
-            // Browser geolocation denied → try IP-based approximate location
-            const ip = await getCoordsFromIP();
-            if (ip) {
-              lat = ip.lat;
-              lon = ip.lon;
-              resolvedCity = ip.city || '';
-              setLocationDenied(false);
-            } else {
-              setLocationDenied(true);
-              return;
-            }
+          // Use coordinates from the centralized location store.
+          // source='default' means both GPS and IP geo failed — treat as denied.
+          if (geoSource === 'default' || geoLat == null) {
+            setLocationDenied(geoSource === 'default');
+            return;
           }
+          lat = geoLat;
+          lon = geoLon;
+          resolvedCity = geoCity || '';
+          setLocationDenied(false);
         }
 
         const data = await fetchOpenMeteo(lat, lon, unit);
@@ -325,7 +338,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
     if (!cached?.fresh) load();
     const timerId = setInterval(load, 30 * 60_000);
     return () => clearInterval(timerId);
-  }, [location, unit]);
+  }, [location, unit, geoLat, geoLon, geoSource, geoCity]);
 
   const settingsContent = (
     <Settings
