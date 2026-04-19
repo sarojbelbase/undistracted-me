@@ -173,24 +173,50 @@ const WIPE_MS = 650;
 const photoMatchesUrl = (ph, url) =>
   !!url && (ph.regular === url || ph.url === url || ph.small === url || ph.thumb === url);
 
+// Tile action overlay — single-step: Set as Background (with spinner while prefetching).
+const PILL = { display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.32)', cursor: 'pointer', background: 'rgba(255,255,255,0.18)' };
+const TileOverlay = ({ isSetting, onSet }) => {
+  const pill = isSetting ? (
+    <div style={{ ...PILL, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.20)', cursor: 'default' }}>
+      <Spinner size={11} />
+      <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, fontWeight: 600 }}>Setting…</span>
+    </div>
+  ) : (
+    <button className="focus:outline-none" onClick={e => { e.stopPropagation(); onSet(); }} style={PILL}>
+      <CheckLg size={10} color="white" />
+      <span style={{ color: 'white', fontSize: 10, fontWeight: 600 }}>Set as Background</span>
+    </button>
+  );
+  return (
+    <div
+      className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${isSetting ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+      style={{ background: 'rgba(0,0,0,0.30)' }}
+    >
+      {pill}
+    </div>
+  );
+};
+
 const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefaultActive, onApplyDefault, initialPhotoUrl = null, scrollFadeColor = 'var(--w-surface)', dark = false }) => {
-  // Seed immediately from cache; API fetch on open refreshes the list.
   const [allPhotos, setAllPhotos] = useState(() => getPhotoLibrary());
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
   // ── Active tracking (two-phase) ──────────────────────────────────────────
-  // confirmedPhotoId = what is *actually* applied (shows Active badge).
-  // applyingId       = what is mid-wipe (not yet applied, no badge yet).
-  const matchId = (photos) => {
+  // confirmedPhotoId / applyingId use _uid (session key) for React key consistency.
+  const matchUid = (photos) => {
     if (!initialPhotoUrl) return null;
-    return photos.find(p => photoMatchesUrl(p, initialPhotoUrl))?.id ?? null;
+    const m = photos.find(p => photoMatchesUrl(p, initialPhotoUrl));
+    return m ? (m._uid ?? m.id) : null;
   };
-  const [confirmedPhotoId, setConfirmedPhotoId] = useState(() => matchId(getPhotoLibrary()));
+  const [confirmedPhotoId, setConfirmedPhotoId] = useState(() => matchUid(getPhotoLibrary()));
   const [applyingId, setApplyingId] = useState(null);
   const wipeTimerRef = useRef(null);
 
-  // ── Thumbnail load tracking ──────────────────────────────────────────────
+  // ── Setting state: which tile is being prefetched before apply (in-memory) ─
+  const [settingId, setSettingId] = useState(null);
+
+  // ── Thumbnail load + color tracking ─────────────────────────────────────
   const [photoColors, setPhotoColors] = useState({});
   const handleColorExtracted = useCallback((id, color) => {
     setPhotoColors(prev => ({ ...prev, [id]: color }));
@@ -212,12 +238,16 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           if (!getPhotoLibrary().length) setFetchError('Could not reach the server. Check your connection.');
           return;
         }
-        setAllPhotos(photos);
-        // Re-match confirmedPhotoId against the fresh photo set in case it was
-        // null because initialPhotoUrl wasn't in the stale cache at mount time.
+        const tagged = photos.map(p => ({
+          ...p,
+          _uid: (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `${Date.now()}_${p.id}`,
+        }));
+        setAllPhotos(tagged);
         if (initialPhotoUrl) {
-          const freshMatch = photos.find(p => photoMatchesUrl(p, initialPhotoUrl));
-          if (freshMatch) setConfirmedPhotoId(freshMatch.id);
+          const freshMatch = tagged.find(p => photoMatchesUrl(p, initialPhotoUrl));
+          if (freshMatch) setConfirmedPhotoId(freshMatch._uid);
         }
       })
       .catch(() => { if (!getPhotoLibrary().length) setFetchError('Something went wrong. Please try again.'); })
@@ -226,47 +256,62 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
 
   useEffect(() => () => { if (wipeTimerRef.current) clearTimeout(wipeTimerRef.current); }, []);
 
-  // ── Apply a photo ─────────────────────────────────────────────────────────
-  const handleUse = (id) => {
-    // Already applied or mid-wipe on the same photo — no-op.
-    if (id === confirmedPhotoId && isActive) return;
-    if (id === applyingId) return;
+  // ── Set a photo as background: prefetch full-res then apply with wipe ───────
+  const handleSetBackground = useCallback((uid) => {
+    if (uid === confirmedPhotoId && isActive) return;
+    if (uid === applyingId || uid === settingId) return;
+    const photo = allPhotos.find(p => (p._uid ?? p.id) === uid);
+    if (!photo) return;
 
-    // Cancel any in-flight wipe for a different photo.
-    clearTimeout(wipeTimerRef.current);
+    const doApply = () => {
+      setSettingId(null);
+      clearTimeout(wipeTimerRef.current);
+      setApplyingId(uid);
+      // Pass full photo object so it's inserted into cache even if it was
+      // beyond LIBRARY_MAX and got sliced out during the API write.
+      jumpToPhotoById(photo.id, photo);
+      wipeTimerRef.current = setTimeout(async () => {
+        if (allowRotate) {
+          await onRotatePhoto?.(photo.id, photo);
+          onApply();
+        } else {
+          const url = photo.regular || photo.url || photo.small || null;
+          onApply(url, photoColors[uid] ?? null);
+        }
+        setConfirmedPhotoId(uid);
+        setApplyingId(null);
+      }, WIPE_MS);
+    };
 
-    setApplyingId(id);        // start wipe animation — NOT yet Active
-    jumpToPhotoById(id);      // move to head of cache so apply reads correct photo
+    const src = photo.regular || photo.url || photo.small;
+    if (!src) { doApply(); return; }
 
-    wipeTimerRef.current = setTimeout(async () => {
-      if (allowRotate) {
-        await onRotatePhoto?.(id);
-        onApply();
-      } else {
-        const photo = getPhotoLibrary()[0];
-        const url = photo?.regular || photo?.url || photo?.small || null;
-        onApply(url, photoColors[id] ?? null);
-      }
-      // Only show Active AFTER the background has actually been applied.
-      setConfirmedPhotoId(id);
-      setApplyingId(null);
-    }, WIPE_MS);
-  };
+    setSettingId(uid);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = doApply;
+    img.onerror = doApply;
+    img.src = src;
+  }, [confirmedPhotoId, isActive, applyingId, settingId, allPhotos, allowRotate, onRotatePhoto, onApply, photoColors]);
 
   // ── Delete a photo ────────────────────────────────────────────────────────
-  const handleDelete = async (id) => {
-    if (id === applyingId) { clearTimeout(wipeTimerRef.current); setApplyingId(null); }
-    const wasActive = id === confirmedPhotoId;
-    deletePhoto(id);
-    setAllPhotos(prev => prev.filter(p => p.id !== id));
+  const handleDelete = async (uid) => {
+    const photo = allPhotos.find(p => (p._uid ?? p.id) === uid);
+    if (!photo) return;
+    if (uid === applyingId) { clearTimeout(wipeTimerRef.current); setApplyingId(null); }
+    if (uid === settingId) setSettingId(null);
+    const wasActive = uid === confirmedPhotoId;
+    deletePhoto(photo.id);
+    setAllPhotos(prev => prev.filter(p => (p._uid ?? p.id) !== uid));
     if (wasActive) {
-      const next = getPhotoLibrary()[0];
+      const nextState = allPhotos.find(p => (p._uid ?? p.id) !== uid);
+      const next = nextState ?? getPhotoLibrary()[0];
       const nextUrl = next ? (next.regular || next.url || next.small || null) : null;
       if (next && nextUrl) {
         jumpToPhotoById(next.id);
-        if (allowRotate) { await onRotatePhoto?.(next.id); onApply(); }
+        if (allowRotate) { await onRotatePhoto?.(next.id, next); onApply(); }
         else onApply(nextUrl);
-        setConfirmedPhotoId(next.id);
+        setConfirmedPhotoId(next._uid ?? next.id);
       } else {
         onApplyDefault?.();
         setConfirmedPhotoId(null);
@@ -274,16 +319,22 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
     }
   };
 
-  // Active badge: only on the confirmed photo; nothing if we can't determine it.
   const activeId = isActive ? confirmedPhotoId : null;
   const showShimmers = fetching && allPhotos.length === 0;
 
   return (
     <div className="flex flex-col gap-2">
+      {/* Indeterminate bar while fetching the photo list */}
+      {fetching && (
+        <div style={{ height: 3, borderRadius: 2, overflow: 'hidden', background: dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)' }}>
+          <div style={{ height: '100%', borderRadius: 2, width: '40%', background: 'var(--w-accent)', animation: 'bpIndeterminate 1.4s cubic-bezier(0.4,0,0.6,1) infinite' }} />
+        </div>
+      )}
       <div className="relative">
-        <div className="grid grid-cols-3 gap-1.5 overflow-y-auto" style={{ maxHeight: 248, scrollbarWidth: 'none' }}>
+        <div className="grid grid-cols-3 gap-1.5 overflow-y-auto"
+          style={{ maxHeight: 248, scrollbarWidth: 'none', pointerEvents: fetching ? 'none' : undefined }}>
 
-          {/* Cell 0: Built-in bg.webp */}
+          {/* Cell 0: Built-in bg.webp — always directly applicable, no Download step */}
           <button
             className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
             style={{ aspectRatio: '4/3', display: 'block', padding: 0, border: 'none' }}
@@ -298,43 +349,43 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
             </div>
           </button>
 
-          {/* Curated photo tiles — all shown upfront from API */}
+          {/* Curated photo tiles */}
           {allPhotos.map((ph) => {
-            const src = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
-            const isPhotoActive = ph.id === activeId;
-            const isApplying = ph.id === applyingId;
+            const uid = ph._uid ?? ph.id;
+            const thumbSrc = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
+            const isPhotoActive = uid === activeId;
+            const isApplying = uid === applyingId;
             const isLoaded = loadedIds.has(ph.id);
+            const isSetting = settingId === uid;
             return (
-              // Use div+role instead of nested <button><button> (invalid HTML).
               <div
-                key={ph.id}
-                className="relative rounded-lg overflow-hidden cursor-pointer group"
+                key={uid}
+                className="relative rounded-lg overflow-hidden group"
                 style={{
                   aspectRatio: '4/3',
-                  background: photoColors[ph.id] || ph.color || 'var(--panel-bg)',
+                  background: photoColors[ph.id] || ph.color || (dark ? '#1a1a1e' : 'var(--panel-bg)'),
+                  opacity: fetching ? 0.55 : 1,
+                  transition: 'opacity 0.3s',
                 }}
               >
-                {/* Main click target */}
-                <button
-                  className="absolute inset-0 w-full h-full focus:outline-none"
-                  style={{ border: 'none', background: 'transparent', padding: 0, cursor: isApplying ? 'default' : 'pointer' }}
-                  onClick={() => handleUse(ph.id)}
-                  aria-label="Apply this background"
-                  disabled={isApplying}
-                />
-
+                {/* Thumbnail — dominant color → blurred → sharp via CSS transition */}
                 <img
-                  src={src}
+                  src={thumbSrc}
                   alt=""
                   aria-hidden
                   decoding="async"
                   loading="lazy"
-                  className="w-full h-full object-cover pointer-events-none"
-                  style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  style={{
+                    filter: isLoaded ? 'none' : 'blur(10px)',
+                    transform: isLoaded ? 'scale(1)' : 'scale(1.1)',
+                    opacity: isLoaded ? 1 : 0.72,
+                    transition: 'filter 0.45s ease, transform 0.45s ease, opacity 0.3s ease',
+                  }}
                   onLoad={e => handleImgLoad(ph.id, e.currentTarget)}
                 />
 
-                {/* Shimmer skeleton overlay — hidden once the thumbnail loads */}
+                {/* Shimmer — visible only before thumbnail starts rendering */}
                 {!isLoaded && (
                   <div
                     className="absolute inset-0 pointer-events-none"
@@ -348,7 +399,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
                   />
                 )}
 
-                {/* Left-to-right wipe sweep when applying */}
+                {/* Wipe sweep while applying */}
                 {isApplying && (
                   <div
                     className="absolute inset-0 pointer-events-none"
@@ -359,22 +410,20 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
                   />
                 )}
 
-                {/* Center apply icon — shown on hover when not active/applying */}
-                {!isPhotoActive && !isApplying && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.32)' }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                        <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
+                {/* Active badge */}
                 {isPhotoActive && <ActiveBadge />}
 
-                {/* Delete button — sibling, not child of the main button */}
+                {/* Hover overlay: Set as Background (with spinner while prefetching) */}
+                {!isPhotoActive && !isApplying && isLoaded && !fetching && (
+                  <TileOverlay
+                    isSetting={isSetting}
+                    onSet={() => handleSetBackground(uid)}
+                  />
+                )}
+
+                {/* Delete button */}
                 <button
-                  onClick={() => handleDelete(ph.id)}
+                  onClick={() => handleDelete(uid)}
                   className="absolute top-1 right-1 z-10 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
                   style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid transparent' }}
                   aria-label="Remove photo"

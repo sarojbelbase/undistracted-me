@@ -8,7 +8,7 @@ import { onClockTick } from '../../../utilities/sharedClock';
 import { Greetings } from '../panels/Greetings';
 import { ZONES } from '../config';
 
-export const BottomZone = ({ centerOnDark }) => {
+export const BottomZone = ({ greetOnDark = true }) => {
   const [parts, setParts] = useState(() => getTimeParts('24h'));
   const update = useCallback(() => setParts(getTimeParts('24h')), []);
   useEffect(() => onClockTick(update), [update]);
@@ -26,7 +26,7 @@ export const BottomZone = ({ centerOnDark }) => {
         textAlign: 'center',
       }}
     >
-      <Greetings parts={parts} centerOnDark={centerOnDark} compact={false} />
+      <Greetings parts={parts} centerOnDark={greetOnDark} compact={false} />
     </div>
   );
 };

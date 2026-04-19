@@ -22,7 +22,13 @@ const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
 /** Shared secret sent as X-API-Key header to the Vercel proxy. */
 const PHOTOS_API_KEY = import.meta.env.VITE_API_KEY || null;
 
-const CACHE_KEY = 'fm_unsplash_cache';       // max photos stored in library
+const CACHE_KEY = 'fm_unsplash_cache';
+export const LIBRARY_MAX = 20;
+
+/** Persists the ID of the photo the user last explicitly chose. */
+const SELECTED_KEY = 'fm_selected_photo_id';
+const getSelectedPhotoId = () => { try { return localStorage.getItem(SELECTED_KEY) || null; } catch { return null; } };
+export const setSelectedPhotoId = (id) => { try { if (id) localStorage.setItem(SELECTED_KEY, id); else localStorage.removeItem(SELECTED_KEY); } catch { } };
 
 /**
  * Compute a ~200 px thumbnail URL for a cached photo entry.
@@ -63,9 +69,9 @@ const writeCache = (items) => {
 export const getCurrentPhoto = async () => {
   const cache = readCache();
   if (cache.length > 0) return cache[0];
-  // Library empty — download the curated set
-  const photos = await downloadCuratedPhotos();
-  return photos?.[0] || null;
+  // Library empty — download the curated set, then read from (reordered) cache.
+  await downloadCuratedPhotos();
+  return readCache()[0] || null;
 };
 
 /**
@@ -87,8 +93,8 @@ export const rotatePhoto = async () => {
 
 /** Re-download the curated set and return the first photo. */
 export const downloadNewPhoto = async () => {
-  const photos = await downloadCuratedPhotos();
-  return photos?.[0] || null;
+  await downloadCuratedPhotos();
+  return readCache()[0] || null;
 };
 
 /** Remove a photo from the library by id. */
@@ -110,14 +116,23 @@ export const updatePhotoColor = (id, color) => {
 
 /**
  * Move a specific photo to the head (current) position without
- * discarding any other photos.
+ * discarding any other photos. Also persists the selection so it
+ * survives page refresh and cache overwrites.
  */
-export const jumpToPhotoById = (id) => {
+export const jumpToPhotoById = (id, photoData = null) => {
+  if (!id) return;
   const cache = readCache();
   const idx = cache.findIndex(c => c.id === id);
-  if (idx <= 0) return; // already head or not found
-  const photo = cache[idx];
-  writeCache([photo, ...cache.filter(c => c.id !== id)]);
+  if (idx < 0 && photoData) {
+    // Photo not in cache (sliced out by LIBRARY_MAX) — insert at head.
+    writeCache([photoData, ...cache]);
+  } else if (idx > 0) {
+    // Already in cache but not at head — move to head.
+    const photo = cache[idx];
+    writeCache([photo, ...cache.filter(c => c.id !== id)]);
+  }
+  // Always persist the explicit selection regardless of position.
+  setSelectedPhotoId(id);
 };
 
 /** Returns the full photo library (all cached entries). */
@@ -174,6 +189,15 @@ export const downloadCuratedPhotos = async () => {
 
     const stamped = photos.map(p => ({ ...p, cachedAt: Date.now() }));
     writeCache(stamped);
+    // Re-apply the user's last explicit selection so page refreshes and
+    // concurrent downloads don't discard their chosen photo.
+    // Pass the full photo object so it can be inserted if it was sliced
+    // out by LIBRARY_MAX (e.g. alphabetically ordered past position 20).
+    const selectedId = getSelectedPhotoId();
+    if (selectedId) {
+      const selectedPhoto = stamped.find(p => p.id === selectedId) || null;
+      jumpToPhotoById(selectedId, selectedPhoto);
+    }
     return stamped;
   } catch {
     return null;

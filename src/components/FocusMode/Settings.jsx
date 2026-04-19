@@ -50,18 +50,33 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
   } = useSettingsStore();
 
   return (
-    <dialog
-      open
+    <div
+      role="region"
       aria-label="Focus mode settings"
-      className="absolute right-0 top-11 z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl animate-fade-in"
+      className="absolute top-[62px] z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
       style={{
+        right: 10,
         background: 'rgba(12,12,16,0.86)',
         backdropFilter: 'blur(24px) saturate(160%)',
         WebkitBackdropFilter: 'blur(24px) saturate(160%)',
         border: '1px solid rgba(255,255,255,0.11)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
+        animation: 'fm-slide-in 0.18s cubic-bezier(0.16,1,0.3,1) both',
       }}
     >
+      {/* Caret pointing up, aligned to gear icon (~17px from right edge of panel) */}
+      <div style={{
+        position: 'absolute', top: -7, right: 17,
+        width: 12, height: 7, overflow: 'hidden',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          width: 12, height: 12,
+          background: 'rgba(12,12,16,0.86)',
+          border: '1px solid rgba(255,255,255,0.11)',
+          transform: 'rotate(45deg) translate(2px, 2px)',
+        }} />
+      </div>
       {/* Date format */}
       <ToggleRow
         label="Date Calendar"
@@ -102,7 +117,7 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
           <span style={{ color: 'rgba(255,255,255,0.35)' }}>›</span>
         </button>
       </div>
-    </dialog>
+    </div>
   );
 };
 

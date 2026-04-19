@@ -100,7 +100,7 @@ vi.mock('../../../src/components/FocusMode/hooks', () => ({
     rotate: vi.fn(),
   })),
   useWakeLock: vi.fn(),
-  useCenterOnDark: vi.fn(() => false),
+  useCenterOnDark: vi.fn(() => ({ clock: false, greet: false })),
   useFocusTimezones: vi.fn(() => []),
   useFocusSpotify: vi.fn(() => ({
     spotify: null,

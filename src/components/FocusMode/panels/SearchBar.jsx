@@ -146,10 +146,10 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
 
 // ── Suggestions Dropdown ───────────────────────────────────────────────────────
 const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onHover, t }) => {
-  // New index order: [url?][tabs][drive][suggestions]
   const tabStart = urlOffset;
   const driveStart = tabStart + tabResults.length;
   const suggStart = driveStart + driveResults.length;
+
   const rowStyle = (active) => ({
     display: 'flex', alignItems: 'center', gap: 10,
     width: '100%', padding: '7px 12px', borderRadius: 10,
@@ -158,8 +158,15 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
     transition: 'background 0.1s ease', textAlign: 'left',
   });
   const textStyle = { fontSize: '0.84rem', fontFamily: "'Google Sans', ui-sans-serif, sans-serif", color: t.suggText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 400, flex: 1 };
-  const badgeStyle = { fontSize: '0.7rem', color: t.label, flexShrink: 0, fontFamily: "'Google Sans', sans-serif" };
-  const sectionLabel = { fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.label, padding: '4px 12px 2px' };
+
+  const Pill = ({ label }) => (
+    <span style={{
+      fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.04em',
+      color: t.label, background: t.hoverBg, borderRadius: 999,
+      padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
+    }}>{label}</span>
+  );
+
   return (
     <div
       style={{
@@ -177,7 +184,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         animation: 'fmDropIn 0.16s cubic-bezier(0.16,1,0.3,1) both',
       }}
     >
-      {/* ── Navigate to URL ── */}
+      {/* Navigate to URL */}
       {urlTarget && (
         <button
           onMouseDown={e => { e.preventDefault(); goToUrl(urlTarget); }}
@@ -186,73 +193,56 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
           onMouseLeave={() => onHover(-1)}
         >
           <GlobeIcon color={t.label} />
-          <span style={textStyle}>Open {urlTarget}</span>
+          <span style={textStyle}>{urlTarget}</span>
+          <Pill label="Go to" />
         </button>
       )}
 
-      {/* ── Open tabs ── */}
-      {tabResults.length > 0 && (
-        <>
-          {urlTarget && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
-          <p style={sectionLabel}>Open Tabs</p>
-          {tabResults.map((tab, k) => (
-            <button
-              key={tab.id}
-              onMouseDown={e => { e.preventDefault(); onTabSelect(tab); }}
-              style={rowStyle(activeSugg === tabStart + k)}
-              onMouseEnter={() => onHover(tabStart + k)}
-              onMouseLeave={() => onHover(-1)}
-            >
-              {tab.favIconUrl
-                ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
-                : <TabIcon color={t.label} />}
-              <span style={textStyle}>{tab.title || tab.url}</span>
-              <span style={badgeStyle}>Switch</span>
-            </button>
-          ))}
-        </>
-      )}
+      {/* Open tabs */}
+      {tabResults.map((tab, k) => (
+        <button
+          key={tab.id}
+          onMouseDown={e => { e.preventDefault(); onTabSelect(tab); }}
+          style={rowStyle(activeSugg === tabStart + k)}
+          onMouseEnter={() => onHover(tabStart + k)}
+          onMouseLeave={() => onHover(-1)}
+        >
+          {tab.favIconUrl
+            ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
+            : <TabIcon color={t.label} />}
+          <span style={textStyle}>{tab.title || tab.url}</span>
+          <Pill label="Switch" />
+        </button>
+      ))}
 
-      {/* ── Google Drive results ── */}
-      {driveResults.length > 0 && (
-        <>
-          {(tabResults.length > 0 || urlTarget) && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
-          <p style={sectionLabel}>Google Drive</p>
-          {driveResults.map((file, j) => (
-            <button
-              key={file.id}
-              onMouseDown={e => { e.preventDefault(); onDriveSelect(file); }}
-              style={rowStyle(activeSugg === driveStart + j)}
-              onMouseEnter={() => onHover(driveStart + j)}
-              onMouseLeave={() => onHover(-1)}
-            >
-              <DriveIcon mimeType={file.mimeType} size={13} />
-              <span style={textStyle}>{file.name}</span>
-              <span style={badgeStyle}>Drive</span>
-            </button>
-          ))}
-        </>
-      )}
+      {/* Google Drive results */}
+      {driveResults.map((file, j) => (
+        <button
+          key={file.id}
+          onMouseDown={e => { e.preventDefault(); onDriveSelect(file); }}
+          style={rowStyle(activeSugg === driveStart + j)}
+          onMouseEnter={() => onHover(driveStart + j)}
+          onMouseLeave={() => onHover(-1)}
+        >
+          <DriveIcon mimeType={file.mimeType} size={13} />
+          <span style={textStyle}>{file.name}</span>
+          <Pill label="Drive" />
+        </button>
+      ))}
 
-      {/* ── History / autocomplete suggestions ── */}
-      {suggestions.length > 0 && (
-        <>
-          {(tabResults.length > 0 || driveResults.length > 0 || urlTarget) && <div style={{ height: 1, background: t.divider, margin: '4px 8px' }} />}
-          {isHistory && <p style={sectionLabel}>Recent</p>}
-          {suggestions.map((s, i) => (
-            <button
-              key={s}
-              onMouseDown={e => { e.preventDefault(); onSelect(s); }}
-              style={rowStyle(activeSugg === suggStart + i)}
-              onMouseEnter={() => onHover(suggStart + i)}
-              onMouseLeave={() => onHover(-1)}
-            >
-              {isHistory ? <ClockIcon color={t.label} /> : <SearchIcon stroke={t.label} />}
-              <span style={{ ...textStyle, flex: 'unset' }}>{s}</span>
-            </button>
-          ))}
-        </>
-      )}
+      {/* History / autocomplete suggestions */}
+      {suggestions.map((s, i) => (
+        <button
+          key={s}
+          onMouseDown={e => { e.preventDefault(); onSelect(s); }}
+          style={rowStyle(activeSugg === suggStart + i)}
+          onMouseEnter={() => onHover(suggStart + i)}
+          onMouseLeave={() => onHover(-1)}
+        >
+          {isHistory ? <ClockIcon color={t.label} /> : <SearchIcon stroke={t.label} />}
+          <span style={{ ...textStyle, flex: 'unset' }}>{s}</span>
+        </button>
+      ))}
     </div>
   );
 };
@@ -485,7 +475,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
             fontWeight: 400, color: t.textColor, caretColor: t.caret,
           }}
         />
-        <style>{`.fm-searchinput::placeholder { color: ${t.placeholder}; }`}</style>
+        <style>{`.fm-searchinput::placeholder { color: ${t.placeholder}; text-shadow: ${t.placeholderShadow}; }`}</style>
 
         {/* Search submit button */}
         <button
