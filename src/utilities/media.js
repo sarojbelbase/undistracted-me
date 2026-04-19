@@ -46,11 +46,19 @@ function poll() {
 
   // Many sites (SoundCloud, Last.fm, YouTube in some builds) register metadata but
   // never update playbackState from 'none'. Fall back to DOM element detection.
-  if (meta && playbackState === 'none') {
+  if (playbackState === 'none') {
     playbackState = isMediaElementPlaying() ? 'playing' : 'paused';
   }
 
-  if (!meta || playbackState === 'none') {
+  // If mediaSession has no metadata but audio is playing, synthesize minimal
+  // metadata from the page title so SoundCloud and similar sites still surface.
+  const effectiveMeta = meta ?? (
+    isMediaElementPlaying()
+      ? { title: document.title || location.hostname, artist: null, album: null, artwork: [] }
+      : null
+  );
+
+  if (!effectiveMeta || playbackState === 'none') {
     if (prevTitle !== null) {
       prevTitle = null;
       prevPlaybackState = null;
@@ -59,15 +67,17 @@ function poll() {
     return;
   }
 
-  if (meta.title !== prevTitle || playbackState !== prevPlaybackState) {
-    prevTitle = meta.title;
+  const title = effectiveMeta.title || null;
+  const artist = effectiveMeta.artist || null;
+  if (title !== prevTitle || playbackState !== prevPlaybackState) {
+    prevTitle = title;
     prevPlaybackState = playbackState;
     safeSend({
       type: 'MEDIA_SESSION_UPDATE',
       data: {
-        title: meta.title || null,
-        artist: meta.artist || null,
-        album: meta.album || null,
+        title,
+        artist,
+        album: effectiveMeta.album || null,
         artwork: getArtwork(),
         playbackState,
         host: location.hostname,
