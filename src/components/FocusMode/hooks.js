@@ -417,3 +417,74 @@ export function useChromeMedia() {
 
   return { track, sendAction, pending, skipPending };
 }
+
+// ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
+
+import {
+  fetchGoogleTasks, addGoogleTask, completeGoogleTask,
+  updateGoogleTask, deleteGoogleTask,
+} from '../../utilities/googleTasks';
+import { isGoogleAuthAvailable } from '../../utilities/googleAuth';
+
+export function useFocusTasks() {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [gtasksConnected, setGtasksConnected] = useState(isGoogleAuthAvailable);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await fetchGoogleTasks();
+      setTasks(list);
+      setGtasksConnected(true);
+    } catch {
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const add = useCallback(async (title) => {
+    if (!title.trim()) return;
+    const optimistic = { id: `opt-${Date.now()}`, title, completed: false, due: null, notes: null };
+    setTasks(prev => [optimistic, ...prev]);
+    try {
+      const created = await addGoogleTask(title);
+      setTasks(prev => prev.map(t => t.id === optimistic.id ? created : t));
+    } catch {
+      setTasks(prev => prev.filter(t => t.id !== optimistic.id));
+    }
+  }, []);
+
+  const toggle = useCallback(async (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const done = !task.completed;
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: done } : t));
+    try {
+      await completeGoogleTask(taskId, done);
+    } catch {
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !done } : t));
+    }
+  }, [tasks]);
+
+  const edit = useCallback(async (taskId, newTitle) => {
+    if (!newTitle.trim()) return;
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle } : t));
+    try {
+      await updateGoogleTask(taskId, { title: newTitle });
+    } catch { load(); }
+  }, [load]);
+
+  const remove = useCallback(async (taskId) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    try {
+      await deleteGoogleTask(taskId);
+    } catch { load(); }
+  }, [load]);
+
+  return { tasks, loading, gtasksConnected, setGtasksConnected, add, toggle, edit, remove, reload: load };
+}
+

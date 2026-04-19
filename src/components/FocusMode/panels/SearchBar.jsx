@@ -423,7 +423,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       {/* ── Pill input ── */}
       <div
         style={{
-          display: 'flex', alignItems: 'center', height: 46, borderRadius: 999,
+          display: 'flex', alignItems: 'center', height: 54, borderRadius: 999,
           background: focused ? t.pillBgFocused : t.pillBg,
           border: `1px solid ${focused ? t.pillBorderFoc : t.pillBorder}`,
           backdropFilter: 'blur(24px) saturate(160%)',
@@ -482,7 +482,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           onClick={() => submit()}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 36, height: 36, marginRight: 4, borderRadius: 999,
+            width: 38, height: 38, marginRight: 8, borderRadius: 999,
             background: t.btnBg, border: 'none', cursor: 'pointer', flexShrink: 0,
             transition: 'background 0.15s ease',
           }}

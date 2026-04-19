@@ -51,4 +51,10 @@ export const ZONES = {
       greeting: { enable: true, order: 0 },
     },
   },
+  bottomRight: {
+    enable: true,
+    items: {
+      tasks: { enable: true, order: 0 },
+    },
+  },
 };
