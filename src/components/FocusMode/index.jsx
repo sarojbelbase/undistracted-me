@@ -13,6 +13,7 @@ import { CenterZone } from './zones/CenterZone';
 import { BottomZone } from './zones/BottomZone';
 import { LeftZone } from './zones/LeftZone';
 import { RightZone } from './zones/RightZone';
+import { BottomRightZone } from './zones/BottomRightZone';
 import { ZONES } from './config';
 
 const FG_MASK = 'linear-gradient(to bottom, transparent 0%, transparent 64%, rgba(0,0,0,0.5) 78%, black 100%)';
@@ -144,6 +145,7 @@ export const FocusMode = ({ onExit }) => {
       {ZONES.bottom.enable && <BottomZone greetOnDark={effectiveGreetDark} />}
       {ZONES.right.enable && <RightZone />}
       {ZONES.left.enable && <LeftZone />}
+      {ZONES.bottomRight?.enable && <BottomRightZone />}
       {ZONES.top.enable && (
         <TopZone
           onExit={onExit}

@@ -74,6 +74,7 @@ export const useSettingsStore = create(
       ...fromLegacy(),
       clockFormat: '24h',
       focusSearchBar: true,
+      focusTasks: true,
 
       // ── Helpers ────────────────────────────────────────────────────────
       /** Returns 'light' or 'dark' key for modePrefs based on current mode */
@@ -95,6 +96,9 @@ export const useSettingsStore = create(
 
       /** Toggle search bar visibility in Focus Mode */
       setFocusSearchBar: (focusSearchBar) => set({ focusSearchBar }),
+
+      /** Toggle tasks panel visibility in Focus Mode */
+      setFocusTasks: (focusTasks) => set({ focusTasks }),
 
       setAccent: (accent) => {
         set({ accent });

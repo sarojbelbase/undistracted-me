@@ -47,6 +47,7 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
     dateFormat, setDateFormat,
     clockFormat, setClockFormat,
     focusSearchBar, setFocusSearchBar,
+    focusTasks, setFocusTasks,
   } = useSettingsStore();
 
   return (
@@ -55,7 +56,7 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
       aria-label="Focus mode settings"
       className="absolute top-[62px] z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
       style={{
-        right: 10,
+        right: 15,
         background: 'rgba(12,12,16,0.86)',
         backdropFilter: 'blur(24px) saturate(160%)',
         WebkitBackdropFilter: 'blur(24px) saturate(160%)',
@@ -99,6 +100,14 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
         options={[{ id: true, label: 'Show' }, { id: false, label: 'Hide' }]}
         value={focusSearchBar ?? true}
         onChange={setFocusSearchBar}
+      />
+
+      {/* Tasks */}
+      <ToggleRow
+        label="Tasks"
+        options={[{ id: true, label: 'Show' }, { id: false, label: 'Hide' }]}
+        value={focusTasks ?? true}
+        onChange={setFocusTasks}
       />
 
       {/* Background */}

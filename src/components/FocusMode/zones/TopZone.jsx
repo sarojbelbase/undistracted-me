@@ -115,10 +115,10 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
         onMouseEnter={fadeIn}
         onMouseLeave={fadeOut}
         className="flex items-center gap-1.5 rounded-full focus:outline-none"
-        style={{ padding: '5px 12px 5px 9px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', opacity: 0.52, transition: 'opacity 0.2s' }}
-        tooltip="Back to Canvas"
+        style={{ padding: '8px 12px 8px 11px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.11)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', opacity: 0.52, transition: 'opacity 0.2s' }}
+        tooltip={showSettings ? null : 'Back to Canvas'}
       >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <svg width="13" height="15" viewBox="0 0 10 10" fill="none">
           <path d="M6.5 2L3.5 5L6.5 8" stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="text-[10px] font-semibold tracking-wide select-none" style={{ color: 'rgba(255,255,255,0.85)' }}>Canvas</span>
@@ -134,20 +134,20 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderRadius: 999,
-          padding: '2px',
+          padding: '2.5px',
           opacity: 0.52,
           transition: 'opacity 0.2s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '0.92'; }}
         onMouseLeave={e => { e.currentTarget.style.opacity = '0.52'; }}
       >
         <TooltipBtn
           onClick={toggleFullscreen}
           onMouseEnter={fadeIn}
           onMouseLeave={fadeOut}
-          className="p-2.5 rounded-full focus:outline-none"
+          className="p-1.5 rounded-full focus:outline-none"
           style={{ opacity: 0.52, transition: 'opacity 0.2s' }}
-          tooltip={isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
+          tooltip={showSettings ? null : isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
         >
           {isFullscreen ? <FullscreenExit size={15} color="rgba(255,255,255,0.9)" /> : <ArrowsFullscreen size={15} color="rgba(255,255,255,0.9)" />}
         </TooltipBtn>
@@ -158,9 +158,9 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           onClick={() => setShowSettings(s => !s)}
           onMouseEnter={(e) => { fadeIn(e); preloadSettings(); }}
           onMouseLeave={e => { e.currentTarget.style.opacity = showSettings ? '0.88' : '0.38'; }}
-          className="group p-2.5 rounded-full focus:outline-none"
+          className="group p-1.5 rounded-full focus:outline-none"
           style={{ opacity: showSettings ? 0.92 : 0.52, transition: 'opacity 0.2s' }}
-          tooltip="Settings"
+          tooltip={showSettings ? null : 'Settings'}
         >
           <GearFill size={15} color="rgba(255,255,255,0.9)" />
         </TooltipBtn>
