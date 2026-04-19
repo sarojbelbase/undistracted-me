@@ -36,6 +36,10 @@
   },
   "rewrites": [
     {
+      "source": "/pp-and-tos",
+      "destination": "/api/pp-and-tos"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     }

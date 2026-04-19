@@ -66,6 +66,61 @@ NON-OBVIOUS PATTERNS
    No client_secret is needed or used on this path.
 
 
+6. Google Tasks integration
+   -------------------------
+   Scope requested: https://www.googleapis.com/auth/tasks
+   Endpoint used:   tasks.googleapis.com/tasks/v1
+   Source file:     src/utilities/googleTasks.js
+
+   What the extension does with the Tasks API:
+   - Reads tasks from the user's DEFAULT task list only
+     (GET /tasks/v1/lists/@default/tasks?showCompleted=true&maxResults=100).
+   - Creates new tasks in that same default list
+     (POST /tasks/v1/lists/@default/tasks).
+   - Updates a task's title
+     (PATCH /tasks/v1/lists/@default/tasks/{taskId}).
+   - Marks a task completed or un-completed by writing status and completed
+     timestamp (PATCH — same endpoint as above).
+   - Permanently deletes a task chosen by the user
+     (DELETE /tasks/v1/lists/@default/tasks/{taskId}).
+
+   What it does NOT do:
+   - Does not read, write, or list any task list other than @default.
+   - Does not read task notes, due dates, or sub-tasks beyond what the API
+     returns for the list (those fields are simply discarded in normalizeTask).
+   - Does not sync, cache, or send task data to any server — all data stays
+     in the extension's React state and is discarded when the tab is closed.
+   - Does not request tasks.readonly; the full tasks scope is needed because
+     the extension both reads and writes (create, complete, delete).
+
+   UI surface:
+   The Tasks panel lives in the bottom-right corner of Focus Mode only. It is
+   opt-in (disabled by default in Focus Mode settings) and requires an explicit
+   "Connect Google" action within the panel before any API call is made.
+   The sign-in prompt is the standard Google OAuth consent screen — the user
+   sees exactly which permissions are being requested before granting access.
+
+
+7. Google OAuth scopes — full list
+   ----------------------------------
+   The following scopes are declared in manifest.json oauth2.scopes and
+   requested collectively when the user first clicks any Google-connected
+   feature:
+
+   Scope                                               Used by
+   --------------------------------------------------- -------------------------
+   auth/userinfo.profile                               Display user name/avatar
+   auth/userinfo.email                                 Identify the account
+   auth/calendar.readonly                              Google Calendar widget
+   auth/contacts.readonly                              Contact search in events
+   auth/drive.metadata.readonly                        Drive file search (Focus
+                                                         Mode search bar)
+   auth/tasks                                          Tasks panel (read/write)
+
+   All six scopes are requested in a single consent prompt. The user can
+   revoke access at any time from myaccount.google.com/permissions.
+
+
 4. Spotify OAuth — PKCE (both Chrome and Firefox)
    ------------------------------------------------
    Standard PKCE flow. The Spotify API does not require a client_secret for
@@ -140,6 +195,7 @@ THIRD-PARTY SERVICES CONTACTED
   api.spotify.com                  Spotify playback control    OAuth token
   accounts.spotify.com             Spotify OAuth               Credentials
   www.googleapis.com               Google Calendar API         OAuth token
+  tasks.googleapis.com             Google Tasks API            OAuth token
   people.googleapis.com            Google Contacts API         OAuth token
   oauth2.googleapis.com            Google token endpoint (FF)  via server
   undistractedme.sarojbelbase.com  Our Vercel proxy backend    API key
