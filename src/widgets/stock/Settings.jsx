@@ -90,6 +90,8 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
       <div className="pb-3">
         <SettingsInput
           ref={inputRef}
+          id="stock-search"
+          name="stock-search"
           type="text"
           placeholder="Search symbol or name…"
           value={query}

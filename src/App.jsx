@@ -98,8 +98,8 @@ const App = () => {
 
       {focusModeEverShown && (
         <div
-          style={{ display: showFocusMode ? 'block' : 'none', pointerEvents: showFocusMode ? 'auto' : 'none' }}
-          aria-hidden={!showFocusMode}
+          style={{ display: showFocusMode ? 'block' : 'none' }}
+          inert={!showFocusMode}
         >
           <FocusMode onExit={closeFocusMode} />
         </div>
@@ -127,7 +127,7 @@ const App = () => {
         />
       )}
 
-      <Analytics />
+      {typeof chrome === 'undefined' && <Analytics />}
     </div>
   );
 };

@@ -15,8 +15,8 @@ import { TooltipBtn } from '../../ui/TooltipBtn';
 
 export const ENGINES = [
   { id: 'google', label: 'Google', url: 'https://www.google.com/search?q=', suggest: 'https://suggestqueries.google.com/complete/search?client=chrome&q=' },
-  { id: 'ddg', label: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=', suggest: 'https://duckduckgo.com/ac/?q=' },
-  { id: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/results?search_query=', suggest: 'https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=' },
+  { id: 'ddg', label: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=', suggest: 'https://ac.duckduckgo.com/ac/?q=' },
+  { id: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/results?search_query=', suggest: 'https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=' },
   { id: 'perplexity', label: 'Perplexity', url: 'https://www.perplexity.ai/search?q=', suggest: null },
 ];
 
@@ -376,7 +376,10 @@ export const SearchBar = ({ centerOnDark = true }) => {
         <input
           ref={inputRef}
           type="text"
+          id="fm-search"
+          name="fm-search"
           value={query}
+          data-ui-input
           onChange={e => { originalQueryRef.current = e.target.value; isNavRef.current = false; setQuery(e.target.value); }}
           onFocus={() => { setFocused(true); if (!query.trim()) setSuggestions(getHistory().slice(0, 6)); }}
           onKeyDown={handleKeyDown}
@@ -386,6 +389,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           className="fm-searchinput"
           style={{
             flex: 1, height: '100%', background: 'none', border: 'none', outline: 'none',
+            appearance: 'none', WebkitAppearance: 'none',
             padding: '0 6px', fontSize: '0.9rem',
             fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
             fontWeight: 400, color: t.textColor, caretColor: t.caret,

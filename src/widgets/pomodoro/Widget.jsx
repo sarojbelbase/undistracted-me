@@ -151,6 +151,8 @@ export const Widget = ({ id, onRemove }) => {
             <div className="flex items-center gap-2 mt-1">
               <input
                 autoFocus
+                id="pomodoro-custom"
+                name="pomodoro-custom"
                 type="number"
                 placeholder="Minutes"
                 min="1"

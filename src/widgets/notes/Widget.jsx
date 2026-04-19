@@ -388,6 +388,8 @@ export const Widget = ({ id, onRemove }) => {
       {/* Plain-text textarea in widget card — no markdown rendering */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: `8px ${PAD}px 0` }}>
         <textarea
+          id="notes-body"
+          name="notes-body"
           className="notes-textarea"
           value={bodyText}
           onChange={(e) => handleBodyChange(e.target.value)}
@@ -497,6 +499,8 @@ export const Widget = ({ id, onRemove }) => {
           {/* Title */}
           <input
             ref={titleRef}
+            id="notes-title"
+            name="notes-title"
             type="text"
             value={titleLine}
             onChange={handleTitleChange}

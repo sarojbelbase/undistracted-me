@@ -1,5 +1,15 @@
 import { useEffect, useImperativeHandle, forwardRef, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+const SOURCE_SERIF_HREF = 'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap';
+const loadSourceSerif = () => {
+  if (document.querySelector(`link[href="${SOURCE_SERIF_HREF}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = SOURCE_SERIF_HREF;
+  document.head.appendChild(link);
+};
+
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -94,6 +104,8 @@ function LinkEditorPlugin() {
     >
       <input
         ref={inputRef}
+        id="lex-link-url"
+        name="lex-link-url"
         value={url}
         onChange={e => setUrl(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -211,6 +223,9 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   // Shared ref: tracks the last markdown value we sent out, so ValueSyncPlugin
   // can skip re-syncing when it's our own edit (not an external note switch).
   const lastSentRef = useRef(value);
+
+  // Load Source Serif 4 on first mount — deferred so it doesn't block initial page load.
+  useEffect(() => { loadSourceSerif(); }, []);
 
   // Expose focus() to parent
   useImperativeHandle(ref, () => ({

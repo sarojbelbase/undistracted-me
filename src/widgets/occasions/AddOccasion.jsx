@@ -96,6 +96,8 @@ export const AddOccasion = ({ onSave, onClose }) => {
         {/* Name */}
         <SettingsInput
           ref={nameRef}
+          id="occasion-name"
+          name="occasion-name"
           autoFocus
           type="text"
           placeholder="e.g. Mom, Arjun, Alex…"
@@ -143,6 +145,8 @@ export const AddOccasion = ({ onSave, onClose }) => {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <select
+              id="occasion-month"
+              name="occasion-month"
               value={month}
               onChange={e => { setMonth(e.target.value); setDay(''); setError(''); }}
               style={selStyle}
@@ -153,6 +157,8 @@ export const AddOccasion = ({ onSave, onClose }) => {
               ))}
             </select>
             <select
+              id="occasion-day"
+              name="occasion-day"
               value={day}
               onChange={e => { setDay(e.target.value); setError(''); }}
               style={{ ...selStyle, width: 90 }}

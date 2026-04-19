@@ -85,6 +85,8 @@ export const Settings = ({ format, timezones = [], onChange }) => {
           return (
             <div key={idx}>
               <select
+                id={`clock-tz-slot-${idx}`}
+                name={`clock-tz-slot-${idx}`}
                 value=""
                 onChange={(e) => e.target.value && setTz(idx, e.target.value)}
                 className="w-full text-xs px-3 py-2 rounded-xl cursor-pointer outline-none"
