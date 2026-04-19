@@ -9,6 +9,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchToTab } from '../hooks';
 import { getTokens } from '../theme';
+import { TooltipBtn } from '../../ui/TooltipBtn';
 
 // ── Search engine definitions ──────────────────────────────────────────────────
 
@@ -347,9 +348,9 @@ export const SearchBar = ({ centerOnDark = true }) => {
         }}
       >
         {/* Engine picker button */}
-        <button
+        <TooltipBtn
           onClick={() => setShowPicker(v => !v)}
-          title="Choose search engine"
+          tooltip="Choose search engine"
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '0 4px 0 14px', height: '100%',
@@ -360,7 +361,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           <svg width="8" height="8" viewBox="0 0 8 8" style={{ opacity: 0.4, marginTop: 1 }}>
             <path d="M1 2.5L4 5.5L7 2.5" stroke={t.chevron} strokeWidth="1.5" strokeLinecap="round" fill="none" />
           </svg>
-        </button>
+        </TooltipBtn>
 
         {/* Divider */}
         <div style={{ width: 1, height: 18, background: t.divider, flexShrink: 0, margin: '0 2px 0 8px' }} />

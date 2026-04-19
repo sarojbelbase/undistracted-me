@@ -1,6 +1,7 @@
 import { XLg } from 'react-bootstrap-icons';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { TZ_OPTIONS } from './utils';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 const FORMAT_OPTIONS = [
   { label: '24h', value: '24h' },
@@ -68,14 +69,14 @@ export const Settings = ({ format, timezones = [], onChange }) => {
                     {current}
                   </span>
                 </div>
-                <button
+                <TooltipBtn
                   onClick={() => removeTz(idx)}
                   className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full cursor-pointer transition-opacity hover:opacity-70 ml-3"
                   style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-                  title="Remove"
+                  tooltip="Remove"
                 >
                   <XLg size={7} aria-hidden="true" />
-                </button>
+                </TooltipBtn>
               </div>
             );
           }

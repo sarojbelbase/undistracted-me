@@ -152,17 +152,59 @@ function circleBtnStyle(disabled, danger, size) {
   };
 }
 
-const CircleBtn = ({ onClick, label, disabled, danger = false, size = 28, children }) => (
-  <button
-    onClick={disabled ? undefined : onClick}
-    disabled={disabled}
-    title={label}
-    aria-label={label}
-    style={circleBtnStyle(disabled, danger, size)}
-  >
-    {children}
-  </button>
-);
+const CircleBtn = ({ onClick, label, disabled, danger = false, size = 28, children }) => {
+  const btnRef = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        aria-label={label}
+        style={circleBtnStyle(disabled, danger, size)}
+        onMouseEnter={() => { if (!disabled) setAnchor(btnRef.current?.getBoundingClientRect() ?? null); }}
+        onMouseLeave={() => setAnchor(null)}
+      >
+        {children}
+      </button>
+      {label && anchor && (
+        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
+          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>{label}</span>
+        </Popup>
+      )}
+    </>
+  );
+};
+
+// ─── Nav dot (pagination dot with Popup tooltip) ──────────────────────────────
+const NavDot = ({ active, label, onClick }) => {
+  const btnRef = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={onClick}
+        aria-label={label}
+        style={{
+          width: active ? 14 : 5, height: 5,
+          borderRadius: 99, border: 'none', padding: 0, cursor: 'pointer',
+          background: active ? 'var(--w-accent)' : 'var(--w-ink-6)',
+          opacity: active ? 1 : 0.4,
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={() => setAnchor(btnRef.current?.getBoundingClientRect() ?? null)}
+        onMouseLeave={() => setAnchor(null)}
+      />
+      {anchor && (
+        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
+          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>{label}</span>
+        </Popup>
+      )}
+    </>
+  );
+};
 
 // ─── Split a note string into title (first line) and body (rest) ──────────────
 function splitNote(text = '') {
@@ -326,18 +368,11 @@ export const Widget = ({ id, onRemove }) => {
       gap: 4, paddingBottom: 8, paddingTop: 4, flexShrink: 0,
     }}>
       {localNotes.map((note, i) => (
-        <button
+        <NavDot
           key={`dot-${i}-${note.slice(0, 6)}`}
+          active={i === localIdx}
+          label={`Note ${i + 1} of ${total}`}
           onClick={() => jumpTo(i)}
-          title={`Note ${i + 1}`}
-          aria-label={`Go to note ${i + 1} of ${total}`}
-          style={{
-            width: i === localIdx ? 14 : 5, height: 5,
-            borderRadius: 99, border: 'none', padding: 0, cursor: 'pointer',
-            background: i === localIdx ? 'var(--w-accent)' : 'var(--w-ink-6)',
-            opacity: i === localIdx ? 1 : 0.4,
-            transition: 'all 0.2s ease',
-          }}
         />
       ))}
     </div>
@@ -432,18 +467,11 @@ export const Widget = ({ id, onRemove }) => {
           gap: 4, paddingBottom: 14, paddingTop: 4, flexShrink: 0,
         }}>
           {localNotes.map((note, i) => (
-            <button
+            <NavDot
               key={`modal-dot-${i}-${note.slice(0, 6)}`}
+              active={i === localIdx}
+              label={`Note ${i + 1} of ${total}`}
               onClick={() => jumpTo(i)}
-              title={`Note ${i + 1}`}
-              aria-label={`Go to note ${i + 1} of ${total}`}
-              style={{
-                width: i === localIdx ? 14 : 5, height: 5,
-                borderRadius: 99, border: 'none', padding: 0, cursor: 'pointer',
-                background: i === localIdx ? 'var(--w-accent)' : 'var(--w-ink-6)',
-                opacity: i === localIdx ? 1 : 0.4,
-                transition: 'all 0.2s ease',
-              }}
             />
           ))}
         </div>

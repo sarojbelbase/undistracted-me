@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { XLg, Search } from 'react-bootstrap-icons';
 import { fetchCompanies } from './utils';
 import { SettingsInput } from '../../components/ui/SettingsInput';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 /**
  * Stock selector content — rendered inside BaseSettingsModal.
@@ -72,14 +73,14 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
               style={{ background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)', color: 'var(--w-accent)' }}
             >
               {sym}
-              <button
+              <TooltipBtn
                 onClick={() => remove(sym)}
                 className="w-4 h-4 flex items-center justify-center rounded-full transition-opacity hover:opacity-70 cursor-pointer"
                 style={{ color: 'inherit' }}
-                title="Remove"
+                tooltip="Remove"
               >
                 <XLg size={8} aria-hidden="true" />
-              </button>
+              </TooltipBtn>
             </div>
           ))}
         </div>
