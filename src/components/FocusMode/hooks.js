@@ -192,7 +192,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
         const H = Math.round((img.naturalHeight / img.naturalWidth) * W);
         const canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(img, 0, 0, W, H);
 
         // Helper: compute a perceptual luminance estimate for a pixel rectangle.

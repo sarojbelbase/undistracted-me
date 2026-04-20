@@ -40,7 +40,6 @@ Classic mode (`showWidgets=false`): the full-screen Nepali date centred on a dar
 
 ### Not yet covered
 - [ ] `language = 'ne'` font actually loads (Akshar) — no font-load assertion
-- [ ] Extension icon badge update (`stampThisIntoExtensionIcon`) — requires Chrome extension context
 - [ ] Very small viewport (e.g. 375×667 mobile) — 9vw font may still overflow
 
 ---

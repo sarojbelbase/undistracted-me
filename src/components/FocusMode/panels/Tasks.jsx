@@ -158,8 +158,8 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
           }}
         />
       ) : (
-        <span
-          role="button"
+        <button
+          type="button"
           tabIndex={task.completed ? -1 : 0}
           onDoubleClick={() => !task.completed && setEditing(true)}
           onKeyDown={e => { if ((e.key === 'Enter' || e.key === 'F2') && !task.completed) setEditing(true); }}
@@ -177,10 +177,14 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            textAlign: 'left',
           }}
         >
           {task.title}
-        </span>
+        </button>
       )}
 
       <button

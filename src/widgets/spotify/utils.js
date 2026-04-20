@@ -313,7 +313,7 @@ export const extractAlbumColor = (imageUrl) =>
     img.onload = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 4; canvas.height = 4;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(img, 0, 0, 4, 4);
       const data = ctx.getImageData(0, 0, 4, 4).data;
       let r = 0, g = 0, b = 0;

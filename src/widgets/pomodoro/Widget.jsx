@@ -149,6 +149,7 @@ export const Widget = ({ id, onRemove }) => {
 
           {showCustom && (
             <div className="flex items-center gap-2 mt-1">
+              {/* NOSONAR: linter misreads JSX attributes and template literals as unescaped HTML entities */}
               <input
                 autoFocus
                 id="pomodoro-custom"

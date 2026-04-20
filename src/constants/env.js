@@ -16,7 +16,6 @@
  * │ localStorage persistence                 │    ✅    │   ✅    │
  * │ Dynamic browser-tab favicon (date)       │    ✅    │   ✗     │
  * ├──────────────────────────────────────────┼──────────┼─────────┤
- * │ Extension icon badge (chrome.action)     │    ✗     │   ✅    │
  * │ Google OAuth (chrome.identity)           │    ✗     │   ✅    │
  * │ Spotify OAuth (chrome.identity)          │    ✗     │   ✅    │
  * │ chrome.storage.local (token persistence) │    ✗     │   ✅    │

@@ -18,8 +18,8 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 
 ### `useSettingsStore` (`src/store/useSettingsStore.js`)
 Persistence key: `undistracted_settings`
-Fields: `language`, `accent`, `mode`, `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `showMitiInIcon`, `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`
-Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setShowMitiInIcon`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`
+Fields: `language`, `accent`, `mode`, `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`
+Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`
 - `setAccent` / `setMode` call `applyTheme()` immediately
 - `onRehydrateStorage` re-applies theme CSS vars after hydration (prevents FOUC)
 - First-run migration: reads legacy per-key localStorage entries if `undistracted_settings` absent
@@ -52,7 +52,7 @@ src/
   App.jsx              — root, mode toggle, LookAway scheduler, settings overlay
   App.css              — design tokens, typography classes, grid overrides, dark mode patches
   theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
-  bg.js                — background service worker: badge, event reminders, Pomodoro done
+  bg.js                — background service worker: event reminders, Pomodoro done
                          notification, LookAway chrome.alarm (UM_LOOKAWAY)
   media-cs.js          — media session content script for SoundCloud (injected by manifest)
   store/
@@ -324,7 +324,7 @@ Content scripts: `src/media-cs.js` injected into all pages (for browser media se
 ### localStorage
 | Key | Contents |
 |---|---|
-| `undistracted_settings` | Zustand: language, accent, mode, defaultView, dateFormat, clockFormat, showMitiInIcon, lookAwayEnabled, lookAwayInterval, lookAwayNotify |
+| `undistracted_settings` | Zustand: language, accent, mode, defaultView, dateFormat, clockFormat, lookAwayEnabled, lookAwayInterval, lookAwayNotify |
 | `widget_instances` | Zustand: `[{ id, type }]` |
 | `widgetSettings_${id}` | Per-widget settings |
 | `widget_events` | Events array `[{ id, title, startDate, startTime, endDate, endTime }]` |

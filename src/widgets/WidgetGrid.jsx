@@ -149,7 +149,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
                 ))}
               </div>
               {/* Intercept mousedown so widget content receives clicks without triggering rgl drag */}
-              <div className="h-full w-full" onMouseDown={e => e.stopPropagation()} aria-hidden="true">
+              <div role="none" className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
                 {widget}
               </div>
             </div>

@@ -25,7 +25,7 @@ vi.stubGlobal('chrome', {
   topSites: null, // no top sites by default
   identity: { getAuthToken: vi.fn() },
   runtime: { id: 'test-ext', sendMessage: vi.fn(), lastError: null },
-  action: { setBadgeText: vi.fn(), setBadgeBackgroundColor: vi.fn() },
+  action: {},
 });
 
 // Mock react-bootstrap-icons
@@ -166,7 +166,6 @@ vi.mock('../../../src/theme', () => ({
 // Mock constants/settings
 vi.mock('../../../src/constants/settings', () => ({
   LANGUAGES: { English: 'en', Nepali: 'ne' },
-  SHOW_MITI_IN_ICON: 'showMitiInIcon',
 }));
 
 // Mock unsplash

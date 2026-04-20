@@ -140,7 +140,6 @@ vi.mock('../../../src/theme', () => ({
 // Mock constants
 vi.mock('../../../src/constants/settings', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
-  SHOW_MITI_IN_ICON: 'showMitiInIcon',
 }));
 
 import { useEvents, useGoogleCalendar } from '../../../src/widgets/useEvents';

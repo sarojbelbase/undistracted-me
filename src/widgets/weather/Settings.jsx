@@ -127,11 +127,11 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
 
         {/* Helper text */}
         <p className="text-[11px] leading-snug" style={{ color: 'var(--w-ink-4)' }}>
-          {location
-            ? `Showing weather for ${location.name}`
-            : locationDenied
-              ? 'Location access denied — search above to set manually'
-              : 'Using your current location'}
+          {(() => {
+            if (location) return `Showing weather for ${location.name}`;
+            if (locationDenied) return 'Location access denied — search above to set manually';
+            return 'Using your current location';
+          })()}
         </p>
       </div>
 
@@ -144,14 +144,16 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
           {suggestions.map((item, i) => {
             const name = [item.name, item.admin1, item.country].filter(Boolean).join(', ');
             return (
-              <li
-                key={i}
-                onMouseDown={(e) => { e.preventDefault(); select(item); }}
-                className="flex items-center gap-2 px-3 py-2.5 text-xs cursor-pointer transition-colors hover:bg-[rgba(0,0,0,0.05)]"
-                style={{ color: 'var(--w-ink-2)' }}
-              >
-                <GeoAlt size={11} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
-                <span className="truncate">{name}</span>
+              <li key={item.id ?? name}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); select(item); }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs cursor-pointer transition-colors hover:bg-[rgba(0,0,0,0.05)]"
+                  style={{ color: 'var(--w-ink-2)', background: 'none', border: 'none', textAlign: 'left' }}
+                >
+                  <GeoAlt size={11} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
+                  <span className="truncate">{name}</span>
+                </button>
               </li>
             );
           })}
