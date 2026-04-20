@@ -130,19 +130,19 @@ const App = () => {
 
       {typeof chrome === 'undefined' && <Analytics />}
 
-      {/* Bottom-right footer — satisfies Google OAuth homepage privacy policy requirement */}
-      <div className="absolute bottom-3 right-4 z-40 flex items-center gap-3">
+      {/* Bottom-right footer — app name + privacy link visible on homepage for Google OAuth review */}
+      <div className="absolute bottom-3 right-4 z-40 flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.3)' }}>
+        <span className="text-[11px] font-medium select-none">Undistracted Me</span>
+        <span className="text-[9px]" style={{ opacity: 0.5 }}>·</span>
         <a
           href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] transition-opacity duration-200"
+          className="text-[11px] transition-opacity duration-200 hover:opacity-80"
           style={{
-            color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.3)',
+            color: 'inherit',
             textDecoration: 'none',
           }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
         >
           Privacy Policy &amp; Terms
         </a>
