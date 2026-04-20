@@ -10,6 +10,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"build:firefox": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --overwrite-dest",
+		"build:chrome": "cd dist && zip -r ../dist.zip . && cd ..",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"test:unit": "vitest run --config vitest.config.ts",
@@ -53,7 +55,8 @@
 		"postcss": "^8.5.10",
 		"tailwindcss": "^4.2.2",
 		"vite": "^8.0.8",
-		"vitest": "^4.1.4"
+		"vitest": "^4.1.4",
+		"web-ext": "^8.4.0"
 	},
 	"browserslist": {
 		"production": [
