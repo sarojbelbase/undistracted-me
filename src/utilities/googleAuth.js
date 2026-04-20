@@ -58,7 +58,9 @@ function isChromePath() {
  */
 export function isGoogleAuthAvailable() {
   if (isChromePath()) return true;
-  return !!(typeof chrome !== 'undefined' && chrome.identity?.launchWebAuthFlow && FF_CLIENT_ID); // eslint-disable-line no-undef
+  if (typeof chrome !== 'undefined' && chrome.identity?.launchWebAuthFlow && FF_CLIENT_ID) return true; // eslint-disable-line no-undef
+  // Web (Vercel / website) mode: popup PKCE flow works as long as the client ID is set.
+  return isWebPath() && !!FF_CLIENT_ID;
 }
 
 /**
