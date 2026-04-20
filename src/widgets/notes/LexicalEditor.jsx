@@ -1,5 +1,6 @@
 import { useEffect, useImperativeHandle, forwardRef, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Input } from '../../components/ui/Input';
 
 const SOURCE_SERIF_HREF = 'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap';
 const loadSourceSerif = () => {
@@ -25,33 +26,76 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode, TOGGLE_LINK_COMMAND, $isLinkNode } from '@lexical/link';
-import { $getRoot, $getSelection, $isRangeSelection } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $createRangeSelection, $setSelection, $getNodeByKey } from 'lexical';
 
 // ── Ctrl+K link editor ────────────────────────────────────────────────────────
 function LinkEditorPlugin() {
   const [editor] = useLexicalComposerContext();
   const [visible, setVisible] = useState(false);
   const [url, setUrl] = useState('');
+  const [selectedText, setSelectedText] = useState('');
+  const [linkText, setLinkText] = useState('');
+  const savedSelectionRef = useRef(null);
+  const savedLinkKeyRef = useRef(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const inputRef = useRef(null);
+
+  const close = useCallback(() => {
+    setVisible(false);
+    editor.focus();
+  }, [editor]);
 
   const openLinkInput = useCallback(() => {
     const sel = globalThis.getSelection?.();
     const rect = sel?.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : null;
-    if (rect) setPos({ top: rect.bottom + 6, left: Math.max(8, rect.left) });
+    if (rect) setPos({ top: rect.bottom + 8, left: Math.max(8, rect.left) });
     let prefill = '';
+    let text = '';
     editor.getEditorState().read(() => {
       const lexSel = $getSelection();
       if ($isRangeSelection(lexSel)) {
+        text = lexSel.getTextContent();
         const node = lexSel.anchor.getNode();
         const parent = node.getParent();
-        if ($isLinkNode(parent)) prefill = parent.getURL();
+        if ($isLinkNode(parent)) {
+          prefill = parent.getURL();
+          savedLinkKeyRef.current = parent.getKey();
+        } else {
+          savedLinkKeyRef.current = null;
+        }
+        // Clone the selection keys/offsets so we can restore it on apply
+        savedSelectionRef.current = {
+          anchor: { key: lexSel.anchor.key, offset: lexSel.anchor.offset, type: lexSel.anchor.type },
+          focus: { key: lexSel.focus.key, offset: lexSel.focus.offset, type: lexSel.focus.type },
+        };
       }
     });
+    setSelectedText(text);
+    setLinkText(text);
     setUrl(prefill);
     setVisible(true);
-    setTimeout(() => inputRef.current?.focus(), 40);
   }, [editor]);
+
+  // Intercept Escape in capture phase — stops it reaching parent Modal's keydown listener
+  useEffect(() => {
+    if (!visible) return;
+    const handler = (e) => {
+      if (e.key === 'Escape') e.stopPropagation();
+    };
+    document.addEventListener('keydown', handler, true);
+    return () => document.removeEventListener('keydown', handler, true);
+  }, [visible]);
+
+  // Call showModal() as soon as the dialog element mounts — focus link text first
+  const dialogRefCallback = useCallback((node) => {
+    if (!node) return;
+    node.showModal();
+    setTimeout(() => {
+      const inputs = node.querySelectorAll('input');
+      // If there's a link text field (first input), focus it; else focus URL (only input)
+      (inputs[0] ?? null)?.focus();
+    }, 40);
+  }, []);
 
   useEffect(() => {
     const keyHandler = (e) => {
@@ -77,59 +121,182 @@ function LinkEditorPlugin() {
 
   const apply = useCallback(() => {
     setVisible(false);
-    editor.dispatchCommand(TOGGLE_LINK_COMMAND, url.trim() || null);
-    editor.focus();
-  }, [editor, url]);
+    const trimmedUrl = url.trim();
+    const trimmedText = linkText.trim() || selectedText;
+    const linkKey = savedLinkKeyRef.current;
+    const saved = savedSelectionRef.current;
+
+    if (linkKey) {
+      // Editing an existing link — directly mutate the LinkNode (avoids TOGGLE fighting insertText)
+      editor.update(() => {
+        const linkNode = $getNodeByKey(linkKey);
+        if (!$isLinkNode(linkNode)) return;
+        if (trimmedText !== selectedText) {
+          const firstChild = linkNode.getFirstChild();
+          if (firstChild) firstChild.setTextContent(trimmedText);
+        }
+        if (trimmedUrl) {
+          linkNode.setURL(trimmedUrl);
+        } else {
+          // No URL → unwrap link, keep text
+          linkNode.insertBefore(linkNode.getFirstChild().cloneNode());
+          linkNode.remove();
+        }
+      });
+      editor.focus();
+      return;
+    }
+
+    // New link: restore selection, optionally replace text, then TOGGLE_LINK_COMMAND
+    editor.update(() => {
+      if (!saved) return;
+      const sel = $createRangeSelection();
+      sel.anchor.set(saved.anchor.key, saved.anchor.offset, saved.anchor.type);
+      sel.focus.set(saved.focus.key, saved.focus.offset, saved.focus.type);
+      $setSelection(sel);
+
+      if (trimmedText !== selectedText) {
+        const isBackward = saved.focus.offset < saved.anchor.offset
+          && saved.focus.key === saved.anchor.key;
+        const startKey = isBackward ? saved.focus.key : saved.anchor.key;
+        const startOffset = isBackward ? saved.focus.offset : saved.anchor.offset;
+        sel.insertText(trimmedText);
+        const newSel = $createRangeSelection();
+        newSel.anchor.set(startKey, startOffset, 'text');
+        newSel.focus.set(startKey, startOffset + trimmedText.length, 'text');
+        $setSelection(newSel);
+      }
+    }, {
+      discrete: true,
+      onUpdate: () => {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, trimmedUrl || null);
+        editor.focus();
+      },
+    });
+  }, [editor, url, linkText, selectedText]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') { e.preventDefault(); apply(); }
-    if (e.key === 'Escape') { setVisible(false); editor.focus(); }
-  }, [apply, editor]);
+  }, [apply]);
 
-  const handleBlur = useCallback(() => {
-    setTimeout(() => setVisible(false), 120);
-  }, []);
+  // Native dialog cancel fires on Escape — prevent default close, use our close()
+  const handleCancel = useCallback((e) => {
+    e.preventDefault();
+    close();
+  }, [close]);
+
+  // Backdrop click: when showModal is active, clicking outside fires on the <dialog> element
+  const handleDialogClick = useCallback((e) => {
+    if (e.target.tagName === 'DIALOG') close();
+  }, [close]);
 
   if (!visible) return null;
+
+  const fieldStyle = {
+    display: 'flex', flexDirection: 'column', gap: 5,
+  };
+  const labelStyle = {
+    fontSize: '0.68rem', fontWeight: 600,
+    letterSpacing: '0.06em', textTransform: 'uppercase',
+    color: 'var(--w-ink-5)',
+  };
+  const inputWrapStyle = {
+    display: 'flex', alignItems: 'center',
+    background: 'var(--w-surface-2)',
+    border: '1px solid var(--w-border)',
+    borderRadius: 8, padding: '0 10px',
+    height: 36,
+  };
+
   return createPortal(
     <dialog
-      open
+      ref={dialogRefCallback}
       aria-label="Link editor"
+      onCancel={handleCancel}
+      onClick={handleDialogClick}
+      onKeyDown={handleKeyDown}
       style={{
         position: 'fixed', top: pos.top, left: pos.left, zIndex: 10000,
-        display: 'flex', alignItems: 'center', gap: 6, margin: 0,
+        margin: 0, padding: '14px 14px 12px',
         background: 'var(--w-surface)', border: '1px solid var(--w-border)',
-        borderRadius: 8, boxShadow: 'var(--modal-shadow)', padding: '5px 10px',
+        borderRadius: 12, boxShadow: 'var(--modal-shadow)',
+        width: 320,
+        display: 'flex', flexDirection: 'column', gap: 12,
       }}
     >
-      <input
-        ref={inputRef}
-        id="lex-link-url"
-        name="lex-link-url"
-        value={url}
-        onChange={e => setUrl(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
-        placeholder="Paste URL and press Enter"
-        style={{
-          border: 'none', outline: 'none', background: 'transparent',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-          fontSize: '0.8rem', color: 'var(--w-ink-1)', width: 220,
-        }}
-      />
-      {url.trim() && (
+      {/* ── Header ── */}
+      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--w-ink-2)' }}>
+        {selectedText ? 'Edit link' : 'Insert link'}
+      </div>
+
+      {/* ── Link text field ── */}
+      {selectedText && (
+        <div style={fieldStyle}>
+          <label htmlFor="lex-link-text" style={labelStyle}>Link text</label>
+          <div style={inputWrapStyle}>
+            <Input
+              id="lex-link-text"
+              value={linkText}
+              onChange={e => setLinkText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={selectedText}
+              style={{ fontSize: '0.82rem' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── URL field ── */}
+      <div style={fieldStyle}>
+        <label htmlFor="lex-link-url" style={labelStyle}>URL</label>
+        <div style={inputWrapStyle}>
+          <Input
+            ref={inputRef}
+            id="lex-link-url"
+            name="lex-link-url"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="https://"
+            style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+              fontSize: '0.8rem',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ── Actions ── */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
         <button
           type="button"
-          onClick={apply}
+          onClick={close}
           style={{
-            border: 'none', background: 'none', cursor: 'pointer',
-            color: 'var(--w-accent)', fontSize: '0.75rem', fontWeight: 600,
-            padding: '0 2px', flexShrink: 0,
+            flex: 1, height: 34, border: '1px solid var(--w-border)',
+            background: 'transparent', color: 'var(--w-ink-3)',
+            fontSize: '0.8rem', fontWeight: 500, borderRadius: 8,
+            cursor: 'pointer', transition: 'background 0.12s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--w-surface-2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={url.trim() ? apply : undefined}
+          style={{
+            flex: 2, height: 34, border: 'none',
+            background: url.trim() ? 'var(--w-accent)' : 'var(--w-surface-2)',
+            color: url.trim() ? 'var(--w-accent-fg)' : 'var(--w-ink-5)',
+            fontSize: '0.8rem', fontWeight: 600, borderRadius: 8,
+            cursor: url.trim() ? 'pointer' : 'default',
+            transition: 'background 0.15s, color 0.15s',
           }}
         >
-          Apply
+          Apply link
         </button>
-      )}
+      </div>
     </dialog>,
     document.body,
   );

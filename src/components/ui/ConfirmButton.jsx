@@ -66,6 +66,7 @@ export const ConfirmButton = ({
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           gap: 4, cursor: 'pointer', border: 'none', transition: 'all 0.18s ease',
+          color: 'var(--w-ink-3)',
           ...style,
           ...extraStyle(confirming, danger),
         }}

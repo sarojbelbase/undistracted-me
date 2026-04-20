@@ -328,9 +328,6 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);
 
-  // Hide entirely once we know the user isn't connected — no CTA flash
-  if (hasAttempted && !gtasksConnected) return null;
-
   // Close on outside click
   useEffect(() => {
     if (!open) return;
@@ -340,6 +337,9 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  // Hide entirely once we know the user isn't connected — no CTA flash
+  if (hasAttempted && !gtasksConnected) return null;
 
   const handleRefresh = async () => {
     setRefreshing(true);
