@@ -172,7 +172,7 @@ export const FocusMode = ({ onExit }) => {
 
       {ZONES.center.enable && <CenterZone clockOnDark={effectiveClockDark} searchOnDark={effectiveSearchDark} greetOnDark={effectiveClockDark} />}
       {ZONES.bottom.enable && <BottomZone greetOnDark={effectiveGreetDark} />}
-      {ZONES.right.enable && <RightZone />}
+      {ZONES.right.enable && <RightZone centerOnDark={effectiveClockDark} />}
       {ZONES.left.enable && <LeftZone />}
       {ZONES.bottomRight?.enable && (
         <BottomRightZone

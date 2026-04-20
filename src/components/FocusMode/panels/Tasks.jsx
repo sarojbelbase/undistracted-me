@@ -277,6 +277,38 @@ const AddTaskInput = ({ onAdd }) => {
   );
 };
 
+// ─── Skeleton rows ────────────────────────────────────────────────────────────
+
+const SkeletonRow = ({ width = '70%' }) => (
+  <li style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', listStyle: 'none' }}>
+    <div style={{ width: 17, height: 17, borderRadius: 4.5, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+    <div style={{ height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.08)', width }} />
+  </li>
+);
+
+const SkeletonPanel = () => (
+  <div style={{
+    position: 'absolute', bottom: 'calc(100% + 10px)', right: 0,
+    width: 300, borderRadius: 14, background: PANEL_BG,
+    backdropFilter: 'blur(32px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+    border: OUTER_BORDER,
+    boxShadow: '0 16px 56px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07)',
+    overflow: 'hidden',
+    animation: 'panelCardIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
+  }}>
+    <div style={{ padding: '11px 12px 10px', borderBottom: SECTION_BORDER }}>
+      <div style={{ height: 9, width: 40, borderRadius: 4, background: 'rgba(255,255,255,0.10)' }} />
+    </div>
+    <ul style={{ margin: 0, padding: '4px 0', listStyle: 'none' }}>
+      <SkeletonRow width="72%" />
+      <SkeletonRow width="55%" />
+      <SkeletonRow width="63%" />
+    </ul>
+    <style>{`@keyframes skeletonPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+  </div>
+);
+
 // ─── Pill label ───────────────────────────────────────────────────────────────
 
 function pillLabel(remaining, loading) {
@@ -287,10 +319,13 @@ function pillLabel(remaining, loading) {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const TasksPanel = ({ tasks, loading, gtasksConnected, connecting, add, toggle, edit, remove, reload, onOpenDialog }) => {
+export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, connecting, add, toggle, edit, remove, reload, onOpenDialog }) => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);
+
+  // Hide entirely once we know the user isn't connected — no CTA flash
+  if (hasAttempted && !gtasksConnected) return null;
 
   // Close on outside click
   useEffect(() => {
@@ -317,7 +352,8 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, connecting, add, t
     <div ref={panelRef} style={{ position: 'relative', display: 'inline-block' }}>
 
       {/* ── Expanded panel ───────────────────────────────────────────── */}
-      {open && (
+      {open && (!hasAttempted || loading) && <SkeletonPanel />}
+      {open && hasAttempted && !loading && (
         <div
           style={{
             position: 'absolute',
@@ -406,79 +442,42 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, connecting, add, t
           </div>
 
           {/* ── Body ── */}
-          {gtasksConnected ? (
-            <>
-              <ul style={{ flex: 1, overflowY: 'auto', margin: 0, padding: '4px 0', listStyle: 'none' }}>
-                {loading && (
-                  <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
-                    Loading…
+          <>
+            <ul style={{ flex: 1, overflowY: 'auto', margin: 0, padding: '4px 0', listStyle: 'none' }}>
+              {loading && (
+                <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
+                  Loading…
+                </li>
+              )}
+
+              {!loading && tasks.length === 0 && (
+                <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
+                  No tasks yet — add one below.
+                </li>
+              )}
+
+              {!loading && pending.map(task => (
+                <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
+              ))}
+
+              {!loading && completed.length > 0 && (
+                <>
+                  <li aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 4px', listStyle: 'none' }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: DIM }}>
+                      Completed
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                    <span style={{ fontSize: 9.5, color: DIM }}>{completed.length}</span>
                   </li>
-                )}
+                  {completed.map(task => (
+                    <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
+                  ))}
+                </>
+              )}
+            </ul>
 
-                {!loading && tasks.length === 0 && (
-                  <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
-                    No tasks yet — add one below.
-                  </li>
-                )}
-
-                {!loading && pending.map(task => (
-                  <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
-                ))}
-
-                {!loading && completed.length > 0 && (
-                  <>
-                    <li aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 4px', listStyle: 'none' }}>
-                      <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: DIM }}>
-                        Completed
-                      </span>
-                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                      <span style={{ fontSize: 9.5, color: DIM }}>{completed.length}</span>
-                    </li>
-                    {completed.map(task => (
-                      <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
-                    ))}
-                  </>
-                )}
-              </ul>
-
-              <AddTaskInput onAdd={add} />
-            </>
-          ) : (
-            /* ── Disconnected empty state ── */
-            <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: 'rgba(255,255,255,0.06)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <IconGoogle />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: MED, marginBottom: 4 }}>Connect Google Tasks</div>
-                <div style={{ fontSize: 11.5, color: DIM, lineHeight: '1.5' }}>Sign in to see and manage your tasks here</div>
-              </div>
-              <button
-                type="button"
-                onClick={onOpenDialog}
-                disabled={connecting}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '8px 18px',
-                  borderRadius: 99,
-                  background: 'rgba(255,255,255,0.10)',
-                  border: '1px solid rgba(255,255,255,0.16)',
-                  color: MED,
-                  fontSize: 12.5, fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.16)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
-              >
-                Set up Tasks →
-              </button>
-            </div>
-          )}
+            <AddTaskInput onAdd={add} />
+          </>
         </div>
       )}
 
@@ -522,11 +521,11 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, connecting, add, t
         )}
 
         {(() => {
-          let pillColor = MED;
-          if (allDone) pillColor = 'rgba(74,222,128,0.90)';
-          else if (!gtasksConnected) pillColor = 'rgba(255,255,255,0.50)';
-          const pillText = gtasksConnected ? pillLabel(remaining, loading) : 'Connect Tasks';
-          return <span style={{ color: pillColor }}>{pillText}</span>;
+          if (!hasAttempted || loading) {
+            return <span style={{ display: 'inline-block', width: 52, height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.14)', verticalAlign: 'middle' }} />;
+          }
+          const pillColor = allDone ? 'rgba(74,222,128,0.90)' : MED;
+          return <span style={{ color: pillColor }}>{pillLabel(remaining, false)}</span>;
         })()}
 
         <svg

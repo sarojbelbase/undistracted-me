@@ -160,11 +160,12 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
 );
 
 // ── Suggestions Dropdown ───────────────────────────────────────────────────────
-const Pill = ({ label, t }) => (
+const Pill = ({ label }) => (
   <span style={{
     fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.04em',
-    color: t.label, background: t.hoverBg, borderRadius: 999,
+    color: 'var(--w-accent-fg)', background: 'var(--w-accent)', borderRadius: 999,
     padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
+    opacity: 0.88,
   }}>{label}</span>
 );
 const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, topSites, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onTopSiteSelect, onHover, t }) => {
@@ -210,7 +211,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         >
           <GlobeIcon color={t.label} />
           <span style={textStyle}>{urlTarget}</span>
-          <Pill label="Go to" t={t} />
+          <Pill label="Go to" />
         </button>
       )}
 
@@ -227,7 +228,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
             ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
             : <TabIcon color={t.label} />}
           <span style={textStyle}>{tab.title || tab.url}</span>
-          <Pill label="Switch" t={t} />
+          <Pill label="Switch" />
         </button>
       ))}
 
@@ -242,7 +243,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         >
           <DriveIcon mimeType={file.mimeType} size={13} />
           <span style={textStyle}>{file.name}</span>
-          <Pill label="Drive" t={t} />
+          <Pill label="Drive" />
         </button>
       ))}
 
@@ -263,7 +264,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
             onError={e => { e.currentTarget.style.display = 'none'; }}
           />
           <span style={textStyle}>{getDisplayTitle(site)}</span>
-          <Pill label="Visit" t={t} />
+          <Pill label="Visit" />
         </button>
       ))}
 
@@ -477,7 +478,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     setTimeout(() => inputRef.current?.focus(), 60);
   };
 
-  const showDropdown = focused && (suggestions.length > 0 || tabResults.length > 0 || driveResults.length > 0 || urlTarget || !query.trim());
+  const showDropdown = focused && (suggestions.length > 0 || tabResults.length > 0 || driveResults.length > 0 || urlTarget || matchedTopSites.length > 0);
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', width: '100%', zIndex: 30 }}>
@@ -563,7 +564,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       )}
 
       {/* ── Suggestions dropdown ── */}
-      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0 || matchedTopSites.length > 0 || isHistory) && (
+      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0 || matchedTopSites.length > 0) && (
         <SuggestionsDropdown
           urlTarget={urlTarget}
           goToUrl={goToUrl}

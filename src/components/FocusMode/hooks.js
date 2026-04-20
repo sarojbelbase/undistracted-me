@@ -433,9 +433,12 @@ export function useFocusTasks() {
   // isGoogleAuthAvailable() only means the API exists, not that the user has authed.
   const [gtasksConnected, setGtasksConnected] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  // Tracks whether the initial auth attempt has completed (success or failure).
+  // Until this is true the panel shows skeleton instead of "Connect Tasks".
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   const load = useCallback(async () => {
-    if (!isGoogleAuthAvailable()) return;
+    if (!isGoogleAuthAvailable()) { setHasAttempted(true); return; }
     setLoading(true);
     try {
       const list = await fetchGoogleTasks();
@@ -448,6 +451,7 @@ export function useFocusTasks() {
       setGtasksConnected(false);
     } finally {
       setLoading(false);
+      setHasAttempted(true);
     }
   }, []);
 
@@ -494,6 +498,6 @@ export function useFocusTasks() {
     } catch { load(); }
   }, [tasks, load]);
 
-  return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, add, toggle, edit, remove, reload: load };
+  return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, hasAttempted, add, toggle, edit, remove, reload: load };
 }
 
