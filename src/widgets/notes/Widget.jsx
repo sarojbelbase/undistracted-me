@@ -439,7 +439,7 @@ export const Widget = ({ id, onRemove }) => {
           style={{
             flex: 1,
             padding: `${PAD}px ${PAD}px`,
-            fontSize: '0.875rem', color: 'var(--w-ink-1)',
+            fontSize: '0.96rem', color: 'var(--w-ink-1)',
             overflowY: 'auto', minHeight: 0, outline: 'none',
           }}
         />
@@ -525,7 +525,7 @@ export const Widget = ({ id, onRemove }) => {
               autoFocus={mode === 'page' && !titleLine.trim() ? false : mode === 'page'}
               className="lex-content"
               style={{
-                flex: 1, fontSize: '0.9375rem', color: 'var(--w-ink-1)',
+                flex: 1, fontSize: '1.15rem', color: 'var(--w-ink-1)',
                 overflowY: 'auto', paddingTop: 12, minHeight: 0, outline: 'none',
               }}
             />

@@ -1,5 +1,10 @@
 // ─── Lexical WYSIWYG Editor ────────────────────────────────────────────────────
 
+// Transparent backdrop for the Ctrl+K link dialog (showModal)
+dialog[aria-label="Link editor"]::backdrop {
+  background: transparent;
+}
+
 // ContentEditable element — flex so it fills available height
 .lex-content {
   flex: 1;
