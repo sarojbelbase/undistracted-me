@@ -1,5 +1,5 @@
 import React, { forwardRef, Suspense, lazy } from 'react';
-import { CollectionFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
+import { Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
 import { TooltipBtn } from './TooltipBtn';
 import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 
@@ -50,17 +50,6 @@ export const ControlCluster = forwardRef(function ControlCluster(
           boxShadow: 'var(--card-shadow)',
         }}
       >
-        {/* Widgets */}
-        <TooltipBtn
-          tooltip="Widgets"
-          className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${hoverBg}`}
-          onClick={onOpenCatalog}
-          onMouseEnter={onPreloadCatalog}
-        >
-          <CollectionFill size={16} style={{ color: iconColor }} />
-        </TooltipBtn>
-
-        <ClusterDivider isDark={isDark} />
 
         {/* Arrange */}
         <TooltipBtn
@@ -73,6 +62,18 @@ export const ControlCluster = forwardRef(function ControlCluster(
             size={16}
             style={{ color: arrangeMode ? 'var(--w-accent-fg)' : iconColor }}
           />
+        </TooltipBtn>
+
+        <ClusterDivider isDark={isDark} />
+
+        {/* Widgets */}
+        <TooltipBtn
+          tooltip="Widgets"
+          className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${hoverBg}`}
+          onClick={onOpenCatalog}
+          onMouseEnter={onPreloadCatalog}
+        >
+          <Grid3x3GapFill size={16} style={{ color: iconColor }} />
         </TooltipBtn>
 
         <ClusterDivider isDark={isDark} />
