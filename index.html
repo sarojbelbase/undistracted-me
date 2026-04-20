@@ -6,8 +6,9 @@
     <link rel="icon" href="/favicon/lotus16.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#141414" />
-    <meta name="description" content="Web site created using create-react-app" />
+    <meta name="description" content="Undistracted Me — a focus-oriented new tab experience with widgets and ambient backgrounds." />
     <link rel="apple-touch-icon" href="/favicon/lotus128.png" />
+    <link rel="privacy-policy" href="https://undistractedme.sarojbelbase.com.np/pp-and-tos" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap"
@@ -41,6 +42,15 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
+    <!-- Static footer for OAuth / search-crawler verification.
+         The React app occupies the full viewport so this is not visible
+         to regular users, but remains in the HTML for crawlers. -->
+    <footer style="position:fixed;bottom:0;left:0;right:0;z-index:-1;padding:8px 16px;font-family:sans-serif;font-size:11px;color:#888;display:flex;align-items:center;justify-content:space-between;pointer-events:none;">
+      <span><strong>Undistracted Me</strong> — focus-oriented new tab extension</span>
+      <a href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
+         style="color:#888;pointer-events:auto;"
+         rel="noopener noreferrer">Privacy Policy &amp; Terms</a>
+    </footer>
   </body>
 
 </html>
