@@ -3,14 +3,12 @@
  *
  * States:
  *   • Collapsed pill — shows remaining count, springs open on click.
- *   • Expanded panel — full task manager with connect flow, refresh,
- *     inline editing, and completed section.
+ *   • Expanded panel — task list (connected) or connect CTA (not connected).
  *
- * The Google sign-in flow lives entirely here — no separate settings step.
+ * The ⓘ button in the header opens TasksDialog for account info + settings.
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { FOCUS_THEME } from '../theme';
-import { IntegrationRow } from '../../ui/IntegrationRow';
 
 const t = FOCUS_THEME;
 
@@ -279,17 +277,6 @@ const AddTaskInput = ({ onAdd }) => {
   );
 };
 
-// ─── Dark CSS-var context for IntegrationRow inside the dark panel ───────────
-
-const darkVars = {
-  '--w-ink-1': 'rgba(255,255,255,0.92)',
-  '--w-ink-4': 'rgba(255,255,255,0.55)',
-  '--w-ink-5': 'rgba(255,255,255,0.40)',
-  '--w-ink-6': 'rgba(255,255,255,0.30)',
-  '--w-accent': '#818cf8',
-  '--w-accent-fg': '#ffffff',
-};
-
 // ─── Pill label ───────────────────────────────────────────────────────────────
 
 function pillLabel(remaining, loading) {
@@ -300,7 +287,7 @@ function pillLabel(remaining, loading) {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, onDisconnect, connecting, userProfile, add, toggle, edit, remove, reload }) => {
+export const TasksPanel = ({ tasks, loading, gtasksConnected, connecting, add, toggle, edit, remove, reload, onOpenDialog }) => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);
@@ -380,6 +367,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, onDisco
               </span>
             )}
 
+            {/* Refresh — only when connected */}
             {gtasksConnected && (
               <button
                 onClick={handleRefresh}
@@ -398,6 +386,8 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, onDisco
                 <IconRefresh spinning={refreshing || loading} />
               </button>
             )}
+
+            {/* Info / settings — removed from header; accessible via FocusMode Settings */}
 
             <button
               onClick={() => setOpen(false)}
@@ -454,36 +444,39 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, onDisco
               <AddTaskInput onAdd={add} />
             </>
           ) : (
-            <div style={{ padding: '20px 16px 18px', ...darkVars }}>
-              <IntegrationRow
-                icon={<IconGoogle />}
-                label="Google Tasks"
-                connected={false}
-                loading={connecting}
-                description="Sign in to see and manage your tasks."
-                privacyLabel="Tasks data · nothing stored on servers"
-                connectLabel="Connect Google"
-                onConnect={onConnect}
-                onDisconnect={() => { }}
-              />
-            </div>
-          )}
-
-          {/* ── Connected account footer ── */}
-          {gtasksConnected && (
-            <div style={{ borderTop: SECTION_BORDER, padding: '10px 16px 12px', ...darkVars }}>
-              <IntegrationRow
-                icon={<IconGoogle />}
-                label="Google Tasks"
-                connected
-                profile={userProfile ? {
-                  name: userProfile.name,
-                  email: userProfile.email,
-                  picture: userProfile.picture,
-                } : null}
-                onConnect={onConnect}
-                onDisconnect={onDisconnect}
-              />
+            /* ── Disconnected empty state ── */
+            <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 12,
+                background: 'rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <IconGoogle />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: MED, marginBottom: 4 }}>Connect Google Tasks</div>
+                <div style={{ fontSize: 11.5, color: DIM, lineHeight: '1.5' }}>Sign in to see and manage your tasks here</div>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenDialog}
+                disabled={connecting}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '8px 18px',
+                  borderRadius: 99,
+                  background: 'rgba(255,255,255,0.10)',
+                  border: '1px solid rgba(255,255,255,0.16)',
+                  color: MED,
+                  fontSize: 12.5, fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.16)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
+              >
+                Set up Tasks →
+              </button>
             </div>
           )}
         </div>

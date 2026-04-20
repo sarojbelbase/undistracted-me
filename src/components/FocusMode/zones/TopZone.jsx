@@ -19,11 +19,11 @@ import { TooltipBtn } from '../../ui/TooltipBtn';
 
 const TOP = ZONES.top.items;
 
-const FocusModeSettings = lazy(() => import('../Settings').then(m => ({ default: m.FocusModeSettings })));
+const FocusModeSettings = lazy(() => import('../dialog/Settings').then(m => ({ default: m.FocusModeSettings })));
 
 // Preload Settings panel on hover so it opens instantly
 const preloadSettings = () => {
-  import('../Settings');
+  import('../dialog/Settings');
 };
 
 // ── Info strip (weather + date) ───────────────────────────────────────────────
@@ -75,7 +75,7 @@ const InfoStrip = ({ weather, dateParts }) => {
 
 // ── Nav bar ───────────────────────────────────────────────────────────────────
 
-const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal }) => {
+const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog }) => {
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
 
@@ -167,7 +167,11 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
 
       {showSettings && (
         <Suspense fallback={null}>
-          <FocusModeSettings onOpenBgModal={onOpenBgModal} />
+          <FocusModeSettings
+            onOpenBgModal={onOpenBgModal}
+            onOpenTasksDialog={() => { setShowSettings(false); onOpenTasksDialog?.(); }}
+            onOpenSearchDialog={() => { setShowSettings(false); onOpenSearchDialog?.(); }}
+          />
         </Suspense>
       )}
     </div>
@@ -176,7 +180,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
 
 // ── Top zone export ───────────────────────────────────────────────────────────
 
-export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal }) => {
+export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog }) => {
   const dateFormat = useSettingsStore(s => s.dateFormat);
   const weather = useFocusWeather();
   const [dateParts, setDateParts] = useState(() =>
@@ -195,6 +199,8 @@ export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onO
         toggleFullscreen={toggleFullscreen}
         uiVisible={uiVisible}
         onOpenBgModal={onOpenBgModal}
+        onOpenTasksDialog={onOpenTasksDialog}
+        onOpenSearchDialog={onOpenSearchDialog}
       />
       <InfoStrip weather={weather} dateParts={dateParts} />
     </>
