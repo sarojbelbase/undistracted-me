@@ -119,7 +119,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
         onMouseEnter={fadeIn}
         onMouseLeave={fadeOut}
         className="flex items-center gap-1.5 rounded-full focus:outline-none"
-        style={{ padding: '8px 12px 8px 11px', background: FM_CARD_BG, border: `1px solid ${FM_CARD_BORDER}`, backdropFilter: FM_CARD_BLUR, WebkitBackdropFilter: FM_CARD_BLUR, opacity: 0.52, transition: 'opacity 0.2s' }}
+        style={{ padding: '9px 12px 9px 11px', background: FM_CARD_BG, border: `1px solid ${FM_CARD_BORDER}`, backdropFilter: FM_CARD_BLUR, WebkitBackdropFilter: FM_CARD_BLUR, opacity: 0.52, transition: 'opacity 0.2s' }}
         tooltip={showSettings ? null : 'Back to Canvas'}
       >
         <svg width="13" height="15" viewBox="0 0 10 10" fill="none">
@@ -138,7 +138,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           backdropFilter: FM_CARD_BLUR,
           WebkitBackdropFilter: FM_CARD_BLUR,
           borderRadius: 999,
-          padding: '2.5px',
+          padding: '4px',
         }}
       >
         <TooltipBtn
@@ -152,7 +152,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
             return isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake';
           })()}
         >
-          {isFullscreen ? <FullscreenExit size={15} color={FM_INK_1} /> : <ArrowsFullscreen size={15} color={FM_INK_1} />}
+          {isFullscreen ? <FullscreenExit size={13} color={FM_INK_1} /> : <ArrowsFullscreen size={15} color={FM_INK_1} />}
         </TooltipBtn>
 
         <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
