@@ -131,41 +131,38 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
       {/* Right side: fullscreen + settings */}
       <div
         ref={settingsRef}
-        className="flex items-center gap-1 opacity-[0.52] hover:opacity-[0.92] transition-opacity duration-200"
+        className="flex items-center rounded-full opacity-50"
         style={{
           background: FM_CARD_BG,
           border: `1px solid ${FM_CARD_BORDER}`,
           backdropFilter: FM_CARD_BLUR,
           WebkitBackdropFilter: FM_CARD_BLUR,
-          borderRadius: 999,
-          padding: '4px',
         }}
       >
         <TooltipBtn
           onClick={toggleFullscreen}
-          onMouseEnter={fadeIn}
-          onMouseLeave={fadeOut}
-          className="p-1.5 rounded-full focus:outline-none"
-          style={{ opacity: 0.52, transition: 'opacity 0.2s' }}
+          className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
           tooltip={(() => {
             if (showSettings) return null;
             return isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake';
           })()}
         >
-          {isFullscreen ? <FullscreenExit size={13} color={FM_INK_1} /> : <ArrowsFullscreen size={15} color={FM_INK_1} />}
+          {isFullscreen ? <FullscreenExit size={16} color={FM_INK_1} /> : <ArrowsFullscreen size={16} color={FM_INK_1} />}
         </TooltipBtn>
 
         <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
 
         <TooltipBtn
           onClick={() => setShowSettings(s => !s)}
-          onMouseEnter={(e) => { fadeIn(e); preloadSettings(); }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = showSettings ? '0.88' : '0.38'; }}
-          className="group p-1.5 rounded-full focus:outline-none"
-          style={{ opacity: showSettings ? 0.92 : 0.52, transition: 'opacity 0.2s' }}
+          onMouseEnter={preloadSettings}
+          className="group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
           tooltip={showSettings ? null : 'Settings'}
         >
-          <GearFill size={15} color={FM_INK_1} />
+          <GearFill
+            size={16}
+            color={showSettings ? 'var(--w-accent)' : FM_INK_1}
+            className="transition-transform duration-300 group-hover:rotate-90"
+          />
         </TooltipBtn>
       </div>
 
