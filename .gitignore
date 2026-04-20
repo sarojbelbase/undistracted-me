@@ -12,3 +12,4 @@ examples/new_ones
 .vercel
 .env*.local
 src/assets/backgrounds/
+builds

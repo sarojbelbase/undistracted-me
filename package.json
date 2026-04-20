@@ -10,8 +10,9 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"build:firefox": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --overwrite-dest",
-		"build:chrome": "cd dist && zip -r ../dist.zip . && cd ..",
+		"start:firefox": "vite build && node scripts/patch-manifest-firefox.mjs && web-ext run --source-dir ./dist/",
+		"build:firefox": "vite build && node scripts/patch-manifest-firefox.mjs && web-ext build --source-dir ./dist/ --artifacts-dir builds --overwrite-dest",
+		"build:chrome": "vite build && zip -r builds/chrome.zip dist",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"test:unit": "vitest run --config vitest.config.ts",
