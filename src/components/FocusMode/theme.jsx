@@ -17,16 +17,16 @@
 //   • dialog/shared.jsx, panels/Tasks.jsx etc. import FM_* from here.
 
 // ── Actual card surface values (glass) ────────────────────────────────────────
-export const GLASS_CARD_BG = 'rgba(255,255,255,0.10)';
-export const GLASS_CARD_BORDER = 'rgba(255,255,255,0.16)';
+export const GLASS_CARD_BG = 'rgba(0,0,0,0.38)';
+export const GLASS_CARD_BORDER = 'rgba(255,255,255,0.18)';
 export const GLASS_CARD_BLUR = 'blur(28px) saturate(180%)';
-export const GLASS_CARD_SHADOW = 'inset 0 1px 0 rgba(255,255,255,0.14), 0 4px 24px rgba(0,0,0,0.55)';
+export const GLASS_CARD_SHADOW = '0 2px 16px rgba(0,0,0,0.28)';
 
 // ── Actual card surface values (flat dark) ─────────────────────────────────────
 export const FLAT_CARD_BG = 'rgba(10,10,12,0.82)';
 export const FLAT_CARD_BORDER = 'rgba(255,255,255,0.10)';
 export const FLAT_CARD_BLUR = 'none';
-export const FLAT_CARD_SHADOW = '0 4px 24px rgba(0,0,0,0.65)';
+export const FLAT_CARD_SHADOW = '0 2px 16px rgba(0,0,0,0.40)';
 
 // ── Card surface token exports — CSS var wrappers ──────────────────────────────
 // These read from custom properties set on the FocusMode root div by
@@ -143,12 +143,10 @@ export const FOCUS_THEME = {
 };
 
 // ─── AnimatedCard ────────────────────────────────────────────────────────────────
-// Spring-in card wrapper — stagger delay in ms
-export const AnimatedCard = ({ delay, children }) => (
-  <div style={{ animation: `panelCardIn 0.52s cubic-bezier(0.16,1,0.3,1) ${delay}ms both` }}>
-    {children}
-  </div>
-);
+// Plain passthrough — no animation, no wrapper compositing layer.
+// Kept as a named export so callers don't need updating.
+// eslint-disable-next-line no-unused-vars
+export const AnimatedCard = ({ delay, children }) => <>{children}</>;
 
 // ─── DIALOG_STYLE ────────────────────────────────────────────────────────────────
 // Spread onto Modal's `style` prop for all FocusMode portal dialogs.

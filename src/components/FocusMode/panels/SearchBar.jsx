@@ -160,14 +160,25 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
 );
 
 // ── Suggestions Dropdown ───────────────────────────────────────────────────────
-const Pill = ({ label }) => (
-  <span style={{
-    fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.04em',
-    color: 'var(--w-accent-fg)', background: 'var(--w-accent)', borderRadius: 999,
-    padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
-    opacity: 0.88,
-  }}>{label}</span>
-);
+const PILL_TINTS = {
+  'Switch': { bg: 'rgba(96,165,250,0.18)', border: 'rgba(96,165,250,0.30)', text: 'rgba(147,197,253,0.95)' },
+  'Drive': { bg: 'rgba(74,222,128,0.15)', border: 'rgba(74,222,128,0.28)', text: 'rgba(134,239,172,0.95)' },
+  'Visit': { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.28)', text: 'rgba(253,224,71,0.95)' },
+  'Go to': { bg: 'rgba(255,255,255,0.09)', border: 'rgba(255,255,255,0.16)', text: 'rgba(255,255,255,0.65)' },
+};
+
+const Pill = ({ label }) => {
+  const tint = PILL_TINTS[label] ?? PILL_TINTS['Go to'];
+  return (
+    <span style={{
+      fontSize: '0.6rem', fontWeight: 400, letterSpacing: '0.04em',
+      color: tint.text, background: tint.bg,
+      border: `0.5px solid ${tint.border}`,
+      borderRadius: 999, padding: '2px 6px',
+      flexShrink: 0, whiteSpace: 'nowrap',
+    }}>{label}</span>
+  );
+};
 const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, topSites, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onTopSiteSelect, onHover, t }) => {
   // When query is empty, top sites precede history in the index order
   const topSiteOffset = topSites?.length || 0;

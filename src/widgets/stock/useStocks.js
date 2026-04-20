@@ -5,7 +5,9 @@
 // instance's settings via Zustand and polls merolagani.com for chart data.
 //
 // Returns:
-//   stocks – [{ sym: string, data: ChartData | null }]
+//   stocks – [{ sym: string, data: ChartData | null | 'error' }]
+//   data === null    → loading
+//   data === 'error' → fetch failed / no data
 
 import { useState, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -23,10 +25,12 @@ export const useStocks = () => {
 
   useEffect(() => {
     if (!symbols.length) { setStocks([]); return; }
-    const loadSymbol = (sym) => fetchChart(sym).catch(() => null);
+    // Emit loading rows immediately so StockPanel can show skeletons
+    setStocks(symbols.map(sym => ({ sym, data: null })));
+    const loadSymbol = (sym) => fetchChart(sym).catch(() => 'error');
     const load = async () => {
       const results = await Promise.all(symbols.map(loadSymbol));
-      setStocks(symbols.map((sym, i) => ({ sym, data: results[i] })));
+      setStocks(symbols.map((sym, i) => ({ sym, data: results[i] ?? 'error' })));
     };
     load();
     const timerId = setInterval(load, 5 * 60_000);
