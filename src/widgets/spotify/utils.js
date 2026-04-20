@@ -29,8 +29,17 @@ const generateCodeChallenge = async (verifier) => {
     .replaceAll('+', '-').replaceAll('/', '_').replaceAll(/=+$/g, '');
 };
 
+const isFirefox = () => typeof globalThis.browser !== 'undefined' || navigator.userAgent.includes('Firefox');
+
 const getRedirectUri = () => {
   if (isWebMode()) return `${globalThis.location.origin}/auth-callback.html`;
+  // Firefox extensions use chrome.identity.getRedirectURL() which returns the
+  // allizom.org URI; Chrome extensions use the chromiumapp.org URI.
+  if (isFirefox()) {
+    const url = typeof chrome !== 'undefined' && chrome.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
+    if (!url) throw new Error('chrome.identity not available in Firefox context.');
+    return url;
+  }
   const id = typeof chrome !== 'undefined' && chrome.runtime?.id; // eslint-disable-line no-undef
   if (!id) throw new Error('Chrome extension context unavailable. Load the extension from chrome://extensions before connecting.');
   return `https://${id}.chromiumapp.org/`;
