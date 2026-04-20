@@ -361,3 +361,21 @@ export async function removeGoogleAuthToken(token) {
 export async function signOutGoogle(token) {
   await removeGoogleAuthToken(token);
 }
+
+/**
+ * Fetch the signed-in user's basic profile from Google.
+ * Returns { name, email, picture } or null on failure.
+ */
+export async function getGoogleUserProfile() {
+  try {
+    const token = await getGoogleAuthToken(false);
+    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { name: data.name ?? null, email: data.email ?? null, picture: data.picture ?? null };
+  } catch {
+    return null;
+  }
+}

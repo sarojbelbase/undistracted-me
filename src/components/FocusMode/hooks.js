@@ -424,21 +424,28 @@ import {
   fetchGoogleTasks, addGoogleTask, completeGoogleTask,
   updateGoogleTask, deleteGoogleTask,
 } from '../../utilities/googleTasks';
-import { isGoogleAuthAvailable } from '../../utilities/googleAuth';
+import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
 
 export function useFocusTasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [gtasksConnected, setGtasksConnected] = useState(isGoogleAuthAvailable);
+  // Start as false — only flip to true after a successful API call.
+  // isGoogleAuthAvailable() only means the API exists, not that the user has authed.
+  const [gtasksConnected, setGtasksConnected] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   const load = useCallback(async () => {
+    if (!isGoogleAuthAvailable()) return;
     setLoading(true);
     try {
       const list = await fetchGoogleTasks();
       setTasks(list);
       setGtasksConnected(true);
+      // Fetch profile lazily — non-blocking, don't await
+      getGoogleUserProfile().then(p => { if (p) setUserProfile(p); });
     } catch {
       setTasks([]);
+      setGtasksConnected(false);
     } finally {
       setLoading(false);
     }
@@ -485,6 +492,6 @@ export function useFocusTasks() {
     } catch { load(); }
   }, [load]);
 
-  return { tasks, loading, gtasksConnected, setGtasksConnected, add, toggle, edit, remove, reload: load };
+  return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, add, toggle, edit, remove, reload: load };
 }
 

@@ -7,11 +7,11 @@ import React, { useState, useCallback } from 'react';
 import { useFocusTasks } from '../hooks';
 import { TasksPanel } from '../panels/Tasks';
 import { useSettingsStore } from '../../../store';
-import { getGoogleAuthToken, isGoogleAuthAvailable } from '../../../utilities/googleAuth';
+import { getGoogleAuthToken, isGoogleAuthAvailable, signOutGoogle } from '../../../utilities/googleAuth';
 
 export const BottomRightZone = () => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
-  const { tasks, loading, gtasksConnected, setGtasksConnected, add, toggle, edit, remove, reload } = useFocusTasks();
+  const { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, add, toggle, edit, remove, reload } = useFocusTasks();
   const [connecting, setConnecting] = useState(false);
 
   const onConnect = useCallback(async () => {
@@ -28,6 +28,14 @@ export const BottomRightZone = () => {
     }
   }, [reload, setGtasksConnected]);
 
+  const onDisconnect = useCallback(async () => {
+    try {
+      await signOutGoogle(null);
+    } catch { /* best-effort */ }
+    setGtasksConnected(false);
+    setUserProfile(null);
+  }, [setGtasksConnected, setUserProfile]);
+
   if (!focusTasks) return null;
 
   return (
@@ -42,7 +50,9 @@ export const BottomRightZone = () => {
         loading={loading}
         gtasksConnected={gtasksConnected}
         onConnect={onConnect}
+        onDisconnect={onDisconnect}
         connecting={connecting}
+        userProfile={userProfile}
         add={add}
         toggle={toggle}
         edit={edit}
