@@ -300,7 +300,7 @@ function pillLabel(remaining, loading) {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, connecting, add, toggle, edit, remove, reload }) => {
+export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, onDisconnect, connecting, userProfile, add, toggle, edit, remove, reload }) => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);
@@ -461,10 +461,28 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, connect
                 connected={false}
                 loading={connecting}
                 description="Sign in to see and manage your tasks."
-                privacyLabel="Read-only data · nothing stored on servers"
+                privacyLabel="Tasks data · nothing stored on servers"
                 connectLabel="Connect Google"
                 onConnect={onConnect}
                 onDisconnect={() => { }}
+              />
+            </div>
+          )}
+
+          {/* ── Connected account footer ── */}
+          {gtasksConnected && (
+            <div style={{ borderTop: SECTION_BORDER, padding: '10px 16px 12px', ...darkVars }}>
+              <IntegrationRow
+                icon={<IconGoogle />}
+                label="Google Tasks"
+                connected
+                profile={userProfile ? {
+                  name: userProfile.name,
+                  email: userProfile.email,
+                  picture: userProfile.picture,
+                } : null}
+                onConnect={onConnect}
+                onDisconnect={onDisconnect}
               />
             </div>
           )}
@@ -510,9 +528,13 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, onConnect, connect
           </svg>
         )}
 
-        <span style={{ color: allDone ? 'rgba(74,222,128,0.90)' : MED }}>
-          {pillLabel(remaining, loading)}
-        </span>
+        {(() => {
+          let pillColor = MED;
+          if (allDone) pillColor = 'rgba(74,222,128,0.90)';
+          else if (!gtasksConnected) pillColor = 'rgba(255,255,255,0.50)';
+          const pillText = gtasksConnected ? pillLabel(remaining, loading) : 'Connect Tasks';
+          return <span style={{ color: pillColor }}>{pillText}</span>;
+        })()}
 
         <svg
           width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true"
