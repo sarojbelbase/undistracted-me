@@ -12,7 +12,7 @@ import { ZONES } from '../config';
 
 const RIGHT = ZONES.right.items;
 
-export const RightZone = () => {
+export const RightZone = ({ centerOnDark = true }) => {
   const clockFormat = useSettingsStore(s => s.clockFormat) || '24h';
   const timezones = useFocusTimezones();
   const [times, setTimes] = useState([]);
@@ -25,6 +25,13 @@ export const RightZone = () => {
   }, [timezones, clockFormat]);
 
   if (!RIGHT.worldClocks.enable || !times.length) return null;
+
+  // Adapt text colors to the luminance of the background image
+  const timeColor = centerOnDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.82)';
+  const cityColor = centerOnDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+  const periodColor = centerOnDark ? 'rgba(255,255,255,0.58)' : 'rgba(0,0,0,0.48)';
+  const timeShadow = centerOnDark ? '0 2px 18px rgba(0,0,0,0.55)' : 'none';
+  const cityShadow = centerOnDark ? '0 1px 8px rgba(0,0,0,0.6)' : 'none';
 
   return (
     <div className="fm-world-panel">
@@ -45,10 +52,10 @@ export const RightZone = () => {
               fontSize: 9,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.30)',
+              color: cityColor,
               fontWeight: 600,
               fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
-              textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+              textShadow: cityShadow,
             }}>
               {city}
             </span>
@@ -57,11 +64,11 @@ export const RightZone = () => {
                 fontSize: 'clamp(1.4rem, 2.2vw, 2rem)',
                 fontWeight: 600,
                 fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
-                color: 'rgba(255,255,255,0.78)',
+                color: timeColor,
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
                 fontVariantNumeric: 'tabular-nums',
-                textShadow: '0 2px 18px rgba(0,0,0,0.55)',
+                textShadow: timeShadow,
               }}>
                 {time}
               </span>
@@ -69,10 +76,10 @@ export const RightZone = () => {
                 <span style={{
                   fontSize: 'clamp(0.5rem, 0.7vw, 0.65rem)',
                   fontWeight: 700,
-                  color: 'rgba(255,255,255,0.52)',
+                  color: periodColor,
                   letterSpacing: '0.09em',
                   textTransform: 'uppercase',
-                  textShadow: '0 1px 8px rgba(0,0,0,0.4)',
+                  textShadow: cityShadow,
                 }}>
                   {period}
                 </span>
