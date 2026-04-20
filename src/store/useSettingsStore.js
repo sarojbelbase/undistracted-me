@@ -75,6 +75,9 @@ export const useSettingsStore = create(
       clockFormat: '24h',
       focusSearchBar: true,
       focusTasks: true,
+      focusSearchTopSites: true,
+      focusSearchDrive: true,
+      focusSearchWeb: true,
 
       // ── Helpers ────────────────────────────────────────────────────────
       /** Returns 'light' or 'dark' key for modePrefs based on current mode */
@@ -99,6 +102,15 @@ export const useSettingsStore = create(
 
       /** Toggle tasks panel visibility in Focus Mode */
       setFocusTasks: (focusTasks) => set({ focusTasks }),
+
+      /** Show browser top sites in empty-state search dropdown */
+      setFocusSearchTopSites: (v) => set({ focusSearchTopSites: v }),
+
+      /** Include Google Drive file search in results */
+      setFocusSearchDrive: (v) => set({ focusSearchDrive: v }),
+
+      /** Include web autocomplete suggestions in results */
+      setFocusSearchWeb: (v) => set({ focusSearchWeb: v }),
 
       setAccent: (accent) => {
         set({ accent });

@@ -10,6 +10,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchToTab, searchDriveFilesAsync } from '../hooks';
 import { getTokens } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
+import { useSettingsStore } from '../../../store';
 
 // ── Search engine definitions ──────────────────────────────────────────────────
 
@@ -152,8 +153,10 @@ const Pill = ({ label, t }) => (
     padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
   }}>{label}</span>
 );
-const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onHover, t }) => {
-  const tabStart = urlOffset;
+const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, topSites, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onTopSiteSelect, onHover, t }) => {
+  // When query is empty, top sites precede history in the index order
+  const topSiteOffset = isHistory ? (topSites?.length || 0) : 0;
+  const tabStart = urlOffset + topSiteOffset;
   const driveStart = tabStart + tabResults.length;
   const suggStart = driveStart + driveResults.length;
 
@@ -229,6 +232,27 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         </button>
       ))}
 
+      {/* Top sites — shown in empty state */}
+      {isHistory && topSites?.map((site, k) => (
+        <button
+          key={site.url}
+          onMouseDown={e => { e.preventDefault(); onTopSiteSelect(site); }}
+          style={rowStyle(activeSugg === urlOffset + k)}
+          onMouseEnter={() => onHover(urlOffset + k)}
+          onMouseLeave={() => onHover(-1)}
+        >
+          <img
+            src={`https://www.google.com/s2/favicons?domain=${new URL(site.url).hostname}&sz=16`}
+            alt=""
+            width={13} height={13}
+            style={{ borderRadius: 2, flexShrink: 0 }}
+            onError={e => { e.currentTarget.style.display = 'none'; }}
+          />
+          <span style={textStyle}>{site.title || site.url}</span>
+          <Pill label="Visit" t={t} />
+        </button>
+      ))}
+
       {/* History / autocomplete suggestions */}
       {suggestions.map((s, i) => (
         <button
@@ -248,6 +272,10 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export const SearchBar = ({ centerOnDark = true }) => {
+  const focusSearchTopSites = useSettingsStore(s => s.focusSearchTopSites ?? true);
+  const focusSearchDrive = useSettingsStore(s => s.focusSearchDrive ?? true);
+  const focusSearchWeb = useSettingsStore(s => s.focusSearchWeb ?? true);
+
   const [query, setQuery] = useState('');
   const [engineId, setEngineId] = useState(() => localStorage.getItem('fm_search_engine') || 'google');
   const [suggestions, setSuggestions] = useState([]);
@@ -257,6 +285,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
   const [bouncing, setBouncing] = useState(false);
   const [tabResults, setTabResults] = useState([]);
   const [driveResults, setDriveResults] = useState([]);
+  const [topSites, setTopSites] = useState([]);
 
   const inputRef = useRef(null);
   const wrapRef = useRef(null);
@@ -266,6 +295,14 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
   const engine = ENGINES.find(e => e.id === engineId) || ENGINES[0];
   const t = getTokens(centerOnDark);
+
+  // ── Top sites (fetched once when enabled) ────────────────────────────────────
+  useEffect(() => {
+    if (!focusSearchTopSites) { setTopSites([]); return; }
+    const api = globalThis.chrome?.topSites;
+    if (!api) return;
+    api.get(sites => setTopSites(sites?.slice(0, 8) || []));
+  }, [focusSearchTopSites]);
 
   // ── Suggestions + tab + Drive search ────────────────────────────────────────
   useEffect(() => {
@@ -280,9 +317,9 @@ export const SearchBar = ({ centerOnDark = true }) => {
     }
     debounceRef.current = setTimeout(async () => {
       const [suggs, tabs, drive] = await Promise.all([
-        fetchSuggestionsAsync(engine, query),
+        focusSearchWeb ? fetchSuggestionsAsync(engine, query) : Promise.resolve([]),
         searchOpenTabs(query),
-        searchDriveFilesAsync(query),
+        focusSearchDrive ? searchDriveFilesAsync(query) : Promise.resolve([]),
       ]);
       setSuggestions(suggs);
       setTabResults(tabs);
@@ -290,7 +327,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       setActiveSugg(-1);
     }, 220);
     return () => clearTimeout(debounceRef.current);
-  }, [query, engineId]);
+  }, [query, engineId, focusSearchWeb, focusSearchDrive]);
 
   // ── Close on outside click ───────────────────────────────────────────────────
   useEffect(() => {
@@ -335,10 +372,12 @@ export const SearchBar = ({ centerOnDark = true }) => {
   }, [query, engine, goToUrl]);
 
   // ── Keyboard nav ─────────────────────────────────────────────────────────────
-  // Index order: [url?][tabs][drive][suggestions]
+  // Index order: [url?][topSites(empty only)][tabs][drive][suggestions]
   const urlTarget = detectUrl(query);
   const urlOffset = urlTarget ? 1 : 0;
-  const tabStart = urlOffset;
+  const isHistory = !query.trim();
+  const topSiteOffset = isHistory ? topSites.length : 0;
+  const tabStart = urlOffset + topSiteOffset;
   const driveStart = tabStart + tabResults.length;
   const suggStart = driveStart + driveResults.length;
   const totalItems = suggStart + suggestions.length;
@@ -377,6 +416,9 @@ export const SearchBar = ({ centerOnDark = true }) => {
     }
     if (urlTarget && activeSugg === 0) {
       goToUrl(urlTarget);
+    } else if (isHistory && activeSugg >= urlOffset && activeSugg < tabStart) {
+      const site = topSites[activeSugg - urlOffset];
+      if (site) { window.open(site.url, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); }
     } else if (activeSugg >= tabStart && activeSugg < driveStart) {
       switchToTab(tabResults[activeSugg - tabStart]);
       setFocused(false); setActiveSugg(-1);
@@ -415,7 +457,6 @@ export const SearchBar = ({ centerOnDark = true }) => {
   };
 
   const showDropdown = focused && (suggestions.length > 0 || tabResults.length > 0 || driveResults.length > 0 || urlTarget || !query.trim());
-  const isHistory = !query.trim();
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', width: '100%', zIndex: 30 }}>
@@ -498,7 +539,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       )}
 
       {/* ── Suggestions dropdown ── */}
-      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0) && (
+      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0 || (isHistory && topSites.length > 0)) && (
         <SuggestionsDropdown
           urlTarget={urlTarget}
           goToUrl={goToUrl}
@@ -506,11 +547,13 @@ export const SearchBar = ({ centerOnDark = true }) => {
           suggestions={suggestions}
           driveResults={driveResults}
           tabResults={tabResults}
+          topSites={isHistory ? topSites : []}
           activeSugg={activeSugg}
           isHistory={isHistory}
           onSelect={submit}
           onDriveSelect={(file) => { window.open(file.webViewLink, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); }}
           onTabSelect={(tab) => { switchToTab(tab); setFocused(false); setActiveSugg(-1); }}
+          onTopSiteSelect={(site) => { window.open(site.url, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); }}
           onHover={setActiveSugg}
           t={t}
         />

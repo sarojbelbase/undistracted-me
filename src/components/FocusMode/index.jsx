@@ -3,11 +3,14 @@ import { OrbBackground } from '../ui/OrbBackground';
 import bgImage from '../../assets/img/bg.webp';
 import {
   useFocusPhoto,
+  useFocusTasks,
   useWakeLock,
   useCenterOnDark,
 } from './hooks';
 import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from '../ui/BackgroundPicker';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
+import { getGoogleAuthToken, isGoogleAuthAvailable, signOutGoogle } from '../../utilities/googleAuth';
+import { SearchBarDialog } from './dialog/SearchBar';
 import { TopZone } from './zones/TopZone';
 import { CenterZone } from './zones/CenterZone';
 import { BottomZone } from './zones/BottomZone';
@@ -104,13 +107,39 @@ export const FocusMode = ({ onExit }) => {
     else document.documentElement.requestFullscreen().catch(() => { });
   }, []);
 
+  // ── Google auth (shared between Tasks panel + Search Drive) ──────────────────
+  const taskState = useFocusTasks();
+  const [connecting, setConnecting] = useState(false);
+
+  const onConnect = useCallback(async () => {
+    if (!isGoogleAuthAvailable()) return;
+    setConnecting(true);
+    try {
+      await getGoogleAuthToken(true);
+      taskState.setGtasksConnected(true);
+      await taskState.reload();
+    } catch (err) {
+      console.warn('Google auth failed:', err);
+    } finally {
+      setConnecting(false);
+    }
+  }, [taskState]);
+
+  const onDisconnect = useCallback(async () => {
+    try { await signOutGoogle(null); } catch { /* best-effort */ }
+    taskState.setGtasksConnected(false);
+    taskState.setUserProfile(null);
+  }, [taskState]);
+
   // ── Escape key ─────────────────────────────────────────────────────────────
   const [showBgModal, setShowBgModal] = useState(false);
+  const [showTasksDialog, setShowTasksDialog] = useState(false);
+  const [showSearchDialog, setShowSearchDialog] = useState(false);
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal) onExit(); };
+    const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal && !showTasksDialog && !showSearchDialog) onExit(); };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onExit, showBgModal]);
+  }, [onExit, showBgModal, showTasksDialog, showSearchDialog]);
 
   // ── Background source change ────────────────────────────────────────────────
   const handleBgChange = useCallback((source, customUrl) => {
@@ -145,7 +174,16 @@ export const FocusMode = ({ onExit }) => {
       {ZONES.bottom.enable && <BottomZone greetOnDark={effectiveGreetDark} />}
       {ZONES.right.enable && <RightZone />}
       {ZONES.left.enable && <LeftZone />}
-      {ZONES.bottomRight?.enable && <BottomRightZone />}
+      {ZONES.bottomRight?.enable && (
+        <BottomRightZone
+          taskState={taskState}
+          connecting={connecting}
+          onConnect={onConnect}
+          onDisconnect={onDisconnect}
+          externalDialogOpen={showTasksDialog}
+          onCloseExternalDialog={() => setShowTasksDialog(false)}
+        />
+      )}
       {ZONES.top.enable && (
         <TopZone
           onExit={onExit}
@@ -153,6 +191,8 @@ export const FocusMode = ({ onExit }) => {
           toggleFullscreen={toggleFullscreen}
           uiVisible={uiVisible}
           onOpenBgModal={() => setShowBgModal(true)}
+          onOpenTasksDialog={() => setShowTasksDialog(true)}
+          onOpenSearchDialog={() => setShowSearchDialog(true)}
         />
       )}
 
@@ -165,6 +205,17 @@ export const FocusMode = ({ onExit }) => {
           onClose={() => setShowBgModal(false)}
           onApply={(type, opts = {}) => handleBgChange(type, opts.url)}
           onRotatePhoto={rotate}
+        />
+      )}
+
+      {showSearchDialog && (
+        <SearchBarDialog
+          onClose={() => setShowSearchDialog(false)}
+          connected={taskState.gtasksConnected}
+          connecting={connecting}
+          userProfile={taskState.userProfile}
+          onConnect={onConnect}
+          onDisconnect={onDisconnect}
         />
       )}
     </div>
