@@ -96,6 +96,20 @@ function detectUrl(q) {
   return null;
 }
 
+/** Gets hostname safely (never throws). */
+function siteHostname(url) {
+  try { return new URL(url).hostname; } catch { return ''; }
+}
+
+/** Display label for a top-site: page title (truncated) or cleaned hostname. Never shows raw URL. */
+function getDisplayTitle(site) {
+  if (site.title?.trim()) {
+    const t = site.title.trim();
+    return t.length > 18 ? t.slice(0, 16) + '\u2026' : t;
+  }
+  return siteHostname(site.url).replace(/^www\./, '') || '';
+}
+
 // ── Engine Picker ──────────────────────────────────────────────────────────────
 const EnginePicker = ({ engineId, onSelect, t }) => (
   <div
@@ -155,7 +169,7 @@ const Pill = ({ label, t }) => (
 );
 const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, topSites, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onTopSiteSelect, onHover, t }) => {
   // When query is empty, top sites precede history in the index order
-  const topSiteOffset = isHistory ? (topSites?.length || 0) : 0;
+  const topSiteOffset = topSites?.length || 0;
   const tabStart = urlOffset + topSiteOffset;
   const driveStart = tabStart + tabResults.length;
   const suggStart = driveStart + driveResults.length;
@@ -232,8 +246,8 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         </button>
       ))}
 
-      {/* Top sites — shown in empty state */}
-      {isHistory && topSites?.map((site, k) => (
+      {/* Top sites — shown instantly when query matches */}
+      {topSites?.map((site, k) => (
         <button
           key={site.url}
           onMouseDown={e => { e.preventDefault(); onTopSiteSelect(site); }}
@@ -242,13 +256,13 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
           onMouseLeave={() => onHover(-1)}
         >
           <img
-            src={`https://www.google.com/s2/favicons?domain=${new URL(site.url).hostname}&sz=16`}
+            src={`https://www.google.com/s2/favicons?domain=${siteHostname(site.url)}&sz=32`}
             alt=""
             width={13} height={13}
-            style={{ borderRadius: 2, flexShrink: 0 }}
+            style={{ borderRadius: 3, flexShrink: 0 }}
             onError={e => { e.currentTarget.style.display = 'none'; }}
           />
-          <span style={textStyle}>{site.title || site.url}</span>
+          <span style={textStyle}>{getDisplayTitle(site)}</span>
           <Pill label="Visit" t={t} />
         </button>
       ))}
@@ -372,11 +386,18 @@ export const SearchBar = ({ centerOnDark = true }) => {
   }, [query, engine, goToUrl]);
 
   // ── Keyboard nav ─────────────────────────────────────────────────────────────
-  // Index order: [url?][topSites(empty only)][tabs][drive][suggestions]
+  // Index order: [url?][matchedTopSites][tabs][drive][suggestions]
   const urlTarget = detectUrl(query);
   const urlOffset = urlTarget ? 1 : 0;
   const isHistory = !query.trim();
-  const topSiteOffset = isHistory ? topSites.length : 0;
+  const matchedTopSites = query.trim()
+    ? topSites.filter(s => {
+      const q = query.toLowerCase();
+      return (s.title || '').toLowerCase().includes(q) ||
+        siteHostname(s.url).toLowerCase().includes(q);
+    }).slice(0, 5)
+    : [];
+  const topSiteOffset = matchedTopSites.length;
   const tabStart = urlOffset + topSiteOffset;
   const driveStart = tabStart + tabResults.length;
   const suggStart = driveStart + driveResults.length;
@@ -501,7 +522,10 @@ export const SearchBar = ({ centerOnDark = true }) => {
           value={query}
           data-ui-input
           onChange={e => { originalQueryRef.current = e.target.value; isNavRef.current = false; setQuery(e.target.value); }}
-          onFocus={() => { setFocused(true); if (!query.trim()) setSuggestions(getHistory().slice(0, 6)); }}
+          onFocus={() => {
+            setFocused(true);
+            if (!query.trim()) setSuggestions(getHistory().slice(0, 6));
+          }}
           onKeyDown={handleKeyDown}
           placeholder={`Search with ${engine.label}…`}
           autoComplete="off"
@@ -539,7 +563,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       )}
 
       {/* ── Suggestions dropdown ── */}
-      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0 || (isHistory && topSites.length > 0)) && (
+      {showDropdown && !showPicker && (urlTarget || suggestions.length > 0 || driveResults.length > 0 || tabResults.length > 0 || matchedTopSites.length > 0 || isHistory) && (
         <SuggestionsDropdown
           urlTarget={urlTarget}
           goToUrl={goToUrl}
@@ -547,7 +571,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           suggestions={suggestions}
           driveResults={driveResults}
           tabResults={tabResults}
-          topSites={isHistory ? topSites : []}
+          topSites={matchedTopSites}
           activeSugg={activeSugg}
           isHistory={isHistory}
           onSelect={submit}
