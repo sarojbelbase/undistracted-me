@@ -1,0 +1,261 @@
+// ─── Markdown Preview ─────────────────────────────────────────────────────────
+
+.md-preview {
+  padding: 0;
+  color: var(--w-ink-1);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+// ── Headings ─────────────────────────────────────────────────────────────────
+
+.md-h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--w-ink-1);
+  margin: 14px 0 4px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.md-h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--w-ink-2);
+  margin: 12px 0 3px;
+  line-height: 1.35;
+}
+
+.md-h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--w-ink-3);
+  margin: 8px 0 2px;
+  line-height: 1.4;
+}
+
+.md-h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--w-ink-4);
+  margin: 6px 0 1px;
+}
+
+.md-h5 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  margin: 4px 0 1px;
+}
+
+.md-h6 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  margin: 4px 0 1px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Remove top margin from the very first heading
+.md-h1:first-child,
+.md-h2:first-child,
+.md-h3:first-child,
+.md-h4:first-child,
+.md-h5:first-child,
+.md-h6:first-child {
+  margin-top: 0;
+}
+
+// ── Paragraph & spacing ───────────────────────────────────────────────────────
+
+.md-p {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.md-sp {
+  height: 6px;
+}
+
+// blank line spacer
+
+// Horizontal rule
+.md-hr {
+  border: none;
+  border-top: 1px solid var(--w-border);
+  margin: 12px 0;
+}
+
+// ── Inline code ───────────────────────────────────────────────────────────────
+
+.md-ic {
+  font-family: inherit;
+  font-size: 0.75rem;
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--w-accent);
+}
+
+// ── Code block ────────────────────────────────────────────────────────────────
+
+.md-pre {
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  margin: 4px 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--w-ink-2);
+
+  code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+}
+
+// Code language label
+.md-code-lang {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--w-ink-5);
+  margin-bottom: 4px;
+}
+
+// ── Links ─────────────────────────────────────────────────────────────────────
+
+.md-link {
+  color: var(--w-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+// ── Blockquote ────────────────────────────────────────────────────────────────
+
+.md-bq {
+  border-left: 2px solid var(--w-accent);
+  padding-left: 9px;
+  color: var(--w-ink-4);
+  margin: 2px 0;
+}
+
+// ── Lists ─────────────────────────────────────────────────────────────────────
+
+.md-li {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.md-bullet {
+  color: var(--w-ink-4);
+  flex-shrink: 0;
+  line-height: inherit;
+}
+
+.md-num {
+  color: var(--w-ink-5);
+  min-width: 2ch;
+  flex-shrink: 0;
+  font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Checkboxes ────────────────────────────────────────────────────────────────
+
+.md-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1px 0;
+}
+
+.md-checkbox {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.5px solid var(--w-ink-5);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--w-accent);
+  transition: border-color 0.12s, background 0.12s;
+
+  &:hover {
+    border-color: var(--w-ink-3);
+  }
+}
+
+.md-checkbox--checked {
+  border-color: var(--w-accent);
+  background: color-mix(in srgb, var(--w-accent) 14%, transparent);
+}
+
+.md-checked {
+  text-decoration: line-through;
+  color: var(--w-ink-5);
+}
+
+// ── Tables ────────────────────────────────────────────────────────────────────
+
+.md-table-wrap {
+  overflow-x: auto;
+  margin: 6px 0;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.md-th,
+.md-td {
+  padding: 5px 12px 5px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--w-border);
+}
+
+.md-th {
+  font-weight: 600;
+  color: var(--w-ink-2);
+  border-bottom-width: 2px;
+}
+
+.md-td {
+  color: var(--w-ink-3);
+}
+
+// ── Hex color swatch — Antinote-style inline color preview ────────────────────
+
+.md-color-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.md-color-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  vertical-align: middle;
+}

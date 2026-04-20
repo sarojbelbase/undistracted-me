@@ -10,6 +10,8 @@ import {
 import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from '../ui/BackgroundPicker';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
 import { getGoogleAuthToken, isGoogleAuthAvailable, signOutGoogle } from '../../utilities/googleAuth';
+import { useSettingsStore } from '../../store';
+import { getFMCardVars, FM_ORB_BG } from './theme';
 import { SearchBarDialog } from './dialog/SearchBar';
 import { TopZone } from './zones/TopZone';
 import { CenterZone } from './zones/CenterZone';
@@ -71,6 +73,8 @@ export const FocusMode = ({ onExit }) => {
   const effectiveClockDark = bgSource === 'curated' ? clockDark : true;
   const effectiveSearchDark = bgSource === 'curated' ? searchDark : true;
   const effectiveGreetDark = bgSource === 'curated' ? greetDark : true;
+  // Card surface style (glass vs flat) — both are always dark-tinted.
+  const cardStyle = useSettingsStore(s => s.cardStyle) || 'glass';
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -160,7 +164,7 @@ export const FocusMode = ({ onExit }) => {
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden"
-      style={{ backgroundColor: bgSource === 'orb' ? '#060608' : photoColor }}
+      style={{ backgroundColor: bgSource === 'orb' ? FM_ORB_BG : photoColor, ...getFMCardVars(cardStyle) }}
     >
       <FocusBgLayer bgSource={bgSource} slotA={slotA} slotB={slotB} activeSlot={activeSlot} customBgUrl={customBgUrl} orbRgb={orbRgb} />
 

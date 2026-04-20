@@ -7,6 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { Popup } from '../../components/ui/Popup';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
+import { NOTES_BUTTON_SHADOW, NOTES_ICON_COLOR } from '../../theme/canvas';
 
 // Only fetched the first time a user opens a note in modal or full-page mode.
 const LexicalEditor = lazy(() => import('./LexicalEditor'));
@@ -53,13 +54,13 @@ const TrafficDot = ({ onClick, label, color, disabled, symbol }) => {
           transition: 'filter 0.12s',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative',
-          boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.18)',
+          boxShadow: NOTES_BUTTON_SHADOW,
         }}
       >
         {hovered && !disabled && (
           <span style={{
             fontSize: 9, fontWeight: 900, lineHeight: 1,
-            color: 'rgba(0,0,0,0.55)',
+            color: NOTES_ICON_COLOR,
             userSelect: 'none', pointerEvents: 'none',
             fontFamily: 'system-ui, sans-serif',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

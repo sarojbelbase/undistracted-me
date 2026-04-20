@@ -1,0 +1,35 @@
+// ─── Notes Widget ──────────────────────────────────────────────────────────────
+
+// Telegra.ph-style first-line title input
+.notes-title {
+  &::placeholder {
+    color: var(--w-ink-6);
+    font-weight: 400;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Notes textarea — hide scrollbar, scroll via wheel/touch only
+.notes-textarea {
+  scrollbar-width: none;
+  outline: none !important;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  resize: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  color: var(--w-ink-1);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &::placeholder {
+    color: var(--w-ink-6);
+  }
+}

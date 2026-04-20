@@ -1,0 +1,46 @@
+// ─── Dark Mode Adaptive Overrides ────────────────────────────────────────────
+// Catches hardcoded Tailwind utility classes in widget code.
+// These ensure that bg-white, text-gray-* etc. adapt in [data-mode="dark"].
+
+[data-mode="dark"] {
+  .bg-white {
+    background-color: var(--w-surface) !important;
+  }
+
+  .bg-gray-50 {
+    background-color: var(--w-surface-2) !important;
+  }
+
+  .bg-gray-100 {
+    background-color: var(--w-surface-2) !important;
+  }
+
+  .hover\:bg-gray-100:hover {
+    background-color: var(--w-surface-2) !important;
+  }
+
+  .border-gray-100,
+  .border-gray-200 {
+    border-color: var(--w-border) !important;
+  }
+
+  .divide-gray-100> :not([hidden])~ :not([hidden]) {
+    border-color: var(--w-border) !important;
+  }
+
+  .text-gray-400 {
+    color: var(--w-ink-4) !important;
+  }
+
+  .text-gray-500 {
+    color: var(--w-ink-5) !important;
+  }
+
+  .text-gray-700 {
+    color: var(--w-ink-3) !important;
+  }
+
+  .text-gray-900 {
+    color: var(--w-ink-1) !important;
+  }
+}

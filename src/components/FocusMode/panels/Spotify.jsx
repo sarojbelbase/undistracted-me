@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { MusicNoteBeamed, PauseFill, PlayFill, SkipStartFill, SkipEndFill } from 'react-bootstrap-icons';
-import { FOCUS_THEME } from '../theme';
+import { FOCUS_THEME, FM_SPINNER_RING, FM_SPINNER_ACTIVE } from '../theme';
 
 export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPending }) => {
   const t = FOCUS_THEME;
@@ -55,7 +55,7 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
           {pending && (
             <div
               className="animate-spin"
-              style={{ position: 'absolute', inset: -2, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', pointerEvents: 'none' }}
+              style={{ position: 'absolute', inset: -2, borderRadius: '50%', border: `1.5px solid ${FM_SPINNER_RING}`, borderTopColor: FM_SPINNER_ACTIVE, pointerEvents: 'none' }}
               aria-hidden="true"
             />
           )}

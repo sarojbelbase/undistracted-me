@@ -17,13 +17,18 @@ import {
   DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER,
   DialogHeader, SectionLabel, ToggleRow, AccountSection,
 } from './shared';
+import {
+  FM_SURFACE, FM_BORDER, FM_INK_1, FM_INK_3,
+  FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
+  FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
+} from '../theme';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
 const IconSearch = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="11" cy="11" r="7.5" stroke="rgba(255,255,255,0.75)" strokeWidth="2" />
-    <line x1="16.5" y1="16.5" x2="22" y2="22" stroke="rgba(255,255,255,0.75)" strokeWidth="2.2" strokeLinecap="round" />
+    <circle cx="11" cy="11" r="7.5" stroke={FM_ICON_STROKE} strokeWidth="2" />
+    <line x1="16.5" y1="16.5" x2="22" y2="22" stroke={FM_ICON_STROKE} strokeWidth="2.2" strokeLinecap="round" />
   </svg>
 );
 
@@ -42,15 +47,15 @@ const IconStar = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
       d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-      stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinejoin="round"
+      stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" strokeLinejoin="round"
     />
   </svg>
 );
 
 const IconGlobe = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" />
-    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" stroke="rgba(255,255,255,0.65)" strokeWidth="1.5" />
+    <circle cx="12" cy="12" r="9" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" />
+    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.5" />
   </svg>
 );
 
@@ -66,17 +71,17 @@ const SourceRow = ({ icon, label, description, checked, onChange, borderTop = fa
   }}>
     <div style={{
       width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-      background: 'rgba(255,255,255,0.08)',
-      border: '1px solid rgba(255,255,255,0.10)',
+      background: FM_SURFACE,
+      border: `1px solid ${FM_BORDER}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {icon}
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--w-ink-1)', lineHeight: '1.3' }}>
+      <div style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1, lineHeight: '1.3' }}>
         {label}
       </div>
-      <div style={{ fontSize: 11.5, color: 'var(--w-ink-4)', marginTop: 1.5, lineHeight: '1.4' }}>
+      <div style={{ fontSize: 11.5, color: FM_INK_3, marginTop: 1.5, lineHeight: '1.4' }}>
         {description}
       </div>
     </div>
@@ -89,15 +94,15 @@ const SourceRow = ({ icon, label, description, checked, onChange, borderTop = fa
       style={{
         flexShrink: 0,
         width: 34, height: 19, borderRadius: 10,
-        background: checked ? 'var(--w-accent)' : 'rgba(255,255,255,0.14)',
+        background: checked ? 'var(--w-accent)' : FM_TOGGLE_OFF_BG,
         border: 'none', cursor: 'pointer', padding: 2,
         transition: 'background 0.18s ease',
       }}
     >
       <div style={{
         width: 15, height: 15, borderRadius: '50%',
-        background: 'white',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+        background: FM_TOGGLE_THUMB,
+        boxShadow: FM_TOGGLE_SHADOW,
         transition: 'transform 0.18s ease',
         transform: checked ? 'translateX(15px)' : 'translateX(0)',
       }} />
@@ -192,8 +197,6 @@ export const SearchBarDialog = ({
           </div>
         )}
       </div>
-
-      <style>{`@keyframes tdSpin { to { transform: rotate(360deg); } }`}</style>
     </Modal>
   );
 };

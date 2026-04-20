@@ -1,4 +1,5 @@
 import './App.css';
+import './styles/main.scss';
 import React, { useState, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { FocusMode } from './components/FocusMode';

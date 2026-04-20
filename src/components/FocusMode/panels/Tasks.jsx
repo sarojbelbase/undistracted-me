@@ -8,21 +8,26 @@
  * The ⓘ button in the header opens TasksDialog for account info + settings.
  */
 import React, { useState, useRef, useEffect } from 'react';
-import { FOCUS_THEME } from '../theme';
-
-const t = FOCUS_THEME;
+import {
+  FM_CARD_BG, FM_CARD_BORDER, FM_CARD_BLUR, FM_CARD_SHADOW,
+  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
+  FM_INK_1, FM_INK_2, FM_INK_4,
+  FM_SUCCESS, FM_SUCCESS_BG, FM_SUCCESS_BORDER,
+  FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
+} from '../theme';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
+// All surface tokens reference FM_* constants — always dark glass, never CSS vars.
 
-const PANEL_BG = 'rgba(8,9,13,0.88)';
-const PILL_BG = 'rgba(0,0,0,0.45)';
-const INPUT_BG = 'rgba(255,255,255,0.06)';
-const HOVER_BG = 'rgba(255,255,255,0.055)';
-const SECTION_BORDER = '1px solid rgba(255,255,255,0.07)';
-const OUTER_BORDER = '1px solid rgba(255,255,255,0.10)';
-const DIM = 'rgba(255,255,255,0.32)';
-const MED = 'rgba(255,255,255,0.70)';
-const BRIGHT = 'rgba(255,255,255,0.95)';
+const PANEL_BG = FM_CARD_BG;
+const PILL_BG = 'rgba(0,0,0,0.38)';
+const INPUT_BG = FM_SURFACE;
+const HOVER_BG = FM_SURFACE;
+const SECTION_BORDER = `1px solid ${FM_DIVIDER}`;
+const OUTER_BORDER = `1px solid ${FM_CARD_BORDER}`;
+const DIM = FM_INK_4;
+const MED = FM_INK_2;
+const BRIGHT = FM_INK_1;
 const ACCENT = 'var(--w-accent)';
 const ACCENT_FG = 'var(--w-accent-fg)';
 
@@ -78,7 +83,7 @@ const Checkbox = ({ checked, onChange }) => (
     <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <rect
         x="1" y="1" width="16" height="16" rx="4.5"
-        stroke={checked ? ACCENT : 'rgba(255,255,255,0.22)'}
+        stroke={checked ? ACCENT : FM_BORDER}
         strokeWidth="1.5"
         fill={checked ? ACCENT : 'transparent'}
         style={{ transition: 'stroke 0.15s, fill 0.15s' }}
@@ -145,8 +150,8 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
           }}
           style={{
             flex: 1,
-            background: 'rgba(255,255,255,0.09)',
-            border: '1px solid rgba(255,255,255,0.20)',
+            background: FM_SURFACE_2,
+            border: `1px solid ${FM_BORDER}`,
             borderRadius: 5,
             color: BRIGHT,
             fontSize: 12.5,
@@ -168,7 +173,7 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
             lineHeight: '1.45',
             color: task.completed ? DIM : MED,
             textDecoration: task.completed ? 'line-through' : 'none',
-            textDecorationColor: 'rgba(255,255,255,0.18)',
+            textDecorationColor: FM_BORDER,
             transition: 'color 0.15s',
             userSelect: 'none',
             cursor: task.completed ? 'default' : 'text',
@@ -195,7 +200,7 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
           background: 'none', border: 'none',
           borderRadius: 5,
           cursor: 'pointer',
-          color: 'rgba(255,255,255,0.55)',
+          color: FM_INK_4,
           opacity: hovered ? 1 : 0,
           transition: 'opacity 0.12s',
           padding: 0,
@@ -228,8 +233,8 @@ const AddTaskInput = ({ onAdd }) => {
           borderRadius: 9,
           background: INPUT_BG,
           border: focused
-            ? '1px solid rgba(255,255,255,0.18)'
-            : '1px solid rgba(255,255,255,0.07)',
+            ? `1px solid ${FM_INK_4}`
+            : SECTION_BORDER,
           transition: 'border-color 0.15s',
         }}
       >
@@ -281,8 +286,8 @@ const AddTaskInput = ({ onAdd }) => {
 
 const SkeletonRow = ({ width = '70%' }) => (
   <li style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', listStyle: 'none' }}>
-    <div style={{ width: 17, height: 17, borderRadius: 4.5, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-    <div style={{ height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.08)', width }} />
+    <div style={{ width: 17, height: 17, borderRadius: 4.5, background: FM_SURFACE_2, flexShrink: 0 }} />
+    <div style={{ height: 10, borderRadius: 5, background: FM_SURFACE_2, width }} />
   </li>
 );
 
@@ -290,22 +295,21 @@ const SkeletonPanel = () => (
   <div style={{
     position: 'absolute', bottom: 'calc(100% + 10px)', right: 0,
     width: 300, borderRadius: 14, background: PANEL_BG,
-    backdropFilter: 'blur(32px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+    backdropFilter: FM_CARD_BLUR,
+    WebkitBackdropFilter: FM_CARD_BLUR,
     border: OUTER_BORDER,
-    boxShadow: '0 16px 56px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07)',
+    boxShadow: FM_CARD_SHADOW,
     overflow: 'hidden',
     animation: 'panelCardIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
   }}>
     <div style={{ padding: '11px 12px 10px', borderBottom: SECTION_BORDER }}>
-      <div style={{ height: 9, width: 40, borderRadius: 4, background: 'rgba(255,255,255,0.10)' }} />
+      <div style={{ height: 9, width: 40, borderRadius: 4, background: FM_SURFACE_2 }} />
     </div>
     <ul style={{ margin: 0, padding: '4px 0', listStyle: 'none' }}>
       <SkeletonRow width="72%" />
       <SkeletonRow width="55%" />
       <SkeletonRow width="63%" />
     </ul>
-    <style>{`@keyframes skeletonPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
   </div>
 );
 
@@ -363,10 +367,10 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
             maxHeight: 440,
             borderRadius: 14,
             background: PANEL_BG,
-            backdropFilter: 'blur(32px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+            backdropFilter: FM_CARD_BLUR,
+            WebkitBackdropFilter: FM_CARD_BLUR,
             border: OUTER_BORDER,
-            boxShadow: '0 16px 56px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.07)',
+            boxShadow: FM_CARD_SHADOW,
             display: 'flex',
             flexDirection: 'column',
             animation: 'panelCardIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
@@ -383,7 +387,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
               borderBottom: SECTION_BORDER,
             }}
           >
-            <span style={{ flex: 1, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: t.label }}>
+            <span style={{ flex: 1, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: DIM }}>
               Tasks
             </span>
 
@@ -394,8 +398,8 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
                   fontWeight: 600,
                   padding: '1px 7px',
                   borderRadius: 99,
-                  background: remaining > 0 ? 'rgba(255,255,255,0.09)' : 'rgba(74,222,128,0.14)',
-                  color: remaining > 0 ? MED : 'rgba(74,222,128,0.9)',
+                  background: remaining > 0 ? FM_SURFACE : FM_SUCCESS_BG,
+                  color: remaining > 0 ? MED : FM_SUCCESS,
                   letterSpacing: '0.02em',
                 }}
               >
@@ -466,7 +470,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
                     <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: DIM }}>
                       Completed
                     </span>
-                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                    <div style={{ flex: 1, height: 1, background: FM_DIVIDER }} />
                     <span style={{ fontSize: 9.5, color: DIM }}>{completed.length}</span>
                   </li>
                   {completed.map(task => (
@@ -496,8 +500,8 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: allDone
-            ? '1px solid rgba(74,222,128,0.30)'
-            : '1px solid rgba(255,255,255,0.13)',
+            ? `1px solid ${FM_SUCCESS_BORDER}`
+            : `1px solid ${FM_CARD_BORDER}`,
           color: BRIGHT,
           fontSize: 12,
           fontWeight: 500,
@@ -510,21 +514,21 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
       >
         {allDone ? (
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-            <circle cx="7" cy="7" r="6" fill="rgba(74,222,128,0.20)" stroke="rgba(74,222,128,0.70)" strokeWidth="1.2" />
-            <path d="M4.5 7l2 2 3-3" stroke="rgba(74,222,128,1)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="7" cy="7" r="6" fill={FM_SUCCESS_BG} stroke={FM_SUCCESS_BORDER} strokeWidth="1.2" />
+            <path d="M4.5 7l2 2 3-3" stroke={FM_SUCCESS} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : (
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="7" cy="7" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" />
-            <path d="M4.5 7l2 2 3-3" stroke="rgba(255,255,255,0.65)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4.5 7l2 2 3-3" stroke={FM_INK_2} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
 
         {(() => {
           if (!hasAttempted || loading) {
-            return <span style={{ display: 'inline-block', width: 52, height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.14)', verticalAlign: 'middle' }} />;
+            return <span style={{ display: 'inline-block', width: 52, height: 10, borderRadius: 5, background: FM_TOGGLE_OFF_BG, verticalAlign: 'middle' }} />;
           }
-          const pillColor = allDone ? 'rgba(74,222,128,0.90)' : MED;
+          const pillColor = allDone ? FM_SUCCESS : MED;
           return <span style={{ color: pillColor }}>{pillLabel(remaining, false)}</span>;
         })()}
 
@@ -540,8 +544,6 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };

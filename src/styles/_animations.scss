@@ -1,0 +1,711 @@
+// ─── All @keyframe Animations ──────────────────────────────────────────────────
+
+// Gradient shimmer (loading skeleton)
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Generic loading spinner (FocusMode dialogs — IconSpinner in dialog/shared.jsx)
+@keyframes tdSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Focus Mode settings panel drop animation
+@keyframes fm-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Fade in (generic utility)
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// Slide in from right (settings drawer)
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+// Centered panel pop-in: scale + fade
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+// ── Focus Mode clock ──────────────────────────────────────────────────────────
+
+@keyframes focusDigitIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.18em);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fmDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fmBounce {
+  0% {
+    transform: scale(1);
+  }
+
+  18% {
+    transform: scale(0.96);
+  }
+
+  45% {
+    transform: scale(1.04);
+  }
+
+  65% {
+    transform: scale(0.98);
+  }
+
+  80% {
+    transform: scale(1.015);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// ── Focus Mode panel cards ────────────────────────────────────────────────────
+
+@keyframes panelCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ── LookAway overlay ─────────────────────────────────────────────────────────
+
+// Bloom in: emerges from soft blur, like opening eyes
+@keyframes lookaway-in {
+  from {
+    opacity: 0;
+    filter: blur(18px);
+    transform: scale(1.018);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+// Dissolve out: melts away into blur, like closing eyes
+@keyframes lookaway-out {
+  from {
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(14px);
+  }
+}
+
+// Content rise: gentle upward drift with blur
+@keyframes lookaway-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+// Slow orbital spin of the 3-orb background layer
+@keyframes lookaway-orb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Counter-spin of the secondary orb layer
+@keyframes lookaway-orb-counter {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+// Breathing pulse on the central bloom
+@keyframes lookaway-bloom {
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+// ── Focus Mode Spotify ────────────────────────────────────────────────────────
+
+@keyframes spotifyTrackIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ── Focus Mode photo shuffle progress bar ─────────────────────────────────────
+
+@keyframes photo-load-fill {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+// ── World clock panel ─────────────────────────────────────────────────────────
+
+@keyframes worldClockIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ── Background transition ─────────────────────────────────────────────────────
+
+@keyframes highres {
+  from {
+    background: var(--gradient);
+  }
+
+  to {
+    background-image: url(../assets/img/bg.webp);
+  }
+}
+
+// ── BackgroundPicker dialog ───────────────────────────────────────────────────
+// All bp* animations are static keyframes (no dynamic values) so they live here.
+
+@keyframes bpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bpOrbSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bpOrbCounter {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes bpOrbBloom {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: .78;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes bpIn {
+  from {
+    opacity: 0;
+    transform: scale(.97) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bpIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes bpWipe {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+// ── Orb background ────────────────────────────────────────────────────────────
+
+@keyframes orbSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbCounter {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes orbDrift {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbBloom {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.82;
+    transform: scale(1.12);
+  }
+}
+
+// ── Weather atmosphere (.wa-*) ────────────────────────────────────────────────
+
+@keyframes wa-sun {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: .88;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes wa-moon {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+// Rain drops — angle varies by wind tier
+@keyframes wa-drop {
+  0% {
+    transform: translateY(-22px) rotate(-15deg);
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: .72;
+  }
+
+  100% {
+    transform: translateY(110px) rotate(-15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-drop-breezy {
+  0% {
+    transform: translateY(-22px) rotate(-25deg);
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: .80;
+  }
+
+  100% {
+    transform: translateY(110px) rotate(-25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-drop-strong {
+  0% {
+    transform: translateY(-22px) rotate(-38deg);
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: .88;
+  }
+
+  100% {
+    transform: translateY(110px) rotate(-38deg);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-drizzle {
+  0% {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: .55;
+  }
+
+  88% {
+    opacity: .38;
+  }
+
+  100% {
+    transform: translateY(105px);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-drizzle-breezy {
+  0% {
+    transform: translateY(-16px) rotate(-18deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: .65;
+  }
+
+  88% {
+    opacity: .48;
+  }
+
+  100% {
+    transform: translateY(105px) rotate(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-flake {
+  0% {
+    transform: translateY(-8px) translateX(0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: .85;
+  }
+
+  78% {
+    opacity: .55;
+  }
+
+  100% {
+    transform: translateY(95px) translateX(8px);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-flake-breezy {
+  0% {
+    transform: translateY(-8px) translateX(0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: .85;
+  }
+
+  78% {
+    opacity: .55;
+  }
+
+  100% {
+    transform: translateY(95px) translateX(22px);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-flake-strong {
+  0% {
+    transform: translateY(-8px) translateX(0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: .85;
+  }
+
+  78% {
+    opacity: .55;
+  }
+
+  100% {
+    transform: translateY(95px) translateX(42px);
+    opacity: 0;
+  }
+}
+
+@keyframes wa-fog-a {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: .5;
+  }
+
+  50% {
+    transform: translateX(-14px);
+    opacity: .82;
+  }
+}
+
+@keyframes wa-fog-a-breezy {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: .5;
+  }
+
+  50% {
+    transform: translateX(-28px);
+    opacity: .82;
+  }
+}
+
+@keyframes wa-fog-a-strong {
+  0% {
+    transform: translateX(0);
+    opacity: .5;
+  }
+
+  100% {
+    transform: translateX(-60px);
+    opacity: .2;
+  }
+}
+
+@keyframes wa-fog-b {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: .36;
+  }
+
+  50% {
+    transform: translateX(12px);
+    opacity: .64;
+  }
+}
+
+@keyframes wa-fog-b-breezy {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: .36;
+  }
+
+  50% {
+    transform: translateX(26px);
+    opacity: .64;
+  }
+}
+
+@keyframes wa-cloud {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(-8px);
+  }
+}
+
+@keyframes wa-cloud-breezy {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes wa-cloud-strong {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-36px);
+  }
+}
+
+@keyframes wa-flash {
+
+  0%,
+  87%,
+  100% {
+    opacity: 0;
+  }
+
+  89% {
+    opacity: .28;
+  }
+
+  90% {
+    opacity: .04;
+  }
+
+  92% {
+    opacity: .18;
+  }
+
+  93% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-bolt {
+
+  0%,
+  88%,
+  91%,
+  94%,
+  100% {
+    opacity: 0;
+  }
+
+  89% {
+    opacity: .92;
+  }
+
+  90% {
+    opacity: .08;
+  }
+
+  92% {
+    opacity: .72;
+  }
+
+  93% {
+    opacity: .04;
+  }
+}

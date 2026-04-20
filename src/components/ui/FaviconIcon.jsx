@@ -7,6 +7,7 @@ import {
   getHostname,
   getDefaultName,
 } from '../../utilities/favicon';
+import { FAVICON_TEXT_SHADOW } from '../../theme/canvas';
 
 /**
  * Unified favicon component used by bookmarks and quickAccess widgets.
@@ -37,7 +38,7 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
           color: 'var(--w-accent-fg)',
           lineHeight: 1,
           letterSpacing: '-0.02em',
-          textShadow: '0 1px 4px rgba(0,0,0,0.18)',
+          textShadow: FAVICON_TEXT_SHADOW,
         }}
       >
         {letter}

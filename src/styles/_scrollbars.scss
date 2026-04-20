@@ -1,0 +1,47 @@
+// ─── Global Scrollbars ────────────────────────────────────────────────────────
+// Thin, auto-hiding scrollbars everywhere. The rail is always reserved (no
+// layout jump). The thumb is invisible at rest and appears when the parent
+// element has the .is-scrolling class (added by JS on scroll events).
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*.is-scrolling {
+  scrollbar-color: rgba(128, 128, 128, 0.32) transparent;
+}
+
+// Chrome / Safari / Edge
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.25s ease;
+}
+
+*.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.32);
+}
+
+*.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.52);
+}
+
+// Utility — fully invisible scrollbar (scroll still works, bar never shows)
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

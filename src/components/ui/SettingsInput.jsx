@@ -1,6 +1,13 @@
 import React from 'react';
 import { useSettingsStore } from '../../store';
 import { Input } from './Input';
+import {
+  CANVAS_INPUT_BG,
+  CANVAS_INPUT_BORDER,
+  CANVAS_INPUT_TEXT,
+  CANVAS_INPUT_ICON,
+  CANVAS_INPUT_PREFIX,
+} from '../../theme/canvas';
 
 /**
  * SettingsInput — pill-shaped input with glass/flat awareness.
@@ -25,20 +32,8 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
   const isGlass = cardStyle === 'glass';
   const isDarkMode = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
   const isEffectiveDark = dark || isDarkMode;
-  let wrapBg, wrapBorder;
-  if (isEffectiveDark && isGlass) {
-    wrapBg = 'rgba(255,255,255,0.12)';
-    wrapBorder = '1px solid rgba(255,255,255,0.16)';
-  } else if (isEffectiveDark) {
-    wrapBg = 'var(--w-panel-bg)';
-    wrapBorder = '1px solid var(--card-border)';
-  } else if (isGlass) {
-    wrapBg = 'rgba(255,255,255,0.45)';
-    wrapBorder = '1px solid rgba(0,0,0,0.09)';
-  } else {
-    wrapBg = 'var(--w-panel-bg)';
-    wrapBorder = undefined;
-  }
+  const wrapBg = CANVAS_INPUT_BG(isEffectiveDark, isGlass);
+  const wrapBorder = CANVAS_INPUT_BORDER(isEffectiveDark, isGlass);
   return (
     <div
       ref={wrapperRef}
@@ -57,7 +52,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
       }}
     >
       {icon && (
-        <span style={{ flexShrink: 0, color: isEffectiveDark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-5)', lineHeight: 0 }}>
+        <span style={{ flexShrink: 0, color: CANVAS_INPUT_ICON(isEffectiveDark), lineHeight: 0 }}>
           {icon}
         </span>
       )}
@@ -65,7 +60,7 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
         <span
           style={{
             fontSize: '12px',
-            color: isEffectiveDark ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-6)',
+            color: CANVAS_INPUT_PREFIX(isEffectiveDark),
             flexShrink: 0,
             userSelect: 'none',
           }}
@@ -79,8 +74,8 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
           fontSize: '12px',
           fontWeight: 500,
           ...(isEffectiveDark && {
-            color: 'rgba(255,255,255,0.88)',
-            WebkitTextFillColor: 'rgba(255,255,255,0.88)',
+            color: CANVAS_INPUT_TEXT(true),
+            WebkitTextFillColor: CANVAS_INPUT_TEXT(true),
           }),
           ...style,
         }}

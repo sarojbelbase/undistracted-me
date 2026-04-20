@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSettingsStore } from '../../store';
+import { CANVAS_INPUT_TEXT } from '../../theme/canvas';
 
 /**
  * Input — bare <input> with theme-aware defaults.
@@ -26,8 +27,8 @@ export const Input = React.forwardRef(function Input({ style, ...props }, ref) {
         backgroundColor: 'transparent',
         outline: 'none',
         border: 'none',
-        color: isDark ? 'rgba(255,255,255,0.88)' : 'var(--w-ink-1)',
-        WebkitTextFillColor: isDark ? 'rgba(255,255,255,0.88)' : 'var(--w-ink-1)',
+        color: CANVAS_INPUT_TEXT(isDark),
+        WebkitTextFillColor: CANVAS_INPUT_TEXT(isDark),
         caretColor: 'var(--w-accent)',
         ...style,
       }}

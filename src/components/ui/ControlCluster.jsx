@@ -1,6 +1,7 @@
 import React, { forwardRef, Suspense, lazy } from 'react';
 import { CollectionFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
 import { TooltipBtn } from './TooltipBtn';
+import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 
 // Settings is only ever rendered from within the cluster — lazy-load it here.
 const settingsImport = () => import('../Settings').then(m => ({ default: m.Settings }));
@@ -31,10 +32,10 @@ export const ControlCluster = forwardRef(function ControlCluster(
   ref,
 ) {
   const hoverBg = isDark ? 'hover:bg-white/10' : 'hover:bg-black/10';
-  const iconColor = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.5)';
+  const iconColor = CANVAS_ICON_COLOR(isDark);
   const gearColor = (() => {
     if (!showSettings) return iconColor;
-    return isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.8)';
+    return CANVAS_ICON_ACTIVE(isDark);
   })();
 
   return (
@@ -109,6 +110,6 @@ export const ControlCluster = forwardRef(function ControlCluster(
 const ClusterDivider = ({ isDark }) => (
   <div
     className="w-px h-3.5 shrink-0"
-    style={{ background: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)' }}
+    style={{ background: isDark ? CANVAS_DIVIDER_DARK : CANVAS_DIVIDER }}
   />
 );

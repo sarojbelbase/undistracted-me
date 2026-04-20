@@ -1,0 +1,51 @@
+// ─── Browser / Element Resets ──────────────────────────────────────────────────
+
+// Hide the native browser date/time picker icon globally
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+// Hide scrollbar arrow buttons globally
+::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+// Reset <dialog> default browser styles so custom modals render correctly
+@layer base {
+  dialog {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+    color: inherit;
+  }
+}
+
+// Input placeholder opacity (global)
+[data-ui-input]::placeholder {
+  color: var(--w-ink-5);
+  opacity: 0.45;
+}
+
+// Dark mode: native inputs default to dark surface when not using data-ui-input
+[data-mode="dark"] input:not([data-ui-input]):not(.notes-title),
+[data-mode="dark"] textarea:not(.notes-textarea),
+[data-mode="dark"] select {
+  background-color: var(--w-surface-2) !important;
+  color: var(--w-ink-1) !important;
+  border-color: var(--w-border) !important;
+}
+
+// Body font
+body {
+  font-family: 'Google Sans', sans-serif;
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { XLg, PersonHeart, BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Modal } from '../../components/ui/Modal';
+import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 
 const MONTHS = [
   { label: 'January', value: 1 }, { label: 'February', value: 2 },
@@ -14,8 +15,8 @@ const MONTHS = [
 
 const TYPES = [
   { value: 'birthday', Icon: BalloonFill, iconColor: 'var(--w-accent)', label: 'Birthday' },
-  { value: 'anniversary', Icon: HeartFill, iconColor: '#e05c8a', label: 'Anniversary' },
-  { value: 'other', Icon: StarFill, iconColor: '#f59e0b', label: 'Special' },
+  { value: 'anniversary', Icon: HeartFill, iconColor: OCCASION_ANNIVERSARY_COLOR, label: 'Anniversary' },
+  { value: 'other', Icon: StarFill, iconColor: OCCASION_SPECIAL_COLOR, label: 'Special' },
 ];
 
 const daysInMonth = (month) => month ? new Date(2000, month, 0).getDate() : 31;

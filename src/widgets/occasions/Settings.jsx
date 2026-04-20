@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { XLg, BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import { AddOccasion } from './AddOccasion';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
+import { CANVAS_DIVIDER, OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 import {
   loadManualBirthdays,
   addManualBirthday,
@@ -31,8 +32,8 @@ const daysInMonth = (month) => month ? new Date(2000, month, 0).getDate() : 31;
 
 const TYPES = [
   { value: 'birthday', Icon: BalloonFill, iconColor: 'var(--w-accent)', label: 'Birthday' },
-  { value: 'anniversary', Icon: HeartFill, iconColor: '#e05c8a', label: 'Anniversary' },
-  { value: 'other', Icon: StarFill, iconColor: '#f59e0b', label: 'Special' },
+  { value: 'anniversary', Icon: HeartFill, iconColor: OCCASION_ANNIVERSARY_COLOR, label: 'Anniversary' },
+  { value: 'other', Icon: StarFill, iconColor: OCCASION_SPECIAL_COLOR, label: 'Special' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -164,7 +165,7 @@ const ManualSection = ({ onManualChange }) => {
                   className="flex items-center gap-3 px-4 py-3"
                   style={{
                     background: 'var(--panel-bg)',
-                    borderBottom: i < manual.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                    borderBottom: i < manual.length - 1 ? `1px solid ${CANVAS_DIVIDER}` : 'none',
                   }}
                 >
                   <SmAvatar name={e.name} />
@@ -226,7 +227,7 @@ export const OccasionsSettings = ({
       onSync={onSync}
       onDisconnect={onDisconnect}
     />
-    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)' }} />
+    <div style={{ height: 1, background: CANVAS_DIVIDER }} />
     <ManualSection onManualChange={onManualChange} />
   </div>
 );

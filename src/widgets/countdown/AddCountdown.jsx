@@ -3,6 +3,7 @@ import { XLg, HourglassSplit, ArrowRepeat } from 'react-bootstrap-icons';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { Modal } from '../../components/ui/Modal';
+import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { REPEAT_OPTIONS } from './utils';
 import { makeUid } from '../../utilities';
 
@@ -121,7 +122,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: '1px solid rgba(0,0,0,0.12)', background: 'transparent',
+            border: `1px solid ${CANVAS_BORDER_SOFT}`, background: 'transparent',
             color: 'var(--w-ink-2)', transition: 'all 0.15s',
           }}
         >Cancel</button>

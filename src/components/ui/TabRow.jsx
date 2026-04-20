@@ -1,3 +1,10 @@
+import {
+  CANVAS_TAB_BG_DARK,
+  CANVAS_TAB_BORDER_DARK,
+  CANVAS_TAB_INACTIVE_DARK,
+  CANVAS_TAB_HINT_DARK,
+} from '../../theme/canvas';
+
 /**
  * TabRow — segmented tab selector with optional hint text per item.
  *
@@ -15,7 +22,7 @@ export const TabRow = ({ tabs, value, onChange, dark = false }) => {
     <div
       className="flex gap-1 p-1 rounded-xl"
       style={dark
-        ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }
+        ? { background: CANVAS_TAB_BG_DARK, border: `1px solid ${CANVAS_TAB_BORDER_DARK}` }
         : { background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
     >
       {tabs.map(({ id, label, hint }) => {
@@ -31,7 +38,7 @@ export const TabRow = ({ tabs, value, onChange, dark = false }) => {
               }`}
             style={selected
               ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-              : { background: 'transparent', color: dark ? 'rgba(255,255,255,0.55)' : 'var(--w-ink-3)' }}
+              : { background: 'transparent', color: dark ? CANVAS_TAB_INACTIVE_DARK : 'var(--w-ink-3)' }}
           >
             {hasHints ? (
               <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -42,7 +49,7 @@ export const TabRow = ({ tabs, value, onChange, dark = false }) => {
                     style={{
                       color: (() => {
                         if (selected) return 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)';
-                        return dark ? 'rgba(255,255,255,0.38)' : 'var(--w-ink-5)';
+                        return dark ? CANVAS_TAB_HINT_DARK : 'var(--w-ink-5)';
                       })(),
                     }}
                   >
