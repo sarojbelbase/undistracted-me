@@ -127,7 +127,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
       {/* Right side: fullscreen + settings */}
       <div
         ref={settingsRef}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 opacity-[0.52] hover:opacity-[0.92] transition-opacity duration-200"
         style={{
           background: 'rgba(255,255,255,0.07)',
           border: '1px solid rgba(255,255,255,0.11)',
@@ -135,11 +135,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           WebkitBackdropFilter: 'blur(12px)',
           borderRadius: 999,
           padding: '2.5px',
-          opacity: 0.52,
-          transition: 'opacity 0.2s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = '0.92'; }}
-        onMouseLeave={e => { e.currentTarget.style.opacity = '0.52'; }}
       >
         <TooltipBtn
           onClick={toggleFullscreen}
@@ -147,7 +143,10 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           onMouseLeave={fadeOut}
           className="p-1.5 rounded-full focus:outline-none"
           style={{ opacity: 0.52, transition: 'opacity 0.2s' }}
-          tooltip={showSettings ? null : isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake'}
+          tooltip={(() => {
+            if (showSettings) return null;
+            return isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake';
+          })()}
         >
           {isFullscreen ? <FullscreenExit size={15} color="rgba(255,255,255,0.9)" /> : <ArrowsFullscreen size={15} color="rgba(255,255,255,0.9)" />}
         </TooltipBtn>

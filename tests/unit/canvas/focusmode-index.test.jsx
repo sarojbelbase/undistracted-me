@@ -5,7 +5,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
+globalThis.ResizeObserver = class {
+  observe() { /* stub */ }
+  unobserve() { /* stub */ }
+  disconnect() { /* stub */ }
+};
 
 // ── Mock all heavy dependencies ───────────────────────────────────────────
 

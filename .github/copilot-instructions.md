@@ -19,7 +19,7 @@ src/
 │   ├── NepaliMiti.jsx   # Main Nepali date display (9vw font size)
 │   ├── DateToday.jsx    # English date display
 │   ├── LiveClock.jsx    # Real-time clock
-│   └── Settings.jsx     # Settings overlay with language/badge toggles
+│   └── Settings.jsx     # Settings overlay with language toggles
 ├── constants/           # Static data and configurations
 │   ├── index.js         # Nepali calendar data, language/font mappings
 │   └── settings.js      # Settings enums and defaults
@@ -37,13 +37,12 @@ src/
 ## Development Patterns
 
 ### State Management
-- **localStorage persistence**: Settings (language, showMitiInIcon) automatically persist
+- **localStorage persistence**: Settings (language) automatically persist
 - **Local state**: Uses React hooks with useCallback for performance optimization
 - **Real-time updates**: 1-second intervals for live updates across components
 
 ### Extension Integration
 - **New tab override**: `chrome_url_overrides.newtab` in manifest.json
-- **Badge updates**: `stampThisIntoExtensionIcon()` dynamically updates extension icon badge with Nepali date
 - **Cross-browser support**: Conditional Chrome API usage with error handling
 
 ### Styling Approach
@@ -69,7 +68,6 @@ src/
 ## Key Integration Points
 
 ### Chrome Extension APIs
-- `chrome.action.setBadgeText/setBadgeBackgroundColor` for icon badge updates
 - Manifest V3 structure with proper permissions and icons
 - Cross-browser compatibility checks (`typeof chrome !== 'undefined'`)
 

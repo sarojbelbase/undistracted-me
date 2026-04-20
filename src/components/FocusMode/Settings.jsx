@@ -51,10 +51,9 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
   } = useSettingsStore();
 
   return (
-    <div
-      role="region"
+    <section
       aria-label="Focus mode settings"
-      className="absolute top-[62px] z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
+      className="absolute top-15.5 z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
       style={{
         right: 15,
         background: 'rgba(12,12,16,0.86)',
@@ -126,7 +125,7 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
           <span style={{ color: 'rgba(255,255,255,0.35)' }}>›</span>
         </button>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -145,6 +145,13 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
 );
 
 // ── Suggestions Dropdown ───────────────────────────────────────────────────────
+const Pill = ({ label, t }) => (
+  <span style={{
+    fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.04em',
+    color: t.label, background: t.hoverBg, borderRadius: 999,
+    padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
+  }}>{label}</span>
+);
 const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, driveResults, tabResults, activeSugg, isHistory, onSelect, onDriveSelect, onTabSelect, onHover, t }) => {
   const tabStart = urlOffset;
   const driveStart = tabStart + tabResults.length;
@@ -158,14 +165,6 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
     transition: 'background 0.1s ease', textAlign: 'left',
   });
   const textStyle = { fontSize: '0.84rem', fontFamily: "'Google Sans', ui-sans-serif, sans-serif", color: t.suggText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 400, flex: 1 };
-
-  const Pill = ({ label }) => (
-    <span style={{
-      fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.04em',
-      color: t.label, background: t.hoverBg, borderRadius: 999,
-      padding: '2px 7px', flexShrink: 0, whiteSpace: 'nowrap',
-    }}>{label}</span>
-  );
 
   return (
     <div
@@ -194,7 +193,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         >
           <GlobeIcon color={t.label} />
           <span style={textStyle}>{urlTarget}</span>
-          <Pill label="Go to" />
+          <Pill label="Go to" t={t} />
         </button>
       )}
 
@@ -211,7 +210,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
             ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
             : <TabIcon color={t.label} />}
           <span style={textStyle}>{tab.title || tab.url}</span>
-          <Pill label="Switch" />
+          <Pill label="Switch" t={t} />
         </button>
       ))}
 
@@ -226,7 +225,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         >
           <DriveIcon mimeType={file.mimeType} size={13} />
           <span style={textStyle}>{file.name}</span>
-          <Pill label="Drive" />
+          <Pill label="Drive" t={t} />
         </button>
       ))}
 

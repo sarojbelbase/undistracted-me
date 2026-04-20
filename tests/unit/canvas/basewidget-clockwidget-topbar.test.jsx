@@ -82,7 +82,6 @@ vi.mock('../../../src/constants', () => ({
 }));
 vi.mock('../../../src/constants/settings', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
-  SHOW_MITI_IN_ICON: 'showMitiInIcon',
 }));
 
 // Mock store for TopBar's lazy Settings

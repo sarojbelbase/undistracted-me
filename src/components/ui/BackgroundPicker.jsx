@@ -100,11 +100,11 @@ const ActiveBadge = () => (
 const SolidPanel = ({ isActive, onApply }) => (
   <div className="flex flex-col items-center gap-4">
     <div
-      className={`w-full rounded-xl overflow-hidden relative${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      className={`w-full rounded-xl overflow-hidden relative${isActive ? '' : ' cursor-pointer hover:opacity-90 transition-opacity'}`}
       style={{ aspectRatio: '16/9' }}
-      onClick={!isActive ? onApply : undefined}
-      role={!isActive ? 'button' : undefined}
-      aria-label={!isActive ? 'Use Solid' : undefined}
+      onClick={isActive ? undefined : onApply}
+      role={isActive ? undefined : 'button'}
+      aria-label={isActive ? undefined : 'Use Solid'}
     >
       {/* Preview: accent-tinted page colour — mirrors App.jsx pageBg computation */}
       <div className="w-full h-full" style={{
@@ -123,11 +123,11 @@ const SolidPanel = ({ isActive, onApply }) => (
 const DefaultPanel = ({ isActive, onApply }) => (
   <div className="flex flex-col items-center gap-4">
     <div
-      className={`w-full rounded-xl overflow-hidden relative${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+      className={`w-full rounded-xl overflow-hidden relative${isActive ? '' : ' cursor-pointer hover:opacity-90 transition-opacity'}`}
       style={{ aspectRatio: '16/9', background: 'var(--panel-bg)' }}
-      onClick={!isActive ? onApply : undefined}
-      role={!isActive ? 'button' : undefined}
-      aria-label={!isActive ? 'Use Default' : undefined}
+      onClick={isActive ? undefined : onApply}
+      role={isActive ? undefined : 'button'}
+      aria-label={isActive ? undefined : 'Use Default'}
     >
       <img src={bgImage} alt="Default background" className="w-full h-full object-cover" />
       {isActive && <ActiveBadge />}
@@ -147,11 +147,11 @@ const OrbPanel = ({ isActive, onApply, scope = 'canvas' }) => {
     <div className="flex flex-col gap-4">
       {/* Mini orb preview — uses the current accent colour */}
       <div
-        className={`w-full rounded-xl overflow-hidden relative select-none${!isActive ? ' cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+        className={`w-full rounded-xl overflow-hidden relative select-none${isActive ? '' : ' cursor-pointer hover:opacity-90 transition-opacity'}`}
         style={{ aspectRatio: '16/9', background: previewBg }}
-        onClick={!isActive ? () => onApply({ orbId: 'accent' }) : undefined}
-        role={!isActive ? 'button' : undefined}
-        aria-label={!isActive ? 'Use Color Motion' : undefined}
+        onClick={isActive ? undefined : () => onApply({ orbId: 'accent' })}
+        role={isActive ? undefined : 'button'}
+        aria-label={isActive ? undefined : 'Use Color Motion'}
       >
         <div style={{ position: 'absolute', inset: 0, animation: 'bpOrbSpin 14s linear infinite', transformOrigin: '50% 50%', pointerEvents: 'none' }}>
           <div style={{ position: 'absolute', width: '70%', height: '70%', top: '15%', left: '15%', borderRadius: '50%', background: 'radial-gradient(circle at 50% 50%, rgba(var(--w-accent-rgb),0.55) 0%, rgba(var(--w-accent-rgb),0.18) 45%, transparent 70%)', filter: 'blur(24px)', animation: 'bpOrbBloom 5s ease-in-out infinite' }} />
@@ -437,7 +437,7 @@ const CuratedPanel = ({ isActive, onApply, onRotatePhoto, allowRotate, isDefault
           {/* Shimmer placeholders while fetching on first open */}
           {showShimmers && Array.from({ length: 6 }).map((_, i) => (
             <div
-              key={`shimmer-${i}`}
+              key={`shimmer-slot-${i}`} /* NOSONAR: static placeholder list, order never changes */
               className="relative rounded-lg overflow-hidden"
               style={{
                 aspectRatio: '4/3',

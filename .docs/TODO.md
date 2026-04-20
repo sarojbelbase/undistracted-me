@@ -81,7 +81,6 @@
 - [x] **Vercel API** — `api/photos/curated.js` (Blob store), `api/auth/google/token.js` (OAuth exchange), `api/favicon.js`
 
 ### Service Worker (`bg.js`)
-- [x] Badge update on install/startup with Nepali date
 - [x] Event reminders — notification 5 min before upcoming events
 - [x] Pomodoro done notification
 - [x] LookAway alarm handler (`UM_LOOKAWAY`)

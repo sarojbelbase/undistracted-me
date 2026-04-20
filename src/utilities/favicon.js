@@ -148,7 +148,7 @@ function runExtraction(img, onColor) {
     const canvas = document.createElement('canvas');
     canvas.width = SIZE;
     canvas.height = SIZE;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(img, 0, 0, SIZE, SIZE);
     const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
     const totalPixels = SIZE * SIZE;

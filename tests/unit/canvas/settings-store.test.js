@@ -33,7 +33,6 @@ const resetStore = (overrides = {}) =>
     mode: 'light',
     defaultView: 'canvas',
     dateFormat: 'gregorian',
-    showMitiInIcon: '0',
     lookAwayEnabled: false,
     lookAwayInterval: 20,
     clockFormat: '24h',
@@ -87,10 +86,6 @@ describe('initial state defaults', () => {
 
   it('dateFormat defaults to "gregorian"', () => {
     expect(useSettingsStore.getState().dateFormat).toBe('gregorian');
-  });
-
-  it('showMitiInIcon defaults to "0"', () => {
-    expect(useSettingsStore.getState().showMitiInIcon).toBe('0');
   });
 });
 
