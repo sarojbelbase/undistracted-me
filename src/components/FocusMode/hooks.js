@@ -455,7 +455,7 @@ export function useFocusTasks() {
 
   const add = useCallback(async (title) => {
     if (!title.trim()) return;
-    const optimistic = { id: `opt-${Date.now()}`, title, completed: false, due: null, notes: null };
+    const optimistic = { id: `opt-${Date.now()}`, title, completed: false, due: null, notes: null, listId: '@default' };
     setTasks(prev => [optimistic, ...prev]);
     try {
       const created = await addGoogleTask(title);
@@ -471,7 +471,7 @@ export function useFocusTasks() {
     const done = !task.completed;
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: done } : t));
     try {
-      await completeGoogleTask(taskId, done);
+      await completeGoogleTask(taskId, done, task.listId);
     } catch {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !done } : t));
     }
@@ -479,18 +479,20 @@ export function useFocusTasks() {
 
   const edit = useCallback(async (taskId, newTitle) => {
     if (!newTitle.trim()) return;
+    const task = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle } : t));
     try {
-      await updateGoogleTask(taskId, { title: newTitle });
+      await updateGoogleTask(taskId, { title: newTitle }, task?.listId);
     } catch { load(); }
-  }, [load]);
+  }, [tasks, load]);
 
   const remove = useCallback(async (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
-      await deleteGoogleTask(taskId);
+      await deleteGoogleTask(taskId, task?.listId);
     } catch { load(); }
-  }, [load]);
+  }, [tasks, load]);
 
   return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, add, toggle, edit, remove, reload: load };
 }
