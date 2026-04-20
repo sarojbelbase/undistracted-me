@@ -5,6 +5,7 @@ import { Settings } from './Settings';
 import config from './config';
 import { getTimeParts, getTimeInZone } from './utils';
 import { onClockTick } from '../../utilities/sharedClock';
+import { CLOCK_TIMEZONE_DIVIDER } from '../../theme/canvas';
 
 const DEFAULT_SETTINGS = { format: '24h', timezones: [] };
 
@@ -66,7 +67,7 @@ export const Widget = ({ id, onRemove }) => {
       {hasTZ && (
         <div
           className={`w-full flex ${extraTimes.length === 1 ? 'justify-center' : 'justify-evenly'} gap-2 pt-2`}
-          style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}
+          style={{ borderTop: `1px solid ${CLOCK_TIMEZONE_DIVIDER}` }}
         >
           {extraTimes.map(({ time, period, label }) => (
             <div key={label} className="flex flex-col items-center gap-0.5">

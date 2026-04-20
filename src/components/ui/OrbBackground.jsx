@@ -9,26 +9,6 @@ import React from 'react';
  *  - zIndex (number)   — stack order, default 0
  */
 
-// Inject keyframes once at module load — avoids a <style> tag inside the
-// component tree which React would reconcile (and re-insert) on every render.
-// Multiple OrbBackground instances share the same injected rule.
-if (typeof document !== 'undefined') {
-  const _ID = '__orb-keyframes__';
-  if (!document.getElementById(_ID)) {
-    const s = document.createElement('style');
-    s.id = _ID;
-    s.textContent = `
-@keyframes orbSpin    { to { transform: rotate(360deg); } }
-@keyframes orbCounter { to { transform: rotate(-360deg); } }
-@keyframes orbDrift   { to { transform: rotate(360deg); } }
-@keyframes orbBloom {
-  0%, 100% { opacity: 1;    transform: scale(1);    }
-  50%      { opacity: 0.82; transform: scale(1.12); }
-}`;
-    document.head.appendChild(s);
-  }
-}
-
 export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
   const c = rgb
     ? (op) => `rgba(${rgb},${op})`

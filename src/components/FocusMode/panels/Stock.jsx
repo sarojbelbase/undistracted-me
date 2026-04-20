@@ -1,4 +1,4 @@
-import { FOCUS_THEME } from '../theme';
+import { FOCUS_THEME, FM_STOCK_UP, FM_STOCK_DOWN, FM_STOCK_UP_BG, FM_STOCK_DOWN_BG } from '../theme';
 import { priceStats, fmtPrice } from '../../../widgets/stock/utils';
 
 export const StockPanel = ({ stocks }) => {
@@ -14,11 +14,11 @@ export const StockPanel = ({ stocks }) => {
           const isUp = stats?.dir === 'up';
           const isDown = stats?.dir === 'down';
           let clr = t.sub;
-          if (isUp) clr = '#4ade80';
-          else if (isDown) clr = '#f87171';
+          if (isUp) clr = FM_STOCK_UP;
+          else if (isDown) clr = FM_STOCK_DOWN;
           let changeBg = 'transparent';
-          if (isUp) changeBg = 'rgba(74,222,128,0.12)';
-          else if (isDown) changeBg = 'rgba(248,113,113,0.12)';
+          if (isUp) changeBg = FM_STOCK_UP_BG;
+          else if (isDown) changeBg = FM_STOCK_DOWN_BG;
           const changeArrow = isUp ? '↑' : '';
           const changeArrowDown = !isUp && isDown ? '↓' : '';
           return (

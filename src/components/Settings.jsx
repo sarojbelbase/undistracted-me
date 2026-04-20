@@ -3,6 +3,7 @@ import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 import { TooltipBtn } from './ui/TooltipBtn';
+import { CANVAS_DIVIDER } from '../theme/canvas';
 
 const SectionLabel = ({ children }) => (
   <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
@@ -11,7 +12,7 @@ const SectionLabel = ({ children }) => (
 );
 
 const Divider = () => (
-  <div style={{ height: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }} />
+  <div style={{ height: '1px', backgroundColor: CANVAS_DIVIDER }} />
 );
 
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {

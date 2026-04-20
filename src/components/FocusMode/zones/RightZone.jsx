@@ -9,6 +9,7 @@ import { onClockTick } from '../../../utilities/sharedClock';
 import { useSettingsStore } from '../../../store';
 import { useFocusTimezones } from '../hooks';
 import { ZONES } from '../config';
+import { getPhotoTokens } from '../theme';
 
 const RIGHT = ZONES.right.items;
 
@@ -27,11 +28,12 @@ export const RightZone = ({ centerOnDark = true }) => {
   if (!RIGHT.worldClocks.enable || !times.length) return null;
 
   // Adapt text colors to the luminance of the background image
-  const timeColor = centerOnDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.82)';
-  const cityColor = centerOnDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
-  const periodColor = centerOnDark ? 'rgba(255,255,255,0.58)' : 'rgba(0,0,0,0.48)';
-  const timeShadow = centerOnDark ? '0 2px 18px rgba(0,0,0,0.55)' : 'none';
-  const cityShadow = centerOnDark ? '0 1px 8px rgba(0,0,0,0.6)' : 'none';
+  const photo = getPhotoTokens(centerOnDark);
+  const timeColor = photo.timeColor;
+  const cityColor = photo.cityColor;
+  const periodColor = photo.periodRightColor;
+  const timeShadow = photo.timeShadow;
+  const cityShadow = photo.cityShadow;
 
   return (
     <div className="fm-world-panel">

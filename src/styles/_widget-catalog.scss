@@ -1,0 +1,598 @@
+@use 'config' as c;
+
+// ─── Widget Catalog Drawer  (.wc-*) ───────────────────────────────────────────
+// Right-side macOS-style panel — accent-free, theme-aware.
+//
+// Color philosophy: ZERO accent in the drawer.
+// Active states use ink weight / tone shifts only — the drawer
+// should look like Finder sidebar or Figma layers: calm, neutral,
+// letting the canvas content hold all the personality.
+
+// ── Local token definitions ───────────────────────────────────────────────────
+
+.wc-panel {
+  // Light mode defaults
+  --wc-bg: #ffffff;
+  --wc-bg-2: #f7f7f8;
+  --wc-bg-3: #f0f0f2;
+  --wc-border: rgba(0, 0, 0, 0.07);
+  --wc-border-med: rgba(0, 0, 0, 0.11);
+  --wc-ink-1: #0f0f10;
+  --wc-ink-2: #1c1c1e;
+  --wc-ink-3: #3a3a3c;
+  --wc-ink-4: #6b6b70;
+  --wc-ink-5: #98989d;
+  --wc-ink-6: #c4c4c8;
+  --wc-active-fill: rgba(0, 0, 0, 0.06);
+  --wc-active-bar: #1c1c1e;
+  --wc-tab-active-bg: #1c1c1e;
+  --wc-tab-active-fg: #ffffff;
+  --wc-badge-bg: #1c1c1e;
+  --wc-badge-fg: #ffffff;
+  --wc-add-hover-bg: #1c1c1e;
+  --wc-add-hover-fg: #ffffff;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 201;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  @include c.glass-surface-panel;
+  transition: transform 0.38s #{c.$ease-pop};
+  will-change: transform;
+  overflow: hidden;
+}
+
+// ── Dark mode token overrides ─────────────────────────────────────────────────
+[data-mode="dark"] .wc-panel {
+  --wc-bg: #222222;
+  --wc-bg-2: #2b2b2b;
+  --wc-bg-3: #363636;
+  --wc-border: rgba(255, 255, 255, 0.08);
+  --wc-border-med: rgba(255, 255, 255, 0.16);
+  --wc-ink-1: #f5f5f7;
+  --wc-ink-2: #e5e5ea;
+  --wc-ink-3: #b0b0b5;
+  --wc-ink-4: #8c8c91; // 4.8:1 ✓ AA
+  --wc-ink-5: #6a6a6f; // 3.1:1 ✓ AA large
+  --wc-ink-6: #525257; // 2.2:1 decorative
+  --wc-active-fill: rgba(255, 255, 255, 0.06);
+  --wc-active-bar: rgba(255, 255, 255, 0.78);
+  --wc-tab-active-bg: rgba(255, 255, 255, 0.18);
+  --wc-tab-active-fg: #f5f5f7;
+  --wc-badge-bg: rgba(255, 255, 255, 0.16);
+  --wc-badge-fg: #f5f5f7;
+  --wc-add-hover-bg: rgba(255, 255, 255, 0.16);
+  --wc-add-hover-fg: #f5f5f7;
+  --wc-danger-fg: #fca5a5;
+  --wc-danger-fg-hover: #fecaca;
+  --wc-danger-bg: rgba(192, 57, 43, 0.14);
+}
+
+// ── Backdrop ──────────────────────────────────────────────────────────────────
+
+.wc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: opacity 0.32s ease;
+}
+
+.wc-backdrop--leaving {
+  transition: opacity 0.22s ease-in !important;
+}
+
+.wc-panel--leaving {
+  transition: transform 0.26s #{c.$ease-snap} !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .wc-panel,
+  .wc-panel--leaving,
+  .wc-backdrop,
+  .wc-backdrop--leaving {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.wc-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  height: 62px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--wc-border);
+}
+
+.wc-header-left {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.wc-header-center {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wc-header-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.wc-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--wc-ink-1);
+  white-space: nowrap;
+}
+
+// Neutral active-count badge
+.wc-active-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--card-border);
+  color: var(--wc-ink-1);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+// ── Pill action buttons ───────────────────────────────────────────────────────
+
+.wc-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1px solid var(--wc-border-med);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    background: var(--wc-bg-3);
+    color: var(--wc-ink-2);
+    border-color: var(--wc-border-med);
+  }
+}
+
+.wc-pill-btn--danger {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: rgba(192, 57, 43, 0.35);
+
+  &:hover {
+    background: #fee2e2;
+    border-color: rgba(192, 57, 43, 0.55);
+    color: #7f1d1d;
+  }
+}
+
+[data-mode="dark"] {
+  .wc-pill-btn--danger {
+    color: var(--wc-danger-fg);
+    background: var(--wc-danger-bg);
+    border-color: rgba(192, 57, 43, 0.35);
+
+    &:hover {
+      background: rgba(192, 57, 43, 0.22);
+      border-color: rgba(192, 57, 43, 0.50);
+      color: var(--wc-danger-fg-hover);
+    }
+  }
+}
+
+// Vertical separator
+.wc-header-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--wc-border);
+  margin: 0 1px;
+  flex-shrink: 0;
+}
+
+// ── Close / Dismiss buttons ───────────────────────────────────────────────────
+
+.wc-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1px solid var(--wc-border);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #fef2f2;
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #b91c1c;
+  }
+}
+
+[data-mode="dark"] .wc-close-btn:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.40);
+  color: var(--wc-danger-fg);
+}
+
+// Shared close / dismiss icon button class
+.btn-close {
+  &:hover {
+    background: #fef2f2 !important;
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    color: #b91c1c !important;
+  }
+
+  &:active {
+    background: rgba(239, 68, 68, 0.17) !important;
+  }
+}
+
+[data-mode="dark"] .btn-close:hover {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(239, 68, 68, 0.40) !important;
+  color: var(--wc-danger-fg) !important;
+}
+
+// ── Category tabs ─────────────────────────────────────────────────────────────
+
+.wc-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 18px;
+  height: 52px;
+  border-bottom: 1px solid var(--wc-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  @include c.hide-scrollbar;
+}
+
+.wc-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  color: var(--wc-ink-3);
+  border: 1px solid transparent;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    background: var(--wc-bg-2);
+    color: var(--wc-ink-3);
+    border-color: var(--wc-border);
+  }
+}
+
+.wc-tab--active {
+  background: var(--wc-tab-active-bg);
+  color: var(--wc-tab-active-fg);
+  border-color: transparent;
+  font-weight: 600;
+
+  &:hover {
+    opacity: 0.86;
+  }
+}
+
+.wc-tab-cnt {
+  font-size: 9.5px;
+  font-weight: 600;
+  opacity: 0.50;
+}
+
+.wc-tab--active .wc-tab-cnt {
+  opacity: 0.60;
+}
+
+// ── List scroll container ─────────────────────────────────────────────────────
+
+.wc-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+  }
+}
+
+// ── Section header ────────────────────────────────────────────────────────────
+
+.wc-section-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 20px 18px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--wc-ink-5);
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--wc-border);
+  }
+
+  &:first-child {
+    padding-top: 16px;
+  }
+}
+
+.wc-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--wc-ink-3);
+  flex-shrink: 0;
+}
+
+.wc-section-count {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--wc-ink-3);
+  letter-spacing: 0.04em;
+}
+
+// ── Widget row ────────────────────────────────────────────────────────────────
+
+.wc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 66px;
+  padding: 10px 16px 10px 18px;
+  border-bottom: 1px solid var(--wc-border);
+  cursor: default;
+  transition: background 0.12s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--card-bg);
+  }
+}
+
+.wc-row--active {
+  border-left: 2.5px solid var(--w-accent);
+  background: rgba(var(--w-accent-rgb), 0.05);
+}
+
+// Icon box
+.wc-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1px solid var(--wc-border);
+  flex-shrink: 0;
+  transition: background 0.14s, color 0.14s;
+}
+
+.wc-icon-box--active {
+  background: var(--wc-bg);
+  color: var(--wc-ink-1);
+  border-color: var(--wc-border-med);
+}
+
+// Text block
+.wc-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.wc-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--wc-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.wc-row--active .wc-label {
+  color: var(--wc-ink-1);
+  font-weight: 700;
+}
+
+.wc-desc {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--wc-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+// ── Stepper controls ──────────────────────────────────────────────────────────
+
+.wc-stepper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.wc-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.13s, color 0.13s, transform 0.10s;
+
+  &:active {
+    transform: scale(0.90);
+  }
+}
+
+// Remove (−) — red-tinted, always visible when row is active
+.wc-stepper-btn--remove {
+  background: #fecaca;
+  color: #7f1d1d;
+  border: 1.5px solid #fca5a5;
+
+  &:hover {
+    background: #fca5a5;
+    border-color: #f87171;
+    color: #6b1111;
+  }
+}
+
+[data-mode="dark"] .wc-stepper-btn--remove {
+  background: rgba(210, 40, 40, 0.22);
+  color: var(--wc-danger-fg);
+  border: 1.5px solid rgba(210, 40, 40, 0.50);
+
+  &:hover {
+    background: rgba(210, 40, 40, 0.36);
+    border-color: rgba(210, 40, 40, 0.65);
+    color: var(--wc-danger-fg-hover);
+  }
+}
+
+// Add (+) — neutral
+.wc-stepper-btn--add {
+  background: var(--wc-bg-2);
+  color: var(--wc-ink-3);
+  border: 1.5px solid var(--wc-border-med);
+
+  &:hover {
+    background: var(--wc-bg-3);
+    color: var(--wc-ink-1);
+    border-color: var(--wc-border-med);
+  }
+}
+
+// Add when row is already active
+.wc-stepper-btn--add-active {
+  background: var(--wc-bg);
+  color: var(--wc-ink-1);
+  border-color: var(--wc-border-med);
+}
+
+.wc-stepper-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wc-ink-2);
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+// Add button hover: pure ink fill
+.wc-icon-btn--add:hover {
+  background: var(--wc-add-hover-bg);
+  color: var(--wc-add-hover-fg);
+  border-color: transparent;
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.wc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 18px;
+  height: 46px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--wc-border);
+}
+
+.wc-footer-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--wc-ink-3);
+  letter-spacing: 0.01em;
+}
+
+.wc-footer-err {
+  font-size: 10.5px;
+  color: var(--wc-danger-fg);
+}
+
+.wc-momo-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--wc-ink-3);
+  text-decoration: none;
+  transition: color 0.14s;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    color: var(--wc-ink-2);
+  }
+}

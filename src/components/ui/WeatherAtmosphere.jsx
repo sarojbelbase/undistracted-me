@@ -1,34 +1,6 @@
 import React from 'react';
 
-// ── Weather atmosphere CSS animations (injected once on module load) ──────────
-if (typeof document !== 'undefined' && !document.getElementById('w-atmo-kf')) {
-  const s = document.createElement('style');
-  s.id = 'w-atmo-kf';
-  s.textContent = [
-    '@keyframes wa-sun{0%,100%{transform:scale(1);opacity:.88}50%{transform:scale(1.08);opacity:1}}',
-    '@keyframes wa-moon{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}',
-    // Drop angles vary by wind — base is -15deg, overridden inline for gusts
-    '@keyframes wa-drop{0%{transform:translateY(-22px) rotate(-15deg);opacity:0}8%{opacity:1}85%{opacity:.72}100%{transform:translateY(110px) rotate(-15deg);opacity:0}}',
-    '@keyframes wa-drop-breezy{0%{transform:translateY(-22px) rotate(-25deg);opacity:0}8%{opacity:1}85%{opacity:.80}100%{transform:translateY(110px) rotate(-25deg);opacity:0}}',
-    '@keyframes wa-drop-strong{0%{transform:translateY(-22px) rotate(-38deg);opacity:0}8%{opacity:1}85%{opacity:.88}100%{transform:translateY(110px) rotate(-38deg);opacity:0}}',
-    '@keyframes wa-drizzle{0%{transform:translateY(-16px);opacity:0}10%{opacity:.55}88%{opacity:.38}100%{transform:translateY(105px);opacity:0}}',
-    '@keyframes wa-drizzle-breezy{0%{transform:translateY(-16px) rotate(-18deg);opacity:0}10%{opacity:.65}88%{opacity:.48}100%{transform:translateY(105px) rotate(-18deg);opacity:0}}',
-    '@keyframes wa-flake{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(8px);opacity:0}}',
-    '@keyframes wa-flake-breezy{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(22px);opacity:0}}',
-    '@keyframes wa-flake-strong{0%{transform:translateY(-8px) translateX(0);opacity:0}18%{opacity:.85}78%{opacity:.55}100%{transform:translateY(95px) translateX(42px);opacity:0}}',
-    '@keyframes wa-fog-a{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(-14px);opacity:.82}}',
-    '@keyframes wa-fog-a-breezy{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(-28px);opacity:.82}}',
-    '@keyframes wa-fog-a-strong{0%{transform:translateX(0);opacity:.5}100%{transform:translateX(-60px);opacity:.2}}',
-    '@keyframes wa-fog-b{0%,100%{transform:translateX(0);opacity:.36}50%{transform:translateX(12px);opacity:.64}}',
-    '@keyframes wa-fog-b-breezy{0%,100%{transform:translateX(0);opacity:.36}50%{transform:translateX(26px);opacity:.64}}',
-    '@keyframes wa-cloud{0%,100%{transform:translateX(0)}50%{transform:translateX(-8px)}}',
-    '@keyframes wa-cloud-breezy{0%,100%{transform:translateX(0)}50%{transform:translateX(-18px)}}',
-    '@keyframes wa-cloud-strong{0%{transform:translateX(0)}100%{transform:translateX(-36px)}}',
-    '@keyframes wa-flash{0%,87%,100%{opacity:0}89%{opacity:.28}90%{opacity:.04}92%{opacity:.18}93%{opacity:0}}',
-    '@keyframes wa-bolt{0%,88%,91%,94%,100%{opacity:0}89%{opacity:.92}90%{opacity:.08}92%{opacity:.72}93%{opacity:.04}}',
-  ].join('');
-  document.head.appendChild(s);
-}
+// ── Weather atmosphere CSS animations live in src/styles/_animations.scss ───────
 
 /**
  * Returns wind tier and animation variants based on gust speed (km/h).

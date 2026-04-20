@@ -24,6 +24,7 @@ import config from './config';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
+import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -90,8 +91,8 @@ const DaysChip = ({ days }) => {
 /** Small icon that identifies the occasion type. */
 const TypeIcon = ({ type, size = 11 }) => {
   const style = { flexShrink: 0 };
-  if (type === 'anniversary') return <HeartFill size={size} style={{ ...style, color: '#e05c8a' }} />;
-  if (type === 'other') return <StarFill size={size} style={{ ...style, color: '#f59e0b' }} />;
+  if (type === 'anniversary') return <HeartFill size={size} style={{ ...style, color: OCCASION_ANNIVERSARY_COLOR }} />;
+  if (type === 'other') return <StarFill size={size} style={{ ...style, color: OCCASION_SPECIAL_COLOR }} />;
   return <BalloonFill size={size} style={{ ...style, color: 'var(--w-accent)' }} />;
 };
 

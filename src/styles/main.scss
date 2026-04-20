@@ -1,0 +1,30 @@
+// ─── Main SCSS Entrypoint ─────────────────────────────────────────────────────
+//
+// Import order matters for CSS cascade:
+// 1. Sass config (no output — mixins/vars only)
+// 2. Design tokens (:root custom properties)
+// 3. Browser resets
+// 4. Typography component classes
+// 5. Animations (@keyframes)
+// 6. Scrollbars
+// 7. Component-specific styles
+// 8. Layout-specific styles
+// 9. Dark mode overrides (last — highest specificity)
+//
+// Tailwind (@import "tailwindcss") and font @import live in App.css so they
+// stay in a plain CSS file (required for Tailwind v4 PostCSS processing).
+
+@use 'config'; // Variables, mixins — no CSS output
+@use 'tokens'; // :root CSS custom properties
+@use 'reset'; // Browser / element resets
+@use 'typography'; // .w-display, .w-heading, .w-label etc.
+@use 'animations'; // All @keyframes
+@use 'scrollbars'; // Global thin auto-hiding scrollbar + .no-scrollbar
+@use 'notes'; // .notes-title, .notes-textarea
+@use 'lexical'; // .lex-* Lexical WYSIWYG editor
+@use 'markdown'; // .md-* Markdown preview
+@use 'react-grid'; // .react-grid-*, drag handles, placeholder
+@use 'widget-catalog'; // .wc-* drawer panel
+@use 'focus-mode'; // .fm-* Focus Mode layout
+@use 'dark-overrides'; // [data-mode="dark"] Tailwind utility overrides
+@use 'utilities'; // .animate-*, .no-scrollbar, keyboard focus ring

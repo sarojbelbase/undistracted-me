@@ -3,6 +3,7 @@ import { XLg, CalendarEvent, Clock, HourglassSplit } from 'react-bootstrap-icons
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
+import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { Modal } from '../../components/ui/Modal';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
@@ -172,7 +173,7 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: '1px solid rgba(0,0,0,0.12)', background: 'transparent',
+            border: `1px solid ${CANVAS_BORDER_SOFT}`, background: 'transparent',
             color: 'var(--w-ink-2)', transition: 'all 0.15s',
           }}
         >Cancel</button>

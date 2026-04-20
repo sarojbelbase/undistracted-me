@@ -1,0 +1,97 @@
+// ─── Widget Typography Hierarchy ──────────────────────────────────────────────
+// Use these component classes for ALL widget content text.
+// Never invent ad-hoc text-* combos — always compose from this scale.
+// Add Tailwind size/layout utilities alongside (e.g. text-[clamp(…)]).
+
+@layer components {
+
+  // Level 1 — Display: hero numbers (clock, large date)
+  .w-display {
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--w-ink-2);
+  }
+
+  // Level 2 — Heading: widget section title ("Today", event name)
+  .w-heading {
+    font-size: 1.125rem; // text-lg
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--w-ink-1);
+  }
+
+  // Level 3 — Title row: paired label + value (city °C, weekday month)
+  .w-title-soft {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  .w-title-bold {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--w-accent);
+  }
+
+  // Level 4 — Sub row: smaller pair (greeting, unit beside display)
+  .w-sub-soft {
+    font-size: 0.875rem; // text-sm
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  .w-sub-bold {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--w-accent);
+  }
+
+  // Period: AM/PM or secondary unit beside a display number
+  .w-period {
+    font-size: 1.25rem; // text-xl
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+
+  // Level 5 — Body: standard content (event titles, option labels)
+  // font-weight intentionally unset — caller adds font-medium/bold
+  .w-body {
+    font-size: 0.875rem; // text-sm
+    color: var(--w-ink-1);
+  }
+
+  // Level 6 — Caption: tiny info (event time, weather description)
+  // font-weight intentionally unset — caller adds font-bold etc.
+  .w-caption {
+    font-size: 0.75rem; // text-xs
+    color: var(--w-ink-4);
+  }
+
+  // Level 7 — Label: settings section headers
+  .w-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--w-ink-4);
+  }
+
+  // Muted: status / error / empty-state messages
+  .w-muted {
+    font-size: 0.75rem;
+    color: var(--w-ink-3);
+    text-align: center;
+  }
+
+  // Dot: progress / activity dot (day-progress widget)
+  .w-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    background-color: var(--w-ink-4);
+    transition: background-color 0.3s ease;
+  }
+
+  .w-dot-active {
+    background-color: var(--w-accent);
+  }
+}

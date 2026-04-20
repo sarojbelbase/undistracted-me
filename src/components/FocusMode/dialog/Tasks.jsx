@@ -34,7 +34,6 @@ export const TasksDialog = ({
           </div>
         </div>
       </div>
-      <style>{`@keyframes tdSpin { to { transform: rotate(360deg); } }`}</style>
     </Modal>
   );
 };

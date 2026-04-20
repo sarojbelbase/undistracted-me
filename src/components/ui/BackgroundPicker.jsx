@@ -24,6 +24,11 @@ import bgImage from '../../assets/img/bg.webp';
 import { SettingsInput } from './SettingsInput';
 import { TabRow } from './TabRow';
 import {
+  FM_DIVIDER,
+  FM_INK_1, FM_INK_3, FM_CLOSE_COLOR,
+  GLASS_CARD_BG, GLASS_CARD_BLUR, GLASS_CARD_BORDER, GLASS_CARD_SHADOW,
+} from '../FocusMode/theme';
+import {
   getPhotoLibrary,
   downloadCuratedPhotos,
   deletePhoto,
@@ -612,14 +617,15 @@ export const BackgroundPicker = ({
   const cardSurface = dark ? 'rgb(12,12,16)' : 'var(--w-surface)';
   const th = dark
     ? {
-      cardBg: 'rgba(12,12,16,0.86)',
-      cardBdFilter: 'blur(24px) saturate(160%)',
-      cardBorder: 'rgba(255,255,255,0.11)',
-      cardShadow: '0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)',
-      divider: 'rgba(255,255,255,0.10)',
-      title: 'rgba(255,255,255,0.92)',
-      sub: 'rgba(255,255,255,0.42)',
-      closeBtn: 'rgba(255,255,255,0.42)',
+      // Focus mode — always frosted glass, aligned with DIALOG_STYLE from theme.jsx
+      cardBg: GLASS_CARD_BG,
+      cardBdFilter: GLASS_CARD_BLUR,
+      cardBorder: GLASS_CARD_BORDER,
+      cardShadow: GLASS_CARD_SHADOW,
+      divider: FM_DIVIDER,
+      title: FM_INK_1,
+      sub: FM_INK_3,
+      closeBtn: FM_CLOSE_COLOR,
     }
     : {
       cardBg: 'var(--w-surface)',
@@ -652,17 +658,6 @@ export const BackgroundPicker = ({
       className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 90 }}
     >
-      <style>{`
-        @keyframes bpSpin          { to { transform: rotate(360deg); } }
-        @keyframes bpOrbSpin       { to { transform: rotate(360deg); } }
-        @keyframes bpOrbCounter    { to { transform: rotate(-360deg); } }
-        @keyframes bpOrbBloom      { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)} }
-        @keyframes bpIn            { from{opacity:0;transform:scale(.97) translateY(8px)} to{opacity:1;transform:none} }
-        @keyframes bpIndeterminate { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
-        @keyframes bpWipe          { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
-        @keyframes shimmer         { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-      `}</style>
-
       <div
         className="flex flex-col rounded-2xl overflow-hidden"
         style={{

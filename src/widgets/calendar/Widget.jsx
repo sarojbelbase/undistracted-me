@@ -8,6 +8,7 @@ import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
 import { Popup } from '../../components/ui/Popup';
+import { CANVAS_HOVER_OVERLAY } from '../../theme/canvas';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { AddEvent } from '../events/AddEvent';
 
@@ -68,7 +69,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
         className="relative text-sm font-semibold w-7 h-7 mx-auto flex items-center justify-center rounded-full cursor-pointer transition-colors focus:outline-none overflow-hidden"
         style={isCurrent
           ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-          : { color: isWeekend ? 'var(--w-ink-5)' : 'var(--w-ink-4)', backgroundColor: hovered ? 'rgba(0,0,0,0.06)' : undefined }}
+          : { color: isWeekend ? 'var(--w-ink-5)' : 'var(--w-ink-4)', backgroundColor: hovered ? CANVAS_HOVER_OVERLAY : undefined }}
         aria-label={`Add event on ${dateStr}`}
       >
         {/* Number — fades out on hover to reveal the + below */}

@@ -1,51 +1,24 @@
 /**
  * Shared primitives for Focus Mode dialogs (Tasks, SearchBar, etc.)
  *
- * All dialogs render as portals over the dark Focus Mode backdrop. To ensure
- * --w-ink-* CSS variables resolve to dark-mode values (the same pinning that
- * .fm-left-panel does in App.css), every dialog must spread DIALOG_STYLE onto
- * the Modal's `style` prop.
+ * All colors come from theme.jsx (the dark glass source of truth).
+ * Never hardcode colors here — import FM_* constants from '../theme'.
  */
 
 import React from 'react';
 import { XLg } from 'react-bootstrap-icons';
-import { FOCUS_THEME } from '../theme';
+import {
+  FOCUS_THEME, DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE,
+  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
+  FM_INK_1, FM_INK_2, FM_INK_3, FM_INK_4,
+  FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
+  FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER, FM_CLOSE_COLOR,
+  FM_SUCCESS, FM_SUCCESS_DOT, FM_SYNC_BG, FM_SYNC_BORDER,
+  FM_DANGER, FM_DANGER_BG, FM_DANGER_BORDER, FM_DANGER_HOVER_BG,
+} from '../theme';
 
-// ─── Dark-pinned CSS vars + dark glass card surface ──────────────────────────
-//
-// Modal.jsx sets background/border from --card-bg/--card-border which adapt to
-// the user's glass vs flat + light vs dark theme. Focus Mode dialogs always
-// appear over a dark photo backdrop, so we override with the dark constants and
-// also pin --w-ink-* so that any var(--w-ink-*) inside the dialog resolves to
-// the dark palette regardless of the page-level theme.
-
-export const DIALOG_STYLE = {
-  // Surface
-  background: FOCUS_THEME.card.background,          // rgba(4,5,7,0.68)
-  backdropFilter: FOCUS_THEME.card.backdropFilter,   // blur(28px)
-  WebkitBackdropFilter: FOCUS_THEME.card.WebkitBackdropFilter,
-  border: '1px solid rgba(255,255,255,0.12)',
-
-  // Pin dark CSS vars so var(--w-ink-*) works inside the portal
-  '--w-ink-1': '#f2f2f2',
-  '--w-ink-2': '#e0e0e0',
-  '--w-ink-3': '#c4c4c4',
-  '--w-ink-4': '#8e8e8e',
-  '--w-ink-5': '#909090',
-  '--w-border': 'rgba(255,255,255,0.12)',
-  '--w-surface': 'rgba(255,255,255,0.08)',
-  '--w-surface-2': 'rgba(255,255,255,0.14)',
-};
-
-// Divider inside a dark-glass section card
-export const SECTION_BORDER = '1px solid rgba(255,255,255,0.07)';
-
-// Section card wrapper
-export const SECTION_CARD_STYLE = {
-  borderRadius: 12,
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.09)',
-};
+// Re-export the dialog surface tokens so dialog files can import from one place
+export { DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE };
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -93,15 +66,15 @@ export const CloseButton = ({ onClose }) => (
       flexShrink: 0,
       width: 26, height: 26,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(255,255,255,0.07)',
-      border: '1px solid rgba(255,255,255,0.12)',
+      background: FM_CLOSE_BG,
+      border: `1px solid ${FM_CLOSE_BORDER}`,
       borderRadius: '50%',
       cursor: 'pointer',
-      color: 'rgba(255,255,255,0.55)',
+      color: FM_CLOSE_COLOR,
       transition: 'background 0.15s',
     }}
-    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; }}
-    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+    onMouseEnter={e => { e.currentTarget.style.background = FM_CLOSE_BG_HOVER; }}
+    onMouseLeave={e => { e.currentTarget.style.background = FM_CLOSE_BG; }}
   >
     <XLg size={10} />
   </button>
@@ -113,24 +86,24 @@ export const DialogHeader = ({ icon, title, subtitle, onClose }) => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '16px 18px',
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    borderBottom: `1px solid ${FM_DIVIDER}`,
   }}>
     {icon && (
       <div style={{
         width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-        background: 'rgba(255,255,255,0.08)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        background: FM_SURFACE,
+        border: `1px solid ${FM_BORDER}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {icon}
       </div>
     )}
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 14.5, fontWeight: 700, color: FOCUS_THEME.text, lineHeight: '1.2' }}>
+      <div style={{ fontSize: 14.5, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>
         {title}
       </div>
       {subtitle && (
-        <div style={{ fontSize: 11.5, color: FOCUS_THEME.label, marginTop: 2 }}>
+        <div style={{ fontSize: 11.5, color: FM_INK_3, marginTop: 2 }}>
           {subtitle}
         </div>
       )}
@@ -145,7 +118,7 @@ export const SectionLabel = ({ children }) => (
   <div style={{
     fontSize: 10, fontWeight: 700,
     letterSpacing: '0.09em', textTransform: 'uppercase',
-    color: FOCUS_THEME.label,
+    color: FM_INK_3,
     marginBottom: 8,
   }}>
     {children}
@@ -163,15 +136,15 @@ export const Toggle = ({ checked, onChange }) => (
     style={{
       flexShrink: 0,
       width: 34, height: 19, borderRadius: 10,
-      background: checked ? 'var(--w-accent)' : 'rgba(255,255,255,0.14)',
+      background: checked ? 'var(--w-accent)' : FM_TOGGLE_OFF_BG,
       border: 'none', cursor: 'pointer', padding: 2,
       transition: 'background 0.18s ease',
     }}
   >
     <div style={{
       width: 15, height: 15, borderRadius: '50%',
-      background: 'white',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+      background: FM_TOGGLE_THUMB,
+      boxShadow: FM_TOGGLE_SHADOW,
       transition: 'transform 0.18s ease',
       transform: checked ? 'translateX(15px)' : 'translateX(0)',
     }} />
@@ -187,11 +160,11 @@ export const ToggleRow = ({ label, description, checked, onChange, borderTop = f
     borderTop: borderTop ? SECTION_BORDER : 'none',
   }}>
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 500, color: FOCUS_THEME.text, lineHeight: '1.3' }}>
+      <div style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1, lineHeight: '1.3' }}>
         {label}
       </div>
       {description && (
-        <div style={{ fontSize: 11.5, color: FOCUS_THEME.label, marginTop: 2, lineHeight: '1.4' }}>
+        <div style={{ fontSize: 11.5, color: FM_INK_3, marginTop: 2, lineHeight: '1.4' }}>
           {description}
         </div>
       )}
@@ -228,11 +201,11 @@ const SyncBadge = () => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: 5,
     padding: '3px 8px', borderRadius: 20, flexShrink: 0,
-    background: 'rgba(34,197,94,0.12)',
-    border: '1px solid rgba(34,197,94,0.28)',
+    background: FM_SYNC_BG,
+    border: `1px solid ${FM_SYNC_BORDER}`,
   }}>
-    <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />
-    <span style={{ fontSize: 10.5, fontWeight: 600, color: '#4ade80' }}>Synced</span>
+    <div style={{ width: 5, height: 5, borderRadius: '50%', background: FM_SUCCESS_DOT }} />
+    <span style={{ fontSize: 10.5, fontWeight: 600, color: FM_SUCCESS }}>Synced</span>
   </div>
 );
 
@@ -250,14 +223,14 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
           <ProfileAvatar picture={userProfile.picture} name={userProfile.name} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: 13.5, fontWeight: 600, color: FOCUS_THEME.text,
+              fontSize: 13.5, fontWeight: 600, color: FM_INK_1,
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {userProfile.name ?? 'Google Account'}
             </div>
             {userProfile.email && (
               <div style={{
-                fontSize: 11.5, color: FOCUS_THEME.label, marginTop: 2,
+                fontSize: 11.5, color: FM_INK_3, marginTop: 2,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {userProfile.email}
@@ -273,13 +246,13 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
             marginTop: 12, width: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
             padding: '7px 0', borderRadius: 8,
-            background: 'rgba(239,68,68,0.09)',
-            border: '1px solid rgba(239,68,68,0.22)',
-            color: '#f87171', fontSize: 12.5, fontWeight: 600,
+            background: FM_DANGER_BG,
+            border: `1px solid ${FM_DANGER_BORDER}`,
+            color: FM_DANGER, fontSize: 12.5, fontWeight: 600,
             cursor: 'pointer', transition: 'background 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.16)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.09)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = FM_DANGER_HOVER_BG; }}
+          onMouseLeave={e => { e.currentTarget.style.background = FM_DANGER_BG; }}
         >
           <IconDisconnect />
           Disconnect
@@ -295,8 +268,8 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
         padding: '12px 14px',
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: FOCUS_THEME.text }}>
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: FM_SUCCESS_DOT, flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1 }}>
           {serviceName} connected
         </span>
         <button
@@ -305,13 +278,13 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
           style={{
             marginLeft: 'auto',
             padding: '4px 10px', borderRadius: 6,
-            background: 'rgba(239,68,68,0.09)',
-            border: '1px solid rgba(239,68,68,0.22)',
-            color: '#f87171', fontSize: 11.5, fontWeight: 600,
+            background: FM_DANGER_BG,
+            border: `1px solid ${FM_DANGER_BORDER}`,
+            color: FM_DANGER, fontSize: 11.5, fontWeight: 600,
             cursor: 'pointer', transition: 'background 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.16)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.09)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = FM_DANGER_HOVER_BG; }}
+          onMouseLeave={e => { e.currentTarget.style.background = FM_DANGER_BG; }}
         >
           Disconnect
         </button>
@@ -321,12 +294,12 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
 
   return (
     <div style={{ ...SECTION_CARD_STYLE, padding: '16px 14px' }}>
-      <p style={{ fontSize: 13, lineHeight: '1.55', color: FOCUS_THEME.sub, margin: '0 0 8px' }}>
+      <p style={{ fontSize: 13, lineHeight: '1.55', color: FM_INK_2, margin: '0 0 8px' }}>
         Sign in with Google to access {serviceName} directly inside Focus Mode.
       </p>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6,
-        marginBottom: 14, color: FOCUS_THEME.label, fontSize: 11.5,
+        marginBottom: 14, color: FM_INK_3, fontSize: 11.5,
       }}>
         <IconLock />
         Data loads directly from Google — nothing stored on our servers

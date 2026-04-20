@@ -1,0 +1,82 @@
+@use 'config' as c;
+
+// ─── React Grid Layout ────────────────────────────────────────────────────────
+// No transitions at all — widgets appear in place instantly
+.react-grid-item,
+.react-grid-item.cssTransforms,
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.react-grid-placeholder,
+.react-grid-item.resizing {
+  cursor: default;
+  transition: none !important;
+  -webkit-transition: none !important;
+}
+
+// Drag placeholder: rounded card outline instead of red fill
+.react-grid-placeholder {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+// Subtle lift while dragging — stronger shadow elevation to feel "picked up"
+.react-grid-item.react-draggable-dragging>* {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
+  cursor: grabbing !important;
+}
+
+// Hide options button while dragging
+.react-draggable-dragging .absolute.z-20 {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+// Ghost notch during drag — semi-transparent
+.react-draggable-dragging .widget-drag-handle {
+  opacity: 0.35 !important;
+  cursor: grabbing !important;
+}
+
+.react-grid-item:active {
+  cursor: default;
+}
+
+.widget-drag-handle {
+  cursor: grab;
+}
+
+.widget-drag-handle:active {
+  cursor: grabbing;
+}
+
+.react-resizable-handle {
+  display: none !important;
+}
+
+// ── Dark mode overrides ───────────────────────────────────────────────────────
+
+[data-mode="dark"] {
+  .react-grid-item.react-draggable-dragging>* {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .react-grid-placeholder {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+}
+
+// ── Drag dot overlay (arrange mode) ──────────────────────────────────────────
+
+.drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.18) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
+}
+
+[data-mode="dark"] .drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
+}

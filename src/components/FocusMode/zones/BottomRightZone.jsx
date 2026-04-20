@@ -2,6 +2,9 @@
 import React, { useState, useCallback, Suspense, lazy } from "react";
 import { TasksDialog } from "../dialog/Tasks";
 import { useSettingsStore } from "../../../store";
+import {
+  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_CARD_BORDER,
+} from "../theme";
 
 const TasksPanel = lazy(() =>
   import("../panels/Tasks").then(m => ({ default: m.TasksPanel }))
@@ -19,17 +22,17 @@ const TasksPillSkeleton = () => (
       background: 'rgba(0,0,0,0.45)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255,255,255,0.13)',
+      border: `1px solid ${FM_CARD_BORDER}`,
       boxShadow: '0 2px 18px rgba(0,0,0,0.40)',
       whiteSpace: 'nowrap',
     }}
   >
     {/* circle icon placeholder */}
-    <div style={{ width: 13, height: 13, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
+    <div style={{ width: 13, height: 13, borderRadius: '50%', background: FM_SURFACE_2, flexShrink: 0 }} />
     {/* text placeholder */}
-    <div style={{ width: 52, height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.10)' }} />
+    <div style={{ width: 52, height: 10, borderRadius: 5, background: FM_SURFACE }} />
     {/* chevron placeholder */}
-    <div style={{ width: 9, height: 9, borderRadius: 2, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+    <div style={{ width: 9, height: 9, borderRadius: 2, background: FM_SURFACE, flexShrink: 0 }} />
   </div>
 );
 

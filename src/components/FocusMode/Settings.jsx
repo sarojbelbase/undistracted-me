@@ -1,5 +1,10 @@
 import React from 'react';
 import { useSettingsStore } from '../../store';
+import {
+  FM_SECTION_CARD_BG, FM_SPINNER_RING, FM_INK_3,
+  FM_POPOVER_BG, FM_POPOVER_BORDER, FM_POPOVER_SHADOW,
+  FM_DIVIDER, FM_BORDER,
+} from './theme';
 
 // Focus mode is always rendered on a dark background — use explicit dark-glass
 // tokens rather than theme CSS variables (which may be light-mode in canvas).
@@ -15,7 +20,7 @@ const ToggleRow = ({ label, options, value, onChange }) => (
     <FMLabel>{label}</FMLabel>
     <div
       className="flex gap-1 p-0.5 rounded-xl"
-      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+      style={{ background: FM_SECTION_CARD_BG, border: `1px solid ${FM_SPINNER_RING}` }}
     >
       {options.map(({ id, label: optLabel }) => (
         <button
@@ -24,7 +29,7 @@ const ToggleRow = ({ label, options, value, onChange }) => (
           className="flex-1 text-[10px] py-1.5 rounded-lg font-semibold transition-all focus:outline-none cursor-pointer"
           style={value === id
             ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-            : { background: 'transparent', color: 'rgba(255,255,255,0.55)' }}
+            : { background: 'transparent', color: FM_INK_3 }}
         >
           {optLabel}
         </button>
@@ -56,11 +61,11 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
       className="absolute top-15.5 z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
       style={{
         right: 15,
-        background: 'rgba(12,12,16,0.86)',
+        background: FM_POPOVER_BG,
         backdropFilter: 'blur(24px) saturate(160%)',
         WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-        border: '1px solid rgba(255,255,255,0.11)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
+        border: `1px solid ${FM_POPOVER_BORDER}`,
+        boxShadow: FM_POPOVER_SHADOW,
         animation: 'fm-slide-in 0.18s cubic-bezier(0.16,1,0.3,1) both',
       }}
     >
@@ -72,8 +77,8 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
       }}>
         <div style={{
           width: 12, height: 12,
-          background: 'rgba(12,12,16,0.86)',
-          border: '1px solid rgba(255,255,255,0.11)',
+          background: FM_POPOVER_BG,
+          border: `1px solid ${FM_POPOVER_BORDER}`,
           transform: 'rotate(45deg) translate(2px, 2px)',
         }} />
       </div>
@@ -116,8 +121,8 @@ export const FocusModeSettings = ({ onOpenBgModal }) => {
           onClick={() => onOpenBgModal?.()}
           className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-xl font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
           style={{
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: FM_DIVIDER,
+            border: `1px solid ${FM_BORDER}`,
             color: 'rgba(255,255,255,0.72)',
           }}
         >

@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchToTab, searchDriveFilesAsync } from '../hooks';
-import { getTokens } from '../theme';
+import { getTokens, FM_CARD_BLUR } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 
@@ -121,8 +121,8 @@ const EnginePicker = ({ engineId, onSelect, t }) => (
       background: t.dropBg,
       border: `1px solid ${t.dropBorder}`,
       borderRadius: 14,
-      backdropFilter: 'blur(28px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+      backdropFilter: FM_CARD_BLUR,
+      WebkitBackdropFilter: FM_CARD_BLUR,
       boxShadow: t.dropShadow,
       padding: 6,
       minWidth: 168,
@@ -194,8 +194,8 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, drive
         background: t.dropBg,
         border: `1px solid ${t.dropBorder}`,
         borderRadius: 16,
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+        backdropFilter: FM_CARD_BLUR,
+        WebkitBackdropFilter: FM_CARD_BLUR,
         boxShadow: t.dropShadow,
         padding: 6,
         animation: 'fmDropIn 0.16s cubic-bezier(0.16,1,0.3,1) both',
@@ -488,8 +488,8 @@ export const SearchBar = ({ centerOnDark = true }) => {
           display: 'flex', alignItems: 'center', height: 54, borderRadius: 999,
           background: focused ? t.pillBgFocused : t.pillBg,
           border: `1px solid ${focused ? t.pillBorderFoc : t.pillBorder}`,
-          backdropFilter: 'blur(24px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+          backdropFilter: FM_CARD_BLUR,
+          WebkitBackdropFilter: FM_CARD_BLUR,
           boxShadow: focused ? t.shadowFocused : t.shadow,
           transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease',
           animation: bouncing ? 'fmBounce 0.38s cubic-bezier(0.36,0.07,0.19,0.97) both' : 'none',

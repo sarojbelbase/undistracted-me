@@ -1,0 +1,51 @@
+// ─── CSS Design Tokens ─────────────────────────────────────────────────────────
+// These are the fallback :root values. Runtime, applyTheme() in theme.js
+// overwrites them based on the user's mode/accent/cardStyle selections.
+// Keeping them here ensures zero flash on the very first paint and gives a
+// single-file reference for every custom property the app uses.
+
+:root {
+  // ── Page background ──────────────────────────────────────────────────────
+  --w-page-bg: #F0F0F2;
+  --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
+  --white: #e1e0e4;
+
+  // ── Ink scale (light mode defaults) ─────────────────────────────────────
+  --w-ink-1: #111827; // gray-900 — headlines, strong labels
+  --w-ink-2: #1f2937; // gray-800 — display numbers (clock, large date)
+  --w-ink-3: #374151; // gray-700 — bold value text in title/sub pairs
+  --w-ink-4: #4b5563; // gray-600 — medium context, captions
+  --w-ink-5: #6b7280; // gray-500 — soft/muted labels, 4.8:1 AA on white
+  --w-ink-6: #9ca3af; // gray-400 — inactive / decorative
+
+  // ── Surface scale ────────────────────────────────────────────────────────
+  --w-surface: #ffffff;
+  --w-surface-2: #f9fafb;
+  --w-surface-3: #f1f5f9; // tertiary — icon skeletons
+
+  // ── Border & semantic ────────────────────────────────────────────────────
+  --w-border: #e5e7eb;
+  --w-danger: #ef4444;
+  --w-success: #22c55e;
+
+  // ── Accent ───────────────────────────────────────────────────────────────
+  --w-accent: #111827;
+  --w-accent-fg: #ffffff;
+  --w-accent-rgb: 17, 24, 39;
+
+  // ── Widget Catalog danger tokens ─────────────────────────────────────────
+  --wc-danger-fg: #fca5a5;
+  --wc-danger-fg-hover: #fecaca;
+  --wc-danger-bg: rgba(192, 57, 43, 0.14);
+
+  // ── Card surface tokens (glass defaults, overwritten by applyTheme) ──────
+  --card-bg: rgba(255, 255, 255, 0.44);
+  --card-border: rgba(0, 0, 0, 0.09);
+  --card-blur: blur(28px) saturate(180%);
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 8px 32px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --modal-bg: #ffffff;
+  --modal-shadow: 0 8px 40px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.07);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.10);
+  --modal-overlay-blur: blur(10px) saturate(150%);
+  --panel-bg: rgba(255, 255, 255, 0.55);
+}
