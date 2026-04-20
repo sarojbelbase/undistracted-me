@@ -58,6 +58,7 @@
     "https://www.merolagani.com/*",
     "https://people.googleapis.com/*",
     "https://www.googleapis.com/*",
+    "https://tasks.googleapis.com/*",
     "https://oauth2.googleapis.com/*",
     "https://suggestqueries.google.com/*",
     "https://ac.duckduckgo.com/*",
