@@ -391,6 +391,10 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   // can skip re-syncing when it's our own edit (not an external note switch).
   const lastSentRef = useRef(value);
 
+  // Derive mode modifier (e.g. "lex-content--modal") from className so the
+  // placeholder inherits the same font-size/line-height as the editor.
+  const modeClass = className?.split(' ').find(c => c.startsWith('lex-content--')) ?? '';
+
   // Load Source Serif 4 on first mount — deferred so it doesn't block initial page load.
   useEffect(() => { loadSourceSerif(); }, []);
 
@@ -452,7 +456,7 @@ const LexicalEditor = forwardRef(function LexicalEditor(
             />
           }
           placeholder={
-            <div className="lex-placeholder" aria-hidden style={placeholderPadding}>
+            <div className={`lex-placeholder${modeClass ? ` ${modeClass}` : ''}`} aria-hidden style={placeholderPadding}>
               {placeholder ?? 'Write something\u2026'}
             </div>
           }
