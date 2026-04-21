@@ -11,6 +11,7 @@ import { getHistory, pushHistory, fetchSuggestionsAsync, searchOpenTabs, switchT
 import { getTokens, FM_CARD_BLUR } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
+import { useGoogleAccountStore } from '../../../store/useGoogleAccountStore';
 
 // ── Search engine definitions ──────────────────────────────────────────────────
 
@@ -301,6 +302,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
   const focusSearchTopSites = useSettingsStore(s => s.focusSearchTopSites ?? true);
   const focusSearchDrive = useSettingsStore(s => s.focusSearchDrive ?? true);
   const focusSearchWeb = useSettingsStore(s => s.focusSearchWeb ?? true);
+  const googleConnected = useGoogleAccountStore(s => s.connected);
 
   const [query, setQuery] = useState('');
   const [engineId, setEngineId] = useState(() => localStorage.getItem('fm_search_engine') || 'google');
@@ -345,7 +347,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
       const [suggs, tabs, drive] = await Promise.all([
         focusSearchWeb ? fetchSuggestionsAsync(engine, query) : Promise.resolve([]),
         searchOpenTabs(query),
-        focusSearchDrive ? searchDriveFilesAsync(query) : Promise.resolve([]),
+        (focusSearchDrive && googleConnected) ? searchDriveFilesAsync(query) : Promise.resolve([]),
       ]);
       setSuggestions(suggs);
       setTabResults(tabs);
@@ -353,7 +355,12 @@ export const SearchBar = ({ centerOnDark = true }) => {
       setActiveSugg(-1);
     }, 220);
     return () => clearTimeout(debounceRef.current);
-  }, [query, engineId, focusSearchWeb, focusSearchDrive]);
+  }, [query, engineId, focusSearchWeb, focusSearchDrive, googleConnected]);
+
+  // ── Clear Drive results when Google disconnects ──────────────────────────────
+  useEffect(() => {
+    if (!googleConnected) setDriveResults([]);
+  }, [googleConnected]);
 
   // ── Close on outside click ───────────────────────────────────────────────────
   useEffect(() => {

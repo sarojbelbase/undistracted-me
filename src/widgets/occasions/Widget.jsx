@@ -100,20 +100,11 @@ const TypeIcon = ({ type, size = 11 }) => {
 
 const ConnectPrompt = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
-    <PersonHeart size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.6 }} />
+    <PersonHeart size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
     <div className="flex flex-col items-center gap-1.5">
-      <p className="w-muted font-semibold">Not connected</p>
-      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
-        Open the{' '}
-        <span
-          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md align-middle"
-          style={{ backgroundColor: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
-        >
-          <svg width="10" height="3" viewBox="0 0 14 4" fill="currentColor" style={{ color: 'var(--w-ink-3)' }}>
-            <circle cx="2" cy="2" r="1.5" /><circle cx="7" cy="2" r="1.5" /><circle cx="12" cy="2" r="1.5" />
-          </svg>
-        </span>
-        {' '}menu and tap <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings</span> to sync Google Contacts birthdays.
+      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Not connected</p>
+      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+        Open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings&nbsp;› Accounts</span> to sync Google Contacts birthdays.
       </p>
     </div>
   </div>

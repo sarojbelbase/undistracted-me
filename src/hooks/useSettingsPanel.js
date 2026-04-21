@@ -15,6 +15,10 @@ export function useSettingsPanel() {
     const handler = (e) => {
       if (e.type === 'keydown' && e.key === 'Escape') { setShowSettings(false); return; }
       if (panelRef.current && !panelRef.current.contains(e.target)) {
+        // Don't close if the click is inside a portal modal (e.g. AccountsDialog).
+        // Portal dialogs render to document.body so they're outside panelRef in the DOM,
+        // but they should still be treated as "inside" for dismissal purposes.
+        if (e.target.closest('dialog[aria-modal="true"]')) return;
         setShowSettings(false);
       }
     };

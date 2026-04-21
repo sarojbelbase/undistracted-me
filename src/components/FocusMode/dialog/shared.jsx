@@ -10,7 +10,7 @@ import { XLg } from 'react-bootstrap-icons';
 import { useGoogleAccountStore } from '../../../store/useGoogleAccountStore';
 import {
   FOCUS_THEME, DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE,
-  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
+  FM_SURFACE, FM_BORDER, FM_DIVIDER,
   FM_INK_1, FM_INK_2, FM_INK_3, FM_INK_4,
   FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
   FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER, FM_CLOSE_COLOR,
@@ -142,15 +142,15 @@ export const Toggle = ({ checked, onChange }) => (
 export const ToggleRow = ({ label, description, checked, onChange, borderTop = false }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-    padding: '11px 14px',
+    padding: '10px 14px',
     borderTop: borderTop ? SECTION_BORDER : 'none',
   }}>
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1, lineHeight: '1.3' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: FM_INK_1, lineHeight: '1.3' }}>
         {label}
       </div>
       {description && (
-        <div style={{ fontSize: 11.5, color: FM_INK_3, marginTop: 2, lineHeight: '1.4' }}>
+        <div style={{ fontSize: 11, color: FM_INK_3, marginTop: 2, lineHeight: '1.4' }}>
           {description}
         </div>
       )}
@@ -159,102 +159,118 @@ export const ToggleRow = ({ label, description, checked, onChange, borderTop = f
   </div>
 );
 
-// ─── Profile avatar ───────────────────────────────────────────────────────────
-
-export const ProfileAvatar = ({ picture, name, size = 44 }) => {
-  const initials = name
-    ? name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-    : '?';
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%',
-      overflow: 'hidden', flexShrink: 0,
-      background: 'color-mix(in srgb, var(--w-accent) 22%, transparent)',
-      border: '2px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      {picture
-        ? <img src={picture} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        : <span style={{ fontSize: size * 0.33, fontWeight: 700, color: 'var(--w-accent)', letterSpacing: '-0.01em' }}>{initials}</span>
-      }
-    </div>
-  );
-};
-
-// ─── Sync badge ───────────────────────────────────────────────────────────────
-
-const SyncBadge = () => (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: 5,
-    padding: '3px 8px', borderRadius: 20, flexShrink: 0,
-    background: FM_SYNC_BG,
-    border: `1px solid ${FM_SYNC_BORDER}`,
-  }}>
-    <div style={{ width: 5, height: 5, borderRadius: '50%', background: FM_SUCCESS_DOT }} />
-    <span style={{ fontSize: 10.5, fontWeight: 600, color: FM_SUCCESS }}>Synced</span>
-  </div>
-);
-
 // ─── Google Account section ───────────────────────────────────────────────────
 //
-// Shows profile card when connected+profile known, simple "connected" badge
-// when connected but no profile yet, and sign-in CTA when disconnected.
-// Used by both TasksDialog and SearchBarDialog.
+// Mirrors IntegrationRow structure exactly — header row + description outside +
+// pill — but uses FM_* tokens since these dialogs always sit on dark glass.
+//
+// Props:
+//  icon          ReactNode   — service logo to show in the header
+//  label         string      — e.g. "Google Tasks"
+//  description   string|null — shown outside pill when not connected
+//  privacyLabel  string|null — shown in footer with lock icon
 
-export const AccountSection = ({ serviceName = 'Google' }) => {
+export const AccountSection = ({ icon, label = 'Google', description = null, privacyLabel = null }) => {
   const { connected, profile } = useGoogleAccountStore();
 
-  if (connected && profile) {
-    return (
-      <div style={{ ...SECTION_CARD_STYLE, padding: '12px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ProfileAvatar picture={profile.picture} name={profile.name} />
-          <div style={{ flex: 1, minWidth: 0 }}>
+  const pillStyle = {
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '8px 12px', borderRadius: 9,
+    background: 'rgba(255,255,255,0.06)',
+    border: `1px solid ${FM_BORDER}`,
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+      {/* ── Header: icon + label + status dot ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {icon && <span style={{ flexShrink: 0 }}>{icon}</span>}
+        <span style={{ fontSize: 12, fontWeight: 600, color: FM_INK_2, flex: 1 }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: connected ? FM_SUCCESS_DOT : 'rgba(255,255,255,0.25)',
+          }} />
+          <span style={{ fontSize: 10.5, fontWeight: 500, color: connected ? FM_SUCCESS : FM_INK_4 }}>
+            {connected ? 'Connected' : 'Not connected'}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Description — outside the pill, only when not connected ── */}
+      {!connected && description && (
+        <div style={{ fontSize: 11, color: FM_INK_4, lineHeight: '1.45' }}>{description}</div>
+      )}
+
+      {/* ── Account pill ── */}
+      {connected && profile ? (
+        <div style={pillStyle}>
+          {profile.picture ? (
+            <img
+              src={profile.picture}
+              alt=""
+              style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
             <div style={{
-              fontSize: 13.5, fontWeight: 600, color: FM_INK_1,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+              background: 'color-mix(in srgb, var(--w-accent) 22%, transparent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 9, fontWeight: 700, color: 'var(--w-accent)',
             }}>
+              {(profile.name?.[0] ?? '?').toUpperCase()}
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: FM_INK_1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {profile.name ?? 'Google Account'}
             </div>
             {profile.email && (
-              <div style={{
-                fontSize: 11.5, color: FM_INK_3, marginTop: 2,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
+              <div style={{ fontSize: 10.5, color: FM_INK_3, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {profile.email}
               </div>
             )}
           </div>
-          <SyncBadge />
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '3px 8px', borderRadius: 20, flexShrink: 0,
+            background: FM_SYNC_BG, border: `1px solid ${FM_SYNC_BORDER}`,
+          }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: FM_SUCCESS_DOT }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: FM_SUCCESS }}>Synced</span>
+          </div>
         </div>
-      </div>
-    );
-  }
+      ) : connected ? (
+        <div style={pillStyle}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: FM_SUCCESS_DOT, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: FM_INK_1 }}>Connected</span>
+        </div>
+      ) : (
+        <div style={pillStyle}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_3, flexShrink: 0 }}>
+            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+          </svg>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: FM_INK_2 }}>Connect to {label}</div>
+            <div style={{ fontSize: 10.5, color: FM_INK_3, marginTop: 1 }}>Settings › Accounts</div>
+          </div>
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_4, flexShrink: 0 }}>
+            <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+          </svg>
+        </div>
+      )}
 
-  if (connected) {
-    return (
-      <div style={{
-        ...SECTION_CARD_STYLE,
-        padding: '12px 14px',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <div style={{ width: 7, height: 7, borderRadius: '50%', background: FM_SUCCESS_DOT, flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1 }}>
-          {serviceName} connected
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ ...SECTION_CARD_STYLE, padding: '14px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <div style={{ width: 7, height: 7, borderRadius: '50%', background: FM_INK_4, flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1 }}>Not connected</span>
-      </div>
-      <p style={{ fontSize: 12, color: FM_INK_3, lineHeight: '1.55', margin: 0 }}>
-        Open <strong style={{ color: FM_INK_2 }}>Settings › Accounts</strong> to connect your Google account and enable {serviceName}.
-      </p>
+      {/* ── Privacy footer ── */}
+      {privacyLabel && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <svg width="8" height="8" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_4, flexShrink: 0 }}>
+            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+          </svg>
+          <span style={{ fontSize: 10, color: FM_INK_4, flex: 1 }}>{privacyLabel}</span>
+        </div>
+      )}
     </div>
   );
 };

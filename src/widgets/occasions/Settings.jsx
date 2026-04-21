@@ -10,6 +10,7 @@ import {
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
+import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ const ContactsSection = () => (
 // ─── Manual entries section ───────────────────────────────────────────────────
 
 const ManualSection = ({ onManualChange }) => {
+  const googleConnected = useGoogleAccountStore(s => s.connected);
   const [manual, setManual] = useState(() => loadManualBirthdays());
   const [showModal, setShowModal] = useState(false);
 
@@ -178,7 +180,10 @@ const ManualSection = ({ onManualChange }) => {
         {/* Empty hint */}
         {manual.length === 0 && (
           <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
-            Add people not in your Google Contacts — family, close friends, or anyone you don't want to miss.
+            {googleConnected
+              ? <>Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to include people who aren't in your Google Contacts.</>
+              : <>Connect <strong style={{ color: 'var(--w-ink-2)' }}>Google Contacts</strong> above to sync birthdays automatically or tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to add occasions manually.</>
+            }
           </p>
         )}
       </div>

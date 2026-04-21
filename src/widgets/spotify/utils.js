@@ -276,6 +276,7 @@ export const fetchAndCacheProfile = async () => {
     const profile = {
       name: data.display_name || data.id || 'Spotify User',
       avatar: data.images?.[0]?.url ?? null,
+      product: data.product ?? null, // 'premium' | 'free' | 'open' | null
     };
     if (isWebMode()) {
       sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));

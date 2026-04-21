@@ -25,7 +25,8 @@ import { SettingsInput } from './SettingsInput';
 import { TabRow } from './TabRow';
 import {
   FM_DIVIDER,
-  FM_INK_1, FM_INK_3, FM_CLOSE_COLOR,
+  FM_INK_1, FM_INK_3,
+  FM_CLOSE_COLOR, FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER,
   GLASS_CARD_BG, GLASS_CARD_BLUR, GLASS_CARD_BORDER, GLASS_CARD_SHADOW,
 } from '../FocusMode/theme';
 import {
@@ -37,6 +38,41 @@ import {
   getThumbUrl,
 } from '../../utilities/unsplash';
 import { extractColorFromImage } from '../../utilities/favicon';
+
+// ─── Close button (dark = focus mode glass style, light = canvas style) ───────
+const CloseButton = ({ onClose, dark, canvasColor }) => {
+  if (!dark) {
+    return (
+      <button onClick={onClose} aria-label="Close"
+        className="w-7 h-7 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer focus:outline-none"
+        style={{ color: canvasColor }}>
+        <XLg size={13} />
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Close"
+      style={{
+        flexShrink: 0,
+        width: 26, height: 26,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: FM_CLOSE_BG,
+        border: `1px solid ${FM_CLOSE_BORDER}`,
+        borderRadius: '50%',
+        cursor: 'pointer',
+        color: FM_CLOSE_COLOR,
+        transition: 'background 0.15s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = FM_CLOSE_BG_HOVER; }}
+      onMouseLeave={e => { e.currentTarget.style.background = FM_CLOSE_BG; }}
+    >
+      <XLg size={10} />
+    </button>
+  );
+};
 
 // ─── Orb colour palettes (shared + exported) ────────────────────────────────
 
@@ -673,21 +709,29 @@ export const BackgroundPicker = ({
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0"
-          style={{ borderBottom: `1px solid ${th.divider}` }}>
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: dark ? '16px 18px' : undefined,
+            borderBottom: `1px solid ${th.divider}`,
+          }}
+          className={dark ? undefined : 'flex items-center justify-between px-5 pt-5 pb-4 shrink-0'}
+        >
           <div>
-            <h2 className="font-semibold text-sm" style={{ color: th.title }}>
+            <h2
+              className={dark ? undefined : 'font-semibold text-sm'}
+              style={dark ? { fontSize: 14.5, fontWeight: 700, color: th.title } : { color: th.title }}
+            >
               {scope === 'focus' ? 'Focus Mode Background' : 'Canvas Background'}
             </h2>
-            <p className="text-[11px] mt-0.5" style={{ color: th.sub }}>
+            <p
+              className={dark ? undefined : 'text-[11px] mt-0.5'}
+              style={dark ? { fontSize: 11.5, color: th.sub, marginTop: 2 } : { color: th.sub }}
+            >
               Choose how your {scope === 'focus' ? 'focus screen' : 'home canvas'} looks
             </p>
           </div>
-          <button onClick={onClose} aria-label="Close"
-            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer focus:outline-none"
-            style={{ color: th.closeBtn }}>
-            <XLg size={13} />
-          </button>
+          <CloseButton onClose={onClose} dark={dark} canvasColor={th.closeBtn} />
         </div>
 
         {/* Tabs */}
