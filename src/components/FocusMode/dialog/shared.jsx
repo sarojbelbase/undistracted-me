@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { XLg } from 'react-bootstrap-icons';
+import { useGoogleAccountStore } from '../../../store/useGoogleAccountStore';
 import {
   FOCUS_THEME, DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE,
   FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
@@ -14,7 +15,6 @@ import {
   FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
   FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER, FM_CLOSE_COLOR,
   FM_SUCCESS, FM_SUCCESS_DOT, FM_SYNC_BG, FM_SYNC_BORDER,
-  FM_DANGER, FM_DANGER_BG, FM_DANGER_BORDER, FM_DANGER_HOVER_BG,
 } from '../theme';
 
 // Re-export the dialog surface tokens so dialog files can import from one place
@@ -38,20 +38,6 @@ export const IconSpinner = () => (
   >
     <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2.2" strokeOpacity="0.25" />
     <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-  </svg>
-);
-
-const IconLock = () => (
-  <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <rect x="2" y="6" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-);
-
-const IconDisconnect = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M6 10L10 6M9.5 10.5l.5-.5a3.54 3.54 0 0 0 0-5l-.5-.5a3.54 3.54 0 0 0-5 0l-.5.5a3.54 3.54 0 0 0 0 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    <path d="M13 13l-2-2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
   </svg>
 );
 
@@ -215,48 +201,32 @@ const SyncBadge = () => (
 // when connected but no profile yet, and sign-in CTA when disconnected.
 // Used by both TasksDialog and SearchBarDialog.
 
-export const AccountSection = ({ connected, connecting, userProfile, onConnect, onDisconnect, serviceName = 'Google' }) => {
-  if (connected && userProfile) {
+export const AccountSection = ({ serviceName = 'Google' }) => {
+  const { connected, profile } = useGoogleAccountStore();
+
+  if (connected && profile) {
     return (
       <div style={{ ...SECTION_CARD_STYLE, padding: '12px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ProfileAvatar picture={userProfile.picture} name={userProfile.name} />
+          <ProfileAvatar picture={profile.picture} name={profile.name} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: 13.5, fontWeight: 600, color: FM_INK_1,
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
-              {userProfile.name ?? 'Google Account'}
+              {profile.name ?? 'Google Account'}
             </div>
-            {userProfile.email && (
+            {profile.email && (
               <div style={{
                 fontSize: 11.5, color: FM_INK_3, marginTop: 2,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
-                {userProfile.email}
+                {profile.email}
               </div>
             )}
           </div>
           <SyncBadge />
         </div>
-        <button
-          type="button"
-          onClick={onDisconnect}
-          style={{
-            marginTop: 12, width: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-            padding: '7px 0', borderRadius: 8,
-            background: FM_DANGER_BG,
-            border: `1px solid ${FM_DANGER_BORDER}`,
-            color: FM_DANGER, fontSize: 12.5, fontWeight: 600,
-            cursor: 'pointer', transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = FM_DANGER_HOVER_BG; }}
-          onMouseLeave={e => { e.currentTarget.style.background = FM_DANGER_BG; }}
-        >
-          <IconDisconnect />
-          Disconnect
-        </button>
       </div>
     );
   }
@@ -272,55 +242,19 @@ export const AccountSection = ({ connected, connecting, userProfile, onConnect, 
         <span style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1 }}>
           {serviceName} connected
         </span>
-        <button
-          type="button"
-          onClick={onDisconnect}
-          style={{
-            marginLeft: 'auto',
-            padding: '4px 10px', borderRadius: 6,
-            background: FM_DANGER_BG,
-            border: `1px solid ${FM_DANGER_BORDER}`,
-            color: FM_DANGER, fontSize: 11.5, fontWeight: 600,
-            cursor: 'pointer', transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = FM_DANGER_HOVER_BG; }}
-          onMouseLeave={e => { e.currentTarget.style.background = FM_DANGER_BG; }}
-        >
-          Disconnect
-        </button>
       </div>
     );
   }
 
   return (
-    <div style={{ ...SECTION_CARD_STYLE, padding: '16px 14px' }}>
-      <p style={{ fontSize: 13, lineHeight: '1.55', color: FM_INK_2, margin: '0 0 8px' }}>
-        Sign in with Google to access {serviceName} directly inside Focus Mode.
-      </p>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        marginBottom: 14, color: FM_INK_3, fontSize: 11.5,
-      }}>
-        <IconLock />
-        Data loads directly from Google — nothing stored on our servers
+    <div style={{ ...SECTION_CARD_STYLE, padding: '14px 14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: FM_INK_4, flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1 }}>Not connected</span>
       </div>
-      <button
-        type="button"
-        onClick={onConnect}
-        disabled={connecting}
-        style={{
-          width: '100%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          padding: '10px 0', borderRadius: 9,
-          background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-          border: 'none', fontSize: 13, fontWeight: 700,
-          cursor: connecting ? 'default' : 'pointer',
-          opacity: connecting ? 0.7 : 1, transition: 'opacity 0.15s',
-        }}
-      >
-        {connecting ? <IconSpinner /> : <IconGoogle />}
-        {connecting ? 'Connecting…' : 'Sign in with Google'}
-      </button>
+      <p style={{ fontSize: 12, color: FM_INK_3, lineHeight: '1.55', margin: 0 }}>
+        Open <strong style={{ color: FM_INK_2 }}>Settings › Accounts</strong> to connect your Google account and enable {serviceName}.
+      </p>
     </div>
   );
 };

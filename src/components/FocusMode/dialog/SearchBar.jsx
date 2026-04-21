@@ -114,12 +114,6 @@ const SourceRow = ({ icon, label, description, checked, onChange, borderTop = fa
 
 export const SearchBarDialog = ({
   onClose,
-  // auth props — same shape as TasksDialog
-  connected,
-  connecting,
-  userProfile,
-  onConnect,
-  onDisconnect,
 }) => {
   const focusSearchBar = useSettingsStore(s => s.focusSearchBar ?? true);
   const setFocusSearchBar = useSettingsStore(s => s.setFocusSearchBar);
@@ -186,14 +180,7 @@ export const SearchBarDialog = ({
         {focusSearchDrive && (
           <div style={{ marginTop: 18 }}>
             <SectionLabel>Google Account</SectionLabel>
-            <AccountSection
-              connected={connected}
-              connecting={connecting}
-              userProfile={userProfile}
-              onConnect={onConnect}
-              onDisconnect={onDisconnect}
-              serviceName="Google Drive"
-            />
+            <AccountSection serviceName="Google Drive" />
           </div>
         )}
       </div>

@@ -359,9 +359,14 @@ export async function removeGoogleAuthToken(token) {
 
 /**
  * Sign the user out of Google (clears all stored credentials).
+ * On Chrome, also clears ALL cached auth tokens for this extension so
+ * the browser doesn't silently re-issue them on the next getAuthToken call.
  */
 export async function signOutGoogle(token) {
   await removeGoogleAuthToken(token);
+  if (isChromePath() && typeof chrome !== 'undefined' && chrome.identity?.clearAllCachedAuthTokens) { // eslint-disable-line no-undef
+    await new Promise(resolve => chrome.identity.clearAllCachedAuthTokens(resolve)); // eslint-disable-line no-undef
+  }
 }
 
 /**

@@ -85,30 +85,13 @@ const selStyle = {
 
 // ─── Google Contacts section ──────────────────────────────────────────────────
 
-const ContactsSection = ({ connected, loading, ageLabel, profile, error, onConnect, onSync, onDisconnect }) => (
-  <div className="flex flex-col gap-3">
-    <IntegrationRow
-      icon={<PersonHeart size={12} />}
-      label="Google Contacts"
-      connected={connected}
-      loading={loading}
-      profile={profile ? {
-        name: profile.name ?? 'Google Account',
-        email: profile.email,
-        picture: profile.picture,
-      } : null}
-      syncedAtLabel={ageLabel}
-      description="Reads birthdays and anniversaries from your contacts."
-      privacyLabel="Stored only in your browser"
-      connectLabel="Connect Google Contacts"
-      onConnect={onConnect}
-      onSync={onSync}
-      onDisconnect={onDisconnect}
-    />
-    {error && (
-      <p className="text-xs" style={{ color: 'var(--w-danger)' }}>{error}</p>
-    )}
-  </div>
+const ContactsSection = () => (
+  <IntegrationRow
+    icon={<PersonHeart size={12} />}
+    label="Google Contacts"
+    description="Reads birthdays and anniversaries from your contacts."
+    privacyLabel="Stored only in your browser"
+  />
 );
 
 // ─── Manual entries section ───────────────────────────────────────────────────
@@ -205,28 +188,9 @@ const ManualSection = ({ onManualChange }) => {
 
 // ─── Exported settings component ─────────────────────────────────────────────
 
-export const OccasionsSettings = ({
-  connected,
-  loading,
-  error,
-  ageLabel,
-  profile,
-  onConnect,
-  onSync,
-  onDisconnect,
-  onManualChange,
-}) => (
+export const OccasionsSettings = ({ onManualChange }) => (
   <div className="flex flex-col gap-6 py-1">
-    <ContactsSection
-      connected={connected}
-      loading={loading}
-      error={error}
-      ageLabel={ageLabel}
-      profile={profile}
-      onConnect={onConnect}
-      onSync={onSync}
-      onDisconnect={onDisconnect}
-    />
+    <ContactsSection />
     <div style={{ height: 1, background: CANVAS_DIVIDER }} />
     <ManualSection onManualChange={onManualChange} />
   </div>

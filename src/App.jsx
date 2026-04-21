@@ -1,6 +1,6 @@
 import './App.css';
 import './styles/main.scss';
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
@@ -11,6 +11,7 @@ import { CanvasBackground } from './components/ui/CanvasBackground';
 import { ControlCluster } from './components/ui/ControlCluster';
 import { FocusModeButton } from './components/ui/FocusModeButton';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
+import { useGoogleAccountStore } from './store/useGoogleAccountStore';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { useLocation } from './hooks/useLocation';
 import { useFocusMode } from './hooks/useFocusMode';
@@ -40,6 +41,9 @@ const App = () => {
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
 
+  // ── Google account — silent init (checks for existing token, no OAuth UI) ──
+  useEffect(() => { useGoogleAccountStore.getState().init(); }, []);
+
   // ── Theme ───────────────────────────────────────────────────────────────────
   const effectiveMode = useAutoTheme(mode, accent, cardStyle);
   const isDark = effectiveMode === 'dark';
@@ -61,7 +65,7 @@ const App = () => {
   return (
     <div
       id="fullscreen"
-      className="relative h-screen w-screen overflow-x-hidden overflow-y-auto"
+      className="relative h-screen w-screen overflow-auto"
       style={{ background: bg.pageBg }}
     >
       <CanvasBackground {...bg} isDark={isDark} />
