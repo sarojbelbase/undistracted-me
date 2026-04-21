@@ -435,11 +435,11 @@ export const Widget = ({ id, onRemove }) => {
           value={bodyText}
           onChange={handleBodyChange}
           placeholder="Start typing…"
-          className="lex-content"
+          className="lex-content lex-content--modal"
           style={{
             flex: 1,
             padding: `${PAD}px ${PAD}px`,
-            fontSize: '0.96rem', color: 'var(--w-ink-1)',
+            color: 'var(--w-ink-1)',
             overflowY: 'auto', minHeight: 0, outline: 'none',
           }}
         />
@@ -523,9 +523,9 @@ export const Widget = ({ id, onRemove }) => {
               onChange={handleBodyChange}
               placeholder="Start typing…"
               autoFocus={mode === 'page' && !titleLine.trim() ? false : mode === 'page'}
-              className="lex-content"
+              className="lex-content lex-content--page"
               style={{
-                flex: 1, fontSize: '1.15rem', color: 'var(--w-ink-1)',
+                flex: 1, color: 'var(--w-ink-1)',
                 overflowY: 'auto', paddingTop: 12, minHeight: 0, outline: 'none',
               }}
             />

@@ -5,19 +5,36 @@ dialog[aria-label="Link editor"]::backdrop {
   background: transparent;
 }
 
+.font-base {
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 10px;
+  /* widget card baseline */
+  line-height: 1.5;
+  padding-left: 6px;
+}
+
 // ContentEditable element — flex so it fills available height
 .lex-content {
+  @extend .font-base;
+
   flex: 1;
   min-height: 0;
   outline: none;
   word-break: break-word;
-  line-height: 1.85;
   overflow-y: auto;
   scrollbar-width: none;
   direction: ltr;
   text-align: left;
-  padding-left: 6px;
-  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  &.lex-content--modal {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  &.lex-content--page {
+    font-size: 1.1rem;
+    line-height: 1.85;
+  }
 
   &::-webkit-scrollbar {
     display: none;
@@ -32,18 +49,29 @@ dialog[aria-label="Link editor"]::backdrop {
 }
 
 // Placeholder — absolutely positioned inside the relative wrapper
+// Mode modifier classes are applied by LexicalEditor to keep font in sync with the editor.
 .lex-placeholder {
+  @extend .font-base;
+
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  padding-left: 6px; // mirrors .lex-content padding-left so cursor aligns
   pointer-events: none;
   color: var(--w-ink-6);
-  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  &.lex-content--modal {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  &.lex-content--page {
+    font-size: 16px;
+    line-height: 1.85;
+  }
 }
 
 // Paragraph
@@ -139,7 +167,7 @@ dialog[aria-label="Link editor"]::backdrop {
 
 .lex-ol {
   list-style: decimal;
-  padding-left: 2em;
+  padding-left: 1.2em;
   margin: 0.2em 0;
 }
 
