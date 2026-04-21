@@ -61,7 +61,7 @@ const App = () => {
   return (
     <div
       id="fullscreen"
-      className="relative h-screen w-screen overflow-auto"
+      className="relative h-screen w-screen overflow-x-hidden overflow-y-auto"
       style={{ background: bg.pageBg }}
     >
       <CanvasBackground {...bg} isDark={isDark} />
