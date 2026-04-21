@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
+import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
   SPOTIFY_CLIENT_ID,
@@ -636,27 +637,12 @@ export const Widget = ({ onRemove }) => {
   );
 };
 
-const SpotifyMusicIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z" />
-    <path fillRule="evenodd" d="M9 3v10H8V3h1z" />
-    <path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z" />
-  </svg>
-);
-
-const SpotifyIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="#000">
-    <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z" />
-    <path fillRule="evenodd" d="M9 3v10H8V3h1z" />
-    <path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z" />
-  </svg>
-);
-
-const SpotifyBadgeIcon = () => (
-  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#1DB954' }}>
-    <SpotifyMusicIcon />
-  </div>
-);
+const spotifyTierLabel = (profile) => {
+  if (!profile) return null;
+  if (profile.product === 'premium') return 'Spotify Premium';
+  if (profile.product === 'free' || profile.product === 'open') return 'Spotify Free';
+  return null;
+};
 
 const SpotifySettings = () => {
   const [connected, setConnected] = useState(() => isSpotifyConnected());
@@ -679,11 +665,13 @@ const SpotifySettings = () => {
 
       {/* ── Spotify connection row ── */}
       <IntegrationRow
-        icon={<SpotifyBadgeIcon />}
+        icon={<SpotifyBrandIcon size={22} />}
         label="Spotify"
+        description="Controls playback and shows the currently playing track."
         privacyLabel="Nothing stored on servers"
         connected={connected}
-        profile={profile}
+        profile={profile ? { ...profile, picture: profile.avatar ?? null } : null}
+        profileSubtitle={spotifyTierLabel(profile)}
       />
 
       {/* ── Playback sources ── */}
@@ -694,11 +682,11 @@ const SpotifySettings = () => {
 
         {/* Soundcloud — automatic, no setup */}
         <div className="flex items-center gap-2.5">
-          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ background: '#FF5500' }}>
-            {/* SoundCloud logomark: the waveform cloud */}
-            <svg width="11" height="8" viewBox="0 0 32 20" fill="white">
-              <path d="M0 14.5c0 1.93 1.57 3.5 3.5 3.5S7 16.43 7 14.5V8.2C6.37 8.07 5.7 8 5 8 2.24 8 0 10.24 0 13v1.5zM7 14.5V9.1a8.5 8.5 0 0 1 3-1.1v6.5c0 1.93-1.57 3.5-3.5 3.5V14.5zM10 8.5v9.5h3V7.2A8.55 8.55 0 0 0 10 8.5zM13 18h3V6.5a8.5 8.5 0 0 0-3 .7V18zM16 18h3V6.04A13.5 13.5 0 0 0 16 6v12zM19 18h3V6.5C21.03 6.18 20.03 6 19 6v12zM22 18h3V8a5 5 0 0 0-3-1V18zM25 18h4.5A2.5 2.5 0 0 0 32 15.5c0-1.38-1.12-2.5-2.5-2.5-.28 0-.54.05-.78.13A7 7 0 0 0 25 8v10z" />
-            </svg>
+          <div
+            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
+            style={{ background: '#FF5500' }}
+          >
+            <MusicNoteBeamed size={11} color="white" />
           </div>
           <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>SoundCloud</span>
           <span

@@ -15,12 +15,11 @@ import { Modal } from '../../ui/Modal';
 import { useSettingsStore } from '../../../store';
 import {
   DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER,
-  DialogHeader, SectionLabel, ToggleRow, AccountSection,
+  DialogHeader, SectionLabel, ToggleRow, Toggle, AccountSection,
 } from './shared';
 import {
   FM_SURFACE, FM_BORDER, FM_INK_1, FM_INK_3,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
-  FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
 } from '../theme';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -66,7 +65,7 @@ const IconGlobe = () => (
 const SourceRow = ({ icon, label, description, checked, onChange, borderTop = false }) => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: 12,
-    padding: '11px 14px',
+    padding: '10px 14px',
     borderTop: borderTop ? SECTION_BORDER : 'none',
   }}>
     <div style={{
@@ -78,35 +77,14 @@ const SourceRow = ({ icon, label, description, checked, onChange, borderTop = fa
       {icon}
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 500, color: FM_INK_1, lineHeight: '1.3' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: FM_INK_1, lineHeight: '1.3' }}>
         {label}
       </div>
-      <div style={{ fontSize: 11.5, color: FM_INK_3, marginTop: 1.5, lineHeight: '1.4' }}>
+      <div style={{ fontSize: 11, color: FM_INK_3, marginTop: 1.5, lineHeight: '1.4' }}>
         {description}
       </div>
     </div>
-    {/* reuse shared Toggle via ToggleRow shape inline */}
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      style={{
-        flexShrink: 0,
-        width: 34, height: 19, borderRadius: 10,
-        background: checked ? 'var(--w-accent)' : FM_TOGGLE_OFF_BG,
-        border: 'none', cursor: 'pointer', padding: 2,
-        transition: 'background 0.18s ease',
-      }}
-    >
-      <div style={{
-        width: 15, height: 15, borderRadius: '50%',
-        background: FM_TOGGLE_THUMB,
-        boxShadow: FM_TOGGLE_SHADOW,
-        transition: 'transform 0.18s ease',
-        transform: checked ? 'translateX(15px)' : 'translateX(0)',
-      }} />
-    </button>
+    <Toggle checked={checked} onChange={onChange} />
   </div>
 );
 
@@ -179,8 +157,12 @@ export const SearchBarDialog = ({
         {/* ── Google Drive auth — shown when Drive is toggled on ── */}
         {focusSearchDrive && (
           <div style={{ marginTop: 18 }}>
-            <SectionLabel>Google Account</SectionLabel>
-            <AccountSection serviceName="Google Drive" />
+            <AccountSection
+              icon={<IconDrive />}
+              label="Google Drive"
+              description="Search across your Drive files as you type."
+              privacyLabel="Nothing stored on servers"
+            />
           </div>
         )}
       </div>

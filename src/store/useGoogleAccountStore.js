@@ -80,18 +80,17 @@ export const useGoogleAccountStore = create((set, get) => ({
   disconnect: async () => {
     // Persist user intent so init() skips auto-reconnect on next page load.
     localStorage.setItem(USER_DISCONNECTED_KEY, '1');
-    set({ disconnecting: true });
-    try {
-      const token = await getGoogleAuthToken(false).catch(() => null);
-      await signOutGoogle(token);
-    } catch { /* best-effort */ }
-    // Await both so their disconnect flags are set before widgets re-check isCalendarConnected()
-    await disconnectCalendar().catch(() => { });
-    await disconnectContacts().catch(() => { });
+    // Update state immediately so UI responds — don't block on async token/cache cleanup.
+    // (Mirroring the earlier approach: set state first, then clean up in the background.)
     set({ connected: false, profile: null, error: null, disconnecting: false });
     globalThis.dispatchEvent(
       new CustomEvent(GOOGLE_ACCOUNT_CHANGED, { detail: { connected: false, profile: null } }),
     );
+    // Background cleanup — pass null like the earlier code to avoid fetching a token
+    // right after clearAllCachedAuthTokens (which can cause chrome.identity to hang).
+    try { await signOutGoogle(null); } catch { /* best-effort */ }
+    disconnectCalendar().catch(() => { });
+    disconnectContacts().catch(() => { });
   },
 
   clearError: () => set({ error: null }),

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SunFill, MoonFill, CheckLg, CircleHalf } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 import { TooltipBtn } from './ui/TooltipBtn';
 import { CANVAS_DIVIDER } from '../theme/canvas';
-import { AccountsDialog } from './ui/AccountsDialog';
+import { AccountsDialog, SPOTIFY_ACCOUNT_CHANGED } from './ui/AccountsDialog';
 import { useGoogleAccountStore } from '../store/useGoogleAccountStore';
+import { isSpotifyConnected } from '../widgets/spotify/utils';
 
 const SectionLabel = ({ children }) => (
   <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
@@ -21,6 +22,12 @@ const Divider = () => (
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
   const [showAccounts, setShowAccounts] = useState(false);
   const googleConnected = useGoogleAccountStore(s => s.connected);
+  const [spotifyConnected, setSpotifyConnected] = useState(() => isSpotifyConnected());
+  useEffect(() => {
+    const handler = (e) => setSpotifyConnected(e.detail?.connected ?? false);
+    window.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    return () => window.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+  }, []);
   const {
     accent, setAccent,
     mode, setMode,
@@ -147,7 +154,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             <p className="text-[10px] font-bold" style={{ color: 'var(--w-ink-3)' }}>Accent</p>
             <span className="text-[11px] font-semibold" style={{ color: 'var(--w-accent)' }}>{accent}</span>
           </div>
-          <div className="grid grid-cols-6 gap-y-2.5" style={{ justifyItems: 'center' }}>
+          <div className="flex flex-wrap gap-1.5">
             {ACCENT_COLORS.map(color => {
               const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
               const selected = accent === color.name;
@@ -156,25 +163,21 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
                   key={color.name}
                   tooltip={locked ? 'Not available in dark mode' : color.name}
                   onClick={() => !locked && setAccent(color.name)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center transition-all focus:outline-none cursor-pointer"
+                  className="w-6 h-6 rounded-full flex items-center justify-center transition-all focus:outline-none"
                   style={{
                     backgroundColor: color.hex,
-                    outline: selected ? `2.5px solid ${color.hex}` : 'none',
-                    outlineOffset: selected ? '2.5px' : '0',
-                    transform: selected ? 'scale(1.14)' : 'scale(1)',
-                    opacity: locked ? 0.35 : 1,
+                    boxShadow: selected ? 'inset 0 0 0 99px rgba(0,0,0,0.22)' : 'none',
+                    opacity: locked ? 0.3 : 1,
                     cursor: locked ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {selected && <CheckLg size={10} style={{ color: color.fg }} />}
+                  {selected && <CheckLg size={12} style={{ color: color.fg }} />}
                 </TooltipBtn>
               );
             })}
           </div>
         </div>
       </div>
-
-      <Divider />
 
       {/* ── WIDGET STYLE ── */}
       <div>
@@ -221,6 +224,25 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             {{ solid: 'Solid Color', orb: 'Color Motion', curated: 'Curated Photos', custom: 'Custom URL', default: 'Photo' }[canvasBg?.type] ?? 'Solid Color'}
           </span>
           <span style={{ color: 'var(--w-ink-4)' }}>Change ›</span>
+        </button>
+      </div>
+
+      {/* ── ACCOUNTS ── */}
+      <div>
+        <SectionLabel>Accounts</SectionLabel>
+        <button
+          onClick={() => setShowAccounts(true)}
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 cursor-pointer focus:outline-none"
+          style={{
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--card-border)',
+            color: 'var(--w-ink-2)',
+          }}
+        >
+          <span>{(googleConnected || spotifyConnected) ? 'Connected' : 'Not connected'}</span>
+          <span style={{ color: 'var(--w-ink-4)' }}>
+            {(googleConnected || spotifyConnected) ? 'Manage \u203a' : 'Set up \u203a'}
+          </span>
         </button>
       </div>
 
@@ -329,25 +351,6 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
             </div>
           </div>
         )}
-      </div>
-
-      <Divider />
-
-      {/* ── ACCOUNTS ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <SectionLabel>Accounts</SectionLabel>
-          <p className="text-[10px] leading-tight -mt-1.5" style={{ color: 'var(--w-ink-5)' }}>
-            {googleConnected ? 'Google connected' : 'Google, Spotify & more'}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAccounts(true)}
-          className="text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer"
-          style={{ color: 'var(--w-accent)' }}
-        >
-          Manage &rsaquo;
-        </button>
       </div>
 
       {showAccounts && (

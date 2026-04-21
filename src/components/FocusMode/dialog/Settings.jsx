@@ -99,7 +99,7 @@ export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSear
         <FMLabel>Search Bar</FMLabel>
         <button
           onClick={() => onOpenSearchDialog?.()}
-          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-xl font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
+          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-lg font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
           style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_1 }}
         >
           <span>Configure search</span>
@@ -112,7 +112,7 @@ export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSear
         <FMLabel>Tasks</FMLabel>
         <button
           onClick={() => onOpenTasksDialog?.()}
-          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-xl font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
+          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-lg font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
           style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_1 }}
         >
           <span>Configure tasks</span>
@@ -125,7 +125,7 @@ export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSear
         <FMLabel>Background</FMLabel>
         <button
           onClick={() => onOpenBgModal?.()}
-          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-xl font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
+          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-lg font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
           style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_1 }}
         >
           <span>Change background</span>

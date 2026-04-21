@@ -120,14 +120,14 @@
 }
 
 .fm-greeting-text {
-  font-size: clamp(1.3rem, 2.2vw, 2rem);
+  font-size: clamp(0.95rem, 1.3vw, 1.3rem);
 
   @media (max-width: 899px) and (min-width: 641px) {
-    font-size: clamp(1rem, 2vw, 1.6rem);
+    font-size: clamp(0.9rem, 1.3vw, 1.2rem);
   }
 
   @media (max-width: 640px) {
-    font-size: clamp(1rem, 2.8vw, 1.4rem);
+    font-size: clamp(0.85rem, 1.8vw, 1.1rem);
   }
 }
 

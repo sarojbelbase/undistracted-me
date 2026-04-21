@@ -425,13 +425,16 @@ import {
   updateGoogleTask, deleteGoogleTask,
 } from '../../utilities/googleTasks';
 import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
-import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
+import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 
 export function useFocusTasks() {
+  // Single source of truth — read directly from the Zustand store.
+  // When connected flips (connect/disconnect from anywhere in the app),
+  // this hook re-renders and the effect below responds immediately.
+  const connected = useGoogleAccountStore(s => s.connected);
+
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  // Start as false — only flip to true after a successful API call.
-  // isGoogleAuthAvailable() only means the API exists, not that the user has authed.
   const [gtasksConnected, setGtasksConnected] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   // Tracks whether the initial auth attempt has completed (success or failure).
@@ -456,25 +459,19 @@ export function useFocusTasks() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-
-  // React to global auth events so Tasks panel updates when user connects/disconnects
-  // from AccountsDialog (Settings → Accounts) without needing to re-enter FocusMode.
+  // React directly to Zustand auth state — no DOM event relay needed.
+  // connected=true  → load tasks from API
+  // connected=false → wipe all local state immediately, show "not connected"
   useEffect(() => {
-    const handler = (e) => {
-      if (e.detail?.connected) {
-        setGtasksConnected(true);
-        if (e.detail?.profile) setUserProfile(e.detail.profile);
-        load();
-      } else {
-        setGtasksConnected(false);
-        setUserProfile(null);
-        setTasks([]);
-      }
-    };
-    window.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
-    return () => window.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
-  }, [load]);
+    if (connected) {
+      load();
+    } else {
+      setGtasksConnected(false);
+      setUserProfile(null);
+      setTasks([]);
+      setHasAttempted(true);
+    }
+  }, [connected, load]);
 
   const add = useCallback(async (title) => {
     if (!title.trim()) return;

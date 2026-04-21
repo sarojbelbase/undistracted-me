@@ -21,8 +21,12 @@ export const TasksDialog = ({ onClose }) => {
         subtitle="Manage tasks directly from Focus Mode"
         onClose={onClose} />
       <div style={{ padding: "16px 18px 18px" }}>
-        <SectionLabel>Account</SectionLabel>
-        <AccountSection serviceName="Google Tasks" />
+        <AccountSection
+          icon={<IconGoogle />}
+          label="Google Tasks"
+          description="Add, complete, and track tasks from your Google Tasks lists."
+          privacyLabel="Nothing stored on servers"
+        />
         <div style={{ marginTop: 18 }}>
           <SectionLabel>Visibility</SectionLabel>
           <div style={SECTION_CARD_STYLE}>
