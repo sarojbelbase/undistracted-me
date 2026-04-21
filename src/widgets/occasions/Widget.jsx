@@ -226,19 +226,6 @@ export const Widget = ({ id, onRemove }) => {
   // ── Settings panel ─────────────────────────────────────────────────────────
   const settingsContent = (
     <OccasionsSettings
-      connected={connected}
-      loading={loading}
-      error={connected ? null : error}
-      ageLabel={ageLabel}
-      profile={loadCachedProfile()}
-      onConnect={() => sync(true)}
-      onSync={() => sync(true)}
-      onDisconnect={() => {
-        disconnectContacts();
-        setRaw([]);
-        setConnected(false);
-        setSyncedAt(null);
-      }}
       onManualChange={(updated) => setManual(updated)}
     />
   );

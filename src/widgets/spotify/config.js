@@ -3,10 +3,10 @@ import { MusicNoteBeamed } from 'react-bootstrap-icons';
 
 export default {
   type: 'spotify',
-  title: 'Spotify',
+  title: 'Media',
   category: 'tools',
   icon: MusicNoteBeamed,
-  description: 'Spotify playback controls',
+  description: 'Spotify & browser media controls',
   enabled: true,
   x: 4, y: 5, w: 2, h: 2.5,
   breakpoints: {

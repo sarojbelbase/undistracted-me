@@ -9,8 +9,8 @@ import {
 } from './hooks';
 import { BackgroundPicker, getCustomBgUrl, setCustomBgUrl as persistCustomUrl, getOrbRgb } from '../ui/BackgroundPicker';
 import { getBgSource, setBgSource as persistBgSource } from '../../utilities/unsplash';
-import { getGoogleAuthToken, isGoogleAuthAvailable, signOutGoogle } from '../../utilities/googleAuth';
 import { useSettingsStore } from '../../store';
+import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 import { getFMCardVars, FM_ORB_BG } from './theme';
 import { SearchBarDialog } from './dialog/SearchBar';
 import { TopZone } from './zones/TopZone';
@@ -111,29 +111,9 @@ export const FocusMode = ({ onExit }) => {
     else document.documentElement.requestFullscreen().catch(() => { });
   }, []);
 
-  // ── Google auth (shared between Tasks panel + Search Drive) ──────────────────
+  // ── Google auth (shared state for Tasks panel + Search Drive) ──────────────────
   const taskState = useFocusTasks();
-  const [connecting, setConnecting] = useState(false);
-
-  const onConnect = useCallback(async () => {
-    if (!isGoogleAuthAvailable()) return;
-    setConnecting(true);
-    try {
-      await getGoogleAuthToken(true);
-      taskState.setGtasksConnected(true);
-      await taskState.reload();
-    } catch (err) {
-      console.warn('Google auth failed:', err);
-    } finally {
-      setConnecting(false);
-    }
-  }, [taskState]);
-
-  const onDisconnect = useCallback(async () => {
-    try { await signOutGoogle(null); } catch { /* best-effort */ }
-    taskState.setGtasksConnected(false);
-    taskState.setUserProfile(null);
-  }, [taskState]);
+  const { connected: googleConnected, profile: googleProfile } = useGoogleAccountStore();
 
   // ── Escape key ─────────────────────────────────────────────────────────────
   const [showBgModal, setShowBgModal] = useState(false);
@@ -181,9 +161,6 @@ export const FocusMode = ({ onExit }) => {
       {ZONES.bottomRight?.enable && (
         <BottomRightZone
           taskState={taskState}
-          connecting={connecting}
-          onConnect={onConnect}
-          onDisconnect={onDisconnect}
           externalDialogOpen={showTasksDialog}
           onCloseExternalDialog={() => setShowTasksDialog(false)}
         />
@@ -215,11 +192,6 @@ export const FocusMode = ({ onExit }) => {
       {showSearchDialog && (
         <SearchBarDialog
           onClose={() => setShowSearchDialog(false)}
-          connected={taskState.gtasksConnected}
-          connecting={connecting}
-          userProfile={taskState.userProfile}
-          onConnect={onConnect}
-          onDisconnect={onDisconnect}
         />
       )}
     </div>

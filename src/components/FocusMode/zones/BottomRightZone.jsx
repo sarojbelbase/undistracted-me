@@ -38,9 +38,6 @@ const TasksPillSkeleton = () => (
 
 export const BottomRightZone = ({
   taskState,
-  connecting,
-  onConnect,
-  onDisconnect,
   externalDialogOpen,
   onCloseExternalDialog,
 }) => {
@@ -59,12 +56,12 @@ export const BottomRightZone = ({
       {focusTasks && (
         <div className="pointer-events-auto" style={{ position: "absolute", bottom: 24, right: 24, zIndex: 22 }} onClick={e => e.stopPropagation()} role="none">
           <Suspense fallback={<TasksPillSkeleton />}>
-            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} connecting={connecting} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} onOpenDialog={() => setDialogOpen(true)} />
+            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} onOpenDialog={() => setDialogOpen(true)} />
           </Suspense>
         </div>
       )}
       {isDialogOpen && (
-        <TasksDialog onClose={closeDialog} connected={gtasksConnected} connecting={connecting} userProfile={userProfile} onConnect={onConnect} onDisconnect={onDisconnect} />
+        <TasksDialog onClose={closeDialog} />
       )}
     </>
   );

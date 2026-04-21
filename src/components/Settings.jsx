@@ -1,9 +1,12 @@
+import React, { useState } from 'react';
 import { SunFill, MoonFill, CheckLg, CircleHalf } from 'react-bootstrap-icons';
 import { ACCENT_COLORS } from '../theme';
 import { CARD_STYLES } from '../constants/cardStyles';
 import { useSettingsStore } from '../store';
 import { TooltipBtn } from './ui/TooltipBtn';
 import { CANVAS_DIVIDER } from '../theme/canvas';
+import { AccountsDialog } from './ui/AccountsDialog';
+import { useGoogleAccountStore } from '../store/useGoogleAccountStore';
 
 const SectionLabel = ({ children }) => (
   <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
@@ -16,6 +19,8 @@ const Divider = () => (
 );
 
 export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) => {
+  const [showAccounts, setShowAccounts] = useState(false);
+  const googleConnected = useGoogleAccountStore(s => s.connected);
   const {
     accent, setAccent,
     mode, setMode,
@@ -325,6 +330,29 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
           </div>
         )}
       </div>
+
+      <Divider />
+
+      {/* ── ACCOUNTS ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <SectionLabel>Accounts</SectionLabel>
+          <p className="text-[10px] leading-tight -mt-1.5" style={{ color: 'var(--w-ink-5)' }}>
+            {googleConnected ? 'Google connected' : 'Google, Spotify & more'}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAccounts(true)}
+          className="text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer"
+          style={{ color: 'var(--w-accent)' }}
+        >
+          Manage &rsaquo;
+        </button>
+      </div>
+
+      {showAccounts && (
+        <AccountsDialog onClose={() => setShowAccounts(false)} />
+      )}
 
     </dialog>
   );

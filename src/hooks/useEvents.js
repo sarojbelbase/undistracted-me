@@ -16,6 +16,7 @@ import {
 } from '../utilities/googleCalendar';
 import { sendToServiceWorker } from '../utilities/chrome';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { GOOGLE_ACCOUNT_CHANGED } from '../store/useGoogleAccountStore';
 
 const STORAGE_KEY = STORAGE_KEYS.EVENTS;
 const SYNC_EVENT = 'widget_events_changed';
@@ -198,6 +199,23 @@ export const useGoogleCalendar = () => {
     }, 60 * 60 * 1000);
     return () => clearInterval(tid);
   }, [connected, refresh]);
+
+  // React to global auth events so the widget resets immediately on disconnect
+  // without needing a page reload.
+  useEffect(() => {
+    const handler = ({ detail }) => {
+      if (!detail?.connected) {
+        setConnected(false);
+        setGcalEvents([]);
+        setError(null);
+      } else if (detail?.connected) {
+        // Re-check on reconnect
+        refresh();
+      }
+    };
+    globalThis.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+    return () => globalThis.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+  }, [refresh]);
 
   return { gcalEvents, loading, connected, error, syncedAt, refresh, connect };
 };

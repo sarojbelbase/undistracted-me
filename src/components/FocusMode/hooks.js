@@ -425,6 +425,7 @@ import {
   updateGoogleTask, deleteGoogleTask,
 } from '../../utilities/googleTasks';
 import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
+import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
 
 export function useFocusTasks() {
   const [tasks, setTasks] = useState([]);
@@ -456,6 +457,24 @@ export function useFocusTasks() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // React to global auth events so Tasks panel updates when user connects/disconnects
+  // from AccountsDialog (Settings → Accounts) without needing to re-enter FocusMode.
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.connected) {
+        setGtasksConnected(true);
+        if (e.detail?.profile) setUserProfile(e.detail.profile);
+        load();
+      } else {
+        setGtasksConnected(false);
+        setUserProfile(null);
+        setTasks([]);
+      }
+    };
+    window.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+    return () => window.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+  }, [load]);
 
   const add = useCallback(async (title) => {
     if (!title.trim()) return;

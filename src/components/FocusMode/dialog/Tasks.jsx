@@ -12,20 +12,17 @@ import {
   IconGoogle,
 } from './shared';
 
-export const TasksDialog = ({
-  onClose, connected, connecting, userProfile, onConnect, onDisconnect,
-}) => {
+export const TasksDialog = ({ onClose }) => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
   const setFocusTasks = useSettingsStore(s => s.setFocusTasks);
   return (
     <Modal onClose={onClose} style={{ width: 360, ...DIALOG_STYLE }} ariaLabel="Google Tasks settings">
       <DialogHeader icon={<IconGoogle />} title="Google Tasks"
-        subtitle={connected ? "Connected — tasks synced from Google" : "Not connected"}
+        subtitle="Manage tasks directly from Focus Mode"
         onClose={onClose} />
       <div style={{ padding: "16px 18px 18px" }}>
         <SectionLabel>Account</SectionLabel>
-        <AccountSection connected={connected} connecting={connecting} userProfile={userProfile}
-          onConnect={onConnect} onDisconnect={onDisconnect} serviceName="Google Tasks" />
+        <AccountSection serviceName="Google Tasks" />
         <div style={{ marginTop: 18 }}>
           <SectionLabel>Visibility</SectionLabel>
           <div style={SECTION_CARD_STYLE}>
