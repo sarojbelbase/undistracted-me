@@ -3,6 +3,19 @@ import { createPortal } from 'react-dom';
 import { GeoAlt, XCircleFill } from 'react-bootstrap-icons';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
+import { useLocationStore } from '../../store/useLocationStore';
+
+const haversineKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const UNIT_OPTIONS = [
   { label: '°C', value: 'metric' },
@@ -21,6 +34,8 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
   const [dropdownStyle, setDropdownStyle] = useState({});
   const debounceRef = useRef(null);
   const inputWrapRef = useRef(null);
+  const userLat = useLocationStore(s => s.lat);
+  const userLon = useLocationStore(s => s.lon);
 
   useEffect(() => {
     setQuery(location?.name || '');
@@ -59,7 +74,16 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
     debounceRef.current = setTimeout(() => {
       fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=20&language=en&format=json`)
         .then(r => r.json())
-        .then(res => setSuggestions(res.results || []))
+        .then(res => {
+          const results = res.results || [];
+          if (userLat != null && userLon != null) {
+            results.sort((a, b) =>
+              haversineKm(userLat, userLon, a.latitude, a.longitude) -
+              haversineKm(userLat, userLon, b.latitude, b.longitude)
+            );
+          }
+          setSuggestions(results);
+        })
         .catch(() => setSuggestions([]));
     }, 350);
   };
@@ -99,7 +123,16 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
 
       {/* ── Location ── */}
       <div className="flex flex-col gap-2">
-        <span className="w-label">Location</span>
+        <div className="flex items-center justify-between">
+          <span className="w-label">Location</span>
+          {import.meta.env.VITE_DEBUG_MODE === 'true' && (
+            <span className="text-[10px] font-mono" style={{ color: 'var(--w-ink-4)' }}>
+              {userLat != null && userLon != null
+                ? `${userLat.toFixed(2)}, ${userLon.toFixed(2)}`
+                : '-, -'}
+            </span>
+          )}
+        </div>
 
         <SettingsInput
           id="weather-location"
