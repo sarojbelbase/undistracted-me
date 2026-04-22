@@ -8,12 +8,12 @@ export default {
   icon: CloudSunFill,
   description: 'Local weather & forecast',
   enabled: true,
-  x: 6, y: 0, w: 2, h: 2,
+  x: 24, y: 0, w: 8, h: 8,
   breakpoints: {
-    md: { x: 6, y: 0, w: 2, h: 2 },
-    sm: { x: 4, y: 0, w: 2, h: 2 },
-    xs: { x: 0, y: 2, w: 2, h: 2 },
-    xxs: { x: 0, y: 4, w: 2, h: 2 },
+    md: { x: 24, y: 0, w: 8, h: 8 },
+    sm: { x: 16, y: 0, w: 8, h: 8 },
+    xs: { x: 0, y: 8, w: 8, h: 8 },
+    xxs: { x: 0, y: 16, w: 8, h: 8 },
   },
   Component: Widget,
 };

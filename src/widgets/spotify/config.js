@@ -8,12 +8,12 @@ export default {
   icon: MusicNoteBeamed,
   description: 'Spotify & browser media controls',
   enabled: true,
-  x: 4, y: 5, w: 2, h: 2.5,
+  x: 16, y: 20, w: 8, h: 10,
   breakpoints: {
-    md: { x: 4, y: 7, w: 3, h: 2.5 },
-    sm: { x: 4, y: 9.5, w: 2, h: 2.5 },
-    xs: { x: 2, y: 15.5, w: 2, h: 2.5 },
-    xxs: { x: 0, y: 26, w: 2, h: 2.5 },
+    md: { x: 16, y: 28, w: 12, h: 10 },
+    sm: { x: 16, y: 38, w: 8, h: 10 },
+    xs: { x: 8, y: 62, w: 8, h: 10 },
+    xxs: { x: 0, y: 104, w: 8, h: 10 },
   },
   Component: Widget,
 };

@@ -8,12 +8,12 @@ export default {
   icon: CalendarEventFill,
   description: "Today's events from your calendar",
   enabled: true,
-  x: 3, y: 2, w: 3.5, h: 2.5,
+  x: 12, y: 8, w: 14, h: 10,
   breakpoints: {
-    md: { x: 0, y: 2, w: 4, h: 2.5 },
-    sm: { x: 0, y: 4, w: 3, h: 2.5 },
-    xs: { x: 0, y: 5, w: 4, h: 2.5 },
-    xxs: { x: 0, y: 9, w: 2, h: 2.5 },
+    md: { x: 0, y: 8, w: 16, h: 10 },
+    sm: { x: 0, y: 16, w: 12, h: 10 },
+    xs: { x: 0, y: 20, w: 16, h: 10 },
+    xxs: { x: 0, y: 36, w: 8, h: 10 },
   },
   Component: Widget,
 };

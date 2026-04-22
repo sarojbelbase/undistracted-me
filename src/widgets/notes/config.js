@@ -8,12 +8,12 @@ export default {
   icon: StickyFill,
   description: 'Quick sticky note',
   enabled: true,
-  x: 7, y: 2, w: 2, h: 2.5,
+  x: 28, y: 8, w: 8, h: 10,
   breakpoints: {
-    md: { x: 7, y: 2, w: 3, h: 2 },
-    sm: { x: 3, y: 4, w: 3, h: 2 },
-    xs: { x: 0, y: 10.5, w: 2, h: 2.5 },
-    xxs: { x: 0, y: 14.5, w: 2, h: 2.5 },
+    md: { x: 28, y: 8, w: 12, h: 8 },
+    sm: { x: 12, y: 16, w: 12, h: 8 },
+    xs: { x: 0, y: 42, w: 8, h: 10 },
+    xxs: { x: 0, y: 58, w: 8, h: 10 },
   },
   Component: Widget,
 };

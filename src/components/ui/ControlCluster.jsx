@@ -55,6 +55,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
         <TooltipBtn
           tooltip={arrangeMode ? 'Done (Esc)' : 'Arrange'}
           className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${arrangeMode ? '' : hoverBg}`}
+          data-arrange-toggle
           onClick={toggleArrangeMode}
           style={arrangeMode ? { background: 'var(--w-accent)', borderRadius: '9999px' } : {}}
         >

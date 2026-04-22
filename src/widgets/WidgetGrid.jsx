@@ -8,6 +8,9 @@ import { STORAGE_KEYS } from '../constants/storageKeys';
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
+// 48-col grid — configs author values in 48-col space directly.
+const LG_COLS = 48, LG_MARGIN = 14, LG_PADDING = 14;
+
 // O(1) lookup: type → registry entry (includes Component)
 const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map(w => [w.type, w]));
 
@@ -26,7 +29,7 @@ const renderWidget = (id, type, onRemove) => {
   return <reg.Component id={id} onRemove={onRemove} />;
 };
 
-export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance, arrangeMode = false }) {
+export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance, arrangeMode = false, onExitArrangeMode }) {
   // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
   // This makes offsetWidth === contentRect.width === window.innerWidth, so
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
@@ -35,12 +38,21 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   const { width, containerRef } = useContainerWidth({
     initialWidth: globalThis.innerWidth ?? 1280,
   });
+
+  // Quantize the container width so column widths are always integer CSS pixels.
+  // At fractional DPRs (e.g. 125% Windows scaling), a raw width like 1009.6px
+  // gives col = 68.97px — GPU compositing then places text at sub-physical-pixel
+  // positions causing persistent blur. Snapping the width to the nearest value
+  // that yields an integer column width costs at most ½ a column-width of space
+  // (≈ 35px) and keeps all widget positions on exact pixel boundaries.
+  const quantizedWidth = Math.round((width - 2 * LG_PADDING - (LG_COLS - 1) * LG_MARGIN) / LG_COLS) * LG_COLS
+    + (LG_COLS - 1) * LG_MARGIN + 2 * LG_PADDING;
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
   // Build layout items for all breakpoints.
   // lg uses positions from each widget's config.js.
-  // Other breakpoints use saved layouts (returning users) or BREAKPOINT_DEFAULTS (fresh install).
+  // Other breakpoints use saved layouts (returning users) or config breakpoints (fresh install).
   const layoutItems = useMemo(() => {
     const savedLgMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
     const lgItems = (instances || []).flatMap(({ id, type }) => {
@@ -101,7 +113,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   const showOverlay = isDragging || arrangeMode;
 
   return (
-    <div className="w-full h-full relative select-none" ref={containerRef}>
+    <div
+      className="w-full h-full relative select-none"
+      ref={containerRef}
+    >
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
@@ -110,10 +125,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
       <Responsive
         className="layout"
         layouts={layoutItems}
-        width={width}
+        width={quantizedWidth}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={75}
+        cols={{ lg: 48, md: 40, sm: 24, xs: 16, xxs: 8 }}
+        rowHeight={8.5}
         isDraggable={arrangeMode}
         draggableHandle=".widget-drag-handle"
         isResizable={false}
@@ -148,8 +163,9 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
                   <span key={i} className="block w-0.75 h-0.75 rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
                 ))}
               </div>
-              {/* Intercept mousedown so widget content receives clicks without triggering rgl drag */}
-              <div role="none" className="h-full w-full" onMouseDown={e => e.stopPropagation()}>
+              {/* Intercept mousedown so widget content receives clicks without triggering rgl drag.
+                   pointer-events:none in arrange mode prevents options/menus from opening. */}
+              <div role="none" className="h-full w-full" style={{ pointerEvents: arrangeMode ? 'none' : undefined }} onMouseDown={e => e.stopPropagation()}>
                 {widget}
               </div>
             </div>

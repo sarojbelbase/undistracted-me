@@ -8,12 +8,12 @@ export default {
   icon: Grid3x3GapFill,
   description: 'Top visited sites dock',
   enabled: true,
-  x: 8, y: 0, w: 3.5, h: 1,
+  x: 32, y: 0, w: 14, h: 4,
   breakpoints: {
-    md: { x: 8, y: 0, w: 2, h: 1 },
-    sm: { x: 2, y: 2, w: 4, h: 1 },
-    xs: { x: 0, y: 4, w: 4, h: 1 },
-    xxs: { x: 0, y: 8, w: 2, h: 1 },
+    md: { x: 32, y: 0, w: 8, h: 4 },
+    sm: { x: 8, y: 8, w: 16, h: 4 },
+    xs: { x: 0, y: 16, w: 16, h: 4 },
+    xxs: { x: 0, y: 32, w: 8, h: 4 },
   },
   Component: Widget,
 };

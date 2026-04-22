@@ -8,12 +8,12 @@ export default {
   icon: HourglassSplit,
   description: 'Count down to any event',
   enabled: true,
-  x: 0, y: 5, w: 2, h: 2,
+  x: 0, y: 20, w: 8, h: 8,
   breakpoints: {
-    md: { x: 0, y: 7, w: 2, h: 2 },
-    sm: { x: 0, y: 9.5, w: 2, h: 2 },
-    xs: { x: 2, y: 13, w: 2, h: 2 },
-    xxs: { x: 0, y: 21.5, w: 2, h: 2 },
+    md: { x: 0, y: 28, w: 8, h: 8 },
+    sm: { x: 0, y: 38, w: 8, h: 8 },
+    xs: { x: 8, y: 52, w: 8, h: 8 },
+    xxs: { x: 0, y: 86, w: 8, h: 8 },
   },
   Component: Widget,
 };

@@ -55,8 +55,20 @@ const App = () => {
   // ── Feature hooks ────────────────────────────────────────────────────────────
   const { showFocusMode, focusModeEverShown, openFocusMode, closeFocusMode } = useFocusMode(defaultView);
   const { showSettings, panelRef, toggleSettings, closeSettings } = useSettingsPanel();
-  const { arrangeMode, toggleArrangeMode } = useArrangeMode();
+  const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
   const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent });
+
+  // Exit arrange mode when the user clicks anywhere outside a drag handle.
+  // Skips the arrange-toggle button so its own onClick can handle the toggle.
+  useEffect(() => {
+    if (!arrangeMode) return;
+    const onMouseDown = (e) => {
+      if (e.target.closest('.widget-drag-handle') || e.target.closest('[data-arrange-toggle]')) return;
+      exitArrangeMode();
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [arrangeMode, exitArrangeMode]);
 
   useLookAwayScheduler({
     enabled: lookAwayEnabled,
@@ -69,10 +81,17 @@ const App = () => {
   return (
     <div
       id="fullscreen"
+      data-arrange={arrangeMode ? 'true' : undefined}
       className="relative h-screen w-screen overflow-y-auto overflow-x-hidden"
       style={{ background: bg.pageBg }}
     >
       <CanvasBackground {...bg} isDark={isDark} />
+
+      {/* Arrange-mode page scrim — dark overlay signals exclusive edit state */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-[5]"
+        style={{ background: 'rgba(0,0,0,0.32)', opacity: arrangeMode ? 1 : 0 }}
+      />
 
       <FocusModeButton isDark={isDark} onClick={openFocusMode} />
 
@@ -102,7 +121,7 @@ const App = () => {
       )}
 
       <div className="w-full h-full pt-16">
-        <WidgetGrid instances={instances} onRemoveInstance={removeInstance} arrangeMode={arrangeMode} />
+        <WidgetGrid instances={instances} onRemoveInstance={removeInstance} arrangeMode={arrangeMode} onExitArrangeMode={exitArrangeMode} />
       </div>
 
       {focusModeEverShown && (
