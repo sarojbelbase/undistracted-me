@@ -6,7 +6,7 @@
  * interactions, settings persistence, and clipping.
  *
  * Widgets covered:
- *   clock · dateToday · dayProgress · countdown · notes · facts
+ *   clock · dateToday · progress · countdown · notes · facts
  *   bookmarks · weather · stock · pomodoro · events · calendar · spotify
  */
 
@@ -169,22 +169,22 @@ test.describe('DateToday widget', () => {
   });
 });
 
-// ── 3. DayProgress widget ─────────────────────────────────────────────────────
+// ── 3. Progress widget ────────────────────────────────────────────────────────
 
 test.describe('DayProgress widget', () => {
   test('shows a percentage label', async ({ page }) => {
-    await mountWidget(page, 'dayProgress');
+    await mountWidget(page, 'progress');
     await expect(widget(page)).toContainText('%');
   });
 
   test('shows exactly 24 progress dots', async ({ page }) => {
-    await mountWidget(page, 'dayProgress');
+    await mountWidget(page, 'progress');
     const dots = widget(page).locator('.w-dot');
     await expect(dots).toHaveCount(24);
   });
 
   test('active dots do not exceed current hour count', async ({ page }) => {
-    await mountWidget(page, 'dayProgress');
+    await mountWidget(page, 'progress');
     const currentHour = new Date().getHours();
     const activeDots = widget(page).locator('.w-dot-active');
     const count = await activeDots.count();
@@ -194,7 +194,7 @@ test.describe('DayProgress widget', () => {
   });
 
   test('is not clipped', async ({ page }) => {
-    await mountWidget(page, 'dayProgress');
+    await mountWidget(page, 'progress');
     await assertNoClip(widget(page), 'DayProgress');
     await assertInViewport(widget(page), page, 'DayProgress');
   });

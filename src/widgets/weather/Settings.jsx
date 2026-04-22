@@ -57,7 +57,7 @@ export const Settings = ({ location, onChange, locationDenied, unit = 'metric', 
     clearTimeout(debounceRef.current);
     if (val.length < 2) { setSuggestions([]); return; }
     debounceRef.current = setTimeout(() => {
-      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=5&language=en&format=json`)
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=20&language=en&format=json`)
         .then(r => r.json())
         .then(res => setSuggestions(res.results || []))
         .catch(() => setSuggestions([]));

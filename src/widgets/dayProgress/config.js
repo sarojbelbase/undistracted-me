@@ -2,8 +2,8 @@ import { Widget } from './Widget';
 import { BarChartFill } from 'react-bootstrap-icons';
 
 export default {
-  type: 'dayProgress',
-  title: 'Day Progress',
+  type: 'progress',
+  title: 'Progress',
   category: 'time',
   icon: BarChartFill,
   description: 'Visual progress bar for the day',

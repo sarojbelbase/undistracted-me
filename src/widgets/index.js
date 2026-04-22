@@ -1,6 +1,6 @@
 import clockConfig from './clock/config';
 import dateTodayConfig from './dateToday/config';
-import dayProgressConfig from './dayProgress/config';
+import dayProgressConfig from './progress/config';
 import eventsConfig from './events/config';
 import weatherConfig from './weather/config';
 import calendarConfig from './calendar/config';
@@ -17,7 +17,7 @@ import occasionsConfig from './occasions/config';
 export const WIDGET_TYPES = Object.freeze({
   CLOCK: 'clock',
   DATE_TODAY: 'dateToday',
-  DAY_PROGRESS: 'dayProgress',
+  DAY_PROGRESS: 'progress',
   EVENTS: 'events',
   WEATHER: 'weather',
   CALENDAR: 'calendar',

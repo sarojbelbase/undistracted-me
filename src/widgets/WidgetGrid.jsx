@@ -101,7 +101,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   const showOverlay = isDragging || arrangeMode;
 
   return (
-    <div className="w-full h-full relative" ref={containerRef}>
+    <div className="w-full h-full relative select-none" ref={containerRef}>
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
@@ -118,7 +118,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
         draggableHandle=".widget-drag-handle"
         isResizable={false}
         compactType={null}
-        preventCollision={false}
+        preventCollision={true}
         margin={{ lg: [14, 14], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
         containerPadding={{ lg: [14, 14], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
         useCSSTransforms={false}

@@ -17,7 +17,7 @@ import calendarConfig from '../../../src/widgets/calendar/config';
 import clockConfig from '../../../src/widgets/clock/config';
 import countdownConfig from '../../../src/widgets/countdown/config';
 import dateTodayConfig from '../../../src/widgets/dateToday/config';
-import dayProgressConfig from '../../../src/widgets/dayProgress/config';
+import dayProgressConfig from '../../../src/widgets/progress/config';
 import eventsConfig from '../../../src/widgets/events/config';
 import factsConfig from '../../../src/widgets/facts/config';
 import notesConfig from '../../../src/widgets/notes/config';
@@ -32,7 +32,7 @@ const ALL_CONFIGS = [
   ['clock', clockConfig],
   ['countdown', countdownConfig],
   ['dateToday', dateTodayConfig],
-  ['dayProgress', dayProgressConfig],
+  ['progress', dayProgressConfig],
   ['events', eventsConfig],
   ['facts', factsConfig],
   ['notes', notesConfig],

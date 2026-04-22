@@ -12,6 +12,7 @@ import { ControlCluster } from './components/ui/ControlCluster';
 import { FocusModeButton } from './components/ui/FocusModeButton';
 import { useSettingsStore, useWidgetInstancesStore } from './store';
 import { useGoogleAccountStore } from './store/useGoogleAccountStore';
+import { useUIStore } from './store/useUIStore';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { useLocation } from './hooks/useLocation';
 import { useFocusMode } from './hooks/useFocusMode';
@@ -25,6 +26,8 @@ const catalogImport = () => import('./widgets/WidgetCatalog').then(m => ({ defau
 const WidgetCatalog = lazy(catalogImport);
 const preloadCatalog = () => catalogImport();
 
+import { AccountsDialog } from './components/ui/AccountsDialog';
+
 const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showLookAway, setShowLookAway] = useState(false);
@@ -37,6 +40,7 @@ const App = () => {
     canvasBg, setCanvasBg, cardStyle,
   } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
+  const { accountsDialogOpen, closeAccountsDialog } = useUIStore();
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
@@ -65,7 +69,7 @@ const App = () => {
   return (
     <div
       id="fullscreen"
-      className="relative h-screen w-screen overflow-auto"
+      className="relative h-screen w-screen overflow-y-auto overflow-x-hidden"
       style={{ background: bg.pageBg }}
     >
       <CanvasBackground {...bg} isDark={isDark} />
@@ -134,8 +138,13 @@ const App = () => {
 
       {typeof chrome === 'undefined' && <Analytics />}
 
+      {/* Global AccountsDialog */}
+      {accountsDialogOpen && (
+        <AccountsDialog onClose={closeAccountsDialog} />
+      )}
+
       {/* Bottom-right footer — app name + privacy link visible on homepage for Google OAuth review */}
-      <div className="absolute bottom-3 right-4 z-40 flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.3)' }}>
+      <div className="fixed bottom-3 right-4 z-40 flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.3)' }}>
         <span className="text-[11px] font-medium select-none">Undistracted Me</span>
         <span className="text-[9px]" style={{ opacity: 0.5 }}>·</span>
         <a
