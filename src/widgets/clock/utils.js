@@ -5,7 +5,9 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { getGreeting } from '../../data/greetings';
+import { TZ_MAP } from '../../data/timezones';
 export { GREETINGS, getGreeting } from '../../data/greetings';
+export { TIMEZONES, TZ_MAP, TZ_REGIONS } from '../../data/timezones';
 
 // dayjs plugins are already extended by utilities/index.js which is always
 // imported first. We only extend here as a safety net in case this file is
@@ -14,33 +16,6 @@ if (!dayjs.tz) {
   dayjs.extend(utc);
   dayjs.extend(timezone);
 }
-
-/** Curated list of major IANA timezones with friendly display labels. */
-export const TZ_OPTIONS = [
-  { tz: 'America/New_York', label: 'New York (ET)' },
-  { tz: 'America/Chicago', label: 'Chicago (CT)' },
-  { tz: 'America/Denver', label: 'Denver (MT)' },
-  { tz: 'America/Los_Angeles', label: 'Los Angeles (PT)' },
-  { tz: 'America/Sao_Paulo', label: 'São Paulo' },
-  { tz: 'America/Toronto', label: 'Toronto' },
-  { tz: 'America/Vancouver', label: 'Vancouver' },
-  { tz: 'Europe/London', label: 'London' },
-  { tz: 'Europe/Paris', label: 'Paris (CET)' },
-  { tz: 'Europe/Berlin', label: 'Berlin' },
-  { tz: 'Europe/Amsterdam', label: 'Amsterdam' },
-  { tz: 'Europe/Moscow', label: 'Moscow' },
-  { tz: 'Africa/Cairo', label: 'Cairo (EET)' },
-  { tz: 'Asia/Dubai', label: 'Dubai' },
-  { tz: 'Asia/Kolkata', label: 'India (IST)' },
-  { tz: 'Asia/Kathmandu', label: 'Kathmandu (NPT)' },
-  { tz: 'Asia/Dhaka', label: 'Dhaka' },
-  { tz: 'Asia/Bangkok', label: 'Bangkok' },
-  { tz: 'Asia/Singapore', label: 'Singapore' },
-  { tz: 'Asia/Shanghai', label: 'Shanghai (CST)' },
-  { tz: 'Asia/Tokyo', label: 'Tokyo' },
-  { tz: 'Australia/Sydney', label: 'Sydney' },
-  { tz: 'Pacific/Auckland', label: 'Auckland' },
-];
 
 
 
@@ -85,6 +60,6 @@ export const getTimeParts = (format) => {
 export const getTimeInZone = (tz, format) => {
   const now = dayjs().tz(tz);
   const { time, period } = formatTime(now, format);
-  const option = TZ_OPTIONS.find(o => o.tz === tz);
-  return { time, period, label: option ? option.label : tz };
+  const option = TZ_MAP[tz];
+  return { time, period, label: option ? option.name : tz };
 };

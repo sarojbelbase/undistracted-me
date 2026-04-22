@@ -9,6 +9,7 @@ import {
   isContactsConnected,
   disconnectContacts,
   loadManualBirthdays,
+  addManualBirthday,
 } from '../../utilities/googleContacts';
 import { loadCachedProfile } from '../../utilities/googleCalendar';
 import {
@@ -20,7 +21,9 @@ import {
   avatarLetter,
 } from './utils';
 import { OccasionsSettings } from './Settings';
+import { AddOccasion } from './AddOccasion';
 import config from './config';
+import { useUIStore } from '../../store/useUIStore';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
@@ -98,14 +101,32 @@ const TypeIcon = ({ type, size = 11 }) => {
 
 // ─── Empty / unauthenticated states ──────────────────────────────────────────
 
-const ConnectPrompt = () => (
+const ConnectPrompt = ({ onConnect, onAdd }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
     <PersonHeart size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
     <div className="flex flex-col items-center gap-1.5">
-      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>Not connected</p>
+      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>No occasions yet</p>
       <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
-        Open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings&nbsp;› Accounts</span> to sync Google Contacts birthdays.
+        Connect Google Contacts to sync birthdays, or add them manually.
       </p>
+    </div>
+    <div className="flex items-center gap-2 flex-wrap justify-center">
+      <button
+        type="button"
+        onClick={onConnect}
+        className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
+        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+      >
+        Connect Google
+      </button>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
+        style={{ background: 'var(--panel-bg)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
+      >
+        + Add manually
+      </button>
     </div>
   </div>
 );
@@ -175,7 +196,9 @@ export const Widget = ({ id, onRemove }) => {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(() => isContactsConnected());
   const [error, setError] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const ageLabel = useAgeLabel(syncedAt);
+  const openAccountsDialog = useUIStore(s => s.openAccountsDialog);
 
   // Load cached contacts from chrome.storage.local on mount (async).
   useEffect(() => {
@@ -245,7 +268,12 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Content ──────────────────────────────────────────────────────────────
   function renderContent() {
-    if (!connected && manual.length === 0) return <ConnectPrompt />;
+    if (!connected && manual.length === 0) return (
+      <ConnectPrompt
+        onConnect={openAccountsDialog}
+        onAdd={() => setShowAddModal(true)}
+      />
+    );
     if (upcoming.length === 0) return <EmptyState />;
     return (
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
@@ -264,32 +292,45 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Render ──────────────────────────────────────────────────────────────────────────────
   return (
-    <BaseWidget
-      className="flex flex-col overflow-hidden"
-      onRemove={onRemove}
-      settingsContent={settingsContent}
-      settingsTitle={config.title}
-      modalWidth="w-96"
-    >
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div
-        className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0"
+    <>
+      <BaseWidget
+        className="flex flex-col overflow-hidden"
+        onRemove={onRemove}
+        settingsContent={settingsContent}
+        settingsTitle={config.title}
+        modalWidth="w-96"
       >
-        <span className="w-sub-soft">Occasions</span>
-        {RefreshRow}
-      </div>
-
-      {/* ── Error banner — only shown when already connected (retry errors) ─────────── */}
-      {error && connected && (
+        {/* ── Header ─────────────────────────────────────────────────────────── */}
         <div
-          className="mx-3 mb-2 px-3 py-2 rounded-xl text-[11px]"
-          style={{ background: 'color-mix(in srgb, var(--w-danger) 8%, transparent)', color: 'var(--w-danger)', border: '1px solid color-mix(in srgb, var(--w-danger) 25%, transparent)' }}
+          className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0"
         >
-          {error}
+          <span className="w-sub-soft">Occasions</span>
+          {RefreshRow}
         </div>
-      )}
 
-      {renderContent()}
-    </BaseWidget>
+        {/* ── Error banner — only shown when already connected (retry errors) ─────────── */}
+        {error && connected && (
+          <div
+            className="mx-3 mb-2 px-3 py-2 rounded-xl text-[11px]"
+            style={{ background: 'color-mix(in srgb, var(--w-danger) 8%, transparent)', color: 'var(--w-danger)', border: '1px solid color-mix(in srgb, var(--w-danger) 25%, transparent)' }}
+          >
+            {error}
+          </div>
+        )}
+
+        {renderContent()}
+      </BaseWidget>
+      {showAddModal && (
+        <AddOccasion
+          onClose={() => setShowAddModal(false)}
+          onSave={(name, type, month, day) => {
+            addManualBirthday(name, type, month, day);
+            setManual(loadManualBirthdays());
+            setShowAddModal(false);
+          }}
+        />
+      )}
+    </>
   );
+
 };

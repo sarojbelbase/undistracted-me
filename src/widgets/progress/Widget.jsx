@@ -8,7 +8,7 @@ import { onClockTick } from '../../utilities/sharedClock';
 
 const DEFAULT_SETTINGS = { period: DEFAULT_PERIOD, calendar: DEFAULT_CALENDAR };
 
-export const Widget = ({ id = 'dayProgress', onRemove }) => {
+export const Widget = ({ id = 'progress', onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_SETTINGS);
   const { period, calendar } = settings;
 

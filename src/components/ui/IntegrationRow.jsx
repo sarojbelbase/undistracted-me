@@ -1,9 +1,10 @@
 import { LockFill } from 'react-bootstrap-icons';
 import { useShallow } from 'zustand/react/shallow';
 import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
+import { useUIStore } from '../../store/useUIStore';
 
 // One pill container for both states — same shape, same padding, different content.
-const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel }) => {
+const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel, onConnect }) => {
   if (connected && profile) {
     const subtitle = profileSubtitle ?? profile.email ?? null;
     return (
@@ -59,8 +60,10 @@ const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel }) 
 
   // Not connected — pill shows connect label + Settings path
   return (
-    <div
-      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2"
+    <button
+      type="button"
+      onClick={onConnect}
+      className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer text-left"
       style={{ background: 'rgba(0,0,0,0.04)' }}
     >
       <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--w-ink-5)', flexShrink: 0 }}>
@@ -77,7 +80,7 @@ const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel }) 
       <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--w-ink-6)', flexShrink: 0 }}>
         <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
       </svg>
-    </div>
+    </button>
   );
 };
 
@@ -102,10 +105,13 @@ export const IntegrationRow = ({
   connected: connectedProp,
   profile: profileProp,
   profileSubtitle = null,
+  onConnect: onConnectProp,
 }) => {
   const google = useGoogleAccountStore(useShallow(s => ({ connected: s.connected, profile: s.profile })));
+  const openAccountsDialog = useUIStore(s => s.openAccountsDialog);
   const connected = connectedProp === undefined ? google.connected : connectedProp;
   const profile = profileProp === undefined ? google.profile : profileProp;
+  const onConnect = onConnectProp ?? openAccountsDialog;
 
   return (
     <div className="flex flex-col gap-3">
@@ -142,6 +148,7 @@ export const IntegrationRow = ({
         profile={profile}
         profileSubtitle={profileSubtitle}
         connectLabel={`Connect to ${label}`}
+        onConnect={onConnect}
       />
 
       {/* ── Privacy footer ── */}

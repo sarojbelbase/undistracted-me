@@ -208,7 +208,7 @@ import calendarConfig from '../../../src/widgets/calendar/config';
 import stockConfig from '../../../src/widgets/stock/config';
 import weatherConfig from '../../../src/widgets/weather/config';
 import clockConfig from '../../../src/widgets/clock/config';
-import dayProgressConfig from '../../../src/widgets/dayProgress/config';
+import dayProgressConfig from '../../../src/widgets/progress/config';
 import eventsConfig from '../../../src/widgets/events/config';
 import pomodoroConfig from '../../../src/widgets/pomodoro/config';
 import factsConfig from '../../../src/widgets/facts/config';
@@ -248,8 +248,8 @@ describe('Countdown Settings.jsx (null export)', () => {
     expect(Settings).not.toBeNull();
     expect(typeof Settings).toBe('function');
   });
-  it('dayProgress Settings.jsx exports a component', async () => {
-    const { Settings } = await import('../../../src/widgets/dayProgress/Settings');
+  it('progress Settings.jsx exports a component', async () => {
+    const { Settings } = await import('../../../src/widgets/progress/Settings');
     expect(Settings).not.toBeNull();
     expect(typeof Settings).toBe('function');
   });
