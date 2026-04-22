@@ -8,12 +8,12 @@ export default {
   icon: ClockFill,
   description: 'Live clock with extra time zones',
   enabled: true,
-  x: 0, y: 0, w: 2, h: 2,
+  x: 0, y: 0, w: 8, h: 8,
   breakpoints: {
-    md: { x: 0, y: 0, w: 2, h: 2 },
-    sm: { x: 0, y: 0, w: 2, h: 2 },
-    xs: { x: 0, y: 0, w: 2, h: 2 },
-    xxs: { x: 0, y: 0, w: 2, h: 2 },
+    md: { x: 0, y: 0, w: 8, h: 8 },
+    sm: { x: 0, y: 0, w: 8, h: 8 },
+    xs: { x: 0, y: 0, w: 8, h: 8 },
+    xxs: { x: 0, y: 0, w: 8, h: 8 },
   },
   Component: Widget,
 };

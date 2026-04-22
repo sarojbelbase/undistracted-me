@@ -8,12 +8,12 @@ export default {
   icon: StopwatchFill,
   description: 'Focus timer (Pomodoro)',
   enabled: true,
-  x: 2, y: 5, w: 2, h: 2.5,
+  x: 8, y: 20, w: 8, h: 10,
   breakpoints: {
-    md: { x: 2, y: 7, w: 2, h: 2.5 },
-    sm: { x: 2, y: 9.5, w: 2, h: 2.5 },
-    xs: { x: 0, y: 15.5, w: 2, h: 2.5 },
-    xxs: { x: 0, y: 23.5, w: 2, h: 2.5 },
+    md: { x: 8, y: 28, w: 8, h: 10 },
+    sm: { x: 8, y: 38, w: 8, h: 10 },
+    xs: { x: 0, y: 62, w: 8, h: 10 },
+    xxs: { x: 0, y: 94, w: 8, h: 10 },
   },
   Component: Widget,
 };

@@ -8,12 +8,12 @@ export default {
   icon: LightbulbFill,
   description: 'Daily interesting fact',
   enabled: true,
-  x: 9, y: 2, w: 3, h: 2,
+  x: 36, y: 8, w: 12, h: 8,
   breakpoints: {
-    md: { x: 7, y: 4, w: 3, h: 2 },
-    sm: { x: 3, y: 6, w: 3, h: 2 },
-    xs: { x: 2, y: 10.5, w: 2, h: 2 },
-    xxs: { x: 0, y: 17, w: 2, h: 2 },
+    md: { x: 28, y: 16, w: 12, h: 8 },
+    sm: { x: 12, y: 24, w: 12, h: 8 },
+    xs: { x: 8, y: 42, w: 8, h: 8 },
+    xxs: { x: 0, y: 68, w: 8, h: 8 },
   },
   Component: Widget,
 };

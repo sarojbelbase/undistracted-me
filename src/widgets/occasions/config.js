@@ -8,12 +8,12 @@ export default {
   icon: BalloonFill,
   description: 'Birthdays, anniversaries & special occasions',
   enabled: true,
-  x: 9, y: 4, w: 2, h: 2.5,
+  x: 36, y: 16, w: 8, h: 10,
   breakpoints: {
-    md: { x: 0, y: 4.5, w: 4, h: 2.5 },
-    sm: { x: 3, y: 8, w: 3, h: 2.5 },
-    xs: { x: 0, y: 13, w: 2, h: 2.5 },
-    xxs: { x: 0, y: 19, w: 2, h: 2.5 },
+    md: { x: 0, y: 18, w: 16, h: 10 },
+    sm: { x: 12, y: 32, w: 12, h: 10 },
+    xs: { x: 0, y: 52, w: 8, h: 10 },
+    xxs: { x: 0, y: 76, w: 8, h: 10 },
   },
   Component: Widget,
 };

@@ -8,12 +8,12 @@ export default {
   icon: Calendar3,
   description: 'Monthly calendar at a glance',
   enabled: true,
-  x: 0, y: 2, w: 3, h: 3,
+  x: 0, y: 8, w: 12, h: 12,
   breakpoints: {
-    md: { x: 4, y: 2, w: 3, h: 3 },
-    sm: { x: 0, y: 6.5, w: 3, h: 3 },
-    xs: { x: 0, y: 7.5, w: 4, h: 3 },
-    xxs: { x: 0, y: 11.5, w: 2, h: 3 },
+    md: { x: 16, y: 8, w: 12, h: 12 },
+    sm: { x: 0, y: 26, w: 12, h: 12 },
+    xs: { x: 0, y: 30, w: 16, h: 12 },
+    xxs: { x: 0, y: 46, w: 8, h: 12 },
   },
   Component: Widget,
 };

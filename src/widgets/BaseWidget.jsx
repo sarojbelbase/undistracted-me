@@ -103,7 +103,7 @@ export const BaseWidget = forwardRef(({ children,
             ref={btnRef}
             onClick={() => { setDropStyle(null); setMenuOpen(s => !s); }}
             onMouseDown={e => e.stopPropagation()}
-            className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150"
+            className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200"
             style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)', pointerEvents: 'auto' }}
             aria-label="Widget options"
             aria-haspopup="menu"

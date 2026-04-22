@@ -15,6 +15,7 @@ export function useArrangeMode() {
   }, [arrangeMode]);
 
   const toggleArrangeMode = useCallback(() => setArrangeMode(s => !s), []);
+  const exitArrangeMode = useCallback(() => setArrangeMode(false), []);
 
-  return { arrangeMode, toggleArrangeMode };
+  return { arrangeMode, toggleArrangeMode, exitArrangeMode };
 }

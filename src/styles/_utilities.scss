@@ -28,6 +28,18 @@ textarea:focus-visible,
   border-radius: 4px;
 }
 
+// ── Arrange mode — suppress widget option buttons ────────────────────────────
+// CSS hover still fires even when pointer-events:none is on a parent, so we
+// must force opacity:0 via a root data attribute rather than a Tailwind class.
+// The transition keeps the fade smooth in both directions.
+[data-arrange="true"] {
+  .group:hover button[aria-label="Widget options"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.15s ease;
+  }
+}
+
 // ── Dark mode shadow overrides ────────────────────────────────────────────────
 
 [data-mode="dark"] {
