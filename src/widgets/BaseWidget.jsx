@@ -90,7 +90,6 @@ export const BaseWidget = forwardRef(({ children,
           border: '1px solid var(--card-border)',
           boxShadow: 'var(--card-shadow)',
           color: 'var(--w-ink-1)',
-          willChange: 'transform',
           ...cardStyle,
         }}
       >
