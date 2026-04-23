@@ -7,11 +7,9 @@ import {
   loadCachedContacts,
   loadContactsSyncedAt,
   isContactsConnected,
-  disconnectContacts,
   loadManualBirthdays,
   addManualBirthday,
 } from '../../utilities/googleContacts';
-import { loadCachedProfile } from '../../utilities/googleCalendar';
 import {
   computeUpcoming,
   daysLabel,
@@ -107,26 +105,8 @@ const ConnectPrompt = ({ onConnect, onAdd }) => (
     <div className="flex flex-col items-center gap-1.5">
       <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>No occasions yet</p>
       <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
-        Connect Google Contacts to sync birthdays, or add them manually.
+        Connect Google Contacts to sync birthdays or add them manually.
       </p>
-    </div>
-    <div className="flex items-center gap-2 flex-wrap justify-center">
-      <button
-        type="button"
-        onClick={onConnect}
-        className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
-        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-      >
-        Connect Google
-      </button>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
-        style={{ background: 'var(--panel-bg)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-      >
-        + Add manually
-      </button>
     </div>
   </div>
 );
