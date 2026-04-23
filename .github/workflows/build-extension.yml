@@ -17,21 +17,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install
 
       - name: Build for Firefox
         if: matrix.browser == 'firefox'
-        run: npm run build && npm run build:firefox
+        run: bun run build && bun run build:firefox
 
       - name: Build for Chrome
         if: matrix.browser == 'chrome'
-        run: npm run build && npm run build:chrome
+        run: bun run build && bun run build:chrome
 
       - name: Rename Firefox zip
         if: matrix.browser == 'firefox'

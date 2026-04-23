@@ -7,8 +7,8 @@ This is a React-based browser extension that replaces the new tab page with a di
 
 ### Build System
 - **Vite + @crxjs/vite-plugin**: Uses Vite for development with CRXJS plugin for browser extension support
-- **Development**: `npm run dev` starts Vite dev server on port 3000
-- **Production**: `npm run build` creates extension bundle in `dist/`
+- **Development**: `bun run dev` starts Vite dev server on port 3000
+- **Production**: `bun run build` creates extension bundle in `dist/`
 - **Extension packaging**: Uses web-ext for Firefox packaging
 
 ### Core Components Structure
@@ -80,14 +80,14 @@ src/
 
 ### Local Development
 ```bash
-npm run dev        # Start Vite dev server
+bun run dev        # Start Vite dev server
 # Load unpacked extension from dist/ folder in Chrome
 ```
 
 ### Building & Testing
 ```bash
-npm run build      # Production build
-npm run preview    # Preview built extension
+bun run build      # Production build
+bun run preview    # Preview built extension
 ```
 
 ### Extension Deployment
