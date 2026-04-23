@@ -1,7 +1,7 @@
 # Test Coverage — Undistracted Me
 
 > **83 tests · 4 spec files · Playwright / Chromium**
-> Run: `npm test` (headless) · `npm run test:ui` (interactive) · `npm run test:headed`
+> Run: `bun test` (headless) · `bun run test:ui` (interactive) · `bun run test:headed`
 
 ---
 

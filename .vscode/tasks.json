@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "npm run dev",
-      "type": "npm",
-      "script": "dev",
+      "label": "bun run dev",
+      "type": "shell",
+      "command": "bun run dev",
       "problemMatcher": [],
       "isBackground": true,
       "presentation": {

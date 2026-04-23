@@ -1,8 +1,8 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "bun run build",
+  "installCommand": "bun install",
   "outputDirectory": "dist",
   "images": {
     "sizes": [

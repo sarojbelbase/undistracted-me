@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "Launch in integrated browser",
       "url": "http://localhost:3000",
-      "preLaunchTask": "npm run dev"
+      "preLaunchTask": "bun run dev"
     }
   ]
 }

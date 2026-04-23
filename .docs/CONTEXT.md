@@ -380,8 +380,8 @@ Content scripts: `src/media-cs.js` injected into all pages (for browser media se
 - **Key obfuscation**: `obscureEnvKeys` Vite plugin XOR-encodes `VITE_GOOGLE_DESKTOP_CLIENT_ID` / `SECRET` so they never appear as plain text in the JS bundle
 
 ## Commands
-- `npm run dev` — Vite dev server
-- `npm run build` — extension build (outputs to `dist/`)
-- `npm run test` — Playwright E2E tests
-- `npm run test:unit` — Vitest unit tests
+- `bun run dev` — Vite dev server
+- `bun run build` — extension build (outputs to `dist/`)
+- `bun run test` — Playwright E2E tests
+- `bun run test:unit` — Vitest unit tests
 
