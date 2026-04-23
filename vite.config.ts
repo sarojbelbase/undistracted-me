@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { crx } from '@crxjs/vite-plugin'
 import manifest from './public/manifest.json'
@@ -158,50 +158,58 @@ const suggestProxy = (): Plugin => ({
   },
 });
 
-export default defineConfig({
-  plugins: [
-    // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
-    obscureEnvKeys([
-      'VITE_API_KEY',
-      'VITE_SPOTIFY_CLIENT_ID',
-      'VITE_GOOGLE_DESKTOP_CLIENT_ID',
-    ]),
-    react(),
-    crx({ manifest }),
-    faviconWaterfall(),
-    googleTokenProxy(),
-    suggestProxy(),
-  ],
-  build: {
-    // Strip console.warn/console.error in extension production builds.
-    // console.error is kept for real runtime errors; warn is dev-only noise.
-    minify: 'esbuild',
-    rollupOptions: {
-      output: {
-        manualChunks(id: string) {
-          if (id.includes('node_modules/react-grid-layout') || id.includes('node_modules/react-resizable')) return 'grid';
-          if (id.includes('node_modules/react-bootstrap-icons')) return 'icons';
-          if (id.includes('node_modules/dayjs')) return 'datetime';
-          if (id.includes('node_modules/zustand')) return 'store';
-          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'engine';
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const dynamicManifest = JSON.parse(JSON.stringify(manifest));
+  if (dynamicManifest.oauth2) {
+    dynamicManifest.oauth2.client_id = env.EXTENSION_CLIENT_ID || dynamicManifest.oauth2.client_id;
+  }
+
+  return {
+    plugins: [
+      // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
+      obscureEnvKeys([
+        'VITE_API_KEY',
+        'VITE_SPOTIFY_CLIENT_ID',
+        'VITE_GOOGLE_DESKTOP_CLIENT_ID',
+      ]),
+      react(),
+      crx({ manifest: dynamicManifest }),
+      faviconWaterfall(),
+      googleTokenProxy(),
+      suggestProxy(),
+    ],
+    build: {
+      // Strip console.warn/console.error in extension production builds.
+      // console.error is kept for real runtime errors; warn is dev-only noise.
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes('node_modules/react-grid-layout') || id.includes('node_modules/react-resizable')) return 'grid';
+            if (id.includes('node_modules/react-bootstrap-icons')) return 'icons';
+            if (id.includes('node_modules/dayjs')) return 'datetime';
+            if (id.includes('node_modules/zustand')) return 'store';
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'engine';
+          },
         },
       },
     },
-  },
-  server: {
-    port: 3000,
-    cors: true,
-    proxy: {
-      '/np-api': {
-        target: 'https://nepalipaisa.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/np-api/, '/api'),
-      },
-      '/ml-api': {
-        target: 'https://www.merolagani.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ml-api/, '/handlers/TechnicalChartHandler.ashx'),
+    server: {
+      port: 3000,
+      cors: true,
+      proxy: {
+        '/np-api': {
+          target: 'https://nepalipaisa.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/np-api/, '/api'),
+        },
+        '/ml-api': {
+          target: 'https://www.merolagani.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/ml-api/, '/handlers/TechnicalChartHandler.ashx'),
+        },
       },
     },
-  },
-})
+  };
+});

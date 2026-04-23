@@ -79,7 +79,7 @@
     }
   ],
   "oauth2": {
-    "client_id": "647187355675-e5v949u9j2dd54p152rr3l48ulfr4l66.apps.googleusercontent.com",
+    "client_id": "xxxxxxxxxx.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.readonly",
       "https://www.googleapis.com/auth/contacts.readonly",
