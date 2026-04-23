@@ -1,7 +1,7 @@
 <p align="center">
 <img src="src/assets/img/logo.svg" width="40%"><br>
 <strong>
-A chrome/firefox extension to show distraction free nepali date on your new tab.
+A chrome/firefox extension that replaces your new tab with a beautiful, distraction-free dashboard featuring nepaliness, focus mode, google integrations and more.
 </strong><br>
 
 <span>
@@ -20,49 +20,85 @@ A chrome/firefox extension to show distraction free nepali date on your new tab.
 ## Deployments
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef)
-
 - [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
-
 - [Official Website](https://undistractedme.sarojbelbase.com.np/)
+
+## Tech Stack
+
+- **React 19** + **Vite v8** + **@crxjs/vite-plugin** (Manifest V3)
+- **Tailwind CSS v4** for styling
+- **Zustand** for state management
+- **Bun** as package manager and runtime
+
+## Google OAuth Scopes
+
+The app requests the following Google OAuth scopes when you connect your Google account:
+
+| Scope | Purpose |
+|---|---|
+| `userinfo.profile` | Display your name and avatar in the Settings panel |
+| `userinfo.email` | Display your email in the Settings panel |
+| `calendar.readonly` | Sync and display upcoming events from Google Calendar in the Upcoming Events widget |
+| `contacts.readonly` | Read birthdays and anniversaries from Google Contacts for the Occasions widget |
+| `drive.metadata.readonly` | Search your Google Drive files by name directly from the Focus Mode search bar |
+| `tasks` | Add, complete, and manage Google Tasks from the Tasks panel in Focus Mode |
 
 ## Build Setup
 
-``` bash
-# first, install dependencies
-npm install
+```bash
+# install dependencies
+bun install
 
-# minify and build for production inside dist folder
-npm run build
+# start dev server
+bun run dev
 
-# finally, build with `web-ext`
-npm run build:firefox
+# build for production (outputs to dist/)
+bun run build
 ```
 
-It will generate a zip file inside `web-ext-artifacts` folder, which you can upload to chrome web store or firefox addons store.
+### Chrome
 
-## Offline Installation
+```bash
+# build and zip for Chrome Web Store
+bun run build:chrome
+```
 
-1. First **Clone or Download** this repository.
-2. After successfull download, unzip it with your archive manager.
-3. Open extensions page using [chrome://extensions](chrome://extensions)
-4. Now enable **Developer mode** located on your right side of navigation bar.
-5. Click on **Load Unpacked** and select your unzipped folder.
+This outputs a `chrome.zip` inside the `builds/` folder, ready to upload to the Chrome Web Store.
 
-If everything goes right, you could see undistracted me working seamlessly on your chrome and its variants.
+**Load unpacked for local testing:**
 
-## Roadmap
+1. Run `bun run build`
+2. Open `chrome://extensions`
+3. Enable **Developer mode**
+4. Click **Load unpacked** and select the `dist/` folder
 
-1. [x] Publish on Firefox
-2. [x] Publish on Chrome
-3. [x] Add setting to select language
-3. [ ] Add more features requested by users
+### Firefox
 
-## Feature Requests
+```bash
+# build for Firefox Addons
+bun run build:firefox
 
-1. [ ] Speed dial links like in r/startpages by u/nepmandu
-2. [ ] Dewanagiri support by u/pranphy
-3. [ ] Toggle between 12/24 hours by u/deeplydark
-4. [ ] Add a Analog Clock in background as watermark
+# run locally with web-ext
+bun run start:firefox
+```
 
+This outputs a `.zip` inside the `builds/` folder via `web-ext`, ready to upload to Firefox Addons.
 
-#### Made with ReactJs in Nepal.
+## Testing
+
+```bash
+# E2E tests (Playwright)
+bun run test
+
+# Unit tests (Vitest)
+bun run test:unit
+
+# Unit tests with coverage
+bun run test:unit:coverage
+```
+
+## License
+
+MIT
+
+#### Made with React in Nepal.
