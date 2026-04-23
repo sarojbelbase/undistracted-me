@@ -11,9 +11,9 @@ export default {
   x: 12, y: 8, w: 14, h: 10,
   breakpoints: {
     md: { x: 0, y: 8, w: 16, h: 10 },
-    sm: { x: 0, y: 16, w: 12, h: 10 },
-    xs: { x: 0, y: 20, w: 16, h: 10 },
-    xxs: { x: 0, y: 36, w: 8, h: 10 },
+    sm: { x: 0, y: 20, w: 12, h: 12 },
+    xs: { x: 0, y: 28, w: 16, h: 14 },
+    xxs: { x: 0, y: 64, w: 8, h: 18 },
   },
   Component: Widget,
 };
