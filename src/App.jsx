@@ -28,6 +28,42 @@ const preloadCatalog = () => catalogImport();
 
 import { AccountsDialog } from './components/ui/AccountsDialog';
 
+// ── Dev-only breakpoint indicator ───────────────────────────────────────────
+const BP_CONFIG = [
+  { name: 'xxs', maxWidth: 480, color: '#a78bfa' },
+  { name: 'xs', maxWidth: 768, color: '#34d399' },
+  { name: 'sm', maxWidth: 996, color: '#60a5fa' },
+  { name: 'md', maxWidth: 1200, color: '#fbbf24' },
+  { name: 'lg', maxWidth: Infinity, color: '#f87171' },
+];
+
+const useBreakpoint = () => {
+  const getW = () => window.innerWidth || document.documentElement.clientWidth || 0;
+  const fromW = w => ({ ...(BP_CONFIG.find(bp => w < bp.maxWidth) ?? BP_CONFIG.at(-1)), width: w });
+  const [bp, setBp] = React.useState(() => fromW(getW()));
+  React.useEffect(() => {
+    const update = () => setBp(fromW(getW()));
+    window.addEventListener('resize', update);
+    update(); // sync after mount in case initial width was 0
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return bp;
+};
+
+const BreakpointBadge = () => {
+  const bp = useBreakpoint();
+  return (
+    <div
+      className="fixed bottom-3 left-4 z-9999 flex items-center gap-1.5 px-2.5 py-1 rounded-full select-none font-mono text-[11px] font-semibold"
+      style={{ backgroundColor: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', color: bp.color, border: `1px solid ${bp.color}40`, letterSpacing: '0.06em' }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: bp.color, display: 'inline-block', flexShrink: 0 }} />
+      {bp.name}
+      <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>{bp.width}px</span>
+    </div>
+  );
+};
+
 const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showLookAway, setShowLookAway] = useState(false);
@@ -161,6 +197,9 @@ const App = () => {
       {accountsDialogOpen && (
         <AccountsDialog onClose={closeAccountsDialog} />
       )}
+
+      {/* Dev-only breakpoint badge — bottom-left */}
+      {import.meta.env.DEV && <BreakpointBadge />}
 
       {/* Bottom-right footer — app name + privacy link visible on homepage for Google OAuth review */}
       <div className="fixed bottom-3 right-4 z-40 flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.3)' }}>
