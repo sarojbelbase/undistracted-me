@@ -22,6 +22,7 @@ import { OccasionsSettings } from './Settings';
 import { AddOccasion } from './AddOccasion';
 import config from './config';
 import { useUIStore } from '../../store/useUIStore';
+import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
 
 import { RefreshIcon } from '../../components/ui/RefreshIcon';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
@@ -188,6 +189,22 @@ export const Widget = ({ id, onRemove }) => {
   // Silent refresh on mount if already connected
   useEffect(() => {
     if (connected) sync(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // React to Google account connect/disconnect from AccountsDialog
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.connected) {
+        sync(false); // silently fetch contacts after connect
+      } else {
+        setRaw([]);
+        setConnected(false);
+        setSyncedAt(null);
+      }
+    };
+    globalThis.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+    return () => globalThis.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
