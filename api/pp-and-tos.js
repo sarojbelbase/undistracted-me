@@ -6,7 +6,7 @@
  * via a <link> so it degrades gracefully offline). No JS required.
  */
 
-const LAST_UPDATED = 'April 21, 2026';
+const LAST_UPDATED = 'April 25, 2026';
 const CONTACT_EMAIL = 'hey@sarojbelbase.com.np';
 const WEBSITE = 'https://undistractedme.sarojbelbase.com.np';
 
