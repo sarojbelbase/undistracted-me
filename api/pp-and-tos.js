@@ -24,19 +24,19 @@ const html = /* html */ `<!DOCTYPE html>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #080a0f;
-      --surface:    #0d1017;
-      --surface2:   #111520;
-      --border:     rgba(255,255,255,0.07);
-      --border-acc: rgba(99,102,241,0.40);
-      --text-hi:    rgba(255,255,255,0.93);
-      --text-md:    rgba(255,255,255,0.65);
-      --text-lo:    rgba(255,255,255,0.38);
-      --accent:     #6366f1;
-      --accent-dim: rgba(99,102,241,0.12);
-      --accent-glow:rgba(99,102,241,0.06);
-      --green:      #34d399;
-      --amber:      #fbbf24;
+      --bg:         #ffffff;
+      --surface:    #f9fafb;
+      --surface2:   #f3f4f6;
+      --border:     rgba(0,0,0,0.1);
+      --border-acc: rgba(99,102,241,0.25);
+      --text-hi:    rgba(0,0,0,0.9);
+      --text-md:    rgba(0,0,0,0.7);
+      --text-lo:    rgba(0,0,0,0.5);
+      --accent:     #4f46e5;
+      --accent-dim: rgba(79,70,229,0.1);
+      --accent-glow:rgba(79,70,229,0.05);
+      --green:      #059669;
+      --amber:      #d97706;
       --radius-lg:  18px;
       --radius-md:  12px;
       --radius-sm:  8px;
@@ -270,6 +270,20 @@ const html = /* html */ `<!DOCTYPE html>
     }
     a:hover { text-decoration: underline; }
 
+    strong {
+      color: var(--text-hi);
+      font-weight: 600;
+    }
+
+    code {
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--text-hi);
+      background: var(--surface2);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
     /* ── Info cards / callouts ──────────────────────────────────────── */
     .card {
       background: var(--surface);
@@ -337,7 +351,7 @@ const html = /* html */ `<!DOCTYPE html>
 
     tbody tr { border-bottom: 1px solid var(--border); }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(255,255,255,0.018); }
+    tbody tr:hover { background: rgba(0,0,0,0.02); }
 
     tbody td {
       padding: 11px 16px;
@@ -370,7 +384,7 @@ const html = /* html */ `<!DOCTYPE html>
       font-size: 11px;
       font-weight: 600;
       color: var(--text-lo);
-      background: rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.06);
       border-radius: 4px;
       padding: 1px 7px;
     }
@@ -547,10 +561,10 @@ const html = /* html */ `<!DOCTYPE html>
         The short version
       </p>
       <p>
-        We do <strong style="color:rgba(255,255,255,0.85)">not</strong> operate a user database. We do
-        <strong style="color:rgba(255,255,255,0.85)">not</strong> collect your name, email, or any
+        We do <strong>not</strong> operate a user database. We do
+        <strong>not</strong> collect your name, email, or any
         personally identifiable information on our own servers. We do
-        <strong style="color:rgba(255,255,255,0.85)">not</strong> track your browsing history. All widget
+        <strong>not</strong> track your browsing history. All widget
         configuration stays in your browser's local storage.
       </p>
     </div>
@@ -568,12 +582,12 @@ const html = /* html */ `<!DOCTYPE html>
     <h3>Data passed through our Vercel proxy</h3>
     <p>
       Some API calls are routed through our backend at
-      <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">undistractedme.sarojbelbase.com.np</code>
+      <code>undistractedme.sarojbelbase.com.np</code>
       so that secret API keys are never embedded in the extension bundle. These calls are:
     </p>
     <ul class="styled">
       <li><strong>Unsplash photos</strong> — a random background photo is fetched. No personal data is sent. The response is a photo URL.</li>
-      <li><strong>Google token exchange (Firefox only)</strong> — the OAuth authorisation code is exchanged for tokens server-side so the <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">client_secret</code> never leaves our server. The token is returned to your browser immediately and not stored by us.</li>
+      <li><strong>Google token exchange (Firefox only)</strong> — the OAuth authorisation code is exchanged for tokens server-side so the <code>client_secret</code> never leaves our server. The token is returned to your browser immediately and not stored by us.</li>
       <li><strong>Favicon proxy</strong> — a website domain name is sent to fetch its icon. No session or identity data is included.</li>
     </ul>
     <p>
@@ -814,14 +828,14 @@ const html = /* html */ `<!DOCTYPE html>
 
     <h3>Chrome vs. Firefox auth path</h3>
     <p>
-      On <strong style="color:rgba(255,255,255,0.8)">Chrome</strong>, authentication uses
-      <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.identity.getAuthToken()</code>
+      On <strong>Chrome</strong>, authentication uses
+      <code>chrome.identity.getAuthToken()</code>
       — token management is handled entirely by the browser. No client secret is needed.
     </p>
     <p>
-      On <strong style="color:rgba(255,255,255,0.8)">Firefox</strong>, a PKCE OAuth flow is used.
+      On <strong>Firefox</strong>, a PKCE OAuth flow is used.
       The authorisation code is exchanged for tokens via our Vercel endpoint, which injects
-      the <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">client_secret</code>
+      the <code>client_secret</code>
       server-side. The secret is never present in the extension bundle.
     </p>
   </section>
@@ -837,14 +851,14 @@ const html = /* html */ `<!DOCTYPE html>
 
     <p>
       Spotify authentication uses the standard PKCE flow. Only the
-      <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">client_id</code>
-      and a locally-generated <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">code_verifier</code>
+      <code>client_id</code>
+      and a locally-generated <code>code_verifier</code>
       are sent — no client secret is involved. Token exchange goes directly to
-      <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">accounts.spotify.com/api/token</code>
+      <code>accounts.spotify.com/api/token</code>
       and never through our servers.
     </p>
     <ul class="styled">
-      <li>Tokens are stored in <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.local</code> (extension) or <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">sessionStorage</code> (website mode — cleared when the tab is closed).</li>
+      <li>Tokens are stored in <code>chrome.storage.local</code> (extension) or <code>sessionStorage</code> (website mode — cleared when the tab is closed).</li>
       <li>The extension reads your currently playing track and controls playback (play, pause, next, previous, seek).</li>
       <li>No listening history or personal data is collected by us.</li>
     </ul>
@@ -852,8 +866,8 @@ const html = /* html */ `<!DOCTYPE html>
     <h3>Browser media sessions (SoundCloud &amp; others)</h3>
     <p>
       A content script is injected into SoundCloud pages
-      (<code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">*://*.soundcloud.com/*</code>) only.
-      It polls <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">navigator.mediaSession</code>
+      (<code>*://*.soundcloud.com/*</code>) only.
+      It polls <code>navigator.mediaSession</code>
       for track metadata and sends it to the background service worker so it can be displayed
       in the Focus Mode media panel. No data is sent to any external server. The content
       script does not modify the SoundCloud page.
@@ -906,7 +920,7 @@ const html = /* html */ `<!DOCTYPE html>
     </ul>
 
     <p>
-      No data is synced to the cloud via <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.sync</code>.
+      No data is synced to the cloud via <code>chrome.storage.sync</code>.
       Data does not leave your device except for the API calls described in Section 2.
     </p>
   </section>
@@ -933,7 +947,7 @@ const html = /* html */ `<!DOCTYPE html>
         <tbody>
           <tr>
             <td>identity</td>
-            <td>Google OAuth (<code style="font-family:monospace;font-size:13px">getAuthToken</code>) and Spotify PKCE (<code style="font-family:monospace;font-size:13px">launchWebAuthFlow</code>)</td>
+            <td>Google OAuth (<code>getAuthToken</code>) and Spotify PKCE (<code>launchWebAuthFlow</code>)</td>
           </tr>
           <tr>
             <td>storage</td>
