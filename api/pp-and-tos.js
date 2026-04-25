@@ -794,13 +794,22 @@ const html = /* html */ `<!DOCTYPE html>
       </ul>
     </div>
 
+    <h3>Data Protection for Sensitive Data</h3>
+    <p>
+      We protect your sensitive Google user data (Calendar events, Contacts, Tasks, and Drive metadata) by ensuring it never leaves your device. We do not operate any database or remote storage servers. Your data is securely stored purely locally on your device within your browser's sandboxed <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.local</code> or <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">localStorage</code> environment, which is accessible only by the extension itself. We employ encryption in transit (HTTPS) for all direct API calls between your browser and Google's servers.
+    </p>
+
+    <h3>Data Retention and Deletion</h3>
+    <p>
+      We retain your Google user data locally only for as long as your account remains connected to the extension. We provide an explicit <strong>"Disconnect"</strong> mechanism in the extension's Account Settings panel. The moment you click Disconnect, all cached Google user data, profile information, and authentication tokens are immediately and permanently deleted from your local storage. Furthermore, uninstalling the extension prompts the browser to automatically delete all associated local storage data.
+    </p>
+
     <h3>Revoking access</h3>
     <p>
-      You can disconnect Google at any time from the extension settings panel. You can also
-      revoke all permissions from
+      In addition to disconnecting within the extension, you can revoke the extension's permissions entirely at any time from
       <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a>.
       Revoking access does not delete any data from Google's servers — it only removes
-      the extension's ability to read that data.
+      our application's ability to read or interact with your Google data.
     </p>
 
     <h3>Chrome vs. Firefox auth path</h3>
@@ -888,6 +897,13 @@ const html = /* html */ `<!DOCTYPE html>
         </tbody>
       </table>
     </div>
+
+    <h3>Security Measures</h3>
+    <ul class="styled">
+      <li><strong>Storage Isolation:</strong> Sensitive data (like Google events and contacts) is sandboxed in <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.local</code>, which cannot be accessed by other websites. Less sensitive UI preferences use standard <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">localStorage</code>.</li>
+      <li><strong>Web Mode Security:</strong> When using the web version, OAuth tokens are strictly stored in <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">sessionStorage</code>, guaranteeing they are permanently wiped from your browser the moment you close the tab.</li>
+      <li><strong>API Key Obfuscation:</strong> We employ build-time cryptographic obfuscation for internal API keys (like the Google OAuth client ID) to prevent automated scrapers from extracting them from the codebase.</li>
+    </ul>
 
     <p>
       No data is synced to the cloud via <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.sync</code>.
