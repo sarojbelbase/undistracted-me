@@ -483,12 +483,7 @@ const html = /* html */ `<!DOCTYPE html>
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header class="site-header">
     <div class="logo-row">
-      <div class="logo-icon" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-          <circle cx="10" cy="10" r="7" stroke="white" stroke-width="1.6"/>
-          <path d="M10 6v4l2.5 2.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
+      <img src="/favicon/lotus128.png" alt="Undistracted Me Logo" class="logo-icon" style="background:none; box-shadow:none; border-radius:0; padding:4px;" aria-hidden="true" />
       <span class="logo-name">Undistracted Me</span>
     </div>
     <p class="page-eyebrow">Legal</p>
@@ -517,11 +512,13 @@ const html = /* html */ `<!DOCTYPE html>
       <li><a href="#what-we-collect"><span class="toc-num">1</span> What We Collect</a></li>
       <li><a href="#third-party"><span class="toc-num">2</span> Third-Party Services</a></li>
       <li><a href="#google"><span class="toc-num">3</span> Google Integration</a></li>
-      <li><a href="#spotify"><span class="toc-num">4</span> Spotify Integration</a></li>
-      <li><a href="#storage"><span class="toc-num">5</span> Data Storage</a></li>
-      <li><a href="#permissions"><span class="toc-num">6</span> Browser Permissions</a></li>
-      <li><a href="#children"><span class="toc-num">7</span> Children &amp; Contact</a></li>
-      <li><a href="#tos"><span class="toc-num">8</span> Terms of Service</a></li>
+      <li><a href="#data-protection"><span class="toc-num">4</span> Data Protection</a></li>
+      <li><a href="#data-retention"><span class="toc-num">5</span> Data Retention</a></li>
+      <li><a href="#spotify"><span class="toc-num">6</span> Spotify Integration</a></li>
+      <li><a href="#storage"><span class="toc-num">7</span> Data Storage</a></li>
+      <li><a href="#permissions"><span class="toc-num">8</span> Browser Permissions</a></li>
+      <li><a href="#children"><span class="toc-num">9</span> Children &amp; Contact</a></li>
+      <li><a href="#tos"><span class="toc-num">10</span> Terms of Service</a></li>
     </ul>
   </nav>
 
@@ -775,9 +772,9 @@ const html = /* html */ `<!DOCTYPE html>
 
     <h3>What we do with Google Tasks</h3>
     <ul class="styled">
-      <li>Read tasks from your <em>default</em> task list only (up to 100 tasks, including completed).</li>
-      <li>Create new tasks in that same default list.</li>
-      <li>Update a task's title when you double-click to edit it.</li>
+      <li>Read tasks from all of your task lists (up to 100 tasks per list, including completed).</li>
+      <li>Create new tasks in your default task list.</li>
+      <li>Update a task's title when you double-click to edit it (in its specific list).</li>
       <li>Mark a task completed or un-completed via the checkbox.</li>
       <li>Permanently delete a task when you click the trash icon.</li>
     </ul>
@@ -788,21 +785,24 @@ const html = /* html */ `<!DOCTYPE html>
         What we do NOT do
       </p>
       <ul class="styled" style="margin:0">
-        <li>Access any task list other than your default list.</li>
         <li>Read task notes, sub-tasks, or due dates beyond what the API returns.</li>
         <li>Sync, cache, or transmit your task data to any server — it exists only in React memory while the tab is open.</li>
       </ul>
     </div>
 
-    <h3>Data Protection for Sensitive Data</h3>
-    <p>
-      We protect your sensitive Google user data (Calendar events, Contacts, Tasks, and Drive metadata) by ensuring it never leaves your device. We do not operate any database or remote storage servers. Your data is securely stored purely locally on your device within your browser's sandboxed <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.local</code> or <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">localStorage</code> environment, which is accessible only by the extension itself. We employ encryption in transit (HTTPS) for all direct API calls between your browser and Google's servers.
-    </p>
+    <section class="section" id="data-protection" style="margin-bottom: 24px;">
+      <h2 class="section-title" style="font-size: 20px;">Data Protection for Sensitive Data</h2>
+      <p>
+        We protect your sensitive Google user data (Calendar events, Contacts, Tasks, and Drive metadata) by ensuring it never leaves your device. We do not operate any database or remote storage servers. Your data is securely stored purely locally on your device within your browser's sandboxed <code>chrome.storage.local</code> or <code>localStorage</code> environment, which is accessible only by the extension itself. We employ encryption in transit (HTTPS) for all direct API calls between your browser and Google's servers.
+      </p>
+    </section>
 
-    <h3>Data Retention and Deletion</h3>
-    <p>
-      We retain your Google user data locally only for as long as your account remains connected to the extension. We provide an explicit <strong>"Disconnect"</strong> mechanism in the extension's Account Settings panel. The moment you click Disconnect, all cached Google user data, profile information, and authentication tokens are immediately and permanently deleted from your local storage. Furthermore, uninstalling the extension prompts the browser to automatically delete all associated local storage data.
-    </p>
+    <section class="section" id="data-retention" style="margin-bottom: 24px;">
+      <h2 class="section-title" style="font-size: 20px;">Data Retention and Deletion</h2>
+      <p>
+        We retain your Google user data locally only for as long as your account remains connected to the extension. We provide an explicit <strong>"Disconnect"</strong> mechanism in the extension's Account Settings panel. The moment you click Disconnect, all cached Google user data, profile information, and authentication tokens are immediately and permanently deleted from your local storage. Furthermore, uninstalling the extension prompts the browser to automatically delete all associated local storage data.
+      </p>
+    </section>
 
     <h3>Revoking access</h3>
     <p>
@@ -900,8 +900,8 @@ const html = /* html */ `<!DOCTYPE html>
 
     <h3>Security Measures</h3>
     <ul class="styled">
-      <li><strong>Storage Isolation:</strong> Sensitive data (like Google events and contacts) is sandboxed in <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">chrome.storage.local</code>, which cannot be accessed by other websites. Less sensitive UI preferences use standard <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">localStorage</code>.</li>
-      <li><strong>Web Mode Security:</strong> When using the web version, OAuth tokens are strictly stored in <code style="font-family:monospace;font-size:13px;color:rgba(255,255,255,0.7)">sessionStorage</code>, guaranteeing they are permanently wiped from your browser the moment you close the tab.</li>
+      <li><strong>Storage Isolation:</strong> Sensitive data (like Google events and contacts) is sandboxed in <code>chrome.storage.local</code>, which cannot be accessed by other websites. Less sensitive UI preferences use standard <code>localStorage</code>.</li>
+      <li><strong>Web Mode Security:</strong> When using the web version, OAuth tokens are strictly stored in <code>sessionStorage</code>, guaranteeing they are permanently wiped from your browser the moment you close the tab.</li>
       <li><strong>API Key Obfuscation:</strong> We employ build-time cryptographic obfuscation for internal API keys (like the Google OAuth client ID) to prevent automated scrapers from extracting them from the codebase.</li>
     </ul>
 
