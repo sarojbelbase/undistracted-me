@@ -135,8 +135,8 @@ export const connectSpotify = async () => {
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
   if (isWebMode()) {
-    // sessionStorage: tokens scoped to the browser session, not persisted across visits.
-    // CONNECTED_FLAG intentionally stays in localStorage (non-sensitive boolean).
+    // sessionStorage: tokens are sensitive — scoped to the session to limit XSS exposure.
+    // CONNECTED_FLAG and profile stay in localStorage (non-sensitive).
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
   } else {
     await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
@@ -145,7 +145,7 @@ export const connectSpotify = async () => {
   return stored.access_token;
 };
 
-// Web mode: tokens live in sessionStorage (scoped to browser session).
+// Web mode: tokens live in sessionStorage (session-scoped, limits XSS exposure).
 async function getWebAccessToken() {
   const raw = sessionStorage.getItem(TOKEN_KEY);
   if (!raw) return null;
@@ -232,7 +232,7 @@ export const getAccessToken = async () => {
 export const disconnectSpotify = () => {
   if (isWebMode()) {
     sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(PROFILE_KEY);
   } else {
     chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
   }
@@ -244,7 +244,8 @@ export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
 
 export const getSpotifyProfile = async () => {
   if (isWebMode()) {
-    const raw = sessionStorage.getItem(PROFILE_KEY);
+    // Profile persists in localStorage across sessions (non-sensitive display data only).
+    const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
   }
@@ -279,7 +280,8 @@ export const fetchAndCacheProfile = async () => {
       product: data.product ?? null, // 'premium' | 'free' | 'open' | null
     };
     if (isWebMode()) {
-      sessionStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      // Profile is non-sensitive (display name, avatar URL, product tier) — safe to persist in localStorage.
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     } else {
       await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
     }
