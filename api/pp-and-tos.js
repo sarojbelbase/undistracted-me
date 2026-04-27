@@ -6,7 +6,7 @@
  * via a <link> so it degrades gracefully offline). No JS required.
  */
 
-const LAST_UPDATED = 'April 25, 2026';
+const LAST_UPDATED = 'April 28, 2026';
 const CONTACT_EMAIL = 'hey@sarojbelbase.com.np';
 const WEBSITE = 'https://undistractedme.sarojbelbase.com.np';
 
@@ -606,8 +606,9 @@ const html = /* html */ `<!DOCTYPE html>
     </p>
     <p>
       As a last resort when neither browser geolocation nor a manual city is available,
-      the extension may call a public IP-based geolocation service (freeipapi.com or ipapi.co
-      in website mode). Only your IP address is sent; no personal identifier is stored.
+      the extension may call a public IP-based geolocation service (<a href="https://freeipapi.com" target="_blank" rel="noopener noreferrer">freeipapi.com</a> for extension origins;
+      <a href="https://ipapi.co" target="_blank" rel="noopener noreferrer">ipapi.co</a> additionally in website mode). Only your IP address is sent; no personal identifier is stored.
+      Both domains are declared in the extension&rsquo;s <code>host_permissions</code> and are only contacted for this fallback purpose.
     </p>
   </section>
 
@@ -859,6 +860,7 @@ const html = /* html */ `<!DOCTYPE html>
     </p>
     <ul class="styled">
       <li>Tokens are stored in <code>chrome.storage.local</code> (extension) or <code>sessionStorage</code> (website mode — cleared when the tab is closed).</li>
+      <li>Your Spotify display name and account tier (Free/Premium) are persisted in <code>localStorage</code> so they display on return visits. Your avatar URL is <strong>not</strong> persisted — it is held in memory for the current session only and re-fetched on reconnect.</li>
       <li>The extension reads your currently playing track and controls playback (play, pause, next, previous, seek).</li>
       <li>No listening history or personal data is collected by us.</li>
     </ul>
@@ -916,6 +918,8 @@ const html = /* html */ `<!DOCTYPE html>
     <ul class="styled">
       <li><strong>Storage Isolation:</strong> Sensitive data (like Google events and contacts) is sandboxed in <code>chrome.storage.local</code>, which cannot be accessed by other websites. Less sensitive UI preferences use standard <code>localStorage</code>.</li>
       <li><strong>Web Mode Security:</strong> When using the web version, OAuth tokens are strictly stored in <code>sessionStorage</code>, guaranteeing they are permanently wiped from your browser the moment you close the tab.</li>
+      <li><strong>Minimal Persistence:</strong> Only non-identifying data (display name, account tier) is persisted in <code>localStorage</code>. User-identifying artefacts such as avatar URLs are held in memory only and never written to persistent storage.</li>
+      <li><strong>Server-Side redirect_uri Validation:</strong> The Google token-exchange endpoint validates <code>redirect_uri</code> against a server-side allowlist, preventing stolen authorisation codes from being exchanged via a forged redirect.</li>
       <li><strong>API Key Obfuscation:</strong> We employ build-time cryptographic obfuscation for internal API keys (like the Google OAuth client ID) to prevent automated scrapers from extracting them from the codebase.</li>
     </ul>
 
@@ -972,6 +976,10 @@ const html = /* html */ `<!DOCTYPE html>
           <tr>
             <td>alarms</td>
             <td>Minute-level periodic alarm for event reminders and look-away timer — required because MV3 service workers do not persist</td>
+          </tr>
+          <tr>
+            <td>scripting</td>
+            <td>Re-injects the SoundCloud media content script into already-open tabs when the extension is installed, updated, or Chrome restarts — ensures media controls work without a page reload</td>
           </tr>
         </tbody>
       </table>

@@ -17,6 +17,14 @@ import { assertOrigin, assertApiKey } from '../../_config.js';
 
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
+// The only valid redirect URIs this server will accept.
+// Extending this list requires a deliberate server-side change.
+const ALLOWED_REDIRECT_URIS = [
+  'https://undistractedme.sarojbelbase.com.np/auth-callback.html',
+  'http://localhost:3000/auth-callback.html',
+  'http://localhost:5173/auth-callback.html',
+];
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { assertOrigin(req, res, 'POST, OPTIONS'); return res.status(204).end(); }
   if (!assertOrigin(req, res, 'POST, OPTIONS')) return;
@@ -49,6 +57,9 @@ export default async function handler(req, res) {
     const { code, code_verifier, redirect_uri } = body;
     if (!code || !code_verifier || !redirect_uri) {
       return res.status(400).json({ error: 'code, code_verifier and redirect_uri are required' });
+    }
+    if (!ALLOWED_REDIRECT_URIS.includes(redirect_uri)) {
+      return res.status(400).json({ error: 'invalid_redirect_uri' });
     }
     params.set('code', code);
     params.set('code_verifier', code_verifier);

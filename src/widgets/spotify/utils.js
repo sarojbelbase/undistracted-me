@@ -274,18 +274,24 @@ export const fetchAndCacheProfile = async () => {
     const res = await apiCall('GET', '/me');
     if (!res.ok) return null;
     const data = await res.json();
-    const profile = {
+    // Only store non-identifying display data. Avatar URL is omitted from localStorage
+    // because it contains the Spotify user ID in the CDN path and persists indefinitely.
+    // The in-memory profile returned here includes avatar for the current session only.
+    const persistedProfile = {
       name: data.display_name || data.id || 'Spotify User',
-      avatar: data.images?.[0]?.url ?? null,
       product: data.product ?? null, // 'premium' | 'free' | 'open' | null
     };
+    const fullProfile = {
+      ...persistedProfile,
+      avatar: data.images?.[0]?.url ?? null,
+    };
     if (isWebMode()) {
-      // Profile is non-sensitive (display name, avatar URL, product tier) — safe to persist in localStorage.
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      // Persist only name + product in localStorage (no avatar URL).
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(persistedProfile));
     } else {
-      await chrome?.storage?.local?.set({ [PROFILE_KEY]: profile }); // eslint-disable-line no-undef
+      await chrome?.storage?.local?.set({ [PROFILE_KEY]: persistedProfile }); // eslint-disable-line no-undef
     }
-    return profile;
+    return fullProfile;
   } catch { return null; }
 };
 
