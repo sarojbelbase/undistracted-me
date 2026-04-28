@@ -7,26 +7,30 @@
 - [x] Design system: `--w-ink-*` tokens + typography classes in `App.css`
 - [x] BaseWidget: 3-dot options menu, settings popover, forwardRef, click-outside
 - [x] BaseSettingsModal: shared dialog shell with `role="dialog"`, `aria-modal`
-- [x] **Zustand migration**: `useSettingsStore` + `useWidgetInstancesStore` with `persist` middleware
+- [x] **Zustand stores** (5 total): `useSettingsStore`, `useWidgetInstancesStore`, `useLocationStore`, `useGoogleAccountStore` (in-memory), `useUIStore` (in-memory)
+- [x] `useSettingsStore`: `canvasBg`, `cardStyle`, `modePrefs`, `focusSearchBar`, `focusTasks`, focus search sub-settings, `mode='auto'`
+- [x] `useWidgetInstancesStore`: `widgetSettings` map + `updateWidgetSetting`; mirrors to `widgetSettings_${id}` localStorage for Playwright compat
+- [x] `useLocationStore`: 3-tier geolocation pipeline (browser → IP → hardcoded); Nominatim reverse-geocode; VPN detection; sun times
+- [x] `useGoogleAccountStore`: connect/disconnect for all Google services; dispatches `google_account_changed` event
 - [x] useWidgetInstances: add/remove widget instances dynamically
 - [x] WidgetCatalog: categorized widget picker drawer
 - [x] settingsIO: import/export widget settings
 - [x] Keyboard shortcut: Alt+Shift+F to toggle Focus Mode
 
 ### Widgets (15 total)
-- [x] **Clock** — 24h/12h, time-aware greetings, extra timezone rows, AM/PM inline
+- [x] **Clock** — 24h/12h, time-aware greetings, extra timezone rows, AM/PM inline; uses `onClockTick` from `sharedClock.js`
 - [x] **Date Today** — weekday + BS/AD date
-- [x] **Day Progress** — 24-dot grid
-- [x] **Events** — localStorage, Google Calendar sync, create/delete, createPortal modals, Today/Tomorrow/Custom chips
-- [x] **Countdown** — nearest future event from shared events
+- [x] **Day Progress** (`progress`) — 24-dot grid
+- [x] **Events** — localStorage, Google Calendar sync, create/delete, createPortal modals, Today/Tomorrow/Custom chips; `gcal_events_cache` in chrome.storage.local
+- [x] **Countdown** — nearest future event from shared events; `COUNTDOWN_DONE` SW notification; `pomodoro_timer_state_${id}` per-instance state
 - [x] **Calendar** — BS/AD toggle, event dots + tooltip, today = accent cell
-- [x] **Weather** — OWM API, geolocation, °C/°F toggle
+- [x] **Weather** — **Open-Meteo** (no API key), geolocation via `useLocationStore`, °C/°F toggle
 - [x] **Facts** — daily interesting fact
 - [x] **Notes** — textarea, localStorage, color picker (WCAG contrast auto-detection), hide/expand/collapse
 - [x] **Bookmarks** — Google Favicon API, chrome.topSites + manual Pinned, AddModal
 - [x] **Quick Access** — top 6 chrome.topSites dock: favicon tiles, color extraction, letter fallback, hover scale
-- [x] **Pomodoro** — pick timer → countdown; syncs state to `fm_pomodoro` localStorage for Focus Mode
-- [x] **Spotify** — PKCE OAuth, album art color extraction, 5s polling; fixed re-auth loop; multi-player (ChromeMediaStrip for YouTube/SoundCloud/etc. via getChromeMedia/sendChromeMediaAction)
+- [x] **Pomodoro** — pick timer → countdown; two keys: `pomodoro_timer_state_${id}` (full state + endTime) + `fm_pomodoro` (written while running only for Focus Mode PanelCard)
+- [x] **Spotify** — PKCE OAuth, album art color extraction, 5s polling; fixed re-auth loop; multi-player (ChromeMediaStrip for YouTube/SoundCloud/etc.)
 - [x] **Stock (NEPSE)** — merolagani.com API, single/multi symbol, sparkline, OHL row
 - [x] **Occasions (Birthdays)** — Google Contacts sync (People API), manual entry, birthdays/anniversaries/special days, 3 nearest shown, color avatars
 
@@ -45,18 +49,21 @@
 - [x] BaseSettingsModal: `role="dialog"`, `aria-modal`, `aria-label` on close
 - [x] Global `button:focus-visible` ring using `var(--w-accent)`
 
-### Focus Mode (complete redesign)
-- [x] **Cinematic text-behind-image clock** — clock digits at z10, foreground depth overlay at z15
-- [x] **Background Modal**: 4 modes — default (bundled image), curated (Unsplash library), custom (URL), orb (animated CSS orb with 7 color palettes)
-- [x] **Unsplash photo library** — 10-item library, rotate/download/delete/jump, served via Vercel Blob proxy (`/api/photos/curated`), `X-API-Key` auth
-- [x] **Top bar**: Weather badge (icon + temp + date) — centered; controls auto-hide in fullscreen
-- [x] **Left panel** (vertically centered): Pomodoro card (26px timer + drain bar), Event card (active/upcoming), Stocks card (symbol + price + ↑↓%)
-- [x] **Right panel**: Spotify card — album art, progress bar, prev/play/next controls, local 1s tick
-- [x] **World Clocks Panel** — ambient right-side panel reads clock widget timezone settings, 1s interval, staggered entrance animation
-- [x] **Focus Mode settings**: clock format, BS/CE date, "Change Background" → BackgroundModal
-- [x] **useCenterOnDark**: Canvas pixel-sample detects dark/light photo → adapts clock shadow style
+### Focus Mode (zones-based architecture)
+- [x] **Zone layout**: `config.js` ZONES object as single source of truth; `zones/` (Top/Center/Left/Right/Bottom/BottomRight), `panels/` (9 panels), `dialog/` (4 dialogs), `theme.jsx` FM design tokens
+- [x] **CenterZone** — digit roller clock (z25, above foreground overlay); Search bar pill below clock
+- [x] **TopZone** — item-based InfoStrip (weatherIcon SVG + temp + date + year); canvas/fullscreen/settings buttons; auto-hides after 3s idle
+- [x] **LeftZone** — glass panel cards: Pomodoro, Event, **Occasion**, Stock, Spotify (order from ZONES.left)
+- [x] **RightZone** — World clocks; reads Zustand `useWidgetInstancesStore` directly via `useFocusTimezones()`
+- [x] **BottomZone** — greeting text
+- [x] **BottomRightZone** — Google Tasks collapsible pill (bottom-right, z22)
+- [x] **BackgroundPicker** — shared component in `src/components/ui/`; 4 modes: default, curated (Unsplash library), custom (URL), orb (7 palettes)
+- [x] **Focus Mode Search Bar** — `focusSearchBar` toggle; full-screen dialog with web autocomplete (Google/DDG), top sites, Drive file search, history (`fm_search_history`, max 12)
+- [x] **Focus Mode Tasks panel** — `focusTasks` toggle; `useFocusTasks()` optimistic CRUD via Google Tasks API; account dialog
+- [x] **Focus Mode Settings** (`dialog/Settings.jsx`) — dateFormat, clockFormat, Search Bar toggle, Tasks toggle, Backgrounds button
+- [x] **sharedClock.js** — Web Locks + BroadcastChannel leader-election; one tab holds lock and broadcasts second-aligned ticks; `onClockTick(fn)` API used by all zones
+- [x] **useCenterOnDark** — returns `{ clock, search, greet }` booleans; Canvas pixel-sample
 - [x] Fullscreen mode (Wake Lock API — keeps screen on)
-- [x] Auto-hide UI after 3s idle in fullscreen; shows on mouse move
 
 ### LookAway Eye-Break System
 - [x] **LookAway overlay** — fullscreen eye-break with 3-orb animation, ring progress timer, 70+ witty messages (look away, drink water, stretch, talk to coworker, contact friend, check plant)
@@ -73,20 +80,25 @@
 - [x] O/H/L always visible in single-stock view (flex-wrap, never clips)
 - [x] Multi-symbol: 2-line rows (symbol above, price below) — no truncation
 
-### Google Auth & Security
+### Google Auth & Integrations
 - [x] **Unified Google OAuth** (`googleAuth.js`) — Chrome (getAuthToken), Firefox (PKCE launchWebAuthFlow), Web (popup + PKCE + server-side `/api/auth/google/token`)
 - [x] **Google Contacts** (`googleContacts.js`) — People API, paginated (up to 2000 contacts), birthdays + anniversaries
-- [x] **Tokens in chrome.storage.local** — Spotify tokens + Contacts cache migrated from localStorage (security)
+- [x] **Google Tasks** (`googleTasks.js`) — full CRUD (list/create/complete/delete) via `tasks.googleapis.com`; `useFocusTasks()` hook in Focus Mode
+- [x] **Google Drive** (`googleDrive.js`) — `drive.metadata.readonly` scope; file search for Focus Mode search bar
+- [x] **Tokens in chrome.storage.local** — Spotify tokens + GCal/Profile cache migrated from localStorage (security)
+- [x] **Google scopes**: `calendar.readonly`, `contacts.readonly`, `drive.metadata.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
 - [x] **obscureEnvKeys** Vite plugin — XOR-encodes VITE_GOOGLE_DESKTOP_CLIENT_ID/SECRET at build time
 - [x] **Vercel API** — `api/photos/curated.js` (Blob store), `api/auth/google/token.js` (OAuth exchange), `api/favicon.js`
 
 ### Service Worker (`bg.js`)
 - [x] Event reminders — notification 5 min before upcoming events
-- [x] Pomodoro done notification
-- [x] LookAway alarm handler (`UM_LOOKAWAY`)
+- [x] Pomodoro done notification + `COUNTDOWN_DONE` message
+- [x] LookAway alarm handler (`UM_LOOKAWAY`); `LOOKAWAY_FIRE` manual preview message
+- [x] Media session relay (`chromeSessions` map, up to 3 sessions)
 
 ### Media Session
-- [x] `src/media-cs.js` + `src/utilities/media.js` content scripts — detect playback on any tab via `navigator.mediaSession` + `<audio>/<video>` fallback
+- [x] `src/utilities/media.js` — content script injected into SoundCloud pages; detects playback via `navigator.mediaSession` + `<audio>/<video>` fallback
+- [x] SW `chromeSessions` in-memory map (max 3 sessions); `GET_CHROME_MEDIA` / `CHROME_MEDIA_ACTION` / `MEDIA_SESSION_UPDATE` / `MEDIA_SESSION_CLEAR` messages
 - [x] Spotify widget: `ChromeMediaStrip` — stacked player for non-active browser sessions (YouTube, SoundCloud, Apple Music, etc.)
 
 ---
@@ -97,19 +109,20 @@
 - [ ] **Stock widget**: show volume (V) alongside O/H/L in single-stock view
 - [ ] **Stock widget**: loading skeleton / shimmer state instead of dead sparkline on first render
 - [ ] **Weather**: better error states and manual refresh button
-- [ ] **Focus Mode**: persist left/right panel visibility preferences (hide if user doesn't use certain widgets)
 - [ ] **LookAway**: snooze button (dismiss for N minutes without resetting the schedule)
+- [ ] **Focus Mode**: persist zone panel visibility preferences per-user (hide panels for unused widgets)
 
 ### Medium Term
-- [ ] **Onboarding**: first-run flow — widget picker, API key prompts for Weather
-- [ ] **Build optimization**: bundle size audit (~537KB gzipped is large), Firefox packaging
+- [ ] **Onboarding**: first-run flow — widget picker walkthrough
+- [ ] **Build optimization**: bundle size audit (~537KB gzipped is large)
 - [ ] **Unsplash prewarm**: call `downloadCuratedPhotos()` on extension install/update so first Focus Mode open is instant
 - [ ] **Occasions widget**: show "today" screen — full-card celebration when it's someone's birthday today
 
 ### Later / Ideas
 - [ ] **Dynamic quotes widget** — rotating quotes (static JSON or API)
 - [ ] **Language localization** — i18n for all widget content beyond Nepali date
-- [ ] **Firefox packaging** — web-ext tooling, MV3 compatibility audit
+- [ ] **Firefox packaging** — web-ext tooling, full MV3 compatibility audit
 - [ ] **Focus Mode**: Day Progress dots visible somewhere (subtle, ambient)
+- [ ] **Focus Mode**: per-zone re-ordering (drag panels within zones)
 
 
