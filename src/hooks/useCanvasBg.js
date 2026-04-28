@@ -18,7 +18,7 @@ function getBgImageUrl(bgType, canvasBg) {
 }
 
 function getSolidGradientBg(isDark, accent) {
-  const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#3689E6';
+  const accentHex = ACCENT_COLORS.find(a => a.name === accent)?.hex || '#1565C0';
   const base = isDark ? '#141414' : '#F0F0F2';
   const disc = isDark ? 32 : 26;
   const cone = isDark ? 20 : 16;

@@ -8,47 +8,34 @@
  */
 
 import { computeAutoMode } from './utilities/sunTime';
+import { ACCENT_COLORS } from './constants/accents';
 
-const ACCENTS = {
-  Default: { hex: '#111827', fg: '#ffffff' },
-  Blueberry: { hex: '#3689E6', fg: '#ffffff' },
-  Strawberry: { hex: '#C6262E', fg: '#ffffff' },
-  Bubblegum: { hex: '#DE3E80', fg: '#ffffff' },
-  Grape: { hex: '#A56DE2', fg: '#ffffff' },
-  Orange: { hex: '#F37329', fg: '#ffffff' },
-  Banana: { hex: '#F9C440', fg: '#111827' },
-  Lime: { hex: '#68B723', fg: '#ffffff' },
-  Mint: { hex: '#28BCA3', fg: '#ffffff' },
-  Latte: { hex: '#CFA25E', fg: '#111827' },
-  Cocoa: { hex: '#715344', fg: '#ffffff' },
-};
-
-const LIGHT_BG = '#F0F0F2';
+const LIGHT_BG = '#ebebeb';
 const DARK_BG = '#141414';
-const LIGHT_SURFACE = '#ffffff';
+const LIGHT_SURFACE = '#f5f5f5';
 const DARK_SURFACE = '#1c1c1c';
-const LIGHT_BORDER = '#e5e7eb';
+const LIGHT_BORDER = '#e0e0e0';
 const DARK_BORDER = '#333333';
 
 try {
   // Prefer the Zustand persist key — this is where settings live after first run.
   // Fall back to legacy per-key entries for first-time users migrating from older builds.
   let mode = 'light';
-  let accentName = 'Default';
+  let accentName = 'Matte Black';
 
   const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
   if (stored?.state) {
     mode = stored.state.mode || 'light';
-    accentName = stored.state.accent || 'Default';
+    accentName = stored.state.accent || 'Matte Black';
   } else {
     mode = localStorage.getItem('app_mode') || 'light';
-    accentName = localStorage.getItem('app_accent') || 'Default';
+    accentName = localStorage.getItem('app_accent') || 'Matte Black';
   }
 
   // Resolve 'auto' synchronously before painting — uses cached coords or Kathmandu
   if (mode === 'auto') mode = computeAutoMode();
 
-  const accent = ACCENTS[accentName] || ACCENTS.Default;
+  const accent = ACCENT_COLORS.find(a => a.name === accentName) || ACCENT_COLORS[0];
   const dark = mode === 'dark';
   const r = document.documentElement;
 

@@ -156,7 +156,7 @@ export const Settings = ({ closeSettings, onPreviewLookAway, onOpenBgPicker }) =
           </div>
           <div className="flex flex-wrap gap-1.5">
             {ACCENT_COLORS.map(color => {
-              const locked = color.name === 'Default' && (mode === 'dark' || mode === 'auto');
+              const locked = color.name === 'Matte Black' && (mode === 'dark' || mode === 'auto');
               const selected = accent === color.name;
               return (
                 <TooltipBtn
