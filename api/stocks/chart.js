@@ -20,8 +20,10 @@ export default async function handler(req, res) {
   const { symbol, from, to } = req.query;
   if (!symbol) return res.status(400).json({ error: 'symbol is required' });
 
-  const now = to ?? Math.floor(Date.now() / 1000);
-  const start = from ?? (now - 90 * 24 * 60 * 60);
+  // Validate from/to as integers to prevent query-string parameter injection.
+  const toInt = (v) => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : null; };
+  const now = toInt(to) ?? Math.floor(Date.now() / 1000);
+  const start = toInt(from) ?? (now - 90 * 24 * 60 * 60);
 
   const url = `${ML_BASE}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
 
