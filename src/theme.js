@@ -2,20 +2,8 @@
 
 import { computeAutoMode } from './utilities/sunTime';
 import { CARD_STYLE_TOKENS } from './constants/cardStyles';
-
-export const ACCENT_COLORS = [
-  { name: 'Default', hex: '#111111', fg: '#f5f5f5' },  // 18.4:1 ✓ AAA
-  { name: 'Blueberry', hex: '#3689E6', fg: '#111111' },  // 4.9:1  ✓ AA
-  { name: 'Strawberry', hex: '#C6262E', fg: '#f5f5f5' },  // 5.5:1  ✓ AA
-  { name: 'Bubblegum', hex: '#DE3E80', fg: '#f5f5f5' },  // 4.0:1  ~ (mid-luminance, best available)
-  { name: 'Grape', hex: '#A56DE2', fg: '#111111' },  // 4.9:1  ✓ AA
-  { name: 'Orange', hex: '#F37329', fg: '#111111' },  // 6.0:1  ✓ AA
-  { name: 'Banana', hex: '#F9C440', fg: '#111111' },  // 10.7:1 ✓ AAA
-  { name: 'Lime', hex: '#68B723', fg: '#111111' },  // 6.9:1  ✓ AA
-  { name: 'Mint', hex: '#28BCA3', fg: '#111111' },  // 7.2:1  ✓ AA
-  { name: 'Latte', hex: '#CFA25E', fg: '#111111' },  // 7.4:1  ✓ AA
-  { name: 'Cocoa', hex: '#715344', fg: '#f5f5f5' },  // 6.7:1  ✓ AA
-];
+export { ACCENT_COLORS } from './constants/accents';
+import { ACCENT_COLORS } from './constants/accents';
 
 const LIGHT_TOKENS = {
   '--w-ink-1': '#111111',  /* neutral near-black — no hue bias, 18.4:1 ✓ AAA */
@@ -94,14 +82,14 @@ const _getInitTheme = () => {
     const stored = JSON.parse(localStorage.getItem('undistracted_settings'));
     if (stored?.state) {
       return {
-        accent: stored.state.accent || 'Default',
+        accent: stored.state.accent || 'Matte Black',
         mode: stored.state.mode || 'light',
         cardStyle: stored.state.cardStyle || 'glass',
       };
     }
   } catch { /* ignore */ }
   return {
-    accent: localStorage.getItem('app_accent') || 'Default',
+    accent: localStorage.getItem('app_accent') || 'Matte Black',
     mode: localStorage.getItem('app_mode') || 'light',
     cardStyle: 'glass',
   };
