@@ -53,8 +53,11 @@ export const assertApiKey = (req, res) => {
 
 /**
  * Regex for private/local hostnames that should never be sent to external favicon services.
+ * Covers all RFC 1918 private ranges, link-local (169.254), CGNAT (100.64-127), loopback,
+ * and IPv6 loopback/ULA to prevent SSRF via the favicon proxy endpoint.
  */
-export const PRIVATE_HOST_RE = /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$/;
+export const PRIVATE_HOST_RE =
+  /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\.|^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.|^0\.0\.0\.0$/;
 
 /**
  * Favicon waterfall services — ordered by preference.
