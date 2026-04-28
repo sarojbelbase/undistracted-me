@@ -148,7 +148,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
             <div
               key={id}
               className="group relative w-full h-full transition-opacity duration-200"
-              style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1 }}
+              style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1, touchAction: arrangeMode ? 'none' : 'pan-y' }}
             >
               {/* Drag handle — visible only in arrange mode */}
               <div

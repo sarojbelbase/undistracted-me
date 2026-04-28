@@ -98,12 +98,12 @@ const App = () => {
   // Skips the arrange-toggle button so its own onClick can handle the toggle.
   useEffect(() => {
     if (!arrangeMode) return;
-    const onMouseDown = (e) => {
+    const onPointerDown = (e) => {
       if (e.target.closest('.widget-drag-handle') || e.target.closest('[data-arrange-toggle]')) return;
       exitArrangeMode();
     };
-    document.addEventListener('mousedown', onMouseDown);
-    return () => document.removeEventListener('mousedown', onMouseDown);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [arrangeMode, exitArrangeMode]);
 
   useLookAwayScheduler({
