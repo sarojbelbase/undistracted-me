@@ -77,6 +77,13 @@ export const useSettingsStore = create(
       focusTasks: true,
       focusSearchTopSites: true,
       focusSearchWeb: true,
+      focusPanels: {
+        pomodoro: true,
+        event: true,
+        occasion: true,
+        stock: true,
+        spotify: true,
+      },
 
       // ── Helpers ────────────────────────────────────────────────────────
       /** Returns 'light' or 'dark' key for modePrefs based on current mode */
@@ -107,6 +114,10 @@ export const useSettingsStore = create(
 
       /** Include web autocomplete suggestions in results */
       setFocusSearchWeb: (v) => set({ focusSearchWeb: v }),
+
+      /** Toggle a single Focus Mode panel on/off by key */
+      setFocusPanelEnabled: (key, enabled) =>
+        set(s => ({ focusPanels: { ...s.focusPanels, [key]: enabled } })),
 
       setAccent: (accent) => {
         set({ accent });

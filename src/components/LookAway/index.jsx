@@ -92,10 +92,11 @@ const GhostBtn = ({ onClick, children, isDark }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const LookAway = ({ onDismiss, duration = 20, isDark = true }) => {
+export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) => {
   const [remaining, setRemaining] = useState(duration);
   const [timeLabel, setTimeLabel] = useState(getTimeLabel);
   const [isExiting, setIsExiting] = useState(false);
+  const [snoozeActive, setSnoozeActive] = useState(null); // null | 5 | 10 | 15
   const [msg] = useState(() => MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
   // Pick a random palette once per overlay mount — independent of user accent
   const orbRgb = useMemo(
@@ -108,6 +109,12 @@ export const LookAway = ({ onDismiss, duration = 20, isDark = true }) => {
     setIsExiting(true);
     setTimeout(onDismiss, 500);
   }, [onDismiss]);
+
+  const handleSnooze = useCallback((mins) => {
+    setSnoozeActive(mins);
+    setIsExiting(true);
+    setTimeout(() => onSnooze?.(mins), 500);
+  }, [onSnooze]);
 
   // ── Countdown ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -339,7 +346,7 @@ export const LookAway = ({ onDismiss, duration = 20, isDark = true }) => {
         </div>
       </div>
 
-      {/* ── Ghost action row — no borders, no bands ───────────────────────── */}
+      {/* ── Ghost action row — skip + lock screen ─────────────────────────── */}
       <div
         style={{
           position: 'absolute',
@@ -347,20 +354,91 @@ export const LookAway = ({ onDismiss, duration = 20, isDark = true }) => {
           left: 0,
           right: 0,
           display: 'flex',
-          justifyContent: 'center',
-          gap: 32,
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 14,
           animation: 'lookaway-rise 1s ease-out 0.3s both',
         }}
       >
-        <GhostBtn onClick={dismiss} isDark={isDark}>
-          <RingProgress progress={progress} orbRgb={orbRgb} />
-          Skip
-        </GhostBtn>
+        {/* ── Primary actions: Skip + Lock Screen ── */}
+        <div style={{ display: 'flex', gap: 32 }}>
+          <GhostBtn onClick={dismiss} isDark={isDark}>
+            <RingProgress progress={progress} orbRgb={orbRgb} />
+            Skip
+          </GhostBtn>
 
-        <GhostBtn onClick={handleLockScreen} isDark={isDark}>
-          <LockFill size={11} style={{ opacity: 0.65 }} />
-          Lock Screen
-        </GhostBtn>
+          <GhostBtn onClick={handleLockScreen} isDark={isDark}>
+            <LockFill size={11} style={{ opacity: 0.65 }} />
+            Lock Screen
+          </GhostBtn>
+        </div>
+
+        {/* ── Snooze pills ── */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.22)',
+              marginRight: 2,
+              userSelect: 'none',
+            }}
+          >
+            Snooze
+          </span>
+          {[5, 10, 15].map(mins => {
+            const isActive = snoozeActive === mins;
+            const baseColor = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.22)';
+            const hoverColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)';
+            const activeBg = `rgba(${orbRgb},0.18)`;
+            const activeBorder = `rgba(${orbRgb},0.38)`;
+            const activeColor = `rgba(${orbRgb},${isDark ? 0.9 : 1})`;
+            return (
+              <button
+                key={mins}
+                type="button"
+                onClick={() => handleSnooze(mins)}
+                style={{
+                  background: isActive ? activeBg : 'transparent',
+                  border: `1px solid ${isActive ? activeBorder : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)')}`,
+                  borderRadius: 999,
+                  padding: '3px 10px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  color: isActive ? activeColor : baseColor,
+                  transition: 'all 0.18s ease',
+                  outline: 'none',
+                  userSelect: 'none',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = hoverColor;
+                    e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.26)' : 'rgba(0,0,0,0.26)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = baseColor;
+                    e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+                  }
+                }}
+                aria-label={`Snooze for ${mins} minutes`}
+              >
+                {mins}m
+              </button>
+            );
+          })}
+        </div>
       </div>
     </dialog>,
     document.body

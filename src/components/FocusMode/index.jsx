@@ -13,6 +13,7 @@ import { useSettingsStore } from '../../store';
 import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 import { getFMCardVars, FM_ORB_BG } from './theme';
 import { SearchBarDialog } from './dialog/SearchBar';
+import { PanelsDialog } from './dialog/Panels';
 import { TopZone } from './zones/TopZone';
 import { CenterZone } from './zones/CenterZone';
 import { BottomZone } from './zones/BottomZone';
@@ -119,11 +120,12 @@ export const FocusMode = ({ onExit }) => {
   const [showBgModal, setShowBgModal] = useState(false);
   const [showTasksDialog, setShowTasksDialog] = useState(false);
   const [showSearchDialog, setShowSearchDialog] = useState(false);
+  const [showPanelsDialog, setShowPanelsDialog] = useState(false);
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal && !showTasksDialog && !showSearchDialog) onExit(); };
+    const handleKey = (e) => { if (e.key === 'Escape' && !showBgModal && !showTasksDialog && !showSearchDialog && !showPanelsDialog) onExit(); };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onExit, showBgModal, showTasksDialog, showSearchDialog]);
+  }, [onExit, showBgModal, showTasksDialog, showSearchDialog, showPanelsDialog]);
 
   // ── Background source change ────────────────────────────────────────────────
   const handleBgChange = useCallback((source, customUrl) => {
@@ -174,6 +176,7 @@ export const FocusMode = ({ onExit }) => {
           onOpenBgModal={() => setShowBgModal(true)}
           onOpenTasksDialog={() => setShowTasksDialog(true)}
           onOpenSearchDialog={() => setShowSearchDialog(true)}
+          onOpenPanelsDialog={() => setShowPanelsDialog(true)}
         />
       )}
 
@@ -192,6 +195,12 @@ export const FocusMode = ({ onExit }) => {
       {showSearchDialog && (
         <SearchBarDialog
           onClose={() => setShowSearchDialog(false)}
+        />
+      )}
+
+      {showPanelsDialog && (
+        <PanelsDialog
+          onClose={() => setShowPanelsDialog(false)}
         />
       )}
     </div>

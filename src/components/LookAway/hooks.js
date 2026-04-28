@@ -17,6 +17,19 @@ if (typeof document !== 'undefined') {
   });
 }
 
+/** Returns true if a snooze window is currently active. */
+function isSnoozed() {
+  if (hasChromeApi() && chrome.storage?.local) {
+    // Chrome storage is async — we check a module-level cache updated by the
+    // storage.onChanged listener in the scheduler. For a quick synchronous
+    // answer we also read from localStorage as a shadow copy.
+  }
+  try {
+    const v = localStorage.getItem('lookaway_snooze_until');
+    return v ? Date.now() < Number(v) : false;
+  } catch { return false; }
+}
+
 /**
  * Schedules LookAway breaks that survive tab switches and other apps.
  *
@@ -46,9 +59,14 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
     if (!enabled || !hasChromeApi() || !chrome.storage?.onChanged) return;
     const handler = (changes, area) => {
       if (area !== 'local' || !changes.lookaway_due?.newValue) return;
+      // Mirror chrome snooze_until to localStorage for isSnoozed() sync check
+      if (changes.lookaway_snooze_until?.newValue) {
+        try { localStorage.setItem('lookaway_snooze_until', String(changes.lookaway_snooze_until.newValue)); } catch { /* noop */ }
+      }
       // Skip if the page is currently hidden or just became visible after a long absence
       if (document.visibilityState === 'hidden') return;
       if (lastHiddenAt !== null && (Date.now() - lastHiddenAt) < 3000) return;
+      if (isSnoozed()) return;
       triggerRef.current();
     };
     chrome.storage.onChanged.addListener(handler);
@@ -85,6 +103,7 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
         }
       }
 
+      if (isSnoozed()) { chrome.storage.local.remove('lookaway_due'); return; }
       triggerRef.current();
     });
   }, [enabled, intervalMins]);
@@ -92,7 +111,10 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
   // ── Dev fallback: plain setInterval (no chrome extension context) ────────
   useEffect(() => {
     if (!enabled || hasChromeApi()) return;
-    const id = setInterval(() => triggerRef.current(), intervalMins * 60_000);
+    const id = setInterval(() => {
+      if (isSnoozed()) return;
+      triggerRef.current();
+    }, intervalMins * 60_000);
     return () => clearInterval(id);
   }, [enabled, intervalMins]);
 };
@@ -105,4 +127,20 @@ export const clearLookAwayDue = () => {
   if (hasChromeApi() && chrome.storage?.local) {
     chrome.storage.local.remove('lookaway_due');
   }
+};
+
+/**
+ * Snooze for `mins` minutes. Stores a `lookaway_snooze_until` timestamp that
+ * the scheduler checks before triggering. Does NOT reset the alarm schedule —
+ * the next alarm still fires at the same cadence; the trigger is just suppressed
+ * while the snooze window is active.
+ */
+export const snoozeLookAway = (mins) => {
+  const until = Date.now() + mins * 60_000;
+  if (hasChromeApi() && chrome.storage?.local) {
+    chrome.storage.local.set({ lookaway_snooze_until: until });
+  } else {
+    try { localStorage.setItem('lookaway_snooze_until', String(until)); } catch { /* noop */ }
+  }
+  clearLookAwayDue();
 };

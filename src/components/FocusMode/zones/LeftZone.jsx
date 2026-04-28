@@ -14,6 +14,7 @@ import { useOccasions } from '../../../widgets/occasions/useOccasions';
 import { useFocusStocks, useFocusSpotify, useChromeMedia } from '../hooks';
 import { AnimatedCard } from '../theme';
 import { ZONES } from '../config';
+import { useSettingsStore } from '../../../store';
 
 const LEFT = ZONES.left.items;
 import { PomodoroPanel } from '../panels/Pomodoro';
@@ -23,6 +24,8 @@ import { SpotifyPanel } from '../panels/Spotify';
 import { OccasionPanel } from '../panels/Occasion';
 
 export const LeftZone = () => {
+  const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
+
   const [pomodoro, setPomodoro] = useState(() => readPomodoro());
   useEffect(() => onClockTick(() => setPomodoro(readPomodoro())), []);
 
@@ -95,7 +98,7 @@ export const LeftZone = () => {
   };
 
   const visible = Object.entries(LEFT)
-    .filter(([key, cfg]) => cfg.enable && panels[key] != null)
+    .filter(([key, cfg]) => cfg.enable && (focusPanels[key] ?? true) && panels[key] != null)
     .sort(([, a], [, b]) => a.order - b.order)
     .map(([key]) => key);
 
