@@ -79,7 +79,7 @@ const InfoStrip = ({ weather, dateParts }) => {
 
 // ── Nav bar ───────────────────────────────────────────────────────────────────
 
-const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog }) => {
+const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog, onOpenPanelsDialog }) => {
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
 
@@ -172,6 +172,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
             onOpenBgModal={onOpenBgModal}
             onOpenTasksDialog={() => { setShowSettings(false); onOpenTasksDialog?.(); }}
             onOpenSearchDialog={() => { setShowSettings(false); onOpenSearchDialog?.(); }}
+            onOpenPanelsDialog={() => { setShowSettings(false); onOpenPanelsDialog?.(); }}
           />
         </Suspense>
       )}
@@ -181,7 +182,7 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
 
 // ── Top zone export ───────────────────────────────────────────────────────────
 
-export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog }) => {
+export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog, onOpenPanelsDialog }) => {
   const dateFormat = useSettingsStore(s => s.dateFormat);
   const weather = useFocusWeather();
   const [dateParts, setDateParts] = useState(() =>
@@ -202,6 +203,7 @@ export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onO
         onOpenBgModal={onOpenBgModal}
         onOpenTasksDialog={onOpenTasksDialog}
         onOpenSearchDialog={onOpenSearchDialog}
+        onOpenPanelsDialog={onOpenPanelsDialog}
       />
       <InfoStrip weather={weather} dateParts={dateParts} />
     </>

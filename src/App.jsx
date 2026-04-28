@@ -4,7 +4,7 @@ import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { FocusMode } from './components/FocusMode';
 import { LookAway } from './components/LookAway';
-import { useLookAwayScheduler, clearLookAwayDue } from './components/LookAway/hooks';
+import { useLookAwayScheduler, clearLookAwayDue, snoozeLookAway } from './components/LookAway/hooks';
 import { WidgetGrid } from './widgets/WidgetGrid';
 import { BackgroundPicker } from './components/ui/BackgroundPicker';
 import { CanvasBackground } from './components/ui/CanvasBackground';
@@ -172,6 +172,7 @@ const App = () => {
       {showLookAway && (
         <LookAway
           onDismiss={() => { setShowLookAway(false); clearLookAwayDue(); }}
+          onSnooze={(mins) => { setShowLookAway(false); snoozeLookAway(mins); }}
           duration={20}
           isDark={isDark}
         />

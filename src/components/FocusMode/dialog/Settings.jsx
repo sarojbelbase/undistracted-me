@@ -45,7 +45,7 @@ const OnOffRow = ({ label, value, onChange }) => (
   />
 );
 
-export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog }) => {
+export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog, onOpenPanelsDialog }) => {
   const {
     dateFormat, setDateFormat,
     clockFormat, setClockFormat,
@@ -116,6 +116,19 @@ export const FocusModeSettings = ({ onOpenBgModal, onOpenTasksDialog, onOpenSear
           style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_1 }}
         >
           <span>Configure tasks</span>
+          <span style={{ color: FM_INK_4 }}>›</span>
+        </button>
+      </div>
+
+      {/* Panels */}
+      <div>
+        <FMLabel>Panels</FMLabel>
+        <button
+          onClick={() => onOpenPanelsDialog?.()}
+          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-lg font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
+          style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_1 }}
+        >
+          <span>Manage panels</span>
           <span style={{ color: FM_INK_4 }}>›</span>
         </button>
       </div>

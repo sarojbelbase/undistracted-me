@@ -105,19 +105,12 @@
 ## 🚧 Up Next
 
 ### Short Term
-- [ ] **Stock widget**: show volume (V) alongside O/H/L in single-stock view
-- [ ] **Stock widget**: loading skeleton / shimmer state instead of dead sparkline on first render
-- [ ] **Weather**: better error states and manual refresh button
-- [ ] **LookAway**: snooze button (dismiss for N minutes without resetting the schedule)
-- [ ] **Focus Mode**: persist zone panel visibility preferences per-user (hide panels for unused widgets)
-
-### Medium Term
-- [ ] **Onboarding**: first-run flow — widget picker walkthrough
+- [x] **LookAway**: snooze button (dismiss for N minutes without resetting the schedule)
+- [x] **Focus Mode**: persist zone panel visibility preferences per-user (hide panels for unused widgets, maintain  manage widgets section in focus mode)
 - [ ] **Build optimization**: bundle size audit (~537KB gzipped is large)
-- [ ] **Unsplash prewarm**: call `downloadCuratedPhotos()` on extension install/update so first Focus Mode open is instant
-- [ ] **Occasions widget**: show "today" screen — full-card celebration when it's someone's birthday today
 
 ### Later / Ideas
+- [ ] **Onboarding**: first-run flow — widget picker walkthrough
 - [ ] **Dynamic quotes widget** — rotating quotes (static JSON or API)
 - [ ] **Language localization** — i18n for all widget content beyond Nepali date
 - [ ] **Firefox packaging** — web-ext tooling, full MV3 compatibility audit
