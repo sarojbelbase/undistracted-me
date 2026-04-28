@@ -113,11 +113,9 @@ NON-OBVIOUS PATTERNS
    auth/userinfo.email                                 Identify the account
    auth/calendar.readonly                              Google Calendar widget
    auth/contacts.readonly                              Contact search in events
-   auth/drive.metadata.readonly                        Drive file search (Focus
-                                                         Mode search bar)
    auth/tasks                                          Tasks panel (read/write)
 
-   All six scopes are requested in a single consent prompt. The user can
+   All five scopes are requested in a single consent prompt. The user can
    revoke access at any time from myaccount.google.com/permissions.
 
 

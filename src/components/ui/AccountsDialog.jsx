@@ -12,7 +12,7 @@ import {
   getSpotifyProfile,
 } from '../../widgets/spotify/utils';
 
-const GOOGLE_SCOPES = ['Calendar events', 'Contact birthdays', 'Drive file search', 'Task management'];
+const GOOGLE_SCOPES = ['Calendar events', 'Contact birthdays', 'Task management'];
 const SPOTIFY_SCOPES = ['Playback control', 'Currently playing', 'Skip & pause'];
 
 /** Custom event for Spotify connection changes — widgets listen to keep their state in sync. */

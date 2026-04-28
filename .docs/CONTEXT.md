@@ -18,8 +18,8 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 
 ### `useSettingsStore` (`src/store/useSettingsStore.js`)
 Persistence key: `undistracted_settings`
-Fields: `language`, `accent`, `mode` (`'light'|'dark'|'auto'`), `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`, `canvasBg` (`{ type: 'solid'|'orb'|'curated'|'custom', orbId?, url? }`), `cardStyle` (`'flat'|'glass'`), `modePrefs` (`{ light: { cardStyle }, dark: { cardStyle } }`), `focusSearchBar` (bool, default true), `focusTasks` (bool, default true), `focusSearchTopSites`, `focusSearchDrive`, `focusSearchWeb`
-Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`, `setCanvasBg`, `setCardStyle`, `setFocusSearchBar`, `setFocusTasks`, `setFocusSearchTopSites`, `setFocusSearchDrive`, `setFocusSearchWeb`
+Fields: `language`, `accent`, `mode` (`'light'|'dark'|'auto'`), `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`, `canvasBg` (`{ type: 'solid'|'orb'|'curated'|'custom', orbId?, url? }`), `cardStyle` (`'flat'|'glass'`), `modePrefs` (`{ light: { cardStyle }, dark: { cardStyle } }`), `focusSearchBar` (bool, default true), `focusTasks` (bool, default true), `focusSearchTopSites`, `focusSearchWeb`
+Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`, `setCanvasBg`, `setCardStyle`, `setFocusSearchBar`, `setFocusTasks`, `setFocusSearchTopSites`, `setFocusSearchWeb`
 - `setAccent` / `setMode` call `applyTheme()` immediately (skipped when `mode='auto'` — `useAutoTheme` applies theme after mount)
 - `onRehydrateStorage` re-applies theme CSS vars after hydration (prevents FOUC)
 - First-run migration: reads legacy per-key localStorage entries if `undistracted_settings` absent
@@ -45,7 +45,7 @@ Actions: `refresh` (full 3-tier pipeline), `refreshSunTimes` (no-network sun rec
 ### `useGoogleAccountStore` (`src/store/useGoogleAccountStore.js`)
 Not persisted — in-memory only.
 Fields: `connected`, `profile` (`{ name, email, picture }|null`), `connecting`, `disconnecting`, `error`, `initialized`
-Actions: `init` (silent token check on mount), `connect` (interactive OAuth UI), `disconnect` (signs out from Calendar + Contacts + Drive + Tasks)
+Actions: `init` (silent token check on mount), `connect` (interactive OAuth UI), `disconnect` (signs out from Calendar + Contacts + Tasks)
 - Dispatches `google_account_changed` window event on connect/disconnect so hooks can react without prop-drilling
 - `USER_DISCONNECTED_KEY` (`localStorage`) prevents auto-reconnect after explicit user sign-out
 
@@ -108,9 +108,6 @@ src/
                          chrome.storage.local cache, manual birthdays localStorage
     googleTasks.js     — Google Tasks API v1 wrapper: fetchGoogleTaskLists, fetchGoogleTasks,
                          createTask, updateTask, deleteTask — all with auto-retry on 401/403
-    googleDrive.js     — Drive metadata search (name contains query, trashed=false);
-                         returns up to 5 matches (id, name, mimeType, webViewLink);
-                         uses drive.metadata.readonly scope; non-interactive token fetch
     sharedClock.js     — leader-election shared clock tick (Web Locks API + BroadcastChannel
                          "um:clock"); one tab holds lock and broadcasts second-aligned ticks
                          to all others; falls back to per-tab aligned interval;
@@ -145,8 +142,7 @@ src/
       dialog/
         Settings.jsx   — Glass settings panel: dateFormat, clockFormat, focusSearchBar toggle,
                          focusTasks toggle, "Backgrounds" button
-        SearchBar.jsx  — Full-screen search dialog: web autocomplete (Google/DDG), top sites,
-                         Google Drive file search, search history (fm_search_history, max 12)
+        SearchBar.jsx  — Full-screen search dialog: web autocomplete (Google/DDG), top sites, search history (fm_search_history, max 12)
         Tasks.jsx      — Google Tasks account dialog
         shared.jsx     — shared dialog primitives
     LookAway/
@@ -302,9 +298,9 @@ Glass panel cards (order driven by ZONES.left.items):
 ### Focus Mode Search Bar (`dialog/SearchBar.jsx`)
 - Full-screen search dialog triggered from CenterZone search pill
 - Features: web autocomplete (Google `suggestqueries.google.com` / DDG `ac.duckduckgo.com`),
-  Chrome top sites in empty state, Google Drive file search, search history
+  Chrome top sites in empty state, search history
 - History key: `fm_search_history` (localStorage, max 12 entries)
-- Autocomplete controlled by `focusSearchTopSites`, `focusSearchDrive`, `focusSearchWeb` settings
+- Autocomplete controlled by `focusSearchTopSites`, `focusSearchWeb` settings
 
 ### Focus Mode Settings (`dialog/Settings.jsx`)
 - Date Calendar: CE / BS
@@ -348,7 +344,7 @@ Unified OAuth2 — works in all three environments:
 - **Firefox**: PKCE authorization-code flow via `chrome.identity.launchWebAuthFlow()` + manual token exchange against Google. Client ID/secret XOR-encoded at build time by `obscureEnvKeys` Vite plugin.
 - **Web (website mode)**: popup + PKCE + `/api/auth/google/token` server-side exchange.
 
-Scopes: `calendar.readonly`, `contacts.readonly`, `drive.metadata.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
+Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
 
 Token storage:
 - Firefox extension: `chrome.storage.local` under key `google_ff_tokens`
@@ -397,7 +393,7 @@ High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT cal
 
 ## Google Calendar / Profile Integration
 - OAuth via unified `googleAuth.js` (Chrome: getAuthToken; Firefox/Web: PKCE)
-- Scopes: `calendar.readonly`, `contacts.readonly`, `drive.metadata.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
+- Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
 - Calendar events (PII) stored in **`chrome.storage.local`** under `gcal_events_cache`; one-time migration from legacy localStorage on first load
 - `gcal_has_cache` — localStorage boolean flag for synchronous cache-existence checks
 - `gcal_synced_at` — localStorage timestamp of last sync
@@ -438,11 +434,9 @@ Key shared components:
   "https://nepalipaisa.com/*",                     // NEPSE company list
   "https://www.merolagani.com/*",                  // NEPSE chart data
   "https://people.googleapis.com/*",               // Contacts API
-  "https://www.googleapis.com/*",                  // Drive + other Google APIs
+  \"https://www.googleapis.com/*\",                  // Calendar, userinfo + other Google APIs
   "https://tasks.googleapis.com/*",                // Google Tasks API
   "https://oauth2.googleapis.com/*",               // Token exchange
-  "https://suggestqueries.google.com/*",           // Focus Mode search autocomplete
-  "https://ac.duckduckgo.com/*",                   // Focus Mode search autocomplete
   "https://api.open-meteo.com/*",                  // Weather data (no API key)
   "https://geocoding-api.open-meteo.com/*",        // Weather manual location search
   "https://nominatim.openstreetmap.org/*",         // Reverse-geocode city name

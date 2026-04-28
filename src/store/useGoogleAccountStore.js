@@ -2,11 +2,11 @@
  * useGoogleAccountStore — centralized Google OAuth state.
  *
  * Single source of truth for Google auth across ALL widgets and focus mode.
- * One connect/disconnect action covers Calendar, Contacts, Drive, and Tasks.
+ * One connect/disconnect action covers Calendar, Contacts, and Tasks.
  *
  * Consumers:
  *  - AccountsDialog  (connect/disconnect UI)
- *  - FocusMode       (Tasks panel, Drive search)
+ *  - FocusMode       (Tasks panel)
  *  - IntegrationRow  (status badge)
  *  - useFocusTasks   (reacts to google_account_changed event)
  */

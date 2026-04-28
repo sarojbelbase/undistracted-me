@@ -111,7 +111,7 @@ export const FocusMode = ({ onExit }) => {
     else document.documentElement.requestFullscreen().catch(() => { });
   }, []);
 
-  // ── Google auth (shared state for Tasks panel + Search Drive) ──────────────────
+  // ── Google auth (shared state for Tasks panel) ──────────────────
   const taskState = useFocusTasks();
   const { connected: googleConnected, profile: googleProfile } = useGoogleAccountStore();
 

@@ -58,7 +58,7 @@
 - [x] **BottomZone** — greeting text
 - [x] **BottomRightZone** — Google Tasks collapsible pill (bottom-right, z22)
 - [x] **BackgroundPicker** — shared component in `src/components/ui/`; 4 modes: default, curated (Unsplash library), custom (URL), orb (7 palettes)
-- [x] **Focus Mode Search Bar** — `focusSearchBar` toggle; full-screen dialog with web autocomplete (Google/DDG), top sites, Drive file search, history (`fm_search_history`, max 12)
+- [x] **Focus Mode Search Bar** — `focusSearchBar` toggle; full-screen dialog with web autocomplete (Google/DDG), top sites, history (`fm_search_history`, max 12)
 - [x] **Focus Mode Tasks panel** — `focusTasks` toggle; `useFocusTasks()` optimistic CRUD via Google Tasks API; account dialog
 - [x] **Focus Mode Settings** (`dialog/Settings.jsx`) — dateFormat, clockFormat, Search Bar toggle, Tasks toggle, Backgrounds button
 - [x] **sharedClock.js** — Web Locks + BroadcastChannel leader-election; one tab holds lock and broadcasts second-aligned ticks; `onClockTick(fn)` API used by all zones
@@ -84,9 +84,8 @@
 - [x] **Unified Google OAuth** (`googleAuth.js`) — Chrome (getAuthToken), Firefox (PKCE launchWebAuthFlow), Web (popup + PKCE + server-side `/api/auth/google/token`)
 - [x] **Google Contacts** (`googleContacts.js`) — People API, paginated (up to 2000 contacts), birthdays + anniversaries
 - [x] **Google Tasks** (`googleTasks.js`) — full CRUD (list/create/complete/delete) via `tasks.googleapis.com`; `useFocusTasks()` hook in Focus Mode
-- [x] **Google Drive** (`googleDrive.js`) — `drive.metadata.readonly` scope; file search for Focus Mode search bar
 - [x] **Tokens in chrome.storage.local** — Spotify tokens + GCal/Profile cache migrated from localStorage (security)
-- [x] **Google scopes**: `calendar.readonly`, `contacts.readonly`, `drive.metadata.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
+- [x] **Google scopes**: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
 - [x] **obscureEnvKeys** Vite plugin — XOR-encodes VITE_GOOGLE_DESKTOP_CLIENT_ID/SECRET at build time
 - [x] **Vercel API** — `api/photos/curated.js` (Blob store), `api/auth/google/token.js` (OAuth exchange), `api/favicon.js`
 
