@@ -65,27 +65,26 @@ describe('ACCENT_COLORS catalogue', () => {
     });
   });
 
-  it('every fg value is either white or near-black', () => {
-    const validFg = ['#ffffff', '#111827'];
+  it('every fg value is the near-white foreground', () => {
     ACCENT_COLORS.forEach((a) => {
-      expect(validFg).toContain(a.fg);
+      expect(a.fg).toBe('#f3f3f3');
     });
   });
 
-  it('contains a "Default" accent', () => {
-    expect(ACCENT_COLORS.find((a) => a.name === 'Default')).toBeDefined();
+  it('contains a "Matte Black" accent', () => {
+    expect(ACCENT_COLORS.find((a) => a.name === 'Matte Black')).toBeDefined();
   });
 
-  it('Default accent uses near-black hex (readable on light backgrounds)', () => {
-    const def = ACCENT_COLORS.find((a) => a.name === 'Default');
-    expect(def.hex).toBe('#111827');
+  it('Matte Black accent uses near-black hex (readable on light backgrounds)', () => {
+    const def = ACCENT_COLORS.find((a) => a.name === 'Matte Black');
+    expect(def.hex).toBe('#111111');
   });
 
-  it('Banana and Latte use dark fg (light accents need dark text)', () => {
-    const lightAccents = ['Banana', 'Latte'];
-    lightAccents.forEach((name) => {
+  it('Banana and Latte use near-white fg', () => {
+    const accents = ['Banana', 'Latte'];
+    accents.forEach((name) => {
       const a = ACCENT_COLORS.find((x) => x.name === name);
-      if (a) expect(a.fg).toBe('#111827');
+      if (a) expect(a.fg).toBe('#f3f3f3');
     });
   });
 
@@ -112,19 +111,19 @@ describe('applyTheme — light mode', () => {
   });
 
   it('sets --w-page-bg to the light page background', () => {
-    expect(cssVar('--w-page-bg')).toBe('#F0F0F2');
+    expect(cssVar('--w-page-bg')).toBe('#ebebeb');
   });
 
-  it('sets --w-surface to #ffffff in light mode', () => {
-    expect(cssVar('--w-surface')).toBe('#ffffff');
+  it('sets --w-surface to off-white in light mode', () => {
+    expect(cssVar('--w-surface')).toBe('#f5f5f5');
   });
 
   it('sets --w-border to light border colour', () => {
-    expect(cssVar('--w-border')).toBe('#e5e7eb');
+    expect(cssVar('--w-border')).toBe('#e0e0e0');
   });
 
   it('sets --w-ink-1 to near-black in light mode', () => {
-    expect(cssVar('--w-ink-1')).toBe('#111827');
+    expect(cssVar('--w-ink-1')).toBe('#111111');
   });
 });
 
@@ -180,21 +179,21 @@ describe('applyTheme — accent variables', () => {
     expect(rgb).toMatch(/^\d+,\d+,\d+$/);
   });
 
-  it('--w-accent-rgb is numerically correct for Blueberry (#3689E6)', () => {
+  it('--w-accent-rgb is numerically correct for Blueberry (#1565C0)', () => {
     applyTheme('Blueberry', 'light');
-    // #36=54, #89=137, #E6=230
-    expect(cssVar('--w-accent-rgb')).toBe('54,137,230');
+    // #15=21, #65=101, #C0=192
+    expect(cssVar('--w-accent-rgb')).toBe('21,101,192');
   });
 
-  it('--w-accent-rgb is correct for Banana (#F9C440)', () => {
+  it('--w-accent-rgb is correct for Banana (#8B6500)', () => {
     applyTheme('Banana', 'light');
-    // #F9=249, #C4=196, #40=64
-    expect(cssVar('--w-accent-rgb')).toBe('249,196,64');
+    // #8B=139, #65=101, #00=0
+    expect(cssVar('--w-accent-rgb')).toBe('139,101,0');
   });
 
   it('falls back to Default accent for unknown accent name', () => {
     applyTheme('ThisAccentDoesNotExist', 'light');
-    const def = ACCENT_COLORS.find((a) => a.name === 'Default');
+    const def = ACCENT_COLORS.find((a) => a.name === 'Matte Black');
     expect(cssVar('--w-accent')).toBe(def.hex);
   });
 
@@ -228,7 +227,7 @@ describe('applyTheme — mode switching idempotency', () => {
     applyTheme('Blueberry', 'dark');
     expect(cssVar('--w-page-bg')).toBe('#141414');
     applyTheme('Blueberry', 'light');
-    expect(cssVar('--w-page-bg')).toBe('#F0F0F2');
+    expect(cssVar('--w-page-bg')).toBe('#ebebeb');
   });
 
   it('switching from light to dark updates data-mode attribute', () => {
