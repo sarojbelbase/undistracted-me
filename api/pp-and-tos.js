@@ -695,11 +695,6 @@ const html = /* html */ `<!DOCTYPE html>
             <td><span class="badge-yes">OAuth token</span></td>
           </tr>
           <tr>
-            <td>www.googleapis.com/drive</td>
-            <td>Drive file search — metadata only, read-only</td>
-            <td><span class="badge-yes">OAuth token</span></td>
-          </tr>
-          <tr>
             <td>oauth2.googleapis.com</td>
             <td>Google token endpoint (Firefox — via our server)</td>
             <td><span class="badge-yes">Via server</span></td>
@@ -772,11 +767,6 @@ const html = /* html */ `<!DOCTYPE html>
             <td><span class="badge-no">Read only</span></td>
           </tr>
           <tr>
-            <td>drive.metadata.readonly</td>
-            <td>Drive file search in Focus Mode search bar</td>
-            <td><span class="badge-no">Read only</span></td>
-          </tr>
-          <tr>
             <td>tasks</td>
             <td>Tasks panel — view, create, complete, delete tasks</td>
             <td><span class="badge-yes">Read &amp; Write</span></td>
@@ -808,7 +798,7 @@ const html = /* html */ `<!DOCTYPE html>
     <section class="section" id="data-protection" style="margin-bottom: 24px;">
       <h2 class="section-title" style="font-size: 20px;">Data Protection for Sensitive Data</h2>
       <p>
-        We protect your sensitive Google user data (Calendar events, Contacts, Tasks, and Drive metadata) by ensuring it never leaves your device. We do not operate any database or remote storage servers. Your data is securely stored purely locally on your device within your browser's sandboxed <code>chrome.storage.local</code> or <code>localStorage</code> environment, which is accessible only by the extension itself. We employ encryption in transit (HTTPS) for all direct API calls between your browser and Google's servers.
+        We protect your sensitive Google user data (Calendar events, Contacts, and Tasks) by ensuring it never leaves your device. We do not operate any database or remote storage servers. Your data is securely stored purely locally on your device within your browser's sandboxed <code>chrome.storage.local</code> or <code>localStorage</code> environment, which is accessible only by the extension itself. We employ encryption in transit (HTTPS) for all direct API calls between your browser and Google's servers.
       </p>
     </section>
 

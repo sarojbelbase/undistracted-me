@@ -76,7 +76,6 @@ export const useSettingsStore = create(
       focusSearchBar: true,
       focusTasks: true,
       focusSearchTopSites: true,
-      focusSearchDrive: true,
       focusSearchWeb: true,
 
       // ── Helpers ────────────────────────────────────────────────────────
@@ -105,9 +104,6 @@ export const useSettingsStore = create(
 
       /** Show browser top sites in empty-state search dropdown */
       setFocusSearchTopSites: (v) => set({ focusSearchTopSites: v }),
-
-      /** Include Google Drive file search in results */
-      setFocusSearchDrive: (v) => set({ focusSearchDrive: v }),
 
       /** Include web autocomplete suggestions in results */
       setFocusSearchWeb: (v) => set({ focusSearchWeb: v }),

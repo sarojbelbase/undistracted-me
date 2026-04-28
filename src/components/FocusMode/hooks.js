@@ -4,7 +4,6 @@ import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync, getPhotoLibrary } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
 import { useLocationStore } from '../../store/useLocationStore';
-import { searchDriveFiles } from '../../utilities/googleDrive';
 // Shared hooks — also usable by canvas-mode widgets
 import { useSpotify } from '../../widgets/spotify/useSpotify';
 
@@ -353,12 +352,6 @@ export function switchToTab(tab) {
   chrome.tabs.update(tab.id, { active: true });
   if (chrome.windows?.update) chrome.windows.update(tab.windowId, { focused: true });
   /* eslint-enable no-undef */
-}
-
-/** Search Google Drive files by name. Silent no-op if Drive not authorised. */
-export async function searchDriveFilesAsync(query) {
-  if (!query?.trim()) return [];
-  return searchDriveFiles(query).catch(() => []);
 }
 
 // ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───

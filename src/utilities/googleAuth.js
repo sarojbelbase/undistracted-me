@@ -16,7 +16,6 @@ import { PRODUCTION_BASE_URL } from '../constants/env.js';
 const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/calendar.readonly',
   'https://www.googleapis.com/auth/contacts.readonly',
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
   'https://www.googleapis.com/auth/tasks',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email',

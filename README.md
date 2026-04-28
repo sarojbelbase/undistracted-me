@@ -40,7 +40,6 @@ The app requests the following Google OAuth scopes when you connect your Google 
 | `userinfo.email` | Display your email in the Settings panel |
 | `calendar.readonly` | Sync and display upcoming events from Google Calendar in the Upcoming Events widget |
 | `contacts.readonly` | Read birthdays and anniversaries from Google Contacts for the Occasions widget |
-| `drive.metadata.readonly` | Search your Google Drive files by name directly from the Focus Mode search bar |
 | `tasks` | Add, complete, and manage Google Tasks from the Tasks panel in Focus Mode |
 
 ## Build Setup
