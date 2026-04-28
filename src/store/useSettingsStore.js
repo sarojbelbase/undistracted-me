@@ -28,7 +28,7 @@ const fromLegacy = () => {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
     if (stored?.state) return {
       language: stored.state.language ?? 'en',
-      accent: stored.state.accent ?? 'Default',
+      accent: stored.state.accent ?? 'Matte Black',
       mode: stored.state.mode ?? 'light',
       defaultView: stored.state.defaultView ?? 'canvas',
       dateFormat: stored.state.dateFormat ?? 'gregorian',
@@ -51,7 +51,7 @@ const fromLegacy = () => {
   // Legacy single-key fallback
   return {
     language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || 'en',
-    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || 'Default',
+    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || 'Matte Black',
     mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || 'light',
     defaultView: localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || 'canvas',
     dateFormat: localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || 'gregorian',
@@ -119,10 +119,10 @@ export const useSettingsStore = create(
 
       setMode: (mode) => {
         const prevAccent = get().accent;
-        // 'Default' accent is only valid in explicit light mode.
+        // 'Matte Black' accent is only valid in explicit light mode.
         // In 'dark' or 'auto' (which can resolve to dark at night) swap to Blueberry.
         const accent =
-          (mode === 'dark' || mode === 'auto') && prevAccent === 'Default'
+          (mode === 'dark' || mode === 'auto') && prevAccent === 'Matte Black'
             ? 'Blueberry'
             : prevAccent;
         // cardStyle is a global preference — never overwritten by mode changes
@@ -165,7 +165,7 @@ export const useSettingsStore = create(
       // Re-apply theme CSS vars after Zustand rehydrates from localStorage
       onRehydrateStorage: () => (state) => {
         if (state) {
-          applyTheme(state.accent || 'Default', state.mode || 'light', state.cardStyle || 'glass');
+          applyTheme(state.accent || 'Matte Black', state.mode || 'light', state.cardStyle || 'glass');
         }
       },
     },
