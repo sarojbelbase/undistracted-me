@@ -23,6 +23,8 @@ import { useFocusMode } from "./hooks/useFocusMode";
 import { useSettingsPanel } from "./hooks/useSettingsPanel";
 import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
+import { useCommandPalette } from "./hooks/useCommandPalette";
+import { CommandPalette } from "./components/CommandPalette";
 
 // WidgetCatalog renders at App level (not inside ControlCluster) so keep its
 // lazy import here; the preloader is passed down as a prop.
@@ -129,6 +131,7 @@ const App = () => {
     useSettingsPanel();
   const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
   const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent });
+  const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
 
   // Exit arrange mode when the user clicks anywhere outside a drag handle.
   // Skips the arrange-toggle button so its own onClick can handle the toggle.
@@ -165,7 +168,7 @@ const App = () => {
 
       {/* Arrange-mode page scrim — dims the canvas background, sits below widgets */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-[2]"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-2"
         style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
       />
 
@@ -205,7 +208,7 @@ const App = () => {
         </Suspense>
       )}
 
-      <div className="relative z-[3] w-full h-full pt-16">
+      <div className="relative z-3 w-full h-full pt-16">
         <WidgetGrid
           instances={instances}
           onRemoveInstance={removeInstance}
@@ -265,6 +268,17 @@ const App = () => {
 
       {/* Global AccountsDialog */}
       {accountsDialogOpen && <AccountsDialog onClose={closeAccountsDialog} />}
+
+      {/* Command Palette — Cmd+K / Ctrl+K */}
+      {commandPaletteOpen && (
+        <CommandPalette
+          onClose={closeCommandPalette}
+          onOpenFocusMode={openFocusMode}
+          onOpenCatalog={() => setShowCatalog(true)}
+          onPreviewLookAway={() => setShowLookAway(true)}
+          onOpenSettings={toggleSettings}
+        />
+      )}
 
       {/* Dev-only breakpoint badge — bottom-left */}
       {import.meta.env.DEV && <BreakpointBadge />}

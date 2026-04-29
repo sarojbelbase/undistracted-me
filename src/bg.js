@@ -8,19 +8,23 @@
  */
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
-const ALARM_TICK = 'UM_TICK';        // fires every 1 min for event reminders
-const ALARM_LOOKAWAY = 'UM_LOOKAWAY'; // fires every N min for eye-break reminders
+const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
+const ALARM_LOOKAWAY = "UM_LOOKAWAY"; // fires every N min for eye-break reminders
+const ALARM_PREFETCH = "UM_PREFETCH"; // fires every 30 min for background data pre-fetch
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
 
 // ─── Module-level state ─────────────────────────────────────────────────────
 
-let storageCache = '[]';
+let storageCache = "[]";
 let chromeSessions = {};
 let chromeSessionOrder = [];
 
 // IDs of events we've already notified for (in-memory, good for one SW lifetime)
 const notified = new Set();
+
+// Stores lat/lon sent from the page for weather pre-fetching
+let prefetchCoords = null; // { lat, lon } or null
 
 function checkEventReminders() {
   let events = [];
@@ -43,10 +47,10 @@ function checkEventReminders() {
     if (diff >= 0 && diff <= WINDOW_MS) {
       notified.add(key);
       const minsTxt = Math.ceil(diff / 60000);
-      const endTxt = ev.endTime ? ` · ends ${ev.endTime}` : '';
+      const endTxt = ev.endTime ? ` · ends ${ev.endTime}` : "";
       chrome.notifications.create(`event_${key}`, {
-        type: 'basic',
-        iconUrl: 'favicon/lotus128.png',
+        type: "basic",
+        iconUrl: "favicon/lotus128.png",
         title: ev.title,
         message: `Starting in ${minsTxt} min${endTxt}`,
         priority: 1,
@@ -62,8 +66,8 @@ function checkEventReminders() {
 
 async function syncEventsFromStorage() {
   try {
-    const result = await chrome.storage.local.get('widget_events');
-    storageCache = result.widget_events || '[]';
+    const result = await chrome.storage.local.get("widget_events");
+    storageCache = result.widget_events || "[]";
     checkEventReminders();
   } catch {
     // storage unavailable
@@ -72,15 +76,19 @@ async function syncEventsFromStorage() {
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-globalThis.addEventListener('install', () => {
+globalThis.addEventListener("install", () => {
   globalThis.skipWaiting();
 });
 
-globalThis.addEventListener('activate', (event) => {
+globalThis.addEventListener("activate", (event) => {
   event.waitUntil(globalThis.clients.claim());
   // Ensure alarms exist
   chrome.alarms.get(ALARM_TICK, (a) => {
     if (!a) chrome.alarms.create(ALARM_TICK, { periodInMinutes: 1 });
+  });
+  chrome.alarms.get(ALARM_PREFETCH, (a) => {
+    if (!a && prefetchCoords)
+      chrome.alarms.create(ALARM_PREFETCH, { periodInMinutes: 30 });
   });
 });
 
@@ -99,20 +107,25 @@ chrome.runtime.onStartup.addListener(injectMediaScript);
  * auto-injected into pages that load *after* the extension is installed/reloaded.
  */
 function injectMediaScript() {
-  const patterns = ['*://*.soundcloud.com/*'];
+  const patterns = ["*://*.soundcloud.com/*"];
   chrome.tabs.query({ url: patterns }, (tabs) => {
     for (const tab of tabs ?? []) {
       if (!tab.id) continue;
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['src/utilities/media.js'],
-      }).catch(() => { /* tab may be discarded or restricted */ });
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          files: ["src/utilities/media.js"],
+        })
+        .catch(() => {
+          /* tab may be discarded or restricted */
+        });
     }
   });
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_TICK) syncEventsFromStorage();
+  if (alarm.name === ALARM_PREFETCH) runWeatherPrefetch();
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
   if (alarm.name === ALARM_LOOKAWAY) {
@@ -127,9 +140,11 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       // Don't nag the user the moment they sit down. Reset the countdown
       // from now so the first real break fires after a full interval of active use.
       chrome.alarms.clear(ALARM_LOOKAWAY, () => {
-        chrome.alarms.create(ALARM_LOOKAWAY, { periodInMinutes: alarm.periodInMinutes ?? 10 });
+        chrome.alarms.create(ALARM_LOOKAWAY, {
+          periodInMinutes: alarm.periodInMinutes ?? 10,
+        });
       });
-      chrome.storage.local.remove('lookaway_due');
+      chrome.storage.local.remove("lookaway_due");
       return;
     }
 
@@ -138,19 +153,21 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     // Only show OS notification if no new tab page is visible AND user wants notifications.
     // If the user already has a new tab open, the in-page overlay fires
     // via storage.onChanged — a system notification on top would be redundant.
-    chrome.storage.local.get('lookaway_notify', ({ lookaway_notify }) => {
+    chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
       if (lookaway_notify === false) return; // user opted out
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
-        const isNewTab = activeTab?.url === 'chrome://newtab/' ||
-          activeTab?.pendingUrl === 'chrome://newtab/' ||
-          activeTab?.url?.startsWith('chrome-extension://');
+        const isNewTab =
+          activeTab?.url === "chrome://newtab/" ||
+          activeTab?.pendingUrl === "chrome://newtab/" ||
+          activeTab?.url?.startsWith("chrome-extension://");
         if (!isNewTab) {
-          chrome.notifications.create('lookaway_' + Date.now(), {
-            type: 'basic',
-            iconUrl: 'favicon/lotus128.png',
-            title: 'Time to look away 👁',
-            message: 'Give your eyes a 20-second break. Open a new tab when ready.',
+          chrome.notifications.create("lookaway_" + Date.now(), {
+            type: "basic",
+            iconUrl: "favicon/lotus128.png",
+            title: "Time to look away 👁",
+            message:
+              "Give your eyes a 20-second break. Open a new tab when ready.",
             priority: 1,
           });
         }
@@ -159,26 +176,64 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
+// ─── Weather pre-fetch ───────────────────────────────────────────────────────
+
+async function runWeatherPrefetch() {
+  if (!prefetchCoords) return;
+  const { lat, lon } = prefetchCoords;
+  try {
+    // Fetch current weather + 12h forecast from Open-Meteo (no API key needed)
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days=1&timezone=auto&wind_speed_unit=ms`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    // Write to chrome.storage.local with timestamp
+    await chrome.storage.local.set({
+      weather_sw_cache: {
+        data,
+        lat,
+        lon,
+        fetchedAt: Date.now(),
+      },
+    });
+  } catch {
+    // Network unavailable — skip silently
+  }
+}
+
+function handlePrefetchSync(msg) {
+  // msg.lat, msg.lon — store in module state
+  prefetchCoords = { lat: msg.lat, lon: msg.lon };
+  // Create/update the prefetch alarm
+  chrome.alarms.get(ALARM_PREFETCH, (existing) => {
+    if (!existing) {
+      chrome.alarms.create(ALARM_PREFETCH, { periodInMinutes: 30 });
+    }
+  });
+  // Run an immediate prefetch if we just got fresh coords
+  runWeatherPrefetch();
+}
+
 // ─── Messages from the page ───────────────────────────────────────────────────
 
 function handlePomodoroDone(msg) {
-  chrome.notifications.create('pomodoro_done', {
-    type: 'basic',
-    iconUrl: 'favicon/lotus128.png',
-    title: '🍅 Focus session complete!',
+  chrome.notifications.create("pomodoro_done", {
+    type: "basic",
+    iconUrl: "favicon/lotus128.png",
+    title: "🍅 Focus session complete!",
     message: msg.preset
       ? `Your ${msg.preset} session is done. Take a break.`
-      : 'Your focus session is done. Take a break.',
+      : "Your focus session is done. Take a break.",
     priority: 2,
   });
 }
 
 function handleCountdownDone(msg) {
   chrome.notifications.create(`countdown_done_${Date.now()}`, {
-    type: 'basic',
-    iconUrl: 'favicon/lotus128.png',
-    title: '⏳ Countdown complete!',
-    message: msg.title || 'Your countdown has ended.',
+    type: "basic",
+    iconUrl: "favicon/lotus128.png",
+    title: "⏳ Countdown complete!",
+    message: msg.title || "Your countdown has ended.",
     priority: 2,
   });
 }
@@ -192,15 +247,20 @@ function handleLookawaySync(msg) {
   chrome.storage.local.set({ lookaway_notify: msg.notify !== false });
   if (msg.enabled) {
     chrome.alarms.get(ALARM_LOOKAWAY, (existing) => {
-      if (!existing || Math.round(existing.periodInMinutes) !== Number(msg.intervalMins)) {
+      if (
+        !existing ||
+        Math.round(existing.periodInMinutes) !== Number(msg.intervalMins)
+      ) {
         chrome.alarms.clear(ALARM_LOOKAWAY, () => {
-          chrome.alarms.create(ALARM_LOOKAWAY, { periodInMinutes: msg.intervalMins });
+          chrome.alarms.create(ALARM_LOOKAWAY, {
+            periodInMinutes: msg.intervalMins,
+          });
         });
       }
     });
   } else {
     chrome.alarms.clear(ALARM_LOOKAWAY);
-    chrome.storage.local.remove('lookaway_due');
+    chrome.storage.local.remove("lookaway_due");
   }
 }
 
@@ -208,7 +268,10 @@ function handleMediaSessionUpdate(msg, sender) {
   const tabId = sender?.tab?.id ?? null;
   if (tabId === null) return;
   chromeSessions[tabId] = { ...msg.data, tabId };
-  chromeSessionOrder = [tabId, ...chromeSessionOrder.filter(id => id !== tabId)].slice(0, 3);
+  chromeSessionOrder = [
+    tabId,
+    ...chromeSessionOrder.filter((id) => id !== tabId),
+  ].slice(0, 3);
   for (const id of Object.keys(chromeSessions)) {
     if (!chromeSessionOrder.includes(Number(id))) delete chromeSessions[id];
   }
@@ -218,38 +281,69 @@ function handleMediaSessionClear(sender) {
   const tabId = sender?.tab?.id ?? null;
   if (tabId !== null && chromeSessions[tabId]) {
     delete chromeSessions[tabId];
-    chromeSessionOrder = chromeSessionOrder.filter(id => id !== tabId);
+    chromeSessionOrder = chromeSessionOrder.filter((id) => id !== tabId);
   }
 }
 
 function handleChromeMediaAction(msg) {
-  const VALID_MEDIA_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
+  const VALID_MEDIA_ACTIONS = new Set(["play", "pause", "next", "previous"]);
   if (!VALID_MEDIA_ACTIONS.has(msg.action)) return;
   const tabId = msg.tabId ?? chromeSessionOrder[0] ?? null;
   if (tabId != null && chromeSessions[tabId]) {
-    chrome.tabs.sendMessage(tabId, { type: 'MEDIA_ACTION', action: msg.action }).catch(() => { });
+    chrome.tabs
+      .sendMessage(tabId, { type: "MEDIA_ACTION", action: msg.action })
+      .catch(() => {});
   }
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'POMODORO_DONE') { handlePomodoroDone(msg); return; }
-  if (msg.type === 'COUNTDOWN_DONE') { handleCountdownDone(msg); return; }
-  if (msg.type === 'EVENTS_UPDATED' && msg.events) { handleEventsUpdated(msg); return; }
-  if (msg.type === 'LOOKAWAY_SYNC') { handleLookawaySync(msg); return; }
-  if (msg.type === 'LOOKAWAY_FIRE') { chrome.storage.local.set({ lookaway_due: Date.now() }); return; }
-  if (msg.type === 'MEDIA_SESSION_UPDATE') { handleMediaSessionUpdate(msg, sender); return; }
-  if (msg.type === 'MEDIA_SESSION_CLEAR') { handleMediaSessionClear(sender); return; }
-  if (msg.type === 'GET_CHROME_MEDIA') {
-    sendResponse(chromeSessionOrder.map(id => chromeSessions[id]).filter(Boolean));
+  if (msg.type === "POMODORO_DONE") {
+    handlePomodoroDone(msg);
+    return;
+  }
+  if (msg.type === "COUNTDOWN_DONE") {
+    handleCountdownDone(msg);
+    return;
+  }
+  if (msg.type === "EVENTS_UPDATED" && msg.events) {
+    handleEventsUpdated(msg);
+    return;
+  }
+  if (msg.type === "LOOKAWAY_SYNC") {
+    handleLookawaySync(msg);
+    return;
+  }
+  if (msg.type === "LOOKAWAY_FIRE") {
+    chrome.storage.local.set({ lookaway_due: Date.now() });
+    return;
+  }
+  if (msg.type === "MEDIA_SESSION_UPDATE") {
+    handleMediaSessionUpdate(msg, sender);
+    return;
+  }
+  if (msg.type === "MEDIA_SESSION_CLEAR") {
+    handleMediaSessionClear(sender);
+    return;
+  }
+  if (msg.type === "GET_CHROME_MEDIA") {
+    sendResponse(
+      chromeSessionOrder.map((id) => chromeSessions[id]).filter(Boolean),
+    );
     return true;
   }
-  if (msg.type === 'CHROME_MEDIA_ACTION') { handleChromeMediaAction(msg); }
+  if (msg.type === "CHROME_MEDIA_ACTION") {
+    handleChromeMediaAction(msg);
+  }
+  if (msg.type === "PREFETCH_SYNC" && msg.lat && msg.lon) {
+    handlePrefetchSync(msg);
+    return;
+  }
 });
 
 // Clear stored Chrome media state when the source tab is closed
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (chromeSessions[tabId]) {
     delete chromeSessions[tabId];
-    chromeSessionOrder = chromeSessionOrder.filter(id => id !== tabId);
+    chromeSessionOrder = chromeSessionOrder.filter((id) => id !== tabId);
   }
 });
