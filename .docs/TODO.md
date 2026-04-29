@@ -102,19 +102,62 @@
 
 ---
 
-## 🚧 Up Next
+---
 
-### Short Term
-- [x] **LookAway**: snooze button (dismiss for N minutes without resetting the schedule)
-- [x] **Focus Mode**: persist zone panel visibility preferences per-user (hide panels for unused widgets, maintain  manage widgets section in focus mode)
-- [ ] **Build optimization**: bundle size audit (~537KB gzipped is large)
+## 💡 Future Deliverables
 
-### Later / Ideas
-- [ ] **Onboarding**: first-run flow — widget picker walkthrough
-- [ ] **Dynamic quotes widget** — rotating quotes (static JSON or API)
-- [ ] **Language localization** — i18n for all widget content beyond Nepali date
-- [ ] **Firefox packaging** — web-ext tooling, full MV3 compatibility audit
-- [ ] **Focus Mode**: Day Progress dots visible somewhere (subtle, ambient)
-- [ ] **Focus Mode**: per-zone re-ordering (drag panels within zones)
+### Focus Mode Enhancements
+
+- [ ] **Focus Audio Scenes** — Web Audio API procedural ambient sounds (rain, binaural beats, Lo-Fi Kathmandu) that start when Focus Mode opens. Use `OscillatorNode`/`AudioBufferSourceNode` to generate rain/beats procedurally (no MP3 loop). Settings toggle in `dialog/Settings.jsx` (`onOpenAudioDialog`), new `dialog/Audio.jsx`; store `fmAudio` (scene key + volume) in `useSettingsStore`. No library needed — native Web Audio.
+  > **rain.today verdict — not viable.** It's a consumer ambient site with no public API, no embeddable streams, and no developer integration surface. Its audio is served over HTTP with no CORS headers, which would be blocked by the MV3 extension CSP. The site was also unreachable during investigation (HTTP 429 / 404). Using external stream URLs would be a ToS violation and a reliability dependency.
+  > **Chosen approach: 100% Web Audio API.** Rain = filtered `AudioBufferSourceNode` seeded with white-noise samples (`Math.random()`). Binaural beats = two `OscillatorNode`s detuned by 4–8 Hz (one per stereo channel via `PannerNode`). Temple Bell = decaying `OscillatorNode` with a custom `GainNode` envelope. All synthesized in-browser, zero network calls, works offline.
+  > _Feasibility: Medium — no Web Audio in codebase yet; UI slots and settings pattern fully ready._
+
+- [ ] **Focus Mode Color Grading** — Subtle tint overlay on the background photo (warm, cool, sepia, none) using CSS `mix-blend-mode`. Add `fmTint` field to `useSettingsStore` (`{ color, opacity, blend }`). Render a `<div>` at z-18 (between background z2 and cards z20) in `FocusMode/index.jsx`. `getPhotoTokens` could include a tint parameter if luminance logic needs updating. Picker in `dialog/Settings.jsx`.
+  > _Feasibility: Very High — store + CSS layer only; no new dependencies._
+
+- [ ] **Focus Session Log & Daily Score** — Track minutes in Focus Mode + interruptions (LookAway dismissed, tab switches). Persist daily aggregates to `fm_session_log` in `chrome.storage.local` (keyed by `YYYY-MM-DD`). Show a subtle score badge in TopZone/BottomZone. `useFocusMode.js` + `bg.js` visibility-change tracking already set up; extend with timestamps and accumulation logic.
+  > _Feasibility: Medium — infrastructure (alarm, visibility, storage) exists; need scoring model + badge UI._
+
+- [ ] **Focus Mode Manage Panels: "Undistracted Time" heatmap** — 7×24 opacity grid (GitHub-style) where each cell represents 1 hour of focused time. Renders as a new LeftZone panel or standalone widget. Reads from `fm_session_log`. Pure CSS grid + `opacity` derived from minutes-in-hour.
+  > _Feasibility: Medium-High — storage tracking (from Session Log above) is the only prerequisite; the grid UI itself is straightforward._
+
+### New Widgets
+
+- [ ] **AQI (Air Quality Index)** — Open-Meteo AQI endpoint (free, no key) using existing lat/lon from `useLocationStore`. Show as a small breathing dot (green → purple) + PM2.5/AQI value inside the Weather widget or as a separate `aqi` widget. Extend `src/widgets/weather/utils.jsx` fetch logic or create `src/widgets/aqi/`.
+  > _Feasibility: Very High — same Open-Meteo base URL, location already resolved, pattern matches existing weather calls._
+
+- [ ] **Currency & Gold/Silver Rates** ("Market Pulse") — NPR exchange rates (NRB public API or forex.com) + gold/silver (MCX India or investing.com scrape). New `rates` widget following NEPSE stock pattern: sparkline optional, OHL-style rows. 5-min polling via `useWidgetInstancesStore`.
+  > _Feasibility: Medium — widget/polling structure fully established; need to verify a reliable free API for NPR rates and gold/silver._
+
+- [ ] **Daily Quotes Widget** — Hourly rotating wisdom quotes. `src/widgets/facts/` already does deterministic daily rotation with `getDailyIndex()` and 100+ entries in `data/facts.js`. Create sibling `src/widgets/quotes/` (or extend Facts) with a static bundled JSON of quotes + optional `api.quotable.io` fetch. Refresh on the hour via `onClockTick`.
+  > _Feasibility: Very High — Facts widget is the template; near-identical implementation._
+
+- [ ] **RSS / News Headlines** — User-defined RSS feeds or curated sources (Hacker News, BBC, Kantipur). New `rss` widget using `src/widgets/` pattern. Add `rss-parser` npm dep (lightweight) or parse via a small Vercel edge function to avoid CORS. Store feed URLs in `widgetSettings`. Auto-refresh every hour via `onClockTick`.
+  > _Feasibility: Medium-High — widget system is mature; CORS requires proxy layer (Vercel edge fn fits existing `api/` pattern)._
+
+- [ ] **Local LLM "Focus Partner"** — `@mlc-ai/web-llm` (WebLLM) running entirely in-browser (no API key). Summarize today's Google Tasks or provide a distraction-free chat. Integrate as a new BottomRightZone panel (slot exists, lazy-loaded pattern established). First model load is ~400MB so needs explicit user consent/download trigger; model cached in origin-private filesystem after first load.
+  > _Feasibility: Medium — BottomRightZone slot ready, Tasks data available; `@mlc-ai/web-llm` adds a large bundle; needs user-gated model download flow._
+
+### Canvas UX
+
+- [ ] **Ghost Drag Mode** — During widget drag in WidgetGrid, show the dragged item as semi-transparent (`opacity: 0.35`, greyscale) while a ghost outline renders at the drop target. `WidgetGrid.jsx` already tracks `draggingId` state via `react-grid-layout` events; add CSS class on the dragged item and a placeholder-slot highlight. Pure CSS + minimal WidgetGrid change.
+  > _Feasibility: Very High — `draggingId` already exists; CSS-only enhancement on top of existing `react-grid-layout` placeholder._
+
+- [ ] **Command Palette (Cmd+K)** — Full command palette overlay. Commands: `/task [title]` (create Google Task), `/timer 25` (start Pomodoro), `/stock NEPSE:HDL` (jump to ticker), `/widget` (open WidgetCatalog). `Alt+Shift+F` keyboard pattern in `useFocusMode.js` is the model; `dialog/SearchBar.jsx` UI pattern is reusable. Register a global `Cmd+K` listener in `App.jsx`; build command registry mapping strings to store actions.
+  > _Feasibility: High — keyboard infra + search dialog UI exist; command registry and dispatch logic are net-new._
+
+### Testing & DX
+
+- [ ] **Playwright Visual Regression / Widget Snapshot Tests** — Per-widget screenshot snapshots in light + dark mode using `expect(page).toHaveScreenshot()`. `playwright.config.js` and `tests/playwright/specs/` already set up. Use `settingsIO` to load a known config fixture before each snapshot. Add `--update-snapshots` CI flag.
+  > _Feasibility: Very High — Playwright is configured; snapshot API is built-in; only need fixture configs and snapshot baseline._
+
+### Infrastructure
+
+- [ ] **Service Worker Background Pre-Fetch** — On `ALARM_TICK` (fires every minute in `bg.js`), periodically fetch weather + calendar data and cache to `chrome.storage.local`. App hydrates from cache on mount (instant display) and falls back to live fetch. Weather hook (`useWidgetInstancesStore`) and GCal cache (`gcal_events_cache`) already use `chrome.storage.local`; extend with SW-side fetch.
+  > _Feasibility: High — alarm + storage pattern established; SW fetch + token forwarding needs care for auth-gated APIs (GCal)._
+
+- [ ] **PWA Manifest (Desk Clock mode)** — Separate `vite build --mode pwa` output with a proper Web App Manifest and a Vite PWA service worker (`vite-plugin-pwa`). Allows pinning to secondary monitor/tablet as a standalone app. Requires parallel build config since `public/manifest.json` is currently the MV3 extension manifest (incompatible naming).
+  > _Feasibility: Low-Medium — needs a parallel build pipeline; the extension and PWA manifests cannot share the same file; significant config overhead._
 
 
