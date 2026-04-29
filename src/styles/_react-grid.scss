@@ -12,17 +12,20 @@
   -webkit-transition: none !important;
 }
 
-// Drag placeholder: rounded card outline instead of red fill
+// Drag placeholder: accent-tinted ghost silhouette at the drop target
 .react-grid-placeholder {
-  background: rgba(0, 0, 0, 0.06) !important;
-  border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+  background: rgba(var(--w-accent-rgb), 0.07) !important;
+  border: 2px dashed rgba(var(--w-accent-rgb), 0.35) !important;
   border-radius: 16px !important;
   box-shadow: none !important;
   opacity: 1 !important;
 }
 
-// Subtle lift while dragging — stronger shadow elevation to feel "picked up"
+// Ghost drag: flying widget becomes translucent + desaturated so the drop
+// target placeholder reads clearly against the full-opacity resting widgets.
 .react-grid-item.react-draggable-dragging>* {
+  opacity: 0.38 !important;
+  filter: grayscale(0.6) !important;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
   border-radius: 16px !important;
   cursor: grabbing !important;
@@ -64,8 +67,8 @@
   }
 
   .react-grid-placeholder {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(var(--w-accent-rgb), 0.1) !important;
+    border-color: rgba(var(--w-accent-rgb), 0.4) !important;
   }
 }
 
