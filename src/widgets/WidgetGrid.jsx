@@ -1,41 +1,50 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Responsive, useContainerWidth } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { Responsive, useContainerWidth } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
-import { WIDGET_REGISTRY } from './index';
-import { STORAGE_KEYS } from '../constants/storageKeys';
+import { WIDGET_REGISTRY } from "./index";
+import { STORAGE_KEYS } from "../constants/storageKeys";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
 const BP_SPECS = [
-  { name: 'lg', minW: 1200, cols: 48, margin: 14, padding: 14 },
-  { name: 'md', minW: 996, cols: 40, margin: 16, padding: 16 },
-  { name: 'sm', minW: 768, cols: 24, margin: 10, padding: 10 },
-  { name: 'xs', minW: 480, cols: 16, margin: 8, padding: 8 },
-  { name: 'xxs', minW: 0, cols: 8, margin: 6, padding: 6 },
+  { name: "lg", minW: 1200, cols: 48, margin: 14, padding: 14 },
+  { name: "md", minW: 996, cols: 40, margin: 16, padding: 16 },
+  { name: "sm", minW: 768, cols: 24, margin: 10, padding: 10 },
+  { name: "xs", minW: 480, cols: 16, margin: 8, padding: 8 },
+  { name: "xxs", minW: 0, cols: 8, margin: 6, padding: 6 },
 ];
 
-
-const RGL_BREAKPOINTS = Object.fromEntries(BP_SPECS.map(s => [s.name, s.minW]));
-const RGL_COLS = Object.fromEntries(BP_SPECS.map(s => [s.name, s.cols]));
-const RGL_MARGIN = Object.fromEntries(BP_SPECS.map(s => [s.name, [s.margin, s.margin]]));
-const RGL_PADDING = Object.fromEntries(BP_SPECS.map(s => [s.name, [s.padding, s.padding]]));
+const RGL_BREAKPOINTS = Object.fromEntries(
+  BP_SPECS.map((s) => [s.name, s.minW]),
+);
+const RGL_COLS = Object.fromEntries(BP_SPECS.map((s) => [s.name, s.cols]));
+const RGL_MARGIN = Object.fromEntries(
+  BP_SPECS.map((s) => [s.name, [s.margin, s.margin]]),
+);
+const RGL_PADDING = Object.fromEntries(
+  BP_SPECS.map((s) => [s.name, [s.padding, s.padding]]),
+);
 
 function quantizeWidth(width) {
-  const { cols, margin, padding } = BP_SPECS.find(s => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
+  const { cols, margin, padding } =
+    BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
   const colW = Math.round((width - 2 * padding - (cols - 1) * margin) / cols);
   return colW * cols + (cols - 1) * margin + 2 * padding;
 }
 
 // O(1) lookup: type → registry entry (includes Component)
-const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map(w => [w.type, w]));
+const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map((w) => [w.type, w]));
 
 const loadLayouts = () => {
   try {
-    const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
-    if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
-  } catch { /* ignore */ }
+    const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "null");
+    if (saved && typeof saved === "object" && !Array.isArray(saved))
+      return saved;
+  } catch {
+    /* ignore */
+  }
   return {};
 };
 
@@ -46,7 +55,12 @@ const renderWidget = (id, type, onRemove) => {
   return <reg.Component id={id} onRemove={onRemove} />;
 };
 
-export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveInstance, arrangeMode = false, onExitArrangeMode }) {
+export const WidgetGrid = React.memo(function WidgetGrid({
+  instances,
+  onRemoveInstance,
+  arrangeMode = false,
+  onExitArrangeMode,
+}) {
   // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
   // This makes offsetWidth === contentRect.width === window.innerWidth, so
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
@@ -69,45 +83,61 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   // lg uses positions from each widget's config.js.
   // Other breakpoints use saved layouts (returning users) or config breakpoints (fresh install).
   const layoutItems = useMemo(() => {
-    const savedLgMap = Object.fromEntries((layouts.lg || []).map(l => [l.i, l]));
+    const savedLgMap = Object.fromEntries(
+      (layouts.lg || []).map((l) => [l.i, l]),
+    );
     const lgItems = (instances || []).flatMap(({ id, type }) => {
       const reg = REG_MAP[type];
-      if (!reg) return [];  // unknown type — skip to avoid ghost grid cells
+      if (!reg) return []; // unknown type — skip to avoid ghost grid cells
       if (savedLgMap[id]) return [savedLgMap[id]];
       return [{ i: id, x: reg.x, y: reg.y ?? Infinity, w: reg.w, h: reg.h }];
     });
 
-    const bpItems = bp => {
+    const bpItems = (bp) => {
       const configFloor = Object.fromEntries(
         (instances || []).flatMap(({ id, type }) => {
           const reg = REG_MAP[type];
           if (!reg) return [];
           const pos = reg.breakpoints?.[bp];
           return [[id, pos?.h ?? reg.h]];
-        })
+        }),
       );
 
       if (layouts[bp]?.length) {
         // Enforce config h as a minimum floor — prevents stale saved layouts
         // from making widgets shorter than their content requires.
-        return layouts[bp].map(item => {
+        return layouts[bp].map((item) => {
           const minH = configFloor[item.i];
-          return (minH != null && item.h < minH) ? { ...item, h: minH } : item;
+          return minH != null && item.h < minH ? { ...item, h: minH } : item;
         });
       }
       return (instances || []).flatMap(({ id, type }) => {
         const reg = REG_MAP[type];
         if (!reg) return [];
         const pos = reg.breakpoints?.[bp];
-        return [{ i: id, x: pos?.x ?? 0, y: pos?.y ?? Infinity, w: pos?.w ?? reg.w, h: pos?.h ?? reg.h }];
+        return [
+          {
+            i: id,
+            x: pos?.x ?? 0,
+            y: pos?.y ?? Infinity,
+            w: pos?.w ?? reg.w,
+            h: pos?.h ?? reg.h,
+          },
+        ];
       });
     };
 
-    return { lg: lgItems, md: bpItems('md'), sm: bpItems('sm'), xs: bpItems('xs'), xxs: bpItems('xxs') };
+    return {
+      lg: lgItems,
+      md: bpItems("md"),
+      sm: bpItems("sm"),
+      xs: bpItems("xs"),
+      xxs: bpItems("xxs"),
+    };
   }, [instances, layouts]);
 
   const handleLayoutChange = useCallback((_current, allLayouts) => {
-    setLayouts(prev => {
+    setLayouts((prev) => {
       const next = { ...prev, ...allLayouts };
       // Fast structural compare — avoids serialising the full array to strings.
       // Only check the fields that affect persistence (i, x, y, w, h).
@@ -116,7 +146,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
       if (prevLg.length === nextLg.length) {
         const unchanged = nextLg.every((item, idx) => {
           const old = prevLg[idx];
-          return old && old.i === item.i && old.x === item.x && old.y === item.y && old.w === item.w && old.h === item.h;
+          return (
+            old &&
+            old.i === item.i &&
+            old.x === item.x &&
+            old.y === item.y &&
+            old.w === item.w &&
+            old.h === item.h
+          );
         });
         if (unchanged) return prev;
       }
@@ -136,18 +173,15 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   // Safety net: if onDragStop doesn't fire (mouse released outside viewport), clear state
   useEffect(() => {
     const clear = () => setDraggingId(null);
-    document.addEventListener('mouseup', clear);
-    return () => document.removeEventListener('mouseup', clear);
+    document.addEventListener("mouseup", clear);
+    return () => document.removeEventListener("mouseup", clear);
   }, []);
 
   const isDragging = draggingId !== null;
   const showOverlay = isDragging || arrangeMode;
 
   return (
-    <div
-      className="w-full h-full relative select-none"
-      ref={containerRef}
-    >
+    <div className="w-full h-full relative select-none" ref={containerRef}>
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
@@ -173,30 +207,52 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
         onDragStop={handleDragStop}
       >
         {(instances || []).map(({ id, type }) => {
-          const widget = renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined);
+          const widget = renderWidget(
+            id,
+            type,
+            onRemoveInstance ? () => onRemoveInstance(id) : undefined,
+          );
           if (!widget) return null;
           return (
             <div
               key={id}
               className="group relative w-full h-full transition-opacity duration-200"
-              style={{ opacity: isDragging && draggingId !== id ? 0.4 : 1, touchAction: arrangeMode ? 'none' : 'pan-y' }}
+              style={{
+                opacity: 1,
+                touchAction: arrangeMode ? "none" : "pan-y",
+              }}
             >
               {/* Drag handle — visible only in arrange mode */}
               <div
                 className={`widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
                   flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
                   cursor-grab active:cursor-grabbing select-none
-                  transition-opacity duration-200 ${arrangeMode ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', border: '1px solid var(--card-border)', borderTop: 'none', boxShadow: 'var(--card-shadow)' }}
+                  transition-opacity duration-200 ${arrangeMode ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                style={{
+                  backgroundColor: "var(--card-bg)",
+                  backdropFilter: "var(--card-blur)",
+                  border: "1px solid var(--card-border)",
+                  borderTop: "none",
+                  boxShadow: "var(--card-shadow)",
+                }}
                 aria-label="Drag to move"
               >
-                {[0, 1, 2, 3].map(i => (
-                  <span key={i} className="block w-0.75 h-0.75 rounded-xl" style={{ backgroundColor: 'var(--w-ink-3)' }} />
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className="block w-0.75 h-0.75 rounded-xl"
+                    style={{ backgroundColor: "var(--w-ink-3)" }}
+                  />
                 ))}
               </div>
               {/* Intercept mousedown so widget content receives clicks without triggering rgl drag.
                    pointer-events:none in arrange mode prevents options/menus from opening. */}
-              <div role="none" className="h-full w-full" style={{ pointerEvents: arrangeMode ? 'none' : undefined }} onMouseDown={e => e.stopPropagation()}>
+              <div
+                role="none"
+                className="h-full w-full"
+                style={{ pointerEvents: arrangeMode ? "none" : undefined }}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
                 {widget}
               </div>
             </div>
