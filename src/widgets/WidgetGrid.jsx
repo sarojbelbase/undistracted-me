@@ -8,8 +8,25 @@ import { STORAGE_KEYS } from '../constants/storageKeys';
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
-// 48-col grid — configs author values in 48-col space directly.
-const LG_COLS = 48, LG_MARGIN = 14, LG_PADDING = 14;
+const BP_SPECS = [
+  { name: 'lg', minW: 1200, cols: 48, margin: 14, padding: 14 },
+  { name: 'md', minW: 996, cols: 40, margin: 16, padding: 16 },
+  { name: 'sm', minW: 768, cols: 24, margin: 10, padding: 10 },
+  { name: 'xs', minW: 480, cols: 16, margin: 8, padding: 8 },
+  { name: 'xxs', minW: 0, cols: 8, margin: 6, padding: 6 },
+];
+
+
+const RGL_BREAKPOINTS = Object.fromEntries(BP_SPECS.map(s => [s.name, s.minW]));
+const RGL_COLS = Object.fromEntries(BP_SPECS.map(s => [s.name, s.cols]));
+const RGL_MARGIN = Object.fromEntries(BP_SPECS.map(s => [s.name, [s.margin, s.margin]]));
+const RGL_PADDING = Object.fromEntries(BP_SPECS.map(s => [s.name, [s.padding, s.padding]]));
+
+function quantizeWidth(width) {
+  const { cols, margin, padding } = BP_SPECS.find(s => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
+  const colW = Math.round((width - 2 * padding - (cols - 1) * margin) / cols);
+  return colW * cols + (cols - 1) * margin + 2 * padding;
+}
 
 // O(1) lookup: type → registry entry (includes Component)
 const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map(w => [w.type, w]));
@@ -42,11 +59,9 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
   // Quantize the container width so column widths are always integer CSS pixels.
   // At fractional DPRs (e.g. 125% Windows scaling), a raw width like 1009.6px
   // gives col = 68.97px — GPU compositing then places text at sub-physical-pixel
-  // positions causing persistent blur. Snapping the width to the nearest value
-  // that yields an integer column width costs at most ½ a column-width of space
-  // (≈ 35px) and keeps all widget positions on exact pixel boundaries.
-  const quantizedWidth = Math.round((width - 2 * LG_PADDING - (LG_COLS - 1) * LG_MARGIN) / LG_COLS) * LG_COLS
-    + (LG_COLS - 1) * LG_MARGIN + 2 * LG_PADDING;
+  // positions causing persistent blur. Uses breakpoint-specific cols/margin/padding
+  // so the snap is accurate at every viewport size, not just lg.
+  const quantizedWidth = quantizeWidth(width);
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
@@ -63,7 +78,23 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
     });
 
     const bpItems = bp => {
-      if (layouts[bp]?.length) return layouts[bp];
+      const configFloor = Object.fromEntries(
+        (instances || []).flatMap(({ id, type }) => {
+          const reg = REG_MAP[type];
+          if (!reg) return [];
+          const pos = reg.breakpoints?.[bp];
+          return [[id, pos?.h ?? reg.h]];
+        })
+      );
+
+      if (layouts[bp]?.length) {
+        // Enforce config h as a minimum floor — prevents stale saved layouts
+        // from making widgets shorter than their content requires.
+        return layouts[bp].map(item => {
+          const minH = configFloor[item.i];
+          return (minH != null && item.h < minH) ? { ...item, h: minH } : item;
+        });
+      }
       return (instances || []).flatMap(({ id, type }) => {
         const reg = REG_MAP[type];
         if (!reg) return [];
@@ -126,16 +157,16 @@ export const WidgetGrid = React.memo(function WidgetGrid({ instances, onRemoveIn
         className="layout"
         layouts={layoutItems}
         width={quantizedWidth}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 48, md: 40, sm: 24, xs: 16, xxs: 8 }}
+        breakpoints={RGL_BREAKPOINTS}
+        cols={RGL_COLS}
         rowHeight={8.5}
         isDraggable={arrangeMode}
         draggableHandle=".widget-drag-handle"
         isResizable={false}
         compactType={null}
         preventCollision={true}
-        margin={{ lg: [14, 14], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
-        containerPadding={{ lg: [14, 14], md: [16, 16], sm: [10, 10], xs: [8, 8], xxs: [6, 6] }}
+        margin={RGL_MARGIN}
+        containerPadding={RGL_PADDING}
         useCSSTransforms={false}
         onLayoutChange={handleLayoutChange}
         onDragStart={handleDragStart}
