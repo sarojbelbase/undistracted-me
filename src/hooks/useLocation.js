@@ -11,26 +11,28 @@
  *   - 'ip' source: refresh after 30 minutes (VPN detection window)
  *   - 'idle' (no data yet): refresh immediately
  */
-import { useEffect } from 'react';
-import { useLocationStore } from '../store/useLocationStore';
+import { useEffect } from "react";
+import { useLocationStore } from "../store/useLocationStore";
 
-const BROWSER_TTL_MS = 6 * 60 * 60_000;   // 6 hours
-const IP_TTL_MS = 30 * 60_000;        // 30 minutes
-const SUN_TICK_MS = 60_000;              // 1 minute
+const BROWSER_TTL_MS = 6 * 60 * 60_000; // 6 hours
+const IP_TTL_MS = 30 * 60_000; // 30 minutes
+const SUN_TICK_MS = 60_000; // 1 minute
 
 export const useLocation = () => {
-  const refresh = useLocationStore(s => s.refresh);
-  const refreshSunTimes = useLocationStore(s => s.refreshSunTimes);
-  const source = useLocationStore(s => s.source);
-  const lastUpdated = useLocationStore(s => s.lastUpdated);
-  const status = useLocationStore(s => s.status);
+  const refresh = useLocationStore((s) => s.refresh);
+  const refreshSunTimes = useLocationStore((s) => s.refreshSunTimes);
+  const source = useLocationStore((s) => s.source);
+  const lastUpdated = useLocationStore((s) => s.lastUpdated);
+  const status = useLocationStore((s) => s.status);
+  const lat = useLocationStore((s) => s.lat);
+  const lon = useLocationStore((s) => s.lon);
 
   useEffect(() => {
     // Decide whether to refresh on mount
-    const ttl = source === 'browser' ? BROWSER_TTL_MS : IP_TTL_MS;
-    const isStale = !lastUpdated || (Date.now() - lastUpdated) > ttl;
+    const ttl = source === "browser" ? BROWSER_TTL_MS : IP_TTL_MS;
+    const isStale = !lastUpdated || Date.now() - lastUpdated > ttl;
 
-    if (status === 'idle' || isStale) {
+    if (status === "idle" || isStale) {
       refresh();
     }
 
@@ -48,4 +50,14 @@ export const useLocation = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Stable Zustand references — intentionally empty dep array
+
+  // Send coords to the SW for background weather pre-fetch whenever they change
+  useEffect(() => {
+    if (!lat || !lon) return;
+    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+      chrome.runtime
+        .sendMessage({ type: "PREFETCH_SYNC", lat, lon })
+        .catch(() => {});
+    }
+  }, [lat, lon]);
 };

@@ -13,3 +13,4 @@ examples/new_ones
 .env*.local
 src/assets/backgrounds/
 builds
+.DS_Store

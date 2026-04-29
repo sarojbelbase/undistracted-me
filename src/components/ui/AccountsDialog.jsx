@@ -98,7 +98,7 @@ export const AccountsDialog = ({ onClose }) => {
     <Modal
       title="Connected Accounts"
       onClose={onClose}
-      className="w-[90vw] max-w-[500px]"
+      className="w-[90vw] max-w-125"
       maxHeight="85vh"
     >
       <div className="flex flex-col gap-6 py-2">
