@@ -150,16 +150,16 @@ const googleTokenProxy = (): Plugin => ({
         JSON.stringify(
           upstream.ok
             ? {
-                access_token: data.access_token,
-                refresh_token: data.refresh_token ?? null,
-                expires_in: data.expires_in,
-              }
+              access_token: data.access_token,
+              refresh_token: data.refresh_token ?? null,
+              expires_in: data.expires_in,
+            }
             : {
-                error:
-                  data.error_description ||
-                  data.error ||
-                  "token_exchange_failed",
-              },
+              error:
+                data.error_description ||
+                data.error ||
+                "token_exchange_failed",
+            },
         ),
       );
     });
@@ -223,7 +223,7 @@ function parseRssXml(xml: string, feedUrl: string): RssItem[] {
     let isoDate = "";
     try {
       if (pubDate) isoDate = new Date(pubDate).toISOString();
-    } catch {}
+    } catch { }
     if (title) items.push({ title, link, pubDate, isoDate, source });
   }
 
@@ -240,7 +240,7 @@ function parseRssXml(xml: string, feedUrl: string): RssItem[] {
       let isoDate = "";
       try {
         if (pubDate) isoDate = new Date(pubDate).toISOString();
-      } catch {}
+      } catch { }
       if (title) items.push({ title, link, pubDate, isoDate, source });
     }
   }
@@ -399,11 +399,6 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) =>
             path.replace(/^\/ml-api/, "/handlers/TechnicalChartHandler.ashx"),
-        },
-        "/nrb-api": {
-          target: "https://undistractedme.sarojbelbase.com.np/api/currency",
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/nrb-api/, ""),
         },
       },
     },

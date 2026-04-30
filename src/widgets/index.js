@@ -10,12 +10,10 @@ import bookmarksConfig from "./bookmarks/config";
 import quickAccessConfig from "./quickAccess/config";
 import pomodoroConfig from "./pomodoro/config";
 import spotifyConfig from "./spotify/config";
-import factsConfig from "./facts/config";
 import stockConfig from "./stock/config";
 import occasionsConfig from "./occasions/config";
-import quotesConfig from "./quotes/config";
+import dailysConfig from "./dailys/config";
 import rssConfig from "./rss/config";
-import currencyConfig from "./currency/config";
 
 export const WIDGET_TYPES = Object.freeze({
   CLOCK: "clock",
@@ -30,12 +28,10 @@ export const WIDGET_TYPES = Object.freeze({
   QUICK_ACCESS: "quickAccess",
   POMODORO: "pomodoro",
   SPOTIFY: "spotify",
-  FACTS: "facts",
   STOCK: "stock",
   BIRTHDAYS: "birthdays",
-  QUOTES: "quotes",
+  DAILYS: "dailys",
   RSS: "rss",
-  CURRENCY: "currency",
 });
 
 /**
@@ -56,13 +52,11 @@ export const WIDGET_REGISTRY = [
   pomodoroConfig,
   notesConfig,
   weatherConfig,
-  factsConfig,
   bookmarksConfig,
   quickAccessConfig,
   spotifyConfig,
   stockConfig,
   occasionsConfig,
-  quotesConfig,
+  dailysConfig,
   rssConfig,
-  currencyConfig,
 ];
