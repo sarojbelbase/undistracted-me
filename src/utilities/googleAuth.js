@@ -125,7 +125,7 @@ async function getTokenWeb(interactive) {
 
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
-  const redirectUri = `${globalThis.location.origin}/auth-callback.html`;
+  const redirectUri = `${globalThis.location.origin}/callbacks/auth.html`;
 
   const authUrl = new URL(GOOGLE_AUTH_ENDPOINT);
   authUrl.searchParams.set('client_id', clientId);
