@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signing in…</title>
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+
+  <body>
+    <div class="card" id="card">
+
+      <!-- Icon slot: spinner → checkmark → error, toggled via CSS state classes -->
+      <div class="icon-slot">
+
+        <!-- Loading ring -->
+        <svg class="icon spinner" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="#e0e0e5" stroke-width="3" />
+          <circle class="arc" cx="24" cy="24" r="20" stroke="#0071e3" stroke-width="3" stroke-linecap="round"
+            stroke-dasharray="96 32" />
+        </svg>
+
+        <!-- Success checkmark -->
+        <svg class="icon check" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle class="check-bg" cx="24" cy="24" r="22" fill="#34c759" />
+          <path class="check-path" d="M14 24l8 8 12-14" stroke="white" stroke-width="2.8" stroke-linecap="round"
+            stroke-linejoin="round" stroke-dasharray="32" stroke-dashoffset="32" />
+        </svg>
+
+        <!-- Error X -->
+        <svg class="icon error-x" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle class="error-bg" cx="24" cy="24" r="22" fill="#ff3b30" />
+          <path d="M16 16l16 16M32 16L16 32" stroke="white" stroke-width="2.8" stroke-linecap="round" />
+        </svg>
+
+      </div>
+
+      <p class="title" id="title">Signing in</p>
+      <p class="subtitle" id="subtitle">Please wait…</p>
+    </div>
+    <script src="auth.js"></script>
+  </body>
+
+</html>

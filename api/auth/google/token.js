@@ -20,9 +20,9 @@ const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 // The only valid redirect URIs this server will accept.
 // Extending this list requires a deliberate server-side change.
 const ALLOWED_REDIRECT_URIS = [
-  'https://undistractedme.sarojbelbase.com.np/auth-callback.html',
-  'http://localhost:3000/auth-callback.html',
-  'http://localhost:5173/auth-callback.html',
+  'https://undistractedme.sarojbelbase.com.np/callbacks/auth.html',
+  'http://localhost:3000/callbacks/auth.html',
+  'http://localhost:5173/callbacks/auth.html',
 ];
 
 export default async function handler(req, res) {

@@ -32,7 +32,7 @@ const generateCodeChallenge = async (verifier) => {
 const isFirefox = () => typeof globalThis.browser !== 'undefined' || navigator.userAgent.includes('Firefox');
 
 const getRedirectUri = () => {
-  if (isWebMode()) return `${globalThis.location.origin}/auth-callback.html`;
+  if (isWebMode()) return `${globalThis.location.origin}/callbacks/auth.html`;
   // Firefox extensions use chrome.identity.getRedirectURL() which returns the
   // allizom.org URI; Chrome extensions use the chromiumapp.org URI.
   if (isFirefox()) {
