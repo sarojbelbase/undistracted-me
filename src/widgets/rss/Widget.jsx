@@ -30,84 +30,123 @@ const Bone = ({ w, h = "0.6875rem" }) => (
   />
 );
 
-const SkeletonRow = () => (
-  <div className="flex gap-2.5 px-3 py-2.5">
-    <Bone w="12px" />
-    <div className="flex-1 flex flex-col gap-1.5">
-      <Bone w="88%" />
-      <Bone w="62%" />
-      <Bone w="4rem" h="0.5rem" />
+const SkeletonRow = ({ isLast = false }) => (
+  <div style={{
+    padding: "10px 14px 9px",
+    borderBottom: isLast ? "none" : "1px solid rgba(0,0,0,0.052)",
+  }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Bone w="91%" h="0.72rem" />
+      <Bone w="65%" h="0.72rem" />
+    </div>
+    <div style={{ marginTop: 5 }}>
+      <Bone w="5rem" h="0.5rem" />
     </div>
   </div>
 );
 
 // ─── Brief mode — headline row ────────────────────────────────────────────────
 
-const HeadlineRow = ({ item }) => {
-  const [hovered, setHovered] = useState(false);
+const HeadlineRow = ({ item, isLast = false }) => {
   const time = item.isoDate ? relativeTime(item.isoDate) : "";
-
-  const handleOpen = () => {
-    if (item.link) window.open(item.link, "_blank", "noopener");
-  };
+  const [imgFailed, setImgFailed] = useState(false);
+  const hasThumb = !!item.image && !imgFailed;
 
   return (
     <button
       type="button"
       onMouseDown={(e) => e.stopPropagation()}
-      onClick={handleOpen}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative px-3 py-2.5 w-full text-left cursor-pointer"
+      onClick={() => { if (item.link) window.open(item.link, "_blank", "noopener"); }}
       style={{
-        display: "block",
-        boxShadow: hovered ? "inset 2px 0 0 var(--w-accent)" : "inset 2px 0 0 transparent",
-        background: hovered ? "rgba(var(--w-accent-rgb), 0.04)" : "transparent",
-        transition: "background 0.15s ease, box-shadow 0.15s ease",
-        outline: "none",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+        textAlign: "left",
+        padding: "10px 12px 10px 14px",
+        background: "transparent",
         border: "none",
+        borderBottom: isLast ? "none" : "1px solid rgba(0,0,0,0.052)",
+        outline: "none",
+        cursor: "pointer",
+        flexShrink: 0,
+        transition: "background 0.14s ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.027)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
     >
-      {/* Title — full width minus meta space, 2-line clamp */}
-      <p
-        style={{
-          fontSize: "0.78125rem",
+      {/* Left: source·time on top, title below — Apple News layout */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Source · time — tertiary, above title */}
+        {(item.source || time) && (
+          <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 2.5 }}>
+            {item.source && (
+              <span style={{
+                fontSize: "0.5625rem",
+                fontWeight: 700,
+                color: "var(--w-ink-4)",
+                letterSpacing: "0.02em",
+                textTransform: "uppercase",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: hasThumb ? "52%" : "70%",
+              }}>
+                {item.source}
+              </span>
+            )}
+            {item.source && time && (
+              <span style={{ fontSize: "0.4375rem", color: "var(--w-ink-6)", flexShrink: 0, lineHeight: 1, marginTop: 0.5 }}>·</span>
+            )}
+            {time && (
+              <span style={{
+                fontSize: "0.5625rem",
+                fontWeight: 400,
+                color: "var(--w-ink-5)",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}>
+                {time}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Title — primary, 2-line clamp */}
+        <p style={{
+          fontSize: "0.7875rem",
           fontWeight: 600,
           color: "var(--w-ink-1)",
-          lineHeight: 1.375,
+          lineHeight: 1.33,
+          letterSpacing: "-0.011em",
           display: "-webkit-box",
           WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
-          paddingRight: "7rem",
-        }}
-      >
-        {item.title}
-      </p>
+        }}>
+          {item.title}
+        </p>
+      </div>
 
-      {/* Meta — always visible at bottom-right, inline with last title line */}
-      {(item.source || time) && (
-        <span
-          style={{
-            position: "absolute",
-            right: "12px",
-            bottom: "10px",
-            display: "flex",
-            alignItems: "center",
-            gap: "3px",
-          }}
-        >
-          {item.source && (
-            <span style={{ fontSize: "0.625rem", fontWeight: 700, color: "var(--w-accent)", opacity: 0.7, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
-              {item.source}
-            </span>
-          )}
-          {time && (
-            <span style={{ fontSize: "0.625rem", color: "var(--w-ink-5)", whiteSpace: "nowrap" }}>
-              {time}
-            </span>
-          )}
-        </span>
+      {/* Right: thumbnail — only when image available */}
+      {hasThumb && (
+        <div style={{
+          flexShrink: 0,
+          width: 52,
+          height: 52,
+          borderRadius: 7,
+          overflow: "hidden",
+          background: "rgba(0,0,0,0.06)",
+        }}>
+          <img
+            src={item.image}
+            alt=""
+            aria-hidden
+            draggable={false}
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
       )}
     </button>
   );
@@ -139,8 +178,9 @@ function ensureMarqueeStyles() {
   document.head.appendChild(el);
 }
 
-const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick }) => {
+const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
   const [imgFailed, setImgFailed] = useState(false);
+  const [navHovered, setNavHovered] = useState(false);
   const hasImage = !!item?.image && !imgFailed;
   const time = item?.isoDate ? relativeTime(item.isoDate) : "";
 
@@ -183,12 +223,6 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
     if (Math.abs(dx) > 40) { dx < 0 ? onNext() : onPrev(); }
   };
 
-  const handleClick = (e) => {
-    if (e.target.closest("button, a")) return;
-    if (dragged.current) return;
-    if (item?.link) window.open(item.link, "_blank", "noopener");
-  };
-
   if (!item) return null;
 
   return (
@@ -196,7 +230,7 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
       className="absolute inset-0 select-none"
       style={{
         touchAction: "pan-y",
-        cursor: "pointer",
+        cursor: "default",
         transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.012}deg)` : "none",
         transition: releasing ? "transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
         animation: "rss-card-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both",
@@ -204,7 +238,8 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onClick={handleClick}
+      onMouseEnter={() => setNavHovered(true)}
+      onMouseLeave={() => setNavHovered(false)}
       role="article"
       aria-label={item.title}
     >
@@ -277,8 +312,8 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
         )}
         {time && (
           <span style={{
-            fontSize: "0.5rem", fontWeight: 500,
-            color: "rgba(255,255,255,0.4)",
+            fontSize: "0.625rem", fontWeight: 600,
+            color: "rgba(255,255,255,0.55)",
             marginLeft: "auto",
           }}>
             {time}
@@ -301,21 +336,33 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
           if (words <= 6) { fs = "1.375rem"; clamp = 2; }
           else if (words <= 10) { fs = "1.15rem"; clamp = 2; }
           return (
-            <p style={{
-              fontSize: fs,
-              fontWeight: 800,
-              lineHeight: 1.22,
-              letterSpacing: "-0.022em",
-              color: "#fff",
-              display: "-webkit-box",
-              WebkitLineClamp: clamp,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              marginBottom: total > 1 ? 12 : 0,
-              textShadow: hasImage ? "0 2px 14px rgba(0,0,0,0.65)" : "none",
-            }}>
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: clamp,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                marginBottom: total > 1 ? 12 : 0,
+                fontSize: fs,
+                fontWeight: 800,
+                lineHeight: 1.22,
+                letterSpacing: "-0.022em",
+                color: "#fff",
+                textShadow: hasImage ? "0 2px 14px rgba(0,0,0,0.65)" : "none",
+                textAlign: "left",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                pointerEvents: "auto",
+                width: "100%",
+              }}
+            >
               {item.title}
-            </p>
+            </button>
           );
         })()}
 
@@ -329,7 +376,7 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ← Prev */}
+            {/* ← Prev — fades in on card hover */}
             <button
               type="button"
               onMouseDown={(e) => e.stopPropagation()}
@@ -341,7 +388,10 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
                 background: "rgba(255,255,255,0.12)",
                 backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                 border: "1px solid rgba(255,255,255,0.15)",
-                cursor: "pointer", color: "#fff", transition: "background 0.15s",
+                cursor: "pointer", color: "#fff",
+                opacity: navHovered ? 1 : 0,
+                transition: "opacity 0.3s ease, background 0.15s",
+                pointerEvents: navHovered ? "auto" : "none",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.22)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
@@ -351,28 +401,24 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
               </svg>
             </button>
 
-            {/* Pill dots */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {Array.from({ length: Math.min(total, 9) }).map((_, i) => (
-                <button
+            {/* Fluid indicator dots — pure display, no interaction */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }} aria-hidden="true">
+              {Array.from({ length: Math.min(total, 7) }).map((_, i) => (
+                <div
                   key={`dot-${i}`}
-                  type="button"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); onDotClick(i); }}
-                  aria-label={`Story ${i + 1} of ${total}`}
                   style={{
-                    width: i === index ? 18 : 4,
+                    width: i === index ? 20 : 4,
                     height: 4,
                     borderRadius: 99,
-                    background: i === index ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.3)",
-                    transition: "width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s",
-                    border: "none", padding: 0, cursor: "pointer", flexShrink: 0,
+                    background: i === index ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.28)",
+                    transition: "width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease",
+                    flexShrink: 0,
                   }}
                 />
               ))}
             </div>
 
-            {/* → Next */}
+            {/* → Next — fades in on card hover */}
             <button
               type="button"
               onMouseDown={(e) => e.stopPropagation()}
@@ -384,7 +430,10 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
                 background: "rgba(255,255,255,0.12)",
                 backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                 border: "1px solid rgba(255,255,255,0.15)",
-                cursor: "pointer", color: "#fff", transition: "background 0.15s",
+                cursor: "pointer", color: "#fff",
+                opacity: navHovered ? 1 : 0,
+                transition: "opacity 0.3s ease, background 0.15s",
+                pointerEvents: navHovered ? "auto" : "none",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.22)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
@@ -396,18 +445,6 @@ const MarqueeCard = ({ item, index, total, progress, onPrev, onNext, onDotClick 
           </div>
         )}
       </div>
-
-      {/* ── Auto-advance progress sliver (absolute bottom edge) ───────────── */}
-      {total > 1 && (
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, overflow: "hidden" }}>
-          <div style={{
-            height: "100%",
-            background: "rgba(255,255,255,0.45)",
-            width: `${progress}%`,
-            transition: "width 0.12s linear",
-          }} />
-        </div>
-      )}
     </div>
   );
 };
@@ -468,9 +505,11 @@ export const Widget = ({ id, onRemove }) => {
 
   // Marquee navigation state
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(10);
+  const sentinelRef = useRef(null);
 
-  const displayItems = items.slice(0, isCustomMode ? 30 : 10);
+  const displayItems = items.slice(0, visibleCount);
+  const hasMore = items.length > visibleCount;
   const showSkeleton = loading && items.length === 0;
   const showError = !!error && !showSkeleton;
 
@@ -480,45 +519,51 @@ export const Widget = ({ id, onRemove }) => {
       customFeeds.find((f) => f.url === feedId)?.label ??
       feedId);
 
-  // Reset index when feed changes
-  useEffect(() => { setCurrentIndex(0); }, [feedId]);
+  // Reset index + visible count when feed changes
+  useEffect(() => { setCurrentIndex(0); setVisibleCount(10); }, [feedId]);
 
   // Clamp index when items load/shrink
   useEffect(() => {
     if (displayItems.length > 0 && currentIndex >= displayItems.length) setCurrentIndex(0);
   }, [displayItems.length, currentIndex]);
 
-  // Auto-advance + progress bar for Marquee mode
+  // Auto-advance for Marquee: also expand when nearing end
   useEffect(() => {
-    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError) {
-      setProgress(0);
-      return;
-    }
-    setProgress(0);
-    const start = Date.now();
-    let advanced = false;
-
-    const timer = setInterval(() => {
-      if (advanced) return;
-      const pct = Math.min(100, ((Date.now() - start) / AUTO_ADVANCE_MS) * 100);
-      setProgress(pct);
-      if (pct >= 100) {
-        advanced = true;
-        setCurrentIndex((prev) => (prev + 1) % displayItems.length);
+    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError) return;
+    const timer = setTimeout(() => {
+      const next = (currentIndex + 1) % displayItems.length;
+      // Expand batch when 2 items away from end and more remain
+      if (currentIndex >= displayItems.length - 2 && hasMore) {
+        setVisibleCount((c) => c + 10);
       }
-    }, 120);
+      setCurrentIndex(next);
+    }, AUTO_ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [currentIndex, viewMode, displayItems.length, showSkeleton, showError, hasMore]);
 
-    return () => clearInterval(timer);
-  }, [currentIndex, viewMode, displayItems.length, showSkeleton, showError]);
+  const goNext = useCallback(() => {
+    setCurrentIndex((i) => {
+      const next = (i + 1) % displayItems.length;
+      if (i >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
+      return next;
+    });
+  }, [displayItems.length, hasMore]);
 
-  const goNext = useCallback(
-    () => setCurrentIndex((i) => (i + 1) % displayItems.length),
-    [displayItems.length],
-  );
   const goPrev = useCallback(
     () => setCurrentIndex((i) => (i - 1 + displayItems.length) % displayItems.length),
     [displayItems.length],
   );
+
+  // Brief mode: IntersectionObserver on sentinel to load more
+  useEffect(() => {
+    if (viewMode !== "brief" || !sentinelRef.current) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore) setVisibleCount((c) => c + 10); },
+      { threshold: 0.1 },
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [viewMode, hasMore, visibleCount]);
 
   const settingsContent = (onClose) => (
     <Settings
@@ -549,10 +594,9 @@ export const Widget = ({ id, onRemove }) => {
             item={displayItems[currentIndex]}
             index={currentIndex}
             total={displayItems.length}
-            progress={progress}
+            autoAdvanceMs={AUTO_ADVANCE_MS}
             onNext={goNext}
             onPrev={goPrev}
-            onDotClick={setCurrentIndex}
           />
         )}
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
@@ -600,21 +644,27 @@ export const Widget = ({ id, onRemove }) => {
 
       {/* Body */}
       <div
-        className="flex-1 flex flex-col min-h-0 overflow-y-auto py-1"
+        className="flex-1 flex flex-col min-h-0 overflow-y-auto"
         style={{ scrollbarWidth: "none" }}
       >
         {showError && <ErrorState onRetry={refresh} />}
 
         {showSkeleton && (
-          <>{[0, 1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} />)}</>
+          <>{[0, 1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} isLast={i === 5} />)}</>
         )}
 
         {!showSkeleton && !showError && displayItems.map((item, i) => (
           <HeadlineRow
             key={item.link || `${item.title}-${i}`}
             item={item}
+            isLast={i === displayItems.length - 1 && !hasMore}
           />
         ))}
+
+        {/* Sentinel — triggers next batch when scrolled into view */}
+        {!showSkeleton && !showError && hasMore && (
+          <div ref={sentinelRef} style={{ height: 1, flexShrink: 0 }} aria-hidden="true" />
+        )}
 
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
           <div className="flex-1 flex items-center justify-center p-4">
