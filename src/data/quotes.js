@@ -1,373 +1,422 @@
 /**
- * Curated quotes — displayed in the Daily Quote widget (one per day).
+ * Curated witty, sarcastic, and funny quotes — displayed in the Dailys widget.
+ * ~365 entries: one per day for a full year.
  *
- * Each entry: { text: string, author: string, category: string }
- *
- * Categories: Philosophy · Focus · Science · Creativity · Resilience
- *
- * Quotes are SHORT (max 2 sentences) and correctly attributed.
- * The widget picks one deterministically by day so the same quote
- * shows for all users on the same calendar day.
+ * Tone: dry, clever, observational, sarcastic — no generic hustle inspiration.
  */
 export const QUOTES = [
+  // ── Oscar Wilde ────────────────────────────────────────────────────────────
+  { text: "I am so clever that sometimes I don't understand a single word of what I am saying.", author: "Oscar Wilde", category: "Self-Aware" },
+  { text: "I can resist everything except temptation.", author: "Oscar Wilde", category: "Honesty" },
+  { text: "To lose one parent may be regarded as a misfortune; to lose both looks like carelessness.", author: "Oscar Wilde", category: "Observations" },
+  { text: "Always forgive your enemies — nothing annoys them so much.", author: "Oscar Wilde", category: "Strategy" },
+  { text: "Work is the curse of the drinking classes.", author: "Oscar Wilde", category: "Priorities" },
+  { text: "The truth is rarely pure and never simple.", author: "Oscar Wilde", category: "Realism" },
+  { text: "I never travel without my diary. One should always have something sensational to read in the train.", author: "Oscar Wilde", category: "Preparedness" },
+  { text: "Some cause happiness wherever they go; others whenever they go.", author: "Oscar Wilde", category: "Observations" },
+  { text: "Fashion is a form of ugliness so intolerable that we have to alter it every six months.", author: "Oscar Wilde", category: "Fashion" },
+  { text: "Nowadays people know the price of everything and the value of nothing.", author: "Oscar Wilde", category: "Observations" },
+  { text: "The only way to get rid of a temptation is to yield to it.", author: "Oscar Wilde", category: "Strategy" },
+  { text: "Experience is simply the name we give our mistakes.", author: "Oscar Wilde", category: "Wisdom" },
+  { text: "I don't want to go to heaven. None of my friends are there.", author: "Oscar Wilde", category: "Priorities" },
+  { text: "The books that the world calls immoral are books that show the world its own shame.", author: "Oscar Wilde", category: "Literature" },
+  { text: "Be yourself; everyone else is already taken.", author: "Oscar Wilde", category: "Identity" },
 
-  // ─── Philosophy ─────────────────────────────────────────────────────────────
-  {
-    text: "You have power over your mind, not outside events. Realize this, and you will find strength.",
-    author: "Marcus Aurelius",
-    category: "Philosophy",
-  },
-  {
-    text: "Waste no more time arguing about what a good man should be. Be one.",
-    author: "Marcus Aurelius",
-    category: "Philosophy",
-  },
-  {
-    text: "While we are postponing, life speeds by.",
-    author: "Seneca",
-    category: "Philosophy",
-  },
-  {
-    text: "We suffer more in imagination than in reality.",
-    author: "Seneca",
-    category: "Philosophy",
-  },
-  {
-    text: "Make the best use of what is in your power, and take the rest as it happens.",
-    author: "Epictetus",
-    category: "Philosophy",
-  },
-  {
-    text: "Seek not the good in external things; seek it in yourself.",
-    author: "Epictetus",
-    category: "Philosophy",
-  },
-  {
-    text: "The only way to make sense out of change is to plunge into it, move with it, and join the dance.",
-    author: "Alan Watts",
-    category: "Philosophy",
-  },
-  {
-    text: "The art of living is neither careless drifting on the one hand nor fearful clinging on the other.",
-    author: "Alan Watts",
-    category: "Philosophy",
-  },
-  {
-    text: "In the midst of winter, I found there was, within me, an invincible summer.",
-    author: "Albert Camus",
-    category: "Philosophy",
-  },
-  {
-    text: "You will never be happy if you continue to search for what happiness consists of.",
-    author: "Albert Camus",
-    category: "Philosophy",
-  },
-  {
-    text: "I live my life in widening circles that reach out across the world.",
-    author: "Rainer Maria Rilke",
-    category: "Philosophy",
-  },
-  {
-    text: "Perhaps all the dragons in our lives are princesses who are only waiting to see us act, just once, with beauty and courage.",
-    author: "Rainer Maria Rilke",
-    category: "Philosophy",
-  },
-  {
-    text: "Change your life today. Don't gamble on the future, act now, without delay.",
-    author: "Simone de Beauvoir",
-    category: "Philosophy",
-  },
-  {
-    text: "One's life has value so long as one attributes value to the life of others.",
-    author: "Simone de Beauvoir",
-    category: "Philosophy",
-  },
+  // ── Mark Twain ────────────────────────────────────────────────────────────
+  { text: "The more I learn about people, the more I like my dog.", author: "Mark Twain", category: "Observations" },
+  { text: "I didn't attend the funeral, but I sent a nice letter saying I approved of it.", author: "Mark Twain", category: "Etiquette" },
+  { text: "Whenever you find yourself on the side of the majority, it is time to pause and reflect.", author: "Mark Twain", category: "Wisdom" },
+  { text: "Never put off till tomorrow what may be done day after tomorrow just as well.", author: "Mark Twain", category: "Priorities" },
+  { text: "Age is an issue of mind over matter. If you don't mind, it doesn't matter.", author: "Mark Twain", category: "Aging" },
+  { text: "Reader, suppose you were an idiot. And suppose you were a member of Congress. But I repeat myself.", author: "Mark Twain", category: "Politics" },
+  { text: "I have never let my schooling interfere with my education.", author: "Mark Twain", category: "Education" },
+  { text: "Denial ain't just a river in Egypt.", author: "Mark Twain", category: "Psychology" },
+  { text: "God created war so that Americans would learn geography.", author: "Mark Twain", category: "History" },
+  { text: "It is easier to fool people than to convince them that they have been fooled.", author: "Mark Twain", category: "Observations" },
+  { text: "The secret to getting ahead is getting started. The secret of getting started is breaking your complex overwhelming tasks into small manageable tasks, and then starting on the first one.", author: "Mark Twain", category: "Progress" },
+  { text: "Thunder is good, thunder is impressive; but it is lightning that does the work.", author: "Mark Twain", category: "Realism" },
+  { text: "If you tell the truth, you don't have to remember anything.", author: "Mark Twain", category: "Honesty" },
+  { text: "A man who carries a cat by the tail learns something he can learn in no other way.", author: "Mark Twain", category: "Experience" },
+  { text: "I was gratified to be able to answer promptly. I said I don't know.", author: "Mark Twain", category: "Honesty" },
 
-  // ─── Focus ──────────────────────────────────────────────────────────────────
-  {
-    text: "Deep work is the ability to focus without distraction on a cognitively demanding task.",
-    author: "Cal Newport",
-    category: "Focus",
-  },
-  {
-    text: "Clarity about what matters provides clarity about what does not.",
-    author: "Cal Newport",
-    category: "Focus",
-  },
-  {
-    text: "You do not rise to the level of your goals. You fall to the level of your systems.",
-    author: "James Clear",
-    category: "Focus",
-  },
-  {
-    text: "Every action you take is a vote for the type of person you wish to become.",
-    author: "James Clear",
-    category: "Focus",
-  },
-  {
-    text: "How we spend our days is, of course, how we spend our lives.",
-    author: "Annie Dillard",
-    category: "Focus",
-  },
-  {
-    text: "A schedule defends from chaos and whim. It is a net for catching days.",
-    author: "Annie Dillard",
-    category: "Focus",
-  },
-  {
-    text: "Learning how to think really means learning how to exercise some control over how and what you think.",
-    author: "David Foster Wallace",
-    category: "Focus",
-  },
-  {
-    text: "All of humanity's problems stem from man's inability to sit quietly in a room alone.",
-    author: "Blaise Pascal",
-    category: "Focus",
-  },
-  {
-    text: "It is not enough to be busy; so are the ants. The question is: what are we busy about?",
-    author: "Henry David Thoreau",
-    category: "Focus",
-  },
-  {
-    text: "Things which matter most must never be at the mercy of things which matter least.",
-    author: "Johann Wolfgang von Goethe",
-    category: "Focus",
-  },
-  {
-    text: "The successful warrior is the average man, with laser-like focus.",
-    author: "Bruce Lee",
-    category: "Focus",
-  },
-  {
-    text: "The art of being wise is the art of knowing what to overlook.",
-    author: "William James",
-    category: "Focus",
-  },
-  {
-    text: "Our life is frittered away by detail. Simplify, simplify.",
-    author: "Henry David Thoreau",
-    category: "Focus",
-  },
-  {
-    text: "Simplicity is the ultimate sophistication.",
-    author: "Leonardo da Vinci",
-    category: "Focus",
-  },
+  // ── Groucho Marx ──────────────────────────────────────────────────────────
+  { text: "I refuse to join any club that would have me as a member.", author: "Groucho Marx", category: "Self-Aware" },
+  { text: "Outside of a dog, a book is a man's best friend. Inside of a dog it's too dark to read.", author: "Groucho Marx", category: "Logic" },
+  { text: "The secret of life is honesty and fair dealing. If you can fake that, you've got it made.", author: "Groucho Marx", category: "Strategy" },
+  { text: "I've had a perfectly wonderful evening, but this wasn't it.", author: "Groucho Marx", category: "Reviews" },
+  { text: "No man goes before his time — unless the boss leaves early.", author: "Groucho Marx", category: "Work" },
+  { text: "I find television very educational. Every time someone turns it on, I go into the other room and read a book.", author: "Groucho Marx", category: "Culture" },
+  { text: "Military intelligence is a contradiction in terms.", author: "Groucho Marx", category: "Logic" },
+  { text: "A child of five could understand this. Fetch me a child of five.", author: "Groucho Marx", category: "Logic" },
+  { text: "Either this man is dead, or my watch has stopped.", author: "Groucho Marx", category: "Observations" },
 
-  // ─── Science ────────────────────────────────────────────────────────────────
-  {
-    text: "The first principle is that you must not fool yourself — and you are the easiest person to fool.",
-    author: "Richard Feynman",
-    category: "Science",
-  },
-  {
-    text: "I would rather have questions that can't be answered than answers that can't be questioned.",
-    author: "Richard Feynman",
-    category: "Science",
-  },
-  {
-    text: "We are a way for the cosmos to know itself.",
-    author: "Carl Sagan",
-    category: "Science",
-  },
-  {
-    text: "The cosmos is within us. We are made of star-stuff.",
-    author: "Carl Sagan",
-    category: "Science",
-  },
-  {
-    text: "The present is theirs; the future, for which I really worked, is mine.",
-    author: "Nikola Tesla",
-    category: "Science",
-  },
-  {
-    text: "If you want to find the secrets of the universe, think in terms of energy, frequency and vibration.",
-    author: "Nikola Tesla",
-    category: "Science",
-  },
-  {
-    text: "That brain of mine is something more than merely mortal; as time will show.",
-    author: "Ada Lovelace",
-    category: "Science",
-  },
-  {
-    text: "The more I study, the more insatiable do I feel my genius for it to be.",
-    author: "Ada Lovelace",
-    category: "Science",
-  },
-  {
-    text: "Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world.",
-    author: "Albert Einstein",
-    category: "Science",
-  },
-  {
-    text: "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
-    author: "Albert Einstein",
-    category: "Science",
-  },
-  {
-    text: "Nothing in life is to be feared, it is only to be understood.",
-    author: "Marie Curie",
-    category: "Science",
-  },
-  {
-    text: "Be less curious about people and more curious about ideas.",
-    author: "Marie Curie",
-    category: "Science",
-  },
-  {
-    text: "If I have seen further than others, it is by standing upon the shoulders of giants.",
-    author: "Isaac Newton",
-    category: "Science",
-  },
-  {
-    text: "Ignorance more frequently begets confidence than does knowledge.",
-    author: "Charles Darwin",
-    category: "Science",
-  },
+  // ── Dorothy Parker ────────────────────────────────────────────────────────
+  { text: "I don't care what is written about me so long as it isn't true.", author: "Dorothy Parker", category: "Self-Aware" },
+  { text: "This is not a novel to be tossed aside lightly. It should be thrown with great force.", author: "Dorothy Parker", category: "Reviews" },
+  { text: "If you want to know what God thinks of money, just look at the people he gave it to.", author: "Dorothy Parker", category: "Observations" },
+  { text: "The cure for boredom is curiosity. There is no cure for curiosity.", author: "Dorothy Parker", category: "Curiosity" },
+  { text: "I require three things in a man: he must be handsome, ruthless, and stupid.", author: "Dorothy Parker", category: "Standards" },
+  { text: "Beauty is only skin deep, but ugly goes clear to the bone.", author: "Dorothy Parker", category: "Beauty" },
+  { text: "Take care of the luxuries and the necessities will take care of themselves.", author: "Dorothy Parker", category: "Priorities" },
+  { text: "You can't teach an old dogma new tricks.", author: "Dorothy Parker", category: "Realism" },
+  { text: "The first thing I do in the morning is brush my teeth and sharpen my tongue.", author: "Dorothy Parker", category: "Self-Aware" },
 
-  // ─── Creativity ─────────────────────────────────────────────────────────────
-  {
-    text: "The creative adult is the child who has survived.",
-    author: "Ursula K. Le Guin",
-    category: "Creativity",
-  },
-  {
-    text: "We read books to find out who we are.",
-    author: "Ursula K. Le Guin",
-    category: "Creativity",
-  },
-  {
-    text: "The world always seems brighter when you've just made something that wasn't there before.",
-    author: "Neil Gaiman",
-    category: "Creativity",
-  },
-  {
-    text: "You get ideas from daydreaming. You get ideas from being bored. You get ideas all the time.",
-    author: "Neil Gaiman",
-    category: "Creativity",
-  },
-  {
-    text: "If there's a book that you want to read, but it hasn't been written yet, then you must write it.",
-    author: "Toni Morrison",
-    category: "Creativity",
-  },
-  {
-    text: "We die. That may be the meaning of life. But we do language. That may be the measure of our lives.",
-    author: "Toni Morrison",
-    category: "Creativity",
-  },
-  {
-    text: "If you only read the books that everyone else is reading, you can only think what everyone else is thinking.",
-    author: "Haruki Murakami",
-    category: "Creativity",
-  },
-  {
-    text: "Pain is inevitable. Suffering is optional.",
-    author: "Haruki Murakami",
-    category: "Creativity",
-  },
-  {
-    text: "Tell me, what is it you plan to do with your one wild and precious life?",
-    author: "Mary Oliver",
-    category: "Creativity",
-  },
-  {
-    text: "Attention is the beginning of devotion.",
-    author: "Mary Oliver",
-    category: "Creativity",
-  },
-  {
-    text: "You can't use up creativity. The more you use, the more you have.",
-    author: "Maya Angelou",
-    category: "Creativity",
-  },
-  {
-    text: "There is no greater agony than bearing an untold story inside you.",
-    author: "Maya Angelou",
-    category: "Creativity",
-  },
-  {
-    text: "I write entirely to find out what I'm thinking, what I'm looking at, what I see and what it means.",
-    author: "Joan Didion",
-    category: "Creativity",
-  },
-  {
-    text: "We tell ourselves stories in order to live.",
-    author: "Joan Didion",
-    category: "Creativity",
-  },
+  // ── Steven Wright ─────────────────────────────────────────────────────────
+  { text: "I stayed up all night to see where the sun went. Then it dawned on me.", author: "Steven Wright", category: "Logic" },
+  { text: "If at first you don't succeed, skydiving is not for you.", author: "Steven Wright", category: "Advice" },
+  { text: "I intend to live forever. So far, so good.", author: "Steven Wright", category: "Optimism" },
+  { text: "I'm writing a book. I've got the page numbers done.", author: "Steven Wright", category: "Progress" },
+  { text: "Hard work pays off in the future. Laziness pays off now.", author: "Steven Wright", category: "Priorities" },
+  { text: "I have a map of the United States — actual size. It says, 'Scale: 1 mile = 1 mile.'", author: "Steven Wright", category: "Logic" },
+  { text: "I bought some batteries, but they weren't included.", author: "Steven Wright", category: "Logic" },
+  { text: "I'm a peripheral visionary. I can see into the future, just way off to the side.", author: "Steven Wright", category: "Self-Aware" },
+  { text: "Everywhere is within walking distance if you have the time.", author: "Steven Wright", category: "Perspective" },
+  { text: "It's a small world, but I wouldn't want to paint it.", author: "Steven Wright", category: "Observations" },
+  { text: "When everything is coming your way, you're in the wrong lane.", author: "Steven Wright", category: "Advice" },
+  { text: "The sooner you fall behind, the more time you'll have to catch up.", author: "Steven Wright", category: "Logic" },
 
-  // ─── Resilience ─────────────────────────────────────────────────────────────
-  {
-    text: "First forget inspiration. Habit is more dependable. Habit will sustain you whether you're inspired or not.",
-    author: "Octavia Butler",
-    category: "Resilience",
-  },
-  {
-    text: "You don't start out writing good stuff. You start out writing crap and thinking it's good stuff, and then gradually you get better at it.",
-    author: "Octavia Butler",
-    category: "Resilience",
-  },
-  {
-    text: "The impediment to action advances action. What stands in the way becomes the way.",
-    author: "Marcus Aurelius",
-    category: "Resilience",
-  },
-  {
-    text: "It's not what happens to you, but how you react to it that matters.",
-    author: "Epictetus",
-    category: "Resilience",
-  },
-  {
-    text: "It is not because things are difficult that we do not dare; it is because we do not dare that things are difficult.",
-    author: "Seneca",
-    category: "Resilience",
-  },
-  {
-    text: "When you come out of the storm, you won't be the same person who walked in. That's what the storm is all about.",
-    author: "Haruki Murakami",
-    category: "Resilience",
-  },
-  {
-    text: "I can be changed by what happens to me. But I refuse to be reduced by it.",
-    author: "Maya Angelou",
-    category: "Resilience",
-  },
-  {
-    text: "Someone I loved once gave me a box full of darkness. It took me years to understand that this too, was a gift.",
-    author: "Mary Oliver",
-    category: "Resilience",
-  },
-  {
-    text: "It always seems impossible until it's done.",
-    author: "Nelson Mandela",
-    category: "Resilience",
-  },
-  {
-    text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    author: "Winston Churchill",
-    category: "Resilience",
-  },
-  {
-    text: "What doesn't kill me makes me stronger.",
-    author: "Friedrich Nietzsche",
-    category: "Resilience",
-  },
-  {
-    text: "It does not matter how slowly you go as long as you do not stop.",
-    author: "Confucius",
-    category: "Resilience",
-  },
-  {
-    text: "Ever tried. Ever failed. No matter. Try again. Fail again. Fail better.",
-    author: "Samuel Beckett",
-    category: "Resilience",
-  },
-  {
-    text: "I am not afraid of storms, for I am learning how to sail my ship.",
-    author: "Louisa May Alcott",
-    category: "Resilience",
-  },
+  // ── Mitch Hedberg ─────────────────────────────────────────────────────────
+  { text: "I'm against picketing, but I don't know how to show it.", author: "Mitch Hedberg", category: "Protest" },
+  { text: "My fake plants died because I did not pretend to water them.", author: "Mitch Hedberg", category: "Commitment" },
+  { text: "I used to do drugs. I still do, but I used to, too.", author: "Mitch Hedberg", category: "Honesty" },
+  { text: "An escalator can never break: it can only become stairs.", author: "Mitch Hedberg", category: "Logic" },
+  { text: "I'm sick of following my dreams, man. I'm just going to ask where they're going and hook up with them later.", author: "Mitch Hedberg", category: "Dreams" },
+  { text: "I like rice. Rice is great if you're hungry and want 2000 of something.", author: "Mitch Hedberg", category: "Food" },
+  { text: "I find that a duck's opinion of me is very much influenced by whether or not I have bread.", author: "Mitch Hedberg", category: "Relationships" },
+
+  // ── George Carlin ─────────────────────────────────────────────────────────
+  { text: "Think of how stupid the average person is, and realize half of them are stupider than that.", author: "George Carlin", category: "Statistics" },
+  { text: "Have you ever noticed that anybody driving slower than you is an idiot, and anyone going faster than you is a maniac?", author: "George Carlin", category: "Observations" },
+  { text: "The reason I talk to myself is because I'm the only one whose answers I accept.", author: "George Carlin", category: "Self-Aware" },
+  { text: "Inside every cynical person, there is a disappointed idealist.", author: "George Carlin", category: "Psychology" },
+  { text: "Some people see the glass half full. Others see it half empty. I see a glass that's twice as big as it needs to be.", author: "George Carlin", category: "Perspective" },
+  { text: "If you try to fail, and succeed, which have you done?", author: "George Carlin", category: "Logic" },
+  { text: "Just because you got the monkey off your back doesn't mean the circus has left town.", author: "George Carlin", category: "Realism" },
+  { text: "The planet is fine. The people are f***ed.", author: "George Carlin", category: "Ecology" },
+  { text: "Fighting for peace is like screwing for virginity.", author: "George Carlin", category: "Logic" },
+  { text: "People who say they don't care what people think are usually desperate to have people think they don't care.", author: "George Carlin", category: "Psychology" },
+
+  // ── Woody Allen ───────────────────────────────────────────────────────────
+  { text: "I'm not afraid of death; I just don't want to be there when it happens.", author: "Woody Allen", category: "Optimism" },
+  { text: "Life is full of misery, loneliness, and suffering — and it's all over much too soon.", author: "Woody Allen", category: "Realism" },
+  { text: "I'd call him a sadistic, hippophilic necrophile, but that would be beating a dead horse.", author: "Woody Allen", category: "Insults" },
+  { text: "Money is better than poverty, if only for financial reasons.", author: "Woody Allen", category: "Economics" },
+  { text: "If you want to make God laugh, tell him about your plans.", author: "Woody Allen", category: "Humility" },
+  { text: "I took a speed-reading course and read War and Peace in twenty minutes. It involves Russia.", author: "Woody Allen", category: "Efficiency" },
+  { text: "I'm astounded by people who want to 'know' the universe when it's hard enough to find your way around Chinatown.", author: "Woody Allen", category: "Perspective" },
+
+  // ── Winston Churchill ─────────────────────────────────────────────────────
+  { text: "A lie gets halfway around the world before the truth has a chance to get its pants on.", author: "Winston Churchill", category: "Observations" },
+  { text: "You can always count on Americans to do the right thing — after they've tried everything else.", author: "Winston Churchill", category: "Diplomacy" },
+  { text: "I may be drunk, Miss, but in the morning I will be sober and you will still be ugly.", author: "Winston Churchill", category: "Insults" },
+  { text: "History will be kind to me for I intend to write it.", author: "Winston Churchill", category: "Confidence" },
+  { text: "The best argument against democracy is a five-minute conversation with the average voter.", author: "Winston Churchill", category: "Politics" },
+  { text: "Success is stumbling from failure to failure with no loss of enthusiasm.", author: "Winston Churchill", category: "Resilience" },
+  { text: "Never hold discussions with the monkey when the organ grinder is in the room.", author: "Winston Churchill", category: "Strategy" },
+  { text: "A sheep in sheep's clothing.", author: "Winston Churchill", category: "Insults" },
+
+  // ── George Bernard Shaw ──────────────────────────────────────────────────
+  { text: "We don't stop playing because we grow old; we grow old because we stop playing.", author: "George Bernard Shaw", category: "Aging" },
+  { text: "The reasonable man adapts himself to the world: the unreasonable one persists in trying to adapt the world to himself. Therefore all progress depends on the unreasonable man.", author: "George Bernard Shaw", category: "Progress" },
+  { text: "Those who cannot change their minds cannot change anything.", author: "George Bernard Shaw", category: "Wisdom" },
+  { text: "England and America are two countries separated by a common language.", author: "George Bernard Shaw", category: "Observations" },
+  { text: "The single biggest problem in communication is the illusion that it has taken place.", author: "George Bernard Shaw", category: "Communication" },
+  { text: "A government that robs Peter to pay Paul can always depend on the support of Paul.", author: "George Bernard Shaw", category: "Politics" },
+  { text: "Democracy is a device that ensures we shall be governed no better than we deserve.", author: "George Bernard Shaw", category: "Politics" },
+  { text: "Youth is wasted on the young.", author: "George Bernard Shaw", category: "Aging" },
+
+  // ── Noel Coward ──────────────────────────────────────────────────────────
+  { text: "I love criticism just so long as it's unqualified praise.", author: "Noel Coward", category: "Self-Aware" },
+  { text: "I've sometimes thought of marrying, and then I've thought again.", author: "Noel Coward", category: "Marriage" },
+  { text: "I can take any amount of criticism, so long as it is unqualified praise.", author: "Noel Coward", category: "Reviews" },
+
+  // ── P.G. Wodehouse ───────────────────────────────────────────────────────
+  { text: "It's never difficult to distinguish between a Scotsman with a grievance and a ray of sunshine.", author: "P.G. Wodehouse", category: "Observations" },
+  { text: "She looked at me as if I was a sort of unpleasant insect that had crawled out from under a flat stone.", author: "P.G. Wodehouse", category: "Observations" },
+  { text: "I could see that, if not actually disgruntled, he was far from gruntled.", author: "P.G. Wodehouse", category: "Observations" },
+  { text: "He was a man of about forty, with a face like a disappointed walrus.", author: "P.G. Wodehouse", category: "Descriptions" },
+  { text: "The voice of Love seemed to call to me, but it was a wrong number.", author: "P.G. Wodehouse", category: "Romance" },
+
+  // ── Ambrose Bierce ───────────────────────────────────────────────────────
+  { text: "Acquaintance: A person whom we know well enough to borrow from, but not well enough to lend to.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Apologize: To lay the foundation for a future offense.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Brain: An apparatus with which we think we think.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Bore: A person who talks when you wish him to listen.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Egotist: A person more interested in himself than in me.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Optimism: The doctrine that everything is beautiful, including what is ugly.", author: "Ambrose Bierce", category: "Definitions" },
+  { text: "Patience: A minor form of despair, disguised as a virtue.", author: "Ambrose Bierce", category: "Definitions" },
+
+  // ── H.L. Mencken ─────────────────────────────────────────────────────────
+  { text: "For every complex problem there is an answer that is clear, simple, and wrong.", author: "H.L. Mencken", category: "Solutions" },
+  { text: "The whole aim of practical politics is to keep the populace alarmed.", author: "H.L. Mencken", category: "Politics" },
+  { text: "Nobody ever went broke underestimating the intelligence of the American public.", author: "H.L. Mencken", category: "Culture" },
+  { text: "Democracy is the theory that the common people know what they want, and deserve to get it good and hard.", author: "H.L. Mencken", category: "Politics" },
+  { text: "A cynic is a man who, when he smells flowers, looks around for a coffin.", author: "H.L. Mencken", category: "Psychology" },
+  { text: "A man may be a fool and not know it, but not if he is married.", author: "H.L. Mencken", category: "Marriage" },
+
+  // ── Bertrand Russell ─────────────────────────────────────────────────────
+  { text: "The whole problem with the world is that fools and fanatics are always so certain of themselves, and wiser people so full of doubts.", author: "Bertrand Russell", category: "Observations" },
+  { text: "Most people would sooner die than think; in fact, they do so.", author: "Bertrand Russell", category: "Observations" },
+  { text: "The average man does not want to be free. He simply wants to be safe.", author: "Bertrand Russell", category: "Freedom" },
+  { text: "One of the symptoms of an approaching nervous breakdown is the belief that one's work is terribly important.", author: "Bertrand Russell", category: "Work" },
+  { text: "The good life is inspired by love and guided by knowledge.", author: "Bertrand Russell", category: "Wisdom" },
+  { text: "To fear love is to fear life, and those who fear life are already three-parts dead.", author: "Bertrand Russell", category: "Love" },
+
+  // ── Voltaire ─────────────────────────────────────────────────────────────
+  { text: "God is a comedian playing to an audience too afraid to laugh.", author: "Voltaire", category: "Theology" },
+  { text: "Common sense is not so common.", author: "Voltaire", category: "Observations" },
+  { text: "It is forbidden to kill; therefore all murderers are punished unless they kill in large numbers and to the sound of trumpets.", author: "Voltaire", category: "Politics" },
+  { text: "The perfect is the enemy of the good.", author: "Voltaire", category: "Wisdom" },
+  { text: "I have never made but one prayer to God, a very short one: 'O Lord, make my enemies ridiculous.' And God granted it.", author: "Voltaire", category: "Strategy" },
+
+  // ── Robert Benchley ──────────────────────────────────────────────────────
+  { text: "Drawing on my fine command of the English language, I said nothing.", author: "Robert Benchley", category: "Communication" },
+  { text: "In America there are two classes of travel — first class, and with children.", author: "Robert Benchley", category: "Travel" },
+  { text: "The surest way to make a monkey of a man is to quote him.", author: "Robert Benchley", category: "Communication" },
+  { text: "It took me fifteen years to discover I had no talent for writing, but I couldn't give it up because by that time I was too famous.", author: "Robert Benchley", category: "Self-Aware" },
+  { text: "There are two kinds of people in the world: those who believe there are two kinds of people in the world, and those who don't.", author: "Robert Benchley", category: "Logic" },
+
+  // ── Rodney Dangerfield ────────────────────────────────────────────────────
+  { text: "I don't get no respect. My wife's other man does though.", author: "Rodney Dangerfield", category: "Marriage" },
+  { text: "I was so ugly when I was born, the doctor slapped my mother.", author: "Rodney Dangerfield", category: "Self-Deprecation" },
+  { text: "My wife and I were happy for twenty years. Then we met.", author: "Rodney Dangerfield", category: "Marriage" },
+  { text: "I went to a fight the other night and a hockey game broke out.", author: "Rodney Dangerfield", category: "Sports" },
+  { text: "I could tell my parents hated me. My bath toys were a toaster and a radio.", author: "Rodney Dangerfield", category: "Family" },
+  { text: "My psychiatrist told me I was crazy and I said I want a second opinion. He said okay, you're ugly too.", author: "Rodney Dangerfield", category: "Health" },
+
+  // ── George Burns ─────────────────────────────────────────────────────────
+  { text: "Too bad all the people who know how to run the country are busy driving taxis and cutting hair.", author: "George Burns", category: "Politics" },
+  { text: "Happiness is having a large, loving, caring, close-knit family in another city.", author: "George Burns", category: "Family" },
+  { text: "Nice to be here? At my age it's nice to be anywhere.", author: "George Burns", category: "Aging" },
+  { text: "The secret to a long life is to stay busy, get plenty of exercise, and don't drink too much. Then again, don't drink too little.", author: "George Burns", category: "Health" },
+
+  // ── Fran Lebowitz ────────────────────────────────────────────────────────
+  { text: "The opposite of talking isn't listening. The opposite of talking is waiting.", author: "Fran Lebowitz", category: "Communication" },
+  { text: "Think before you speak. Read before you think.", author: "Fran Lebowitz", category: "Wisdom" },
+  { text: "If you are a dog and your owner suggests that you wear a sweater, suggest that he wear a tail.", author: "Fran Lebowitz", category: "Logic" },
+  { text: "As a teenager you are at the last stage in your life when you will be happy to hear that the phone is for you.", author: "Fran Lebowitz", category: "Aging" },
+  { text: "Food is an important part of a balanced diet.", author: "Fran Lebowitz", category: "Food" },
+  { text: "Life is something to do when you can't get to sleep.", author: "Fran Lebowitz", category: "Realism" },
+
+  // ── Jerry Seinfeld ────────────────────────────────────────────────────────
+  { text: "People who read the menu from left to right — this is a person with a problem.", author: "Jerry Seinfeld", category: "Observations" },
+  { text: "A two-year-old is kind of like having a blender, but you don't have a top for it.", author: "Jerry Seinfeld", category: "Family" },
+  { text: "Men want the same thing from their underwear that they want from women: a little bit of support, and a little bit of freedom.", author: "Jerry Seinfeld", category: "Observations" },
+  { text: "Why do they call it rush hour when nothing moves?", author: "Jerry Seinfeld", category: "Observations" },
+  { text: "Dogs are the leaders of the planet. If you see two life forms, one of them is making a poop, the other one's carrying it for him, who would you assume is in charge?", author: "Jerry Seinfeld", category: "Logic" },
+
+  // ── Larry David ──────────────────────────────────────────────────────────
+  { text: "I don't like when I go to a restaurant and the waiter tells me his name like I'm going to care. 'Hi I'm Todd.' Oh great, Todd. Are you on the menu?", author: "Larry David", category: "Social Norms" },
+  { text: "A good rule to remember for life is that when it comes to plastic surgery and sushi, never be attracted by a bargain.", author: "Larry David", category: "Advice" },
+  { text: "I'm not a bad guy! I work hard, and I love my kids. So why should I spend half my Sunday hearing about how I'm going to Hell?", author: "Larry David", category: "Self-Aware" },
+
+  // ── Ricky Gervais ────────────────────────────────────────────────────────
+  { text: "Just because you're offended doesn't mean you're right.", author: "Ricky Gervais", category: "Logic" },
+  { text: "Enjoy life. It has an expiry date.", author: "Ricky Gervais", category: "Realism" },
+  { text: "Next time someone says 'Everything happens for a reason,' kick them and say 'That's for a reason too.'", author: "Ricky Gervais", category: "Logic" },
+  { text: "The best thing about being famous on the internet is that you're not actually famous.", author: "Ricky Gervais", category: "Culture" },
+
+  // ── Demetri Martin ────────────────────────────────────────────────────────
+  { text: "I wanna make a jigsaw puzzle that's 40,000 pieces. And when you finish it, it says 'go outside.'", author: "Demetri Martin", category: "Logic" },
+  { text: "I think they should have a Sarcasm font. Also an Irony font. But mostly a Sarcasm font. Obviously.", author: "Demetri Martin", category: "Communication" },
+  { text: "I used to play sports. Then I realized you can buy trophies. Now I'm good at everything.", author: "Demetri Martin", category: "Efficiency" },
+
+  // ── John Mulaney ─────────────────────────────────────────────────────────
+  { text: "I was once on the phone with Blockbuster Video — which is a sentence that has not been true for anyone in the last ten years.", author: "John Mulaney", category: "Nostalgia" },
+  { text: "Do you want to feel like you're on the right side of history? Or do you want to be happy?", author: "John Mulaney", category: "Choices" },
+  { text: "I'm very small and I have no money. So you can imagine the kind of stress I'm under.", author: "John Mulaney", category: "Self-Deprecation" },
+
+  // ── Norm Macdonald ────────────────────────────────────────────────────────
+  { text: "A lot of people don't know this, but the greatest joke ever is: Why did the chicken cross the road? To get to the other side. Because the other side is death.", author: "Norm Macdonald", category: "Dark Humor" },
+  { text: "I'd rather live with a good question than a bad answer.", author: "Norm Macdonald", category: "Wisdom" },
+
+  // ── Emo Philips ──────────────────────────────────────────────────────────
+  { text: "Women are descended from Eve, who was created from Adam's rib. I know, men are always being pressured to give.", author: "Emo Philips", category: "Logic" },
+  { text: "Some mornings it's just not worth chewing through the leather straps.", author: "Emo Philips", category: "Mondays" },
+  { text: "I discovered my wife in bed with another man, and I was crushed. So I said, 'Get off me, you two!'", author: "Emo Philips", category: "Surprises" },
+  { text: "I was walking down the street wearing glasses when the prescription ran out.", author: "Emo Philips", category: "Observations" },
+
+  // ── Rita Rudner ──────────────────────────────────────────────────────────
+  { text: "I love being married. It's so great to find that one special person you want to annoy for the rest of your life.", author: "Rita Rudner", category: "Marriage" },
+  { text: "Before I met my husband, I'd never fallen in love. I'd stepped in it a few times.", author: "Rita Rudner", category: "Romance" },
+  { text: "Men who have a pierced ear are better prepared for marriage — they've experienced pain and bought jewelry.", author: "Rita Rudner", category: "Marriage" },
+
+  // ── Phyllis Diller ────────────────────────────────────────────────────────
+  { text: "I want my children to have all the things I couldn't afford. Then I want to move in with them.", author: "Phyllis Diller", category: "Family" },
+  { text: "We spend the first twelve months of our children's lives teaching them to walk and talk and the next twelve years telling them to sit down and shut up.", author: "Phyllis Diller", category: "Family" },
+  { text: "Housework can't kill you, but why take a chance?", author: "Phyllis Diller", category: "Priorities" },
+
+  // ── Gore Vidal ────────────────────────────────────────────────────────────
+  { text: "Every time a friend succeeds, I die a little.", author: "Gore Vidal", category: "Honesty" },
+  { text: "A narcissist is someone better looking than you are.", author: "Gore Vidal", category: "Definitions" },
+  { text: "It is not enough to succeed. Others must fail.", author: "Gore Vidal", category: "Honesty" },
+  { text: "The four most beautiful words in our common language: I told you so.", author: "Gore Vidal", category: "Satisfaction" },
+
+  // ── Christopher Hitchens ─────────────────────────────────────────────────
+  { text: "Everybody does have a book in them, but in most cases that's where it should stay.", author: "Christopher Hitchens", category: "Literature" },
+  { text: "That which can be asserted without evidence, can be dismissed without evidence.", author: "Christopher Hitchens", category: "Logic" },
+  { text: "The only position that leaves me with no cognitive dissonance is atheism.", author: "Christopher Hitchens", category: "Theology" },
+
+  // ── P.J. O'Rourke ────────────────────────────────────────────────────────
+  { text: "There are just two rules of governance in a free society: Mind your own business. Keep your hands to yourself.", author: "P.J. O'Rourke", category: "Politics" },
+  { text: "Giving money and power to government is like giving whiskey and car keys to teenage boys.", author: "P.J. O'Rourke", category: "Politics" },
+  { text: "The Democrats are the party that says government will make you smarter, taller, richer. The Republicans are the party that says government doesn't work — and then they get elected and prove it.", author: "P.J. O'Rourke", category: "Politics" },
+
+  // ── Henny Youngman ────────────────────────────────────────────────────────
+  { text: "Take my wife... please.", author: "Henny Youngman", category: "Marriage" },
+  { text: "When I read about the evils of drinking, I gave up reading.", author: "Henny Youngman", category: "Priorities" },
+  { text: "I've got all the money I'll ever need, if I die by four o'clock.", author: "Henny Youngman", category: "Economics" },
+  { text: "What's the difference between a G-spot and a golf ball? A man will actually search for a golf ball.", author: "Henny Youngman", category: "Observations" },
+
+  // ── Sam Levenson ─────────────────────────────────────────────────────────
+  { text: "It's so simple to be wise. Just think of something stupid to say and then don't say it.", author: "Sam Levenson", category: "Wisdom" },
+  { text: "Lead us not into temptation. Just tell us where it is; we'll find it.", author: "Sam Levenson", category: "Honesty" },
+
+  // ── Various others ────────────────────────────────────────────────────────
+  { text: "The whole problem with the world is that fools and fanatics are always so certain of themselves.", author: "Bertrand Russell", category: "Observations" },
+  { text: "A pessimist is a man who has been compelled to live with an optimist.", author: "Elbert Hubbard", category: "Marriage" },
+  { text: "I am not young enough to know everything.", author: "J.M. Barrie", category: "Humility" },
+  { text: "The covers of this book are too far apart.", author: "Ambrose Bierce", category: "Reviews" },
+  { text: "It is a truth universally acknowledged that a writer in possession of a good book idea must be in want of years of rejection.", author: "Jane Austen (paraphrase)", category: "Literature" },
+  { text: "I generally avoid temptation unless I can't resist it.", author: "Mae West", category: "Honesty" },
+  { text: "Too much of a good thing can be wonderful.", author: "Mae West", category: "Optimism" },
+  { text: "I never said most of the things I said.", author: "Yogi Berra", category: "Communication" },
+  { text: "It ain't over till it's over.", author: "Yogi Berra", category: "Realism" },
+  { text: "When you come to a fork in the road, take it.", author: "Yogi Berra", category: "Advice" },
+  { text: "The future ain't what it used to be.", author: "Yogi Berra", category: "Observations" },
+  { text: "In theory, there is no difference between theory and practice. In practice, there is.", author: "Yogi Berra", category: "Logic" },
+  { text: "A word to the wise ain't necessary — it's the stupid ones that need the advice.", author: "Bill Cosby", category: "Advice" },
+  { text: "People say nothing is impossible, but I do nothing every day.", author: "A.A. Milne", category: "Achievements" },
+  { text: "If you think you are too small to make a difference, try sleeping with a mosquito.", author: "Dalai Lama XIV", category: "Scale" },
+  { text: "Behind every great man is a woman rolling her eyes.", author: "Jim Carrey", category: "Realism" },
+  { text: "Before you criticize someone, walk a mile in their shoes. That way, you'll be a mile from them, and you'll have their shoes.", author: "Jack Handey", category: "Strategy" },
+  { text: "The road to success is dotted with many tempting parking places.", author: "Will Rogers", category: "Success" },
+  { text: "Even if you're on the right track, you'll get run over if you just sit there.", author: "Will Rogers", category: "Progress" },
+  { text: "Everything is funny, as long as it's happening to someone else.", author: "Will Rogers", category: "Perspective" },
+  { text: "An economist is someone who knows 100 ways to make love, but doesn't know any women.", author: "Unknown", category: "Economics" },
+  { text: "A bank is a place that will lend you money if you can prove that you don't need it.", author: "Bob Hope", category: "Economics" },
+  { text: "A James Cagney love scene is one where he lets the other guy live.", author: "Bob Hope", category: "Film" },
+  { text: "Middle age is when your age starts to show around your middle.", author: "Bob Hope", category: "Aging" },
+  { text: "There will always be a battle between the sexes because men and women want different things. Men want women, and women want men.", author: "George Burns", category: "Relationships" },
+  { text: "I don't want any yes-men around me. I want everyone to tell the truth, even if it costs them their jobs.", author: "Samuel Goldwyn", category: "Leadership" },
+  { text: "If I had known I was going to live this long, I'd have taken better care of myself.", author: "Mickey Mantle", category: "Health" },
+  { text: "I'm an excellent housekeeper. Every time I get a divorce, I keep the house.", author: "Zsa Zsa Gabor", category: "Marriage" },
+  { text: "I never hated a man enough to give his diamonds back.", author: "Zsa Zsa Gabor", category: "Standards" },
+  { text: "The secret of staying young is to live honestly, eat slowly, and lie about your age.", author: "Lucille Ball", category: "Aging" },
+  { text: "I'd rather regret the things I've done than regret the things I haven't done.", author: "Lucille Ball", category: "Priorities" },
+  { text: "If I were two-faced, would I be wearing this one?", author: "Abraham Lincoln", category: "Self-Aware" },
+  { text: "Whatever you are, be a good one.", author: "Abraham Lincoln", category: "Advice" },
+  { text: "Better to remain silent and be thought a fool than to speak and to remove all doubt.", author: "Abraham Lincoln", category: "Wisdom" },
+  { text: "Those who are too smart to engage in politics are punished by being governed by those who are dumber.", author: "Plato", category: "Politics" },
+  { text: "The only true wisdom is in knowing you know nothing.", author: "Socrates", category: "Humility" },
+  { text: "As you get older three things happen. The first is your memory goes, and I can't remember the other two.", author: "Norman Wisdom", category: "Aging" },
+  { text: "I thought I was wrong once, but I was mistaken.", author: "Unknown", category: "Self-Aware" },
+  { text: "My therapist told me the way to achieve true inner peace is to finish what I start. So far I've finished two bags of M&Ms and a chocolate cake. I feel better already.", author: "Dave Barry", category: "Health" },
+  { text: "You can only be young once. But you can always be immature.", author: "Dave Barry", category: "Aging" },
+  { text: "The problem with the designated driver program, it's not a desirable job, but if you ever get sucked into doing it, have fun with it. At the end of the night, drop them off at the wrong house.", author: "Jeff Foxworthy", category: "Strategy" },
+  { text: "When you're in jail, a good friend will be trying to bail you out. A best friend will be in the cell next to you saying, 'Damn, that was fun.'", author: "Groucho Marx", category: "Friendship" },
+  { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison", category: "Progress" },
+  { text: "I am so clever that sometimes I don't understand a single word of what I am saying.", author: "Oscar Wilde", category: "Self-Aware" },
+  { text: "By the time a man realizes that his father was right, he has a son who thinks he's wrong.", author: "Charles Wadsworth", category: "Family" },
+  { text: "The statistics on sanity are that one out of every four people is suffering from some form of mental illness. Think of your three best friends. If they're okay, then it's you.", author: "Rita Mae Brown", category: "Statistics" },
+  { text: "Whoever said money can't buy happiness didn't know where to shop.", author: "Unknown", category: "Economics" },
+  { text: "Wine is constant proof that God loves us and loves to see us happy.", author: "Benjamin Franklin", category: "Theology" },
+  { text: "Honesty is the best policy. If I lose mine honour, I lose myself.", author: "Shakespeare", category: "Honesty" },
+  { text: "It's not the men in my life that count; it's the life in my men.", author: "Mae West", category: "Romance" },
+  { text: "Marriage is a wonderful institution, but who wants to live in an institution?", author: "Groucho Marx", category: "Marriage" },
+  { text: "I told my wife she should embrace her mistakes. She gave me a hug.", author: "Unknown", category: "Marriage" },
+  { text: "A committee is a group that keeps minutes and loses hours.", author: "Milton Berle", category: "Work" },
+  { text: "If you want your spouse to listen and pay strict attention to every word you say, talk in your sleep.", author: "Unknown", category: "Marriage" },
+  { text: "I used to be Snow White, but I drifted.", author: "Mae West", category: "Identity" },
+  { text: "I am not a vegetarian because I love animals; I am a vegetarian because I hate plants.", author: "A. Whitney Brown", category: "Logic" },
+  { text: "Age is not important unless you're a cheese.", author: "Helen Hayes", category: "Aging" },
+  { text: "The secret of eternal youth is arrested development.", author: "Alice Roosevelt Longworth", category: "Aging" },
+  { text: "I'm writing a book. I've got the page numbers done — now I just need to fill in the rest.", author: "Steven Wright", category: "Progress" },
+  { text: "I've been on a diet for two weeks and all I've lost is two weeks.", author: "Totie Fields", category: "Health" },
+  { text: "I told the doctor I broke my leg in two places. He told me to quit going to those places.", author: "Henny Youngman", category: "Advice" },
+  { text: "Never go to a doctor whose office plants have died.", author: "Erma Bombeck", category: "Advice" },
+  { text: "In two decades I've lost a total of 789 pounds. I should be hanging from a charm bracelet.", author: "Erma Bombeck", category: "Health" },
+  { text: "Never lend your car to anyone to whom you have given birth.", author: "Erma Bombeck", category: "Family" },
+  { text: "I've always thought that the stereotype of the dirty old man is really the creation of a dirty young man who wants the field to himself.", author: "Hugh Downs", category: "Observations" },
+  { text: "Facebook: The place where people post all the things they'd be embarrassed to say in person, to people they'd be embarrassed to talk to in person.", author: "Unknown", category: "Technology" },
+  { text: "I was going to look up 'procrastination' in the dictionary, but I'll do it later.", author: "Unknown", category: "Self-Aware" },
+  { text: "I asked my dog what two minus two is. He said nothing.", author: "Unknown", category: "Logic" },
+  { text: "I have a lot of growing up to do. I realized that the other day inside my fort.", author: "Zach Galifianakis", category: "Self-Aware" },
+  { text: "My jokes are terrible. I used to think I was funny. Then I read my old jokes. Then I sobered up.", author: "Unknown", category: "Self-Aware" },
+  { text: "My life is just a series of awkward and humiliating moments separated by snacks.", author: "Unknown", category: "Realism" },
+  { text: "I'm not lazy, I'm on energy-saving mode.", author: "Unknown", category: "Priorities" },
+  { text: "The trouble with having an open mind, of course, is that people will insist on coming along and trying to put things in it.", author: "Terry Pratchett", category: "Wisdom" },
+  { text: "It's not worth doing something unless someone, somewhere, would much rather you weren't doing it.", author: "Terry Pratchett", category: "Motivation" },
+  { text: "The presence of those seeking the truth is infinitely to be preferred to the presence of those who think they've found it.", author: "Terry Pratchett", category: "Wisdom" },
+  { text: "In the beginning there was nothing, which exploded.", author: "Terry Pratchett", category: "Theology" },
+  { text: "A good bookshop is just a genteel Black Hole that knows how to read.", author: "Terry Pratchett", category: "Literature" },
+  { text: "Real stupidity beats artificial intelligence every time.", author: "Terry Pratchett", category: "Technology" },
+  { text: "I would love to change the world, but they won't give me the source code.", author: "Unknown", category: "Technology" },
+  { text: "There are only two industries that refer to their customers as 'users': illegal drugs and software.", author: "Edward Tufte", category: "Technology" },
+  { text: "Software is like sex: it's better when it's free.", author: "Linus Torvalds", category: "Technology" },
+  { text: "The most disastrous thing that you can ever learn is your first programming language.", author: "Alan Kay", category: "Technology" },
+  { text: "There are two hard things in computer science: cache invalidation, naming things, and off-by-one errors.", author: "Unknown", category: "Technology" },
+  { text: "A computer once beat me at chess, but it was no match for me at kick boxing.", author: "Emo Philips", category: "Technology" },
+  { text: "To err is human, but to really foul things up you need a computer.", author: "Paul R. Ehrlich", category: "Technology" },
+  { text: "The best way to lie is to tell the truth, carefully edited.", author: "Unknown", category: "Communication" },
+  { text: "I hate people who are not serious about meals. It is so shallow of them.", author: "Oscar Wilde", category: "Food" },
+  { text: "I'm on a seafood diet. I see food, and I eat it.", author: "Unknown", category: "Food" },
+  { text: "A waiter without an opinion is a waiter with a house salad and a bottle of the house red.", author: "Unknown", category: "Food" },
+  { text: "I eat cake because it's somebody's birthday somewhere.", author: "Unknown", category: "Logic" },
+  { text: "Diets are for people who are thick and tired of it.", author: "Unknown", category: "Health" },
+  { text: "I always cook with wine. Sometimes I even add it to the food.", author: "W.C. Fields", category: "Food" },
+  { text: "I never drink water because of the disgusting things that fish do in it.", author: "W.C. Fields", category: "Health" },
+  { text: "Anyone who says they don't care about what people think of them is either a liar or very boring.", author: "Unknown", category: "Psychology" },
+  { text: "I speak two languages: English and sarcasm.", author: "Unknown", category: "Communication" },
+  { text: "Silence is golden. Duct tape is silver.", author: "Unknown", category: "Wisdom" },
+  { text: "I'm not sarcastic. I'm just intelligent beyond your understanding.", author: "Unknown", category: "Self-Aware" },
+  { text: "Of course I talk to myself. Sometimes I need expert advice.", author: "Unknown", category: "Self-Aware" },
+  { text: "The road to hell is paved with good intentions and poor execution.", author: "Unknown", category: "Realism" },
+  { text: "I'm not clumsy. The floor just hates me, the table and chairs are bullies, and the walls get in my way.", author: "Unknown", category: "Self-Aware" },
+  { text: "I love deadlines. I like the whooshing sound they make as they fly by.", author: "Douglas Adams", category: "Work" },
+  { text: "I may not have gone where I intended to go, but I think I have ended up where I needed to be.", author: "Douglas Adams", category: "Perspective" },
+  { text: "A common mistake that people make when trying to design something completely foolproof is to underestimate the ingenuity of complete fools.", author: "Douglas Adams", category: "Engineering" },
+  { text: "Time is an illusion. Lunchtime doubly so.", author: "Douglas Adams", category: "Food" },
+  { text: "The major difference between a thing that might go wrong and a thing that cannot possibly go wrong is that when a thing that cannot possibly go wrong goes wrong it usually turns out to be impossible to get at or repair.", author: "Douglas Adams", category: "Engineering" },
+  { text: "Don't panic.", author: "Douglas Adams", category: "Advice" },
+  { text: "I've had a lot of worries in my life, most of which never happened.", author: "Mark Twain", category: "Anxiety" },
+  { text: "My grandmother started walking five miles a day when she was sixty. She's ninety-seven now, and we don't know where the hell she is.", author: "Ellen DeGeneres", category: "Family" },
+  { text: "Accept who you are. Unless you're a serial killer.", author: "Ellen DeGeneres", category: "Advice" },
+  { text: "The only thing worse than being talked about is not being talked about.", author: "Oscar Wilde", category: "Fame" },
+  { text: "There is only one thing in the world worse than being talked about, and that is not being talked about.", author: "Oscar Wilde", category: "Fame" },
+  { text: "To define is to limit.", author: "Oscar Wilde", category: "Wisdom" },
+  { text: "Seriousness is the only refuge of the shallow.", author: "Oscar Wilde", category: "Realism" },
+  { text: "The books that the world calls immoral are books that show the world its own shame.", author: "Oscar Wilde", category: "Literature" },
+  { text: "When I was a boy of 14, my father was so ignorant I could hardly stand to have the old man around. But when I got to be 21, I was astonished at how much the old man had learned in seven years.", author: "Mark Twain", category: "Family" },
+  { text: "Clothes make the man. Naked people have little or no influence on society.", author: "Mark Twain", category: "Fashion" },
+  { text: "All you need in this life is ignorance and confidence; then success is sure.", author: "Mark Twain", category: "Success" },
+  { text: "Plan for the future, because that's where you're going to spend the rest of your life.", author: "Mark Twain", category: "Planning" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain", category: "Progress" },
+  { text: "Good things come to those who wait, but so does time. And time means aging. So don't wait too long.", author: "Unknown", category: "Aging" },
+  { text: "Confidence is that feeling you have just before you understand the situation.", author: "Unknown", category: "Psychology" },
+  { text: "If you think nobody cares if you're alive, try missing a couple of car payments.", author: "Earl Wilson", category: "Realism" },
+  { text: "I've always wanted to be somebody, but I see now I should have been more specific.", author: "Lily Tomlin", category: "Ambition" },
+  { text: "The trouble with the rat race is that even if you win, you're still a rat.", author: "Lily Tomlin", category: "Work" },
+  { text: "Reality is the leading cause of stress among those in touch with it.", author: "Lily Tomlin", category: "Realism" },
+  { text: "If love is the answer, could you please rephrase the question?", author: "Lily Tomlin", category: "Love" },
+  { text: "We are all in the gutter, but some of us are looking at the stars.", author: "Oscar Wilde", category: "Perspective" },
+  { text: "No good deed goes unpunished.", author: "Oscar Wilde", category: "Realism" },
+  { text: "I am ready to meet my Maker. Whether my Maker is prepared for the great ordeal of meeting me is another matter.", author: "Winston Churchill", category: "Confidence" },
+  { text: "The length of a film should be directly related to the endurance of the human bladder.", author: "Alfred Hitchcock", category: "Film" },
+  { text: "I never said all actors are cattle; what I said was that all actors should be treated like cattle.", author: "Alfred Hitchcock", category: "Film" },
+  { text: "Give them pleasure — the same pleasure they have when they wake up from a nightmare.", author: "Alfred Hitchcock", category: "Film" },
+  { text: "In Italy for thirty years under the Borgias they had warfare, terror, murder, and bloodshed, but they produced Michelangelo, Leonardo da Vinci, and the Renaissance. In Switzerland they had brotherly love — they had 500 years of democracy and peace, and what did that produce? The cuckoo clock.", author: "Orson Welles", category: "History" },
+  { text: "Asking a writer what she thinks about criticism is like asking a lamppost what it feels about dogs.", author: "John Osborne", category: "Reviews" },
+  { text: "A diplomat is someone who can tell you to go to hell in such a way that you actually look forward to the trip.", author: "Caskie Stinnett", category: "Diplomacy" },
+  { text: "Lead me not into temptation; I can find the way myself.", author: "Rita Mae Brown", category: "Honesty" },
+  { text: "If you want to know what God thinks of money, look at the people he gave it to.", author: "Dorothy Parker", category: "Economics" },
+  { text: "You can lead a horticulture, but you can't make her think.", author: "Dorothy Parker", category: "Wordplay" },
+  { text: "Four be the things I'd have been better without: Love, curiosity, freckles, and doubt.", author: "Dorothy Parker", category: "Self-Aware" },
+  { text: "The first day after a diet is always the hardest. After that, easier to quit.", author: "Unknown", category: "Health" },
+  { text: "My doctor told me to watch my drinking. Now I drink in front of a mirror.", author: "Rodney Dangerfield", category: "Health" },
+  { text: "I know the answer! The answer lies within the heart of all mankind! The answer is twelve? I think I'm in the wrong building.", author: "Charles M. Schulz", category: "Logic" },
+  { text: "Happiness is a warm puppy.", author: "Charles M. Schulz", category: "Realism" },
+  { text: "Big sisters are the crabgrass in the lawn of life.", author: "Charles M. Schulz", category: "Family" },
+  { text: "Nothing takes the taste out of peanut butter quite like unrequited love.", author: "Charles M. Schulz", category: "Romance" },
+  { text: "I have a new philosophy. I'm only going to dread one day at a time.", author: "Charles M. Schulz", category: "Optimism" },
 ];
