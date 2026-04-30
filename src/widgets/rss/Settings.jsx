@@ -14,12 +14,12 @@
  *   [{ "label": "My Blog", "url": "https://example.com/feed.xml" }]
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PRESET_FEEDS } from "./utils";
 import { VIEW_MODES } from "./constants";
 import { PillButton } from "../../components/ui/PillButton";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
-import { Upload, X } from "react-bootstrap-icons";
+import { Upload, X, CheckCircleFill } from "react-bootstrap-icons";
 
 export const Settings = ({
   feedId,
@@ -32,9 +32,7 @@ export const Settings = ({
 }) => {
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState(null);
-
-  // Show custom feeds when loaded, fall back to presets
-  const activeSources = customFeeds.length > 0 ? customFeeds : PRESET_FEEDS;
+  const fileInputRef = useRef(null);
 
   const handleFileRead = async (file) => {
     if (!file) return;
@@ -54,11 +52,7 @@ export const Settings = ({
     }
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    handleFileRead(e.dataTransfer.files?.[0]);
-  };
+  // handleDrop is inlined into the div's onDrop to avoid label-click interference
 
   const handleClear = () => {
     onChangeCustomFeeds([]);
@@ -77,47 +71,110 @@ export const Settings = ({
 
       {/* ── Source selector ── */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="w-label" style={{ color: "var(--w-ink-3)" }}>
-            {customFeeds.length > 0 ? `Custom feeds (${customFeeds.length})` : "Preset sources"}
-          </span>
-          {customFeeds.length > 0 && (
-            <button
-              type="button"
-              onClick={handleClear}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full transition-opacity hover:opacity-70 cursor-pointer"
+        {customFeeds.length > 0 ? (
+          /* ── JSON active mode ── */
+          <>
+            {/* Active badge */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <CheckCircleFill size={11} style={{ color: "var(--w-success)" }} />
+                <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--w-ink-2)" }}>
+                  JSON active
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.5625rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    color: "var(--w-success)",
+                    background: "color-mix(in srgb, var(--w-success) 12%, transparent)",
+                    padding: "1px 6px",
+                    borderRadius: "999px",
+                  }}
+                >
+                  {customFeeds.length} sources · mixed
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClear}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="flex items-center gap-0.5 px-2 py-0.5 rounded-full cursor-pointer"
+                style={{
+                  fontSize: "0.625rem",
+                  fontWeight: 600,
+                  color: "var(--w-ink-4)",
+                  background: "rgba(0,0,0,0.06)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  transition: "opacity 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.6"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+              >
+                <X size={10} />
+                Reset
+              </button>
+            </div>
+
+            {/* Read-only source list */}
+            <div
+              className="rounded-xl flex flex-col"
               style={{
-                fontSize: "0.625rem",
-                fontWeight: 600,
-                color: "var(--w-ink-4)",
-                background: "rgba(0,0,0,0.06)",
-                border: "1px solid rgba(0,0,0,0.08)",
+                border: "1px solid color-mix(in srgb, var(--w-success) 20%, transparent)",
+                background: "color-mix(in srgb, var(--w-success) 4%, transparent)",
+                overflow: "hidden",
               }}
             >
-              <X size={10} />
-              Reset to presets
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {activeSources.map((src) => {
-            const srcKey = src.id ?? src.url;
-            const isActive = feedId === srcKey || feedId === src.url;
-            return (
-              <PillButton
-                key={srcKey}
-                active={isActive}
-                onClick={() => {
-                  onChangeFeedId(src.id ?? src.url);
-                  onClose?.();
-                }}
-              >
-                {src.label}
-              </PillButton>
-            );
-          })}
-        </div>
+              {customFeeds.map((feed, i) => (
+                <div
+                  key={feed.url}
+                  className="flex items-center gap-2 px-3"
+                  style={{
+                    paddingTop: "0.4rem",
+                    paddingBottom: "0.4rem",
+                    borderTop: i > 0 ? "1px solid color-mix(in srgb, var(--w-success) 12%, transparent)" : "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      background: "var(--w-success)",
+                      opacity: 0.7,
+                    }}
+                  />
+                  <span style={{ fontSize: "0.6875rem", color: "var(--w-ink-2)", fontWeight: 500 }}>
+                    {feed.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          /* ── Preset mode ── */
+          <>
+            <span className="w-label" style={{ color: "var(--w-ink-3)" }}>Preset sources</span>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESET_FEEDS.map((src) => {
+                const isActive = feedId === src.id || feedId === src.url;
+                return (
+                  <PillButton
+                    key={src.id}
+                    active={isActive}
+                    onClick={() => {
+                      onChangeFeedId(src.id);
+                      onClose?.();
+                    }}
+                  >
+                    {src.label}
+                  </PillButton>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Divider ── */}
@@ -125,14 +182,19 @@ export const Settings = ({
 
       {/* ── JSON upload zone ── */}
       <div className="flex flex-col gap-2">
-        <span className="w-label" style={{ color: "var(--w-ink-3)" }}>Import from JSON</span>
+        <span className="w-label" style={{ color: "var(--w-ink-3)" }}>
+          {customFeeds.length > 0 ? "Replace JSON" : "Import from JSON"}
+        </span>
 
-        <label
-          htmlFor="rss-json-upload"
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          className="flex flex-col items-center justify-center gap-2 py-5 rounded-xl cursor-pointer"
+        <button
+          type="button"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
+          onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
+          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); }}
+          onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); handleFileRead(e.dataTransfer.files?.[0]); }}
+          className="flex flex-col items-center justify-center gap-2 py-5 rounded-xl cursor-pointer w-full"
           style={{
             border: `1.5px dashed ${dragOver ? "var(--w-accent)" : "rgba(0,0,0,0.15)"}`,
             background: dragOver ? "color-mix(in srgb, var(--w-accent) 5%, transparent)" : "rgba(0,0,0,0.02)",
@@ -152,13 +214,14 @@ export const Settings = ({
             <span style={{ color: "var(--w-accent)", fontWeight: 600 }}>browse</span>
           </p>
           <input
-            id="rss-json-upload"
+            ref={fileInputRef}
             type="file"
             accept=".json,application/json"
             className="sr-only"
-            onChange={(e) => handleFileRead(e.target.files?.[0])}
+            tabIndex={-1}
+            onChange={(e) => { handleFileRead(e.target.files?.[0]); e.target.value = ""; }}
           />
-        </label>
+        </button>
 
         {parseError && (
           <p style={{ fontSize: "0.6875rem", color: "var(--w-danger)", lineHeight: 1.4 }}>

@@ -2,12 +2,14 @@
  * GET /api/rss/feed?url=<encodedFeedUrl>
  *
  * Vercel serverless function — fetches an RSS/ATOM feed server-side (CORS bypass),
- * parses XML with regex (no npm deps), and returns clean JSON.
+ * parses with rss-parser (handles media:*, enclosures, ATOM, namespaces) and returns
+ * clean JSON with best-available image per item.
  *
- * Returns: { items: [{ title, link, pubDate, isoDate, source }], fetchedAt: ISO }
+ * Returns: { items: [{ title, link, pubDate, isoDate, source, image }], fetchedAt: ISO }
  * Cache-Control: s-maxage=600, stale-while-revalidate=120 (10 min CDN cache)
  */
 
+import Parser from 'rss-parser';
 import { assertOrigin } from '../_config.js';
 
 // ── Source label mapping ──────────────────────────────────────────────────────
@@ -27,97 +29,60 @@ function sourceName(feedUrl) {
   } catch { return ''; }
 }
 
-// ── XML parsing helpers ───────────────────────────────────────────────────────
+// ── Best-image extractor from a parsed rss-parser item ───────────────────────
 
-/** Strip CDATA wrappers and trim surrounding whitespace. */
-function stripCdata(str) {
-  return str.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim();
-}
+function extractImage(item) {
+  // 1. media:thumbnail — most Nepali WP feeds (Ratopati, Setopati, etc.)
+  const mt = item['media:thumbnail'];
+  if (mt) {
+    const url = typeof mt === 'string' ? mt : (mt.$ && mt.$.url) || mt.url;
+    if (url) return url;
+  }
 
-/** Extract the text content of the first matching tag (strips CDATA). */
-function extractTag(block, tag) {
-  const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
-  return m ? stripCdata(m[1]) : '';
-}
+  // 2. media:content — standard media RSS namespace
+  const mc = item['media:content'];
+  if (mc) {
+    const url = typeof mc === 'string' ? mc : (mc.$ && mc.$.url) || mc.url;
+    if (url) return url;
+  }
 
-/**
- * Extract the best available image URL from an RSS item block.
- * Tries (in priority order):
- *   1. <media:thumbnail url="..."> — BBC, Reuters, most major news RSS
- *   2. <media:content url="..." medium="image"> — generic media RSS
- *   3. <enclosure type="image/..." url="..."> — standard RSS enclosures
- *   4. First <img src="..."> inside <description> or <content:encoded>
- */
-function extractImage(block) {
-  // 1. media:thumbnail (attribute order varies — url can appear anywhere)
-  const mt = block.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
-  if (mt) return mt[1];
+  // 3. enclosure with image MIME type or image-looking URL
+  if (item.enclosure?.url) {
+    if (/image/i.test(item.enclosure.type || '') ||
+      /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(item.enclosure.url)) {
+      return item.enclosure.url;
+    }
+  }
 
-  // 2. media:content with medium="image"
-  const mc =
-    block.match(/<media:content[^>]+medium=["']image["'][^>]*url=["']([^"']+)["']/i) ||
-    block.match(/<media:content[^>]+url=["']([^"']+)["'][^>]*medium=["']image["']/i);
-  if (mc) return mc[1];
+  // 4. Custom <image> tag — Onlinekhabar and some WP themes
+  const customImage = item['image'];
+  if (customImage && typeof customImage === 'string' && customImage.startsWith('http')) {
+    return customImage;
+  }
 
-  // 3. enclosure with image MIME type
-  const enc =
-    block.match(/<enclosure[^>]+type=["']image\/[^"']+["'][^>]+url=["']([^"']+)["']/i) ||
-    block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image\/[^"']+["']/i);
-  if (enc) return enc[1];
-
-  // 4. first <img> inside description / content:encoded
-  const desc = extractTag(block, 'description') || extractTag(block, 'content:encoded');
-  if (desc) {
-    const img = desc.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (img && img[1].startsWith('http')) return img[1];
+  // 5. First <img src> inside HTML content / description
+  const html = item['content:encoded'] || item.content || '';
+  if (html) {
+    const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (m && m[1].startsWith('http')) return m[1];
   }
 
   return null;
 }
 
-/**
- * Parse RSS 2.0 or ATOM XML into a uniform items array (max 10).
- * RSS 2.0: <item> → <title>, <link>, <pubDate>
- * ATOM:    <entry> → <title>, <link href> | <id>, <updated> | <published>
- * All items include an optional `image` field (first found image URL).
- */
-function parseRssXml(xml, feedUrl) {
-  const source = sourceName(feedUrl);
-  const items = [];
+// ── Shared rss-parser instance ────────────────────────────────────────────────
 
-  // ── RSS 2.0 ──────────────────────────────────────────────────────────────
-  const itemRe = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-  let m;
-  while ((m = itemRe.exec(xml)) !== null && items.length < 10) {
-    const block = m[1];
-    const title = extractTag(block, 'title');
-    const link = extractTag(block, 'link');
-    const pubDate = extractTag(block, 'pubDate');
-    const image = extractImage(block);
-    let isoDate = '';
-    try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch { }
-    if (title) items.push({ title, link, pubDate, isoDate, source, image });
-  }
-
-  // ── ATOM fallback (no <item> tags found) ─────────────────────────────────
-  if (items.length === 0) {
-    const entryRe = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
-    while ((m = entryRe.exec(xml)) !== null && items.length < 10) {
-      const block = m[1];
-      const title = extractTag(block, 'title');
-      // ATOM <link> is typically a self-closing tag with href attribute
-      const linkHrefM = block.match(/<link[^>]*href=["']([^"']+)["']/i);
-      const link = linkHrefM ? linkHrefM[1] : extractTag(block, 'id');
-      const pubDate = extractTag(block, 'updated') || extractTag(block, 'published');
-      const image = extractImage(block);
-      let isoDate = '';
-      try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch { }
-      if (title) items.push({ title, link, pubDate, isoDate, source, image });
-    }
-  }
-
-  return items;
-}
+const parser = new Parser({
+  timeout: 10000,
+  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UndistractedMe/1.0)' },
+  customFields: {
+    item: [
+      ['media:thumbnail', 'media:thumbnail'],
+      ['media:content', 'media:content'],
+      ['image', 'image'],
+    ],
+  },
+});
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
@@ -132,12 +97,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const r = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UndistractedMe/1.0)' },
-    });
-    if (!r.ok) throw new Error(`upstream ${r.status}`);
-    const xml = await r.text();
-    const items = parseRssXml(xml, url);
+    const feed = await parser.parseURL(url);
+    const source = sourceName(url);
+
+    const items = (feed.items || []).slice(0, 10).map((item) => {
+      const image = extractImage(item);
+      const pubDate = item.pubDate || item.isoDate || '';
+      let isoDate = item.isoDate || '';
+      if (!isoDate && pubDate) {
+        try { isoDate = new Date(pubDate).toISOString(); } catch { /* ignore */ }
+      }
+      return {
+        title: (item.title || '').trim(),
+        link: item.link || item.guid || '',
+        pubDate,
+        isoDate,
+        source: item.creator || source,
+        image,
+      };
+    }).filter((item) => item.title);
+
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
     return res.status(200).json({ items, fetchedAt: new Date().toISOString() });
   } catch {

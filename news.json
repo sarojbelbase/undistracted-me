@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Kantipur",
+    "url": "https://ekantipur.com/rss"
+  },
+  {
+    "label": "Onlinekhabar",
+    "url": "https://www.onlinekhabar.com/feed"
+  },
+  {
+    "label": "Setopati",
+    "url": "https://setopati.com/rss"
+  },
+  {
+    "label": "Ratopati",
+    "url": "https://ratopati.com/feed"
+  },
+  {
+    "label": "Nagarik News",
+    "url": "https://nagariknetwork.com/rss"
+  },
+  {
+    "label": "The Kathmandu Post",
+    "url": "https://kathmandupost.com/rss"
+  },
+  {
+    "label": "The Himalayan Times",
+    "url": "https://thehimalayantimes.com/rss"
+  },
+  {
+    "label": "Republica",
+    "url": "https://myrepublica.nagariknetwork.com/rss"
+  },
+  {
+    "label": "Nepali Times",
+    "url": "https://www.nepalitimes.com/feed"
+  },
+  {
+    "label": "BBC News Nepali",
+    "url": "https://feeds.bbci.co.uk/nepali/rss.xml"
+  }
+]

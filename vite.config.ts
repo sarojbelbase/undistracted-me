@@ -166,7 +166,7 @@ const googleTokenProxy = (): Plugin => ({
   },
 });
 
-// ── RSS feed proxy helpers (shared by rssProxy plugin + api/rss/feed.js) ──────────
+// ── RSS dev proxy ─────────────────────────────────────────────────────────────
 
 const RSS_SOURCE_NAMES: Record<string, string> = {
   "news.ycombinator.com": "Hacker News",
@@ -185,67 +185,41 @@ function rssSourceName(feedUrl: string): string {
   }
 }
 
-function rssStripCdata(str: string): string {
-  return str.replace(/<!\[CDATA\[(.*?)\]\]>/gs, "$1").trim();
-}
-
-function rssExtractTag(block: string, tag: string): string {
-  const m = block.match(
-    new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"),
-  );
-  return m ? rssStripCdata(m[1]) : "";
-}
-
-type RssItem = {
-  title: string;
-  link: string;
-  pubDate: string;
-  isoDate: string;
-  source: string;
-};
-
-/**
- * Parse RSS 2.0 or ATOM XML into a normalised items array (max 10).
- * Mirrors the logic in api/rss/feed.js exactly.
- */
-function parseRssXml(xml: string, feedUrl: string): RssItem[] {
-  const source = rssSourceName(feedUrl);
-  const items: RssItem[] = [];
-
-  // ── RSS 2.0 ────────────────────────────────────────────────────────────
-  const itemRe = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = itemRe.exec(xml)) !== null && items.length < 10) {
-    const block = m[1];
-    const title = rssExtractTag(block, "title");
-    const link = rssExtractTag(block, "link");
-    const pubDate = rssExtractTag(block, "pubDate");
-    let isoDate = "";
-    try {
-      if (pubDate) isoDate = new Date(pubDate).toISOString();
-    } catch { }
-    if (title) items.push({ title, link, pubDate, isoDate, source });
+function rssExtractImage(item: Record<string, unknown>): string | null {
+  // 1. media:thumbnail
+  const mt = item["media:thumbnail"] as Record<string, unknown> | string | undefined;
+  if (mt) {
+    const url = typeof mt === "string" ? mt : ((mt as Record<string, Record<string, string>>).$?.url ?? (mt as Record<string, string>).url);
+    if (url) return url;
   }
 
-  // ── ATOM fallback ──────────────────────────────────────────────────────
-  if (items.length === 0) {
-    const entryRe = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
-    while ((m = entryRe.exec(xml)) !== null && items.length < 10) {
-      const block = m[1];
-      const title = rssExtractTag(block, "title");
-      const linkHrefM = block.match(/<link[^>]*href=["']([^"']+)["']/i);
-      const link = linkHrefM ? linkHrefM[1] : rssExtractTag(block, "id");
-      const pubDate =
-        rssExtractTag(block, "updated") || rssExtractTag(block, "published");
-      let isoDate = "";
-      try {
-        if (pubDate) isoDate = new Date(pubDate).toISOString();
-      } catch { }
-      if (title) items.push({ title, link, pubDate, isoDate, source });
+  // 2. media:content
+  const mc = item["media:content"] as Record<string, unknown> | string | undefined;
+  if (mc) {
+    const url = typeof mc === "string" ? mc : ((mc as Record<string, Record<string, string>>).$?.url ?? (mc as Record<string, string>).url);
+    if (url) return url;
+  }
+
+  // 3. enclosure
+  const enc = item.enclosure as Record<string, string> | undefined;
+  if (enc?.url) {
+    if (/image/i.test(enc.type ?? "") || /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(enc.url)) {
+      return enc.url;
     }
   }
 
-  return items;
+  // 4. custom <image> tag (Onlinekhabar)
+  const img = item["image"];
+  if (typeof img === "string" && img.startsWith("http")) return img;
+
+  // 5. first <img src> in HTML content
+  const html = (item["content:encoded"] ?? item.content ?? "") as string;
+  if (html) {
+    const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (m && m[1].startsWith("http")) return m[1];
+  }
+
+  return null;
 }
 
 /**
@@ -300,9 +274,7 @@ const suggestProxy = (): Plugin => ({
 });
 
 /**
- * Dev-only: proxies GET /api/rss/feed?url=... to the real feed URL server-side,
- * bypassing CORS restrictions that block extension and web origins.
- * Mirrors the logic of api/rss/feed.js exactly (parseRssXml is shared above).
+ * Dev-only: proxies GET /api/rss/feed?url=... using rss-parser (mirrors api/rss/feed.js).
  */
 const rssProxy = (): Plugin => ({
   name: "rss-proxy",
@@ -321,11 +293,37 @@ const rssProxy = (): Plugin => ({
         return;
       }
       try {
-        const r = await fetch(url, {
-          headers: { "User-Agent": "Mozilla/5.0" },
+        const { default: Parser } = await import("rss-parser");
+        const parser = new Parser({
+          timeout: 10000,
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; UndistractedMe/1.0)" },
+          customFields: {
+            item: [
+              ["media:thumbnail", "media:thumbnail"],
+              ["media:content", "media:content"],
+              ["image", "image"],
+            ],
+          },
         });
-        const xml = await r.text();
-        const items = parseRssXml(xml, url);
+        const feed = await parser.parseURL(url);
+        const source = rssSourceName(url);
+        const items = (feed.items ?? []).slice(0, 10).map((item) => {
+          const image = rssExtractImage(item as Record<string, unknown>);
+          const pubDate = item.pubDate ?? item.isoDate ?? "";
+          let isoDate = item.isoDate ?? "";
+          if (!isoDate && pubDate) {
+            try { isoDate = new Date(pubDate).toISOString(); } catch { /* ignore */ }
+          }
+          return {
+            title: (item.title ?? "").trim(),
+            link: item.link ?? item.guid ?? "",
+            pubDate,
+            isoDate,
+            source: (item as Record<string, string>).creator ?? source,
+            image,
+          };
+        }).filter((item) => item.title);
+
         res.setHeader("Content-Type", "application/json");
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.end(JSON.stringify({ items, fetchedAt: new Date().toISOString() }));
