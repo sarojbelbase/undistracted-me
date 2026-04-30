@@ -10,8 +10,8 @@
 
 // ── Environment detection ─────────────────────────────────────────────────────
 
-const hostname  = typeof location !== 'undefined' ? location.hostname : '';
-const isDev     = hostname === 'localhost';
+const hostname = typeof location !== 'undefined' ? location.hostname : '';
+const isDev = hostname === 'localhost';
 
 // For extension: RSS feeds are CORS-blocked even with host_permissions, so we
 // always route through the Vercel proxy. Only dev uses the local Vite proxy.
@@ -24,11 +24,11 @@ export function rssUrl(feedUrl) {
 // ── Preset feeds ──────────────────────────────────────────────────────────────
 
 export const PRESET_FEEDS = [
-  { id: 'hn',        label: 'Hacker News',   url: 'https://news.ycombinator.com/rss' },
-  { id: 'bbc',       label: 'BBC World',      url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
-  { id: 'kantipur',  label: 'Kantipur',       url: 'https://ekantipur.com/rss' },
-  { id: 'republica', label: 'Republica',      url: 'https://myrepublica.nagariknetwork.com/rss' },
-  { id: 'ktmpost',   label: 'Kathmandu Post', url: 'https://kathmandupost.com/rss' },
+  { id: 'hn', label: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
+  { id: 'bbc', label: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+  { id: 'kantipur', label: 'Kantipur', url: 'https://ekantipur.com/rss' },
+  { id: 'republica', label: 'Republica', url: 'https://myrepublica.nagariknetwork.com/rss' },
+  { id: 'ktmpost', label: 'Kathmandu Post', url: 'https://kathmandupost.com/rss' },
 ];
 
 export const DEFAULT_FEED_ID = 'hn';
@@ -83,10 +83,10 @@ export function relativeTime(isoDate) {
   try {
     const diff = Date.now() - new Date(isoDate).getTime();
     const mins = Math.floor(diff / 60_000);
-    if (mins < 2)  return 'just now';
+    if (mins < 2) return 'just now';
     if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24)  return `${hrs}h ago`;
+    if (hrs < 24) return `${hrs}h ago`;
     return `${Math.floor(hrs / 24)}d ago`;
   } catch { return ''; }
 }
