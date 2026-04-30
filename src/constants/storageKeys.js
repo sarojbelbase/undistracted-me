@@ -54,7 +54,6 @@ export const STORAGE_KEYS = Object.freeze({
   // ── Widget caches ─────────────────────────────────────────────────────
   /** Per-feed RSS cache key. */
   rssCache: (feedId) => `rss_cache_${feedId}`,
-  CURRENCY_CACHE: "currency_rates_cache",
 
   // ── SW pre-fetch cache (chrome.storage.local) ──────────────────────────
   // Written by bg.js, read by weather widget on mount.

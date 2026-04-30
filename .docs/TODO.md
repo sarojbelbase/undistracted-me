@@ -127,17 +127,11 @@
 - [ ] **AQI (Air Quality Index)** — Open-Meteo AQI endpoint (free, no key) using existing lat/lon from `useLocationStore`. Show as a small breathing dot (green → purple) + PM2.5/AQI value inside the Weather widget or as a separate `aqi` widget. Extend `src/widgets/weather/utils.jsx` fetch logic or create `src/widgets/aqi/`.
   > _Feasibility: Very High — same Open-Meteo base URL, location already resolved, pattern matches existing weather calls._
 
-- [ ] **Currency & Gold/Silver Rates** ("Market Pulse") — NPR exchange rates (NRB public API or forex.com) + gold/silver (MCX India or investing.com scrape). New `rates` widget following NEPSE stock pattern: sparkline optional, OHL-style rows. 5-min polling via `useWidgetInstancesStore`.
-  > _Feasibility: Medium — widget/polling structure fully established; need to verify a reliable free API for NPR rates and gold/silver._
-
 - [ ] **Daily Quotes Widget** — Hourly rotating wisdom quotes. `src/widgets/facts/` already does deterministic daily rotation with `getDailyIndex()` and 100+ entries in `data/facts.js`. Create sibling `src/widgets/quotes/` (or extend Facts) with a static bundled JSON of quotes + optional `api.quotable.io` fetch. Refresh on the hour via `onClockTick`.
   > _Feasibility: Very High — Facts widget is the template; near-identical implementation._
 
 - [ ] **RSS / News Headlines** — User-defined RSS feeds or curated sources (Hacker News, BBC, Kantipur). New `rss` widget using `src/widgets/` pattern. Add `rss-parser` npm dep (lightweight) or parse via a small Vercel edge function to avoid CORS. Store feed URLs in `widgetSettings`. Auto-refresh every hour via `onClockTick`.
   > _Feasibility: Medium-High — widget system is mature; CORS requires proxy layer (Vercel edge fn fits existing `api/` pattern)._
-
-- [ ] **Local LLM "Focus Partner"** — `@mlc-ai/web-llm` (WebLLM) running entirely in-browser (no API key). Summarize today's Google Tasks or provide a distraction-free chat. Integrate as a new BottomRightZone panel (slot exists, lazy-loaded pattern established). First model load is ~400MB so needs explicit user consent/download trigger; model cached in origin-private filesystem after first load.
-  > _Feasibility: Medium — BottomRightZone slot ready, Tasks data available; `@mlc-ai/web-llm` adds a large bundle; needs user-gated model download flow._
 
 ### Canvas UX
 

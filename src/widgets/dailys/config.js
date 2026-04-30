@@ -2,11 +2,11 @@ import { Widget } from './Widget';
 import { ChatLeftQuoteFill } from 'react-bootstrap-icons';
 
 export default {
-  type: 'quotes',
-  title: 'Daily Quote',
+  type: 'dailys',
+  title: 'Dailys',
   category: 'info',
   icon: ChatLeftQuoteFill,
-  description: 'Daily inspiring quote',
+  description: 'Daily quote or interesting fact',
   enabled: true,
   x: 24, y: 8, w: 12, h: 9,
   breakpoints: {

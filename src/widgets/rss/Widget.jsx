@@ -1,17 +1,8 @@
 /**
  * RSS News Headlines Widget
  *
- * Layout:
- *   ┌──────────────────────────────────┐
- *   │  [RSS icon]  Hacker News    ↻ 2m │  ← header
- *   ├──────────────────────────────────┤
- *   │  AI company raises $500M...      │
- *   │  Hacker News · 3h ago            │
- *   │  ─────────────────────────────── │
- *   │  New tool for terminal...        │
- *   │  Hacker News · 5h ago            │
- *   │  ...up to 5 headlines...         │
- *   └──────────────────────────────────┘
+ * Continuous-flow feed: scrollable body, no hard dividers, ordinal row numbers,
+ * left-accent hover indicator. Supports custom JSON-imported feeds alongside presets.
  */
 
 import { useState } from "react";
@@ -25,82 +16,93 @@ import { Rss, ArrowClockwise } from "react-bootstrap-icons";
 
 // ── Skeleton bone ─────────────────────────────────────────────────────────────
 
-const Bone = ({ w, h = "0.75rem" }) => (
+const Bone = ({ w, h = "0.6875rem" }) => (
   <div
     className="animate-pulse rounded"
-    style={{
-      width: w,
-      height: h,
-      backgroundColor: "var(--panel-bg)",
-      flexShrink: 0,
-    }}
+    style={{ width: w, height: h, backgroundColor: "rgba(0,0,0,0.06)", flexShrink: 0 }}
   />
 );
 
 // ── Skeleton row ──────────────────────────────────────────────────────────────
 
-const SkeletonRow = ({ isLast }) => (
-  <div
-    className="px-3 py-3 flex flex-col gap-1.5"
-    style={{ borderBottom: isLast ? "none" : "1px solid var(--card-border)" }}
-  >
-    <Bone w="90%" h="0.8125rem" />
-    <Bone w="65%" h="0.8125rem" />
-    <Bone w="5rem" h="0.625rem" />
+const SkeletonRow = () => (
+  <div className="flex gap-2.5 px-3 py-2.5">
+    <Bone w="12px" />
+    <div className="flex-1 flex flex-col gap-1.5">
+      <Bone w="88%" />
+      <Bone w="62%" />
+      <Bone w="4rem" h="0.5rem" />
+    </div>
   </div>
 );
 
 // ── Headline row ──────────────────────────────────────────────────────────────
 
-const HeadlineRow = ({ item, isLast }) => {
+const HeadlineRow = ({ item, index }) => {
   const [hovered, setHovered] = useState(false);
-
-  const meta = [item.source, item.isoDate ? relativeTime(item.isoDate) : ""]
-    .filter(Boolean)
-    .join(" · ");
+  const time = item.isoDate ? relativeTime(item.isoDate) : "";
 
   const handleOpen = () => {
     if (item.link) window.open(item.link, "_blank", "noopener");
   };
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={handleOpen}
-      onKeyDown={(e) => e.key === "Enter" && handleOpen()}
+    <button
+      type="button"
       onMouseDown={(e) => e.stopPropagation()}
+      onClick={handleOpen}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="px-3 py-3 cursor-pointer flex flex-col gap-1"
+      className="flex gap-2.5 px-3 py-2.5 w-full text-left cursor-pointer"
       style={{
-        borderBottom: isLast ? "none" : "1px solid var(--card-border)",
-        background: hovered ? "rgba(var(--w-accent-rgb), 0.05)" : "transparent",
-        transition: "background 0.12s ease",
-        borderRadius: 8,
+        boxShadow: hovered ? "inset 2px 0 0 var(--w-accent)" : "inset 2px 0 0 transparent",
+        background: hovered ? "rgba(var(--w-accent-rgb), 0.04)" : "transparent",
+        transition: "background 0.15s ease, box-shadow 0.15s ease",
         outline: "none",
+        border: "none",
       }}
     >
-      {/* Title — 2-line clamp */}
-      <p
-        className="w-label leading-snug"
-        style={{
-          color: "var(--w-ink-2)",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
+      {/* Ordinal */}
+      <span
+        className="shrink-0 tabular-nums font-semibold"
+        style={{ fontSize: "0.5625rem", color: "var(--w-ink-6)", lineHeight: "1.375rem", minWidth: 12, textAlign: "right" }}
       >
-        {item.title}
-      </p>
-      {/* Meta: source · age */}
-      {meta && (
-        <p className="w-caption truncate" style={{ color: "var(--w-ink-5)" }}>
-          {meta}
+        {index + 1}
+      </span>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        {/* Title — 2-line clamp */}
+        <p
+          style={{
+            fontSize: "0.78125rem",
+            fontWeight: 600,
+            color: "var(--w-ink-1)",
+            lineHeight: 1.375,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {item.title}
         </p>
-      )}
-    </div>
+        {/* Meta: source · age */}
+        <div className="flex items-center gap-1">
+          {item.source && (
+            <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "var(--w-accent)", opacity: 0.65 }}>
+              {item.source}
+            </span>
+          )}
+          {item.source && time && (
+            <span style={{ fontSize: "0.625rem", color: "var(--w-ink-6)" }}>·</span>
+          )}
+          {time && (
+            <span style={{ fontSize: "0.625rem", color: "var(--w-ink-5)" }}>{time}</span>
+          )}
+        </div>
+      </div>
+    </button>
   );
 };
 
@@ -108,21 +110,13 @@ const HeadlineRow = ({ item, isLast }) => {
 
 const ErrorState = ({ onRetry }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 text-center">
-    <Rss
-      size={20}
-      style={{ color: "var(--w-ink-5)", opacity: 0.5 }}
-      aria-hidden
-    />
+    <Rss size={20} style={{ color: "var(--w-ink-5)", opacity: 0.5 }} aria-hidden />
     <p className="w-muted font-semibold">Couldn't load feed</p>
     <button
       onClick={onRetry}
       onMouseDown={(e) => e.stopPropagation()}
       className="w-caption font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
-      style={{
-        background: "var(--w-surface-2)",
-        color: "var(--w-ink-3)",
-        border: "1px solid var(--card-border)",
-      }}
+      style={{ background: "var(--w-surface-2)", color: "var(--w-ink-3)", border: "1px solid rgba(0,0,0,0.1)" }}
     >
       Retry
     </button>
@@ -134,14 +128,21 @@ const ErrorState = ({ onRetry }) => (
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, {
     feedId: DEFAULT_FEED_ID,
+    customFeeds: [],
   });
   const feedId = settings.feedId ?? DEFAULT_FEED_ID;
+  const customFeeds = settings.customFeeds ?? [];
 
   const { items, loading, error, refreshedAt, refresh } = useRss(feedId);
   const ageLabel = useAgeLabel(refreshedAt);
 
-  const sourceName = PRESET_FEEDS.find((f) => f.id === feedId)?.label ?? feedId;
-  const displayItems = items.slice(0, 5);
+  // Resolve display name: presets → custom feeds → raw feedId
+  const sourceName =
+    PRESET_FEEDS.find((f) => f.id === feedId)?.label ??
+    customFeeds.find((f) => f.url === feedId)?.label ??
+    feedId;
+
+  const displayItems = items.slice(0, 15);
   const showSkeleton = loading && items.length === 0;
   const showError = !!error && !showSkeleton;
 
@@ -149,6 +150,8 @@ export const Widget = ({ id, onRemove }) => {
     <Settings
       feedId={feedId}
       onChangeFeedId={(id) => updateSetting("feedId", id)}
+      customFeeds={customFeeds}
+      onChangeCustomFeeds={(feeds) => updateSetting("customFeeds", feeds)}
       onClose={onClose}
     />
   );
@@ -205,42 +208,30 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {/* Error state */}
+      {/* ── Body — scrollable, no hard dividers ── */}
+      <div
+        className="flex-1 flex flex-col min-h-0 overflow-y-auto py-1"
+        style={{ scrollbarWidth: "none" }}
+      >
         {showError && <ErrorState onRetry={refresh} />}
 
-        {/* Loading skeleton */}
         {showSkeleton && (
-          <>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <SkeletonRow key={i} isLast={i === 4} />
-            ))}
-          </>
+          <>{[0, 1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} />)}</>
         )}
 
-        {/* Headlines */}
-        {!showSkeleton &&
-          !showError &&
-          displayItems.map((item, i) => (
-            <HeadlineRow
-              key={item.link || `${item.title}-${i}`}
-              item={item}
-              isLast={i === displayItems.length - 1}
-            />
-          ))}
+        {!showSkeleton && !showError && displayItems.map((item, i) => (
+          <HeadlineRow
+            key={item.link || `${item.title}-${i}`}
+            item={item}
+            index={i}
+          />
+        ))}
 
-        {/* Empty state (loaded but no items) */}
-        {!showSkeleton &&
-          !showError &&
-          displayItems.length === 0 &&
-          !loading && (
-            <div className="flex-1 flex items-center justify-center p-4">
-              <p className="w-caption" style={{ color: "var(--w-ink-5)" }}>
-                No headlines available
-              </p>
-            </div>
-          )}
+        {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
+          <div className="flex-1 flex items-center justify-center p-4">
+            <p className="w-caption" style={{ color: "var(--w-ink-5)" }}>No headlines available</p>
+          </div>
+        )}
       </div>
     </BaseWidget>
   );
