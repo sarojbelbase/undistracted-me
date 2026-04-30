@@ -14,10 +14,10 @@ import { assertOrigin } from '../_config.js';
 
 const SOURCE_NAMES = {
   'news.ycombinator.com': 'Hacker News',
-  'feeds.bbci.co.uk':     'BBC News',
-  'ekantipur.com':        'Kantipur',
+  'feeds.bbci.co.uk': 'BBC News',
+  'ekantipur.com': 'Kantipur',
   'myrepublica.nagariknetwork.com': 'Republica',
-  'kathmandupost.com':    'Kathmandu Post',
+  'kathmandupost.com': 'Kathmandu Post',
 };
 
 function sourceName(feedUrl) {
@@ -41,9 +41,45 @@ function extractTag(block, tag) {
 }
 
 /**
+ * Extract the best available image URL from an RSS item block.
+ * Tries (in priority order):
+ *   1. <media:thumbnail url="..."> — BBC, Reuters, most major news RSS
+ *   2. <media:content url="..." medium="image"> — generic media RSS
+ *   3. <enclosure type="image/..." url="..."> — standard RSS enclosures
+ *   4. First <img src="..."> inside <description> or <content:encoded>
+ */
+function extractImage(block) {
+  // 1. media:thumbnail (attribute order varies — url can appear anywhere)
+  const mt = block.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
+  if (mt) return mt[1];
+
+  // 2. media:content with medium="image"
+  const mc =
+    block.match(/<media:content[^>]+medium=["']image["'][^>]*url=["']([^"']+)["']/i) ||
+    block.match(/<media:content[^>]+url=["']([^"']+)["'][^>]*medium=["']image["']/i);
+  if (mc) return mc[1];
+
+  // 3. enclosure with image MIME type
+  const enc =
+    block.match(/<enclosure[^>]+type=["']image\/[^"']+["'][^>]+url=["']([^"']+)["']/i) ||
+    block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image\/[^"']+["']/i);
+  if (enc) return enc[1];
+
+  // 4. first <img> inside description / content:encoded
+  const desc = extractTag(block, 'description') || extractTag(block, 'content:encoded');
+  if (desc) {
+    const img = desc.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (img && img[1].startsWith('http')) return img[1];
+  }
+
+  return null;
+}
+
+/**
  * Parse RSS 2.0 or ATOM XML into a uniform items array (max 10).
  * RSS 2.0: <item> → <title>, <link>, <pubDate>
  * ATOM:    <entry> → <title>, <link href> | <id>, <updated> | <published>
+ * All items include an optional `image` field (first found image URL).
  */
 function parseRssXml(xml, feedUrl) {
   const source = sourceName(feedUrl);
@@ -54,12 +90,13 @@ function parseRssXml(xml, feedUrl) {
   let m;
   while ((m = itemRe.exec(xml)) !== null && items.length < 10) {
     const block = m[1];
-    const title   = extractTag(block, 'title');
-    const link    = extractTag(block, 'link');
+    const title = extractTag(block, 'title');
+    const link = extractTag(block, 'link');
     const pubDate = extractTag(block, 'pubDate');
+    const image = extractImage(block);
     let isoDate = '';
-    try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch {}
-    if (title) items.push({ title, link, pubDate, isoDate, source });
+    try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch { }
+    if (title) items.push({ title, link, pubDate, isoDate, source, image });
   }
 
   // ── ATOM fallback (no <item> tags found) ─────────────────────────────────
@@ -70,11 +107,12 @@ function parseRssXml(xml, feedUrl) {
       const title = extractTag(block, 'title');
       // ATOM <link> is typically a self-closing tag with href attribute
       const linkHrefM = block.match(/<link[^>]*href=["']([^"']+)["']/i);
-      const link    = linkHrefM ? linkHrefM[1] : extractTag(block, 'id');
+      const link = linkHrefM ? linkHrefM[1] : extractTag(block, 'id');
       const pubDate = extractTag(block, 'updated') || extractTag(block, 'published');
+      const image = extractImage(block);
       let isoDate = '';
-      try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch {}
-      if (title) items.push({ title, link, pubDate, isoDate, source });
+      try { if (pubDate) isoDate = new Date(pubDate).toISOString(); } catch { }
+      if (title) items.push({ title, link, pubDate, isoDate, source, image });
     }
   }
 

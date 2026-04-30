@@ -6,6 +6,8 @@
  *   onChangeFeedId      – (id: string) => void
  *   customFeeds         – [{ label, url }] imported by user
  *   onChangeCustomFeeds – (feeds: [{ label, url }]) => void
+ *   viewMode            – 'marquee' | 'brief'
+ *   onChangeViewMode    – (mode: string) => void
  *   onClose             – () => void  (injected by BaseWidget)
  *
  * JSON format users upload:
@@ -14,7 +16,9 @@
 
 import { useState } from "react";
 import { PRESET_FEEDS } from "./utils";
+import { VIEW_MODES } from "./constants";
 import { PillButton } from "../../components/ui/PillButton";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { Upload, X } from "react-bootstrap-icons";
 
 export const Settings = ({
@@ -22,6 +26,8 @@ export const Settings = ({
   onChangeFeedId,
   customFeeds = [],
   onChangeCustomFeeds,
+  viewMode = "marquee",
+  onChangeViewMode,
   onClose,
 }) => {
   const [dragOver, setDragOver] = useState(false);
@@ -61,6 +67,14 @@ export const Settings = ({
 
   return (
     <div className="flex flex-col gap-4 p-1">
+      {/* ── Layout / view mode ── */}
+      <SegmentedControl
+        label="Layout"
+        options={VIEW_MODES}
+        value={viewMode}
+        onChange={onChangeViewMode}
+      />
+
       {/* ── Source selector ── */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
