@@ -307,7 +307,7 @@ const rssProxy = (): Plugin => ({
         });
         const feed = await parser.parseURL(url);
         const source = rssSourceName(url);
-        const items = (feed.items ?? []).slice(0, 10).map((item) => {
+        const items = (feed.items ?? []).map((item) => {
           const image = rssExtractImage(item as Record<string, unknown>);
           const pubDate = item.pubDate ?? item.isoDate ?? "";
           let isoDate = item.isoDate ?? "";
