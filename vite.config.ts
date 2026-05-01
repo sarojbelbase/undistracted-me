@@ -170,10 +170,21 @@ const googleTokenProxy = (): Plugin => ({
 
 const RSS_SOURCE_NAMES: Record<string, string> = {
   "news.ycombinator.com": "Hacker News",
-  "feeds.bbci.co.uk": "BBC News",
+  "hnrss.org": "Hacker News",
+  "feeds.bbci.co.uk": "BBC",
   "ekantipur.com": "Kantipur",
   "myrepublica.nagariknetwork.com": "Republica",
   "kathmandupost.com": "Kathmandu Post",
+  "rss.nytimes.com": "NYT",
+  "feeds.theguardian.com": "The Guardian",
+  "aljazeera.com": "Al Jazeera",
+  "npr.org": "NPR",
+  "feeds.arstechnica.com": "Ars Technica",
+  "techcrunch.com": "TechCrunch",
+  "wired.com": "Wired",
+  "theverge.com": "The Verge",
+  "rss.dw.com": "DW",
+  "feeds.reuters.com": "Reuters",
 };
 
 function rssSourceName(feedUrl: string): string {
@@ -185,41 +196,43 @@ function rssSourceName(feedUrl: string): string {
   }
 }
 
+function decodeEntities(str: string): string {
+  if (!str) return str;
+  return str
+    .replaceAll(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(+n))
+    .replaceAll(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(Number.parseInt(h, 16)))
+    .replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"').replaceAll("&apos;", "'").replaceAll("&nbsp;", "\u00a0");
+}
+
+function getMediaUrl(obj: unknown): string | null {
+  if (!obj) return null;
+  if (typeof obj === "string") return obj.startsWith("http") ? obj : null;
+  const o = obj as Record<string, Record<string, string> | string>;
+  return (o.$?.url as string) || (o.url as string) || null;
+}
+
+function getEnclosureImage(enc: Record<string, string> | undefined): string | null {
+  if (!enc?.url) return null;
+  return (/image/i.test(enc.type ?? "") || /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(enc.url))
+    ? enc.url : null;
+}
+
+function getHtmlImage(html: string): string | null {
+  if (!html) return null;
+  const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+  return m?.[1]?.startsWith("http") ? m[1] : null;
+}
+
 function rssExtractImage(item: Record<string, unknown>): string | null {
-  // 1. media:thumbnail
-  const mt = item["media:thumbnail"] as Record<string, unknown> | string | undefined;
-  if (mt) {
-    const url = typeof mt === "string" ? mt : ((mt as Record<string, Record<string, string>>).$?.url ?? (mt as Record<string, string>).url);
-    if (url) return url;
-  }
-
-  // 2. media:content
-  const mc = item["media:content"] as Record<string, unknown> | string | undefined;
-  if (mc) {
-    const url = typeof mc === "string" ? mc : ((mc as Record<string, Record<string, string>>).$?.url ?? (mc as Record<string, string>).url);
-    if (url) return url;
-  }
-
-  // 3. enclosure
-  const enc = item.enclosure as Record<string, string> | undefined;
-  if (enc?.url) {
-    if (/image/i.test(enc.type ?? "") || /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(enc.url)) {
-      return enc.url;
-    }
-  }
-
-  // 4. custom <image> tag (Onlinekhabar)
   const img = item["image"];
-  if (typeof img === "string" && img.startsWith("http")) return img;
-
-  // 5. first <img src> in HTML content
-  const html = (item["content:encoded"] ?? item.content ?? "") as string;
-  if (html) {
-    const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (m && m[1].startsWith("http")) return m[1];
-  }
-
-  return null;
+  return (
+    getMediaUrl(item["mediaThumbnail"] ?? item["media:thumbnail"]) ||
+    getMediaUrl(item["mediaContent"] ?? item["media:content"]) ||
+    getEnclosureImage(item.enclosure as Record<string, string> | undefined) ||
+    (typeof img === "string" && img.startsWith("http") ? img : null) ||
+    getHtmlImage((item["content:encoded"] ?? item.content ?? "") as string)
+  );
 }
 
 /**
@@ -274,56 +287,40 @@ const suggestProxy = (): Plugin => ({
 });
 
 /**
- * Dev-only: proxies GET /api/rss/feed?url=... using rss-parser (mirrors api/rss/feed.js).
+ * Dev-only: proxies GET /api/rss/feed?url=... using rss-parser.
+ * Mirrors api/rss/feed.js exactly.
  */
 const rssProxy = (): Plugin => ({
   name: "rss-proxy",
   configureServer(server) {
     server.middlewares.use("/api/rss/feed", async (req, res) => {
-      if (req.method !== "GET") {
-        res.statusCode = 405;
-        res.end();
-        return;
-      }
+      if (req.method !== "GET") { res.statusCode = 405; res.end(); return; }
       const qs = (req.url ?? "").split("?")[1] ?? "";
       const url = decodeURIComponent(new URLSearchParams(qs).get("url") ?? "");
-      if (!url.startsWith("http")) {
-        res.statusCode = 400;
-        res.end('{"items":[]}');
-        return;
-      }
+      if (!url.startsWith("http")) { res.statusCode = 400; res.end('{"items":[]}'); return; }
+
       try {
-        const { default: Parser } = await import("rss-parser");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { default: Parser } = await import("rss-parser") as any;
         const parser = new Parser({
-          timeout: 10000,
           headers: { "User-Agent": "Mozilla/5.0 (compatible; UndistractedMe/1.0)" },
+          timeout: 10000,
           customFields: {
-            item: [
-              ["media:thumbnail", "media:thumbnail"],
-              ["media:content", "media:content"],
-              ["image", "image"],
-            ],
+            item: [["dc:creator", "creator"]],
           },
         });
         const feed = await parser.parseURL(url);
-        const source = rssSourceName(url);
-        const items = (feed.items ?? []).map((item) => {
-          const image = rssExtractImage(item as Record<string, unknown>);
-          const pubDate = item.pubDate ?? item.isoDate ?? "";
-          let isoDate = item.isoDate ?? "";
-          if (!isoDate && pubDate) {
-            try { isoDate = new Date(pubDate).toISOString(); } catch { /* ignore */ }
-          }
-          return {
-            title: (item.title ?? "").trim(),
-            link: item.link ?? item.guid ?? "",
-            pubDate,
-            isoDate,
-            source: (item as Record<string, string>).creator ?? source,
-            image,
-          };
-        }).filter((item) => item.title);
-
+        const src = rssSourceName(url) || feed.title || "";
+        const items = (feed.items as Record<string, unknown>[])
+          .filter((item) => item.title)
+          .slice(0, 50)
+          .map((item) => ({
+            title: decodeEntities((item.title as string) || ""),
+            link: (item.link as string) || (item.guid as string) || "",
+            pubDate: (item.pubDate as string) || "",
+            isoDate: (item.isoDate as string) || "",
+            source: decodeEntities((item.creator as string) || (item.author as string) || src),
+          }));
         res.setHeader("Content-Type", "application/json");
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.end(JSON.stringify({ items, fetchedAt: new Date().toISOString() }));

@@ -4,8 +4,8 @@
 
 /** Two presentation modes for the RSS widget. */
 export const VIEW_MODES = [
-  { label: 'Marquee', value: 'marquee' },
-  { label: 'Brief', value: 'brief' },
+  { label: 'Spotlight', value: 'marquee' },
+  { label: 'Digest', value: 'brief' },
 ];
 
 /** Auto-advance interval for Marquee mode (ms). */
