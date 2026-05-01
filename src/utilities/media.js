@@ -173,12 +173,25 @@ try {
     }
 
     // ── YouTube ────────────────────────────────────────────────────────────
-    // All YouTube player controls (.ytp-*) are in regular DOM — no shadow root.
-    // Click them directly; do NOT call player.playVideo() / player.pauseVideo()
-    // because those are page-world JS properties, invisible to this isolated world.
+    // IMPORTANT: do NOT use player.playVideo() / pauseVideo() — those are
+    // page-world JS properties, invisible from this isolated-world script.
+    //
+    // For play/pause: dispatch the 'k' keyboard shortcut on document.
+    //   • 'k' is YouTube's documented play/pause toggle.
+    //   • KeyboardEvents created here propagate through the DOM normally and
+    //     are handled by YouTube's page-world shortcut listener — crossing the
+    //     world boundary is fine for DOM events (only JS property access is isolated).
+    //   • This avoids the "wrong element" problem: document.querySelector('.ytp-play-button')
+    //     can match ad controls or mini-player overlays; the keyboard route is unambiguous.
+    //
+    // For next/prev: button clicks are unambiguous so .click() is fine.
     if (host.includes('youtube.com')) {
       if (action === 'play' || action === 'pause') {
-        document.querySelector('.ytp-play-button')?.click();
+        // Primary: keyboard shortcut 'k' handled by YouTube's global listener
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'k', code: 'KeyK', keyCode: 75, which: 75,
+          bubbles: true, cancelable: true,
+        }));
         return;
       }
       if (action === 'next') {
@@ -188,8 +201,7 @@ try {
       if (action === 'previous') {
         const prevBtn = document.querySelector('.ytp-prev-button:not([disabled])');
         if (prevBtn) { prevBtn.click(); return; }
-        // Single video with no playlist: seek to start if past 3 s.
-        // getCurrentTime/seekTo are page-world methods; use typeof guard.
+        // No playlist prev-button: restart current video after 3 s
         const player = document.getElementById('movie_player');
         const t = player?.getCurrentTime?.();
         if (typeof t === 'number' && t > 3) player.seekTo?.(0, true);
