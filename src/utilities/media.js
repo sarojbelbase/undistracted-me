@@ -30,11 +30,24 @@ function getArtwork() {
 /**
  * Returns true when an <audio> or <video> element on the page is actively playing.
  * Used as a fallback when navigator.mediaSession.playbackState === 'none'.
+ *
+ * YouTube and YouTube Music nest their media element inside Shadow DOM
+ * (ytd-player, ytmusic-player). Standard querySelectorAll never crosses shadow
+ * boundaries, so we do a targeted one-level traversal of the known shadow hosts.
  */
 function isMediaElementPlaying() {
-  const els = document.querySelectorAll('audio, video');
-  for (const el of els) {
+  // Regular DOM — SoundCloud, Bandcamp, and most sites
+  for (const el of document.querySelectorAll('audio, video')) {
     if (!el.paused && !el.ended && el.readyState >= 2) return true;
+  }
+  // YouTube / YouTube Music shadow DOM — walk one level into known player roots
+  for (const host of document.querySelectorAll(
+    'ytd-player, ytmusic-player, ytm-player-layout'
+  )) {
+    const root = host.shadowRoot ?? host;
+    for (const el of root.querySelectorAll('audio, video')) {
+      if (!el.paused && !el.ended && el.readyState >= 2) return true;
+    }
   }
   return false;
 }
@@ -51,10 +64,17 @@ function poll() {
   }
 
   // If mediaSession has no metadata but audio is playing, synthesize minimal
-  // metadata from the page title so SoundCloud and similar sites still surface.
+  // metadata from the page title.  YouTube's title is "Video – YouTube", strip
+  // the suffix so the widget shows the clean video/song name.
+  const rawTitle = document.title || location.hostname;
+  const cleanTitle = rawTitle
+    .replace(/ [-–] YouTube Music$/i, '')
+    .replace(/ [-–] YouTube$/i, '')
+    .trim() || location.hostname;
+
   const effectiveMeta = meta ?? (
     isMediaElementPlaying()
-      ? { title: document.title || location.hostname, artist: null, album: null, artwork: [] }
+      ? { title: cleanTitle, artist: null, album: null, artwork: [] }
       : null
   );
 
@@ -101,6 +121,11 @@ function safeSend(msg) {
 
 // Forward playback actions sent from the background SW.
 // Platform-aware dispatch: each site uses its own stable button selectors.
+//
+// IMPORTANT: YouTube's player JS API (playVideo, pauseVideo, etc.) lives in
+// the PAGE world and is NOT accessible from this isolated-world content script.
+// We use native element .click() calls instead — those work across worlds
+// because click() is a native DOM method, not a page-JS property.
 try {
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type !== 'MEDIA_ACTION') return;
@@ -127,60 +152,48 @@ try {
     }
 
     // ── YouTube Music ──────────────────────────────────────────────────────
-    // music.youtube.com uses a custom player bar (<ytmusic-player-bar>) with
-    // stable IDs and class names for its transport controls.
+    // Controls live inside <ytmusic-player-bar> which uses Shadow DOM.
+    // Try the shadow root first, then fall back to light DOM and full document.
     if (host === 'music.youtube.com') {
-      const selectors = {
-        play:     ['ytmusic-player-bar #play-pause-button'],
-        pause:    ['ytmusic-player-bar #play-pause-button'],
-        next:     ['ytmusic-player-bar .next-button'],
-        previous: ['ytmusic-player-bar .previous-button'],
+      const bar = document.querySelector('ytmusic-player-bar');
+      const roots = [bar?.shadowRoot, bar, document].filter(Boolean);
+      const selMap = {
+        play:     ['#play-pause-button', '.play-pause-button'],
+        pause:    ['#play-pause-button', '.play-pause-button'],
+        next:     ['#next-button', '.next-button'],
+        previous: ['#previous-button', '.previous-button'],
       };
-      for (const sel of selectors[action] ?? []) {
-        const btn = document.querySelector(sel);
-        if (btn) { btn.click(); return; }
+      for (const root of roots) {
+        for (const sel of selMap[action] ?? []) {
+          const btn = root.querySelector(sel);
+          if (btn) { btn.click(); return; }
+        }
       }
       return;
     }
 
     // ── YouTube ────────────────────────────────────────────────────────────
-    // www.youtube.com exposes a JS player API on the #movie_player element.
-    // Use it directly for the most reliable control; fall back to button
-    // clicks for environments where the API is not yet available.
+    // All YouTube player controls (.ytp-*) are in regular DOM — no shadow root.
+    // Click them directly; do NOT call player.playVideo() / player.pauseVideo()
+    // because those are page-world JS properties, invisible to this isolated world.
     if (host.includes('youtube.com')) {
-      const player = document.getElementById('movie_player');
-      if (player) {
-        if (action === 'play')  { player.playVideo?.();  return; }
-        if (action === 'pause') { player.pauseVideo?.(); return; }
-        if (action === 'next') {
-          // .ytp-next-button exists in playlist/autoplay queue; disabled otherwise.
-          const nextBtn = document.querySelector('.ytp-next-button:not([disabled])');
-          if (nextBtn) { nextBtn.click(); return; }
-          player.nextVideo?.();
-          return;
-        }
-        if (action === 'previous') {
-          const prevBtn = document.querySelector('.ytp-prev-button:not([disabled])');
-          if (prevBtn) { prevBtn.click(); return; }
-          // No previous track in the queue: restart current video if more than
-          // 3 s in, otherwise go to the previous queue entry.
-          const time = player.getCurrentTime?.() ?? 0;
-          if (time > 3) player.seekTo?.(0, true);
-          else player.previousVideo?.();
-          return;
-        }
+      if (action === 'play' || action === 'pause') {
+        document.querySelector('.ytp-play-button')?.click();
+        return;
       }
-
-      // Fallback when the player element or its API is not yet available
-      const fallback = {
-        play:     ['.ytp-play-button'],
-        pause:    ['.ytp-play-button'],
-        next:     ['.ytp-next-button'],
-        previous: ['.ytp-prev-button'],
-      };
-      for (const sel of fallback[action] ?? []) {
-        const btn = document.querySelector(sel);
-        if (btn) { btn.click(); return; }
+      if (action === 'next') {
+        document.querySelector('.ytp-next-button:not([disabled])')?.click();
+        return;
+      }
+      if (action === 'previous') {
+        const prevBtn = document.querySelector('.ytp-prev-button:not([disabled])');
+        if (prevBtn) { prevBtn.click(); return; }
+        // Single video with no playlist: seek to start if past 3 s.
+        // getCurrentTime/seekTo are page-world methods; use typeof guard.
+        const player = document.getElementById('movie_player');
+        const t = player?.getCurrentTime?.();
+        if (typeof t === 'number' && t > 3) player.seekTo?.(0, true);
+        return;
       }
     }
   });
