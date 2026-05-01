@@ -54,6 +54,7 @@
     "https://undistractedme.sarojbelbase.com.np/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
+    "*://*.youtube.com/*",
     "https://nepalipaisa.com/*",
     "https://www.merolagani.com/*",
     "https://people.googleapis.com/*",
