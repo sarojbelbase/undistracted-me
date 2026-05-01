@@ -1,26 +1,4 @@
-@font-face {
-	font-family: 'Akshar';
-	src: local('Akshar Bold'), local('Akshar-Bold'),
-		url('../fonts/nepali/Akshar-Bold.woff2') format('woff2');
-	font-weight: bold;
-	font-style: normal;
-	font-display: swap;
-}
-
-@font-face {
-	font-family: 'Akshar';
-	src: local('Akshar SemiBold'), local('Akshar-SemiBold'),
-		url('../fonts/nepali/Akshar-SemiBold.woff2') format('woff2');
-	font-weight: 600;
-	font-style: normal;
-	font-display: swap;
-}
-
-@font-face {
-	font-family: 'Akshar';
-	src: local('Akshar Medium'), local('Akshar-Medium'),
-		url('../fonts/nepali/Akshar-Medium.woff2') format('woff2');
-	font-weight: 500;
-	font-style: normal;
-	font-display: swap;
-}
+/* ── League Gothic (Latin) + Hind (Devanagari) ───────────────────────────
+   Hind: humanist sans with full Devanagari coverage, bold weights.
+   League Gothic has no Devanagari so Hind steps in automatically.          */
+@import url("https://fonts.googleapis.com/css2?family=League+Gothic&family=Hind:wght@600;700&display=swap");

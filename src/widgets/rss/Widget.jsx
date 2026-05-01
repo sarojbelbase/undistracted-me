@@ -2,12 +2,12 @@
  * RSS News Widget
  *
  * Two presentation modes:
- *  • Marquee – full-bleed cinematic card, one story at a time, auto-advances every 20 s.
- *              Swipe left/right (or drag) to navigate manually.
- *              Image feeds: dark-scrim overlay, white typography.
- *              No-image feeds: rich accent-gradient background, white typography.
+ *  • Spotlight – full-bleed cinematic card, one story at a time, auto-advances every 20 s.
+ *                Swipe left/right (or drag) to navigate manually.
+ *                Image feeds: dark-scrim overlay, white typography.
+ *                No-image feeds: rich accent-gradient background, white typography.
  *
- *  • Brief   – compact numbered headline list, scrollable, accent left-bar on hover.
+ *  • Digest   – compact numbered headline list, scrollable, accent left-bar on hover.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -16,10 +16,11 @@ import { useWidgetSettings } from "../useWidgetSettings";
 import { useRss } from "./useRss";
 import { useRssMulti } from "./useRssMulti";
 import { Settings } from "./Settings";
-import { relativeTime, PRESET_FEEDS, DEFAULT_FEED_ID } from "./utils";
+import { relativeTime, PRESET_FEEDS, DEFAULT_FEED_ID, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
-import { Rss, ArrowClockwise } from "react-bootstrap-icons";
+import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
+import { Broadcast, ArrowClockwise } from "react-bootstrap-icons";
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -49,8 +50,6 @@ const SkeletonRow = ({ isLast = false }) => (
 
 const HeadlineRow = ({ item, isLast = false }) => {
   const time = item.isoDate ? relativeTime(item.isoDate) : "";
-  const [imgFailed, setImgFailed] = useState(false);
-  const hasThumb = !!item.image && !imgFailed;
 
   return (
     <button
@@ -59,7 +58,7 @@ const HeadlineRow = ({ item, isLast = false }) => {
       onClick={() => { if (item.link) window.open(item.link, "_blank", "noopener"); }}
       style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: 10,
         width: "100%",
         textAlign: "left",
@@ -75,22 +74,15 @@ const HeadlineRow = ({ item, isLast = false }) => {
       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.027)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
     >
-      {/* Left: source·time on top, title below — Apple News layout */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Source · time — tertiary, above title */}
+        {/* Source · time */}
         {(item.source || time) && (
           <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 2.5 }}>
             {item.source && (
               <span style={{
-                fontSize: "0.5625rem",
-                fontWeight: 700,
-                color: "var(--w-ink-4)",
-                letterSpacing: "0.02em",
-                textTransform: "uppercase",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: hasThumb ? "52%" : "70%",
+                fontSize: "0.5625rem", fontWeight: 700, color: "var(--w-ink-4)",
+                letterSpacing: "0.02em", textTransform: "uppercase",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%",
               }}>
                 {item.source}
               </span>
@@ -99,24 +91,15 @@ const HeadlineRow = ({ item, isLast = false }) => {
               <span style={{ fontSize: "0.4375rem", color: "var(--w-ink-6)", flexShrink: 0, lineHeight: 1, marginTop: 0.5 }}>·</span>
             )}
             {time && (
-              <span style={{
-                fontSize: "0.5625rem",
-                fontWeight: 400,
-                color: "var(--w-ink-5)",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}>
+              <span style={{ fontSize: "0.5625rem", fontWeight: 400, color: "var(--w-ink-5)", whiteSpace: "nowrap", flexShrink: 0 }}>
                 {time}
               </span>
             )}
           </div>
         )}
-
-        {/* Title — primary, 2-line clamp */}
+        {/* Title */}
         <p style={{
-          fontSize: "0.7875rem",
-          fontWeight: 600,
-          color: "var(--w-ink-1)",
+          fontSize: "0.7875rem", fontWeight: 600, color: "var(--w-ink-1)",
           lineHeight: 1.33,
           letterSpacing: "-0.011em",
           display: "-webkit-box",
@@ -127,67 +110,30 @@ const HeadlineRow = ({ item, isLast = false }) => {
           {item.title}
         </p>
       </div>
-
-      {/* Right: thumbnail — only when image available */}
-      {hasThumb && (
-        <div style={{
-          flexShrink: 0,
-          width: 52,
-          height: 52,
-          borderRadius: 7,
-          overflow: "hidden",
-          background: "rgba(0,0,0,0.06)",
-        }}>
-          <img
-            src={item.image}
-            alt=""
-            aria-hidden
-            draggable={false}
-            onError={() => setImgFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        </div>
-      )}
     </button>
   );
 };
 
 // ─── Marquee mode — single full-bleed story card ──────────────────────────────
 
-// Inline keyframes injected once
-const MARQUEE_STYLES = `
-@keyframes rss-card-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes rss-text-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes rss-kenburns {
-  from { transform: scale(1.08); }
-  to   { transform: scale(1.0); }
-}
-`;
-let _stylesInjected = false;
-function ensureMarqueeStyles() {
-  if (_stylesInjected) return;
-  _stylesInjected = true;
-  const el = document.createElement("style");
-  el.textContent = MARQUEE_STYLES;
-  document.head.appendChild(el);
-}
-
-const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
-  const [imgFailed, setImgFailed] = useState(false);
+const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext }) => {
   const [navHovered, setNavHovered] = useState(false);
-  const hasImage = !!item?.image && !imgFailed;
   const time = item?.isoDate ? relativeTime(item.isoDate) : "";
 
-  useEffect(() => { ensureMarqueeStyles(); }, []);
-
-  // Reset img error state when the item changes
-  useEffect(() => { setImgFailed(false); }, [item?.image]);
+  // Measure actual card pixel dimensions for the layout engine.
+  const cardRef = useRef(null);
+  const [area, setArea] = useState({ w: 262, h: 160 });
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      // Reserve: padding (10+14=24) + top-row (~22) + nav-dots (~40) = ~86
+      setArea({ w: Math.max(100, width - 24), h: Math.max(60, height - 86) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // ── Gesture (drag to navigate) ────────────────────────────────────────────
   const startX = useRef(null);
@@ -196,7 +142,6 @@ const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
   const [releasing, setReleasing] = useState(false);
 
   const handlePointerDown = (e) => {
-    // Don't capture gestures that start on interactive children (buttons, links)
     if (e.target.closest("button, a")) return;
     if (e.button !== 0 && e.pointerType !== "touch") return;
     startX.current = e.clientX;
@@ -204,16 +149,13 @@ const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
     setReleasing(false);
     e.currentTarget.setPointerCapture(e.pointerId);
   };
-
   const handlePointerMove = (e) => {
     if (startX.current === null) return;
     const dx = e.clientX - startX.current;
     dragged.current = Math.abs(dx) > 6;
-    // Rubber-band resistance: diminishing returns past ±60px
     const resistance = (v) => Math.sign(v) * (60 * (1 - Math.exp(-Math.abs(v) / 120)));
     setDragX(dragged.current ? resistance(dx) : 0);
   };
-
   const handlePointerUp = (e) => {
     if (startX.current === null) return;
     const dx = e.clientX - startX.current;
@@ -225,15 +167,18 @@ const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
 
   if (!item) return null;
 
+  // Direction-aware text drift — background stays static, only text animates
+  const textAnim = direction === "prev" ? "rss-text-in-prev" : "rss-text-in-next";
+
   return (
     <div
+      ref={cardRef}
       className="absolute inset-0 select-none"
       style={{
         touchAction: "pan-y",
         cursor: "default",
-        transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.012}deg)` : "none",
-        transition: releasing ? "transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
-        animation: "rss-card-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both",
+        transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.01}deg)` : "none",
+        transition: releasing ? "transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -243,207 +188,202 @@ const MarqueeCard = ({ item, index, total, autoAdvanceMs, onPrev, onNext }) => {
       role="article"
       aria-label={item.title}
     >
-      {/* ── Background image / gradient ───────────────────────────────────── */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        {hasImage ? (
-          <img
-            src={item.image}
-            alt=""
-            aria-hidden
-            draggable={false}
-            onError={() => setImgFailed(true)}
-            style={{
-              width: "100%", height: "100%",
-              objectFit: "cover", objectPosition: "center 20%",
-              animation: "rss-kenburns 22s cubic-bezier(0.16, 1, 0.3, 1) both",
-              transformOrigin: "center 30%",
-            }}
-          />
-        ) : (
-          <>
-            {/* Rich accent gradient when no image */}
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(145deg, var(--w-accent) 0%, color-mix(in srgb, var(--w-accent) 60%, #000) 100%)",
-            }} />
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "radial-gradient(ellipse 90% 70% at 20% 10%, rgba(255,255,255,0.18) 0%, transparent 65%)",
-            }} />
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "radial-gradient(ellipse 60% 50% at 80% 90%, rgba(0,0,0,0.35) 0%, transparent 70%)",
-            }} />
-          </>
-        )}
+      {/* ── Rich gradient background (text-only, no images) ──────────────── */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: "inherit" }}>
+        {/* Deep ink base */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(150deg, #0f0f11 0%, #1a1a1f 55%, #0b0b0d 100%)",
+        }} />
+        {/* Editorial highlight — top-left warm glow */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse 100% 65% at 15% 0%, rgba(255,255,255,0.09) 0%, transparent 60%)",
+        }} />
+        {/* Accent color pulse — driven by CSS var (theme-aware) */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse 70% 45% at 85% 100%, color-mix(in srgb, var(--w-accent) 25%, transparent) 0%, transparent 65%)",
+        }} />
       </div>
 
-      {/* ── Deep scrim for text legibility ───────────────────────────────── */}
+      {/* ── Full-height flex column: source/time top · title fills below ── */}
       <div style={{
         position: "absolute", inset: 0,
-        background: hasImage
-          ? "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 30%, rgba(0,0,0,0.1) 58%, transparent 80%)"
-          : "linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 70%)",
-      }} />
-
-      {/* ── Top: source pill (left) · time (right) ───────────────────────── */}
-      <div style={{
-        position: "absolute", top: 10, left: 10, right: 10,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        pointerEvents: "none",
-        animation: "rss-text-up 0.45s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both",
+        display: "flex", flexDirection: "column",
+        padding: "10px 12px 14px",
       }}>
-        {item.source && (
-          <span style={{
-            fontSize: "0.5rem",
-            fontWeight: 800,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.65)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            padding: "3px 7px",
-            borderRadius: 999,
-          }}>
-            {item.source}
-          </span>
-        )}
-        {time && (
-          <span style={{
-            fontSize: "0.625rem", fontWeight: 600,
-            color: "rgba(255,255,255,0.55)",
-            marginLeft: "auto",
-          }}>
-            {time}
-          </span>
-        )}
-      </div>
 
-      {/* ── Bottom: title + dot nav + progress bar ───────────────────────── */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0,
-        padding: "0 12px 14px",
-        pointerEvents: "none",
-        animation: "rss-text-up 0.5s 0.05s cubic-bezier(0.16, 1, 0.3, 1) both",
-      }}>
-        {/* Dynamic font: bigger for short titles, smaller for long ones */}
-        {(() => {
-          const words = (item.title || "").split(/\s+/).length;
-          let fs = "0.9375rem";
-          let clamp = 3;
-          if (words <= 6) { fs = "1.375rem"; clamp = 2; }
-          else if (words <= 10) { fs = "1.15rem"; clamp = 2; }
-          return (
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: clamp,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                marginBottom: total > 1 ? 12 : 0,
-                fontSize: fs,
-                fontWeight: 800,
-                lineHeight: 1.22,
-                letterSpacing: "-0.022em",
-                color: "#fff",
-                textShadow: hasImage ? "0 2px 14px rgba(0,0,0,0.65)" : "none",
-                textAlign: "left",
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                pointerEvents: "auto",
-                width: "100%",
-              }}
-            >
-              {item.title}
-            </button>
-          );
-        })()}
+        {/* Top row: source pill · [refresh] · time */}
+        <div style={{
+          display: "flex", alignItems: "center",
+          flexShrink: 0,
+          animation: `${textAnim} 0.3s ease-out both`,
+        }}>
+          {item.source && (
+            <span style={{
+              fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.6)",
+              backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              padding: "3px 7px", borderRadius: 999,
+              flexShrink: 0,
+            }}>
+              {item.source}
+            </span>
+          )}
 
-        {/* ── Dot nav + arrow buttons row ── */}
-        {total > 1 && (
-          <div
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Refresh button */}
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onRefresh(); }}
+            aria-label="Refresh feed"
             style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              pointerEvents: "auto",
-              gap: 6,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+              background: "rgba(255,255,255,0.07)",
+              border: "none", cursor: "pointer",
+              color: "rgba(255,255,255,0.5)",
+              transition: "color 0.2s, background 0.2s",
+              animation: isLoading ? "rss-spin 1s linear infinite" : "none",
+              marginRight: 4,
             }}
-            onClick={(e) => e.stopPropagation()}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.14)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+            }}
           >
-            {/* ← Prev — fades in on card hover */}
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); onPrev(); }}
-              aria-label="Previous story"
-              style={{
-                width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,0.12)",
-                backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                cursor: "pointer", color: "#fff",
-                opacity: navHovered ? 1 : 0,
-                transition: "opacity 0.3s ease, background 0.15s",
-                pointerEvents: navHovered ? "auto" : "none",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.22)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
-            >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M7.5 2L3.5 6L7.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            <ArrowClockwise size={10} aria-hidden="true" />
+          </button>
 
-            {/* Fluid indicator dots — pure display, no interaction */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }} aria-hidden="true">
-              {Array.from({ length: Math.min(total, 7) }).map((_, i) => (
-                <div
-                  key={`dot-${i}`}
-                  style={{
-                    width: i === index ? 20 : 4,
-                    height: 4,
-                    borderRadius: 99,
-                    background: i === index ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.28)",
-                    transition: "width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease",
-                    flexShrink: 0,
-                  }}
-                />
-              ))}
+          {/* Timestamp */}
+          {time && (
+            <span style={{ fontSize: "0.6rem", fontWeight: 600, color: "rgba(255,255,255,0.45)", flexShrink: 0 }}>
+              {time}
+            </span>
+          )}
+        </div>
+
+        {/* Title block — fills the remaining space, anchored top */}
+        <div style={{
+          flex: 1,
+          display: "flex", flexDirection: "column", justifyContent: "flex-end",
+          animation: `${textAnim} 0.35s 0.06s ease-out both`,
+        }}>
+          <ExpressiveTitle
+            title={item.title || ""}
+            areaWidth={area.w}
+            areaHeight={area.h}
+            hasImage={false}
+            marginBottom={total > 1 ? 10 : 0}
+            onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
+          />
+
+          {/* ── Dot nav + arrow buttons row ── */}
+          {total > 1 && (
+            <div
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, pointerEvents: "auto" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* ← Prev */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                aria-label="Previous story"
+                style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer", color: "#fff",
+                  opacity: navHovered ? 1 : 0,
+                  transition: "opacity 0.25s ease, background 0.15s",
+                  pointerEvents: navHovered ? "auto" : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              >
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M7.5 2L3.5 6L7.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {/* Instagram-style dot indicator:
+                  - Max 5 dots shown in a sliding window centred on current index.
+                  - Sizes/opacity follow a distance-from-active gradient, exactly
+                    like Instagram Reels / Stories: active=8, ±1=6, ±2=4 (capped). */}
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }} aria-hidden="true">
+                {(() => {
+                  const MAX = 5; // maximum dots rendered
+                  const half = Math.floor(MAX / 2);
+                  // Window start: try to keep active centred
+                  const start = Math.max(0, Math.min(index - half, total - MAX));
+                  const end = Math.min(total, start + MAX);
+                  return Array.from({ length: end - start }, (_, k) => {
+                    const dotIdx = start + k;
+                    const dist = Math.abs(dotIdx - index);
+                    // Size lookup: [active, ±1, ±2+]
+                    const dotSizes = [8, 6, 4];
+                    const dotOpacities = [1, 0.55, 0.28];
+                    const baseSize = dotSizes[Math.min(dist, 2)];
+                    const opacity = dotOpacities[Math.min(dist, 2)];
+                    // Edge dots hint at more content off-screen
+                    const isEdge = (dotIdx === start && start > 0) || (dotIdx === end - 1 && end < total);
+                    const finalSize = isEdge ? Math.max(3, baseSize - 1) : baseSize;
+                    return (
+                      <div
+                        key={dotIdx}
+                        style={{
+                          width: finalSize, height: finalSize,
+                          borderRadius: "50%",
+                          background: `rgba(255,255,255,${opacity})`,
+                          transition: "width 0.35s cubic-bezier(0.34,1.56,0.64,1), height 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+                          flexShrink: 0,
+                        }}
+                      />
+                    );
+                  });
+                })()}
+              </div>
+
+              {/* → Next */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onNext(); }}
+                aria-label="Next story"
+                style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer", color: "#fff",
+                  opacity: navHovered ? 1 : 0,
+                  transition: "opacity 0.25s ease, background 0.15s",
+                  pointerEvents: navHovered ? "auto" : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              >
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M4.5 2L8.5 6L4.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
-
-            {/* → Next — fades in on card hover */}
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); onNext(); }}
-              aria-label="Next story"
-              style={{
-                width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,0.12)",
-                backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                cursor: "pointer", color: "#fff",
-                opacity: navHovered ? 1 : 0,
-                transition: "opacity 0.3s ease, background 0.15s",
-                pointerEvents: navHovered ? "auto" : "none",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.22)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
-            >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M4.5 2L8.5 6L4.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -466,7 +406,32 @@ const MarqueeSkeleton = () => (
   </div>
 );
 
-// ─── Error state ──────────────────────────────────────────────────────────────
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+const EmptyState = ({ sourceMode, absolute = false }) => (
+  <div className={`flex flex-col items-center justify-center gap-3 p-5 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
+    <div
+      style={{
+        width: 40, height: 40, borderRadius: "50%",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.04)",
+        border: "1px solid rgba(0,0,0,0.07)",
+      }}
+    >
+      <Broadcast size={18} style={{ color: "var(--w-ink-5)", opacity: 0.5 }} aria-hidden />
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--w-ink-3)" }}>
+        No headlines yet
+      </p>
+      <p style={{ fontSize: "0.6875rem", color: "var(--w-ink-5)", lineHeight: 1.5, maxWidth: 180 }}>
+        {sourceMode === "custom"
+          ? "Upload a JSON file with your feed URLs to get started"
+          : "Select at least one source from Settings"}
+      </p>
+    </div>
+  </div>
+);
 
 const ErrorState = ({ onRetry, absolute = false }) => (
   <div className={`flex flex-col items-center justify-center gap-2 p-4 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
@@ -487,61 +452,134 @@ const ErrorState = ({ onRetry, absolute = false }) => (
 
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, {
-    feedId: DEFAULT_FEED_ID,
-    customFeeds: [],
+    // NEW data model: multi-select preset IDs + custom feeds each with `active` flag.
+    // Legacy single-feedId settings are migrated below.
+    activeFeedIds: DEFAULT_ACTIVE_IDS,
+    customFeeds: [],        // [{ label, url, active: boolean }]
+    sourceMode: "presets",  // "presets" | "custom" — mutually exclusive
     viewMode: "marquee",
   });
 
-  const feedId = settings.feedId ?? DEFAULT_FEED_ID;
-  const customFeeds = settings.customFeeds ?? [];
-  const viewMode = settings.viewMode ?? "marquee";
-  const isCustomMode = customFeeds.length > 0;
+  // Migrate legacy single feedId setting → activeFeedIds
+  const rawActive = settings.activeFeedIds;
+  let activeFeedIds;
+  if (Array.isArray(rawActive) && rawActive.length > 0) {
+    activeFeedIds = rawActive;
+  } else if (settings.feedId) {
+    activeFeedIds = [settings.feedId];
+  } else {
+    activeFeedIds = DEFAULT_ACTIVE_IDS;
+  }
 
-  // Always call both hooks (rules of hooks); pick the active result
-  const singleResult = useRss(isCustomMode ? DEFAULT_FEED_ID : feedId);
-  const multiResult = useRssMulti(isCustomMode ? customFeeds : []);
-  const { items, loading, error, refreshedAt, refresh } = isCustomMode ? multiResult : singleResult;
+  const customFeeds = (settings.customFeeds ?? []).map((f) =>
+    typeof f.active === "boolean" ? f : { ...f, active: true }
+  );
+  const viewMode = settings.viewMode ?? "marquee";
+  const sourceMode = settings.sourceMode ?? (customFeeds.length > 0 ? "custom" : "presets");
+
+  // Mutually exclusive: only use presets OR custom, never both
+  const activePresetFeeds = PRESET_FEEDS.filter((p) => activeFeedIds.includes(p.id));
+  const activeCustomFeeds = customFeeds.filter((f) => f.active !== false);
+  const allActiveFeeds = sourceMode === "custom"
+    ? activeCustomFeeds.map((f) => ({ label: f.label, url: f.url }))
+    : activePresetFeeds.map((p) => ({ label: p.label, url: p.url }));
+
+  // Legacy hook kept for backward-compat — only used when all else fails
+  const legacyFeedId = activeFeedIds[0] ?? DEFAULT_FEED_ID;
+
+  // Always call both hooks (rules of hooks); we always use multiResult now.
+  // useRss (single) is kept alive with a stable ID so hook count never changes.
+  useRss(legacyFeedId); // stable no-op — result unused
+  const multiResult = useRssMulti(allActiveFeeds);
+  const { items, loading, error, refreshedAt, refresh } = multiResult;
   const ageLabel = useAgeLabel(refreshedAt);
+
+  // Sync feed config to SW whenever active feeds change
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.runtime) return;
+    const feeds = allActiveFeeds.map(({ label, url }) => ({ label, url }));
+    chrome.runtime.sendMessage({ type: "RSS_CONFIG_SYNC", feeds }).catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(allActiveFeeds)]);
 
   // Marquee navigation state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(10);
+  const [navDirection, setNavDirection] = useState("next"); // for swipe animation
   const sentinelRef = useRef(null);
 
-  const displayItems = items.slice(0, visibleCount);
-  const hasMore = items.length > visibleCount;
-  const showSkeleton = loading && items.length === 0;
+  // ── Smart item ordering: new items bubble to front of queue ───────────────
+  const [orderedItems, setOrderedItems] = useState([]);
+  const seenLinksRef = useRef(new Set());
+
+  useEffect(() => {
+    if (!items.length) { setOrderedItems([]); return; }
+    const seen = seenLinksRef.current;
+    if (seen.size === 0) {
+      // First load — initialise without any reordering
+      setOrderedItems(items);
+      items.forEach(it => { if (it.link) seen.add(it.link); });
+      return;
+    }
+    const fresh = items.filter(it => it.link && !seen.has(it.link));
+    const existing = items.filter(it => !it.link || seen.has(it.link));
+    if (fresh.length > 0) {
+      setOrderedItems([...fresh, ...existing]);
+      setCurrentIndex(0); // jump to newest
+      setNavDirection("next");
+    } else {
+      setOrderedItems(items);
+    }
+    items.forEach(it => { if (it.link) seen.add(it.link); });
+  }, [items]);
+
+  const displayItems = orderedItems.slice(0, visibleCount);
+  const hasMore = orderedItems.length > visibleCount;
+  const showSkeleton = loading && orderedItems.length === 0;
   const showError = !!error && !showSkeleton;
 
-  const sourceName = isCustomMode
-    ? `${customFeeds.length} sources`
-    : (PRESET_FEEDS.find((f) => f.id === feedId)?.label ??
-      customFeeds.find((f) => f.url === feedId)?.label ??
-      feedId);
+  const storyCount = orderedItems.length;
+  const feedCount = allActiveFeeds.length;
+  const storyWord = storyCount === 1 ? "story" : "stories";
+  const feedWord = feedCount === 1 ? "feed" : "feeds";
+  let sourceName;
+  if (storyCount > 0) {
+    sourceName = `${storyCount} ${storyWord} from ${feedCount} ${feedWord}`;
+  } else if (feedCount === 1) {
+    sourceName = allActiveFeeds[0].label;
+  } else {
+    sourceName = `${feedCount} feeds`;
+  }
 
-  // Reset index + visible count when feed changes
-  useEffect(() => { setCurrentIndex(0); setVisibleCount(10); }, [feedId]);
+  // Reset state when active feeds change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setVisibleCount(10);
+    setNavDirection("next");
+    seenLinksRef.current = new Set();
+    setOrderedItems([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(activeFeedIds), sourceMode]);
 
   // Clamp index when items load/shrink
   useEffect(() => {
     if (displayItems.length > 0 && currentIndex >= displayItems.length) setCurrentIndex(0);
   }, [displayItems.length, currentIndex]);
 
-  // Auto-advance for Marquee: also expand when nearing end
+  // Auto-advance for Marquee
   useEffect(() => {
     if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError) return;
     const timer = setTimeout(() => {
       const next = (currentIndex + 1) % displayItems.length;
-      // Expand batch when 2 items away from end and more remain
-      if (currentIndex >= displayItems.length - 2 && hasMore) {
-        setVisibleCount((c) => c + 10);
-      }
+      if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
+      setNavDirection("next");
       setCurrentIndex(next);
     }, AUTO_ADVANCE_MS);
     return () => clearTimeout(timer);
   }, [currentIndex, viewMode, displayItems.length, showSkeleton, showError, hasMore]);
 
   const goNext = useCallback(() => {
+    setNavDirection("next");
     setCurrentIndex((i) => {
       const next = (i + 1) % displayItems.length;
       if (i >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
@@ -549,10 +587,10 @@ export const Widget = ({ id, onRemove }) => {
     });
   }, [displayItems.length, hasMore]);
 
-  const goPrev = useCallback(
-    () => setCurrentIndex((i) => (i - 1 + displayItems.length) % displayItems.length),
-    [displayItems.length],
-  );
+  const goPrev = useCallback(() => {
+    setNavDirection("prev");
+    setCurrentIndex((i) => (i - 1 + displayItems.length) % displayItems.length);
+  }, [displayItems.length]);
 
   // Brief mode: IntersectionObserver on sentinel to load more
   useEffect(() => {
@@ -567,61 +605,63 @@ export const Widget = ({ id, onRemove }) => {
 
   const settingsContent = (onClose) => (
     <Settings
-      feedId={feedId}
-      onChangeFeedId={(v) => updateSetting("feedId", v)}
+      activeFeedIds={activeFeedIds}
+      onChangeActiveFeedIds={(v) => updateSetting("activeFeedIds", v)}
       customFeeds={customFeeds}
       onChangeCustomFeeds={(v) => updateSetting("customFeeds", v)}
+      sourceMode={sourceMode}
+      onChangeSourceMode={(v) => updateSetting("sourceMode", v)}
       viewMode={viewMode}
       onChangeViewMode={(v) => updateSetting("viewMode", v)}
       onClose={onClose}
     />
   );
 
-  // ── Marquee mode ────────────────────────────────────────────────────────────
+  // ── Spotlight mode ──────────────────────────────────────────────────────────
   if (viewMode === "marquee") {
     return (
       <BaseWidget
         className="relative overflow-hidden"
         settingsContent={settingsContent}
         settingsTitle="News Feed"
+        modalWidth="w-96"
         onRemove={onRemove}
       >
         {showSkeleton && <MarqueeSkeleton />}
         {showError && <ErrorState onRetry={refresh} absolute />}
         {!showSkeleton && !showError && displayItems.length > 0 && (
           <MarqueeCard
-            key={currentIndex}
+            key={`${currentIndex}-${navDirection}`}
             item={displayItems[currentIndex]}
             index={currentIndex}
             total={displayItems.length}
-            autoAdvanceMs={AUTO_ADVANCE_MS}
+            direction={navDirection}
+            onRefresh={refresh}
+            isLoading={loading}
             onNext={goNext}
             onPrev={goPrev}
           />
         )}
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="w-caption" style={{ color: "var(--w-ink-5)" }}>No headlines</p>
-          </div>
+          <EmptyState sourceMode={sourceMode} absolute />
         )}
       </BaseWidget>
     );
   }
 
-  // ── Brief mode ──────────────────────────────────────────────────────────────
+  // ── Digest mode ──────────────────────────────────────────────────────────────
   return (
     <BaseWidget
       className="flex flex-col overflow-hidden"
       settingsContent={settingsContent}
-      settingsTitle="News Feed"
-      onRemove={onRemove}
+      settingsTitle="News Feed" modalWidth="w-96" onRemove={onRemove}
     >
       {/* Header */}
       <div
         className="flex items-center gap-1.5 px-3 pt-2.5 pb-2 shrink-0"
         style={{ borderBottom: "1px solid var(--card-border)" }}
       >
-        <Rss size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
+        <Broadcast size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
         <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
           {sourceName}
         </span>
@@ -667,9 +707,7 @@ export const Widget = ({ id, onRemove }) => {
         )}
 
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <p className="w-caption" style={{ color: "var(--w-ink-5)" }}>No headlines available</p>
-          </div>
+          <EmptyState sourceMode={sourceMode} />
         )}
       </div>
     </BaseWidget>

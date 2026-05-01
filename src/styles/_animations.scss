@@ -717,3 +717,49 @@
     opacity: .04;
   }
 }
+
+// ── RSS News Widget ──────────────────────────────────────────────────────────────────────────
+
+// Text transition: directional drift-fade.
+// Background stays static; only the text content animates — giving an editorial "stage" feel.
+@keyframes rss-text-in-next {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rss-text-in-prev {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Legacy alias used by staggered sub-elements (source pill, timestamp)
+@keyframes rss-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// Refresh button spinner
+@keyframes rss-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

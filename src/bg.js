@@ -11,6 +11,7 @@
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
 const ALARM_LOOKAWAY = "UM_LOOKAWAY"; // fires every N min for eye-break reminders
 const ALARM_PREFETCH = "UM_PREFETCH"; // fires every 30 min for background data pre-fetch
+const ALARM_RSS = "UM_RSS";           // fires every 30 min for RSS queue pre-fetch
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
 
@@ -90,10 +91,14 @@ globalThis.addEventListener("activate", (event) => {
     if (!a && prefetchCoords)
       chrome.alarms.create(ALARM_PREFETCH, { periodInMinutes: 30 });
   });
+  chrome.alarms.get(ALARM_RSS, (a) => {
+    if (!a) chrome.alarms.create(ALARM_RSS, { periodInMinutes: 30 });
+  });
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_TICK, { periodInMinutes: 1 });
+  chrome.alarms.create(ALARM_RSS, { periodInMinutes: 30 });
   injectMediaScript();
 });
 
@@ -126,6 +131,7 @@ function injectMediaScript() {
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_TICK) syncEventsFromStorage();
   if (alarm.name === ALARM_PREFETCH) runWeatherPrefetch();
+  if (alarm.name === ALARM_RSS) runRssPrefetch();
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
   if (alarm.name === ALARM_LOOKAWAY) {
@@ -214,6 +220,91 @@ function handlePrefetchSync(msg) {
   runWeatherPrefetch();
 }
 
+// ─── RSS queue pre-fetch ─────────────────────────────────────────────────
+
+// RSS proxy URL used in the extension context (CORS-blocked without proxy).
+const RSS_PROXY = 'https://undistractedme.sarojbelbase.com.np/api/rss/feed';
+const RSS_QUEUE_MAX = 20;
+
+/**
+ * Lightweight XML helpers (same logic as api/rss/feed.js — kept inline to
+ * avoid ES module import issues in the MV3 service worker build).
+ */
+function _rssGetTag(xml, tag) {
+  const re = new RegExp('<' + tag + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + tag + '>', 'i');
+  const m = re.exec(xml);
+  if (!m) return '';
+  return m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+}
+
+function _rssParseItems(xml, fallback) {
+  const items = [];
+  const isAtom = /<feed[\s>]/i.test(xml);
+  const blockRe = isAtom ? /<entry[\s>]([\s\S]*?)<\/entry>/gi : /<item[\s>]([\s\S]*?)<\/item>/gi;
+  let m;
+  while ((m = blockRe.exec(xml)) !== null) {
+    const b = m[1];
+    const title = _rssGetTag(b, 'title');
+    if (!title) continue;
+    let link = '';
+    if (isAtom) {
+      const lm = /<link[^>]+href=["']([^"']+)["']/i.exec(b);
+      link = lm ? lm[1] : _rssGetTag(b, 'id');
+    } else {
+      link = b.match(/<link>([\s\S]*?)<\/link>/i)?.[1]?.trim() || _rssGetTag(b, 'guid');
+    }
+    const dateStr = isAtom
+      ? (_rssGetTag(b, 'updated') || _rssGetTag(b, 'published'))
+      : (_rssGetTag(b, 'pubDate') || _rssGetTag(b, 'dc:date'));
+    let isoDate = '';
+    if (dateStr) { try { isoDate = new Date(dateStr).toISOString(); } catch { /**/ } }
+    const source = _rssGetTag(b, isAtom ? 'name' : 'dc:creator') || _rssGetTag(b, 'author') || fallback;
+    items.push({ title, link: (link || '').replace(/&amp;/g, '&').trim(), pubDate: dateStr, isoDate, source });
+  }
+  return items;
+}
+
+async function runRssPrefetch() {
+  try {
+    // Read the list of feed URLs configured by the user
+    const stored = await chrome.storage.local.get('rss_feed_config');
+    const config = stored.rss_feed_config ?? [];
+    if (!config.length) return;
+
+    // Fetch all feeds in parallel via the Vercel proxy
+    const results = await Promise.allSettled(
+      config.map(async ({ url, label }) => {
+        const res = await fetch(`${RSS_PROXY}?url=${encodeURIComponent(url)}`, {
+          signal: AbortSignal.timeout(12000),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        // Tag each item with the feed label
+        return (json.items ?? []).map((item) => ({ ...item, source: item.source || label }));
+      }),
+    );
+
+    // Merge all successful items
+    const allItems = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+
+    // Sort by date descending, keep the 20 most recent
+    const sorted = allItems
+      .filter((it) => it.title)
+      .sort((a, b) => {
+        const da = a.isoDate ? new Date(a.isoDate).getTime() : 0;
+        const db = b.isoDate ? new Date(b.isoDate).getTime() : 0;
+        return db - da;
+      })
+      .slice(0, RSS_QUEUE_MAX);
+
+    await chrome.storage.local.set({
+      rss_queue: { items: sorted, fetchedAt: Date.now() },
+    });
+  } catch {
+    // Network unavailable or malformed — skip silently
+  }
+}
+
 // ─── Messages from the page ───────────────────────────────────────────────────
 
 function handlePomodoroDone(msg) {
@@ -292,7 +383,7 @@ function handleChromeMediaAction(msg) {
   if (tabId != null && chromeSessions[tabId]) {
     chrome.tabs
       .sendMessage(tabId, { type: "MEDIA_ACTION", action: msg.action })
-      .catch(() => {});
+      .catch(() => { });
   }
 }
 
@@ -336,6 +427,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "PREFETCH_SYNC" && msg.lat && msg.lon) {
     handlePrefetchSync(msg);
+    return;
+  }
+  if (msg.type === "RSS_CONFIG_SYNC" && Array.isArray(msg.feeds)) {
+    // Page sends updated feed list whenever settings change; persist and fetch.
+    chrome.storage.local.set({ rss_feed_config: msg.feeds });
+    runRssPrefetch();
     return;
   }
 });

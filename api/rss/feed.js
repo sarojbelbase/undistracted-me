@@ -1,12 +1,12 @@
 /**
  * GET /api/rss/feed?url=<encodedFeedUrl>
  *
- * Vercel serverless function — fetches an RSS/ATOM feed server-side (CORS bypass),
- * parses with rss-parser (handles media:*, enclosures, ATOM, namespaces) and returns
- * clean JSON with best-available image per item.
+ * Vercel serverless function — fetches an RSS/Atom feed server-side (CORS bypass),
+ * parses with rss-parser and returns clean JSON.
  *
- * Returns: { items: [{ title, link, pubDate, isoDate, source, image }], fetchedAt: ISO }
- * Cache-Control: s-maxage=600, stale-while-revalidate=120 (10 min CDN cache)
+ * Supports RSS 2.0, Atom 1.0, and most feed variants (media:*, enclosures, etc.).
+ * Returns: { items: [{ title, link, pubDate, isoDate, source, image? }], fetchedAt: ISO }
+ * Cache-Control: s-maxage=1800, stale-while-revalidate=300 (30 min CDN cache)
  */
 
 import Parser from 'rss-parser';
@@ -16,10 +16,21 @@ import { assertOrigin } from '../_config.js';
 
 const SOURCE_NAMES = {
   'news.ycombinator.com': 'Hacker News',
-  'feeds.bbci.co.uk': 'BBC News',
+  'hnrss.org': 'Hacker News',
+  'feeds.bbci.co.uk': 'BBC',
   'ekantipur.com': 'Kantipur',
   'myrepublica.nagariknetwork.com': 'Republica',
   'kathmandupost.com': 'Kathmandu Post',
+  'rss.nytimes.com': 'NYT',
+  'feeds.theguardian.com': 'The Guardian',
+  'aljazeera.com': 'Al Jazeera',
+  'npr.org': 'NPR',
+  'feeds.arstechnica.com': 'Ars Technica',
+  'techcrunch.com': 'TechCrunch',
+  'wired.com': 'Wired',
+  'theverge.com': 'The Verge',
+  'rss.dw.com': 'DW',
+  'feeds.reuters.com': 'Reuters',
 };
 
 function sourceName(feedUrl) {
@@ -29,57 +40,57 @@ function sourceName(feedUrl) {
   } catch { return ''; }
 }
 
-// ── Best-image extractor from a parsed rss-parser item ───────────────────────
-
-function extractImage(item) {
-  // 1. media:thumbnail — most Nepali WP feeds (Ratopati, Setopati, etc.)
-  const mt = item['media:thumbnail'];
-  if (mt) {
-    const url = typeof mt === 'string' ? mt : (mt.$ && mt.$.url) || mt.url;
-    if (url) return url;
-  }
-
-  // 2. media:content — standard media RSS namespace
-  const mc = item['media:content'];
-  if (mc) {
-    const url = typeof mc === 'string' ? mc : (mc.$ && mc.$.url) || mc.url;
-    if (url) return url;
-  }
-
-  // 3. enclosure with image MIME type or image-looking URL
-  if (item.enclosure?.url) {
-    if (/image/i.test(item.enclosure.type || '') ||
-      /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(item.enclosure.url)) {
-      return item.enclosure.url;
-    }
-  }
-
-  // 4. Custom <image> tag — Onlinekhabar and some WP themes
-  const customImage = item['image'];
-  if (customImage && typeof customImage === 'string' && customImage.startsWith('http')) {
-    return customImage;
-  }
-
-  // 5. First <img src> inside HTML content / description
-  const html = item['content:encoded'] || item.content || '';
-  if (html) {
-    const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (m && m[1].startsWith('http')) return m[1];
-  }
-
-  return null;
+// ── HTML entity decoder ───────────────────────────────────────────────────────
+// rss-parser doesn't always decode numeric HTML character references (&#NNNN;)
+// that appear literally inside feed titles (common in Nepali/South-Asian CMS).
+function decodeEntities(str) {
+  if (!str) return str;
+  return str
+    .replaceAll(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+    .replaceAll(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(Number.parseInt(h, 16)))
+    .replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"').replaceAll('&apos;', "'").replaceAll('&nbsp;', '\u00a0');
 }
 
-// ── Shared rss-parser instance ────────────────────────────────────────────────
+// ── Image extraction (media:*, enclosure, inline <img>) ──────────────────────
+
+function getMediaUrl(obj) {
+  if (!obj) return null;
+  if (typeof obj === 'string') return obj.startsWith('http') ? obj : null;
+  return obj.$?.url || obj.url || null;
+}
+
+function getEnclosureImage(enc) {
+  if (!enc?.url) return null;
+  return (/image/i.test(enc.type || '') || /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(enc.url))
+    ? enc.url : null;
+}
+
+function getHtmlImage(html) {
+  if (!html) return null;
+  const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+  return m?.[1]?.startsWith('http') ? m[1] : null;
+}
+
+function extractImage(item) {
+  return (
+    getMediaUrl(item.mediaThumbnail) ||
+    getMediaUrl(item.mediaContent) ||
+    getEnclosureImage(item.enclosure) ||
+    getHtmlImage(item['content:encoded'] || item.content || '')
+  );
+}
+
+// ── Parser instance ───────────────────────────────────────────────────────────
 
 const parser = new Parser({
-  timeout: 10000,
   headers: { 'User-Agent': 'Mozilla/5.0 (compatible; UndistractedMe/1.0)' },
+  timeout: 10000,
   customFields: {
     item: [
-      ['media:thumbnail', 'media:thumbnail'],
-      ['media:content', 'media:content'],
-      ['image', 'image'],
+      ['media:thumbnail', 'mediaThumbnail'],
+      ['media:content', 'mediaContent'],
+      ['dc:creator', 'creator'],
     ],
   },
 });
@@ -92,32 +103,26 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const { url } = req.query;
-  if (!url || !url.startsWith('http')) {
+  if (!url?.startsWith('http')) {
     return res.status(400).json({ items: [], error: 'url is required' });
   }
 
   try {
     const feed = await parser.parseURL(url);
-    const source = sourceName(url);
+    const source = sourceName(url) || feed.title || '';
 
-    const items = (feed.items || []).map((item) => {
-      const image = extractImage(item);
-      const pubDate = item.pubDate || item.isoDate || '';
-      let isoDate = item.isoDate || '';
-      if (!isoDate && pubDate) {
-        try { isoDate = new Date(pubDate).toISOString(); } catch { /* ignore */ }
-      }
-      return {
-        title: (item.title || '').trim(),
+    const items = (feed.items || [])
+      .filter(item => item.title)
+      .slice(0, 50)
+      .map(item => ({
+        title: decodeEntities(item.title || ''),
         link: item.link || item.guid || '',
-        pubDate,
-        isoDate,
-        source: item.creator || source,
-        image,
-      };
-    }).filter((item) => item.title);
+        pubDate: item.pubDate || '',
+        isoDate: item.isoDate || '',
+        source: decodeEntities(item.creator || item.author || source),
+      }));
 
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=300');
     return res.status(200).json({ items, fetchedAt: new Date().toISOString() });
   } catch {
     return res.status(502).json({ items: [], error: 'fetch_failed' });
