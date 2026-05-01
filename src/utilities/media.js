@@ -100,8 +100,7 @@ function safeSend(msg) {
 }
 
 // Forward playback actions sent from the background SW.
-// Currently supports SoundCloud via its player button CSS classes.
-// More media playback sites will be added soon.
+// Platform-aware dispatch: each site uses its own stable button selectors.
 try {
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type !== 'MEDIA_ACTION') return;
@@ -109,16 +108,80 @@ try {
     const VALID_ACTIONS = new Set(['play', 'pause', 'next', 'previous']);
     if (!VALID_ACTIONS.has(msg.action)) return;
 
-    // Click the SoundCloud player button.
-    const buttonSelectors = {
-      play: ['.playControl'],
-      pause: ['.playControl'],
-      next: ['.skipControl__next'],
-      previous: ['.skipControl__previous'],
-    };
-    for (const sel of buttonSelectors[msg.action]) {
-      const btn = document.querySelector(sel);
-      if (btn) { btn.click(); break; }
+    const host = location.hostname;
+    const action = msg.action;
+
+    // ── SoundCloud ─────────────────────────────────────────────────────────
+    if (host.includes('soundcloud.com')) {
+      const selectors = {
+        play:     ['.playControl'],
+        pause:    ['.playControl'],
+        next:     ['.skipControl__next'],
+        previous: ['.skipControl__previous'],
+      };
+      for (const sel of selectors[action] ?? []) {
+        const btn = document.querySelector(sel);
+        if (btn) { btn.click(); return; }
+      }
+      return;
+    }
+
+    // ── YouTube Music ──────────────────────────────────────────────────────
+    // music.youtube.com uses a custom player bar (<ytmusic-player-bar>) with
+    // stable IDs and class names for its transport controls.
+    if (host === 'music.youtube.com') {
+      const selectors = {
+        play:     ['ytmusic-player-bar #play-pause-button'],
+        pause:    ['ytmusic-player-bar #play-pause-button'],
+        next:     ['ytmusic-player-bar .next-button'],
+        previous: ['ytmusic-player-bar .previous-button'],
+      };
+      for (const sel of selectors[action] ?? []) {
+        const btn = document.querySelector(sel);
+        if (btn) { btn.click(); return; }
+      }
+      return;
+    }
+
+    // ── YouTube ────────────────────────────────────────────────────────────
+    // www.youtube.com exposes a JS player API on the #movie_player element.
+    // Use it directly for the most reliable control; fall back to button
+    // clicks for environments where the API is not yet available.
+    if (host.includes('youtube.com')) {
+      const player = document.getElementById('movie_player');
+      if (player) {
+        if (action === 'play')  { player.playVideo?.();  return; }
+        if (action === 'pause') { player.pauseVideo?.(); return; }
+        if (action === 'next') {
+          // .ytp-next-button exists in playlist/autoplay queue; disabled otherwise.
+          const nextBtn = document.querySelector('.ytp-next-button:not([disabled])');
+          if (nextBtn) { nextBtn.click(); return; }
+          player.nextVideo?.();
+          return;
+        }
+        if (action === 'previous') {
+          const prevBtn = document.querySelector('.ytp-prev-button:not([disabled])');
+          if (prevBtn) { prevBtn.click(); return; }
+          // No previous track in the queue: restart current video if more than
+          // 3 s in, otherwise go to the previous queue entry.
+          const time = player.getCurrentTime?.() ?? 0;
+          if (time > 3) player.seekTo?.(0, true);
+          else player.previousVideo?.();
+          return;
+        }
+      }
+
+      // Fallback when the player element or its API is not yet available
+      const fallback = {
+        play:     ['.ytp-play-button'],
+        pause:    ['.ytp-play-button'],
+        next:     ['.ytp-next-button'],
+        previous: ['.ytp-prev-button'],
+      };
+      for (const sel of fallback[action] ?? []) {
+        const btn = document.querySelector(sel);
+        if (btn) { btn.click(); return; }
+      }
     }
   });
 } catch (e) {

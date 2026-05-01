@@ -112,7 +112,10 @@ chrome.runtime.onStartup.addListener(injectMediaScript);
  * auto-injected into pages that load *after* the extension is installed/reloaded.
  */
 function injectMediaScript() {
-  const patterns = ["*://*.soundcloud.com/*"];
+  const patterns = [
+    "*://*.soundcloud.com/*",
+    "*://*.youtube.com/*",
+  ];
   chrome.tabs.query({ url: patterns }, (tabs) => {
     for (const tab of tabs ?? []) {
       if (!tab.id) continue;

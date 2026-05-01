@@ -5,7 +5,7 @@
  * Import from here everywhere — never inline brand SVGs in component files.
  *
  * Usage:
- *   import { GoogleIcon, SpotifyIcon, SoundCloudIcon } from '../../assets/brand/icons';
+ *   import { GoogleIcon, SpotifyIcon, SoundCloudIcon, YouTubeIcon, YouTubeMusicIcon } from '../../assets/brand/icons';
  */
 
 import React from 'react';
@@ -32,6 +32,30 @@ export const SpotifyIcon = ({ size = 18 }) => (
     <path
       fill="white"
       d="M17.9 10.9C14.7 9 9.35 8.8 6.3 9.75c-.5.15-1-.15-1.15-.6-.15-.5.15-1 .6-1.15 3.55-1.05 9.4-.85 13.1 1.35.45.25.6.85.35 1.3-.25.35-.85.5-1.3.25zm-.1 2.8c-.25.35-.7.5-1.05.25-2.7-1.65-6.8-2.15-9.95-1.15-.4.1-.85-.1-.95-.5-.1-.4.1-.85.5-.95 3.65-1.1 8.15-.55 11.25 1.35.3.15.45.65.2 1zm-1.2 2.75c-.2.3-.55.4-.85.2-2.35-1.45-5.3-1.75-8.8-.95-.35.1-.65-.15-.75-.45-.1-.35.15-.65.45-.75 3.8-.85 7.1-.5 9.7 1.1.3.15.4.55.25.85z"
+    />
+  </svg>
+);
+
+// ─── YouTube ─────────────────────────────────────────────────────────────────
+// YouTube brand: red rounded-square with the classic white play triangle.
+
+export const YouTubeIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <rect width="24" height="24" rx="5" fill="#FF0000" />
+    <path fill="white" d="M9.5 7.5l7 4.5-7 4.5V7.5z" />
+  </svg>
+);
+
+// ─── YouTube Music ────────────────────────────────────────────────────────────
+// YouTube Music brand: red circle with a white music note (distinct from
+// SoundCloud's orange square and YouTube's red square).
+
+export const YouTubeMusicIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="12" fill="#FF0000" />
+    <path
+      fill="white"
+      d="M15 6.5v8.08A3 3 0 1 1 13 12V8.27l-5 1.11V15a3 3 0 1 1-2-2.83V8.5a1 1 0 0 1 .78-.976l7-1.556A1 1 0 0 1 15 6.5z"
     />
   </svg>
 );

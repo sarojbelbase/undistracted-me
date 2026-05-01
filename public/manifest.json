@@ -72,7 +72,8 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.soundcloud.com/*"
+        "*://*.soundcloud.com/*",
+        "*://*.youtube.com/*"
       ],
       "js": [
         "src/utilities/media.js"
