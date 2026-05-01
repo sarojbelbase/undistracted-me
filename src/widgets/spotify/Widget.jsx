@@ -8,7 +8,7 @@ import {
   SPOTIFY_CLIENT_ID,
   isSpotifyConnected,
   getCurrentPlayback, setPlayPause, skipNext, skipPrev,
-  extractAlbumColor, getSpotifyProfile,
+  extractAlbumColor, getSpotifyProfile, fetchAndCacheProfile,
   getChromeMedia, sendChromeMediaAction,
 } from './utils';
 import { SPOTIFY_ACCOUNT_CHANGED } from '../../components/ui/AccountsDialog';
@@ -330,14 +330,14 @@ export const Widget = ({ onRemove }) => {
           settingsContent={settingsPanel}
           settingsTitle="Media"
         >
-          <MusicNoteBeamed size={28} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
+          <MusicNoteBeamed size={22} style={{ color: 'var(--w-ink-6)', opacity: 0.4 }} />
           <div className="flex flex-col items-center gap-1.5 text-center">
-            <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>
-              Nothing playing
+            <p className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Nothing playing</p>
+            <p className="text-[10.5px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>
+              Open YouTube or SoundCloud in any tab
             </p>
-            <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
-              Play YouTube or SoundCloud in any tab — it appears here automatically.
-              {' '}Or open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings&nbsp;› Accounts</span> to connect Spotify.
+            <p className="text-[10px]" style={{ color: 'var(--w-ink-6)' }}>
+              Settings&nbsp;›&nbsp;Accounts to connect Spotify
             </p>
           </div>
         </BaseWidget>
@@ -655,7 +655,15 @@ const SpotifySettings = () => {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    getSpotifyProfile().then(p => { if (p) setProfile(p); });
+    // fetchAndCacheProfile hits the Spotify API and returns avatar; fall back to
+    // the cached storage profile (name+product only) if the API call fails.
+    fetchAndCacheProfile()
+      .then(p => { if (p) { setProfile(p); return; } })
+      .catch(() => {})
+      .finally(() => {
+        if (!profile) getSpotifyProfile().then(p => { if (p) setProfile(p); });
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -686,10 +694,10 @@ const SpotifySettings = () => {
           Playback sources
         </p>
         <div className="flex flex-wrap gap-1.5">
-          <TintedChip>SoundCloud</TintedChip>
-          <TintedChip>YouTube</TintedChip>
-          <TintedChip>YouTube Music</TintedChip>
-          <TintedChip style={{ opacity: 0.5, cursor: 'default', pointerEvents: 'none' }}>+ More coming</TintedChip>
+          <TintedChip style={{ background: 'rgba(255,85,0,0.10)', color: '#ff5500' }}>SoundCloud</TintedChip>
+          <TintedChip style={{ background: 'rgba(255,0,0,0.10)', color: '#ff0000' }}>YouTube</TintedChip>
+          <TintedChip style={{ background: 'rgba(192,0,0,0.10)', color: '#c00c1e' }}>YouTube Music</TintedChip>
+          <TintedChip style={{ opacity: 0.45, cursor: 'default', pointerEvents: 'none' }}>+ More</TintedChip>
         </div>
         <p className="text-[10px] leading-relaxed m-0" style={{ color: 'var(--w-ink-5)' }}>
           Detected automatically — just play in any tab.
