@@ -130,10 +130,6 @@ export const Widget = ({ onRemove }) => {
   const [chromeMediaSessions, setChromeMediaSessions] = useState([]);
   const [chromeAlbumColors, setChromeAlbumColors] = useState({});
   const chromeArtRef = useRef({});
-  const [activeChromeTabId, setActiveChromeTabId] = useState(null);
-  // Animate chrome media track changes too
-  const [chromeTrackAnimKey, setChromeTrackAnimKey] = useState(0);
-  const prevChromeTrackIdRef = useRef(null);
   const [chromePendingTabId, setChromePendingTabId] = useState(null);
   const chromePendingTimeoutRef = useRef(null);
   const [spotifyPending, setSpotifyPending] = useState(false);
@@ -283,10 +279,24 @@ export const Widget = ({ onRemove }) => {
   const btnBg = hasBg ? 'rgba(255,255,255,0.18)' : 'var(--panel-bg)';
   const btnBorder = hasBg ? '1px solid rgba(255,255,255,0.25)' : '1px solid var(--card-border)';
 
-  // Chrome media colours — based on the active session's album art
-  const activeSession = chromeMediaSessions.find(s => s.tabId === activeChromeTabId)
-    ?? chromeMediaSessions[0]
-    ?? null;
+  // Priority-based single-session selection.
+  // Playing sessions beat paused; ties broken by source priority:
+  //   YouTube Music (0) > YouTube (1) > SoundCloud (2) > everything else (99)
+  const chromePriority = (host) => {
+    if (!host) return 99;
+    if (host === 'music.youtube.com') return 0;
+    if (host.includes('youtube.com')) return 1;
+    if (host.includes('soundcloud.com')) return 2;
+    return 99;
+  };
+  const activeSession = chromeMediaSessions.reduce((best, s) => {
+    if (!best) return s;
+    const bestPlaying = best.playbackState === 'playing';
+    const sPlaying = s.playbackState === 'playing';
+    if (sPlaying && !bestPlaying) return s;
+    if (!sPlaying && bestPlaying) return best;
+    return chromePriority(s.host) <= chromePriority(best.host) ? s : best;
+  }, null) ?? null;
 
   // Animate when chrome media track changes
   useEffect(() => {
@@ -297,7 +307,6 @@ export const Widget = ({ onRemove }) => {
       setChromeTrackAnimKey(k => k + 1);
     }
   }, [activeSession?.title, activeSession?.artist]);
-  const otherSessions = chromeMediaSessions.filter(s => s !== activeSession);
   const activeChromeColor = activeSession ? (chromeAlbumColors[activeSession.tabId] ?? null) : null;
   const chromeHasBg = !!activeSession?.artwork && !!activeChromeColor;
   const chromeBgStyle = activeChromeColor
@@ -381,40 +390,15 @@ export const Widget = ({ onRemove }) => {
           </div>
         )}
 
-        {/* Main player — fills available vertical space above the strips */}
+        {/* Main player — fills available vertical space */}
         <div className="relative z-10 flex flex-col flex-1 p-4 gap-2 min-h-0">
-          {/* Source label + session-switcher dots (only when >1 session) */}
-          {chromeMediaSessions.length > 1 && (
-            <div className="flex items-center justify-between">
-              <span
-                className="text-[10px] font-medium tracking-widest uppercase"
-                style={{ color: chromeHasBg ? 'rgba(255,255,255,0.45)' : 'var(--w-ink-5)', letterSpacing: '0.1em' }}
-              >
-                {activeSession?.host || 'Browser'}
-              </span>
-              {/* Pill-dot navigation — active dot is a wider pill */}
-              <div className="flex items-center gap-1.5" role="tablist" aria-label="Switch source">
-                {chromeMediaSessions.map(s => (
-                  <button
-                    key={s.tabId}
-                    role="tab"
-                    aria-selected={s === activeSession}
-                    aria-label={`Switch to ${s.host || 'player'}`}
-                    onClick={() => setActiveChromeTabId(s.tabId)}
-                    className="rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/60"
-                    style={{
-                      height: 6,
-                      width: s === activeSession ? 18 : 6,
-                      transition: 'width 0.25s ease, background-color 0.25s ease',
-                      backgroundColor: s === activeSession
-                        ? (chromeHasBg ? 'rgba(255,255,255,0.85)' : 'var(--w-ink-1)')
-                        : (chromeHasBg ? 'rgba(255,255,255,0.28)' : 'var(--w-ink-5)'),
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Source label */}
+          <span
+            className="text-[10px] font-medium tracking-widest uppercase"
+            style={{ color: chromeHasBg ? 'rgba(255,255,255,0.45)' : 'var(--w-ink-5)', letterSpacing: '0.1em' }}
+          >
+            {activeSession?.host || 'Browser'}
+          </span>
 
           {/* Album art square — animates on track change */}
           <div key={chromeTrackAnimKey} className="flex flex-col gap-2" style={chromeTrackAnimKey > 0 ? { animation: 'spotifyTrackIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : undefined}>
@@ -425,11 +409,7 @@ export const Widget = ({ onRemove }) => {
                   alt=""
                   decoding="async"
                   className="rounded-xl shadow-lg object-cover"
-                  style={{
-                    width: otherSessions.length ? 64 : 80,
-                    height: otherSessions.length ? 64 : 80,
-                    transition: 'width 0.25s ease, height 0.25s ease',
-                  }}
+                  style={{ width: 80, height: 80 }}
                 />
               </div>
             )}
@@ -521,17 +501,6 @@ export const Widget = ({ onRemove }) => {
             </div>
           </div>
         </div>
-
-        {/* Other session strips — compact rows that peek below the main player */}
-        {otherSessions.map(s => (
-          <ChromeMediaStrip
-            key={s.tabId}
-            session={s}
-            isPending={chromePendingTabId === s.tabId}
-            onPromote={() => setActiveChromeTabId(s.tabId)}
-            onPlayPause={() => handleChromePlayPause(s)}
-          />
-        ))}
       </BaseWidget>
     );
   }
