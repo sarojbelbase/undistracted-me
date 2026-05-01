@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { TintedChip } from '../../components/ui/TintedChip';
-import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
+import { SpotifyIcon as SpotifyBrandIcon, YouTubeIcon, YouTubeMusicIcon, SoundCloudIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
   SPOTIFY_CLIENT_ID,
@@ -30,6 +30,31 @@ const parseTrack = (data) => {
 
 // Darken an RGB colour for gradient backgrounds
 const dark = (r, g, b, f) => `rgb(${Math.round(r * f)},${Math.round(g * f)},${Math.round(b * f)})`;
+
+// Small brand badge overlaid on the album art corner — shows which source is active
+// without consuming any layout space.
+const SOURCE_META = {
+  'music.youtube.com': { color: '#c00c1e', Icon: YouTubeMusicIcon, label: 'YouTube Music' },
+  'www.youtube.com':   { color: '#ff0000', Icon: YouTubeIcon,      label: 'YouTube' },
+  'youtube.com':       { color: '#ff0000', Icon: YouTubeIcon,      label: 'YouTube' },
+  'soundcloud.com':    { color: '#ff5500', Icon: SoundCloudIcon,   label: 'SoundCloud' },
+};
+
+const ChromeSourceBadge = ({ host }) => {
+  const meta = host ? (SOURCE_META[host] ?? null) : null;
+  if (!meta) return null;
+  const { color, Icon, label } = meta;
+  return (
+    <div
+      aria-label={label}
+      title={label}
+      className="absolute -bottom-1.5 -right-1.5 flex items-center justify-center rounded-full shadow-md"
+      style={{ width: 20, height: 20, background: color, border: '1.5px solid rgba(255,255,255,0.18)' }}
+    >
+      <Icon size={11} />
+    </div>
+  );
+};
 
 // Compact strip shown for non-active browser media sessions in the stacked player.
 // Clicking the strip body (artwork + text) promotes it to the main player slot.
@@ -394,25 +419,21 @@ export const Widget = ({ onRemove }) => {
 
         {/* Main player — fills available vertical space */}
         <div className="relative z-10 flex flex-col flex-1 p-4 gap-2 min-h-0">
-          {/* Source label */}
-          <span
-            className="text-[10px] font-medium tracking-widest uppercase"
-            style={{ color: chromeHasBg ? 'rgba(255,255,255,0.45)' : 'var(--w-ink-5)', letterSpacing: '0.1em' }}
-          >
-            {activeSession?.host || 'Browser'}
-          </span>
-
           {/* Album art square — animates on track change */}
           <div key={chromeTrackAnimKey} className="flex flex-col gap-2" style={chromeTrackAnimKey > 0 ? { animation: 'spotifyTrackIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : undefined}>
             {activeSession?.artwork && (
               <div className="flex justify-center">
-                <img
-                  src={activeSession.artwork}
-                  alt=""
-                  decoding="async"
-                  className="rounded-xl shadow-lg object-cover"
-                  style={{ width: 80, height: 80 }}
-                />
+                <div className="relative inline-block">
+                  <img
+                    src={activeSession.artwork}
+                    alt=""
+                    decoding="async"
+                    className="rounded-xl shadow-lg object-cover"
+                    style={{ width: 80, height: 80 }}
+                  />
+                  {/* Tiny source badge — bottom-right of artwork, no layout cost */}
+                  <ChromeSourceBadge host={activeSession?.host} />
+                </div>
               </div>
             )}
 
