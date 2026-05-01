@@ -130,6 +130,8 @@ export const Widget = ({ onRemove }) => {
   const [chromeMediaSessions, setChromeMediaSessions] = useState([]);
   const [chromeAlbumColors, setChromeAlbumColors] = useState({});
   const chromeArtRef = useRef({});
+  const [chromeTrackAnimKey, setChromeTrackAnimKey] = useState(0);
+  const prevChromeTrackIdRef = useRef(null);
   const [chromePendingTabId, setChromePendingTabId] = useState(null);
   const chromePendingTimeoutRef = useRef(null);
   const [spotifyPending, setSpotifyPending] = useState(false);
