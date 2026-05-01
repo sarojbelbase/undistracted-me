@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
-import { SpotifyIcon as SpotifyBrandIcon, SoundCloudIcon, YouTubeIcon, YouTubeMusicIcon } from '../../assets/brand/icons';
+import { TintedChip } from '../../components/ui/TintedChip';
+import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
   SPOTIFY_CLIENT_ID,
@@ -332,10 +333,11 @@ export const Widget = ({ onRemove }) => {
           <MusicNoteBeamed size={28} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
           <div className="flex flex-col items-center gap-1.5 text-center">
             <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>
-              Not connected
+              Nothing playing
             </p>
             <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
-              Open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings&nbsp;› Accounts</span> to connect your Spotify account.
+              Play YouTube or SoundCloud in any tab — it appears here automatically.
+              {' '}Or open <span className="font-semibold" style={{ color: 'var(--w-ink-3)' }}>Settings&nbsp;› Accounts</span> to connect Spotify.
             </p>
           </div>
         </BaseWidget>
@@ -683,42 +685,15 @@ const SpotifySettings = () => {
         <p className="text-[10px] font-semibold m-0" style={{ color: 'var(--w-ink-6)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
           Playback sources
         </p>
-
-        {/* SoundCloud — automatic, no setup */}
-        <div className="flex items-center gap-2.5">
-          <SoundCloudIcon size={20} />
-          <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>SoundCloud</span>
-          <span
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-            style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--w-ink-5)' }}
-          >
-            Auto
-          </span>
+        <div className="flex flex-wrap gap-1.5">
+          <TintedChip>SoundCloud</TintedChip>
+          <TintedChip>YouTube</TintedChip>
+          <TintedChip>YouTube Music</TintedChip>
+          <TintedChip style={{ opacity: 0.5, cursor: 'default', pointerEvents: 'none' }}>+ More coming</TintedChip>
         </div>
-
-        {/* YouTube — automatic, no setup */}
-        <div className="flex items-center gap-2.5">
-          <YouTubeIcon size={20} />
-          <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>YouTube</span>
-          <span
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-            style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--w-ink-5)' }}
-          >
-            Auto
-          </span>
-        </div>
-
-        {/* YouTube Music — automatic, no setup */}
-        <div className="flex items-center gap-2.5">
-          <YouTubeMusicIcon size={20} />
-          <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>YouTube Music</span>
-          <span
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
-            style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--w-ink-5)' }}
-          >
-            Auto
-          </span>
-        </div>
+        <p className="text-[10px] leading-relaxed m-0" style={{ color: 'var(--w-ink-5)' }}>
+          Detected automatically — just play in any tab.
+        </p>
       </div>
 
     </div>
