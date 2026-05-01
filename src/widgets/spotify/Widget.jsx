@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
-import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
+import { SpotifyIcon as SpotifyBrandIcon, SoundCloudIcon, YouTubeIcon, YouTubeMusicIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
   SPOTIFY_CLIENT_ID,
@@ -680,14 +680,9 @@ const SpotifySettings = () => {
           Playback sources
         </p>
 
-        {/* Soundcloud — automatic, no setup */}
+        {/* SoundCloud — automatic, no setup */}
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: '#FF5500' }}
-          >
-            <MusicNoteBeamed size={11} color="white" />
-          </div>
+          <SoundCloudIcon size={20} />
           <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>SoundCloud</span>
           <span
             className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
@@ -697,18 +692,28 @@ const SpotifySettings = () => {
           </span>
         </div>
 
-        {/* Placeholder — coming soon */}
-        <div className="flex items-center gap-2.5" style={{ opacity: 0.45 }}>
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
-            style={{ border: '1px dashed rgba(0,0,0,0.2)' }}
+        {/* YouTube — automatic, no setup */}
+        <div className="flex items-center gap-2.5">
+          <YouTubeIcon size={20} />
+          <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>YouTube</span>
+          <span
+            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
+            style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--w-ink-5)' }}
           >
-            <svg width="8" height="8" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--w-ink-5)' }}>
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-            </svg>
-          </div>
-          <span className="text-[11px] flex-1" style={{ color: 'var(--w-ink-4)' }}>More integrations</span>
-          <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>Coming soon</span>
+            Auto
+          </span>
+        </div>
+
+        {/* YouTube Music — automatic, no setup */}
+        <div className="flex items-center gap-2.5">
+          <YouTubeMusicIcon size={20} />
+          <span className="text-[11px] flex-1 font-medium" style={{ color: 'var(--w-ink-3)' }}>YouTube Music</span>
+          <span
+            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md"
+            style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--w-ink-5)' }}
+          >
+            Auto
+          </span>
         </div>
       </div>
 
