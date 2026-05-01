@@ -455,12 +455,16 @@ export const Widget = ({ onRemove }) => {
               )}
               <button
                 onClick={() => handleChromePrev(activeSession)}
+                disabled={activeSession?.canGoPrev === false}
                 className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"
                 style={{
                   backgroundColor: chromeBtnBg,
                   color: chromeInk,
                   border: chromeBtnBorder,
-                  opacity: chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'prev' ? 0.6 : 1,
+                  opacity: activeSession?.canGoPrev === false ? 0.2
+                    : chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'prev' ? 0.6
+                    : 1,
+                  cursor: activeSession?.canGoPrev === false ? 'default' : undefined,
                   transition: 'opacity 0.2s',
                 }}
                 aria-label="Previous"

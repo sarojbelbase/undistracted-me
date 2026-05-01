@@ -11,6 +11,7 @@
 
 let prevTitle = null;
 let prevPlaybackState = null;
+let prevCanGoPrev = null;
 
 // Becomes false when the extension is reloaded/updated while this content script is still
 // alive. After that, all chrome.runtime calls would throw 'Extension context invalidated'.
@@ -25,6 +26,33 @@ function getArtwork() {
   if (!artwork?.length) return null;
   // Prefer the largest entry; some sites put best quality last
   return artwork.at(-1).src;
+}
+
+/**
+ * Returns true when a "previous" action is meaningful on this page.
+ * Used to disable the prev button in the widget rather than silently no-op.
+ *
+ * YouTube: prev button only exists in playlist/chapter mode.
+ * YouTube Music: previous button is inside the player-bar shadow root.
+ * Everything else (SoundCloud, etc.): assume prev is always available.
+ */
+function detectCanGoPrev() {
+  const host = location.hostname;
+  if (host === 'music.youtube.com') {
+    const bar = document.querySelector('ytmusic-player-bar');
+    const roots = [bar?.shadowRoot, bar].filter(Boolean);
+    for (const root of roots) {
+      const btn = root.querySelector('#previous-button, .previous-button');
+      if (btn) return !btn.hasAttribute('disabled');
+    }
+    return false;
+  }
+  if (host.includes('youtube.com')) {
+    // .ytp-prev-button only renders when in a playlist or chapter list.
+    const btn = document.querySelector('.ytp-prev-button');
+    return !!btn && !btn.hasAttribute('disabled');
+  }
+  return true;
 }
 
 /**
@@ -89,9 +117,11 @@ function poll() {
 
   const title = effectiveMeta.title || null;
   const artist = effectiveMeta.artist || null;
-  if (title !== prevTitle || playbackState !== prevPlaybackState) {
+  const canGoPrev = detectCanGoPrev();
+  if (title !== prevTitle || playbackState !== prevPlaybackState || canGoPrev !== prevCanGoPrev) {
     prevTitle = title;
     prevPlaybackState = playbackState;
+    prevCanGoPrev = canGoPrev;
     safeSend({
       type: 'MEDIA_SESSION_UPDATE',
       data: {
@@ -101,6 +131,7 @@ function poll() {
         artwork: getArtwork(),
         playbackState,
         host: location.hostname,
+        canGoPrev,
       },
     });
   }
@@ -195,16 +226,19 @@ try {
         return;
       }
       if (action === 'next') {
-        document.querySelector('.ytp-next-button:not([disabled])')?.click();
+        // Shift+N = next video (respects playlist order)
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'N', code: 'KeyN', keyCode: 78, which: 78,
+          shiftKey: true, bubbles: true, cancelable: true,
+        }));
         return;
       }
       if (action === 'previous') {
-        const prevBtn = document.querySelector('.ytp-prev-button:not([disabled])');
-        if (prevBtn) { prevBtn.click(); return; }
-        // No playlist prev-button: restart current video after 3 s
-        const player = document.getElementById('movie_player');
-        const t = player?.getCurrentTime?.();
-        if (typeof t === 'number' && t > 3) player.seekTo?.(0, true);
+        // Shift+P = previous video (playlist) or restart (no playlist)
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'P', code: 'KeyP', keyCode: 80, which: 80,
+          shiftKey: true, bubbles: true, cancelable: true,
+        }));
         return;
       }
     }
