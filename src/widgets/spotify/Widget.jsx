@@ -666,12 +666,20 @@ const SpotifySettings = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Sync when AccountsDialog fires SPOTIFY_ACCOUNT_CHANGED on this window.
+  // (globalThis.storage only fires on *other* tabs — useless here.)
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'spotify_connected') setConnected(isSpotifyConnected());
+    const handler = ({ detail }) => {
+      setConnected(detail.connected);
+      if (detail.connected) {
+        // Profile with avatar comes back from fetchAndCacheProfile inside AccountsDialog
+        fetchAndCacheProfile().then(p => { if (p) setProfile(p); }).catch(() => {});
+      } else {
+        setProfile(null);
+      }
     };
-    globalThis.addEventListener('storage', onStorage);
-    return () => globalThis.removeEventListener('storage', onStorage);
+    window.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    return () => window.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
   }, []);
 
   return (
