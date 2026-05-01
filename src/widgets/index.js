@@ -9,7 +9,7 @@ import notesConfig from "./notes/config";
 import bookmarksConfig from "./bookmarks/config";
 import quickAccessConfig from "./quickAccess/config";
 import pomodoroConfig from "./pomodoro/config";
-import spotifyConfig from "./spotify/config";
+import mediaConfig from "./media/config";
 import stockConfig from "./stock/config";
 import occasionsConfig from "./occasions/config";
 import dailysConfig from "./dailys/config";
@@ -54,8 +54,7 @@ export const WIDGET_REGISTRY = [
   weatherConfig,
   bookmarksConfig,
   quickAccessConfig,
-  spotifyConfig,
-  stockConfig,
+  mediaConfig,
   occasionsConfig,
   dailysConfig,
   rssConfig,

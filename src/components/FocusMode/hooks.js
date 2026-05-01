@@ -5,7 +5,7 @@ import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync, getP
 import { useWidgetInstancesStore } from '../../store';
 import { useLocationStore } from '../../store/useLocationStore';
 // Shared hooks — also usable by canvas-mode widgets
-import { useSpotify } from '../../widgets/spotify/useSpotify';
+import { useSpotify } from '../../widgets/media/useSpotify';
 
 const HISTORY_KEY = 'fm_search_history';
 const MAX_HISTORY = 12;
@@ -356,7 +356,7 @@ export function switchToTab(tab) {
 
 // ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───
 
-import { getChromeMedia, sendChromeMediaAction } from '../../widgets/spotify/utils';
+import { getChromeMedia, sendChromeMediaAction } from '../../widgets/media/utils';
 
 /**
  * Polls the background SW for browser media sessions every 3s.

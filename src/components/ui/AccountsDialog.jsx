@@ -10,7 +10,7 @@ import {
   isSpotifyConnected,
   fetchAndCacheProfile as fetchSpotifyProfile,
   getSpotifyProfile,
-} from '../../widgets/spotify/utils';
+} from '../../widgets/media/utils';
 
 const GOOGLE_SCOPES = ['Calendar events', 'Contact birthdays', 'Task management'];
 const SPOTIFY_SCOPES = ['Playback control', 'Currently playing', 'Skip & pause'];

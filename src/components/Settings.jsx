@@ -7,7 +7,7 @@ import { TooltipBtn } from './ui/TooltipBtn';
 import { CANVAS_DIVIDER } from '../theme/canvas';
 import { AccountsDialog, SPOTIFY_ACCOUNT_CHANGED } from './ui/AccountsDialog';
 import { useGoogleAccountStore } from '../store/useGoogleAccountStore';
-import { isSpotifyConnected } from '../widgets/spotify/utils';
+import { isSpotifyConnected } from '../widgets/media/utils';
 
 const SectionLabel = ({ children }) => (
   <p className="text-[10px] font-bold mb-2" style={{ color: 'var(--w-ink-3)' }}>
