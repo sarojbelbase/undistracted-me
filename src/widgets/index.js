@@ -55,6 +55,7 @@ export const WIDGET_REGISTRY = [
   bookmarksConfig,
   quickAccessConfig,
   mediaConfig,
+  stockConfig,
   occasionsConfig,
   dailysConfig,
   rssConfig,
