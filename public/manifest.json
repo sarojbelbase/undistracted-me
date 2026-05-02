@@ -89,7 +89,9 @@
       "https://www.googleapis.com/auth/contacts.readonly",
       "https://www.googleapis.com/auth/tasks",
       "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email"
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/fitness.activity.read",
+      "https://www.googleapis.com/auth/fitness.sleep.read"
     ]
   }
 }
