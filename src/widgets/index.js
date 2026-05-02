@@ -1,12 +1,12 @@
 import clockConfig from "./clock/config";
 import dateTodayConfig from "./dateToday/config";
-import dayProgressConfig from "./progress/config";
+import progressConfig from "./progress/config";
 import eventsConfig from "./events/config";
 import weatherConfig from "./weather/config";
 import calendarConfig from "./calendar/config";
 import countdownConfig from "./countdown/config";
 import notesConfig from "./notes/config";
-import bookmarksConfig from "./bookmarks/config";
+import bookmarksConfig from "./bookmark/config";
 import quickAccessConfig from "./quickAccess/config";
 import pomodoroConfig from "./pomodoro/config";
 import mediaConfig from "./media/config";
@@ -14,25 +14,6 @@ import stockConfig from "./stock/config";
 import occasionsConfig from "./occasions/config";
 import dailysConfig from "./dailys/config";
 import rssConfig from "./rss/config";
-
-export const WIDGET_TYPES = Object.freeze({
-  CLOCK: "clock",
-  DATE_TODAY: "dateToday",
-  DAY_PROGRESS: "progress",
-  EVENTS: "events",
-  WEATHER: "weather",
-  CALENDAR: "calendar",
-  COUNTDOWN: "countdown",
-  NOTES: "notes",
-  BOOKMARKS: "bookmark",
-  QUICK_ACCESS: "quickAccess",
-  POMODORO: "pomodoro",
-  SPOTIFY: "spotify",
-  STOCK: "stock",
-  BIRTHDAYS: "birthdays",
-  DAILYS: "dailys",
-  RSS: "rss",
-});
 
 /**
  * WIDGET_REGISTRY — assembled from each widget's config.js.
@@ -45,7 +26,7 @@ export const WIDGET_TYPES = Object.freeze({
 export const WIDGET_REGISTRY = [
   clockConfig,
   dateTodayConfig,
-  dayProgressConfig,
+  progressConfig,
   countdownConfig,
   eventsConfig,
   calendarConfig,
@@ -60,3 +41,9 @@ export const WIDGET_REGISTRY = [
   dailysConfig,
   rssConfig,
 ];
+
+export const WIDGET_TYPES = Object.freeze(
+  Object.fromEntries(
+    WIDGET_REGISTRY.map((c) => [c.type.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase(), c.type])
+  )
+);

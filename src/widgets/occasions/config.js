@@ -2,7 +2,7 @@ import { Widget } from './Widget';
 import { BalloonFill } from 'react-bootstrap-icons';
 
 export default {
-  type: 'ocasions',
+  type: 'occasions',
   title: 'Occasions',
   category: 'planning',
   icon: BalloonFill,
