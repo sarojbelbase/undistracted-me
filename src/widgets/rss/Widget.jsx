@@ -324,8 +324,8 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                    A single white circle slides via translateX — one animation,
                    Material You easing, GPU-composited, zero jank. */}
               {(() => {
-                const DOT = 5;      // background dot diameter
-                const IND = 8;      // sliding indicator diameter
+                const DOT = 4;      // background dot diameter
+                const IND = 6;      // sliding indicator diameter
                 const GAP = 6;      // gap between dots
                 const STRIDE = DOT + GAP; // 11px per slot
                 const MAX = 5;
