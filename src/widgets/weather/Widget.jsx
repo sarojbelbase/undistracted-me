@@ -37,11 +37,16 @@ const ExpressiveSkeleton = () => (
   </div>
 );
 
-const SimpleSkeleton = () => (
-  <div className="flex flex-col items-center w-full h-full animate-pulse gap-2 justify-center">
-    <Bone width="5rem" height="1rem" />
-    <Bone width="3rem" height="3rem" className="mt-2" />
-    <Bone width="4.5rem" height="0.75rem" className="mt-1" />
+const MinimalSkeleton = () => (
+  <div className="flex flex-col w-full h-full animate-pulse">
+    <div className="flex items-center gap-2.5">
+      <Bone width="2rem" height="2rem" className="rounded-lg" />
+      <Bone width="6rem" height="0.95rem" />
+    </div>
+    <div style={{ flex: 1 }} />
+    <Bone width="6.5rem" height="4rem" className="rounded-xl" />
+    <div style={{ flex: 1 }} />
+    <Bone width="4.5rem" height="1.4rem" className="rounded-lg" />
   </div>
 );
 
@@ -146,18 +151,77 @@ const ErrorState = () => (
   </div>
 );
 
-const SimpleView = ({ weather, cityShort, unitLabel }) => (
-  <div className="flex flex-col items-center w-full h-full">
-    <div className="flex items-baseline gap-1.5">
-      <span className="w-title-soft truncate">{cityShort}</span>
-      <span className="w-title-bold">{weather.temperature}°{unitLabel}</span>
-    </div>
-    <div className="flex-1 flex flex-col items-center justify-center mt-4 mb-2">
-      {getWeatherIcon(weather.code, weather.isDay)}
-      <div className="w-caption font-bold mt-3 capitalize" style={{ color: 'var(--w-accent)' }}>
+// ── Minimal mode — inspired by Apple Weather widget ───────────────────────────
+// Layout: icon + condition at top · hero temperature in the middle · city at bottom.
+// Typography does the heavy lifting; no accent colours, no decorations.
+const MinimalView = ({ weather, cityShort, unitLabel }) => (
+  <div className="flex flex-col w-full h-full" style={{ letterSpacing: '-0.01em' }}>
+
+    {/* Row 1 — icon + condition */}
+    <div className="flex items-center gap-2">
+      {getWeatherIcon(weather.code, weather.isDay, 32)}
+      <span
+        style={{
+          fontSize: '1rem',
+          fontWeight: 500,
+          color: 'var(--w-ink-3)',
+          lineHeight: 1.2,
+          textTransform: 'capitalize',
+        }}
+      >
         {weather.description}
-      </div>
+      </span>
     </div>
+
+    {/* Spacer */}
+    <div style={{ flex: 1 }} />
+
+    {/* Row 2 — hero temperature */}
+    <div
+      aria-label={`${weather.temperature} degrees ${unitLabel === 'C' ? 'Celsius' : 'Fahrenheit'}`}
+      style={{
+        fontSize: '4.5rem',
+        fontWeight: 300,
+        lineHeight: 1,
+        color: 'var(--w-ink-2)',
+        letterSpacing: '-0.04em',
+      }}
+    >
+      {weather.temperature}°
+    </div>
+
+    {/* Spacer */}
+    <div style={{ flex: 1 }} />
+
+    {/* Row 3 — city */}
+    {cityShort ? (
+      <div
+        style={{
+          fontSize: '1.35rem',
+          fontWeight: 600,
+          color: 'var(--w-ink-2)',
+          letterSpacing: '-0.025em',
+          lineHeight: 1.15,
+          truncate: true,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {cityShort}
+      </div>
+    ) : (
+      <div
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: 500,
+          color: 'var(--w-ink-4)',
+          letterSpacing: '0',
+        }}
+      >
+        {unitLabel === 'C' ? '°C' : '°F'}
+      </div>
+    )}
   </div>
 );
 
@@ -246,15 +310,18 @@ function getWeatherContent({ locationDenied, location, error, weather, style, un
     if (!weather) return <ExpressiveSkeleton />;
     return <ExpressiveView weather={weather} forecast={forecast} unitLabel={unitLabel} quip={quip} cityShort={cityShort} atmoAnchor={atmoAnchor} setAtmoAnchor={setAtmoAnchor} />;
   }
-  if (!weather) return <SimpleSkeleton />;
-  return <SimpleView weather={weather} cityShort={cityShort} unitLabel={unitLabel} />;
+  // 'minimal' (and legacy 'simple') — Apple Weather–style layout
+  if (!weather) return <MinimalSkeleton />;
+  return <MinimalView weather={weather} cityShort={cityShort} unitLabel={unitLabel} />;
 }
 
 // ── Widget ────────────────────────────────────────────────────────────────────
 
 export const Widget = ({ id = 'weather', onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { location: null, unit: 'metric', style: 'simple' });
-  const { location, unit, style } = settings;
+  const [settings, updateSetting] = useWidgetSettings(id, { location: null, unit: 'metric', style: 'minimal' });
+  const { location, unit } = settings;
+  // Normalise legacy 'simple' value to 'minimal'
+  const style = settings.style === 'simple' ? 'minimal' : (settings.style ?? 'minimal');
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [error, setError] = useState(null);
@@ -360,7 +427,7 @@ export const Widget = ({ id = 'weather', onRemove }) => {
 
   return (
     <BaseWidget
-      className={`p-4 flex flex-col${style === 'expressive' ? '' : ' items-center justify-center'}`}
+      className="p-4 flex flex-col"
       settingsTitle={config.title}
       settingsContent={settingsContent}
       onRemove={onRemove}

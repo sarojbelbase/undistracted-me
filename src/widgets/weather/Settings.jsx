@@ -23,11 +23,11 @@ const UNIT_OPTIONS = [
 ];
 
 const STYLE_OPTIONS = [
-  { label: 'Simple', value: 'simple' },
+  { label: 'Minimal', value: 'minimal' },
   { label: 'Expressive', value: 'expressive' },
 ];
 
-export const Settings = ({ location, onChange, locationDenied, unit = 'metric', style = 'simple' }) => { // style: 'simple' | 'expressive'
+export const Settings = ({ location, onChange, locationDenied, unit = 'metric', style = 'minimal' }) => { // style: 'minimal' | 'expressive'
   const [query, setQuery] = useState(location?.name || '');
   const [suggestions, setSuggestions] = useState([]);
   const [focused, setFocused] = useState(false);
