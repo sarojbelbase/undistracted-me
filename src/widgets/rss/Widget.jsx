@@ -319,43 +319,77 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                 </svg>
               </button>
 
-              {/* Instagram-style dot indicator:
-                  - Max 5 dots shown in a sliding window centred on current index.
-                  - Sizes/opacity follow a distance-from-active gradient, exactly
-                    like Instagram Reels / Stories: active=8, ±1=6, ±2=4 (capped). */}
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }} aria-hidden="true">
-                {(() => {
-                  const MAX = 5; // maximum dots rendered
-                  const half = Math.floor(MAX / 2);
-                  // Window start: try to keep active centred
-                  const start = Math.max(0, Math.min(index - half, total - MAX));
-                  const end = Math.min(total, start + MAX);
-                  return Array.from({ length: end - start }, (_, k) => {
-                    const dotIdx = start + k;
-                    const dist = Math.abs(dotIdx - index);
-                    // Size lookup: [active, ±1, ±2+]
-                    const dotSizes = [8, 6, 4];
-                    const dotOpacities = [1, 0.55, 0.28];
-                    const baseSize = dotSizes[Math.min(dist, 2)];
-                    const opacity = dotOpacities[Math.min(dist, 2)];
-                    // Edge dots hint at more content off-screen
-                    const isEdge = (dotIdx === start && start > 0) || (dotIdx === end - 1 && end < total);
-                    const finalSize = isEdge ? Math.max(3, baseSize - 1) : baseSize;
-                    return (
+              {/* ── Smooth sliding dot indicator ──
+                   All background dots are uniform and static.
+                   A single white circle slides via translateX — one animation,
+                   Material You easing, GPU-composited, zero jank. */}
+              {(() => {
+                const DOT = 5;      // background dot diameter
+                const IND = 8;      // sliding indicator diameter
+                const GAP = 6;      // gap between dots
+                const STRIDE = DOT + GAP; // 11px per slot
+                const MAX = 5;
+                const half = Math.floor(MAX / 2);
+                const start = Math.max(0, Math.min(index - half, total - MAX));
+                const end = Math.min(total, start + MAX);
+                const count = end - start;
+                const activeK = index - start; // 0-based position within window
+                // Edge dots (hint more content off-screen) get lower opacity
+                const dotOpacity = (k) => {
+                  const dotIdx = start + k;
+                  const isEdge = (dotIdx === start && start > 0) || (dotIdx === end - 1 && end < total);
+                  return isEdge ? 0.18 : 0.28;
+                };
+                return (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: GAP,
+                      // fixed height ensures the absolute indicator never shifts layout
+                      height: IND,
+                    }}
+                  >
+                    {/* Static background dots */}
+                    {Array.from({ length: count }, (_, k) => (
                       <div
-                        key={dotIdx}
+                        key={start + k}
                         style={{
-                          width: finalSize, height: finalSize,
-                          borderRadius: "50%",
-                          background: `rgba(255,255,255,${opacity})`,
-                          transition: "width 0.35s cubic-bezier(0.34,1.56,0.64,1), height 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+                          width: DOT,
+                          height: DOT,
+                          borderRadius: '50%',
+                          background: `rgba(255,255,255,${dotOpacity(k)})`,
                           flexShrink: 0,
+                          // subtle fade when edge dots appear/disappear
+                          transition: 'background 0.3s ease',
                         }}
                       />
-                    );
-                  });
-                })()}
-              </div>
+                    ))}
+
+                    {/* Sliding indicator — single element, single animation */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        width: IND,
+                        height: IND,
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.95)',
+                        // center on the first dot's center, then slide to active
+                        top: '50%',
+                        left: (DOT - IND) / 2, // = -1.5 → centers on dot 0
+                        transform: `translateY(-50%) translateX(${activeK * STRIDE}px)`,
+                        // Smooth slide: Material You standard easing
+                        transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)',
+                        pointerEvents: 'none',
+                        // Soft glow — feels tactile without being distracting
+                        boxShadow: '0 0 0 2px rgba(255,255,255,0.15)',
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* → Next */}
               <button
