@@ -2,7 +2,7 @@ import { Widget } from './Widget';
 import { MusicNoteBeamed } from 'react-bootstrap-icons';
 
 export default {
-  type: 'spotify',
+  type: 'media',
   title: 'Media',
   category: 'tools',
   icon: MusicNoteBeamed,

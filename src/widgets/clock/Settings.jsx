@@ -136,7 +136,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
                 key={tz}
                 type="button"
                 onClick={() => onSelect(tz)}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors cursor-pointer hover:bg-black/[0.05] active:bg-black/10"
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors cursor-pointer hover:bg-black/5 active:bg-black/10"
               >
                 <span className="text-[11.5px] font-medium truncate" style={{ color: 'var(--w-ink-2)' }}>
                   {name}

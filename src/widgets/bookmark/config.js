@@ -3,7 +3,7 @@ import { BookmarkStarFill } from 'react-bootstrap-icons';
 
 export default {
   type: 'bookmark',
-  title: 'Bookmarks',
+  title: 'Bookmark',
   category: 'tools',
   icon: BookmarkStarFill,
   description: 'Quick-access bookmarks',
