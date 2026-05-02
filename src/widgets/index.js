@@ -10,7 +10,6 @@ import bookmarksConfig from "./bookmarks/config";
 import quickAccessConfig from "./quickAccess/config";
 import pomodoroConfig from "./pomodoro/config";
 import mediaConfig from "./media/config";
-import healthConfig from "./health/config";
 import stockConfig from "./stock/config";
 import occasionsConfig from "./occasions/config";
 import dailysConfig from "./dailys/config";
@@ -29,7 +28,6 @@ export const WIDGET_TYPES = Object.freeze({
   QUICK_ACCESS: "quickAccess",
   POMODORO: "pomodoro",
   SPOTIFY: "spotify",
-  HEALTH: "health",
   STOCK: "stock",
   BIRTHDAYS: "birthdays",
   DAILYS: "dailys",
@@ -57,7 +55,6 @@ export const WIDGET_REGISTRY = [
   bookmarksConfig,
   quickAccessConfig,
   mediaConfig,
-  healthConfig,
   stockConfig,
   occasionsConfig,
   dailysConfig,
