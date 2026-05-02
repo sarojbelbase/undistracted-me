@@ -205,35 +205,6 @@ function decodeEntities(str: string): string {
     .replaceAll("&quot;", '"').replaceAll("&apos;", "'").replaceAll("&nbsp;", "\u00a0");
 }
 
-function getMediaUrl(obj: unknown): string | null {
-  if (!obj) return null;
-  if (typeof obj === "string") return obj.startsWith("http") ? obj : null;
-  const o = obj as Record<string, Record<string, string> | string>;
-  return (o.$?.url as string) || (o.url as string) || null;
-}
-
-function getEnclosureImage(enc: Record<string, string> | undefined): string | null {
-  if (!enc?.url) return null;
-  return (/image/i.test(enc.type ?? "") || /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(enc.url))
-    ? enc.url : null;
-}
-
-function getHtmlImage(html: string): string | null {
-  if (!html) return null;
-  const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
-  return m?.[1]?.startsWith("http") ? m[1] : null;
-}
-
-function rssExtractImage(item: Record<string, unknown>): string | null {
-  const img = item["image"];
-  return (
-    getMediaUrl(item["mediaThumbnail"] ?? item["media:thumbnail"]) ||
-    getMediaUrl(item["mediaContent"] ?? item["media:content"]) ||
-    getEnclosureImage(item.enclosure as Record<string, string> | undefined) ||
-    (typeof img === "string" && img.startsWith("http") ? img : null) ||
-    getHtmlImage((item["content:encoded"] ?? item.content ?? "") as string)
-  );
-}
 
 /**
  * Dev-only: proxies /api/suggest?client=chrome&q=... to suggestqueries.google.com
