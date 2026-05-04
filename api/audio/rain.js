@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
     const segments = blobs
       .map(b => b.url)
-      .filter(url => url.endsWith('.wav'))
+      .filter(url => url.endsWith('.mp3'))
       .sort();
 
     // Client-side cache for 1 hour
