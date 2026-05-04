@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { PRODUCTION_BASE_URL } from "../../constants/env.js";
+import { PRODUCTION_BASE_URL } from "../constants/env.js";
 
 const RAIN_API_URL = import.meta.env.VITE_RAIN_API_URL
   || `${PRODUCTION_BASE_URL}/api/audio/rain`;
