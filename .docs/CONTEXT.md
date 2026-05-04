@@ -264,7 +264,8 @@ Zone-based layout driven by `config.js` ZONES object. Each zone is a separate co
 | 31 | TopZone | NavBar + InfoStrip; auto-hides after 3s idle in fullscreen |
 
 ### TopZone (`zones/TopZone.jsx`)
-- **NavBar**: Canvas-mode button, fullscreen toggle, settings button
+- **NavBar**: Canvas-mode button, fullscreen toggle, rain/noise audio toggle, settings button
+- **Rain audio**: Ambient rain & white-noise audio powered by `useRainStream`. Uses the Web Audio API to stream 30-second `.wav` segments dynamically from Vercel Blob Storage (`api/audio/rain.js` proxy). The hook prefetches segments to ensure gapless playback and handles a 3-second ease-in-out master GainNode volume crossfade. Playback position is persisted to `localStorage['rain_seg_pos']` and resumes exactly where left off. The toggle button is a custom inline SVG component (`RainNoiseIcon.jsx`) styled dynamically via React state, evading browser `:active` bugs.
 - **InfoStrip**: weatherIcon (SVG) + temp + `·` + date + year (smaller) — item-based rendering driven by ZONES.top
 - Reads weather from Zustand `useWidgetInstancesStore`; falls back to `useLocationStore` coords
 - Polls **Open-Meteo** via `useFocusWeather()` — NOT OpenWeatherMap

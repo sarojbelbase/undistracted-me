@@ -7,52 +7,108 @@
 // They are split so InfoStrip can be `pointerEvents: none` while TopBar buttons
 // remain interactive.
 
-import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import { GearFill, ArrowsFullscreen, FullscreenExit } from 'react-bootstrap-icons';
-import { getWeatherIcon } from '../../../widgets/weather/utils.jsx';
-import { useSettingsStore } from '../../../store';
-import { onClockTick } from '../../../utilities/sharedClock';
-import { getGregorianDateParts, getBikramSambatDateParts } from '../../../utilities';
-import { useFocusWeather } from '../hooks';
-import { ZONES } from '../config';
-import { TooltipBtn } from '../../ui/TooltipBtn';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  Suspense,
+  lazy,
+} from "react";
 import {
-  FM_CARD_BG, FM_CARD_BLUR, FM_CARD_BORDER,
-  FM_INK_1, FM_INK_2, FM_INK_4, FM_INK_3, FM_BORDER,
-} from '../theme';
+  GearFill,
+  ArrowsFullscreen,
+  FullscreenExit,
+} from "react-bootstrap-icons";
+import { RainNoiseIcon } from "../../../assets/svg/RainNoiseIcon";
+import { getWeatherIcon } from "../../../widgets/weather/utils.jsx";
+import { useSettingsStore } from "../../../store";
+import { onClockTick } from "../../../utilities/sharedClock";
+import {
+  getGregorianDateParts,
+  getBikramSambatDateParts,
+} from "../../../utilities";
+import { useFocusWeather } from "../hooks";
+import { ZONES } from "../config";
+import { TooltipBtn } from "../../ui/TooltipBtn";
+import {
+  FM_CARD_BG,
+  FM_CARD_BLUR,
+  FM_CARD_BORDER,
+  FM_INK_1,
+  FM_INK_2,
+  FM_INK_4,
+  FM_INK_3,
+  FM_BORDER,
+} from "../theme";
+import { useRainStream } from "../../../hooks/useRainStream";
 
 const TOP = ZONES.top.items;
 
-const FocusModeSettings = lazy(() => import('../dialog/Settings').then(m => ({ default: m.FocusModeSettings })));
+const FocusModeSettings = lazy(() =>
+  import("../dialog/Settings").then((m) => ({ default: m.FocusModeSettings })),
+);
 
 // Preload Settings panel on hover so it opens instantly
 const preloadSettings = () => {
-  import('../dialog/Settings');
+  import("../dialog/Settings");
 };
 
 // ── Info strip (weather + date) ───────────────────────────────────────────────
 
 const ITEM_RENDERERS = {
-  weatherIcon: (weather) => weather ? (
-    <div key="weatherIcon" style={{ filter: 'brightness(0) invert(1)', opacity: 0.65, display: 'flex', alignItems: 'center', marginRight: 6 }}>
-      {getWeatherIcon(weather.code, weather.isDay, 14)}
-    </div>
-  ) : null,
-  weatherTemp: (weather) => weather ? (
-    <React.Fragment key="weatherTemp">
-      <span style={{ fontSize: 15, fontWeight: 600, color: FM_INK_2, letterSpacing: '-0.01em' }}>
-        {weather.temperature}°{weather.unit === 'imperial' ? 'F' : 'C'}
-      </span>
-      <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>·</span>
-    </React.Fragment>
-  ) : null,
+  weatherIcon: (weather) =>
+    weather ? (
+      <div
+        key="weatherIcon"
+        style={{
+          filter: "brightness(0) invert(1)",
+          opacity: 0.65,
+          display: "flex",
+          alignItems: "center",
+          marginRight: 6,
+        }}
+      >
+        {getWeatherIcon(weather.code, weather.isDay, 14)}
+      </div>
+    ) : null,
+  weatherTemp: (weather) =>
+    weather ? (
+      <React.Fragment key="weatherTemp">
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: FM_INK_2,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {weather.temperature}°{weather.unit === "imperial" ? "F" : "C"}
+        </span>
+        <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>
+          ·
+        </span>
+      </React.Fragment>
+    ) : null,
   date: (_, dateParts) => (
-    <span key="date" style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.01em', color: FM_INK_2 }}>
+    <span
+      key="date"
+      style={{
+        fontSize: 15,
+        fontWeight: 700,
+        letterSpacing: "0.01em",
+        color: FM_INK_2,
+      }}
+    >
       {dateParts.dow}, {dateParts.month} {dateParts.day}
     </span>
   ),
   year: (_, dateParts) => (
-    <span key="year" className="fm-topbar-year" style={{ fontSize: 13, fontWeight: 600, color: FM_INK_3, marginLeft: 7 }}>
+    <span
+      key="year"
+      className="fm-topbar-year"
+      style={{ fontSize: 13, fontWeight: 600, color: FM_INK_3, marginLeft: 7 }}
+    >
       {dateParts.year}
     </span>
   ),
@@ -70,21 +126,42 @@ const InfoStrip = ({ weather, dateParts }) => {
   return (
     <div
       className="fm-topbar-center"
-      style={{ zIndex: 31, top: 'calc(1.25rem + 2px)', pointerEvents: 'none', userSelect: 'none' }}
+      style={{
+        zIndex: 31,
+        top: "calc(1.25rem + 2px)",
+        pointerEvents: "none",
+        userSelect: "none",
+      }}
     >
       {nodes}
     </div>
   );
 };
 
+
 // ── Nav bar ───────────────────────────────────────────────────────────────────
 
-const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog, onOpenPanelsDialog }) => {
+const FADE_DURATION_MS = 3000;
+
+const NavBar = ({
+  onExit,
+  isFullscreen,
+  toggleFullscreen,
+  uiVisible,
+  onOpenBgModal,
+  onOpenTasksDialog,
+  onOpenSearchDialog,
+  onOpenPanelsDialog,
+}) => {
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
 
-  const fadeIn = (e) => { e.currentTarget.style.opacity = '0.88'; };
-  const fadeOut = (e) => { e.currentTarget.style.opacity = '0.38'; };
+  const [rainHovered, setRainHovered] = useState(false);
+  const { toggle: toggleRain, isPlaying: isPlayingRain } = useRainStream(FADE_DURATION_MS);
+
+  // ── Settings click-outside ───────────────────────────────────────────────────
+  const fadeIn = (e) => { e.currentTarget.style.opacity = "0.88"; };
+  const fadeOut = (e) => { e.currentTarget.style.opacity = "0.38"; };
 
   useEffect(() => {
     if (!showSettings) return;
@@ -95,9 +172,12 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
         const inDialog = e.target.closest?.('[aria-label="Focus mode settings"]');
         if (!inBtn && !inDialog) setShowSettings(false);
       };
-      document.addEventListener('mousedown', handler);
+      document.addEventListener("mousedown", handler);
     }, 0);
-    return () => { clearTimeout(id); if (handler) document.removeEventListener('mousedown', handler); };
+    return () => {
+      clearTimeout(id);
+      if (handler) document.removeEventListener("mousedown", handler);
+    };
   }, [showSettings]);
 
   return (
@@ -108,10 +188,10 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
       style={{
         zIndex: 30,
         opacity: uiVisible ? 1 : 0,
-        transition: 'opacity 0.7s ease',
-        pointerEvents: uiVisible ? 'auto' : 'none',
+        transition: "opacity 0.7s ease",
+        pointerEvents: uiVisible ? "auto" : "none",
       }}
-      onClick={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Back button */}
       <TooltipBtn
@@ -119,16 +199,35 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
         onMouseEnter={fadeIn}
         onMouseLeave={fadeOut}
         className="flex items-center gap-1.5 rounded-full focus:outline-none"
-        style={{ padding: '9px 12px 9px 11px', background: FM_CARD_BG, border: `1px solid ${FM_CARD_BORDER}`, backdropFilter: FM_CARD_BLUR, WebkitBackdropFilter: FM_CARD_BLUR, opacity: 0.52, transition: 'opacity 0.2s' }}
-        tooltip={showSettings ? null : 'Back to Canvas'}
+        style={{
+          padding: "9px 12px 9px 11px",
+          background: FM_CARD_BG,
+          border: `1px solid ${FM_CARD_BORDER}`,
+          backdropFilter: FM_CARD_BLUR,
+          WebkitBackdropFilter: FM_CARD_BLUR,
+          opacity: 0.52,
+          transition: "opacity 0.2s",
+        }}
+        tooltip={showSettings ? null : "Back to Canvas"}
       >
         <svg width="13" height="15" viewBox="0 0 10 10" fill="none">
-          <path d="M6.5 2L3.5 5L6.5 8" stroke={FM_INK_1} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M6.5 2L3.5 5L6.5 8"
+            stroke={FM_INK_1}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
-        <span className="text-[10px] font-semibold tracking-wide select-none" style={{ color: FM_INK_1 }}>Canvas</span>
+        <span
+          className="text-[10px] font-semibold tracking-wide select-none"
+          style={{ color: FM_INK_1 }}
+        >
+          Canvas
+        </span>
       </TooltipBtn>
 
-      {/* Right side: fullscreen + settings */}
+      {/* Right pill: rain toggle · fullscreen · settings */}
       <div
         ref={settingsRef}
         className="flex items-center rounded-full opacity-50"
@@ -139,28 +238,57 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
           WebkitBackdropFilter: FM_CARD_BLUR,
         }}
       >
+        {/* Rain & white-noise toggle — TooltipBtn with appearance:none + React-driven bg */}
         <TooltipBtn
-          onClick={toggleFullscreen}
-          className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
-          tooltip={(() => {
-            if (showSettings) return null;
-            return isFullscreen ? 'Exit fullscreen' : 'Fullscreen — keeps screen awake';
-          })()}
+          tooltip={isPlayingRain ? "Fade out rain & noise" : "Rain & white noise"}
+          onClick={toggleRain}
+          onMouseEnter={() => setRainHovered(true)}
+          onMouseLeave={() => setRainHovered(false)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0.625rem",
+            borderRadius: "9999px",
+            background: rainHovered ? "rgba(255,255,255,0.10)" : "transparent",
+            border: "none",
+            outline: "none",
+            WebkitTapHighlightColor: "transparent",
+            WebkitAppearance: "none",
+            appearance: "none",
+            cursor: "pointer",
+            transition: "background 0.15s",
+          }}
         >
-          {isFullscreen ? <FullscreenExit size={16} color={FM_INK_1} /> : <ArrowsFullscreen size={16} color={FM_INK_1} />}
+          <RainNoiseIcon active={isPlayingRain} fadeDurationMs={FADE_DURATION_MS} />
         </TooltipBtn>
 
         <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
 
         <TooltipBtn
-          onClick={() => setShowSettings(s => !s)}
+          onClick={toggleFullscreen}
+          className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
+          tooltip={(() => {
+            if (showSettings) return null;
+            return isFullscreen ? "Exit fullscreen" : "Fullscreen — keeps screen awake";
+          })()}
+        >
+          {isFullscreen
+            ? <FullscreenExit size={16} color={FM_INK_1} />
+            : <ArrowsFullscreen size={16} color={FM_INK_1} />}
+        </TooltipBtn>
+
+        <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
+
+        <TooltipBtn
+          onClick={() => setShowSettings((s) => !s)}
           onMouseEnter={preloadSettings}
           className="group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
-          tooltip={showSettings ? null : 'Settings'}
+          tooltip={showSettings ? null : "Settings"}
         >
           <GearFill
             size={16}
-            color={showSettings ? 'var(--w-accent)' : FM_INK_1}
+            color={showSettings ? "var(--w-accent)" : FM_INK_1}
             className="transition-transform duration-300 group-hover:rotate-90"
           />
         </TooltipBtn>
@@ -182,14 +310,29 @@ const NavBar = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgMod
 
 // ── Top zone export ───────────────────────────────────────────────────────────
 
-export const TopZone = ({ onExit, isFullscreen, toggleFullscreen, uiVisible, onOpenBgModal, onOpenTasksDialog, onOpenSearchDialog, onOpenPanelsDialog }) => {
-  const dateFormat = useSettingsStore(s => s.dateFormat);
+export const TopZone = ({
+  onExit,
+  isFullscreen,
+  toggleFullscreen,
+  uiVisible,
+  onOpenBgModal,
+  onOpenTasksDialog,
+  onOpenSearchDialog,
+  onOpenPanelsDialog,
+}) => {
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
   const weather = useFocusWeather();
   const [dateParts, setDateParts] = useState(() =>
-    dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts()
+    dateFormat === "gregorian"
+      ? getGregorianDateParts()
+      : getBikramSambatDateParts(),
   );
   const update = useCallback(() => {
-    setDateParts(dateFormat === 'gregorian' ? getGregorianDateParts() : getBikramSambatDateParts());
+    setDateParts(
+      dateFormat === "gregorian"
+        ? getGregorianDateParts()
+        : getBikramSambatDateParts(),
+    );
   }, [dateFormat]);
   useEffect(() => onClockTick(update), [update]);
 
