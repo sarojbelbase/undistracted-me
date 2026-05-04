@@ -11,10 +11,10 @@
  * preferences are preserved automatically.
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { applyTheme } from '../theme';
-import { STORAGE_KEYS } from '../constants/storageKeys';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { applyTheme } from "../theme";
+import { STORAGE_KEYS } from "../constants/storageKeys";
 
 export const STORE_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -25,44 +25,55 @@ export const STORE_KEY = STORAGE_KEYS.SETTINGS;
  */
 const fromLegacy = () => {
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
-    if (stored?.state) return {
-      language: stored.state.language ?? 'en',
-      accent: stored.state.accent ?? 'Matte Black',
-      mode: stored.state.mode ?? 'light',
-      defaultView: stored.state.defaultView ?? 'canvas',
-      dateFormat: stored.state.dateFormat ?? 'gregorian',
-      lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
-      lookAwayInterval: stored.state.lookAwayInterval ?? 20,
-      lookAwayNotify: stored.state.lookAwayNotify ?? true,
-      canvasBg: (() => {
-        const cb = stored.state.canvasBg ?? { type: 'orb', orbId: 'accent', url: null };
-        return cb.type === 'orb' && cb.orbId && cb.orbId !== 'accent'
-          ? { ...cb, orbId: 'accent' }
-          : cb;
-      })(),
-      cardStyle: stored.state.cardStyle ?? 'glass',
-      modePrefs: stored.state.modePrefs ?? {
-        light: { cardStyle: stored.state.cardStyle ?? 'glass' },
-        dark: { cardStyle: stored.state.cardStyle ?? 'glass' },
-      },
-    };
-  } catch { /* ignore */ }
+    const stored = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.SETTINGS) || "null",
+    );
+    if (stored?.state)
+      return {
+        language: stored.state.language ?? "en",
+        accent: stored.state.accent ?? "Matte Black",
+        mode: stored.state.mode ?? "light",
+        defaultView: stored.state.defaultView ?? "canvas",
+        dateFormat: stored.state.dateFormat ?? "gregorian",
+        lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
+        lookAwayInterval: stored.state.lookAwayInterval ?? 20,
+        lookAwayNotify: stored.state.lookAwayNotify ?? true,
+        canvasBg: (() => {
+          const cb = stored.state.canvasBg ?? {
+            type: "orb",
+            orbId: "accent",
+            url: null,
+          };
+          return cb.type === "orb" && cb.orbId && cb.orbId !== "accent"
+            ? { ...cb, orbId: "accent" }
+            : cb;
+        })(),
+        cardStyle: stored.state.cardStyle ?? "glass",
+        modePrefs: stored.state.modePrefs ?? {
+          light: { cardStyle: stored.state.cardStyle ?? "glass" },
+          dark: { cardStyle: stored.state.cardStyle ?? "glass" },
+        },
+      };
+  } catch {
+    /* ignore */
+  }
   // Legacy single-key fallback
   return {
-    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || 'en',
-    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || 'Matte Black',
-    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || 'light',
-    defaultView: localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || 'canvas',
-    dateFormat: localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || 'gregorian',
+    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || "en",
+    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || "Matte Black",
+    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || "light",
+    defaultView:
+      localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || "canvas",
+    dateFormat:
+      localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || "gregorian",
     lookAwayEnabled: false,
     lookAwayInterval: 20,
     lookAwayNotify: true,
-    canvasBg: { type: 'orb', orbId: 'accent', url: null },
-    cardStyle: 'glass',
+    canvasBg: { type: "orb", orbId: "accent", url: null },
+    cardStyle: "glass",
     modePrefs: {
-      light: { cardStyle: 'flat' },
-      dark: { cardStyle: 'glass' },
+      light: { cardStyle: "flat" },
+      dark: { cardStyle: "glass" },
     },
   };
 };
@@ -72,11 +83,12 @@ export const useSettingsStore = create(
     (set, get) => ({
       // ── State (seeded from legacy keys on first load) ──────────────────
       ...fromLegacy(),
-      clockFormat: '24h',
+      clockFormat: "24h",
       focusSearchBar: true,
       focusTasks: true,
       focusSearchTopSites: true,
       focusSearchWeb: true,
+
       focusPanels: {
         pomodoro: true,
         event: true,
@@ -89,7 +101,7 @@ export const useSettingsStore = create(
       /** Returns 'light' or 'dark' key for modePrefs based on current mode */
       _resolvedModeKey: () => {
         const m = get().mode;
-        return (m === 'dark' || m === 'auto') ? 'dark' : 'light';
+        return m === "dark" || m === "auto" ? "dark" : "light";
       },
 
       // ── Actions ────────────────────────────────────────────────────────
@@ -97,7 +109,11 @@ export const useSettingsStore = create(
       setLanguage: (language) => {
         set({ language });
         // Mirror to legacy key — Playwright tests assert localStorage.getItem('language').
-        try { localStorage.setItem(STORAGE_KEYS._LEGACY.LANGUAGE, language); } catch { /* storage unavailable */ }
+        try {
+          localStorage.setItem(STORAGE_KEYS._LEGACY.LANGUAGE, language);
+        } catch {
+          /* storage unavailable */
+        }
       },
 
       /** Clock time format shown in Focus Mode: '24h' | '12h' */
@@ -117,7 +133,7 @@ export const useSettingsStore = create(
 
       /** Toggle a single Focus Mode panel on/off by key */
       setFocusPanelEnabled: (key, enabled) =>
-        set(s => ({ focusPanels: { ...s.focusPanels, [key]: enabled } })),
+        set((s) => ({ focusPanels: { ...s.focusPanels, [key]: enabled } })),
 
       setAccent: (accent) => {
         set({ accent });
@@ -129,16 +145,20 @@ export const useSettingsStore = create(
         // 'Matte Black' accent is only valid in explicit light mode.
         // In 'dark' or 'auto' (which can resolve to dark at night) swap to Blueberry.
         const accent =
-          (mode === 'dark' || mode === 'auto') && prevAccent === 'Matte Black'
-            ? 'Blueberry'
+          (mode === "dark" || mode === "auto") && prevAccent === "Matte Black"
+            ? "Blueberry"
             : prevAccent;
         // cardStyle is a global preference — never overwritten by mode changes
         const cardStyle = get().cardStyle;
         set({ mode, accent });
         // Mirror to legacy key — Playwright tests assert localStorage.getItem('app_mode').
-        try { localStorage.setItem(STORAGE_KEYS._LEGACY.MODE, mode); } catch { /* storage unavailable */ }
+        try {
+          localStorage.setItem(STORAGE_KEYS._LEGACY.MODE, mode);
+        } catch {
+          /* storage unavailable */
+        }
         // For 'auto', theme will be applied by useAutoTheme hook after mount.
-        if (mode !== 'auto') applyTheme(accent, mode, cardStyle);
+        if (mode !== "auto") applyTheme(accent, mode, cardStyle);
       },
 
       setDefaultView: (defaultView) => set({ defaultView }),
@@ -172,7 +192,11 @@ export const useSettingsStore = create(
       // Re-apply theme CSS vars after Zustand rehydrates from localStorage
       onRehydrateStorage: () => (state) => {
         if (state) {
-          applyTheme(state.accent || 'Matte Black', state.mode || 'light', state.cardStyle || 'glass');
+          applyTheme(
+            state.accent || "Matte Black",
+            state.mode || "light",
+            state.cardStyle || "glass",
+          );
         }
       },
     },
