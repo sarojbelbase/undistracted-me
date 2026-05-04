@@ -1,13 +1,13 @@
 /**
  * useRainStream — single-file ambient audio player
  *
- * Fetches the secure OGG URL from /api/audio/rain on mount.
- * Caches the full binary in Cache Storage ("rain-audio") so subsequent
- * loads never hit the network at all.
+ * Fetches the secure OGG URL from /api/audio/rain on mount, then sets
+ * it as the src on a stable <audio> ref. The browser handles HTTP Range
+ * Requests and native caching automatically — no manual fetch needed.
  *
  * Usage:
  *   const { toggle, isPlaying, audioRef } = useRainStream(FADE_DURATION_MS);
- *   // Place <audio ref={audioRef} loop /> anywhere in the tree.
+ *   // Place <audio ref={audioRef} loop preload="none" /> in the tree.
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -16,93 +16,54 @@ import { PRODUCTION_BASE_URL } from "../constants/env.js";
 const RAIN_API_URL =
   import.meta.env.VITE_RAIN_API_URL || `${PRODUCTION_BASE_URL}/api/audio/rain`;
 const API_KEY = import.meta.env.VITE_API_KEY || null;
-const CACHE_NAME = "rain-audio";
 const POS_KEY = "rain_audio_pos";
-
-// ── Cache Storage helpers ─────────────────────────────────────────────────────
-
-async function getCached(url) {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(url);
-    if (cached) return URL.createObjectURL(await cached.blob());
-  } catch { /* cache API unavailable (e.g. extension context) */ }
-  return null;
-}
-
-async function putCached(url) {
-  try {
-    const headers = {};
-    if (API_KEY) headers["X-Api-Key"] = API_KEY;
-    const res = await fetch(url, { headers });
-    if (!res.ok) return url; // fallback to direct URL
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(url, res.clone());
-    return URL.createObjectURL(await res.blob());
-  } catch {
-    return url; // fallback: just play from CDN directly
-  }
-}
-
-// ── Hook ──────────────────────────────────────────────────────────────────────
+const URL_CACHE_KEY = "rain_audio_url"; // stale-while-revalidate cache
 
 export function useRainStream(fadeDurationMs = 3000) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);           // always-mounted <audio> element
+  const [ready, setReady] = useState(false);   // true once src is set on the element
+  const audioRef = useRef(null);
   const fadeRafRef = useRef(null);
-  const urlRef = useRef(null);             // resolved playback URL (cached blob or CDN)
-  const [ready, setReady] = useState(false);
 
-  // 1. Fetch URL from API → check Cache Storage → download & cache if needed
+  // 1. Fetch the secure CDN URL — serve stale from localStorage instantly,
+  //    then revalidate from API in background.
   useEffect(() => {
     let cancelled = false;
+
+    const applyUrl = (url) => {
+      const audio = audioRef.current;
+      if (audio && !audio.src) {
+        audio.src = url;
+        setReady(true);
+      }
+    };
+
+    // Serve cached URL immediately (zero latency)
+    const cached = localStorage.getItem(URL_CACHE_KEY);
+    if (cached) applyUrl(cached);
+
+    // Always revalidate from API
     const init = async () => {
       try {
         const headers = {};
         if (API_KEY) headers["X-Api-Key"] = API_KEY;
         const res = await fetch(RAIN_API_URL, { headers });
         if (!res.ok || cancelled) return;
-        const { url: cdnUrl } = await res.json();
-        if (!cdnUrl || cancelled) return;
-
-        // Try to serve from Cache Storage first
-        const cachedBlobUrl = await getCached(cdnUrl);
-        if (cancelled) return;
-
-        if (cachedBlobUrl) {
-          urlRef.current = cachedBlobUrl;
-          setReady(true);
-        } else {
-          // Not cached yet — set CDN URL immediately so the user can start
-          // playing right away, then download + cache in background
-          urlRef.current = cdnUrl;
-          setReady(true);
-          const blobUrl = await putCached(cdnUrl);
-          if (!cancelled && blobUrl !== cdnUrl) {
-            // Audio is now fully cached — swap to blob URL seamlessly
-            urlRef.current = blobUrl;
-            const audio = audioRef.current;
-            if (audio) {
-              const pos = audio.currentTime;
-              const wasPlaying = !audio.paused;
-              audio.src = blobUrl;
-              audio.currentTime = pos;
-              if (wasPlaying) audio.play().catch(() => {});
-            }
-          }
-        }
-      } catch { /* network unavailable */ }
+        const { url } = await res.json();
+        if (!url || cancelled) return;
+        localStorage.setItem(URL_CACHE_KEY, url);
+        applyUrl(url);
+      } catch { /* network unavailable — cached URL already applied */ }
     };
     init();
     return () => { cancelled = true; };
   }, []);
 
-  // 2. Restore playback position once audio element is ready
+  // 2. Restore saved playback position once src is set
   useEffect(() => {
     if (!ready) return;
     const audio = audioRef.current;
     if (!audio) return;
-    audio.src = urlRef.current;
     const saved = parseFloat(localStorage.getItem(POS_KEY) || "0");
     if (saved > 0) {
       const doSeek = () => { audio.currentTime = saved; };
@@ -115,7 +76,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     return () => audio.removeEventListener("timeupdate", onTimeUpdate);
   }, [ready]);
 
-  // 3. Cleanup on unmount
+  // 3. Save position on unmount
   useEffect(() => {
     return () => {
       if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
@@ -124,7 +85,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     };
   }, []);
 
-  // 4. Volume crossfade (cubic ease-in-out)
+  // 4. Cubic ease-in-out volume crossfade
   const fadeVolume = useCallback(
     (from, to, onDone) => {
       if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
@@ -161,10 +122,12 @@ export function useRainStream(fadeDurationMs = 3000) {
       });
     } else {
       audio.volume = 0;
-      audio.play().then(() => {
-        setIsPlaying(true);
-        fadeVolume(0, 1, null);
-      }).catch(() => {});
+      audio.play()
+        .then(() => {
+          setIsPlaying(true);
+          fadeVolume(0, 1, null);
+        })
+        .catch(() => {});
     }
   }, [isPlaying, ready, fadeVolume]);
 

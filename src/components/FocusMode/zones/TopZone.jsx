@@ -228,7 +228,7 @@ const NavBar = ({
       </TooltipBtn>
 
       {/* Hidden audio element — always mounted so ref is stable */}
-      <audio ref={audioRef} loop preload="none" style={{ display: "none" }} />
+      <audio ref={audioRef} loop preload="metadata" style={{ display: "none" }} />
 
       {/* Right pill: rain toggle · fullscreen · settings */}
       <div
