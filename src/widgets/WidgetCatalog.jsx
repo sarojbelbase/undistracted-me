@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConfirmButton } from '../components/ui/ConfirmButton';
 import { TooltipBtn } from '../components/ui/TooltipBtn';
+import { Popup } from '../components/ui/Popup';
 import { createPortal } from 'react-dom';
 import {
   XLg, PlusLg, DashLg,
@@ -9,7 +10,19 @@ import {
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { exportSettings, importFromFile, resetSettings } from './settingsIO';
+import { CURRENT_PLATFORM } from '../constants/env';
 
+/** Returns 'full' | 'partial' | 'none' for the widget on the current platform. */
+const getPlatformSupport = (widget) => {
+  const p = widget.platforms?.[CURRENT_PLATFORM];
+  if (!p) return 'full'; // no platforms key = fully supported everywhere
+  if (p.supported === false) return 'none';
+  if (p.supported === 'partial') return 'partial';
+  return 'full';
+};
+
+const getLimitations = (widget) =>
+  widget.platforms?.[CURRENT_PLATFORM]?.limitations ?? [];
 
 // ─── Category config ───────────────────────────────────────────────────────────
 const TABS = [
@@ -35,41 +48,101 @@ const CATEGORY_ICONS = {
 const CATEGORY_ORDER = ['time', 'planning', 'info', 'tools'];
 
 // ─── Individual widget row ─────────────────────────────────────────────────────
-const WidgetRow = ({ widget, count, onAdd, onRemove }) => {
-  const isActive = count > 0;
+const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => {
+  const isActive = count > 0 && support !== 'none';
+  const disabled = support === 'none';
+  const partial = support === 'partial';
   const Icon = widget.icon;
-  return (
-    <li className={`wc-row${isActive ? ' wc-row--active' : ''}`}>
 
-      <span className={`wc-icon-box${isActive ? ' wc-icon-box--active' : ''}`}>
+  const descText = disabled
+    ? 'Extension only — not available here'
+    : widget.description;
+
+  const [iconAnchor, setIconAnchor] = useState(null);
+  const iconRef = useRef(null);
+
+  let tooltipContent = null;
+  if (disabled || partial) {
+    if (widget.platforms) {
+      tooltipContent = [];
+      const order = ['extension', 'web', 'phone'];
+      const platforms = Object.keys(widget.platforms).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      
+      platforms.forEach(plat => {
+        const p = widget.platforms[plat];
+        const name = plat.charAt(0).toUpperCase() + plat.slice(1);
+        
+        if (p.supported === true) {
+          tooltipContent.push(`✅ ${name}: Supported`);
+        } else if (p.supported === false) {
+          tooltipContent.push(`❌ ${name}: Not supported`);
+        } else if (p.supported === 'partial') {
+          tooltipContent.push(`⚠️ ${name}: Partial support`);
+          if (p.limitations?.length) {
+            p.limitations.forEach(l => tooltipContent.push(`    • ${l}`));
+          }
+        }
+      });
+    } else {
+      tooltipContent = ['Not supported on this platform'];
+    }
+  }
+
+  return (
+    <li className={[
+      'wc-row',
+      isActive ? 'wc-row--active' : '',
+      disabled ? 'wc-row--disabled' : '',
+    ].filter(Boolean).join(' ')}>
+
+      <span
+        ref={iconRef}
+        onMouseEnter={(e) => setIconAnchor(iconRef.current?.getBoundingClientRect() ?? null)}
+        onMouseLeave={() => setIconAnchor(null)}
+        className={[
+          'wc-icon-box',
+          isActive ? 'wc-icon-box--active' : '',
+          partial ? 'wc-icon-box--partial' : ''
+        ].filter(Boolean).join(' ')}
+      >
         {Icon ? <Icon size={17} /> : null}
       </span>
+      {tooltipContent && iconAnchor && (
+        <Popup anchor={iconAnchor} preferAbove className="px-2.5 py-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {tooltipContent.map((line, i) => (
+              <span key={i} style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {line}
+              </span>
+            ))}
+          </div>
+        </Popup>
+      )}
 
       <div className="wc-text">
         <span className="wc-label">{widget.title}</span>
-        <span className="wc-desc">{widget.description}</span>
+        <span className="wc-desc">{descText}</span>
       </div>
 
-      {/* Always-visible stepper: [−] count [+] */}
+      {/* Stepper: [−] count [+] */}
       <div className="wc-stepper">
-        {isActive ? (
-          <>
-            <TooltipBtn
-              className="wc-stepper-btn wc-stepper-btn--remove"
-              onClick={e => { e.stopPropagation(); onRemove(); }}
-              aria-label={`Remove ${widget.title}`}
-              tooltip="Remove one"
-            >
-              <DashLg size={12} />
-            </TooltipBtn>
-            <span className="wc-stepper-count">{count}</span>
-          </>
-        ) : null}
+        <TooltipBtn
+          className="wc-stepper-btn wc-stepper-btn--remove"
+          onClick={e => { e.stopPropagation(); if (!disabled) onRemove(); }}
+          disabled={disabled}
+          tooltip={disabled ? 'Cannot remove (disabled)' : 'Remove one'}
+          style={{ visibility: (isActive || disabled) ? 'visible' : 'hidden' }}
+        >
+          <DashLg size={12} />
+        </TooltipBtn>
+        
+        <span className="wc-stepper-count" style={{ opacity: disabled ? 0.4 : 1, visibility: (isActive || disabled) ? 'visible' : 'hidden' }}>{count}</span>
+        
         <TooltipBtn
           className={`wc-stepper-btn wc-stepper-btn--add${isActive ? ' wc-stepper-btn--add-active' : ''}`}
-          onClick={onAdd}
-          aria-label={`Add ${widget.title}`}
-          tooltip="Add to canvas"
+          onClick={e => { if (!disabled) onAdd(e); }}
+          disabled={disabled}
+          tooltip={disabled ? 'Not supported on this platform' : partial ? 'Add (limited support)' : 'Add to canvas'}
         >
           <PlusLg size={12} />
         </TooltipBtn>
@@ -199,27 +272,39 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
                     <span className="wc-section-icon">{CATEGORY_ICONS[cat]}</span>
                     {CATEGORY_LABELS[cat]}
                   </li>
-                  {catWidgets.map(w => (
-                    <WidgetRow
-                      key={w.type}
-                      widget={w}
-                      count={countByType[w.type] || 0}
-                      onAdd={() => onAddInstance(w.type)}
-                      onRemove={() => removeLastOfType(w.type)}
-                    />
-                  ))}
+                  {catWidgets.map(w => {
+                    const support = getPlatformSupport(w);
+                    const limitations = getLimitations(w);
+                    return (
+                      <WidgetRow
+                        key={w.type}
+                        widget={w}
+                        count={countByType[w.type] || 0}
+                        onAdd={() => onAddInstance(w.type)}
+                        onRemove={() => removeLastOfType(w.type)}
+                        support={support}
+                        limitations={limitations}
+                      />
+                    );
+                  })}
                 </React.Fragment>
               );
             })
-            : filteredWidgets.map(w => (
-              <WidgetRow
-                key={w.type}
-                widget={w}
-                count={countByType[w.type] || 0}
-                onAdd={() => onAddInstance(w.type)}
-                onRemove={() => removeLastOfType(w.type)}
-              />
-            ))
+            : filteredWidgets.map(w => {
+              const support = getPlatformSupport(w);
+              const limitations = getLimitations(w);
+              return (
+                <WidgetRow
+                  key={w.type}
+                  widget={w}
+                  count={countByType[w.type] || 0}
+                  onAdd={() => onAddInstance(w.type)}
+                  onRemove={() => removeLastOfType(w.type)}
+                  support={support}
+                  limitations={limitations}
+                />
+              );
+            })
           }
         </ul>
         <div className="wc-footer">

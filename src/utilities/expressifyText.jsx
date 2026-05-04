@@ -389,11 +389,18 @@ export function expressiveLayout(
  *   title        {string}   — headline text
  *   areaWidth    {number}   — available px width
  *   areaHeight   {number}   — available px height
- *   hasImage     {boolean}  — true → drop-shadow text shadows for image overlay
  *   marginBottom {number}   — margin below the button (for dot nav clearance)
  *   onClick      {Function} — called when the headline is tapped/clicked
  */
-export const ExpressiveTitle = ({ title, areaWidth, areaHeight, hasImage, marginBottom, onClick }) => {
+export const ExpressiveTitle = ({ 
+  title, 
+  areaWidth, 
+  areaHeight, 
+  marginBottom, 
+  onClick,
+  heroColor,
+  bodyColor
+}) => {
   const [fontsReady, setFontsReady] = useState(false);
   const [domFit, setDomFit] = useState(null);
   const measureRef = useRef(null);
@@ -474,8 +481,6 @@ export const ExpressiveTitle = ({ title, areaWidth, areaHeight, hasImage, margin
         }}
       >
         {layout.words.map((w, i) => {
-          let textShadow = 'none';
-          if (hasImage) textShadow = w.isHero ? '0 2px 24px rgba(0,0,0,0.8)' : '0 1px 6px rgba(0,0,0,0.55)';
           return (
             <span
               key={`${w.text}-${i}`}
@@ -486,8 +491,9 @@ export const ExpressiveTitle = ({ title, areaWidth, areaHeight, hasImage, margin
                 lineHeight: w.lineHeight,
                 letterSpacing: w.letterSpacing,
                 fontFamily: w.fontFamily,
-                color: w.isHero ? '#fff' : 'rgba(255,255,255,0.88)',
-                textShadow,
+                color: w.isHero 
+                  ? (heroColor || 'var(--w-fg)') 
+                  : (bodyColor || 'var(--w-ink-3)'),
               }}
             >
               {w.text}{' '}

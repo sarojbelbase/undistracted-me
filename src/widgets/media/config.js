@@ -8,6 +8,11 @@ export default {
   icon: MusicNoteBeamed,
   description: 'Spotify & browser media controls',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web: { supported: 'partial', limitations: ['Tab media detection unavailable on web'] },
+    phone: { supported: 'partial', limitations: ['Tab media detection not available on mobile'] },
+  },
   x: 16, y: 20, w: 8, h: 10,
   breakpoints: {
     md: { x: 16, y: 28, w: 12, h: 10 },

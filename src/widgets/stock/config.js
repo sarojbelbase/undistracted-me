@@ -8,6 +8,11 @@ export default {
   icon: GraphUpArrow,
   description: 'NEPSE stock watchlist',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true },
+    phone:     { supported: true },
+  },
   x: 28, y: 20, w: 7, h: 8,
   breakpoints: {
     md: { x: 28, y: 28, w: 12, h: 8 },

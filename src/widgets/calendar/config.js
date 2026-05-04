@@ -8,6 +8,11 @@ export default {
   icon: Calendar3,
   description: 'Monthly calendar at a glance',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true },
+    phone:     { supported: true },
+  },
   x: 0, y: 8, w: 12, h: 12,
   breakpoints: {
     md: { x: 16, y: 8, w: 12, h: 12 },

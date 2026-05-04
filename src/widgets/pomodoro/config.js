@@ -8,6 +8,11 @@ export default {
   icon: StopwatchFill,
   description: 'Focus timer (Pomodoro)',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true },
+    phone:     { supported: true },
+  },
   x: 8, y: 20, w: 8, h: 10,
   breakpoints: {
     md: { x: 8, y: 28, w: 8, h: 10 },
