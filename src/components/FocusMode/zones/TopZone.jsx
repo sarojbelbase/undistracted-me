@@ -157,7 +157,7 @@ const NavBar = ({
   const settingsRef = useRef(null);
 
   const [rainHovered, setRainHovered] = useState(false);
-  const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef, audioUrl } = useRainStream(FADE_DURATION_MS);
+  const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef } = useRainStream(FADE_DURATION_MS);
 
   // ── Settings click-outside ───────────────────────────────────────────────────
   const fadeIn = (e) => { e.currentTarget.style.opacity = "0.88"; };
@@ -227,9 +227,8 @@ const NavBar = ({
         </span>
       </TooltipBtn>
 
-      {audioUrl && (
-        <audio ref={audioRef} src={audioUrl} loop preload="none" />
-      )}
+      {/* Hidden audio element — always mounted so ref is stable */}
+      <audio ref={audioRef} loop preload="none" style={{ display: "none" }} />
 
       {/* Right pill: rain toggle · fullscreen · settings */}
       <div
