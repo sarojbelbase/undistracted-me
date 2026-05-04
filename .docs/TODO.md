@@ -108,10 +108,7 @@
 
 ### Focus Mode Enhancements
 
-- [ ] **Focus Audio Scenes** — Web Audio API procedural ambient sounds (rain, binaural beats, Lo-Fi Kathmandu) that start when Focus Mode opens. Use `OscillatorNode`/`AudioBufferSourceNode` to generate rain/beats procedurally (no MP3 loop). Settings toggle in `dialog/Settings.jsx` (`onOpenAudioDialog`), new `dialog/Audio.jsx`; store `fmAudio` (scene key + volume) in `useSettingsStore`. No library needed — native Web Audio.
-  > **rain.today verdict — not viable.** It's a consumer ambient site with no public API, no embeddable streams, and no developer integration surface. Its audio is served over HTTP with no CORS headers, which would be blocked by the MV3 extension CSP. The site was also unreachable during investigation (HTTP 429 / 404). Using external stream URLs would be a ToS violation and a reliability dependency.
-  > **Chosen approach: 100% Web Audio API.** Rain = filtered `AudioBufferSourceNode` seeded with white-noise samples (`Math.random()`). Binaural beats = two `OscillatorNode`s detuned by 4–8 Hz (one per stereo channel via `PannerNode`). Temple Bell = decaying `OscillatorNode` with a custom `GainNode` envelope. All synthesized in-browser, zero network calls, works offline.
-  > _Feasibility: Medium — no Web Audio in codebase yet; UI slots and settings pattern fully ready._
+- [x] **Focus Audio Scenes** — Rain & white-noise ambient audio player embedded directly in Focus Mode's TopZone NavBar. Uses a custom `useRainStream` hook and the Web Audio API to stream 30-second chunked `.wav` segments dynamically from Vercel Blob Storage (`/api/audio/rain` proxy), ensuring a gapless loop with zero local file bloat. Features a custom waveform+rain-drop SVG button (`RainNoiseIcon.jsx`) that triggers a 3-second ease-in-out master GainNode volume crossfade on both play and pause. Playback segment and offset position are persisted in `localStorage['rain_seg_pos']` so the stream seamlessly resumes after navigating away.
 
 - [ ] **Focus Mode Color Grading** — Subtle tint overlay on the background photo (warm, cool, sepia, none) using CSS `mix-blend-mode`. Add `fmTint` field to `useSettingsStore` (`{ color, opacity, blend }`). Render a `<div>` at z-18 (between background z2 and cards z20) in `FocusMode/index.jsx`. `getPhotoTokens` could include a tint parameter if luminance logic needs updating. Picker in `dialog/Settings.jsx`.
   > _Feasibility: Very High — store + CSS layer only; no new dependencies._
@@ -124,7 +121,7 @@
 
 ### New Widgets
 
-- [ ] **AQI (Air Quality Index)** — Open-Meteo AQI endpoint (free, no key) using existing lat/lon from `useLocationStore`. Show as a small breathing dot (green → purple) + PM2.5/AQI value inside the Weather widget or as a separate `aqi` widget. Extend `src/widgets/weather/utils.jsx` fetch logic or create `src/widgets/aqi/`.
+- [x] **AQI (Air Quality Index)** — Open-Meteo AQI endpoint (free, no key) using existing lat/lon from `useLocationStore`. Show as a small breathing dot (green → purple) + PM2.5/AQI value inside the Weather widget or as a separate `aqi` widget. Extend `src/widgets/weather/utils.jsx` fetch logic or create `src/widgets/aqi/`.
   > _Feasibility: Very High — same Open-Meteo base URL, location already resolved, pattern matches existing weather calls._
 
 - [ ] **Daily Quotes Widget** — Hourly rotating wisdom quotes. `src/widgets/facts/` already does deterministic daily rotation with `getDailyIndex()` and 100+ entries in `data/facts.js`. Create sibling `src/widgets/quotes/` (or extend Facts) with a static bundled JSON of quotes + optional `api.quotable.io` fetch. Refresh on the hour via `onClockTick`.
