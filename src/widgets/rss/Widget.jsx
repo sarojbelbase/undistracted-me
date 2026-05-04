@@ -578,7 +578,7 @@ export const Widget = ({ id, onRemove }) => {
   const feedWord = feedCount === 1 ? "feed" : "feeds";
   let sourceName;
   if (storyCount > 0) {
-    sourceName = `${storyCount} ${storyWord} from ${feedCount} ${feedWord}`;
+    sourceName = `${feedCount} ${feedWord} · ${storyCount} ${storyWord} `;
   } else if (feedCount === 1) {
     sourceName = allActiveFeeds[0].label;
   } else {
