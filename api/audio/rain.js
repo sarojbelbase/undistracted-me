@@ -23,10 +23,7 @@ export default async function handler(req, res) {
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
-    const segments = blobs
-      .map(b => b.url)
-      .filter(url => url.endsWith('.mp3'))
-      .sort();
+    const segments = blobs.map(b => b.url);
 
     // Client-side cache for 1 hour
     res.setHeader('Cache-Control', 'private, max-age=3600');
