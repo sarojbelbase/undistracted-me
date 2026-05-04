@@ -8,6 +8,11 @@ export default {
   icon: Rss,
   description: 'RSS news headlines',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true, limitations: ['Background sync unavailable on web'] },
+    phone:     { supported: true, limitations: ['Background sync unavailable on mobile'] },
+  },
   x: 0, y: 16, w: 8, h: 10,
   breakpoints: {
     md: { x: 0, y: 24, w: 12, h: 12 },

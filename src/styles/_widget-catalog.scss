@@ -418,6 +418,22 @@
   background: rgba(var(--w-accent-rgb), 0.05);
 }
 
+.wc-row--disabled {
+  // Removing pointer-events: none and opacity so tooltips and text still render sharply
+  cursor: default;
+
+  .wc-desc {
+    color: var(--wc-ink-5);
+    font-style: italic;
+  }
+}
+
+.wc-icon-box--partial {
+  // Use a subtle inset shadow and dashed border to indicate partial support
+  box-shadow: inset 0 0 0 1px var(--wc-border);
+  border: 1px dashed var(--wc-ink-4) !important;
+}
+
 // Icon box
 .wc-icon-box {
   display: flex;
@@ -494,8 +510,16 @@
   flex-shrink: 0;
   transition: background 0.13s, color 0.13s, transform 0.10s;
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.90);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: transparent !important;
+    border: 1px solid var(--wc-border);
+    color: var(--wc-ink-5) !important;
   }
 }
 

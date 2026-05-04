@@ -8,6 +8,11 @@ export default {
   icon: BookmarkStarFill,
   description: 'Quick-access bookmarks',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true },
+    phone:     { supported: true },
+  },
   x: 32, y: 4, w: 3, h: 4,
   breakpoints: {
     md: { x: 32, y: 4, w: 8, h: 4 },

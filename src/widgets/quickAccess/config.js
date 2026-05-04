@@ -8,6 +8,11 @@ export default {
   icon: Grid3x3GapFill,
   description: 'Top visited sites dock',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web: { supported: false, limitations: ['Requires chrome.topSites API'] },
+    phone: { supported: false, limitations: ['Requires browser topSites API'] },
+  },
   x: 32, y: 0, w: 14, h: 4,
   breakpoints: {
     md: { x: 32, y: 0, w: 8, h: 4 },

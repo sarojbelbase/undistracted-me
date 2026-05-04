@@ -18,6 +18,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { WIDGET_REGISTRY } from '../widgets';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { CURRENT_PLATFORM } from '../constants/env';
 
 const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;
 
@@ -52,6 +53,12 @@ const collectLegacyWidgetSettings = () => {
 const KNOWN_TYPES = new Set(WIDGET_REGISTRY.map(w => w.type));
 const isValidInstance = (inst) => inst?.id && inst?.type && KNOWN_TYPES.has(inst.type);
 
+/** Returns false only when the widget explicitly declares supported:false for this platform. */
+const isSupportedOnPlatform = (widget) => {
+  const p = widget.platforms?.[CURRENT_PLATFORM];
+  return !p || p.supported !== false;
+};
+
 const resolveInitialInstances = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -69,10 +76,9 @@ const resolveInitialInstances = () => {
     }
   } catch { /* ignore */ }
 
-  return WIDGET_REGISTRY.filter((w) => w.enabled).map((w) => ({
-    id: w.type,
-    type: w.type,
-  }));
+  return WIDGET_REGISTRY
+    .filter((w) => w.enabled && isSupportedOnPlatform(w))
+    .map((w) => ({ id: w.type, type: w.type }));
 };
 
 export const useWidgetInstancesStore = create(

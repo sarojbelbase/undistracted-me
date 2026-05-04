@@ -283,8 +283,8 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             title={item.title || ""}
             areaWidth={area.w}
             areaHeight={area.h}
-            hasImage={false}
             marginBottom={total > 1 ? 10 : 0}
+            bodyColor="#e4e4e4ff"
             onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
           />
 

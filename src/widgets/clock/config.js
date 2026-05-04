@@ -8,6 +8,11 @@ export default {
   icon: ClockFill,
   description: 'Live clock with extra time zones',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: true },
+    phone:     { supported: true },
+  },
   x: 0, y: 0, w: 8, h: 8,
   breakpoints: {
     md: { x: 0, y: 0, w: 8, h: 8 },

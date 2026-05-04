@@ -8,6 +8,11 @@ export default {
   icon: BalloonFill,
   description: 'Birthdays, anniversaries & special occasions',
   enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web:       { supported: 'partial', limitations: ['Google Contacts auto-sync unavailable'] },
+    phone:     { supported: 'partial', limitations: ['Google Contacts auto-sync unavailable'] },
+  },
   x: 36, y: 16, w: 8, h: 10,
   breakpoints: {
     md: { x: 0, y: 18, w: 16, h: 10 },
