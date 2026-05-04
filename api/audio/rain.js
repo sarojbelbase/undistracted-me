@@ -23,12 +23,12 @@ export default async function handler(req, res) {
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
-    const segments = blobs.map(b => b.url);
+    const audioUrl = blobs[0]?.url;
 
     // Client-side cache for 1 hour
     res.setHeader('Cache-Control', 'private, max-age=3600');
-    return res.status(200).json({ segments, segmentDuration: 30 });
+    return res.status(200).json({ url: audioUrl });
   } catch {
-    return res.status(502).json({ error: 'Failed to list rain segments' });
+    return res.status(502).json({ error: 'Failed to list rain audio' });
   }
 }
