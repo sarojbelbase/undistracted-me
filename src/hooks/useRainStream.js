@@ -23,7 +23,6 @@ export function useRainStream(fadeDurationMs = 3000) {
         if (!res.ok) return;
         const data = await res.json();
         if (data.url) setAudioUrl(data.url);
-        else if (data.segments?.[0]) setAudioUrl(data.segments[0]);
       } catch { }
     };
     fetchUrl();
