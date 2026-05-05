@@ -152,14 +152,11 @@ export const FocusModeSettings = ({
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Background tab needs more width to show the 3-column photo grid comfortably
-  const modalWidth = activeTab === 'background' ? 480 : 400;
-
   return (
     <Modal
       onClose={onClose}
       ariaLabel="Focus Mode settings"
-      style={{ width: modalWidth, transition: 'width 0.2s ease', ...DIALOG_STYLE }}
+      style={{ width: 480, display: 'flex', flexDirection: 'column', maxHeight: '82vh', ...DIALOG_STYLE }}
     >
       {/* ── Header ── */}
       <div style={{
@@ -197,7 +194,7 @@ export const FocusModeSettings = ({
         id={`fm-settings-panel-${activeTab}`}
         role="tabpanel"
         aria-label={TABS.find(t => t.id === activeTab)?.label}
-        style={{ padding: '16px 18px 20px', overflowY: 'auto', maxHeight: '60vh' }}
+        style={{ padding: '16px 18px 20px', overflowY: 'auto', flex: 1, minHeight: 0 }}
       >
         {activeTab === 'general' && <General />}
         {activeTab === 'search' && <Search />}

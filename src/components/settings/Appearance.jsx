@@ -37,6 +37,40 @@ export const Appearance = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+      {/* ── Widget Style ── */}
+      <div>
+        <SectionLabel>Widget Style</SectionLabel>
+        <Segment>
+          {CARD_STYLES.map(({ id, label, hint }) => {
+            const selected = cardStyle === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setCardStyle(id)}
+                style={{
+                  flex: 1,
+                  display: 'flex', flexDirection: 'column', gap: 2,
+                  padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  textAlign: 'left', transition: 'all 0.15s ease',
+                  background: selected ? 'var(--w-accent)' : 'transparent',
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-2)' }}>
+                  {label}
+                </span>
+                <span style={{
+                  fontSize: 10, lineHeight: '1.3',
+                  color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {hint}
+                </span>
+              </button>
+            );
+          })}
+        </Segment>
+      </div>
+
       {/* ── Theme ── */}
       <div>
         <SectionLabel>Theme</SectionLabel>
@@ -99,40 +133,6 @@ export const Appearance = () => {
             );
           })}
         </div>
-      </div>
-
-      {/* ── Widget Style ── */}
-      <div>
-        <SectionLabel>Widget Style</SectionLabel>
-        <Segment>
-          {CARD_STYLES.map(({ id, label, hint }) => {
-            const selected = cardStyle === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setCardStyle(id)}
-                style={{
-                  flex: 1,
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                  padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  textAlign: 'left', transition: 'all 0.15s ease',
-                  background: selected ? 'var(--w-accent)' : 'transparent',
-                }}
-              >
-                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-2)' }}>
-                  {label}
-                </span>
-                <span style={{
-                  fontSize: 10, lineHeight: '1.3',
-                  color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {hint}
-                </span>
-              </button>
-            );
-          })}
-        </Segment>
       </div>
 
     </div>
