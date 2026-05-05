@@ -194,7 +194,7 @@ export const Settings = ({
         id={`settings-panel-${activeTab}`}
         role="tabpanel"
         aria-label={TABS.find(t => t.id === activeTab)?.label}
-        style={{ padding: '18px 20px 22px', overflowY: 'auto', maxHeight: '65vh' }}
+        style={{ padding: '18px 20px 22px', overflowY: 'auto', height: 360 }}
       >
         {activeTab === 'appearance' && <Appearance />}
         {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
