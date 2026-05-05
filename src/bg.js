@@ -133,7 +133,10 @@ function injectMediaScript() {
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_TICK) syncEventsFromStorage();
-  if (alarm.name === ALARM_PREFETCH) runWeatherPrefetch();
+  if (alarm.name === ALARM_PREFETCH) {
+    runWeatherPrefetch();
+    runGcalPrefetch();
+  }
   if (alarm.name === ALARM_RSS) runRssPrefetch();
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
@@ -191,15 +194,43 @@ async function runWeatherPrefetch() {
   if (!prefetchCoords) return;
   const { lat, lon } = prefetchCoords;
   try {
-    // Fetch current weather + 12h forecast from Open-Meteo (no API key needed)
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days=1&timezone=auto&wind_speed_unit=ms`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const data = await res.json();
-    // Write to chrome.storage.local with timestamp
+    // Use the same Open-Meteo params as the widget's fetchOpenMeteo() (always metric
+    // because the widget's per-instance unit preference isn't accessible in the SW).
+    const weatherParams = new URLSearchParams({
+      latitude: lat,
+      longitude: lon,
+      current: 'temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,precipitation,is_day',
+      hourly: 'precipitation_probability,weather_code,wind_gusts_10m',
+      forecast_hours: 12,
+      temperature_unit: 'celsius',
+      wind_speed_unit: 'kmh',
+      timezone: 'auto',
+    });
+    const aqiParams = new URLSearchParams({
+      latitude: lat,
+      longitude: lon,
+      current: 'us_aqi,pm2_5',
+      timezone: 'auto',
+    });
+
+    // Fetch weather + AQI in parallel; AQI failure is non-fatal
+    const [weatherResult, aqiResult] = await Promise.allSettled([
+      fetch(`https://api.open-meteo.com/v1/forecast?${weatherParams}`, {
+        signal: AbortSignal.timeout(10000),
+      }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`OM ${r.status}`)))),
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams}`, {
+        signal: AbortSignal.timeout(6000),
+      }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`AQI ${r.status}`)))),
+    ]);
+
+    if (weatherResult.status !== 'fulfilled') return; // weather is mandatory
+    const data = weatherResult.value;
+    const aqiData = aqiResult.status === 'fulfilled' ? aqiResult.value : null;
+
     await chrome.storage.local.set({
       weather_sw_cache: {
         data,
+        aqiData,
         lat,
         lon,
         fetchedAt: Date.now(),
@@ -221,6 +252,92 @@ function handlePrefetchSync(msg) {
   });
   // Run an immediate prefetch if we just got fresh coords
   runWeatherPrefetch();
+  runGcalPrefetch();
+}
+
+// ─── GCal pre-fetch ───────────────────────────────────────────────────────────
+
+/**
+ * Returns a valid Google OAuth access token for use in the service worker, or null.
+ * Chrome: uses chrome.identity.getAuthToken() directly (silent, no UI).
+ * Firefox: reads the stored PKCE token from chrome.storage.local.
+ */
+async function getGcalToken() {
+  // Chrome extension path — chrome.identity is available in MV3 service workers
+  if (typeof chrome.identity?.getAuthToken === 'function') {
+    return new Promise((resolve) => {
+      chrome.identity.getAuthToken({ interactive: false }, (token) => {
+        if (chrome.runtime.lastError || !token) resolve(null);
+        else resolve(token);
+      });
+    });
+  }
+  // Firefox / other: read stored PKCE access token (written by googleAuth.js)
+  try {
+    const result = await chrome.storage.local.get('google_ff_tokens');
+    const stored = result.google_ff_tokens ?? null;
+    if (!stored?.access_token) return null;
+    // Only use if not expired (with 60 s buffer); let the page handle refresh
+    if (stored.expires_at - Date.now() > 60_000) return stored.access_token;
+  } catch { /* storage unavailable */ }
+  return null;
+}
+
+/**
+ * Fetches upcoming Google Calendar events and writes them to
+ * chrome.storage.local['gcal_events_cache'] so the page gets instant data
+ * on the next new-tab open (loadCachedGcalEvents reads from that key).
+ */
+async function runGcalPrefetch() {
+  try {
+    const token = await getGcalToken();
+    if (!token) return;
+
+    const params = new URLSearchParams({
+      maxResults: '32',
+      orderBy: 'startTime',
+      singleEvents: 'true',
+      timeMin: new Date().toISOString(),
+    });
+
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+
+    if (res.status === 401) {
+      // Token expired — evict from Chrome's cache so the next getAuthToken call
+      // triggers a silent refresh rather than returning the stale token again.
+      if (typeof chrome.identity?.removeCachedAuthToken === 'function') {
+        chrome.identity.removeCachedAuthToken({ token }, () => { });
+      }
+      return;
+    }
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const events = (data.items ?? [])
+      .filter((e) => e.eventType === 'default')
+      .map((e) => ({
+        id: `gcal_${e.id}`,
+        title: e.summary || '(No title)',
+        description: e.description || '',
+        startDate: (e.start?.dateTime || e.start?.date || '').slice(0, 10),
+        startTime: e.start?.dateTime ? e.start.dateTime.slice(11, 16) : '',
+        endDate: (e.end?.dateTime || e.end?.date || '').slice(0, 10),
+        endTime: e.end?.dateTime ? e.end.dateTime.slice(11, 16) : '',
+        htmlLink: e.htmlLink || null,
+        meetLink: e.hangoutLink || null,
+        _source: 'gcal',
+      }));
+
+    await chrome.storage.local.set({ gcal_events_cache: events });
+  } catch {
+    // Network or auth error — skip silently
+  }
 }
 
 // ─── RSS queue pre-fetch ─────────────────────────────────────────────────

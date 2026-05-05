@@ -78,13 +78,27 @@ export function useRssMulti(feeds = []) {
       return;
     }
 
-    // Populate instantly from cache
+    // Populate instantly from localStorage cache
     const cached = feeds.flatMap((feed) => {
       const c = readRssCache(`custom_${feed.url}`);
       return c ? c.items : [];
     });
     if (cached.length) merge(cached);
-    else setItems([]);
+    else {
+      setItems([]);
+      // ── SW rss_queue seed ─────────────────────────────────────────────
+      // If the service worker pre-fetched the merged feed queue, use it for
+      // instant display before the network fetch completes.
+      chrome?.storage?.local?.get?.('rss_queue').then((result) => {
+        const q = result?.rss_queue;
+        if (!q?.items?.length) return;
+        if (Date.now() - q.fetchedAt > 30 * 60_000) return; // older than 30 min
+        // Only seed if none of the feeds have an active localStorage cache yet
+        // (avoids overwriting partial cache with a potentially broader SW queue)
+        const stillEmpty = feeds.every((f) => readRssCache(`custom_${f.url}`) === null);
+        if (stillEmpty) merge(q.items);
+      }).catch(() => { });
+    }
 
     // Fetch network (skip if all caches were fresh)
     const allCached = feeds.every((f) => readRssCache(`custom_${f.url}`) !== null);
