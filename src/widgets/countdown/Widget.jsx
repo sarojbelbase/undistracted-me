@@ -4,7 +4,7 @@ import { TintedChip } from '../../components/ui/TintedChip';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { AddCountdown } from './AddCountdown';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, useGoogleCalendar } from '../useEvents';
+import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
 import { notifyUser } from '../../utilities/chrome';
 import { getNextOccurrence, formatCountdown, formatTargetDate } from './utils';

@@ -279,7 +279,6 @@ export const FocusMode = ({ onExit }) => {
             onBgRotate={rotate}
           />
         </Suspense>
-        />
       )}
     </div>
   );
