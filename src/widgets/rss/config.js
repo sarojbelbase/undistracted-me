@@ -10,15 +10,15 @@ export default {
   enabled: true,
   platforms: {
     extension: { supported: true },
-    web:       { supported: true, limitations: ['Background sync unavailable on web'] },
-    phone:     { supported: true, limitations: ['Background sync unavailable on mobile'] },
+    web: { supported: true, limitations: ['Background sync unavailable on web'] },
+    phone: { supported: true, limitations: ['Background sync unavailable on mobile'] },
   },
-  x: 0, y: 16, w: 8, h: 10,
+  x: 0, y: 28, w: 8, h: 10,
   breakpoints: {
-    md: { x: 0, y: 24, w: 12, h: 12 },
-    sm: { x: 0, y: 48, w: 12, h: 14 },
-    xs: { x: 0, y: 64, w: 8, h: 16 },
-    xxs: { x: 0, y: 96, w: 8, h: 16 },
+    md: { x: 0, y: 38, w: 12, h: 12 },
+    sm: { x: 0, y: 59, w: 12, h: 14 },
+    xs: { x: 0, y: 125, w: 8, h: 16 },
+    xxs: { x: 0, y: 232, w: 8, h: 16 },
   },
   Component: Widget,
 };

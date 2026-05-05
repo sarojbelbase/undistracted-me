@@ -13,7 +13,7 @@ export default {
     web: { supported: false, limitations: ['Requires chrome.topSites API'] },
     phone: { supported: false, limitations: ['Requires browser topSites API'] },
   },
-  x: 32, y: 0, w: 14, h: 4,
+  x: 34, y: 0, w: 14, h: 4,
   breakpoints: {
     md: { x: 32, y: 0, w: 8, h: 4 },
     sm: { x: 8, y: 10, w: 16, h: 5 },
