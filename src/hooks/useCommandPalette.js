@@ -6,12 +6,14 @@ const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 export const cmdKey = isMac ? '⌘K' : 'Ctrl+K';
 
 /**
- * Manages command palette visibility state + the Cmd+K / Ctrl+K keyboard shortcut.
+ * Manages command palette visibility + the Cmd+K / Ctrl+K keyboard shortcut.
  *
- * - Always calls e.preventDefault() to suppress the browser's own Cmd+K behaviour.
- * - No INPUT/TEXTAREA guard — the palette should open from anywhere (including
- *   when the user is typing in a widget input).
- * - Uses useUIStore.getState() inside the handler to avoid stale closure issues.
+ * Routing:
+ *   - Focus Mode active  → dispatches `um:focus_search_bar` to focus the inline
+ *                          search pill instead of opening this overlay.
+ *   - Dashboard active   → toggles `commandPaletteOpen` in useUIStore.
+ *
+ * Always calls e.preventDefault() to suppress the browser's own Cmd+K behaviour.
  */
 export function useCommandPalette() {
   const commandPaletteOpen = useUIStore((s) => s.commandPaletteOpen);
@@ -19,16 +21,19 @@ export function useCommandPalette() {
 
   useEffect(() => {
     const handleKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        const { commandPaletteOpen, openCommandPalette, closeCommandPalette } =
-          useUIStore.getState();
-        if (commandPaletteOpen) {
-          closeCommandPalette();
-        } else {
-          openCommandPalette();
-        }
+      if (!((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) return;
+      e.preventDefault();
+
+      const state = useUIStore.getState();
+
+      // In Focus Mode — route to the inline search bar.
+      if (state.focusModeActive) {
+        globalThis.dispatchEvent(new CustomEvent('um:focus_search_bar'));
+        return;
       }
+
+      if (state.commandPaletteOpen) state.closeCommandPalette();
+      else state.openCommandPalette();
     };
 
     globalThis.addEventListener('keydown', handleKey);

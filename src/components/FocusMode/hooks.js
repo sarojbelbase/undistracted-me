@@ -413,12 +413,10 @@ export function useChromeMedia() {
 
 // ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
 
-import {
-  fetchGoogleTasks, addGoogleTask, completeGoogleTask,
-  updateGoogleTask, deleteGoogleTask,
-} from '../../utilities/googleTasks';
 import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
 import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
+
+const gtasks = () => import('../../utilities/googleTasks');
 
 export function useFocusTasks() {
   // Single source of truth — read directly from the Zustand store.
@@ -438,6 +436,7 @@ export function useFocusTasks() {
     if (!isGoogleAuthAvailable()) { setHasAttempted(true); return; }
     setLoading(true);
     try {
+      const { fetchGoogleTasks } = await gtasks();
       const list = await fetchGoogleTasks();
       setTasks(list);
       setGtasksConnected(true);
@@ -471,6 +470,7 @@ export function useFocusTasks() {
     const optimistic = { id: `opt-${Date.now()}`, title, completed: false, due: null, notes: null, listId: '@default' };
     setTasks(prev => [optimistic, ...prev]);
     try {
+      const { addGoogleTask } = await gtasks();
       const created = await addGoogleTask(title);
       setTasks(prev => prev.map(t => t.id === optimistic.id ? created : t));
     } catch {
@@ -484,6 +484,7 @@ export function useFocusTasks() {
     const done = !task.completed;
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: done } : t));
     try {
+      const { completeGoogleTask } = await gtasks();
       await completeGoogleTask(taskId, done, task.listId);
     } catch {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !done } : t));
@@ -495,6 +496,7 @@ export function useFocusTasks() {
     const task = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle } : t));
     try {
+      const { updateGoogleTask } = await gtasks();
       await updateGoogleTask(taskId, { title: newTitle }, task?.listId);
     } catch { load(); }
   }, [tasks, load]);
@@ -503,6 +505,7 @@ export function useFocusTasks() {
     const task = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
+      const { deleteGoogleTask } = await gtasks();
       await deleteGoogleTask(taskId, task?.listId);
     } catch { load(); }
   }, [tasks, load]);

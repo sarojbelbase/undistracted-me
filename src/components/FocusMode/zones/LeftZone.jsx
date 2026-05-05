@@ -8,7 +8,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { onClockTick } from '../../../utilities/sharedClock';
 import { readPomodoro } from '../../../widgets/pomodoro/utils';
-import { useEvents, useGoogleCalendar } from '../../../widgets/useEvents';
+import { useEvents, useGoogleCalendar } from '../../../hooks/useEvents';
 import { getNextEventToShow } from '../../../widgets/events/utils';
 import { useOccasions } from '../../../widgets/occasions/useOccasions';
 import { useFocusStocks, useFocusSpotify, useChromeMedia } from '../hooks';

@@ -192,7 +192,7 @@ export const Widget = ({ id, onRemove }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // React to Google account connect/disconnect from AccountsDialog
+  // React to Google account connect/disconnect from Settings → Accounts tab
   useEffect(() => {
     const handler = (e) => {
       if (e.detail?.connected) {

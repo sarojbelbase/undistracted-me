@@ -1,7 +1,8 @@
 import React, { forwardRef, Suspense, lazy } from 'react';
-import { Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
+import { Grid3x3GapFill, GearFill, Grid1x2Fill, Search } from 'react-bootstrap-icons';
 import { TooltipBtn } from './TooltipBtn';
 import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
+import { useUIStore } from '../../store/useUIStore';
 
 // Settings is only ever rendered from within the cluster — lazy-load it here.
 const settingsImport = () => import('../Settings').then(m => ({ default: m.Settings }));
@@ -24,10 +25,10 @@ export const ControlCluster = forwardRef(function ControlCluster(
     showSettings,
     toggleSettings,
     closeSettings,
+    settingsInitialTab = 'appearance',
     onOpenCatalog,
     onPreloadCatalog,
     onPreviewLookAway,
-    onOpenBgPicker,
   },
   ref,
 ) {
@@ -37,6 +38,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
     if (!showSettings) return iconColor;
     return CANVAS_ICON_ACTIVE(isDark);
   })();
+  const openCommandPalette = useUIStore((s) => s.openCommandPalette);
 
   return (
     <div ref={ref} className="absolute top-5 right-5 z-50">
@@ -50,6 +52,17 @@ export const ControlCluster = forwardRef(function ControlCluster(
           boxShadow: 'var(--card-shadow)',
         }}
       >
+
+        {/* Search / Command Palette */}
+        <TooltipBtn
+          tooltip="Search (⌘K)"
+          className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${hoverBg}`}
+          onClick={openCommandPalette}
+        >
+          <Search size={16} style={{ color: iconColor }} />
+        </TooltipBtn>
+
+        <ClusterDivider isDark={isDark} />
 
         {/* Arrange */}
         <TooltipBtn
@@ -97,9 +110,9 @@ export const ControlCluster = forwardRef(function ControlCluster(
       {showSettings && (
         <Suspense fallback={null}>
           <Settings
-            closeSettings={closeSettings}
+            onClose={closeSettings}
+            initialTab={settingsInitialTab}
             onPreviewLookAway={onPreviewLookAway}
-            onOpenBgPicker={onOpenBgPicker}
           />
         </Suspense>
       )}

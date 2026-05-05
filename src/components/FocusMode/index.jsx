@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from "react";
 import { OrbBackground } from "../ui/OrbBackground";
 import bgImage from "../../assets/img/bg.webp";
 import {
@@ -9,19 +9,36 @@ import {
 } from "./hooks";
 
 import {
-  BackgroundPicker,
-  getCustomBgUrl,
-  setCustomBgUrl as persistCustomUrl,
-  getOrbRgb,
-} from "../ui/BackgroundPicker";
-import {
   getBgSource,
   setBgSource as persistBgSource,
 } from "../../utilities/unsplash";
+
+// ─── Background localStorage helpers ─────────────────────────────────────────
+const CUSTOM_URL_KEY = 'fm_custom_bg_url';
+const getCustomBgUrl = () => { try { return localStorage.getItem(CUSTOM_URL_KEY) || null; } catch { return null; } };
+const persistCustomUrl = (url) => { try { if (url) localStorage.setItem(CUSTOM_URL_KEY, url); else localStorage.removeItem(CUSTOM_URL_KEY); } catch { } };
+
+const ORB_PALETTE_KEY = 'fm_orb_palette_id';
+const getOrbPaletteId = () => { try { return localStorage.getItem(ORB_PALETTE_KEY) || 'blueberry'; } catch { return 'blueberry'; } };
+const ORB_PALETTES = [
+  { id: 'blueberry', rgb: '54,133,230' },
+  { id: 'strawberry', rgb: '198,38,46' },
+  { id: 'bubblegum', rgb: '222,62,128' },
+  { id: 'grape', rgb: '165,109,226' },
+  { id: 'orange', rgb: '243,115,41' },
+  { id: 'mint', rgb: '40,188,163' },
+  { id: 'latte', rgb: '207,162,94' },
+];
+const getOrbRgb = () => {
+  const id = getOrbPaletteId();
+  return id === 'accent' ? null : (ORB_PALETTES.find(p => p.id === id)?.rgb || null);
+};
 import { useSettingsStore } from "../../store";
 import { getFMCardVars, FM_ORB_BG } from "./theme";
-import { SearchBarDialog } from "./dialog/SearchBar";
-import { PanelsDialog } from "./dialog/Panels";
+// Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
+const FocusModeSettings = lazy(() =>
+  import('./Settings').then((m) => ({ default: m.FocusModeSettings }))
+);
 import { TopZone } from "./zones/TopZone";
 import { CenterZone } from "./zones/CenterZone";
 import { BottomZone } from "./zones/BottomZone";
@@ -162,38 +179,23 @@ export const FocusMode = ({ onExit }) => {
   }, [isFullscreen, resetHideTimer]);
 
   const toggleFullscreen = useCallback(() => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else document.documentElement.requestFullscreen().catch(() => {});
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
+    else document.documentElement.requestFullscreen().catch(() => { });
   }, []);
 
   // ── Google auth (shared state for Tasks panel) ──────────────────
   const taskState = useFocusTasks();
 
   // ── Escape key ─────────────────────────────────────────────────────────────
-  const [showBgModal, setShowBgModal] = useState(false);
-  const [showTasksDialog, setShowTasksDialog] = useState(false);
-  const [showSearchDialog, setShowSearchDialog] = useState(false);
-  const [showPanelsDialog, setShowPanelsDialog] = useState(false);
+  const [settingsTab, setSettingsTab] = useState(null); // null = closed, else tab id
   useEffect(() => {
     const handleKey = (e) => {
-      if (
-        e.key === "Escape" &&
-        !showBgModal &&
-        !showTasksDialog &&
-        !showSearchDialog &&
-        !showPanelsDialog
-      )
+      if (e.key === "Escape" && settingsTab === null)
         onExit();
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [
-    onExit,
-    showBgModal,
-    showTasksDialog,
-    showSearchDialog,
-    showPanelsDialog,
-  ]);
+  }, [onExit, settingsTab]);
 
   // ── Background source change ────────────────────────────────────────────────
   const handleBgChange = useCallback((source, customUrl) => {
@@ -253,8 +255,6 @@ export const FocusMode = ({ onExit }) => {
       {ZONES.bottomRight?.enable && (
         <BottomRightZone
           taskState={taskState}
-          externalDialogOpen={showTasksDialog}
-          onCloseExternalDialog={() => setShowTasksDialog(false)}
         />
       )}
       {ZONES.top.enable && (
@@ -263,33 +263,23 @@ export const FocusMode = ({ onExit }) => {
           isFullscreen={isFullscreen}
           toggleFullscreen={toggleFullscreen}
           uiVisible={uiVisible}
-          onOpenBgModal={() => setShowBgModal(true)}
-          onOpenTasksDialog={() => setShowTasksDialog(true)}
-          onOpenSearchDialog={() => setShowSearchDialog(true)}
-          onOpenPanelsDialog={() => setShowPanelsDialog(true)}
+          onOpenSettings={(tab) => setSettingsTab(tab ?? 'search')}
         />
       )}
 
-      {showBgModal && (
-        <BackgroundPicker
-          scope="focus"
-          initialSource={bgSource}
-          initialCustomUrl={bgSource === "custom" ? customBgUrl : null}
-          initialPhotoUrl={
-            bgSource === "curated" ? photo?.regular || photo?.url || null : null
-          }
-          onClose={() => setShowBgModal(false)}
-          onApply={(type, opts = {}) => handleBgChange(type, opts.url)}
-          onRotatePhoto={rotate}
+      {settingsTab !== null && (
+        <Suspense fallback={null}>
+          <FocusModeSettings
+            onClose={() => setSettingsTab(null)}
+            initialTab={settingsTab}
+            bgSource={bgSource}
+            bgCustomUrl={bgSource === "custom" ? customBgUrl : null}
+            bgPhotoUrl={bgSource === "curated" ? photo?.regular || photo?.url || null : null}
+            onBgApply={(type, opts = {}) => handleBgChange(type, opts.url)}
+            onBgRotate={rotate}
+          />
+        </Suspense>
         />
-      )}
-
-      {showSearchDialog && (
-        <SearchBarDialog onClose={() => setShowSearchDialog(false)} />
-      )}
-
-      {showPanelsDialog && (
-        <PanelsDialog onClose={() => setShowPanelsDialog(false)} />
       )}
     </div>
   );

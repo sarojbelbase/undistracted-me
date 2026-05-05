@@ -1,13 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-/**
- * Manages the settings panel open/closed state.
- * Closes on outside click and Escape key.
- * Attach the returned `panelRef` to the container element that wraps both
- * the trigger button and the settings panel so clicks inside never dismiss it.
- */
 export function useSettingsPanel() {
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState('appearance');
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -15,9 +10,7 @@ export function useSettingsPanel() {
     const handler = (e) => {
       if (e.type === 'keydown' && e.key === 'Escape') { setShowSettings(false); return; }
       if (panelRef.current && !panelRef.current.contains(e.target)) {
-        // Don't close if the click is inside a portal modal (e.g. AccountsDialog).
-        // Portal dialogs render to document.body so they're outside panelRef in the DOM,
-        // but they should still be treated as "inside" for dismissal purposes.
+        // Don't close if the click is inside a portal modal (e.g. a confirmation dialog).
         if (e.target.closest('dialog[aria-modal="true"]')) return;
         setShowSettings(false);
       }
@@ -32,6 +25,10 @@ export function useSettingsPanel() {
 
   const toggleSettings = useCallback(() => setShowSettings(s => !s), []);
   const closeSettings = useCallback(() => setShowSettings(false), []);
+  const openAtTab = useCallback((tab) => {
+    setSettingsInitialTab(tab);
+    setShowSettings(true);
+  }, []);
 
-  return { showSettings, panelRef, toggleSettings, closeSettings };
+  return { showSettings, settingsInitialTab, panelRef, toggleSettings, closeSettings, openAtTab };
 }

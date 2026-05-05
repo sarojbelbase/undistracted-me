@@ -5,7 +5,7 @@
  * One connect/disconnect action covers Calendar, Contacts, and Tasks.
  *
  * Consumers:
- *  - AccountsDialog  (connect/disconnect UI)
+ *  - settings/Accounts  (connect/disconnect UI)
  *  - FocusMode       (Tasks panel)
  *  - IntegrationRow  (status badge)
  *  - useFocusTasks   (reacts to google_account_changed event)

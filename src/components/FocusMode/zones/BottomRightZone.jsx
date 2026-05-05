@@ -3,7 +3,7 @@ import React, { useState, useCallback, Suspense, lazy } from "react";
 import { TasksDialog } from "../dialog/Tasks";
 import { useSettingsStore } from "../../../store";
 import {
-  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_CARD_BORDER,
+  FM_SURFACE, FM_SURFACE_2, FM_CARD_BORDER,
 } from "../theme";
 
 const TasksPanel = lazy(() =>
@@ -42,7 +42,7 @@ export const BottomRightZone = ({
   onCloseExternalDialog,
 }) => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
-  const { tasks, loading, gtasksConnected, userProfile, hasAttempted, add, toggle, edit, remove, reload } = taskState;
+  const { tasks, loading, gtasksConnected, hasAttempted, add, toggle, edit, remove, reload } = taskState;
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const isDialogOpen = dialogOpen || !!externalDialogOpen;
