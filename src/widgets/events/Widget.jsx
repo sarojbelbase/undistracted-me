@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { useEvents, useGoogleCalendar } from '../useEvents';
+import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
 import { humanizeAge } from "./utils";
 import { AddEvent } from './AddEvent';

@@ -3,7 +3,7 @@ import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import config from './config';
-import { useEvents, useGoogleCalendar } from '../useEvents';
+import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
