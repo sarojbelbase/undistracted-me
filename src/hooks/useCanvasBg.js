@@ -1,9 +1,21 @@
 import { useState, useMemo, useCallback } from 'react';
-import { getOrbRgbById } from '../components/ui/BackgroundPicker';
 import { getPhotoLibrary, getThumbUrl } from '../utilities/unsplash';
 import { extractColorFromImage } from '../utilities/favicon';
 import { ACCENT_COLORS } from '../theme';
 import bgImage from '../assets/img/bg.webp';
+
+// ─── Orb palette helpers ──────────────────────────────────────────────────────
+const ORB_PALETTES = [
+  { id: 'blueberry', rgb: '54,133,230' },
+  { id: 'strawberry', rgb: '198,38,46' },
+  { id: 'bubblegum', rgb: '222,62,128' },
+  { id: 'grape', rgb: '165,109,226' },
+  { id: 'orange', rgb: '243,115,41' },
+  { id: 'mint', rgb: '40,188,163' },
+  { id: 'latte', rgb: '207,162,94' },
+];
+const getOrbRgbById = (id) =>
+  ORB_PALETTES.find(p => p.id === id)?.rgb || ORB_PALETTES[0].rgb;
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 

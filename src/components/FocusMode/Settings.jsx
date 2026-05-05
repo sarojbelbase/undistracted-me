@@ -1,137 +1,219 @@
-import React from 'react';
-import { useSettingsStore } from '../../store';
+/**
+ * FocusModeSettings — unified tabbed settings dialog for Focus Mode.
+ *
+ * Tabs: General · Search · Tasks · Panels · Background.
+ *
+ * Props:
+ *   onClose     () => void
+ *   initialTab  'general' | 'search' | 'tasks' | 'panels' | 'background'
+ *   bgSource    string   — current bg source, passed through to BackgroundTab
+ *   bgCustomUrl string|null
+ *   bgPhotoUrl  string|null
+ *   onBgApply   (type, opts) => void
+ *   onBgRotate  () => void
+ */
+
+import React, { useState } from 'react';
+import { Modal } from '../ui/Modal';
+import { General } from './settings/General';
+import { Search } from './settings/Search';
+import { Tasks } from './settings/Tasks';
+import { Panels } from './settings/Panels';
+import { Background } from './settings/Background';
 import {
-  FM_SECTION_CARD_BG, FM_SPINNER_RING, FM_INK_3,
-  FM_POPOVER_BG, FM_POPOVER_BORDER, FM_POPOVER_SHADOW,
-  FM_DIVIDER, FM_BORDER,
+  DIALOG_STYLE,
+  FM_INK_1, FM_INK_3,
+  FM_DIVIDER,
+  FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from './theme';
+import { CloseButton } from './dialog/shared';
 
-// Focus mode is always rendered on a dark background — use explicit dark-glass
-// tokens rather than theme CSS variables (which may be light-mode in canvas).
+// ─── Tab definitions ──────────────────────────────────────────────────────────
 
-const FMLabel = ({ children }) => (
-  <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--w-ink-5)' }}>
-    {children}
-  </p>
-);
+const TABS = [
+  {
+    id: 'general',
+    label: 'General',
+    icon: (active) => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"
+          fill={active ? 'var(--w-accent)' : FM_ICON_STROKE}
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'search',
+    label: 'Search',
+    icon: (active) => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2" />
+        <line x1="16" y1="16" x2="21" y2="21" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    id: 'tasks',
+    label: 'Tasks',
+    icon: (active) => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 12l2 2 4-4" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
+      </svg>
+    ),
+  },
+  {
+    id: 'panels',
+    label: 'Panels',
+    icon: (active) => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="3" width="9" height="18" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
+        <rect x="13" y="3" width="9" height="8" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
+        <rect x="13" y="13" width="9" height="8" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE_MUTED} strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    id: 'background',
+    label: 'Background',
+    icon: (active) => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="14" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
+        <circle cx="8.5" cy="8.5" r="1.5" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.5" />
+        <path d="M3 16l5-4 4 3 3-2 6 4" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+];
 
-const ToggleRow = ({ label, options, value, onChange }) => (
-  <div>
-    <FMLabel>{label}</FMLabel>
-    <div
-      className="flex gap-1 p-0.5 rounded-xl"
-      style={{ background: FM_SECTION_CARD_BG, border: `1px solid ${FM_SPINNER_RING}` }}
-    >
-      {options.map(({ id, label: optLabel }) => (
+// ─── Tab bar ──────────────────────────────────────────────────────────────────
+
+const TabBar = ({ active, onChange }) => (
+  <div
+    role="tablist"
+    aria-label="Settings sections"
+    style={{
+      display: 'flex',
+      gap: 2,
+      padding: '0 10px',
+      background: 'transparent',
+      borderBottom: `1px solid ${FM_DIVIDER}`,
+    }}
+  >
+    {TABS.map(tab => {
+      const isActive = tab.id === active;
+      return (
         <button
-          key={id}
-          onClick={() => onChange(id)}
-          className="flex-1 text-[10px] py-1.5 rounded-lg font-semibold transition-all focus:outline-none cursor-pointer"
-          style={value === id
-            ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-            : { background: 'transparent', color: FM_INK_3 }}
+          key={tab.id}
+          role="tab"
+          aria-selected={isActive}
+          aria-controls={`fm-settings-panel-${tab.id}`}
+          type="button"
+          onClick={() => onChange(tab.id)}
+          style={{
+            flex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            padding: '10px 6px 9px',
+            borderRadius: 0,
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 11,
+            fontWeight: isActive ? 700 : 500,
+            color: isActive ? 'var(--w-accent)' : FM_INK_3,
+            background: 'transparent',
+            borderBottom: isActive ? '2px solid var(--w-accent)' : '2px solid transparent',
+            marginBottom: -1,
+            transition: 'all 0.15s ease',
+            outline: 'none',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = FM_INK_1; }}
+          onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = FM_INK_3; }}
         >
-          {optLabel}
+          {tab.icon(isActive)}
+          <span>{tab.label}</span>
         </button>
-      ))}
-    </div>
+      );
+    })}
   </div>
 );
 
-const OnOffRow = ({ label, value, onChange }) => (
-  <ToggleRow
-    label={label}
-    options={[{ id: true, label: 'On' }, { id: false, label: 'Off' }]}
-    value={value}
-    onChange={v => onChange(v === true || v === 'true' || v === 'on')}
-  />
-);
+// ─── Main component ───────────────────────────────────────────────────────────
 
-export const FocusModeSettings = ({ onOpenBgModal }) => {
-  const {
-    dateFormat, setDateFormat,
-    clockFormat, setClockFormat,
-    focusSearchBar, setFocusSearchBar,
-    focusTasks, setFocusTasks,
-  } = useSettingsStore();
+export const FocusModeSettings = ({
+  onClose,
+  initialTab = 'general',
+  bgSource = 'default',
+  bgCustomUrl = null,
+  bgPhotoUrl = null,
+  onBgApply,
+  onBgRotate,
+}) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Background tab needs more width to show the 3-column photo grid comfortably
+  const modalWidth = activeTab === 'background' ? 480 : 400;
 
   return (
-    <section
-      aria-label="Focus mode settings"
-      className="absolute top-15.5 z-50 flex flex-col gap-4 p-4 w-52 rounded-2xl"
-      style={{
-        right: 15,
-        background: FM_POPOVER_BG,
-        backdropFilter: 'blur(24px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-        border: `1px solid ${FM_POPOVER_BORDER}`,
-        boxShadow: FM_POPOVER_SHADOW,
-        animation: 'fm-slide-in 0.18s cubic-bezier(0.16,1,0.3,1) both',
-      }}
+    <Modal
+      onClose={onClose}
+      ariaLabel="Focus Mode settings"
+      style={{ width: modalWidth, transition: 'width 0.2s ease', ...DIALOG_STYLE }}
     >
-      {/* Caret pointing up, aligned to gear icon (~17px from right edge of panel) */}
+      {/* ── Header ── */}
       <div style={{
-        position: 'absolute', top: -7, right: 17,
-        width: 12, height: 7, overflow: 'hidden',
-        pointerEvents: 'none',
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '16px 16px 14px',
       }}>
         <div style={{
-          width: 12, height: 12,
-          background: FM_POPOVER_BG,
-          border: `1px solid ${FM_POPOVER_BORDER}`,
-          transform: 'rotate(45deg) translate(2px, 2px)',
-        }} />
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: 'color-mix(in srgb, var(--w-accent) 15%, transparent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"
+              fill="var(--w-accent)"
+            />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>
+            Focus Mode Settings
+          </div>
+          <div style={{ fontSize: 11, color: FM_INK_3, marginTop: 2 }}>
+            Customize your focus experience
+          </div>
+        </div>
+        <CloseButton onClose={onClose} />
       </div>
-      {/* Date format */}
-      <ToggleRow
-        label="Date Calendar"
-        options={[{ id: 'gregorian', label: 'CE' }, { id: 'bikramSambat', label: 'BS' }]}
-        value={dateFormat}
-        onChange={setDateFormat}
-      />
 
-      {/* Clock format */}
-      <ToggleRow
-        label="Clock Format"
-        options={[{ id: '24h', label: '24h' }, { id: '12h', label: '12h' }]}
-        value={clockFormat || '24h'}
-        onChange={setClockFormat}
-      />
+      {/* ── Tab bar ── */}
+      <TabBar active={activeTab} onChange={setActiveTab} />
 
-      {/* Search bar */}
-      <ToggleRow
-        label="Search Bar"
-        options={[{ id: true, label: 'Show' }, { id: false, label: 'Hide' }]}
-        value={focusSearchBar ?? true}
-        onChange={setFocusSearchBar}
-      />
-
-      {/* Tasks */}
-      <ToggleRow
-        label="Tasks"
-        options={[{ id: true, label: 'Show' }, { id: false, label: 'Hide' }]}
-        value={focusTasks ?? true}
-        onChange={setFocusTasks}
-      />
-
-      {/* Background */}
-      <div>
-        <FMLabel>Background</FMLabel>
-        <button
-          onClick={() => onOpenBgModal?.()}
-          className="w-full flex items-center justify-between text-[10px] py-1.5 px-3 rounded-xl font-semibold focus:outline-none cursor-pointer transition-opacity hover:opacity-80"
-          style={{
-            background: FM_DIVIDER,
-            border: `1px solid ${FM_BORDER}`,
-            color: 'rgba(255,255,255,0.72)',
-          }}
-        >
-          <span>Change background</span>
-          <span style={{ color: 'rgba(255,255,255,0.35)' }}>›</span>
-        </button>
+      {/* ── Tab content ── */}
+      <div
+        id={`fm-settings-panel-${activeTab}`}
+        role="tabpanel"
+        aria-label={TABS.find(t => t.id === activeTab)?.label}
+        style={{ padding: '16px 18px 20px', overflowY: 'auto', maxHeight: '60vh' }}
+      >
+        {activeTab === 'general' && <General />}
+        {activeTab === 'search' && <Search />}
+        {activeTab === 'tasks' && <Tasks />}
+        {activeTab === 'panels' && <Panels />}
+        {activeTab === 'background' && (
+          <Background
+            initialSource={bgSource}
+            initialCustomUrl={bgCustomUrl}
+            initialPhotoUrl={bgPhotoUrl}
+            onApply={onBgApply}
+            onRotatePhoto={onBgRotate}
+          />
+        )}
       </div>
-    </section>
+    </Modal>
   );
 };
-
 

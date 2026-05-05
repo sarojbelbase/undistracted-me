@@ -2,15 +2,13 @@ import "./App.css";
 import "./styles/main.scss";
 import React, { useState, Suspense, lazy, useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
-import { FocusMode } from "./components/FocusMode";
-import { LookAway } from "./components/LookAway";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
   snoozeLookAway,
 } from "./components/LookAway/hooks";
 import { WidgetGrid } from "./widgets/WidgetGrid";
-import { BackgroundPicker } from "./components/ui/BackgroundPicker";
+
 import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
 import { FocusModeButton } from "./components/ui/FocusModeButton";
@@ -24,7 +22,19 @@ import { useSettingsPanel } from "./hooks/useSettingsPanel";
 import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
-import { CommandPalette } from "./components/CommandPalette";
+
+// ── On-demand lazy components ────────────────────────────────────────────────
+// None of these appear on the initial new-tab render, so we defer them.
+
+import { FocusMode } from "./components/FocusMode";
+
+const LookAway = lazy(() =>
+  import("./components/LookAway").then((m) => ({ default: m.LookAway })),
+);
+
+const CommandPalette = lazy(() =>
+  import("./components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
 
 // WidgetCatalog renders at App level (not inside ControlCluster) so keep its
 // lazy import here; the preloader is passed down as a prop.
@@ -32,8 +42,6 @@ const catalogImport = () =>
   import("./widgets/WidgetCatalog").then((m) => ({ default: m.WidgetCatalog }));
 const WidgetCatalog = lazy(catalogImport);
 const preloadCatalog = () => catalogImport();
-
-import { AccountsDialog } from "./components/ui/AccountsDialog";
 
 // ── Dev-only breakpoint indicator ───────────────────────────────────────────
 const BP_CONFIG = [
@@ -54,9 +62,9 @@ const useBreakpoint = () => {
   const [bp, setBp] = React.useState(() => fromW(getW()));
   React.useEffect(() => {
     const update = () => setBp(fromW(getW()));
-    window.addEventListener("resize", update);
+    globalThis.addEventListener("resize", update);
     update(); // sync after mount in case initial width was 0
-    return () => window.removeEventListener("resize", update);
+    return () => globalThis.removeEventListener("resize", update);
   }, []);
   return bp;
 };
@@ -95,7 +103,6 @@ const BreakpointBadge = () => {
 const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showLookAway, setShowLookAway] = useState(false);
-  const [showBgPicker, setShowBgPicker] = useState(false);
 
   // ── Stores ──────────────────────────────────────────────────────────────────
   const {
@@ -110,7 +117,7 @@ const App = () => {
     cardStyle,
   } = useSettingsStore();
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
-  const { accountsDialogOpen, closeAccountsDialog } = useUIStore();
+  const { settingsOpenAt, clearSettingsOpenAt } = useUIStore();
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
@@ -127,11 +134,24 @@ const App = () => {
   // ── Feature hooks ────────────────────────────────────────────────────────────
   const { showFocusMode, focusModeEverShown, openFocusMode, closeFocusMode } =
     useFocusMode(defaultView);
-  const { showSettings, panelRef, toggleSettings, closeSettings } =
+  const { showSettings, settingsInitialTab, panelRef, toggleSettings, closeSettings, openAtTab } =
     useSettingsPanel();
+
+  // Open Settings at the accounts tab when any widget calls openAccountsDialog().
+  useEffect(() => {
+    if (settingsOpenAt) {
+      openAtTab(settingsOpenAt);
+      clearSettingsOpenAt();
+    }
+  }, [settingsOpenAt, openAtTab, clearSettingsOpenAt]);
   const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
   const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
+
+  // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
+  useEffect(() => {
+    useUIStore.getState().setFocusModeActive(showFocusMode);
+  }, [showFocusMode]);
 
   // Exit arrange mode when the user clicks anywhere outside a drag handle.
   // Skips the arrange-toggle button so its own onClick can handle the toggle.
@@ -182,6 +202,7 @@ const App = () => {
         showSettings={showSettings}
         toggleSettings={toggleSettings}
         closeSettings={closeSettings}
+        settingsInitialTab={settingsInitialTab}
         onOpenCatalog={() => {
           setShowCatalog(true);
           closeSettings();
@@ -189,10 +210,6 @@ const App = () => {
         onPreloadCatalog={preloadCatalog}
         onPreviewLookAway={() => {
           setShowLookAway(true);
-          closeSettings();
-        }}
-        onOpenBgPicker={() => {
-          setShowBgPicker(true);
           closeSettings();
         }}
       />
@@ -227,57 +244,31 @@ const App = () => {
       )}
 
       {showLookAway && (
-        <LookAway
-          onDismiss={() => {
-            setShowLookAway(false);
-            clearLookAwayDue();
-          }}
-          onSnooze={(mins) => {
-            setShowLookAway(false);
-            snoozeLookAway(mins);
-          }}
-          duration={20}
-          isDark={isDark}
-        />
-      )}
-
-      {showBgPicker && (
-        <BackgroundPicker
-          scope="canvas"
-          initialSource={bg.bgType}
-          initialOrbId={bg.bgOrbId}
-          initialCustomUrl={
-            bg.bgType === "custom" ? canvasBg?.url || null : null
-          }
-          initialPhotoUrl={
-            bg.bgType === "curated" ? canvasBg?.url || null : null
-          }
-          onClose={() => setShowBgPicker(false)}
-          onApply={(type, opts = {}) => {
-            setCanvasBg({
-              type,
-              orbId: opts.orbId || bg.bgOrbId,
-              url: opts.url ?? null,
-              color: opts.color ?? null,
-            });
-          }}
-        />
+        <Suspense fallback={null}>
+          <LookAway
+            onDismiss={() => {
+              setShowLookAway(false);
+              clearLookAwayDue();
+            }}
+            onSnooze={(mins) => {
+              setShowLookAway(false);
+              snoozeLookAway(mins);
+            }}
+            duration={20}
+            isDark={isDark}
+          />
+        </Suspense>
       )}
 
       {typeof chrome === "undefined" && <Analytics />}
 
-      {/* Global AccountsDialog */}
-      {accountsDialogOpen && <AccountsDialog onClose={closeAccountsDialog} />}
-
       {/* Command Palette — Cmd+K / Ctrl+K */}
-      {commandPaletteOpen && (
-        <CommandPalette
-          onClose={closeCommandPalette}
-          onOpenFocusMode={openFocusMode}
-          onOpenCatalog={() => setShowCatalog(true)}
-          onPreviewLookAway={() => setShowLookAway(true)}
-          onOpenSettings={toggleSettings}
-        />
+      {commandPaletteOpen && !showFocusMode && (
+        <Suspense fallback={null}>
+          <CommandPalette
+            onClose={closeCommandPalette}
+          />
+        </Suspense>
       )}
 
       {/* Dev-only breakpoint badge — bottom-left */}

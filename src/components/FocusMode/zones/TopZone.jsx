@@ -10,10 +10,7 @@
 import React, {
   useState,
   useEffect,
-  useRef,
   useCallback,
-  Suspense,
-  lazy,
 } from "react";
 import {
   GearFill,
@@ -44,15 +41,6 @@ import {
 import { useRainStream } from "../../../hooks/useRainStream";
 
 const TOP = ZONES.top.items;
-
-const FocusModeSettings = lazy(() =>
-  import("../dialog/Settings").then((m) => ({ default: m.FocusModeSettings })),
-);
-
-// Preload Settings panel on hover so it opens instantly
-const preloadSettings = () => {
-  import("../dialog/Settings");
-};
 
 // ── Info strip (weather + date) ───────────────────────────────────────────────
 
@@ -148,13 +136,9 @@ const NavBar = ({
   isFullscreen,
   toggleFullscreen,
   uiVisible,
-  onOpenBgModal,
-  onOpenTasksDialog,
-  onOpenSearchDialog,
-  onOpenPanelsDialog,
+  onOpenSettings,
 }) => {
-  const [showSettings, setShowSettings] = useState(false);
-  const settingsRef = useRef(null);
+  const [settingsActive, setSettingsActive] = useState(false);
 
   const [rainHovered, setRainHovered] = useState(false);
   const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef } = useRainStream(FADE_DURATION_MS);
@@ -162,23 +146,6 @@ const NavBar = ({
   // ── Settings click-outside ───────────────────────────────────────────────────
   const fadeIn = (e) => { e.currentTarget.style.opacity = "0.88"; };
   const fadeOut = (e) => { e.currentTarget.style.opacity = "0.38"; };
-
-  useEffect(() => {
-    if (!showSettings) return;
-    let handler = null;
-    const id = setTimeout(() => {
-      handler = (e) => {
-        const inBtn = settingsRef.current?.contains(e.target);
-        const inDialog = e.target.closest?.('[aria-label="Focus mode settings"]');
-        if (!inBtn && !inDialog) setShowSettings(false);
-      };
-      document.addEventListener("mousedown", handler);
-    }, 0);
-    return () => {
-      clearTimeout(id);
-      if (handler) document.removeEventListener("mousedown", handler);
-    };
-  }, [showSettings]);
 
   return (
     <div
@@ -208,7 +175,7 @@ const NavBar = ({
           opacity: 0.52,
           transition: "opacity 0.2s",
         }}
-        tooltip={showSettings ? null : "Back to Canvas"}
+        tooltip={settingsActive ? null : "Back to Canvas"}
       >
         <svg width="13" height="15" viewBox="0 0 10 10" fill="none">
           <path
@@ -232,7 +199,6 @@ const NavBar = ({
 
       {/* Right pill: rain toggle · fullscreen · settings */}
       <div
-        ref={settingsRef}
         className="flex items-center rounded-full opacity-50"
         style={{
           background: FM_CARD_BG,
@@ -272,7 +238,7 @@ const NavBar = ({
           onClick={toggleFullscreen}
           className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
           tooltip={(() => {
-            if (showSettings) return null;
+            if (settingsActive) return null;
             return isFullscreen ? "Exit fullscreen" : "Fullscreen — keeps screen awake";
           })()}
         >
@@ -284,29 +250,20 @@ const NavBar = ({
         <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
 
         <TooltipBtn
-          onClick={() => setShowSettings((s) => !s)}
-          onMouseEnter={preloadSettings}
+          onClick={() => {
+            setSettingsActive(true);
+            onOpenSettings?.('general');
+          }}
           className="group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
-          tooltip={showSettings ? null : "Settings"}
+          tooltip={settingsActive ? null : "Settings"}
         >
           <GearFill
             size={16}
-            color={showSettings ? "var(--w-accent)" : FM_INK_1}
+            color={settingsActive ? "var(--w-accent)" : FM_INK_1}
             className="transition-transform duration-300 group-hover:rotate-90"
           />
         </TooltipBtn>
       </div>
-
-      {showSettings && (
-        <Suspense fallback={null}>
-          <FocusModeSettings
-            onOpenBgModal={onOpenBgModal}
-            onOpenTasksDialog={() => { setShowSettings(false); onOpenTasksDialog?.(); }}
-            onOpenSearchDialog={() => { setShowSettings(false); onOpenSearchDialog?.(); }}
-            onOpenPanelsDialog={() => { setShowSettings(false); onOpenPanelsDialog?.(); }}
-          />
-        </Suspense>
-      )}
     </div>
   );
 };
@@ -318,10 +275,7 @@ export const TopZone = ({
   isFullscreen,
   toggleFullscreen,
   uiVisible,
-  onOpenBgModal,
-  onOpenTasksDialog,
-  onOpenSearchDialog,
-  onOpenPanelsDialog,
+  onOpenSettings,
 }) => {
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const weather = useFocusWeather();
@@ -346,10 +300,7 @@ export const TopZone = ({
         isFullscreen={isFullscreen}
         toggleFullscreen={toggleFullscreen}
         uiVisible={uiVisible}
-        onOpenBgModal={onOpenBgModal}
-        onOpenTasksDialog={onOpenTasksDialog}
-        onOpenSearchDialog={onOpenSearchDialog}
-        onOpenPanelsDialog={onOpenPanelsDialog}
+        onOpenSettings={onOpenSettings}
       />
       <InfoStrip weather={weather} dateParts={dateParts} />
     </>

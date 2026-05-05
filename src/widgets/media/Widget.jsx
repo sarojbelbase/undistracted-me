@@ -11,7 +11,8 @@ import {
   extractAlbumColor, getSpotifyProfile, fetchAndCacheProfile,
   getChromeMedia, sendChromeMediaAction,
 } from './utils';
-import { SPOTIFY_ACCOUNT_CHANGED } from '../../components/ui/AccountsDialog';
+// Event key shared with Accounts settings tab for Spotify connect/disconnect sync.
+const SPOTIFY_ACCOUNT_CHANGED = 'spotify_account_changed';
 
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -35,9 +36,9 @@ const dark = (r, g, b, f) => `rgb(${Math.round(r * f)},${Math.round(g * f)},${Ma
 // Zero layout cost; no extra DOM element in the flow.
 const SOURCE_META = {
   'music.youtube.com': { color: '#c00c1e', label: 'YouTube Music' },
-  'www.youtube.com':   { color: '#ff0000', label: 'YouTube' },
-  'youtube.com':       { color: '#ff0000', label: 'YouTube' },
-  'soundcloud.com':    { color: '#ff5500', label: 'SoundCloud' },
+  'www.youtube.com': { color: '#ff0000', label: 'YouTube' },
+  'youtube.com': { color: '#ff0000', label: 'YouTube' },
+  'soundcloud.com': { color: '#ff5500', label: 'SoundCloud' },
 };
 
 function chromeArtworkRing(host) {
@@ -128,10 +129,7 @@ export const Widget = ({ onRemove }) => {
   const [trackAnimKey, setTrackAnimKey] = useState(0);
   const prevTrackIdRef = useRef(null);
   const [albumColor, setAlbumColor] = useState(null);
-  const [profile, setProfile] = useState(null);
 
-  // Load profile from chrome.storage.local on mount (async)
-  useEffect(() => { getSpotifyProfile().then(p => { if (p) setProfile(p); }); }, []);
   // Detect track changes for entrance animation
   useEffect(() => {
     if (!track) return;
@@ -213,31 +211,31 @@ export const Widget = ({ onRemove }) => {
   }, [fetchChromeMedia]);
 
   // Extract colour from each chrome session's artwork (keyed by tabId)
-  useEffect(() => {
-    chromeMediaSessions.forEach(s => {
-      if (!s.artwork || chromeArtRef.current[s.tabId] === s.artwork) return;
-      chromeArtRef.current[s.tabId] = s.artwork;
-      extractAlbumColor(s.artwork).then(color => {
-        if (color) setChromeAlbumColors(prev => ({ ...prev, [s.tabId]: color }));
-      });
+  const updateSessionArtColor = useCallback((s) => {
+    if (!s.artwork || chromeArtRef.current[s.tabId] === s.artwork) return;
+    chromeArtRef.current[s.tabId] = s.artwork;
+    extractAlbumColor(s.artwork).then(color => {
+      if (color) setChromeAlbumColors(prev => ({ ...prev, [s.tabId]: color }));
     });
-  }, [chromeMediaSessions]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync with AccountsDialog connect/disconnect events
+  useEffect(() => {
+    chromeMediaSessions.forEach(updateSessionArtColor);
+  }, [chromeMediaSessions, updateSessionArtColor]);
+
+  // Sync with Accounts settings tab connect/disconnect events
   useEffect(() => {
     const handler = ({ detail }) => {
       setConnected(detail.connected);
       if (detail.connected) {
         fetchPlayback();
-        getSpotifyProfile().then(p => { if (p) setProfile(p); });
       } else {
         setTrack(null);
         setAlbumColor(null);
-        setProfile(null);
       }
     };
-    window.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
-    return () => window.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    globalThis.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    return () => globalThis.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
   }, [fetchPlayback]);
 
   const handlePlayPause = async () => {
@@ -287,11 +285,14 @@ export const Widget = ({ onRemove }) => {
 
   // hasBg = true whenever there's album art
   const hasBg = !!track?.albumArt;
-  const bgStyle = albumColor
-    ? { background: `linear-gradient(160deg, ${dark(albumColor.r, albumColor.g, albumColor.b, 0.55)} 0%, ${dark(albumColor.r, albumColor.g, albumColor.b, 0.35)} 100%)` }
-    : hasBg
-      ? { backgroundColor: '#1a1a1e' }
-      : {};
+  let bgStyle;
+  if (albumColor) {
+    bgStyle = { background: `linear-gradient(160deg, ${dark(albumColor.r, albumColor.g, albumColor.b, 0.55)} 0%, ${dark(albumColor.r, albumColor.g, albumColor.b, 0.35)} 100%)` };
+  } else if (hasBg) {
+    bgStyle = { backgroundColor: '#1a1a1e' };
+  } else {
+    bgStyle = {};
+  }
   // Always white text/controls when hasBg — dark scrim + gradient ensures readability in all modes
   const inkColor = hasBg ? 'rgba(255,255,255,0.95)' : 'var(--w-ink-1)';
   const muteColor = hasBg ? 'rgba(255,255,255,0.6)' : 'var(--w-ink-4)';
@@ -328,9 +329,14 @@ export const Widget = ({ onRemove }) => {
   }, [activeSession?.title, activeSession?.artist]);
   const activeChromeColor = activeSession ? (chromeAlbumColors[activeSession.tabId] ?? null) : null;
   const chromeHasBg = !!activeSession?.artwork && !!activeChromeColor;
-  const chromeBgStyle = activeChromeColor
-    ? { background: `linear-gradient(160deg, ${dark(activeChromeColor.r, activeChromeColor.g, activeChromeColor.b, 0.55)} 0%, ${dark(activeChromeColor.r, activeChromeColor.g, activeChromeColor.b, 0.35)} 100%)` }
-    : chromeHasBg ? { backgroundColor: '#1a1a1e' } : {};
+  let chromeBgStyle;
+  if (activeChromeColor) {
+    chromeBgStyle = { background: `linear-gradient(160deg, ${dark(activeChromeColor.r, activeChromeColor.g, activeChromeColor.b, 0.55)} 0%, ${dark(activeChromeColor.r, activeChromeColor.g, activeChromeColor.b, 0.35)} 100%)` };
+  } else if (chromeHasBg) {
+    chromeBgStyle = { backgroundColor: '#1a1a1e' };
+  } else {
+    chromeBgStyle = {};
+  }
   const chromeInk = chromeHasBg ? 'rgba(255,255,255,0.95)' : 'var(--w-ink-1)';
   const chromeMute = chromeHasBg ? 'rgba(255,255,255,0.6)' : 'var(--w-ink-4)';
   const chromeBtnBg = chromeHasBg ? 'rgba(255,255,255,0.18)' : 'var(--panel-bg)';
@@ -454,9 +460,11 @@ export const Widget = ({ onRemove }) => {
                   backgroundColor: chromeBtnBg,
                   color: chromeInk,
                   border: chromeBtnBorder,
-                  opacity: activeSession?.canGoPrev === false ? 0.2
-                    : chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'prev' ? 0.6
-                    : 1,
+                  opacity: (() => {
+                    if (activeSession?.canGoPrev === false) return 0.2;
+                    if (chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'prev') return 0.6;
+                    return 1;
+                  })(),
                   cursor: activeSession?.canGoPrev === false ? 'default' : undefined,
                   transition: 'opacity 0.2s',
                 }}
@@ -638,28 +646,28 @@ const SpotifySettings = () => {
     // fetchAndCacheProfile hits the Spotify API and returns avatar; fall back to
     // the cached storage profile (name+product only) if the API call fails.
     fetchAndCacheProfile()
-      .then(p => { if (p) { setProfile(p); return; } })
-      .catch(() => {})
+      .then(p => { if (p) setProfile(p); })
+      .catch(() => { })
       .finally(() => {
         if (!profile) getSpotifyProfile().then(p => { if (p) setProfile(p); });
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync when AccountsDialog fires SPOTIFY_ACCOUNT_CHANGED on this window.
+  // Sync when Accounts settings tab fires SPOTIFY_ACCOUNT_CHANGED on this window.
   // (globalThis.storage only fires on *other* tabs — useless here.)
   useEffect(() => {
     const handler = ({ detail }) => {
       setConnected(detail.connected);
       if (detail.connected) {
-        // Profile with avatar comes back from fetchAndCacheProfile inside AccountsDialog
-        fetchAndCacheProfile().then(p => { if (p) setProfile(p); }).catch(() => {});
+        // Profile with avatar comes back from fetchAndCacheProfile inside Accounts tab
+        fetchAndCacheProfile().then(p => { if (p) setProfile(p); }).catch(() => { });
       } else {
         setProfile(null);
       }
     };
-    window.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
-    return () => window.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    globalThis.addEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
+    return () => globalThis.removeEventListener(SPOTIFY_ACCOUNT_CHANGED, handler);
   }, []);
 
   return (

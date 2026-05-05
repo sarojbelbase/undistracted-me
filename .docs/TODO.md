@@ -102,53 +102,11 @@
 
 ---
 
----
-
 ## 💡 Future Deliverables
 
-### Focus Mode Enhancements
-
-- [x] **Focus Audio Scenes** — Rain & white-noise ambient audio player embedded directly in Focus Mode's TopZone NavBar. Uses a custom `useRainStream` hook and the Web Audio API to stream 30-second chunked `.wav` segments dynamically from Vercel Blob Storage (`/api/audio/rain` proxy), ensuring a gapless loop with zero local file bloat. Features a custom waveform+rain-drop SVG button (`RainNoiseIcon.jsx`) that triggers a 3-second ease-in-out master GainNode volume crossfade on both play and pause. Playback segment and offset position are persisted in `localStorage['rain_seg_pos']` so the stream seamlessly resumes after navigating away.
-
-- [ ] **Focus Mode Color Grading** — Subtle tint overlay on the background photo (warm, cool, sepia, none) using CSS `mix-blend-mode`. Add `fmTint` field to `useSettingsStore` (`{ color, opacity, blend }`). Render a `<div>` at z-18 (between background z2 and cards z20) in `FocusMode/index.jsx`. `getPhotoTokens` could include a tint parameter if luminance logic needs updating. Picker in `dialog/Settings.jsx`.
-  > _Feasibility: Very High — store + CSS layer only; no new dependencies._
-
-- [ ] **Focus Session Log & Daily Score** — Track minutes in Focus Mode + interruptions (LookAway dismissed, tab switches). Persist daily aggregates to `fm_session_log` in `chrome.storage.local` (keyed by `YYYY-MM-DD`). Show a subtle score badge in TopZone/BottomZone. `useFocusMode.js` + `bg.js` visibility-change tracking already set up; extend with timestamps and accumulation logic.
-  > _Feasibility: Medium — infrastructure (alarm, visibility, storage) exists; need scoring model + badge UI._
-
-- [ ] **Focus Mode Manage Panels: "Undistracted Time" heatmap** — 7×24 opacity grid (GitHub-style) where each cell represents 1 hour of focused time. Renders as a new LeftZone panel or standalone widget. Reads from `fm_session_log`. Pure CSS grid + `opacity` derived from minutes-in-hour.
-  > _Feasibility: Medium-High — storage tracking (from Session Log above) is the only prerequisite; the grid UI itself is straightforward._
-
-### New Widgets
-
-- [x] **AQI (Air Quality Index)** — Open-Meteo AQI endpoint (free, no key) using existing lat/lon from `useLocationStore`. Show as a small breathing dot (green → purple) + PM2.5/AQI value inside the Weather widget or as a separate `aqi` widget. Extend `src/widgets/weather/utils.jsx` fetch logic or create `src/widgets/aqi/`.
-  > _Feasibility: Very High — same Open-Meteo base URL, location already resolved, pattern matches existing weather calls._
-
-- [ ] **Daily Quotes Widget** — Hourly rotating wisdom quotes. `src/widgets/facts/` already does deterministic daily rotation with `getDailyIndex()` and 100+ entries in `data/facts.js`. Create sibling `src/widgets/quotes/` (or extend Facts) with a static bundled JSON of quotes + optional `api.quotable.io` fetch. Refresh on the hour via `onClockTick`.
-  > _Feasibility: Very High — Facts widget is the template; near-identical implementation._
-
-- [ ] **RSS / News Headlines** — User-defined RSS feeds or curated sources (Hacker News, BBC, Kantipur). New `rss` widget using `src/widgets/` pattern. Add `rss-parser` npm dep (lightweight) or parse via a small Vercel edge function to avoid CORS. Store feed URLs in `widgetSettings`. Auto-refresh every hour via `onClockTick`.
-  > _Feasibility: Medium-High — widget system is mature; CORS requires proxy layer (Vercel edge fn fits existing `api/` pattern)._
-
-### Canvas UX
-
-- [ ] **Ghost Drag Mode** — During widget drag in WidgetGrid, show the dragged item as semi-transparent (`opacity: 0.35`, greyscale) while a ghost outline renders at the drop target. `WidgetGrid.jsx` already tracks `draggingId` state via `react-grid-layout` events; add CSS class on the dragged item and a placeholder-slot highlight. Pure CSS + minimal WidgetGrid change.
-  > _Feasibility: Very High — `draggingId` already exists; CSS-only enhancement on top of existing `react-grid-layout` placeholder._
-
-- [ ] **Command Palette (Cmd+K)** — Full command palette overlay. Commands: `/task [title]` (create Google Task), `/timer 25` (start Pomodoro), `/stock NEPSE:HDL` (jump to ticker), `/widget` (open WidgetCatalog). `Alt+Shift+F` keyboard pattern in `useFocusMode.js` is the model; `dialog/SearchBar.jsx` UI pattern is reusable. Register a global `Cmd+K` listener in `App.jsx`; build command registry mapping strings to store actions.
-  > _Feasibility: High — keyboard infra + search dialog UI exist; command registry and dispatch logic are net-new._
 
 ### Testing & DX
 
 - [ ] **Playwright Visual Regression / Widget Snapshot Tests** — Per-widget screenshot snapshots in light + dark mode using `expect(page).toHaveScreenshot()`. `playwright.config.js` and `tests/playwright/specs/` already set up. Use `settingsIO` to load a known config fixture before each snapshot. Add `--update-snapshots` CI flag.
   > _Feasibility: Very High — Playwright is configured; snapshot API is built-in; only need fixture configs and snapshot baseline._
-
-### Infrastructure
-
-- [ ] **Service Worker Background Pre-Fetch** — On `ALARM_TICK` (fires every minute in `bg.js`), periodically fetch weather + calendar data and cache to `chrome.storage.local`. App hydrates from cache on mount (instant display) and falls back to live fetch. Weather hook (`useWidgetInstancesStore`) and GCal cache (`gcal_events_cache`) already use `chrome.storage.local`; extend with SW-side fetch.
-  > _Feasibility: High — alarm + storage pattern established; SW fetch + token forwarding needs care for auth-gated APIs (GCal)._
-
-- [ ] **PWA Manifest (Desk Clock mode)** — Separate `vite build --mode pwa` output with a proper Web App Manifest and a Vite PWA service worker (`vite-plugin-pwa`). Allows pinning to secondary monitor/tablet as a standalone app. Requires parallel build config since `public/manifest.json` is currently the MV3 extension manifest (incompatible naming).
-  > _Feasibility: Low-Medium — needs a parallel build pipeline; the extension and PWA manifests cannot share the same file; significant config overhead._
-
 

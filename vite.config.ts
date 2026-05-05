@@ -333,6 +333,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
+            // ── Vendor libs ──────────────────────────────────────────────
             if (
               id.includes("node_modules/react-grid-layout") ||
               id.includes("node_modules/react-resizable")
@@ -347,6 +348,11 @@ export default defineConfig(({ mode }) => {
               id.includes("node_modules/react/")
             )
               return "engine";
+            if (
+              id.includes("node_modules/lexical") ||
+              id.includes("node_modules/@lexical")
+            )
+              return "editor";
           },
         },
       },
