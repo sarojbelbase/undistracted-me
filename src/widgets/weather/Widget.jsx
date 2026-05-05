@@ -737,6 +737,23 @@ export const Widget = ({ id = "weather", onRemove }) => {
     } else {
       setWeather(null);
       setForecast(null);
+
+      // ── SW background-cache hydration ──────────────────────────────────
+      // If the service worker pre-fetched data (always metric), use it for
+      // instant display while the live fetch runs. Only applies to auto-location
+      // metric mode — manual locations and imperial aren't covered by the SW cache.
+      if (!location && unit === 'metric' && geoLat != null) {
+        chrome?.storage?.local?.get?.('weather_sw_cache').then((result) => {
+          const sw = result?.weather_sw_cache;
+          if (!sw) return;
+          if (Date.now() - sw.fetchedAt > 30 * 60_000) return; // older than 30 min
+          // Accept if coords are within ~1 km (0.01°)
+          if (Math.abs(sw.lat - geoLat) > 0.01 || Math.abs(sw.lon - geoLon) > 0.01) return;
+          setWeather(parseWeather(sw.data, geoCity || ''));
+          setForecast(parseForecast(sw.data));
+          if (sw.aqiData) setAqi(parseAQI(sw.aqiData));
+        }).catch(() => { });
+      }
     }
 
     const load = async () => {
