@@ -4,6 +4,7 @@ import { SearchIcon } from '../../assets/svg/SearchIcon';
 import { TooltipBtn } from './TooltipBtn';
 import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 import { useUIStore } from '../../store/useUIStore';
+import { cmdKey } from '../../hooks/useCommandPalette';
 
 // Settings is only ever rendered from within the cluster — lazy-load it here.
 const settingsImport = () => import('../Settings').then(m => ({ default: m.Settings }));
@@ -56,7 +57,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
 
         {/* Search / Command Palette */}
         <TooltipBtn
-          tooltip="Search (⌘K)"
+          tooltip={`Search (${cmdKey})`}
           className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${hoverBg}`}
           onClick={openCommandPalette}
         >
