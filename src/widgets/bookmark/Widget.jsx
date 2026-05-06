@@ -6,7 +6,7 @@ import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { FaviconIcon } from '../../components/ui/FaviconIcon';
 import { getDefaultName, faviconCache, getHostname } from '../../utilities/favicon';
 

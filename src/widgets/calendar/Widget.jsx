@@ -8,6 +8,8 @@ import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
 import { Popup } from '../../components/ui/Popup';
+import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
+import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 import { CANVAS_HOVER_OVERLAY } from '../../theme/canvas';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { AddEvent } from '../events/AddEvent';
@@ -113,17 +115,8 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
   );
 };
 
-const ChevronLeft = () => (
-  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9,2 5,7 9,12" />
-  </svg>
-);
-
-const ChevronRight = () => (
-  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="5,2 9,7 5,12" />
-  </svg>
-);
+const ChevronLeft = () => <ChevronLeftIcon />;
+const ChevronRight = () => <ChevronRightIcon />;
 
 export const Widget = ({ id = 'calendar', onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULTS);

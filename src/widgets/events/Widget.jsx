@@ -9,7 +9,7 @@ import { AllEventsModal } from './AllEventsModal';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
-import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { Settings } from './Settings';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 

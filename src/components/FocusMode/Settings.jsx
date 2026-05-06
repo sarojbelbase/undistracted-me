@@ -27,6 +27,11 @@ import {
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from './theme';
 import { CloseButton } from './dialog/shared';
+import { GearFillIcon } from '../../assets/svg/GearFillIcon';
+import { SearchIcon } from '../../assets/svg/SearchIcon';
+import { TasksCheckboxIcon } from '../../assets/svg/TasksCheckboxIcon';
+import { PanelsLayoutIcon } from '../../assets/svg/PanelsLayoutIcon';
+import { BackgroundSceneIcon } from '../../assets/svg/BackgroundSceneIcon';
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -34,56 +39,27 @@ const TABS = [
   {
     id: 'general',
     label: 'General',
-    icon: (active) => (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"
-          fill={active ? 'var(--w-accent)' : FM_ICON_STROKE}
-        />
-      </svg>
-    ),
+    icon: (active) => <GearFillIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
   },
   {
     id: 'search',
     label: 'Search',
-    icon: (active) => (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2" />
-        <line x1="16" y1="16" x2="21" y2="21" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: (active) => <SearchIcon size={14} color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
   },
   {
     id: 'tasks',
     label: 'Tasks',
-    icon: (active) => (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M9 12l2 2 4-4" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
-      </svg>
-    ),
+    icon: (active) => <TasksCheckboxIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
   },
   {
     id: 'panels',
     label: 'Panels',
-    icon: (active) => (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="2" y="3" width="9" height="18" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
-        <rect x="13" y="3" width="9" height="8" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
-        <rect x="13" y="13" width="9" height="8" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE_MUTED} strokeWidth="1.5" />
-      </svg>
-    ),
+    icon: (active) => <PanelsLayoutIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} mutedColor={active ? 'var(--w-accent)' : FM_ICON_STROKE_MUTED} />,
   },
   {
     id: 'background',
     label: 'Background',
-    icon: (active) => (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="18" height="14" rx="2" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.8" />
-        <circle cx="8.5" cy="8.5" r="1.5" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.5" />
-        <path d="M3 16l5-4 4 3 3-2 6 4" stroke={active ? 'var(--w-accent)' : FM_ICON_STROKE} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: (active) => <BackgroundSceneIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
   },
 ];
 
@@ -168,12 +144,7 @@ export const FocusModeSettings = ({
           background: 'color-mix(in srgb, var(--w-accent) 15%, transparent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path
-              d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"
-              fill="var(--w-accent)"
-            />
-          </svg>
+          <GearFillIcon size={18} color="var(--w-accent)" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>

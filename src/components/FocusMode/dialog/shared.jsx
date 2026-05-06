@@ -17,6 +17,9 @@ import {
   FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER, FM_CLOSE_COLOR,
   FM_SUCCESS, FM_SUCCESS_DOT, FM_SYNC_BG, FM_SYNC_BORDER,
 } from '../theme';
+import { GearFillIcon } from '../../../assets/svg/GearFillIcon';
+import { ChevronRightIcon } from '../../../assets/svg/ChevronRightIcon';
+import { LockIcon } from '../../../assets/svg/LockIcon';
 
 // Re-export the dialog surface tokens so dialog files can import from one place
 export { DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE };
@@ -255,25 +258,19 @@ export const AccountSection = ({ icon, label = 'Google', description = null, pri
           onClick={openAccountsDialog}
           style={{ ...pillStyle, cursor: 'pointer', width: '100%', textAlign: 'left', background: 'rgba(255,255,255,0.04)' }}
         >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_3, flexShrink: 0 }}>
-            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
-          </svg>
+          <GearFillIcon size={12} color={FM_INK_3} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: FM_INK_2 }}>Connect to {label}</div>
             <div style={{ fontSize: 10.5, color: FM_INK_3, marginTop: 1 }}>Settings › Accounts</div>
           </div>
-          <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_4, flexShrink: 0 }}>
-            <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-          </svg>
+          <ChevronRightIcon size={9} color={FM_INK_4} />
         </button>
       )}
 
       {/* ── Privacy footer ── */}
       {privacyLabel && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <svg width="8" height="8" viewBox="0 0 16 16" fill="currentColor" style={{ color: FM_INK_4, flexShrink: 0 }}>
-            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-          </svg>
+          <LockIcon size={8} color={FM_INK_4} />
           <span style={{ fontSize: 10, color: FM_INK_4, flex: 1 }}>{privacyLabel}</span>
         </div>
       )}

@@ -39,6 +39,7 @@ import {
   FM_BORDER,
 } from "../theme";
 import { useRainStream } from "../../../hooks/useRainStream";
+import { ChevronLeftIcon } from '../../../assets/svg/ChevronLeftIcon';
 
 const TOP = ZONES.top.items;
 
@@ -177,15 +178,7 @@ const NavBar = ({
         }}
         tooltip={settingsActive ? null : "Back to Canvas"}
       >
-        <svg width="13" height="15" viewBox="0 0 10 10" fill="none">
-          <path
-            d="M6.5 2L3.5 5L6.5 8"
-            stroke={FM_INK_1}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <ChevronLeftIcon size={13} color={FM_INK_1} />
         <span
           className="text-[10px] font-semibold tracking-wide select-none"
           style={{ color: FM_INK_1 }}
