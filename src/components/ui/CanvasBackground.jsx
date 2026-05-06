@@ -32,7 +32,7 @@ export const CanvasBackground = ({
         crossOrigin="anonymous"
         onLoad={onThumbLoad}
         style={{
-          position: 'absolute', inset: 0, zIndex: 0,
+          position: 'fixed', inset: 0, zIndex: 0,
           width: '100%', height: '100%',
           objectFit: 'cover',
           filter: 'blur(18px)',
@@ -52,7 +52,7 @@ export const CanvasBackground = ({
         aria-hidden
         onLoad={onFullLoad}
         style={{
-          position: 'absolute', inset: 0, zIndex: 1,
+          position: 'fixed', inset: 0, zIndex: 1,
           width: '100%', height: '100%',
           objectFit: 'cover',
           opacity: fullReady ? 1 : 0,
