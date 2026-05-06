@@ -16,9 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { WIDGET_REGISTRY } from '../widgets';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { CURRENT_PLATFORM } from '../constants/env';
 
 const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;
 
@@ -44,47 +42,21 @@ const collectLegacyWidgetSettings = () => {
   return result;
 };
 
-/**
- * Determine the initial instances list with three-level fall-through:
- *  1. New format already stored under `widget_instances`
- *  2. Migrate from legacy `widget_enabled_ids` array
- *  3. Seed from WIDGET_REGISTRY defaults
- */
-const KNOWN_TYPES = new Set(WIDGET_REGISTRY.map(w => w.type));
-const isValidInstance = (inst) => inst?.id && inst?.type && KNOWN_TYPES.has(inst.type);
-
-/** Returns false only when the widget explicitly declares supported:false for this platform. */
-const isSupportedOnPlatform = (widget) => {
-  const p = widget.platforms?.[CURRENT_PLATFORM];
-  return !p || p.supported !== false;
-};
-
-const resolveInitialInstances = () => {
+/** Read persisted instances synchronously — no WIDGET_REGISTRY needed. */
+const readStoredInstances = () => {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (Array.isArray(saved) && saved.length) {
-      const valid = saved.filter(isValidInstance);
-      if (valid.length) return valid;
-    }
-  } catch { /* ignore */ }
-
-  try {
-    const old = JSON.parse(localStorage.getItem(STORAGE_KEYS._LEGACY.WIDGET_ENABLED_IDS));
-    if (Array.isArray(old) && old.length) {
-      const valid = old.map((id) => ({ id, type: id })).filter(isValidInstance);
-      if (valid.length) return valid;
-    }
-  } catch { /* ignore */ }
-
-  return WIDGET_REGISTRY
-    .filter((w) => w.enabled && isSupportedOnPlatform(w))
-    .map((w) => ({ id: w.type, type: w.type }));
+    const parsed = JSON.parse(localStorage.getItem(STORE_KEY));
+    const stored = parsed?.state?.instances;
+    return Array.isArray(stored) && stored.length > 0 ? stored : [];
+  } catch {
+    return [];
+  }
 };
 
 export const useWidgetInstancesStore = create(
   persist(
     (set, get) => ({
-      instances: resolveInitialInstances(),
+      instances: readStoredInstances(),
 
       // ── Per-widget settings ────────────────────────────────────────────────
       // Shape: { [widgetId]: { ...settingValues } }

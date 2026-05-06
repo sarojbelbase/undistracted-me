@@ -13,6 +13,7 @@ import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
 import { FocusModeButton } from "./components/ui/FocusModeButton";
 import { useSettingsStore, useWidgetInstancesStore } from "./store";
+import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
 import { useGoogleAccountStore } from "./store/useGoogleAccountStore";
 import { useUIStore } from "./store/useUIStore";
 import { useAutoTheme } from "./hooks/useAutoTheme";
@@ -127,6 +128,9 @@ const App = () => {
   useEffect(() => {
     useGoogleAccountStore.getState().init();
   }, []);
+
+  // ── Seed default widgets on fresh install / after reset ──────────────────────
+  useEffect(() => { seedWidgetInstancesIfEmpty(); }, []);
 
   // ── Theme ───────────────────────────────────────────────────────────────────
   const effectiveMode = useAutoTheme(mode, accent, cardStyle);
