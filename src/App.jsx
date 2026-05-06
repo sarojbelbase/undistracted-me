@@ -44,6 +44,7 @@ const WidgetCatalog = lazy(catalogImport);
 const preloadCatalog = () => catalogImport();
 
 // ── Dev-only breakpoint indicator ───────────────────────────────────────────
+
 const BP_CONFIG = [
   { name: "xxs", maxWidth: 480, color: "#a78bfa" },
   { name: "xs", maxWidth: 768, color: "#34d399" },
@@ -181,7 +182,7 @@ const App = () => {
     <div
       id="fullscreen"
       data-arrange={arrangeMode ? "true" : undefined}
-      className="relative h-screen w-screen overflow-y-auto overflow-x-hidden"
+      className="fixed inset-0 overflow-hidden"
       style={{ background: bg.pageBg }}
     >
       <CanvasBackground {...bg} isDark={isDark} />
@@ -225,7 +226,7 @@ const App = () => {
         </Suspense>
       )}
 
-      <div className="relative z-3 w-full h-full pt-16">
+      <div className="relative z-3 w-full h-full overflow-y-auto overflow-x-hidden pt-16">
         <WidgetGrid
           instances={instances}
           onRemoveInstance={removeInstance}

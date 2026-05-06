@@ -136,7 +136,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
     };
   }, [instances, layouts]);
 
-  const handleLayoutChange = useCallback((_current, allLayouts) => {
+  const handleLayoutChange = useCallback((current, allLayouts) => {
     setLayouts((prev) => {
       const next = { ...prev, ...allLayouts };
       // Fast structural compare — avoids serialising the full array to strings.
@@ -197,8 +197,8 @@ export const WidgetGrid = React.memo(function WidgetGrid({
         isDraggable={arrangeMode}
         draggableHandle=".widget-drag-handle"
         isResizable={false}
-        compactType={null}
-        preventCollision={true}
+        compactType="vertical"
+        preventCollision={false}
         margin={RGL_MARGIN}
         containerPadding={RGL_PADDING}
         useCSSTransforms={false}
