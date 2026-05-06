@@ -10,8 +10,11 @@ import {
   FM_INK_1, FM_INK_3, FM_SURFACE, FM_BORDER,
   FM_ICON_STROKE_MUTED,
 } from '../theme';
+import { CalendarIcon } from '../../../assets/svg/CalendarIcon';
+import { ClockIcon } from '../../../assets/svg/ClockIcon';
 
-// ─── Segmented control (matches the original ToggleRow style in the old popover) ─
+const IconCalendar = () => <CalendarIcon size={14} color={FM_ICON_STROKE_MUTED} />;
+const IconClock = () => <ClockIcon size={14} color={FM_ICON_STROKE_MUTED} />;
 
 const SegmentedControl = ({ options, value, onChange }) => (
   <div
@@ -74,27 +77,6 @@ const SettingRow = ({ icon, label, description, control }) => (
       {control}
     </div>
   </div>
-);
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-const IconCalendar = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="17" rx="2" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" />
-    <line x1="3" y1="9" x2="21" y2="9" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.6" />
-    <line x1="8" y1="2" x2="8" y2="6" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" strokeLinecap="round" />
-    <line x1="16" y1="2" x2="16" y2="6" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" strokeLinecap="round" />
-    <circle cx="8" cy="14" r="1.2" fill={FM_ICON_STROKE_MUTED} />
-    <circle cx="12" cy="14" r="1.2" fill={FM_ICON_STROKE_MUTED} />
-    <circle cx="16" cy="14" r="1.2" fill={FM_ICON_STROKE_MUTED} />
-  </svg>
-);
-
-const IconClock = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" />
-    <path d="M12 7v5l3 2" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
 );
 
 // ─── Component ────────────────────────────────────────────────────────────────

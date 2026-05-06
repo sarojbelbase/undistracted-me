@@ -24,7 +24,7 @@ import config from './config';
 import { useUIStore } from '../../store/useUIStore';
 import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
 
-import { RefreshIcon } from '../../components/ui/RefreshIcon';
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 

@@ -13,45 +13,16 @@ import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 import { EngineIcon } from '../../../utilities/searchEngines';
 import { useSearchCore } from '../../Search';
+import { SearchIcon } from '../../../assets/svg/SearchIcon';
+import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
+import { BrowserTabIcon as TabIcon } from '../../../assets/svg/BrowserTabIcon';
+import { ClockIcon } from '../../../assets/svg/ClockIcon';
+import { CheckmarkIcon } from '../../../assets/svg/CheckmarkIcon';
 
 // ── Local-storage history ──────────────────────────────────────────────────────
 
 export const HISTORY_KEY = 'fm_search_history';
 export const MAX_HISTORY = 12;
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-const SearchIcon = ({ stroke }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2.2" strokeLinecap="round">
-    <circle cx="11" cy="11" r="7" />
-    <line x1="16.5" y1="16.5" x2="22" y2="22" />
-  </svg>
-);
-
-const ClockIcon = ({ color }) => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="9" />
-    <polyline points="12,7 12,12 15,14" />
-  </svg>
-);
-
-const CheckIcon = ({ stroke }) => (
-  <svg style={{ marginLeft: 'auto' }} width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round">
-    <polyline points="2,6 5,9 10,3" />
-  </svg>
-);
-const TabIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <rect x="2" y="7" width="20" height="14" rx="2" />
-    <polyline points="2,11 8,11 9,7 15,7 16,11 22,11" />
-  </svg>
-);
-
-const GlobeIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" />
-  </svg>
-);
 
 /** Gets hostname safely (never throws). */
 function siteHostname(url) {
@@ -126,7 +97,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
           onMouseEnter={() => onHover(0)}
           onMouseLeave={() => onHover(-1)}
         >
-          <GlobeIcon color={t.label} />
+          <GlobeIcon size={13} color={t.label} />
           <span style={textStyle}>{urlTarget}</span>
           <Pill label="Go to" />
         </button>
@@ -143,7 +114,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
         >
           {tab.favIconUrl
             ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = 'none'; }} />
-            : <TabIcon color={t.label} />}
+            : <TabIcon size={13} color={t.label} />}
           <span style={textStyle}>{tab.title || tab.url}</span>
           <Pill label="Switch" />
         </button>
@@ -179,7 +150,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
           onMouseEnter={() => onHover(suggStart + i)}
           onMouseLeave={() => onHover(-1)}
         >
-          {isHistory ? <ClockIcon color={t.label} /> : <SearchIcon stroke={t.label} />}
+          {isHistory ? <ClockIcon size={12} color={t.label} /> : <SearchIcon size={14} color={t.label} />}
           <span style={{ ...textStyle, flex: 'unset' }}>{s}</span>
         </button>
       ))}
@@ -407,7 +378,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           onMouseEnter={e => { e.currentTarget.style.background = t.btnHoverBg; }}
           onMouseLeave={e => { e.currentTarget.style.background = t.btnBg; }}
         >
-          <SearchIcon stroke={t.iconStroke} />
+          <SearchIcon size={14} color={t.iconStroke} />
         </button>
       </div>
 

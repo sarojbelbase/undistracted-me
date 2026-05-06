@@ -15,6 +15,8 @@ import {
   FM_SUCCESS, FM_SUCCESS_BG, FM_SUCCESS_BORDER,
   FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
 } from '../theme';
+import { CloseIcon } from '../../../assets/svg/CloseIcon';
+import { TrashIcon } from '../../../assets/svg/TrashIcon';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 // All surface tokens reference FM_* constants — always dark glass, never CSS vars.
@@ -33,12 +35,6 @@ const ACCENT_FG = 'var(--w-accent-fg)';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
-const IconClose = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-    <path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
 const IconRefresh = ({ spinning }) => (
   <svg
     width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"
@@ -49,15 +45,6 @@ const IconRefresh = ({ spinning }) => (
       stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"
     />
     <path d="M9.5 1v3.5H13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const IconTrash = () => (
-  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-    <path
-      d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1M11.5 3.5l-.8 8a.5.5 0 01-.5.5H3.8a.5.5 0 01-.5-.5l-.8-8"
-      stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"
-    />
   </svg>
 );
 
@@ -206,7 +193,7 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
           padding: 0,
         }}
       >
-        <IconTrash />
+        <TrashIcon />
       </button>
     </li>
   );
@@ -441,7 +428,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
               onMouseEnter={e => { e.currentTarget.style.color = MED; }}
               onMouseLeave={e => { e.currentTarget.style.color = DIM; }}
             >
-              <IconClose />
+              <CloseIcon />
             </button>
           </div>
 

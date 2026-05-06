@@ -13,24 +13,11 @@ import {
   FM_SURFACE, FM_BORDER, FM_INK_1, FM_INK_3,
   FM_ICON_STROKE_MUTED,
 } from '../theme';
+import { StarIcon } from '../../../assets/svg/StarIcon';
+import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-const IconStar = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-      stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const IconGlobe = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.8" />
-    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.5" />
-  </svg>
-);
+const IconStar = () => <StarIcon size={14} color={FM_ICON_STROKE_MUTED} />;
+const IconGlobe = () => <GlobeIcon size={14} color={FM_ICON_STROKE_MUTED} />;
 
 // ─── Source row (icon badge + label + description + toggle) ──────────────────
 

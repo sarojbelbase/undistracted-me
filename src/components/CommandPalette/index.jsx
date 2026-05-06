@@ -4,26 +4,9 @@ import { Input } from "../ui/Input";
 import { EngineIcon } from "../../utilities/searchEngines";
 import { switchToTab } from "../FocusMode/hooks";
 import { useSearchCore } from "../Search";
-
-// ── Tiny inline icons ─────────────────────────────────────────────────────────────────
-
-const SearchIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-    <circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="22" y2="22" />
-  </svg>
-);
-const GlobeIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 3c-3 4-3 14 0 18M12 3c3 4 3 14 0 18M3 12h18" />
-  </svg>
-);
-const TabIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="2" y="7" width="20" height="14" rx="2" />
-    <polyline points="2,11 8,11 9,7 15,7 16,11 22,11" />
-  </svg>
-);
+import { SearchIcon } from "../../assets/svg/SearchIcon";
+import { GlobeIcon } from "../../assets/svg/GlobeIcon";
+import { BrowserTabIcon as TabIcon } from "../../assets/svg/BrowserTabIcon";
 
 // ── Style helpers ────────────────────────────────────────────────────────────────────────────
 
@@ -173,7 +156,7 @@ export function CommandPalette({ onClose }) {
         <div role="menu" aria-label="Results" style={{ maxHeight: 340, overflowY: "auto", padding: "3px 0 6px" }}>
           {urlTarget && (
             <ResultRow isActive={activeIdx === 0} onRun={() => runItem(flatItems[0])} onHover={() => setActiveIdx(0)}>
-              <span style={{ color: activeIdx === 0 ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><GlobeIcon /></span>
+              <span style={{ color: activeIdx === 0 ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><GlobeIcon size={13} /></span>
               <ResultText isActive={activeIdx === 0}>{urlTarget}</ResultText>
               <span style={pillStyle}>Go to</span>
             </ResultRow>
@@ -185,7 +168,7 @@ export function CommandPalette({ onClose }) {
               <ResultRow key={tab.id} isActive={activeIdx === idx} onRun={() => runItem(flatItems[idx])} onHover={() => setActiveIdx(idx)}>
                 {tab.favIconUrl
                   ? <img src={tab.favIconUrl} alt="" width={13} height={13} style={{ borderRadius: 2, flexShrink: 0 }} onError={e => { e.currentTarget.style.display = "none"; }} />
-                  : <span style={{ color: "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><TabIcon /></span>}
+                  : <span style={{ color: "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><TabIcon size={13} /></span>}
                 <ResultText isActive={activeIdx === idx}>{tab.title || tab.url}</ResultText>
                 <span style={pillStyle}>Switch</span>
               </ResultRow>
@@ -199,7 +182,7 @@ export function CommandPalette({ onClose }) {
                 const idx = suggStart + i;
                 return (
                   <ResultRow key={s} isActive={activeIdx === idx} onRun={() => runItem(flatItems[idx])} onHover={() => setActiveIdx(idx)}>
-                    <span style={{ color: activeIdx === idx ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><SearchIcon /></span>
+                    <span style={{ color: activeIdx === idx ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><SearchIcon size={13} /></span>
                     <ResultText isActive={activeIdx === idx}>{s}</ResultText>
                   </ResultRow>
                 );

@@ -17,6 +17,12 @@ import {
   FM_SURFACE, FM_BORDER,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from '../theme';
+import { ClockIcon } from '../../../assets/svg/ClockIcon';
+import { CalendarIcon } from '../../../assets/svg/CalendarIcon';
+import { OccasionsIcon } from '../../../assets/svg/OccasionsIcon';
+import { StockChartIcon } from '../../../assets/svg/StockChartIcon';
+import { MusicDiscIcon } from '../../../assets/svg/MusicDiscIcon';
+import { PanelsLayoutIcon } from '../../../assets/svg/PanelsLayoutIcon';
 
 // ─── Panel registry ───────────────────────────────────────────────────────────
 // Order here drives the visual order in the dialog (mirrors ZONES.left order).
@@ -26,60 +32,31 @@ const PANEL_META = [
     key: 'pomodoro',
     label: 'Pomodoro',
     description: 'Timer and progress bar while a session is running',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke={FM_ICON_STROKE} strokeWidth="1.8" />
-        <polyline points="12,7 12,12 15,14" stroke={FM_ICON_STROKE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <ClockIcon size={14} color={FM_ICON_STROKE} />,
   },
   {
     key: 'event',
     label: 'Next Event',
     description: 'Upcoming event from your calendar or local list',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="17" rx="2" stroke={FM_ICON_STROKE} strokeWidth="1.8" />
-        <line x1="3" y1="9" x2="21" y2="9" stroke={FM_ICON_STROKE} strokeWidth="1.6" />
-        <line x1="8" y1="2" x2="8" y2="6" stroke={FM_ICON_STROKE} strokeWidth="1.8" strokeLinecap="round" />
-        <line x1="16" y1="2" x2="16" y2="6" stroke={FM_ICON_STROKE} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: <CalendarIcon size={14} color={FM_ICON_STROKE} />,
   },
   {
     key: 'occasion',
     label: 'Occasions',
     description: 'Upcoming birthdays and anniversaries',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 2C8 2 6 6 12 8C18 6 16 2 12 2Z" stroke={FM_ICON_STROKE} strokeWidth="1.7" strokeLinejoin="round" />
-        <path d="M3 11h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9Z" stroke={FM_ICON_STROKE} strokeWidth="1.8" />
-        <line x1="12" y1="8" x2="12" y2="11" stroke={FM_ICON_STROKE} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: <OccasionsIcon size={14} color={FM_ICON_STROKE} />,
   },
   {
     key: 'stock',
     label: 'NEPSE Stock',
     description: 'Live NEPSE price, sparkline and OHL data',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <polyline points="4,16 8,10 12,13 16,7 20,9" stroke={FM_ICON_STROKE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <StockChartIcon size={14} color={FM_ICON_STROKE} />,
   },
   {
     key: 'spotify',
     label: 'Music Player',
     description: 'Spotify or browser media session (YouTube, SoundCloud…)',
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke={FM_ICON_STROKE} strokeWidth="1.8" />
-        <circle cx="12" cy="12" r="3" fill={FM_ICON_STROKE_MUTED} />
-        <path d="M5.5 8C7 6.5 9 5.5 12 5.5" stroke={FM_ICON_STROKE} strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M3.5 13.5C4.5 17 8 19.5 12 19.5" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: <MusicDiscIcon size={14} color={FM_ICON_STROKE} mutedColor={FM_ICON_STROKE_MUTED} />,
   },
 ];
 
@@ -119,11 +96,7 @@ const PanelRow = ({ panel, enabled, onToggle, borderTop }) => (
 // ─── Header icon ─────────────────────────────────────────────────────────────
 
 const IconPanels = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="2" y="3" width="9" height="18" rx="2" stroke={FM_ICON_STROKE} strokeWidth="1.9" />
-    <rect x="13" y="3" width="9" height="8" rx="2" stroke={FM_ICON_STROKE} strokeWidth="1.9" />
-    <rect x="13" y="13" width="9" height="8" rx="2" stroke={FM_ICON_STROKE_MUTED} strokeWidth="1.7" />
-  </svg>
+  <PanelsLayoutIcon size={16} color={FM_ICON_STROKE} mutedColor={FM_ICON_STROKE_MUTED} />
 );
 
 // ─── Main component ───────────────────────────────────────────────────────────

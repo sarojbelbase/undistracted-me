@@ -21,6 +21,8 @@ import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 import { Broadcast, ArrowClockwise } from "react-bootstrap-icons";
+import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
+import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -314,9 +316,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
               >
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                  <path d="M7.5 2L3.5 6L7.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ChevronLeftIcon size={11} color="white" />
               </button>
 
               {/* ── Smooth sliding dot indicator ──
@@ -411,9 +411,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
               >
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                  <path d="M4.5 2L8.5 6L4.5 10" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ChevronRightIcon size={11} color="white" />
               </button>
             </div>
           )}

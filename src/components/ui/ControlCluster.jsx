@@ -1,5 +1,6 @@
 import React, { forwardRef, Suspense, lazy } from 'react';
-import { Grid3x3GapFill, GearFill, Grid1x2Fill, Search } from 'react-bootstrap-icons';
+import { Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
+import { SearchIcon } from '../../assets/svg/SearchIcon';
 import { TooltipBtn } from './TooltipBtn';
 import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 import { useUIStore } from '../../store/useUIStore';
@@ -59,7 +60,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
           className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${hoverBg}`}
           onClick={openCommandPalette}
         >
-          <Search size={16} style={{ color: iconColor }} />
+          <SearchIcon size={16} color={iconColor} />
         </TooltipBtn>
 
         <ClusterDivider isDark={isDark} />

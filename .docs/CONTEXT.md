@@ -11,7 +11,8 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 - **Tailwind CSS v4** — `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
 - **Zustand** + `persist` middleware — global settings & widget instances stores
 - **react-grid-layout** — `Responsive` + `useContainerWidth()` (NOT WidthProvider — Vite CJS incompatibility)
-- **react-bootstrap-icons** — ALL icons, no hardcoded SVGs
+- **react-bootstrap-icons** — default icon library; use fill variants (e.g. `GearFill`, `ClockFill`)
+- **Custom SVG icons** — stored in `src/assets/svg/` as named `.jsx` exports (e.g. `SearchIcon`, `RainNoiseIcon`). Use stroke-based SVGs here when bootstrap-icons fill style doesn't fit. Props: `size`, `color`.
 - **dayjs** + timezone plugin (Asia/Kathmandu)
 
 ## State Management (Zustand)
