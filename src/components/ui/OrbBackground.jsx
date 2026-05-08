@@ -106,13 +106,25 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* ── Conic shimmer — CCW (18 s) ── */}
+      {/* Conic shimmer — CCW (18 s) ── */}
       <div aria-hidden style={{
         position: 'absolute', inset: '-20%',
         zIndex,
         background: `conic-gradient(from 0deg at 50% 50%, transparent 0deg, ${c(op.sh)} 90deg, transparent 180deg, ${c(op.sh * 0.7)} 270deg, transparent 360deg)`,
         animation: 'orbCounter 50s linear infinite',
         filter: 'blur(48px)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── Film grain — static noise texture for perceived depth ── */}
+      <div aria-hidden style={{
+        position: 'fixed', inset: 0,
+        zIndex: zIndex + 1,
+        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        backgroundRepeat: 'repeat',
+        backgroundSize: '280px 280px',
+        opacity: isDark ? 0.042 : 0.028,
+        mixBlendMode: 'soft-light',
         pointerEvents: 'none',
       }} />
     </>
