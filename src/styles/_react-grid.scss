@@ -12,6 +12,23 @@
   -webkit-transition: none !important;
 }
 
+// Mobile scroll fix: DraggableCore registers a non-passive touchstart listener
+// on every .react-grid-item unconditionally (even when disabled). Browsers see
+// a non-passive listener and delay scroll gesture recognition while waiting for
+// JS — making touch-scroll feel broken. Setting touch-action: pan-y bypasses
+// the JS listener entirely for vertical gestures: the browser handles vertical
+// pan as scroll immediately without waiting for JS.
+//
+// In arrange mode (#fullscreen[data-arrange="true"]), we flip to touch-action:none
+// so DraggableCore can own vertical gestures for drag-to-reorder.
+.react-grid-item {
+  touch-action: pan-y !important;
+}
+
+#fullscreen[data-arrange="true"] .react-grid-item {
+  touch-action: none !important;
+}
+
 
 // Drag placeholder: accent-tinted ghost silhouette at the drop target
 .react-grid-placeholder {
