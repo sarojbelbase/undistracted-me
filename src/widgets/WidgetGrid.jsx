@@ -181,7 +181,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const showOverlay = isDragging || arrangeMode;
 
   return (
-    <div className="w-full h-full relative select-none" ref={containerRef}>
+    <div className="w-full relative select-none" ref={containerRef}>
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
