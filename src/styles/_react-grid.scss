@@ -12,11 +12,6 @@
   -webkit-transition: none !important;
 }
 
-// react-draggable sets touch-action:none via inline style even when isDraggable=false,
-// which hijacks touch-scroll on mobile. Allow native pan-y unless a drag is active.
-.react-grid-item:not(.react-draggable-dragging) {
-  touch-action: pan-y !important;
-}
 
 // Drag placeholder: accent-tinted ghost silhouette at the drop target
 .react-grid-placeholder {
