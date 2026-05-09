@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { Responsive, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -180,6 +180,43 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const isDragging = draggingId !== null;
   const showOverlay = isDragging || arrangeMode;
 
+  // ── Mobile stack (< 480px, not in arrange mode) ────────────────────────────
+  // react-grid-layout wraps every item in DraggableCore which registers a
+  // non-passive touchstart listener unconditionally — even when isDraggable=false.
+  // On phones, every widget fills the full width so every touch hits one of
+  // these listeners, and the browser delays scroll while waiting for JS.
+  // Below 480px (xxs breakpoint) we skip RGL entirely and render a plain
+  // vertical stack so native touch-scroll works with zero friction.
+  if (width < 480 && !arrangeMode) {
+    const PAD = 6;
+    const GAP = 6;
+    const ROW_H = 8.5;
+    // Sort by xxs y position so visual order matches what RGL would show
+    const sorted = [...(instances || [])].sort((a, b) => {
+      const ay = REG_MAP[a.type]?.breakpoints?.xxs?.y ?? REG_MAP[a.type]?.y ?? 0;
+      const by = REG_MAP[b.type]?.breakpoints?.xxs?.y ?? REG_MAP[b.type]?.y ?? 0;
+      return ay - by;
+    });
+    return (
+      <div className="w-full select-none" ref={containerRef} style={{ padding: PAD }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
+          {sorted.map(({ id, type }) => {
+            const reg = REG_MAP[type];
+            const widget = renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined);
+            if (!widget || !reg) return null;
+            const h = reg.breakpoints?.xxs?.h ?? reg.h;
+            const height = h * ROW_H + (h - 1) * GAP;
+            return (
+              <div key={id} style={{ height }}>
+                <Suspense fallback={null}>{widget}</Suspense>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full relative select-none" ref={containerRef}>
       {/* Dot grid — visible while dragging or in arrange mode */}
@@ -253,7 +290,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
                 style={{ pointerEvents: arrangeMode ? "none" : undefined }}
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                {widget}
+                <Suspense fallback={null}>{widget}</Suspense>
               </div>
             </div>
           );
