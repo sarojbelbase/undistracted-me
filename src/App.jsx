@@ -230,7 +230,7 @@ const App = () => {
         </Suspense>
       )}
 
-      <div className="relative z-3 w-full h-full overflow-y-auto overflow-x-hidden pt-16">
+      <div className="relative z-3 w-full h-full overflow-x-hidden pt-16" style={{ overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }}>
         <WidgetGrid
           instances={instances}
           onRemoveInstance={removeInstance}
