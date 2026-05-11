@@ -10,8 +10,8 @@ export default {
   enabled: true,
   platforms: {
     extension: { supported: true },
-    web:       { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
-    phone:     { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
+    web: { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
+    phone: { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
   },
   x: 12, y: 8, w: 14, h: 10,
   breakpoints: {
