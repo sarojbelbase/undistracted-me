@@ -10,8 +10,8 @@ export default {
   enabled: true,
   platforms: {
     extension: { supported: true },
-    web:       { supported: true },
-    phone:     { supported: true },
+    web: { supported: true },
+    phone: { supported: true },
   },
   x: 0, y: 8, w: 12, h: 12,
   breakpoints: {
