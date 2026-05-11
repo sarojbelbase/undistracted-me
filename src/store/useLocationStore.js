@@ -21,6 +21,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { NOMINATIM_REVERSE_API, IPAPI_GEO_URL, FREEIPAPI_GEO_URL } from '../constants/urls.js';
 import { getSunTimes, getEffectiveMode } from '../utilities/sunTime';
 
 const KATHMANDU = { lat: 27.7172, lon: 85.324, city: 'Kathmandu', timezone: 'Asia/Kathmandu' };
@@ -56,7 +57,7 @@ const computeSunFields = (lat, lon) => {
 const reverseGeocodeCity = async (lat, lon) => {
   try {
     const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      `${NOMINATIM_REVERSE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
       { signal: AbortSignal.timeout(5000), headers: { 'Accept-Language': 'en' } },
     );
     if (!r.ok) return '';
@@ -75,7 +76,7 @@ const getCoordsFromIP = async () => {
   // ipapi.co — blocked by CORS in extension origins; only try in web context
   if (!isExtension) {
     try {
-      const r = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+      const r = await fetch(IPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
       if (r.ok) {
         const d = await r.json();
         if (typeof d.latitude === 'number') {
@@ -92,7 +93,7 @@ const getCoordsFromIP = async () => {
 
   // freeipapi.com — CORS-enabled, works from extension origins
   try {
-    const r = await fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout(5000) });
+    const r = await fetch(FREEIPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
     if (r.ok) {
       const d = await r.json();
       if (typeof d.latitude === 'number') {

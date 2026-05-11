@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { OPEN_METEO_GEOCODING_API } from '../../constants/urls.js';
 import { createPortal } from "react-dom";
 import { GeoAlt, XCircleFill } from "react-bootstrap-icons";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
@@ -12,8 +13,8 @@ const haversineKm = (lat1, lon1, lat2, lon2) => {
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
@@ -89,7 +90,7 @@ export const Settings = ({
     }
     debounceRef.current = setTimeout(() => {
       fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=20&language=en&format=json`,
+        `${OPEN_METEO_GEOCODING_API}?name=${encodeURIComponent(val)}&count=20&language=en&format=json`,
       )
         .then((r) => r.json())
         .then((res) => {

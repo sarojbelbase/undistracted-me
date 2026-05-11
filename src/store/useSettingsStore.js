@@ -58,10 +58,13 @@ const fromLegacy = () => {
     /* ignore */
   }
   // Legacy single-key fallback
+  const _prefersDark =
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
   return {
     language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || "en",
     accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || "Matte Black",
-    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || "light",
+    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || (_prefersDark ? 'dark' : 'light'),
     defaultView:
       localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || "canvas",
     dateFormat:

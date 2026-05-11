@@ -23,8 +23,8 @@ import { GLASS_CARD_BG } from '../theme';
 // ─── Tab config ─────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'curated', label: 'Photos' },
-  { id: 'custom', label: 'URL' },
+  { id: 'curated', label: 'Curated Photos' },
+  { id: 'custom', label: 'Custom URL' },
 ];
 
 // ─── URL validation ───────────────────────────────────────────────────────────────────────

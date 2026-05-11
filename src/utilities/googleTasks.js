@@ -10,8 +10,9 @@
  * the cached token predates the tasks scope being added to the manifest.
  */
 import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
+import { GOOGLE_TASKS_API } from '../constants/urls.js';
 
-const BASE = 'https://tasks.googleapis.com/tasks/v1';
+const BASE = GOOGLE_TASKS_API;
 
 async function apiFetch(path, options = {}, retried = false) {
   let token;

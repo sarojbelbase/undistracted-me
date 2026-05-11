@@ -256,8 +256,8 @@ function makeTokens(words, heroIdx, bodySize, heroSize, fontFamily) {
     const isDevanagari = !isLatinWord(text);
     let letterSpacing;
     if (isDevanagari) letterSpacing = '0.01em';
-    else if (isHero) letterSpacing = '0.02em';
-    else letterSpacing = '0.01em';
+    else if (isHero) letterSpacing = '0.005em';
+    else letterSpacing = '0.005em';
     // Hind (Devanagari) has taller akshars + vowel marks that extend above the
     // cap-height, so 1.0 line-height causes overlap. 1.3 gives enough breathing
     // room while keeping the block compact. Latin (League Gothic) stays at 1.0.
@@ -275,12 +275,12 @@ function makeTokens(words, heroIdx, bodySize, heroSize, fontFamily) {
 }
 
 // ─── Uniform fallback (short titles, no hero) ─────────────────────────────────
-function uniformFallback(words, areaWidth, areaHeight, fontFamily) {
+function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 400, textLineHeight) {
   // Devanagari (Hind) needs 1.3 line-height at both canvas-estimate and DOM stages.
   // Using 1.0 here caused the canvas binary search to oversize the font, making the
   // DOM measurement have to correct downward on every render.
   const isDevanagariContent = words.some(w => !isLatinWord(w));
-  const lh = isDevanagariContent ? 1.3 : LINE_HEIGHT;
+  const lh = isDevanagariContent ? 1.3 : (textLineHeight ?? LINE_HEIGHT);
 
   const wf = precomputeWidths(words, fontFamily);
   const spW = measureWidth(' ', 1, 800, fontFamily) || 0.28;
@@ -296,7 +296,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily) {
   // measurement discrepancy (especially with ultra-condensed fonts like
   // League Gothic where per-character width is measured but browser line
   // wrapping may differ by a word or two).
-  let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4, 72);
+  let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
   for (let iter = 0; iter < 16; iter++) {
     const mid = (lo + hi) / 2;
     if (uHeight(mid) <= areaHeight * 0.82) lo = mid;
@@ -313,10 +313,10 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily) {
   const tokens = words.map(text => {
     const isDevanagari = !isLatinWord(text);
     return {
-      text, fontSize, fontWeight: 400,
+      text, fontSize, fontWeight,
       // Hind (Devanagari) needs 1.3 leading — akshars + matras exceed Latin cap-height.
-      lineHeight: isDevanagari ? 1.3 : LINE_HEIGHT,
-      letterSpacing: isDevanagari ? '0.01em' : '0.02em',
+      lineHeight: isDevanagari ? 1.3 : (textLineHeight ?? LINE_HEIGHT),
+      letterSpacing: isDevanagari ? '0.01em' : '0.005em',
       fontFamily,
       isHero: false,
     };
@@ -367,10 +367,12 @@ export function expressiveLayout(
   areaWidth,
   areaHeight,
   fontFamily = '"League Gothic", "Hind", ui-sans-serif, sans-serif',
+  fontWeight = 400,
+  textLineHeight,
 ) {
   const words = title.split(/\s+/).filter(w => w && !PUNCT_ONLY.test(w));
-  if (words.length === 0) return uniformFallback(['…'], areaWidth, areaHeight, fontFamily);
-  return uniformFallback(words, areaWidth, areaHeight, fontFamily);
+  if (words.length === 0) return uniformFallback(['…'], areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
+  return uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
 }
 // ─── ExpressiveTitle ─────────────────────────────────────────────────────
 /**
@@ -392,14 +394,17 @@ export function expressiveLayout(
  *   marginBottom {number}   — margin below the button (for dot nav clearance)
  *   onClick      {Function} — called when the headline is tapped/clicked
  */
-export const ExpressiveTitle = ({ 
-  title, 
-  areaWidth, 
-  areaHeight, 
-  marginBottom, 
+export const ExpressiveTitle = ({
+  title,
+  areaWidth,
+  areaHeight,
+  marginBottom,
   onClick,
   heroColor,
-  bodyColor
+  bodyColor,
+  fontFamily,
+  fontWeight = 400,
+  textLineHeight,
 }) => {
   const [fontsReady, setFontsReady] = useState(false);
   const [domFit, setDomFit] = useState(null);
@@ -412,9 +417,9 @@ export const ExpressiveTitle = ({
   // expressiveLayout for token metadata (font-family / weight / letter-spacing).
   // DOM binary search overrides the fontSize below.
   const layout = useMemo(
-    () => expressiveLayout(title, areaWidth, areaHeight),
+    () => expressiveLayout(title, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [title, areaWidth, areaHeight, fontsReady],
+    [title, areaWidth, areaHeight, fontsReady, fontFamily, fontWeight, textLineHeight],
   );
 
   useLayoutEffect(() => {
@@ -429,7 +434,7 @@ export const ExpressiveTitle = ({
     // Without this the measurement is too short and the button clips the text.
     el.style.lineHeight = String(w0.lineHeight);
 
-    let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4, 72);
+    let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       el.style.fontSize = mid + 'px';
@@ -443,8 +448,10 @@ export const ExpressiveTitle = ({
     // For Latin (League Gothic): descenders extend ~28% below baseline.
     // For Devanagari (Hind): lineHeight 1.3 already provides spacing above/below;
     // only a small margin is needed to avoid matra clipping at top.
-    const isDevanagari = w0.lineHeight > 1;
-    const descentPx = Math.ceil(fs * (isDevanagari ? 0.08 : 0.28));
+    // League Gothic (lh=1): needs 28% explicit descent. Google Sans & similar
+    // (lh ~1.1–1.2): lh covers most descender space, only 12% needed.
+    // Devanagari / Hind (lh≥1.25): lh handles spacing, only 8% needed.
+    const descentPx = Math.ceil(fs * (w0.lineHeight >= 1.25 ? 0.08 : w0.lineHeight > 1 ? 0.12 : 0.28));
     const buttonH = Math.min(Math.ceil(textH) + descentPx, areaHeight);
 
     setDomFit({ fontSize: fs, buttonHeight: buttonH });
@@ -491,8 +498,8 @@ export const ExpressiveTitle = ({
                 lineHeight: w.lineHeight,
                 letterSpacing: w.letterSpacing,
                 fontFamily: w.fontFamily,
-                color: w.isHero 
-                  ? (heroColor || 'var(--w-fg)') 
+                color: w.isHero
+                  ? (heroColor || 'var(--w-fg)')
                   : (bodyColor || 'var(--w-ink-3)'),
               }}
             >

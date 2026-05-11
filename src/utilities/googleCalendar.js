@@ -6,11 +6,11 @@
  * Firefox → PKCE flow via launchWebAuthFlow() (requires Desktop App client in GCP)
  */
 import { getGoogleAuthToken, removeGoogleAuthToken, isGoogleAuthAvailable } from './googleAuth';
+import { GCAL_EVENTS_API, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
 export { isGoogleAuthAvailable };
 
-const CALENDAR_API =
-  'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+const CALENDAR_API = GCAL_EVENTS_API;
 
 // ─── Local cache ────────────────────────────────────────────────────────────
 
@@ -136,7 +136,7 @@ export async function getGoogleProfile() {
   try {
     const token = await getGoogleAuthToken(false);
     if (!token) return null;
-    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    const res = await fetch(GOOGLE_USERINFO_API, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;

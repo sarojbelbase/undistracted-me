@@ -28,7 +28,10 @@ try {
     mode = stored.state.mode || 'light';
     accentName = stored.state.accent || 'Matte Black';
   } else {
-    mode = localStorage.getItem('app_mode') || 'light';
+    const storedMode = localStorage.getItem('app_mode');
+    // On first install (nothing stored), respect the browser/OS color-scheme preference.
+    const prefersDark = !storedMode && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    mode = storedMode || (prefersDark ? 'dark' : 'light');
     accentName = localStorage.getItem('app_accent') || 'Matte Black';
   }
 

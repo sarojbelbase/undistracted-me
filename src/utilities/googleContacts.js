@@ -4,8 +4,9 @@
  * Auth is handled by googleAuth.js which works on both Chrome and Firefox.
  */
 import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
+import { GOOGLE_PEOPLE_API } from '../constants/urls.js';
 
-const PEOPLE_API = 'https://people.googleapis.com/v1/people/me/connections';
+const PEOPLE_API = GOOGLE_PEOPLE_API;
 const CACHE_KEY = 'contacts_birthdays_cache';
 const SYNCED_KEY = 'contacts_birthdays_synced_at';
 const DISCONNECTED_KEY = 'contacts_disconnected';

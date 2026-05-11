@@ -12,16 +12,7 @@
  *           the bundle contains only the client_id (XOR-encoded at build time).
  */
 import { PRODUCTION_BASE_URL } from '../constants/env.js';
-
-const GOOGLE_SCOPES = [
-  'https://www.googleapis.com/auth/calendar.readonly',
-  'https://www.googleapis.com/auth/contacts.readonly',
-  'https://www.googleapis.com/auth/tasks',
-  'https://www.googleapis.com/auth/userinfo.profile',
-  'https://www.googleapis.com/auth/userinfo.email',
-].join(' ');
-
-const GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
 // Obfuscated by obscureEnvKeys Vite plugin at build time.
 const FF_CLIENT_ID = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID || '';
@@ -375,7 +366,7 @@ export async function signOutGoogle(token) {
 export async function getGoogleUserProfile() {
   try {
     const token = await getGoogleAuthToken(false);
-    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    const res = await fetch(GOOGLE_USERINFO_API, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;

@@ -7,11 +7,20 @@
  *   2. Pomodoro — page sends a POMODORO_DONE message; SW fires a completion notification.
  */
 
+import {
+  OPEN_METEO_WEATHER_API,
+  OPEN_METEO_AQI_API,
+  MEROLAGANI_CHART_API,
+  RSS_FEED_PROXY_URL,
+  GCAL_EVENTS_API,
+} from './constants/urls.js';
+
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
 const ALARM_LOOKAWAY = "UM_LOOKAWAY"; // fires every N min for eye-break reminders
 const ALARM_PREFETCH = "UM_PREFETCH"; // fires every 30 min for background data pre-fetch
 const ALARM_RSS = "UM_RSS";           // fires every 30 min for RSS queue pre-fetch
+const ALARM_STOCKS = "UM_STOCKS";     // fires every 15 min for stock chart pre-fetch
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
 
@@ -94,11 +103,15 @@ globalThis.addEventListener("activate", (event) => {
   chrome.alarms.get(ALARM_RSS, (a) => {
     if (!a) chrome.alarms.create(ALARM_RSS, { periodInMinutes: 30 });
   });
+  chrome.alarms.get(ALARM_STOCKS, (a) => {
+    if (!a) chrome.alarms.create(ALARM_STOCKS, { periodInMinutes: 15 });
+  });
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_TICK, { periodInMinutes: 1 });
   chrome.alarms.create(ALARM_RSS, { periodInMinutes: 30 });
+  chrome.alarms.create(ALARM_STOCKS, { periodInMinutes: 15 });
   injectMediaScript();
 });
 
@@ -138,6 +151,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     runGcalPrefetch();
   }
   if (alarm.name === ALARM_RSS) runRssPrefetch();
+  if (alarm.name === ALARM_STOCKS) runStocksPrefetch();
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
   if (alarm.name === ALARM_LOOKAWAY) {
@@ -215,10 +229,10 @@ async function runWeatherPrefetch() {
 
     // Fetch weather + AQI in parallel; AQI failure is non-fatal
     const [weatherResult, aqiResult] = await Promise.allSettled([
-      fetch(`https://api.open-meteo.com/v1/forecast?${weatherParams}`, {
+      fetch(`${OPEN_METEO_WEATHER_API}?${weatherParams}`, {
         signal: AbortSignal.timeout(10000),
       }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`OM ${r.status}`)))),
-      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams}`, {
+      fetch(`${OPEN_METEO_AQI_API}?${aqiParams}`, {
         signal: AbortSignal.timeout(6000),
       }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`AQI ${r.status}`)))),
     ]);
@@ -301,7 +315,7 @@ async function runGcalPrefetch() {
     });
 
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+      `${GCAL_EVENTS_API}?${params}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(10000),
@@ -340,10 +354,66 @@ async function runGcalPrefetch() {
   }
 }
 
+// ─── Stocks pre-fetch ─────────────────────────────────────────────────────────
+
+/**
+ * Fetches chart data for all configured stock symbols from merolagani.com
+ * and caches results in chrome.storage.local['stocks_sw_cache'].
+ * The service worker runs in extension context so direct fetch is allowed.
+ */
+async function runStocksPrefetch() {
+  try {
+    const stored = await chrome.storage.local.get('stocks_config');
+    const symbols = stored.stocks_config ?? [];
+    if (!symbols.length) return;
+
+    const now = Math.floor(Date.now() / 1000);
+    const start = now - 90 * 24 * 60 * 60;
+
+    const results = await Promise.allSettled(
+      symbols.map(async (sym) => {
+        const url = `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(sym)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (json?.s !== 'ok') return { sym, data: null };
+        const c = json.c;
+        const o = json.o;
+        const h = json.h;
+        const l = json.l;
+        const v = json.v;
+        if (!Array.isArray(c) || c.length < 2) return { sym, data: null };
+        const n = c.length;
+        return {
+          sym,
+          data: {
+            prices: c,
+            ltp: c[n - 1],
+            prevClose: c[n - 2],
+            open: o?.[n - 1],
+            high: h?.[n - 1],
+            low: l?.[n - 1],
+            volume: v?.[n - 1],
+          },
+        };
+      }),
+    );
+
+    const data = results.map((r, i) =>
+      r.status === 'fulfilled' ? r.value : { sym: symbols[i], data: 'error' },
+    );
+
+    await chrome.storage.local.set({
+      stocks_sw_cache: { data, fetchedAt: Date.now() },
+    });
+  } catch {
+    // Network unavailable — skip silently
+  }
+}
+
 // ─── RSS queue pre-fetch ─────────────────────────────────────────────────
 
-// RSS proxy URL used in the extension context (CORS-blocked without proxy).
-const RSS_PROXY = 'https://undistractedme.sarojbelbase.com.np/api/rss/feed';
+// RSS queue constants
 const RSS_QUEUE_MAX = 20;
 
 /**
@@ -394,7 +464,7 @@ async function runRssPrefetch() {
     // Fetch all feeds in parallel via the Vercel proxy
     const results = await Promise.allSettled(
       config.map(async ({ url, label }) => {
-        const res = await fetch(`${RSS_PROXY}?url=${encodeURIComponent(url)}`, {
+        const res = await fetch(`${RSS_FEED_PROXY_URL}?url=${encodeURIComponent(url)}`, {
           signal: AbortSignal.timeout(12000),
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -553,6 +623,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // Page sends updated feed list whenever settings change; persist and fetch.
     chrome.storage.local.set({ rss_feed_config: msg.feeds });
     runRssPrefetch();
+    return;
+  }
+  if (msg.type === "STOCKS_CONFIG_SYNC" && Array.isArray(msg.symbols)) {
+    // Page sends updated symbol list whenever settings change; persist and fetch.
+    chrome.storage.local.set({ stocks_config: msg.symbols });
+    runStocksPrefetch();
     return;
   }
 });
