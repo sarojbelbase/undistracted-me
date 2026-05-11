@@ -1,98 +1,25 @@
 import React, { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Plus, DashLg } from 'react-bootstrap-icons';
+import { ChevronLeft, ChevronRight, Plus, DashLg, ArrowLeft } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { Modal } from '../../components/ui/Modal';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { Popup } from '../../components/ui/Popup';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
-import { NOTES_BUTTON_SHADOW, NOTES_ICON_COLOR } from '../../theme/canvas';
 
-// Only fetched the first time a user opens a note in modal or full-page mode.
+// Only fetched the first time a user expands a note to full-screen mode.
 const LexicalEditor = lazy(() => import('./LexicalEditor'));
 
 const PAD = 20;
 
-const DASH_SEP = {
-  backgroundImage: 'radial-gradient(circle, var(--w-ink-6) 1.5px, transparent 3px)',
-  backgroundPosition: 'bottom center',
-  backgroundSize: '9px 1.5px',
-  backgroundRepeat: 'repeat-x',
-};
-
-// ─── Traffic lights (red | yellow | green — correct macOS order) ───────────────
-const TrafficDot = ({ onClick, label, color, disabled, symbol }) => {
-  const [hovered, setHovered] = useState(false);
-  const btnRef = useRef(null);
-  const [anchor, setAnchor] = useState(null);
-
-  const handleMouseEnter = () => {
-    setHovered(true);
-    setAnchor(btnRef.current?.getBoundingClientRect() ?? null);
-  };
-  const handleMouseLeave = () => {
-    setHovered(false);
-    setAnchor(null);
-  };
-
-  return (
-    <>
-      <button
-        ref={btnRef}
-        onClick={disabled ? undefined : onClick}
-        onMouseDown={e => e.stopPropagation()}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        aria-label={label}
-        disabled={disabled}
-        style={{
-          width: 14, height: 14, border: 'none', padding: 0, flexShrink: 0,
-          borderRadius: '50%',
-          backgroundColor: disabled ? 'var(--w-border)' : color,
-          cursor: disabled ? 'default' : 'pointer',
-          transition: 'filter 0.12s',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative',
-          boxShadow: NOTES_BUTTON_SHADOW,
-        }}
-      >
-        {hovered && !disabled && (
-          <span style={{
-            fontSize: 9, fontWeight: 900, lineHeight: 1,
-            color: NOTES_ICON_COLOR,
-            userSelect: 'none', pointerEvents: 'none',
-            fontFamily: 'system-ui, sans-serif',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '100%', height: '100%',
-            position: 'absolute', top: 0, left: 0,
-          }}>
-            {symbol}
-          </span>
-        )}
-      </button>
-      {label && anchor && hovered && !disabled && (
-        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
-          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>
-            {label}
-          </span>
-        </Popup>
-      )}
-    </>
-  );
-};
-
-const TrafficLights = ({
-  onRed, onYellow, onGreen,
-  redLabel, yellowLabel, greenLabel,
-  redDisabled, yellowDisabled, greenDisabled,
-}) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-    <TrafficDot onClick={onRed} label={redLabel ?? 'Close'} color="#ff5f57" disabled={redDisabled} symbol="×" />
-    <TrafficDot onClick={onYellow} label={yellowLabel ?? 'Minimize'} color="#ffbd2e" disabled={yellowDisabled} symbol="−" />
-    <TrafficDot onClick={onGreen} label={greenLabel ?? 'Full Screen'} color="#28c840" disabled={greenDisabled} symbol="+" />
-  </div>
-);
+// ─── Per-note hue palette (cycles by note index) ─────────────────────────────
+const NOTE_HUES = [
+  '#F5C842', // warm yellow
+  '#F4845F', // coral
+  '#5EB88A', // sage
+  '#5BA4CF', // sky
+  '#B49FCC', // lavender
+];
 
 // ─── Segmented-control button (with Popup tooltip) ────────────────────────────
 const SegBtn = ({ onClick, disabled, label, children }) => (
@@ -119,49 +46,8 @@ const SegBtn = ({ onClick, disabled, label, children }) => (
   </TooltipBtn>
 );
 
-// ─── Circular icon button ─────────────────────────────────────────────────────
-function circleBtnStyle(disabled, danger, size) {
-  let bg = disabled ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)';
-  let color = disabled ? 'var(--w-ink-6)' : 'var(--w-ink-3)';
-  if (danger) {
-    bg = disabled ? 'transparent' : 'rgba(239,68,68,0.08)';
-    color = disabled ? 'var(--w-ink-6)' : 'var(--w-danger)';
-  }
-  return {
-    width: size, height: size, border: 'none', borderRadius: '50%', padding: 0,
-    flexShrink: 0, background: bg, cursor: disabled ? 'default' : 'pointer',
-    color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'background 0.12s, color 0.12s',
-  };
-}
-
-const CircleBtn = ({ onClick, label, disabled, danger = false, size = 28, children }) => {
-  const btnRef = useRef(null);
-  const [anchor, setAnchor] = useState(null);
-  return (
-    <>
-      <button
-        ref={btnRef}
-        onClick={disabled ? undefined : onClick}
-        disabled={disabled}
-        aria-label={label}
-        style={circleBtnStyle(disabled, danger, size)}
-        onMouseEnter={() => { if (!disabled) setAnchor(btnRef.current?.getBoundingClientRect() ?? null); }}
-        onMouseLeave={() => setAnchor(null)}
-      >
-        {children}
-      </button>
-      {label && anchor && (
-        <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
-          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>{label}</span>
-        </Popup>
-      )}
-    </>
-  );
-};
-
 // ─── Nav dot (pagination dot with Popup tooltip) ──────────────────────────────
-const NavDot = ({ active, label, onClick }) => {
+const NavDot = ({ active, label, onClick, hue }) => {
   const btnRef = useRef(null);
   const [anchor, setAnchor] = useState(null);
   return (
@@ -173,8 +59,8 @@ const NavDot = ({ active, label, onClick }) => {
         style={{
           width: active ? 14 : 5, height: 5,
           borderRadius: 99, border: 'none', padding: 0, cursor: 'pointer',
-          background: active ? 'var(--w-accent)' : 'var(--w-ink-6)',
-          opacity: active ? 1 : 0.4,
+          background: active ? hue : 'var(--w-ink-6)',
+          opacity: active ? 1 : 0.35,
           transition: 'all 0.2s ease',
         }}
         onMouseEnter={() => setAnchor(btnRef.current?.getBoundingClientRect() ?? null)}
@@ -248,6 +134,17 @@ export const Widget = ({ id, onRemove }) => {
     });
   }, [localIdx, persist]);
 
+  // Widget card textarea — preserves the title (first line), updates body only
+  const handleWidgetTextChange = useCallback((e) => {
+    const val = e.target.value;
+    setLocalNotes(prev => {
+      const { titleLine: prevTitle } = splitNote(prev[localIdx] ?? '');
+      const newText = mergeNote(prevTitle, val);
+      const next = [...prev]; next[localIdx] = newText;
+      persist(next); return next;
+    });
+  }, [localIdx, persist]);
+
   const { bodyText } = splitNote(localNotes[localIdx] ?? '');
 
   // ── Navigation ────────────────────────────────────────────────────────────────
@@ -283,18 +180,14 @@ export const Widget = ({ id, onRemove }) => {
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
 
-  const openModal = useCallback(() => setMode('modal'), []);
   const openPage = useCallback(() => setMode('page'), []);
   const close = useCallback(() => setMode('widget'), []);
 
   useEffect(() => {
-    if (mode === 'widget') return;
+    if (mode !== 'page') return;
     setTimeout(() => {
-      if (mode === 'page' && !titleLine.trim()) {
-        titleRef.current?.focus();
-      } else {
-        bodyRef.current?.focus();
-      }
+      if (!titleLine.trim()) titleRef.current?.focus();
+      else bodyRef.current?.focus();
     }, 60);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
@@ -344,150 +237,108 @@ export const Widget = ({ id, onRemove }) => {
     </div>
   );
 
-  // ── Widget bottom nav: [‹] [● ○] [›] ─────────────────────────────────────────
-  const widgetNav = (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: 4, paddingBottom: 8, paddingTop: 4, flexShrink: 0,
-    }}>
-      {localNotes.map((note, i) => (
-        <NavDot
-          key={`dot-${i}-${note.slice(0, 6)}`}
-          active={i === localIdx}
-          label={`Note ${i + 1} of ${total}`}
-          onClick={() => jumpTo(i)}
-        />
-      ))}
-    </div>
-  );
-
   // ── Widget card ───────────────────────────────────────────────────────────────
-  const widgetCard = (
-    <BaseWidget className="flex flex-col overflow-hidden" cardStyle={{ borderRadius: '14px' }} onRemove={onRemove}>
-      {/* Header: traffic lights + title, both appear on hover */}
-      <div className="shrink-0" style={{ position: 'relative', height: 32, ...DASH_SEP }}>
-        <div
-          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center"
-          style={{ position: 'absolute', inset: 0, paddingLeft: PAD, paddingRight: PAD }}
-        >
-          <TrafficLights
-            onRed={onRemove} onYellow={openModal} onGreen={openPage}
-            redLabel="Remove widget" yellowLabel="Expand to modal" greenLabel="Full screen"
-            redDisabled
-          />
-          <span style={{
-            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-            fontSize: '0.6875rem', fontWeight: 500, pointerEvents: 'none',
-            color: titleLine.trim() ? 'var(--w-ink-4)' : 'var(--w-ink-6)',
-            maxWidth: '55%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {titleLine.trim() || 'Notes'}
-          </span>
-        </div>
-      </div>
+  const noteHue = NOTE_HUES[localIdx % NOTE_HUES.length];
 
-      {/* Plain-text textarea in widget card — no markdown rendering */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: `8px ${PAD}px 0` }}>
+  const widgetCard = (
+    <BaseWidget
+      className="flex flex-col overflow-hidden"
+      cardStyle={{ borderRadius: '14px' }}
+      onRemove={onRemove}
+    >
+      {/* Writing surface — 16px top breathing room, 12px before status bar */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: `16px ${PAD}px 12px` }}>
         <textarea
           id="notes-body"
           name="notes-body"
           className="notes-textarea"
           value={bodyText}
-          onChange={(e) => handleBodyChange(e.target.value)}
-          placeholder="Start typing…"
+          onChange={handleWidgetTextChange}
+          placeholder="New Note..."
           style={{ flex: 1 }}
         />
       </div>
 
-      {/* Bottom nav — prev/dots/next always visible */}
-      {widgetNav}
-    </BaseWidget>
-  );
-
-  // ── Modal ─────────────────────────────────────────────────────────────────────
-  const modalOverlay = mode === 'modal' && (
-    <Modal onClose={close} className="flex flex-col" style={{ width: 680, height: 520 }} ariaLabel="Notes">
-      {/* Header: traffic lights + centered title */}
+      {/* Status bar — 32px tall for comfortable touch target + breathing room */}
       <div style={{
-        position: 'relative', display: 'flex', alignItems: 'center', height: 44, flexShrink: 0,
-        paddingLeft: PAD, paddingRight: PAD,
-        borderBottom: '1px solid rgba(0,0,0,0.07)',
+        display: 'flex', alignItems: 'center',
+        height: 32, flexShrink: 0,
+        paddingLeft: 14, paddingRight: 10,
+        borderTop: '1px solid rgba(127,127,127,0.1)',
+        gap: 6,
       }}>
-        <TrafficLights
-          onRed={close} onYellow={close} onGreen={openPage}
-          redLabel="Close" yellowLabel="Close" greenLabel="Full screen"
-          yellowDisabled
-        />
-        <span style={{
-          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-          fontSize: '0.8125rem', fontWeight: 600, pointerEvents: 'none',
-          color: titleLine.trim() ? 'var(--w-ink-2)' : 'var(--w-ink-5)',
-          maxWidth: '55%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {titleLine.trim() || 'Untitled'}
-        </span>
-      </div>
-
-      {/* Lexical WYSIWYG editor — lazy loaded, only fetched on first open */}
-      <Suspense fallback={<div style={{ flex: 1, padding: PAD, color: 'var(--w-ink-5)', fontSize: '0.875rem' }}>…</div>}>
-        <LexicalEditor
-          ref={bodyRef}
-          value={bodyText}
-          onChange={handleBodyChange}
-          placeholder="Start typing…"
-          className="lex-content lex-content--modal"
-          style={{
-            flex: 1,
-            padding: `${PAD}px ${PAD}px`,
-            color: 'var(--w-ink-1)',
-            overflowY: 'auto', minHeight: 0, outline: 'none',
-          }}
-        />
-      </Suspense>
-
-      {/* Dot nav at bottom center (only when multiple notes) */}
-      {total > 1 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 4, paddingBottom: 14, paddingTop: 4, flexShrink: 0,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           {localNotes.map((note, i) => (
             <NavDot
-              key={`modal-dot-${i}-${note.slice(0, 6)}`}
+              key={`dot-${i}-${note.slice(0, 6)}`}
               active={i === localIdx}
               label={`Note ${i + 1} of ${total}`}
               onClick={() => jumpTo(i)}
+              hue={NOTE_HUES[i % NOTE_HUES.length]}
             />
           ))}
         </div>
-      )}
-    </Modal>
+        <TooltipBtn
+          onClick={openPage}
+          aria-label="Open in full screen"
+          tooltip="Write in fullscreen"
+          style={{
+            flex: 1, minWidth: 0,
+            textAlign: 'left', border: 'none', background: 'transparent',
+            cursor: 'pointer', padding: '0 4px',
+            fontSize: '0.625rem', fontWeight: 500,
+            color: titleLine.trim() ? 'var(--w-ink-4)' : 'var(--w-ink-6)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            letterSpacing: '0.01em', transition: 'color 0.12s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-ink-2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = titleLine.trim() ? 'var(--w-ink-4)' : 'var(--w-ink-6)'; }}
+        >
+          {titleLine.trim() || `Note ${localIdx + 1}`}
+        </TooltipBtn>
+        {localText.trim() && (
+          <span style={{
+            fontSize: '0.5625rem', fontVariantNumeric: 'tabular-nums',
+            color: 'var(--w-ink-6)', letterSpacing: '0.04em',
+            userSelect: 'none', flexShrink: 0,
+          }}>
+            {wordCount}w
+          </span>
+        )}
+      </div>
+    </BaseWidget>
   );
-
-  // ── Full-page ────────────────────────────────────────────────────────────────
+  // ── Full-screen ──────────────────────────────────────────────────────────────
   const pageOverlay = mode === 'page' && createPortal(
     <div className="fixed inset-0 flex flex-col" style={{ zIndex: 200, background: 'var(--w-surface)' }}>
-      {/* Top bar */}
+      {/* Minimal top bar: back left, nav controls right */}
       <div style={{
-        position: 'relative', display: 'flex', alignItems: 'center', height: 44, flexShrink: 0,
-        paddingLeft: 18, paddingRight: 18,
-        background: 'var(--w-surface)',
+        display: 'flex', alignItems: 'center', height: 44, flexShrink: 0,
+        paddingLeft: 12, paddingRight: 12, gap: 8,
         borderBottom: '1px solid var(--w-border)',
       }}>
-        <TrafficLights
-          onRed={close} onYellow={openModal} onGreen={close}
-          redLabel="Close" yellowLabel="Shrink to modal" greenLabel="Close"
-          greenDisabled
-        />
-        <span style={{
-          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-          fontSize: '0.8125rem', fontWeight: 600, pointerEvents: 'none',
-          color: titleLine.trim() ? 'var(--w-ink-2)' : 'var(--w-ink-5)',
-          maxWidth: '45%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {titleLine.trim() || 'Untitled'}
-        </span>
-        {navControls}
+        {/* Back — same pattern as Pomodoro */}
+        <button
+          onClick={close}
+          aria-label="Back to widget"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            height: 28, border: 'none', borderRadius: 7,
+            padding: '0 10px 0 8px',
+            background: 'rgba(0,0,0,0.05)', cursor: 'pointer',
+            color: 'var(--w-ink-3)', flexShrink: 0,
+            fontSize: '0.6875rem', fontWeight: 500,
+            transition: 'background 0.12s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+        >
+          <ArrowLeft size={13} />
+          <span>Notes</span>
+        </button>
+        <div style={{ marginLeft: 'auto' }}>
+          {navControls}
+        </div>
       </div>
 
       {/* Centred writing column */}
@@ -547,7 +398,6 @@ export const Widget = ({ id, onRemove }) => {
   return (
     <>
       {widgetCard}
-      {modalOverlay}
       {pageOverlay}
     </>
   );

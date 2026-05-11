@@ -1,10 +1,22 @@
 // ─── Notes Widget ──────────────────────────────────────────────────────────────
 
-// Telegra.ph-style first-line title input
+// Telegra.ph-style first-line title input (fullscreen)
 .notes-title {
   &::placeholder {
     color: var(--w-ink-6);
     font-weight: 400;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Inline title input in widget card
+.notes-widget-title {
+  &::placeholder {
+    color: var(--w-ink-6);
+    font-weight: 500;
   }
 
   &:focus {
