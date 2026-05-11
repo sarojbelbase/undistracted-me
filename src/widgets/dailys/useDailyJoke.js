@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ICANHAZDADJOKE_API } from '../../constants/urls.js';
 
 const CACHE_KEY = 'dailys_joke_cache';
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -24,7 +25,7 @@ export const useDailyJoke = () => {
     }
 
     setLoading(true);
-    fetch('https://icanhazdadjoke.com/', {
+    fetch(ICANHAZDADJOKE_API, {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'Undistracted Me (https://undistractedme.sarojbelbase.com.np)',

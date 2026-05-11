@@ -1,3 +1,5 @@
+import { MEROLAGANI_CHART_API, NEPALI_PAISA_COMPANIES_API } from '../../constants/urls.js';
+
 // In dev (localhost) requests go through the Vite proxy to avoid CORS.
 // In production (web app) requests go through Vercel API proxy routes.
 // In the browser extension the chrome-extension:// origin is allowed by host_permissions.
@@ -12,7 +14,7 @@ const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 const COMPANIES_URL = isDev
   ? '/np-api/GetCompanies'
   : isExtension
-    ? 'https://nepalipaisa.com/api/GetCompanies'
+    ? NEPALI_PAISA_COMPANIES_API
     : '/api/stocks/companies';
 
 // ── Chart data ────────────────────────────────────────────────────────────────
@@ -26,7 +28,7 @@ function chartUrl(symbol) {
     return `/ml-api?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
   }
   if (isExtension) {
-    return `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+    return `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
   }
   return `/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
 }

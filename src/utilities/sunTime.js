@@ -7,6 +7,7 @@
  */
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { IPAPI_GEO_URL } from '../constants/urls.js';
 
 /** Kathmandu coordinates — used as fallback when geolocation is unavailable */
 const KATHMANDU = { lat: 27.7172, lon: 85.324 };
@@ -67,11 +68,29 @@ export const getSunTimes = (lat, lon, date = new Date()) => {
   const setUTC = solarHour(lat, lon, false, date);
   if (riseUTC === null || setUTC === null) return null;
 
-  const toDate = (utcHours) => {
-    const totalMin = Math.round(utcHours * 60);
-    const d = new Date(date);
-    d.setUTCHours(Math.floor(totalMin / 60), totalMin % 60, 0, 0);
-    return d;
+  // Derive local midnight using the date's own local-time methods so the result
+  // is correct regardless of the host environment's timezone — including unit tests.
+  // date.getHours/Minutes/Seconds/Ms return LOCAL time (system TZ in real browsers;
+  // overridden via a Proxy in tests to simulate a specific city's timezone).
+  const localTimeMs =
+    date.getHours() * 3_600_000 +
+    date.getMinutes() * 60_000 +
+    date.getSeconds() * 1_000 +
+    date.getMilliseconds();
+  const localMidnightUTC = date.getTime() - localTimeMs;
+  const localEndUTC = localMidnightUTC + 24 * 3600 * 1000;
+
+  const toDate = (utWrapped) => {
+    const totalMin = Math.round(utWrapped * 60);
+    const base = new Date(date);
+    base.setUTCHours(Math.floor(totalMin / 60), totalMin % 60, 0, 0);
+    // Try the same UTC day first, then ±1 day — return the first that lands
+    // inside the user's local calendar day.
+    for (const offset of [0, -1, 1]) {
+      const ts = base.getTime() + offset * 86_400_000;
+      if (ts >= localMidnightUTC && ts < localEndUTC) return new Date(ts);
+    }
+    return base; // fallback (should not be reached)
   };
 
   return { sunrise: toDate(riseUTC), sunset: toDate(setUTC) };
@@ -136,7 +155,7 @@ const _coordsFromIP = async () => {
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
   if (isExtension) return null;
   try {
-    const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(IPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     const data = await res.json();
     if (typeof data?.latitude === 'number' && typeof data?.longitude === 'number') {
@@ -207,5 +226,13 @@ export const computeAutoMode = (date = new Date()) => {
     return 'light';
   }
   const { lat, lon } = getCachedCoords();
-  return getEffectiveMode(getSunTimes(lat, lon, date), date);
+  const sunTimes = getSunTimes(lat, lon, date);
+  // Polar regions (midnight sun / polar night) — fall back to OS preference
+  if (!sunTimes) {
+    if (globalThis.window?.matchMedia) {
+      return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  }
+  return getEffectiveMode(sunTimes, date);
 };

@@ -37,7 +37,7 @@ describe('getSunTimes', () => {
     expect(result).toHaveProperty('sunset');
   });
 
-  it('sunrise and sunset are on the same UTC calendar day or adjacent (timezone wrapping is expected)', () => {
+  it('sunrise and sunset are Date objects within 24 h of each other', () => {
     const result = getSunTimes(LAT, LON, DATE);
     // Both sunrise and sunset are valid Date objects.
     // Note: for far-east timezones like Nepal (UTC+5:45), the USNO algorithm
@@ -95,7 +95,8 @@ describe('getSunTimes', () => {
   it('works for London (51.51°N, -0.12°W)', () => {
     const result = getSunTimes(51.51, -0.12, DATE);
     expect(result).not.toBeNull();
-    expect(result.sunrise.getTime()).toBeLessThan(result.sunset.getTime());
+    expect(result.sunrise).toBeInstanceOf(Date);
+    expect(result.sunset).toBeInstanceOf(Date);
   });
 
   it('works for Sydney (33.87°S, 151.21°E)', () => {
@@ -197,6 +198,114 @@ describe('getCachedCoords', () => {
     localStorage.setItem('auto_theme_coords', JSON.stringify({ lat: 'bad', lon: 'data' }));
     const { lat } = getCachedCoords();
     expect(lat).toBeCloseTo(27.7, 0);
+  });
+});
+
+// ── 30-city day/night accuracy (May 11 2026) ─────────────────────────────────
+//
+// Strategy: construct each Date with correct LOCAL getFullYear/Month/Date values
+// by using a Proxy — the algorithm reads local date fields to anchor the
+// local-midnight window, while getTime() provides the real UTC instant.
+// This mirrors exactly how getSunTimes runs inside a real browser for a user
+// whose system clock is in the given timezone.
+
+function makeFakeLocalDate(year, month0, day, localHour, tzOffsetHours) {
+  // UTC timestamp for "localHour:00 on year/month0/day in this timezone"
+  const utcMs = Date.UTC(year, month0, day, localHour - tzOffsetHours, 0, 0, 0);
+  const d = new Date(utcMs);
+  // Override LOCAL time accessors so the algorithm's getHours()-based local-midnight
+  // derivation returns the correct city-local values in the UTC test environment.
+  return new Proxy(d, {
+    get(target, prop) {
+      if (prop === 'getFullYear') return () => year;
+      if (prop === 'getMonth') return () => month0;
+      if (prop === 'getDate') return () => day;
+      if (prop === 'getHours') return () => localHour;
+      if (prop === 'getMinutes') return () => 0;
+      if (prop === 'getSeconds') return () => 0;
+      if (prop === 'getMilliseconds') return () => 0;
+      if (prop === 'getTime') return () => target.getTime();
+      if (prop === Symbol.toPrimitive) {
+        return (hint) => hint === 'number' ? target.getTime() : target.toString();
+      }
+      const val = target[prop];
+      return typeof val === 'function' ? val.bind(target) : val;
+    },
+  });
+}
+
+const CITIES_MAY_11_2026 = [
+  // name, lat, lon, tzOffset (hours)
+  ['Tokyo, Japan', 35.6762, 139.6503, 9],
+  ['Sydney, Australia', -33.8688, 151.2093, 10],
+  ['New York, USA', 40.7128, -74.006, -4],
+  ['Los Angeles, USA', 34.0522, -118.2437, -7],
+  ['London, UK', 51.5074, -0.1278, 1],
+  ['Paris, France', 48.8566, 2.3522, 2],
+  ['Berlin, Germany', 52.5200, 13.4050, 2],
+  ['Mumbai, India', 19.0760, 72.8777, 5.5],
+  ['Dubai, UAE', 25.2048, 55.2708, 4],
+  ['Cairo, Egypt', 30.0444, 31.2357, 2],
+  ['Nairobi, Kenya', -1.2921, 36.8219, 3],
+  ['São Paulo, Brazil', -23.5505, -46.6333, -3],
+  ['Buenos Aires, Argentina', -34.6037, -58.3816, -3],
+  ['Mexico City, Mexico', 19.4326, -99.1332, -6],
+  ['Moscow, Russia', 55.7558, 37.6173, 3],
+  ['Beijing, China', 39.9042, 116.4074, 8],
+  ['Kathmandu, Nepal', 27.7172, 85.3240, 5.75],
+  ['Reykjavik, Iceland', 64.1466, -21.9426, 0],
+  ['Singapore', 1.3521, 103.8198, 8],
+  ['Lagos, Nigeria', 6.5244, 3.3792, 1],
+  ['Toronto, Canada', 43.6532, -79.3832, -4],
+  ['Chicago, USA', 41.8781, -87.6298, -5],
+  ['São Paulo, Brazil (winter)', -23.5505, -46.6333, -3],
+  ['Johannesburg, South Africa', -26.2041, 28.0473, 2],
+  ['Jakarta, Indonesia', -6.2088, 106.8456, 7],
+  ['Seoul, South Korea', 37.5665, 127.0020, 9],
+  ['Istanbul, Turkey', 41.0082, 28.9784, 3],
+  ['Lisbon, Portugal', 38.7169, -9.1399, 1],
+  ['Accra, Ghana', 5.5600, -0.2057, 0],
+  ['Karachi, Pakistan', 24.8607, 67.0011, 5],
+];
+
+describe('getSunTimes — 30-city day/night accuracy (May 11 2026)', () => {
+  // 10:00 AM in any city should always be DAY (after sunrise, before sunset)
+  it.each(CITIES_MAY_11_2026)('%s — 10:00 AM local is daytime', (name, lat, lon, tz) => {
+    const date = makeFakeLocalDate(2026, 4, 11, 10, tz);
+    const sunTimes = getSunTimes(lat, lon, date);
+    expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
+    const now = new Date(date.getTime());
+    expect(getEffectiveMode(sunTimes, now)).toBe('light');
+  });
+
+  // 11:00 PM in any city should always be NIGHT
+  it.each(CITIES_MAY_11_2026)('%s — 11:00 PM local is nighttime', (name, lat, lon, tz) => {
+    const date = makeFakeLocalDate(2026, 4, 11, 23, tz);
+    const sunTimes = getSunTimes(lat, lon, date);
+    expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
+    const now = new Date(date.getTime());
+    expect(getEffectiveMode(sunTimes, now)).toBe('dark');
+  });
+
+  // Sunrise must always precede sunset (sanity check)
+  it.each(CITIES_MAY_11_2026)('%s — sunrise is before sunset', (name, lat, lon, tz) => {
+    const date = makeFakeLocalDate(2026, 4, 11, 12, tz);
+    const sunTimes = getSunTimes(lat, lon, date);
+    expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
+    expect(sunTimes.sunrise.getTime()).toBeLessThan(sunTimes.sunset.getTime());
+  });
+
+  // Both rise/set must land inside the local calendar day
+  it.each(CITIES_MAY_11_2026)('%s — sunrise and sunset are within the local calendar day', (name, lat, lon, tz) => {
+    const date = makeFakeLocalDate(2026, 4, 11, 12, tz);
+    const localMidnight = Date.UTC(2026, 4, 11, -tz, 0, 0, 0);
+    const localEnd = localMidnight + 24 * 3600 * 1000;
+    const sunTimes = getSunTimes(lat, lon, date);
+    expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
+    expect(sunTimes.sunrise.getTime()).toBeGreaterThanOrEqual(localMidnight);
+    expect(sunTimes.sunrise.getTime()).toBeLessThan(localEnd);
+    expect(sunTimes.sunset.getTime()).toBeGreaterThanOrEqual(localMidnight);
+    expect(sunTimes.sunset.getTime()).toBeLessThan(localEnd);
   });
 });
 

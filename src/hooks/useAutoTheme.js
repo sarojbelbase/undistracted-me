@@ -57,8 +57,10 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
     const computeAndSchedule = () => {
       const now = new Date();
 
-      // Fall back to OS color-scheme when location is unavailable or defaulted
-      if (!source || source === 'default' || !sunrise || !sunset) {
+      // Use sun times whenever they exist — even if source is 'default' (Kathmandu
+      // fallback), stored rise/set timestamps are a better signal than OS preference.
+      // Only fall back to prefers-color-scheme when there is no sun data at all.
+      if (!sunrise || !sunset) {
         applyEffective(mq?.matches ? 'dark' : 'light');
         timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
         return;
@@ -72,7 +74,8 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
     };
 
     const handleMediaChange = () => {
-      if (!source || source === 'default') {
+      // Only switch to OS preference when there is no real sun data
+      if (!sunrise || !sunset) {
         applyEffective(mq.matches ? 'dark' : 'light');
       }
     };

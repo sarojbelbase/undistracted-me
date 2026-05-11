@@ -43,7 +43,7 @@ const CarouselNav = ({ mode, onSelect }) => {
   );
 };
 
-const AdaptiveText = ({ text }) => {
+const AdaptiveText = ({ text, fontFamily, fontWeight, textLineHeight }) => {
   const containerRef = useRef(null);
   const [area, setArea] = useState({ w: 0, h: 0 });
 
@@ -66,6 +66,9 @@ const AdaptiveText = ({ text }) => {
           areaWidth={area.w}
           areaHeight={area.h}
           onClick={() => { }}
+          fontFamily={fontFamily}
+          fontWeight={fontWeight}
+          textLineHeight={textLineHeight}
         />
       ) : null}
     </div>
@@ -115,20 +118,25 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <div className="flex-1 flex flex-col justify-center min-h-0 relative overflow-hidden pb-3">
+      <div className="flex-1 flex flex-col justify-center min-h-0 relative overflow-hidden">
         <div style={{ position: 'relative', zIndex: 1, width: '100%', flex: 1, minHeight: 0 }}>
-          <AdaptiveText text={item.text} />
+          <AdaptiveText
+            text={item.text}
+            fontFamily='"Google Sans", ui-sans-serif, sans-serif'
+            fontWeight={600}
+            textLineHeight={1.15}
+          />
         </div>
         {item.author && (
-          <div className="flex items-center gap-2 mt-3 pl-0.5">
-            <div style={{ width: '14px', height: '1.5px', background: 'var(--w-accent)', opacity: 0.6, borderRadius: '2px' }} />
+          <div className="flex items-center justify-end gap-1.5 mt-3 pr-0.5">
+            <div style={{ width: '12px', height: '2px', background: 'var(--w-accent)', opacity: 0.5, borderRadius: '2px', flexShrink: 0 }} />
             <span
               className="truncate"
               style={{
                 fontSize: '0.65rem',
                 fontWeight: 700,
-                color: 'var(--w-ink-2)',
-                letterSpacing: '0.06em',
+                color: 'var(--w-ink-4)',
+                letterSpacing: '0.04em',
                 textTransform: 'uppercase'
               }}
             >
@@ -138,7 +146,7 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
         )}
       </div>
 
-      <div className="flex items-center justify-between shrink-0 pt-2">
+      <div className="flex items-center justify-between shrink-0 pt-3">
         <span
           className="text-[0.65rem] font-semibold px-2.5 py-0.5 rounded-full tracking-wide"
           style={{

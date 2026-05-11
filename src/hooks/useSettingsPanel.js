@@ -23,8 +23,16 @@ export function useSettingsPanel() {
     };
   }, [showSettings]);
 
-  const toggleSettings = useCallback(() => setShowSettings(s => !s), []);
-  const closeSettings = useCallback(() => setShowSettings(false), []);
+  const toggleSettings = useCallback(() => {
+    setShowSettings(s => {
+      if (s) setSettingsInitialTab('appearance'); // reset on close
+      return !s;
+    });
+  }, []);
+  const closeSettings = useCallback(() => {
+    setShowSettings(false);
+    setSettingsInitialTab('appearance');
+  }, []);
   const openAtTab = useCallback((tab) => {
     setSettingsInitialTab(tab);
     setShowSettings(true);

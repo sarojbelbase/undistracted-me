@@ -8,6 +8,8 @@
  *   web       → Always Vercel proxy
  */
 
+import { RSS_FEED_PROXY_URL } from '../../constants/urls.js';
+
 // ── Environment detection ─────────────────────────────────────────────────────
 
 const hostname = typeof location !== 'undefined' ? location.hostname : '';
@@ -18,7 +20,7 @@ const isDev = hostname === 'localhost';
 export function rssUrl(feedUrl) {
   const encoded = encodeURIComponent(feedUrl);
   if (isDev) return `/api/rss/feed?url=${encoded}`;
-  return `https://undistractedme.sarojbelbase.com.np/api/rss/feed?url=${encoded}`;
+  return `${RSS_FEED_PROXY_URL}?url=${encoded}`;
 }
 
 // ── Preset feeds ──────────────────────────────────────────────────────────────

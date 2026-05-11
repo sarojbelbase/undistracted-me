@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlayFill, PauseFill, ArrowCounterclockwise, ArrowLeft } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
+import { PillButton } from '../../components/ui/PillButton';
 import { sendToServiceWorker } from '../../utilities/chrome';
 import { PRESETS, formatTime } from './utils';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
-
-const pillActive = { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' };
-const pillInactive = { backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' };
 
 // ─── Persistence helpers (keyed per widget instance id) ─────────────────────
 const loadTimer = (id) => {
@@ -136,14 +134,14 @@ export const Widget = ({ id, onRemove }) => {
         <div className="flex flex-col gap-2 w-full items-center">
           <div className="flex gap-1.5 justify-center flex-wrap">
             {PRESETS.map(p => (
-              <button
+              <PillButton
                 key={p.label}
+                active={showCustom && p.secs === null}
+                tinted
                 onClick={() => handlePresetClick(p)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                style={showCustom && p.secs === null ? pillActive : pillInactive}
               >
                 {p.label}
-              </button>
+              </PillButton>
             ))}
           </div>
 
@@ -166,8 +164,8 @@ export const Widget = ({ id, onRemove }) => {
               <button
                 onClick={handleCustomStart}
                 disabled={!customInput}
-                className="px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40"
-                style={pillActive}
+                className="px-3 py-2 rounded-xl text-xs font-semibold disabled:opacity-40"
+                style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
               >Start</button>
             </div>
           )}
@@ -188,7 +186,14 @@ export const Widget = ({ id, onRemove }) => {
         >
           <ArrowLeft size={12} />
         </button>
-        <span className="text-xs font-semibold px-3 py-1 rounded-full" style={pillActive}>
+        <span
+          className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+          style={{
+            background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)',
+            color: 'var(--w-accent)',
+            border: '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
+          }}
+        >
           {preset}
         </span>
         <div className="w-7" />

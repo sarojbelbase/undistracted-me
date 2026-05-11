@@ -20,7 +20,8 @@ import { relativeTime, PRESET_FEEDS, DEFAULT_FEED_ID, DEFAULT_ACTIVE_IDS } from 
 import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
-import { Broadcast, ArrowClockwise } from "react-bootstrap-icons";
+import { Broadcast } from "react-bootstrap-icons";
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 
@@ -252,7 +253,6 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
               border: "none", cursor: "pointer",
               color: "rgba(255,255,255,0.5)",
               transition: "color 0.2s, background 0.2s",
-              animation: isLoading ? "rss-spin 1s linear infinite" : "none",
               marginRight: 4,
             }}
             onMouseEnter={(e) => {
@@ -264,7 +264,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
               e.currentTarget.style.background = "rgba(255,255,255,0.07)";
             }}
           >
-            <ArrowClockwise size={10} aria-hidden="true" />
+            <RefreshIcon size={10} spinning={isLoading} />
           </button>
 
           {/* Timestamp */}
@@ -275,10 +275,10 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
           )}
         </div>
 
-        {/* Title block — fills the remaining space, anchored top */}
+        {/* Title block — fills the remaining space, title anchored top, nav pinned bottom */}
         <div style={{
           flex: 1,
-          display: "flex", flexDirection: "column", justifyContent: "flex-end",
+          display: "flex", flexDirection: "column",
           animation: `${textAnim} 0.35s 0.06s ease-out both`,
         }}>
           <ExpressiveTitle
@@ -290,10 +290,10 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
           />
 
-          {/* ── Dot nav + arrow buttons row ── */}
+          {/* ── Dot nav + arrow buttons row — pinned to bottom via margin-top:auto ── */}
           {total > 1 && (
             <div
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, pointerEvents: "auto" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, pointerEvents: "auto", marginTop: "auto" }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* ← Prev */}
@@ -706,10 +706,10 @@ export const Widget = ({ id, onRemove }) => {
             onMouseDown={(e) => e.stopPropagation()}
             disabled={loading}
             aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : "Refresh feed"}
-            className={`flex items-center justify-center p-0.5 rounded transition-opacity hover:opacity-70 active:opacity-40 ${loading ? "animate-spin" : ""}`}
+            className="flex items-center justify-center p-0.5 rounded transition-opacity hover:opacity-70 active:opacity-40"
             style={{ color: "var(--w-ink-5)", background: "none", border: "none", cursor: "pointer" }}
           >
-            <ArrowClockwise size={12} aria-hidden="true" />
+            <RefreshIcon size={12} spinning={loading} />
           </button>
         </div>
       </div>

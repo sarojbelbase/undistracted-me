@@ -3,6 +3,13 @@
  * https://open-meteo.com — free, no API key required
  */
 import {
+  OPEN_METEO_WEATHER_API,
+  OPEN_METEO_AQI_API,
+  NOMINATIM_REVERSE_API,
+  IPAPI_GEO_URL,
+  FREEIPAPI_GEO_URL,
+} from '../../constants/urls.js';
+import {
   SunFill,
   MoonStarsFill,
   CloudSunFill,
@@ -93,7 +100,7 @@ export const getCoords = () =>
 export const reverseGeocode = async (lat, lon) => {
   try {
     const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      `${NOMINATIM_REVERSE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
       {
         signal: AbortSignal.timeout(5000),
         headers: { "Accept-Language": "en" },
@@ -133,7 +140,7 @@ export const fetchOpenMeteo = (lat, lon, units = "metric") => {
     wind_speed_unit: units === "imperial" ? "mph" : "kmh",
     timezone: "auto",
   });
-  return fetch(`https://api.open-meteo.com/v1/forecast?${params}`).then((r) =>
+  return fetch(`${OPEN_METEO_WEATHER_API}?${params}`).then((r) =>
     r.ok ? r.json() : Promise.reject(new Error(`Open-Meteo ${r.status}`)),
   );
 };
@@ -251,7 +258,7 @@ export const getCoordsFromIP = async () => {
   // ipapi.co — same service used by sunTime.js; skip for extension origins
   if (!isExtension) {
     try {
-      const r = await fetch("https://ipapi.co/json/", {
+      const r = await fetch(IPAPI_GEO_URL, {
         signal: AbortSignal.timeout(5000),
       });
       if (r.ok) {
@@ -266,7 +273,7 @@ export const getCoordsFromIP = async () => {
   }
   // freeipapi.com — CORS-enabled, also works from extension origins
   try {
-    const r = await fetch("https://freeipapi.com/api/json", {
+    const r = await fetch(FREEIPAPI_GEO_URL, {
       signal: AbortSignal.timeout(5000),
     });
     if (r.ok) {
@@ -377,7 +384,7 @@ export const fetchAQI = (lat, lon) => {
     timezone: "auto",
   });
   return fetch(
-    `https://air-quality-api.open-meteo.com/v1/air-quality?${params}`,
+    `${OPEN_METEO_AQI_API}?${params}`,
     { signal: AbortSignal.timeout(6000) },
   ).then((r) =>
     r.ok ? r.json() : Promise.reject(new Error(`AQI ${r.status}`)),
