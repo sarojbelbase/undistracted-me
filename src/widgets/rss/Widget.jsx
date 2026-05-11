@@ -13,10 +13,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
-import { useRss } from "./useRss";
 import { useRssMulti } from "./useRssMulti";
 import { Settings } from "./Settings";
-import { relativeTime, PRESET_FEEDS, DEFAULT_FEED_ID, DEFAULT_ACTIVE_IDS } from "./utils";
+import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
@@ -516,14 +515,9 @@ export const Widget = ({ id, onRemove }) => {
     ? activeCustomFeeds.map((f) => ({ label: f.label, url: f.url }))
     : activePresetFeeds.map((p) => ({ label: p.label, url: p.url }));
 
-  // Legacy hook kept for backward-compat — only used when all else fails
-  const legacyFeedId = activeFeedIds[0] ?? DEFAULT_FEED_ID;
-
-  // Always call both hooks (rules of hooks); we always use multiResult now.
-  // useRss (single) is kept alive with a stable ID so hook count never changes.
-  useRss(legacyFeedId); // stable no-op — result unused
-  const multiResult = useRssMulti(allActiveFeeds);
-  const { items, loading, error, refreshedAt, refresh } = multiResult;
+  // Always use multiResult — useRss (single-feed) was removed as it ran a full
+  // fetch+state+interval cycle for a result that was never read.
+  const { items, loading, error, refreshedAt, refresh } = useRssMulti(allActiveFeeds);
   const ageLabel = useAgeLabel(refreshedAt);
 
   // Sync feed config to SW whenever active feeds change
@@ -547,20 +541,27 @@ export const Widget = ({ id, onRemove }) => {
   useEffect(() => {
     if (!items.length) { setOrderedItems([]); return; }
     const seen = seenLinksRef.current;
+    // Cap the Set to prevent unbounded growth across polling cycles.
+    // 300 entries ~= 15 polls × 20 items — more than enough to detect duplicates.
+    if (seen.size > 300) {
+      const trimmed = [...seen].slice(-200);
+      seenLinksRef.current = new Set(trimmed);
+    }
     if (seen.size === 0) {
-      // First load — initialise without any reordering
-      setOrderedItems(items);
+      // First load — initialise without any reordering.
+      // Cap at 100 items — no user scrolls through more in a tiny widget card.
+      setOrderedItems(items.slice(0, 100));
       items.forEach(it => { if (it.link) seen.add(it.link); });
       return;
     }
     const fresh = items.filter(it => it.link && !seen.has(it.link));
     const existing = items.filter(it => !it.link || seen.has(it.link));
     if (fresh.length > 0) {
-      setOrderedItems([...fresh, ...existing]);
+      setOrderedItems([...fresh, ...existing].slice(0, 100));
       setCurrentIndex(0); // jump to newest
       setNavDirection("next");
     } else {
-      setOrderedItems(items);
+      setOrderedItems(items.slice(0, 100));
     }
     items.forEach(it => { if (it.link) seen.add(it.link); });
   }, [items]);

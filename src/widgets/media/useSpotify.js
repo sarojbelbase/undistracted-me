@@ -13,7 +13,7 @@
 //   handleNext   – skip to next track
 //   handlePrev   – skip to previous track
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getCurrentPlayback, isSpotifyConnected,
   setPlayPause, skipNext, skipPrev,
@@ -28,6 +28,10 @@ export const useSpotify = () => {
   // Track connection state reactively so the polling effect re-runs when the
   // user authenticates after the component is already mounted.
   const [connected, setConnected] = useState(() => isSpotifyConnected());
+  const refreshTimerRef = useRef(null);
+
+  // Cancel any pending post-skip refresh when the hook unmounts.
+  useEffect(() => () => clearTimeout(refreshTimerRef.current), []);
 
   useEffect(() => {
     const onStorage = (e) => {
@@ -105,12 +109,20 @@ export const useSpotify = () => {
 
   const handleNext = useCallback(async () => {
     setSkipPending('next');
-    try { await skipNext(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
+    try {
+      await skipNext();
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = setTimeout(refresh, 500);
+    } catch { } finally { setSkipPending(null); }
   }, [refresh]);
 
   const handlePrev = useCallback(async () => {
     setSkipPending('prev');
-    try { await skipPrev(); setTimeout(refresh, 500); } catch { } finally { setSkipPending(null); }
+    try {
+      await skipPrev();
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = setTimeout(refresh, 500);
+    } catch { } finally { setSkipPending(null); }
   }, [refresh]);
 
   return { spotify, progress, pending, skipPending, handleToggle, handleNext, handlePrev };

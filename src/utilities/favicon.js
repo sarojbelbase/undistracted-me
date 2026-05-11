@@ -12,8 +12,16 @@ export const FAVICON_SERVICES = Object.freeze({
 });
 
 // In-session favicon cache: hostname → resolved src URL ('' means letter fallback was used)
+// Capped at MAX_FAVICON_CACHE entries. Map preserves insertion order, so the
+// first key is always the oldest — we evict it when the cap is reached.
 export const faviconCache = new Map();
-export const cacheFavicon = (hostname, src) => faviconCache.set(hostname, src);
+const MAX_FAVICON_CACHE = 500;
+export const cacheFavicon = (hostname, src) => {
+  if (faviconCache.size >= MAX_FAVICON_CACHE) {
+    faviconCache.delete(faviconCache.keys().next().value);
+  }
+  faviconCache.set(hostname, src);
+};
 
 export const getHostname = (url) => {
   try { return new URL(url.startsWith('http') ? url : `https://${url}`).hostname; } catch { return url; }
@@ -151,6 +159,7 @@ function runExtraction(img, onColor) {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(img, 0, 0, SIZE, SIZE);
     const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+    canvas.width = 0; // release pixel buffer immediately after reading
     const totalPixels = SIZE * SIZE;
 
     const { buckets, totalOpaque, transparentCount, darkCount } = buildBuckets(data);

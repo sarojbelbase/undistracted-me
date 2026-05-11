@@ -105,8 +105,8 @@ export const Widget = ({ id, onRemove }) => {
 
   const localText = localNotes[localIdx] ?? '';
   const total = localNotes.length;
-  const { titleLine } = splitNote(localText);
-  const wordCount = localText.trim() ? localText.trim().split(/\s+/).length : 0;
+  const { titleLine, bodyText: bodyForCount } = splitNote(localText);
+  const wordCount = bodyForCount.trim() ? bodyForCount.trim().split(/\s+/).length : 0;
 
   // ── Change handlers ──────────────────────────────────────────────────────────
   const persist = useCallback((next) => {

@@ -155,6 +155,8 @@ export const Widget = ({ onRemove }) => {
   // { tabId, action } | null — pending skip for chrome sessions
   const [chromeSkipPending, setChromeSkipPending] = useState(null);
   const chromeSkipPendingTimeoutRef = useRef(null);
+  // Ref for the post-skip Spotify refresh timer so it can be cancelled on unmount.
+  const spotifySkipTimerRef = useRef(null);
 
   const fetchPlayback = useCallback(async () => {
     try {
@@ -195,6 +197,9 @@ export const Widget = ({ onRemove }) => {
     return () => clearInterval(tickRef.current);
   }, [track?.isPlaying]);
 
+  // Cancel the post-skip Spotify refresh timer on unmount.
+  useEffect(() => () => clearTimeout(spotifySkipTimerRef.current), []);
+
   // Poll Chrome media every 3s as fallback when Spotify is idle
   const fetchChromeMedia = useCallback(async () => {
     const sessions = await getChromeMedia();
@@ -222,6 +227,26 @@ export const Widget = ({ onRemove }) => {
   useEffect(() => {
     chromeMediaSessions.forEach(updateSessionArtColor);
   }, [chromeMediaSessions, updateSessionArtColor]);
+
+  // Prune stale tabId entries from both the artwork ref and the album-color state
+  // so memory from closed tabs is released promptly rather than waiting for GC.
+  useEffect(() => {
+    const liveIds = new Set(chromeMediaSessions.map(s => String(s.tabId)));
+    // Artwork ref: plain object mutation, no re-render needed.
+    for (const k of Object.keys(chromeArtRef.current)) {
+      if (!liveIds.has(k)) delete chromeArtRef.current[k];
+    }
+    // Album colors: bail out early if nothing was pruned to avoid a re-render.
+    setChromeAlbumColors(prev => {
+      const next = {};
+      let changed = false;
+      for (const [k, v] of Object.entries(prev)) {
+        if (liveIds.has(k)) next[k] = v;
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [chromeMediaSessions]);
 
   // Sync with Accounts settings tab connect/disconnect events
   useEffect(() => {
@@ -251,11 +276,19 @@ export const Widget = ({ onRemove }) => {
 
   const handleNext = async () => {
     setSpotifySkipPending('next');
-    try { await skipNext(); setTimeout(fetchPlayback, 400); } finally { setSpotifySkipPending(null); }
+    try {
+      await skipNext();
+      clearTimeout(spotifySkipTimerRef.current);
+      spotifySkipTimerRef.current = setTimeout(fetchPlayback, 400);
+    } finally { setSpotifySkipPending(null); }
   };
   const handlePrev = async () => {
     setSpotifySkipPending('prev');
-    try { await skipPrev(); setTimeout(fetchPlayback, 400); } finally { setSpotifySkipPending(null); }
+    try {
+      await skipPrev();
+      clearTimeout(spotifySkipTimerRef.current);
+      spotifySkipTimerRef.current = setTimeout(fetchPlayback, 400);
+    } finally { setSpotifySkipPending(null); }
   };
 
   const handleChromePlayPause = (session) => {

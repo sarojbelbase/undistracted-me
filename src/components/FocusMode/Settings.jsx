@@ -28,7 +28,7 @@ import {
 } from './theme';
 import { CloseButton } from './dialog/shared';
 import { GearFillIcon } from '../../assets/svg/GearFillIcon';
-import { SearchIcon } from '../../assets/svg/SearchIcon';
+import { Search as SearchIcon } from 'react-bootstrap-icons';
 import { TasksCheckboxIcon } from '../../assets/svg/TasksCheckboxIcon';
 import { PanelsLayoutIcon } from '../../assets/svg/PanelsLayoutIcon';
 import { BackgroundSceneIcon } from '../../assets/svg/BackgroundSceneIcon';
@@ -44,7 +44,7 @@ const TABS = [
   {
     id: 'search',
     label: 'Search',
-    icon: (active) => <SearchIcon size={14} color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
+    icon: (active) => <SearchIcon size={14} style={{ color: active ? 'var(--w-accent)' : FM_ICON_STROKE }} />,
   },
   {
     id: 'tasks',

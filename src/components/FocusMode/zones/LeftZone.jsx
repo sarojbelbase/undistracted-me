@@ -23,11 +23,16 @@ import { StockPanel } from '../panels/Stock';
 import { SpotifyPanel } from '../panels/Spotify';
 import { OccasionPanel } from '../panels/Occasion';
 
-export const LeftZone = () => {
-  const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
-
+// Isolated ticker — owns its own 1-second state so LeftZone itself does not
+// re-render every second, preventing unnecessary cascading into sibling panels.
+const TickingPomodoro = () => {
   const [pomodoro, setPomodoro] = useState(() => readPomodoro());
   useEffect(() => onClockTick(() => setPomodoro(readPomodoro())), []);
+  return pomodoro ? <PomodoroPanel pomodoro={pomodoro} /> : null;
+};
+
+export const LeftZone = () => {
+  const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
 
   const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
@@ -90,7 +95,7 @@ export const LeftZone = () => {
   })();
 
   const panels = {
-    pomodoro: pomodoro ? <PomodoroPanel pomodoro={pomodoro} /> : null,
+    pomodoro: <TickingPomodoro />,
     event: eventInfo ? <EventPanel eventInfo={eventInfo} /> : null,
     occasion: occasions?.length > 0 ? <OccasionPanel occasions={occasions} /> : null,
     stock: stocks?.length > 0 ? <StockPanel stocks={stocks} /> : null,

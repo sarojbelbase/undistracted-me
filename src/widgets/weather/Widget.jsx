@@ -714,6 +714,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
   );
 
   useEffect(() => {
+    let mounted = true;
     setError(null);
 
     // ── Instant pre-population from cache ──────────────────────────────────
@@ -744,6 +745,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
       // metric mode — manual locations and imperial aren't covered by the SW cache.
       if (!location && unit === 'metric' && geoLat != null) {
         chrome?.storage?.local?.get?.('weather_sw_cache').then((result) => {
+          if (!mounted) return;
           const sw = result?.weather_sw_cache;
           if (!sw) return;
           if (Date.now() - sw.fetchedAt > 30 * 60_000) return; // older than 30 min
@@ -786,6 +788,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
           fetchAQI(lat, lon).catch(() => null),
         ]);
 
+        if (!mounted) return;
         const current = parseWeather(data, resolvedCity);
         setWeather(current);
 
@@ -798,14 +801,14 @@ export const Widget = ({ id = "weather", onRemove }) => {
         // Persist fresh result (including AQI) so next tab open is instant
         writeWeatherCache(current, fc, parsedAQI, cacheKey, unit);
       } catch (e) {
-        setError(e.message);
+        if (mounted) setError(e.message);
       }
     };
 
     // Skip network if cache is fresh (< 30 min old); still schedule the interval
     if (!cached?.fresh) load();
     const timerId = setInterval(load, 30 * 60_000);
-    return () => clearInterval(timerId);
+    return () => { mounted = false; clearInterval(timerId); };
   }, [location, unit, geoLat, geoLon, geoSource, geoCity]);
 
   const settingsContent = (

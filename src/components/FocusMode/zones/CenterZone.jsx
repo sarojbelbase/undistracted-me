@@ -15,6 +15,13 @@ import { ZONES } from '../config';
 
 const CENTER = ZONES.center.items;
 
+// Pre-sorted key list — computed once at module load so the 1Hz clock tick
+// does not re-sort the two-entry list on every render.
+const ORDERED_CENTER_KEYS = Object.entries(CENTER)
+  .filter(([, cfg]) => cfg.enable)
+  .sort(([, a], [, b]) => a.order - b.order)
+  .map(([key]) => key);
+
 // Renderers defined outside the component to avoid lint "component inside component" warning.
 // Each factory receives the current render context and returns a keyed JSX node (or null).
 const renderClock = (parts, clockOnDark, showSearch) => (
@@ -38,15 +45,12 @@ export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDar
 
   const showSearch = CENTER.searchBar.enable && focusSearchBar;
 
-  const ITEM_RENDERERS = {
-    clock: () => renderClock(parts, clockOnDark, showSearch),
-    searchBar: () => renderSearchBar(searchOnDark, showSearch),
-  };
-
-  const orderedItems = Object.entries(CENTER)
-    .filter(([, cfg]) => cfg.enable)
-    .sort(([, a], [, b]) => a.order - b.order)
-    .map(([key]) => ITEM_RENDERERS[key]?.())
+  const orderedItems = ORDERED_CENTER_KEYS
+    .map(key => {
+      if (key === 'clock') return renderClock(parts, clockOnDark, showSearch);
+      if (key === 'searchBar') return renderSearchBar(searchOnDark, showSearch);
+      return null;
+    })
     .filter(Boolean);
 
   return (

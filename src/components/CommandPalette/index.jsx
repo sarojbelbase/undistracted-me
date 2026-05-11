@@ -4,7 +4,7 @@ import { Input } from "../ui/Input";
 import { EngineIcon } from "../../utilities/searchEngines";
 import { switchToTab } from "../FocusMode/hooks";
 import { useSearchCore } from "../Search";
-import { SearchIcon } from "../../assets/svg/SearchIcon";
+import { Search } from "react-bootstrap-icons";
 import { GlobeIcon } from "../../assets/svg/GlobeIcon";
 import { BrowserTabIcon as TabIcon } from "../../assets/svg/BrowserTabIcon";
 
@@ -182,7 +182,7 @@ export function CommandPalette({ onClose }) {
                 const idx = suggStart + i;
                 return (
                   <ResultRow key={s} isActive={activeIdx === idx} onRun={() => runItem(flatItems[idx])} onHover={() => setActiveIdx(idx)}>
-                    <span style={{ color: activeIdx === idx ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><SearchIcon size={13} /></span>
+                    <span style={{ color: activeIdx === idx ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><Search size={13} /></span>
                     <ResultText isActive={activeIdx === idx}>{s}</ResultText>
                   </ResultRow>
                 );

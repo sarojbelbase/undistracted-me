@@ -13,11 +13,10 @@ import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 import { EngineIcon } from '../../../utilities/searchEngines';
 import { useSearchCore } from '../../Search';
-import { SearchIcon } from '../../../assets/svg/SearchIcon';
+import { Search } from 'react-bootstrap-icons';
 import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
 import { BrowserTabIcon as TabIcon } from '../../../assets/svg/BrowserTabIcon';
 import { ClockIcon } from '../../../assets/svg/ClockIcon';
-import { CheckmarkIcon } from '../../../assets/svg/CheckmarkIcon';
 
 // ── Local-storage history ──────────────────────────────────────────────────────
 
@@ -150,7 +149,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
           onMouseEnter={() => onHover(suggStart + i)}
           onMouseLeave={() => onHover(-1)}
         >
-          {isHistory ? <ClockIcon size={12} color={t.label} /> : <SearchIcon size={14} color={t.label} />}
+          {isHistory ? <ClockIcon size={12} color={t.label} /> : <Search size={14} style={{ color: t.label }} />}
           <span style={{ ...textStyle, flex: 'unset' }}>{s}</span>
         </button>
       ))}
@@ -378,7 +377,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
           onMouseEnter={e => { e.currentTarget.style.background = t.btnHoverBg; }}
           onMouseLeave={e => { e.currentTarget.style.background = t.btnBg; }}
         >
-          <SearchIcon size={14} color={t.iconStroke} />
+          <Search size={14} style={{ color: t.iconStroke }} />
         </button>
       </div>
 
