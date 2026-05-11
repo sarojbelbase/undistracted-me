@@ -13,17 +13,17 @@ import { Modal } from '../../ui/Modal';
 import { useSettingsStore } from '../../../store';
 import {
   DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER,
-  DialogHeader, SectionLabel, ToggleRow, Toggle, AccountSection,
+  DialogHeader, SectionLabel, ToggleRow, Toggle,
 } from './shared';
 import {
   FM_SURFACE, FM_BORDER, FM_INK_1, FM_INK_3,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from '../theme';
-import { SearchIcon } from '../../../assets/svg/SearchIcon';
+import { Search } from 'react-bootstrap-icons';
 import { StarIcon } from '../../../assets/svg/StarIcon';
 import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
 
-const IconSearch = () => <SearchIcon size={16} color={FM_ICON_STROKE} />;
+const IconSearch = () => <Search size={16} style={{ color: FM_ICON_STROKE }} />;
 const IconStar = () => <StarIcon size={14} color={FM_ICON_STROKE_MUTED} />;
 const IconGlobe = () => <GlobeIcon size={14} color={FM_ICON_STROKE_MUTED} />;
 

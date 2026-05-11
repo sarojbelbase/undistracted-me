@@ -326,10 +326,32 @@ export default defineConfig(({ mode }) => {
       suggestProxy(),
       rssProxy(),
     ],
+    // ── Production defines ─────────────────────────────────────────────────────
+    // Vite sets NODE_ENV=production on build, but making it explicit ensures
+    // React's dead-code elimination (propTypes, StrictMode checks, DEV warnings)
+    // fully tree-shakes in every downstream bundler pass.
+    //
+    // __REACT_DEVTOOLS_GLOBAL_HOOK__ = { isDisabled: true } is the official
+    // React mechanism to prevent DevTools registration entirely in production.
+    // Without it, React registers a ~60-line initializer unconditionally on every
+    // page load — ~2–4ms of wasted work on every new-tab open.
+    define: mode === "production"
+      ? {
+        "process.env.NODE_ENV": JSON.stringify("production"),
+        "__REACT_DEVTOOLS_GLOBAL_HOOK__": "({ isDisabled: true })",
+      }
+      : {
+        "process.env.NODE_ENV": JSON.stringify("development"),
+      },
     build: {
       // Strip console.warn/console.error in extension production builds.
       // console.error is kept for real runtime errors; warn is dev-only noise.
       minify: "esbuild",
+      esbuild: {
+        // Drop debugger statements and strip development-only console noise.
+        drop: ["debugger"],
+        pure: ["console.log", "console.warn", "console.debug", "console.info"],
+      },
       rollupOptions: {
         output: {
           manualChunks(id: string) {
