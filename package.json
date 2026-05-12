@@ -24,6 +24,7 @@
 		"test:report": "playwright show-report tests/playwright/report"
 	},
 	"dependencies": {
+		"@chenglou/pretext": "^0.0.7",
 		"@lexical/code": "^0.44.0",
 		"@lexical/history": "^0.44.0",
 		"@lexical/link": "^0.44.0",
@@ -38,7 +39,6 @@
 		"react-bootstrap-icons": "^1.11.6",
 		"react-dom": "^19.2.6",
 		"react-grid-layout": "^2.2.3",
-		"react-resizable": "^3.2.0",
 		"rss-parser": "^3.13.0",
 		"zustand": "^5.0.13"
 	},
