@@ -491,7 +491,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
             : `1px solid ${FM_CARD_BORDER}`,
           color: BRIGHT,
           fontSize: 12,
-          fontWeight: 500,
+          fontWeight: 600,
           cursor: 'pointer',
           boxShadow: '0 2px 18px rgba(0,0,0,0.40)',
           transition: 'border-color 0.3s',
