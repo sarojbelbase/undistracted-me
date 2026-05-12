@@ -10,8 +10,8 @@ const LIGHT_TOKENS = {
   '--w-ink-2': '#222222',  /* 14.5:1 ✓ AAA */
   '--w-ink-3': '#3d3d3d',  /* 9.4:1  ✓ AAA */
   '--w-ink-4': '#4d4d4d',  /* 7.7:1  ✓ AA  */
-  '--w-ink-5': '#707070',  /* 4.6:1  ✓ AA  */
-  '--w-ink-6': '#a0a0a0',  /* 2.5:1  — decorative/inactive */
+  '--w-ink-5': '#666666',  /* 5.7:1  ✓ AA  — was #707070 (4.9:1, too close to edge on glass) */
+  '--w-ink-6': '#8a8a8a',  /* 3.4:1  ✓ decorative/inactive — was #a0a0a0 (2.6:1, failed 3.3 target) */
   '--w-surface': '#f5f5f5',  /* neutral off-white — 18.4:1 vs #111111 ✓ AAA */
   '--w-surface-2': '#f0f0f0',
   '--w-surface-3': '#e8e8e8',  /* tertiary surface — icon skeletons    */
@@ -25,9 +25,9 @@ const DARK_TOKENS = {
   '--w-ink-1': '#f2f2f2',   /* near-white — headlines                  */
   '--w-ink-2': '#e0e0e0',   /* primary labels & display numbers        */
   '--w-ink-3': '#c4c4c4',   /* bold value text, strong secondary       */
-  '--w-ink-4': '#8e8e8e',   /* medium context, captions      5.0:1 ✓   */
-  '--w-ink-5': '#909090',   /* muted labels             5.0:1 ✓ AA   */
-  '--w-ink-6': '#6e6e6e',   /* inactive / decorative    3.3:1 ✓ min   */
+  '--w-ink-4': '#a0a0a0',   /* medium context, captions      6.5:1 ✓ AA — was #8e8e8e (5.2:1, inverted vs ink-5) */
+  '--w-ink-5': '#888888',   /* muted labels                  4.8:1 ✓ AA — was #909090 (5.3:1, brighter than ink-4 = bug) */
+  '--w-ink-6': '#6e6e6e',   /* inactive / decorative         3.3:1 ✓ min */
   '--w-surface': '#1c1c1c', /* mid-point widget card surface            */
   '--w-surface-2': '#252525', /* raised surface — inputs, sub-panels   */
   '--w-surface-3': '#2a2a2a',  /* tertiary surface — icon skeletons    */
