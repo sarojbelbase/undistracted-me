@@ -8,7 +8,6 @@ import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
 import { notifyUser } from '../../utilities/chrome';
 import { getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
-import { FitText } from '../../components/ui/FitText.jsx';
 import config from './config';
 import { fmt12, calcDuration } from '../events/utils';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
@@ -118,13 +117,9 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                     onClick={() => { onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <FitText
-                        text={cd.title}
-                        maxSize={13}
-                        minSize={8}
-                        weight={600}
-                        style={{ color: 'var(--w-ink-1)', lineHeight: 1.3 }}
-                      />
+                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                        {cd.title}
+                      </p>
                       <div className="flex items-center gap-1">
                         {isPinned && (
                           <>
@@ -213,13 +208,9 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                     onClick={() => { onPin({ type: 'event', eventId: ev.id }); onClose?.(); }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <FitText
-                        text={ev.title}
-                        maxSize={13}
-                        minSize={8}
-                        weight={600}
-                        style={{ color: 'var(--w-ink-1)', lineHeight: 1.3 }}
-                      />
+                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                        {ev.title}
+                      </p>
                       <div className="flex items-center gap-1">
                         {isPinned && (
                           <>

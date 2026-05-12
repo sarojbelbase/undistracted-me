@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { TintedChip } from '../../components/ui/TintedChip';
-import { FitText } from '../../components/ui/FitText';
 import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
@@ -78,17 +77,12 @@ const ChromeMediaStrip = ({ session, isPending, onPromote, onPlayPause }) => {
           </div>
         )}
         <div className="flex flex-col gap-0 min-w-0">
-          <FitText
-            text={session.title || 'Playing'}
-            maxSize={11}
-            weight={600}
-            style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 1.3 }}
-          />
-          <FitText
-            text={session.artist || session.host || 'Browser'}
-            maxSize={10}
-            style={{ color: 'rgba(255,255,255,0.42)', lineHeight: 1.3 }}
-          />
+          <span className="truncate text-[11px] font-semibold leading-tight" style={{ color: 'rgba(255,255,255,0.88)' }}>
+            {session.title || 'Playing'}
+          </span>
+          <span className="truncate text-[10px] leading-tight" style={{ color: 'rgba(255,255,255,0.42)' }}>
+            {session.artist || session.host || 'Browser'}
+          </span>
         </div>
       </button>
 
@@ -472,17 +466,12 @@ export const Widget = ({ onRemove }) => {
 
             {/* Track info */}
             <div className="flex flex-col gap-0.5 min-w-0 mt-1">
-              <FitText
-                text={activeSession?.title || 'Playing'}
-                maxSize={14}
-                weight={600}
-                style={{ color: chromeInk }}
-              />
-              <FitText
-                text={activeSession?.artist || activeSession?.host || 'Browser'}
-                maxSize={12}
-                style={{ color: chromeMute }}
-              />
+              <div className="truncate text-sm font-semibold" style={{ color: chromeInk }}>
+                {activeSession?.title || 'Playing'}
+              </div>
+              <div className="truncate text-xs" style={{ color: chromeMute }}>
+                {activeSession?.artist || activeSession?.host || 'Browser'}
+              </div>
             </div>
           </div>
 
@@ -597,8 +586,8 @@ export const Widget = ({ onRemove }) => {
 
           {/* Track info */}
           <div className="flex flex-col gap-0.5 min-w-0 mt-1">
-            <FitText text={track.title} maxSize={14} weight={600} style={{ color: inkColor }} />
-            <FitText text={track.artist} maxSize={12} style={{ color: muteColor }} />
+            <div className="truncate text-sm font-semibold" style={{ color: inkColor }}>{track.title}</div>
+            <div className="truncate text-xs" style={{ color: muteColor }}>{track.artist}</div>
           </div>
         </div>
 

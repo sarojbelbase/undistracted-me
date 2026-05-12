@@ -19,7 +19,6 @@ import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
-import { FitText } from "../../components/ui/FitText.jsx";
 import { Broadcast, Rss } from "react-bootstrap-icons";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
@@ -698,14 +697,9 @@ export const Widget = ({ id, onRemove }) => {
         style={{ borderBottom: "1px solid var(--card-border)" }}
       >
         <Broadcast size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
-        <FitText
-          text={sourceName}
-          maxSize={12}
-          minSize={9}
-          weight={600}
-          className="flex-1"
-          style={{ color: "var(--w-ink-2)" }}
-        />
+        <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
+          {sourceName}
+        </span>
         <div className="flex items-center gap-1 shrink-0">
           {ageLabel && (
             <span className="w-caption" style={{ color: "var(--w-ink-5)" }}>{ageLabel}</span>

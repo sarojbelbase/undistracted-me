@@ -6,9 +6,8 @@
  * Body text is kept at a comfortable reading size — the effect comes from
  * RATIO (font-size contrast), not from making body tiny.
  *
- * Performance: @chenglou/pretext handles canvas measurement via Intl.Segmenter
- * and an inverse-scale trick (prepare at 1px, binary-search layout at 1px width)
- * so all iterations are pure arithmetic — no DOM reflow in the hot path.
+ * Performance: word widths are precomputed at 1px so the binary search loop
+ * runs with only multiplications — no canvas calls in the hot path.
  *
  * Typography: all tokens share the same line-height (1.15). The hero word's
  * larger font-size is the sole source of visual contrast, keeping the line
@@ -22,8 +21,7 @@
  *   ExpressiveTitle  — React component; DOM-measures + renders a fitted headline
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { fitMultiLineDetails, canvasFont } from './fitText.js';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Unity: unified LINE_HEIGHT means size contrast IS the visual contrast.
@@ -62,11 +60,92 @@ const STOP = new Set([
   'same', 'too', 'very', 'both', 'those', 'these', 'such', 'per', 'via',
 ]);
 
-// ─── Canvas infrastructure removed ───────────────────────────────────────────
-// Word-width precomputation and fastWrap previously lived here.
-// Replaced by @chenglou/pretext via fitMultiLine() in uniformFallback().
-// pretext prepare() + layout() is more accurate (Intl.Segmenter, emoji
-// correction, bidi) and eliminates this ~80-line hand-rolled implementation.
+// ─── Canvas text measurer ─────────────────────────────────────────────────────
+let _ctx = null;
+function getCtx() {
+  if (_ctx) return _ctx;
+  if (typeof document === 'undefined') return null;
+  _ctx = document.createElement('canvas').getContext('2d');
+  return _ctx;
+}
+
+function measureWidth(text, fontSize, fontWeight, fontFamily) {
+  const c = getCtx();
+  if (c) {
+    c.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    return c.measureText(text).width;
+  }
+  return text.length * fontSize * 0.52;
+}
+
+// ─── Width precomputation ─────────────────────────────────────────────────────
+/**
+ * Measure every word at fontSize=1 for both weights once.
+ * In the binary search loop we just multiply: wordWidth = factor × fontSize.
+ * This eliminates all canvas calls from the hot path — O(n) precompute,
+ * O(1) per word per iteration.
+ */
+function precomputeWidths(words, fontFamily) {
+  return words.map(text => ({
+    body: measureWidth(text, 1, BODY_WEIGHT, fontFamily),
+    hero: measureWidth(text, 1, HERO_WEIGHT, fontFamily),
+  }));
+}
+
+// ─── Fast word-wrap (uses precomputed width factors) ─────────────────────────
+/**
+ * `wf` — precomputed width factors from precomputeWidths()
+ * `sp` — { body, hero } space width factors at fontSize=1
+ * `cw` — container width in px
+ */
+function computeSpaceWidth(isHero, size, sp) {
+  return isHero ? sp.hero * size : sp.body * size;
+}
+
+function wordMetrics(i, heroIdx, bodySize, heroSize, wf, sp, lineLen) {
+  const isHero = i === heroIdx;
+  const size = isHero ? heroSize : bodySize;
+  const ww = isHero ? wf[i].hero * size : wf[i].body * size;
+  const sw = lineLen > 0 ? computeSpaceWidth(isHero, size, sp) : 0;
+  return { ww, sw };
+}
+
+function fastWrap(words, heroIdx, bodySize, heroSize, wf, sp, cw) {
+  const lines = [];
+  let line = [];
+  let lineW = 0;
+
+  for (let i = 0; i < words.length; i++) {
+    const { ww, sw } = wordMetrics(i, heroIdx, bodySize, heroSize, wf, sp, line.length);
+
+    if (ww > cw) {
+      if (line.length > 0) lines.push([...line]);
+      lines.push([i]);
+      line = [];
+      lineW = 0;
+    } else if (line.length > 0 && lineW + sw + ww > cw) {
+      lines.push([...line]);
+      line = [i];
+      lineW = ww;
+    } else {
+      line.push(i);
+      lineW += sw + ww;
+    }
+  }
+  if (line.length > 0) lines.push(line);
+  return lines;
+}
+
+/**
+ * Block height using unified LINE_HEIGHT — each line is
+ * max(fontSize on that line) × LINE_HEIGHT.
+ */
+function fastBlockH(lines, heroIdx, bodySize, heroSize) {
+  return lines.reduce((sum, line) => {
+    const size = line.includes(heroIdx) ? heroSize : bodySize;
+    return sum + size * LINE_HEIGHT;
+  }, 0);
+}
 /**
  * Design principles — Rhythm + Balance:
  * Scores a wrapped layout for visual composition quality.
@@ -203,24 +282,46 @@ function makeTokens(words, heroIdx, bodySize, heroSize, fontFamily) {
 // ─── Uniform fallback (short titles, no hero) ─────────────────────────────────
 function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 400, textLineHeight) {
   // Devanagari (Hind) needs 1.3 line-height at both canvas-estimate and DOM stages.
+  // Using 1.0 here caused the canvas binary search to oversize the font, making the
+  // DOM measurement have to correct downward on every render.
   const isDevanagariContent = words.some(w => !isLatinWord(w));
   const lh = isDevanagariContent ? 1.3 : (textLineHeight ?? LINE_HEIGHT);
 
-  // League Gothic canvas advance widths are ~33% narrower than the browser renders
-  // (observed: canvas predicts 3 lines where browser renders 4 at same fontSize).
-  // fillTarget = 1/1.33 ≈ 0.75 compensates: canvas_lines × fontSize × 1.33 ≤ areaHeight.
-  // Standard fonts (Google Sans, Hind) are accurate → fillTarget stays 0.97.
-  const isCondensedFont = /League Gothic/i.test(fontFamily);
-  const fillTarget = isCondensedFont ? 0.75 : 0.97;
+  const wf = precomputeWidths(words, fontFamily);
+  const spW = measureWidth(' ', 1, 800, fontFamily) || 0.28;
+  const sp = { body: spW, hero: spW };
 
-  const { fontSize } = fitMultiLineDetails(
-    words.join(' '),
-    canvasFont(fontWeight, fontFamily),
-    areaWidth,
-    areaHeight,
-    { maxSize: Math.min(areaHeight * 0.6, areaWidth * 0.4), minSize: 10, lineHeight: lh, fillTarget },
-  );
+  // Uniform case: all words same size, no hero (heroIdx = -1)
+  function uHeight(size) {
+    const lines = fastWrap(words, -1, size, size, wf, sp, areaWidth);
+    return lines.length * size * lh;
+  }
 
+  // 82% fill target — conservative margin guards against canvas/browser
+  // measurement discrepancy (especially with ultra-condensed fonts like
+  // League Gothic where per-character width is measured but browser line
+  // wrapping may differ by a word or two).
+  let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
+  for (let iter = 0; iter < 16; iter++) {
+    const mid = (lo + hi) / 2;
+    if (uHeight(mid) <= areaHeight * 0.82) lo = mid;
+    else hi = mid;
+  }
+
+  // Safety shrink — extra guard for font-load measurement drift.
+  // Runs after binary search; shrinks by 5% until height fits with margin.
+  let fontSize = Math.round(lo);
+  for (let i = 0; i < 10; i++) {
+    if (uHeight(fontSize) <= areaHeight * 0.85) break;
+    fontSize = Math.round(fontSize * 0.95);
+  }
+  // Width clamp: ensure no single indivisible word overflows the container.
+  // Without this, ultra-condensed fonts (League Gothic) render a long single word
+  // at a size that fits in height but physically overflows width — clipped by overflow:hidden.
+  const maxWordFactor = wf.reduce((m, w) => Math.max(m, w.body), 0);
+  if (maxWordFactor > 0) {
+    fontSize = Math.min(fontSize, Math.floor(areaWidth * 0.97 / maxWordFactor));
+  }
   const tokens = words.map(text => {
     const isDevanagari = !isLatinWord(text);
     return {
@@ -236,7 +337,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 
     words: tokens,
     heroIdx: -1,
     fits: true,
-    estimatedHeight: 0,
+    estimatedHeight: uHeight(lo),
   };
 }
 
@@ -283,8 +384,7 @@ export function expressiveLayout(
 ) {
   const words = title.split(/\s+/).filter(w => w && !PUNCT_ONLY.test(w));
   if (words.length === 0) return uniformFallback(['…'], areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
-  const result = uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
-  return result;
+  return uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
 }
 // ─── ExpressiveTitle ─────────────────────────────────────────────────────
 /**
@@ -319,57 +419,117 @@ export const ExpressiveTitle = ({
   textLineHeight,
 }) => {
   const [fontsReady, setFontsReady] = useState(false);
+  const [domFit, setDomFit] = useState(null);
+  const measureRef = useRef(null);
 
   useEffect(() => {
     document.fonts.ready.then(() => setFontsReady(true));
   }, []);
 
-  // expressiveLayout provides per-token font metadata and the fitted fontSize
-  // via pretext (canvas measurement, zero DOM reflow). fillTarget=0.75 for
-  // League Gothic ensures the browser-rendered height stays within areaHeight.
+  // expressiveLayout for token metadata (font-family / weight / letter-spacing).
+  // DOM binary search overrides the fontSize below.
   const layout = useMemo(
     () => expressiveLayout(title, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [title, areaWidth, areaHeight, fontsReady, fontFamily, fontWeight, textLineHeight],
   );
 
-  const w0 = layout.words[0];
-  const fontSize = w0?.fontSize ?? 16;
-  const lineHeight = w0?.lineHeight ?? 1;
+  useLayoutEffect(() => {
+    const el = measureRef.current;
+    if (!el || !title || !layout.words.length) return;
+
+    const w0 = layout.words[0];
+    el.style.fontFamily = w0.fontFamily;
+    el.style.fontWeight = String(w0.fontWeight);
+    el.style.letterSpacing = w0.letterSpacing;
+    // Match the actual rendered lineHeight — Devanagari spans use 1.3, not 1.0.
+    // Without this the measurement is too short and the button clips the text.
+    el.style.lineHeight = String(w0.lineHeight);
+
+    // Descent factor per script:
+    // League Gothic (lh=1.0): descenders extend ~28% below the em-square.
+    // Google Sans / similar (lh ~1.1–1.2): line-height absorbs most of it.
+    // Devanagari / Hind (lh≥1.25): leading already covers matras.
+    // We bake the descent into the binary search condition so the found
+    // font-size guarantees textH + descentPx ≤ areaHeight — no overflow clipping.
+    const descentFactor = w0.lineHeight >= 1.25 ? 0.08 : w0.lineHeight > 1 ? 0.12 : 0.28;
+
+    let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      const h = el.getBoundingClientRect().height;
+      if (h + Math.ceil(mid * descentFactor) <= areaHeight) lo = mid;
+      else hi = mid;
+    }
+
+    let fs = Math.floor(lo);
+    el.style.fontSize = fs + 'px';
+    // Width safety: if any single token overflows the container (e.g. a long
+    // indivisible word in a condensed font), shrink 1px at a time until it fits.
+    while (fs > 10 && el.scrollWidth > areaWidth) {
+      fs -= 1;
+      el.style.fontSize = fs + 'px';
+    }
+    const textH = el.getBoundingClientRect().height;
+    const descentPx = Math.ceil(fs * descentFactor);
+    // min() is a safety net only — the binary search already guarantees fit.
+    const buttonH = Math.min(Math.ceil(textH) + descentPx, areaHeight);
+
+    setDomFit({ fontSize: fs, buttonHeight: buttonH });
+  }, [title, areaWidth, areaHeight, fontsReady, layout]);
+
+  const fontSize = domFit?.fontSize ?? layout.words[0]?.fontSize ?? 16;
+  const buttonHeight = domFit?.buttonHeight ?? undefined;
+  const lineHeight = layout.words[0]?.lineHeight ?? 1;
 
   return (
-    <button
-      type="button"
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={onClick}
-      style={{
-        display: 'block', width: '100%', textAlign: 'left',
-        background: 'none', border: 'none', padding: 0,
-        cursor: 'pointer', marginBottom, lineHeight,
-        maxHeight: areaHeight,
-        overflow: 'hidden',
-      }}
-    >
-      {layout.words.map((w, i) => {
-        return (
-          <span
-            key={`${w.text}-${i}`}
-            style={{
-              display: 'inline',
-              fontSize,
-              fontWeight: w.fontWeight,
-              lineHeight: w.lineHeight,
-              letterSpacing: w.letterSpacing,
-              fontFamily: w.fontFamily,
-              color: w.isHero
-                ? (heroColor || 'var(--w-fg)')
-                : (bodyColor || 'var(--w-ink-3)'),
-            }}
-          >
-            {w.text}{' '}
-          </span>
-        );
-      })}
-    </button>
+    <>
+      {/* Off-screen measurement node — position:fixed keeps it out of all flow. */}
+      <div
+        ref={measureRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed', top: -9999, left: -9999,
+          width: areaWidth, lineHeight,
+          whiteSpace: 'normal', pointerEvents: 'none', userSelect: 'none',
+        }}
+      >
+        {title}
+      </div>
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={onClick}
+        style={{
+          display: 'block', width: '100%', textAlign: 'left',
+          background: 'none', border: 'none', padding: 0,
+          cursor: 'pointer', marginBottom, lineHeight,
+          height: buttonHeight,
+          overflow: 'hidden', maxHeight: areaHeight,
+        }}
+      >
+        {layout.words.map((w, i) => {
+          return (
+            <span
+              key={`${w.text}-${i}`}
+              style={{
+                display: 'inline',
+                fontSize,
+                fontWeight: w.fontWeight,
+                lineHeight: w.lineHeight,
+                letterSpacing: w.letterSpacing,
+                fontFamily: w.fontFamily,
+                color: w.isHero
+                  ? (heroColor || 'var(--w-fg)')
+                  : (bodyColor || 'var(--w-ink-3)'),
+              }}
+            >
+              {w.text}{' '}
+            </span>
+          );
+        })}
+      </button>
+    </>
   );
 };
