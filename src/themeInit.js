@@ -46,7 +46,10 @@ try {
   r.style.setProperty('--w-page-bg', dark ? DARK_BG : LIGHT_BG);
   r.style.setProperty('--w-surface', dark ? DARK_SURFACE : LIGHT_SURFACE);
   r.style.setProperty('--w-border', dark ? DARK_BORDER : LIGHT_BORDER);
-  r.style.setProperty('--w-accent', accent.hex);
-  r.style.setProperty('--w-accent-fg', accent.fg);
+  // Use the luminous dark-mode tonal variant when dark, otherwise the standard light-mode hex
+  const accentHex = dark ? (accent.darkHex ?? accent.hex) : accent.hex;
+  const accentFg  = dark ? (accent.darkFg  ?? accent.fg)  : accent.fg;
+  r.style.setProperty('--w-accent',    accentHex);
+  r.style.setProperty('--w-accent-fg', accentFg);
   r.style.backgroundColor = dark ? DARK_BG : LIGHT_BG;
 } catch (_) { /* localStorage unavailable */ }
