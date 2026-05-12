@@ -19,7 +19,7 @@ import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
-import { Broadcast } from "react-bootstrap-icons";
+import { Broadcast, Rss } from "react-bootstrap-icons";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
