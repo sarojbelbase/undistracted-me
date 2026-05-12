@@ -7,7 +7,7 @@ import React from 'react';
 import { Modal } from '../../ui/Modal';
 import { useSettingsStore } from '../../../store';
 import {
-  DIALOG_STYLE, SECTION_CARD_STYLE,
+  DIALOG_STYLE, SECTION_CARD_STYLE, getDialogStyle,
   DialogHeader, SectionLabel, ToggleRow, AccountSection,
   IconGoogle,
 } from './shared';
@@ -15,8 +15,9 @@ import {
 export const TasksDialog = ({ onClose }) => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
   const setFocusTasks = useSettingsStore(s => s.setFocusTasks);
+  const accent = useSettingsStore(s => s.accent);
   return (
-    <Modal onClose={onClose} style={{ width: 360, ...DIALOG_STYLE }} ariaLabel="Google Tasks settings">
+    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent) }} ariaLabel="Google Tasks settings">
       <DialogHeader icon={<IconGoogle />} title="Google Tasks"
         subtitle="Manage tasks directly from Focus Mode"
         onClose={onClose} />

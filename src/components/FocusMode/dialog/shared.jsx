@@ -11,6 +11,7 @@ import { useGoogleAccountStore } from '../../../store/useGoogleAccountStore';
 import { useUIStore } from '../../../store/useUIStore';
 import {
   FOCUS_THEME, DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE,
+  getDialogStyle,
   FM_SURFACE, FM_BORDER, FM_DIVIDER,
   FM_INK_1, FM_INK_2, FM_INK_3, FM_INK_4,
   FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
@@ -22,7 +23,7 @@ import { ChevronRightIcon } from '../../../assets/svg/ChevronRightIcon';
 import { LockIcon } from '../../../assets/svg/LockIcon';
 
 // Re-export the dialog surface tokens so dialog files can import from one place
-export { DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE };
+export { DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE, getDialogStyle };
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 

@@ -6,6 +6,7 @@ import { FACTS } from "../../data/facts";
 import { useDailyJoke } from "./useDailyJoke";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
+import { FitText } from "../../components/ui/FitText.jsx";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
 
@@ -130,18 +131,18 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
         {item.author && (
           <div className="flex items-center justify-end gap-1.5 mt-3 pr-0.5">
             <div style={{ width: '12px', height: '2px', background: 'var(--w-accent)', opacity: 0.5, borderRadius: '2px', flexShrink: 0 }} />
-            <span
-              className="truncate"
+            <FitText
+              text={item.author}
+              maxSize={10}
+              minSize={8}
+              weight={700}
               style={{
-                fontSize: '0.65rem',
-                fontWeight: 700,
                 color: 'var(--w-ink-4)',
                 letterSpacing: '0.04em',
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                lineHeight: 1.2,
               }}
-            >
-              {item.author}
-            </span>
+            />
           </div>
         )}
       </div>

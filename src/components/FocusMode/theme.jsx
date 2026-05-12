@@ -13,6 +13,9 @@
 //     set via getFMCardVars(cardStyle) on the FocusMode root div.
 //   • Elements floating directly on the photo (clock, greeting, world clock)
 //     are luminance-adaptive — use getPhotoTokens(centerOnDark).
+//   • ACCENT: use getDialogStyle(accent) (not DIALOG_STYLE) for portalled dialogs
+//     so --w-accent is pinned to the dark-tone variant regardless of canvas mode.
+import { getFMAccentVars } from '../../constants/accents';
 //   • The search bar pill/dropdown switches palettes on luminance — use getTokens(dark).
 //   • dialog/shared.jsx, panels/Tasks.jsx etc. import FM_* from here.
 
@@ -177,6 +180,15 @@ export const DIALOG_STYLE = {
   '--w-surface': FM_SURFACE,
   '--w-surface-2': FM_SURFACE_2,
 };
+
+/**
+ * Use this instead of spreading DIALOG_STYLE directly on portalled FM dialogs.
+ * Merges the standard dark-glass surface tokens with dark-tone accent CSS vars
+ * so var(--w-accent) resolves correctly even when canvas mode is light.
+ */
+export function getDialogStyle(accentName) {
+  return { ...DIALOG_STYLE, ...getFMAccentVars(accentName) };
+}
 
 // Section divider & card (sub-panel inside a dialog)
 export const SECTION_BORDER = `1px solid ${FM_DIVIDER}`;
