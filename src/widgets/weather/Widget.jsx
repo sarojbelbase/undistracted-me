@@ -23,7 +23,6 @@ import {
   getAtmosphereLabel,
 } from "../../components/ui/WeatherAtmosphere.jsx";
 import { Popup } from "../../components/ui/Popup.jsx";
-import { FitText } from "../../components/ui/FitText.jsx";
 
 // ── Skeleton blocks ───────────────────────────────────────────────────────────
 
@@ -321,19 +320,22 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI }) => (
       }}
     >
       {cityShort ? (
-        <FitText
-          text={cityShort}
-          maxSize={22}
-          minSize={10}
-          weight={600}
+        <div
           style={{
+            fontSize: "1.35rem",
+            fontWeight: 600,
             color: "var(--w-ink-2)",
             letterSpacing: "-0.025em",
             lineHeight: 1.15,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
             flex: "1 1 0",
             minWidth: 0,
           }}
-        />
+        >
+          {cityShort}
+        </div>
       ) : (
         <div
           style={{

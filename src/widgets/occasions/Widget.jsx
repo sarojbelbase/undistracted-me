@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { PersonHeart, BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
-import { FitText } from '../../components/ui/FitText.jsx';
 import {
   getContactBirthdays,
   loadCachedContacts,
@@ -151,13 +150,12 @@ const ListRow = ({ entry, isLast, highlight }) => {
 
       {/* Name + type */}
       <div className="flex-1 min-w-0">
-        <FitText
-          text={entry.name}
-          maxSize={12}
-          minSize={8}
-          weight={600}
-          style={{ color: highlight ? 'var(--w-accent)' : 'var(--w-ink-1)', lineHeight: 1.3 }}
-        />
+        <div
+          className="text-xs font-semibold leading-tight truncate"
+          style={{ color: highlight ? 'var(--w-accent)' : 'var(--w-ink-1)' }}
+        >
+          {entry.name}
+        </div>
         <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-4)' }}>
           <TypeIcon type={entry.type} size={10} />
           {typeLabel(entry.type)}
