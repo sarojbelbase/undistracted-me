@@ -24,7 +24,7 @@ import { Background } from './settings/Background';
 import {
   DIALOG_STYLE, getDialogStyle,
   FM_INK_1, FM_INK_3,
-  FM_DIVIDER, FM_SURFACE,
+  FM_DIVIDER, FM_SURFACE_2, FM_BORDER,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from './theme';
 import { CloseButton } from './dialog/shared';
@@ -96,7 +96,7 @@ const TabBar = ({ active, onChange }) => (
             border: 'none',
             cursor: 'pointer',
             fontSize: 11,
-            fontWeight: isActive ? 700 : 500,
+            fontWeight: isActive ? 700 : 600,
             color: isActive ? 'var(--w-accent)' : FM_INK_3,
             background: 'transparent',
             borderBottom: isActive ? '2px solid var(--w-accent)' : '2px solid transparent',
@@ -139,21 +139,19 @@ export const FocusModeSettings = ({
       {/* ── Header ── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        padding: '16px 16px 14px',
+        padding: '13px 16px 12px',
       }}>
         <div style={{
-          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-          background: FM_SURFACE,
+          width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+          background: FM_SURFACE_2,
+          border: `1px solid ${FM_BORDER}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <GearCogIcon size={18} color={FM_ICON_STROKE} />
+          <GearCogIcon size={16} color={FM_ICON_STROKE} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>
             Focus Mode Settings
-          </div>
-          <div style={{ fontSize: 11, color: FM_INK_3, marginTop: 2 }}>
-            Customize your focus experience
           </div>
         </div>
         <CloseButton onClose={onClose} />
@@ -167,7 +165,7 @@ export const FocusModeSettings = ({
         id={`fm-settings-panel-${activeTab}`}
         role="tabpanel"
         aria-label={TABS.find(t => t.id === activeTab)?.label}
-        style={{ padding: '16px 18px 20px', overflowY: 'auto', flex: 1, minHeight: 0 }}
+        style={{ padding: '18px 20px 22px', overflowY: 'auto', flex: 1, minHeight: 0 }}
       >
         {activeTab === 'general' && <General />}
         {activeTab === 'search' && <Search />}

@@ -79,7 +79,7 @@ const TabBar = ({ active, onChange }) => (
             padding: '10px 4px 9px',
             borderRadius: 0, border: 'none', cursor: 'pointer',
             fontSize: 11,
-            fontWeight: isActive ? 700 : 500,
+            fontWeight: isActive ? 700 : 600,
             color: isActive ? 'var(--w-accent)' : 'var(--w-ink-3)',
             background: 'transparent',
             borderBottom: isActive ? `2px solid var(--w-accent)` : '2px solid transparent',

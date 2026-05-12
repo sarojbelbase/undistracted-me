@@ -198,7 +198,7 @@ export const AccountSection = ({ icon, label = 'Google', description = null, pri
             width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
             background: connected ? FM_SUCCESS_DOT : 'rgba(255,255,255,0.25)',
           }} />
-          <span style={{ fontSize: 10.5, fontWeight: 500, color: connected ? FM_SUCCESS : FM_INK_4 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: connected ? FM_SUCCESS : FM_INK_4 }}>
             {connected ? 'Connected' : 'Not connected'}
           </span>
         </div>

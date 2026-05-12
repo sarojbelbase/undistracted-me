@@ -48,7 +48,7 @@ const Pill = ({ label }) => {
   const tint = PILL_TINTS[label] ?? PILL_TINTS['Go to'];
   return (
     <span style={{
-      fontSize: '0.6rem', fontWeight: 400, letterSpacing: '0.04em',
+      fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em',
       color: tint.text, background: tint.bg,
       border: `0.5px solid ${tint.border}`,
       borderRadius: 999, padding: '2px 6px',
@@ -69,7 +69,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
     background: active ? t.activeBg : 'transparent',
     transition: 'background 0.1s ease', textAlign: 'left',
   });
-  const textStyle = { fontSize: '0.84rem', fontFamily: "'Google Sans', ui-sans-serif, sans-serif", color: t.suggText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 400, flex: 1 };
+  const textStyle = { fontSize: '0.84rem', fontFamily: "'Google Sans', ui-sans-serif, sans-serif", color: t.suggText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500, flex: 1 };
 
   return (
     <div
