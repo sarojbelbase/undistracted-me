@@ -130,8 +130,9 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      // Reserve: padding (10+14=24) + top-row (~22) + nav-dots (~40) = ~86
-      setArea({ w: Math.max(100, width - 24), h: Math.max(60, height - 86) });
+      // Reserve: padding (10+14=24) + source-row (~22) + top-gap (5) + nav-row (~26) + safety (5) = ~82
+      // The +5 top-gap matches the paddingTop on the title block below.
+      setArea({ w: Math.max(100, width - 24), h: Math.max(60, height - 82) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -278,13 +279,14 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
         <div style={{
           flex: 1,
           display: "flex", flexDirection: "column",
+          paddingTop: 5,
           animation: `${textAnim} 0.35s 0.06s ease-out both`,
         }}>
           <ExpressiveTitle
             title={item.title || ""}
             areaWidth={area.w}
             areaHeight={area.h}
-            marginBottom={total > 1 ? 10 : 0}
+            marginBottom={total > 1 ? 4 : 0}
             bodyColor="#e4e4e4ff"
             onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
           />
@@ -382,8 +384,8 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                         // Smooth slide: Material You standard easing
                         transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)',
                         pointerEvents: 'none',
-                        // Soft glow — feels tactile without being distracting
-                        boxShadow: '0 0 0 2px rgba(255,255,255,0.15)',
+                        // Subtle ring — marks position without blooming
+                        boxShadow: '0 0 0 1.5px rgba(255,255,255,0.08)',
                       }}
                     />
                   </div>

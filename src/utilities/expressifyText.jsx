@@ -179,9 +179,14 @@ function layoutRhythmScore(lines, heroIdx) {
   return score;
 }
 // ─── Latin script detector ────────────────────────────────────────────────────
+// A token is "Latin" (lh=1.0) if it contains NO non-Latin Unicode script chars
+// (Devanagari, CJK, Arabic, etc.). ASCII digits, punctuation, and hyphens are
+// neutral — they should NOT trigger Devanagari line-height.
+// e.g. "(CVE-2026-45185)" → no Devanagari → isLatin=true → lh=1.0 ✓
 function isLatinWord(word) {
-  const latinCount = (word.match(/[a-zA-Z]/g) ?? []).length;
-  return latinCount / word.length >= 0.5;
+  // Match any character that is clearly a non-Latin script (Devanagari U+0900-097F,
+  // extended Devanagari, CJK, Arabic, Hebrew, Thai, etc.)
+  return !/[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0E00-\u0E7F\u0E80-\u0EFF\u4E00-\u9FFF\u3040-\u30FF\u0600-\u06FF\u0590-\u05FF]/.test(word);
 }
 
 // ─── Word scoring ─────────────────────────────────────────────────────────────
@@ -310,6 +315,13 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 
     if (uHeight(fontSize) <= areaHeight * 0.85) break;
     fontSize = Math.round(fontSize * 0.95);
   }
+  // Width clamp: ensure no single indivisible word overflows the container.
+  // Without this, ultra-condensed fonts (League Gothic) render a long single word
+  // at a size that fits in height but physically overflows width — clipped by overflow:hidden.
+  const maxWordFactor = wf.reduce((m, w) => Math.max(m, w.body), 0);
+  if (maxWordFactor > 0) {
+    fontSize = Math.min(fontSize, Math.floor(areaWidth * 0.97 / maxWordFactor));
+  }
   const tokens = words.map(text => {
     const isDevanagari = !isLatinWord(text);
     return {
@@ -434,24 +446,34 @@ export const ExpressiveTitle = ({
     // Without this the measurement is too short and the button clips the text.
     el.style.lineHeight = String(w0.lineHeight);
 
+    // Descent factor per script:
+    // League Gothic (lh=1.0): descenders extend ~28% below the em-square.
+    // Google Sans / similar (lh ~1.1–1.2): line-height absorbs most of it.
+    // Devanagari / Hind (lh≥1.25): leading already covers matras.
+    // We bake the descent into the binary search condition so the found
+    // font-size guarantees textH + descentPx ≤ areaHeight — no overflow clipping.
+    const descentFactor = w0.lineHeight >= 1.25 ? 0.08 : w0.lineHeight > 1 ? 0.12 : 0.28;
+
     let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       el.style.fontSize = mid + 'px';
-      if (el.getBoundingClientRect().height <= areaHeight * 0.9) lo = mid;
+      const h = el.getBoundingClientRect().height;
+      if (h + Math.ceil(mid * descentFactor) <= areaHeight) lo = mid;
       else hi = mid;
     }
 
-    const fs = Math.floor(lo);
+    let fs = Math.floor(lo);
     el.style.fontSize = fs + 'px';
+    // Width safety: if any single token overflows the container (e.g. a long
+    // indivisible word in a condensed font), shrink 1px at a time until it fits.
+    while (fs > 10 && el.scrollWidth > areaWidth) {
+      fs -= 1;
+      el.style.fontSize = fs + 'px';
+    }
     const textH = el.getBoundingClientRect().height;
-    // For Latin (League Gothic): descenders extend ~28% below baseline.
-    // For Devanagari (Hind): lineHeight 1.3 already provides spacing above/below;
-    // only a small margin is needed to avoid matra clipping at top.
-    // League Gothic (lh=1): needs 28% explicit descent. Google Sans & similar
-    // (lh ~1.1–1.2): lh covers most descender space, only 12% needed.
-    // Devanagari / Hind (lh≥1.25): lh handles spacing, only 8% needed.
-    const descentPx = Math.ceil(fs * (w0.lineHeight >= 1.25 ? 0.08 : w0.lineHeight > 1 ? 0.12 : 0.28));
+    const descentPx = Math.ceil(fs * descentFactor);
+    // min() is a safety net only — the binary search already guarantees fit.
     const buttonH = Math.min(Math.ceil(textH) + descentPx, areaHeight);
 
     setDomFit({ fontSize: fs, buttonHeight: buttonH });
