@@ -26,5 +26,7 @@
 @use 'react-grid'; // .react-grid-*, drag handles, placeholder
 @use 'widget-catalog'; // .wc-* drawer panel
 @use 'focus-mode'; // .fm-* Focus Mode layout
+@use 'look-away'; // .la-* Look Away overlay
+@use 'widgets'; // .weather-minimal-* and other widget layout helpers
 @use 'dark-overrides'; // [data-mode="dark"] Tailwind utility overrides
 @use 'utilities'; // .animate-*, .no-scrollbar, keyboard focus ring

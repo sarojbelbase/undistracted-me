@@ -1,0 +1,74 @@
+// ─── Look Away Overlay  (.la-*) ───────────────────────────────────────────────
+// Extraction of static inline styles from src/components/LookAway/index.jsx.
+// Dynamic values (JS-computed colors like timelabelRgba, titleColor, etc.)
+// stay inline in JSX. Everything else lives here.
+
+// ── Time label — top of overlay ───────────────────────────────────────────────
+.la-time-label {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  animation: lookaway-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  user-select: none;
+}
+
+// ── Center content wrapper ────────────────────────────────────────────────────
+.la-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 32px;
+  max-width: 580px;
+  animation: lookaway-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+// ── Display title (h1) ────────────────────────────────────────────────────────
+.la-title {
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.06;
+  margin: 0 0 1.1rem;
+  user-select: none;
+}
+
+// ── Subtitle paragraph ────────────────────────────────────────────────────────
+.la-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.72;
+  max-width: 400px;
+  margin: 0 0 2.6rem;
+  user-select: none;
+}
+
+// ── Countdown timer ───────────────────────────────────────────────────────────
+.la-timer {
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+// ── Bottom action row ─────────────────────────────────────────────────────────
+.la-actions {
+  position: absolute;
+  bottom: 44px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: lookaway-rise 1s ease-out 0.3s both;
+}
