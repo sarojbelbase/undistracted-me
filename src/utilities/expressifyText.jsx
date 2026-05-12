@@ -206,20 +206,19 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 
   const isDevanagariContent = words.some(w => !isLatinWord(w));
   const lh = isDevanagariContent ? 1.3 : (textLineHeight ?? LINE_HEIGHT);
 
-  // League Gothic is ultra-condensed — canvas advance widths are ~33% narrower
-  // than what the browser actually renders. Passing areaWidth/1.33 as the
-  // container to pretext forces canvas to wrap at the same points as the browser,
-  // giving an accurate lineCount → correct buttonHeight with no DOM reflow.
-  // Standard fonts (Google Sans, Hind) are accurate as-is.
+  // League Gothic canvas advance widths are ~33% narrower than the browser renders
+  // (observed: canvas predicts 3 lines where browser renders 4 at same fontSize).
+  // fillTarget = 1/1.33 ≈ 0.75 compensates: canvas_lines × fontSize × 1.33 ≤ areaHeight.
+  // Standard fonts (Google Sans, Hind) are accurate → fillTarget stays 0.97.
   const isCondensedFont = /League Gothic/i.test(fontFamily);
-  const calibratedWidth = isCondensedFont ? areaWidth / 1.33 : areaWidth;
+  const fillTarget = isCondensedFont ? 0.75 : 0.97;
 
-  const { fontSize, lineCount } = fitMultiLineDetails(
+  const { fontSize } = fitMultiLineDetails(
     words.join(' '),
     canvasFont(fontWeight, fontFamily),
-    calibratedWidth,
+    areaWidth,
     areaHeight,
-    { maxSize: Math.min(areaHeight * 0.6, areaWidth * 0.4), minSize: 10, lineHeight: lh, fillTarget: 0.97 },
+    { maxSize: Math.min(areaHeight * 0.6, areaWidth * 0.4), minSize: 10, lineHeight: lh, fillTarget },
   );
 
   const tokens = words.map(text => {
@@ -238,7 +237,6 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 
     heroIdx: -1,
     fits: true,
     estimatedHeight: 0,
-    lineCount,
   };
 }
 
@@ -326,10 +324,9 @@ export const ExpressiveTitle = ({
     document.fonts.ready.then(() => setFontsReady(true));
   }, []);
 
-  // expressiveLayout provides per-token font metadata (family, weight, letter-spacing)
-  // and the fitted fontSize + lineCount via pretext — zero DOM reflow.
-  // League Gothic uses fillTarget=0.78 inside uniformFallback to compensate for
-  // the ~20% canvas↔browser width discrepancy of ultra-condensed faces.
+  // expressiveLayout provides per-token font metadata and the fitted fontSize
+  // via pretext (canvas measurement, zero DOM reflow). fillTarget=0.75 for
+  // League Gothic ensures the browser-rendered height stays within areaHeight.
   const layout = useMemo(
     () => expressiveLayout(title, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -340,14 +337,6 @@ export const ExpressiveTitle = ({
   const fontSize = w0?.fontSize ?? 16;
   const lineHeight = w0?.lineHeight ?? 1;
 
-  // Descent factor per script (same thresholds as before, now computed purely):
-  // League Gothic (lh=1.0): descenders extend ~28% below the em-square.
-  // Latin with extra leading (lh ~1.1–1.2): line-height absorbs most descent.
-  // Devanagari / Hind (lh≥1.25): matras + akshars fit within leading.
-  const descentFactor = lineHeight >= 1.25 ? 0.08 : lineHeight > 1 ? 0.12 : 0.28;
-  const textH = (layout.lineCount ?? 1) * fontSize * lineHeight;
-  const buttonHeight = Math.min(Math.ceil(textH) + Math.ceil(fontSize * descentFactor), areaHeight);
-
   return (
     <button
       type="button"
@@ -357,8 +346,8 @@ export const ExpressiveTitle = ({
         display: 'block', width: '100%', textAlign: 'left',
         background: 'none', border: 'none', padding: 0,
         cursor: 'pointer', marginBottom, lineHeight,
-        height: buttonHeight,
-        overflow: 'hidden', maxHeight: areaHeight,
+        maxHeight: areaHeight,
+        overflow: 'hidden',
       }}
     >
       {layout.words.map((w, i) => {
