@@ -25,3 +25,29 @@ export const ACCENT_COLORS = [
   { name: 'Latte',       hex: '#8B6228', fg: '#f3f3f3', darkHex: '#DCAB4E', darkFg: '#111111' }, // light  4.9:1 AA  | dark  7.8:1 AAA
   { name: 'Cocoa',       hex: '#715344', fg: '#f3f3f3', darkHex: '#D4907F', darkFg: '#111111' }, // light  6.5:1 AA  | dark  6.3:1 AA
 ];
+
+// ─── Focus Mode accent CSS var helpers ───────────────────────────────────────
+// Focus Mode always renders over a dark backdrop (photo/orb), so it always
+// needs the dark-tone accent regardless of canvas mode setting.
+
+function _hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  return `${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)}`;
+}
+
+/**
+ * Returns CSS var overrides that pin --w-accent / --w-accent-fg / --w-accent-rgb
+ * to the dark-tone variant of the named accent.
+ * Spread this onto any element that always renders over a dark surface (FM root
+ * div, portalled FM dialogs).
+ */
+export function getFMAccentVars(accentName) {
+  const a = ACCENT_COLORS.find(c => c.name === accentName) || ACCENT_COLORS[1];
+  const hex = a.darkHex ?? a.hex;
+  const fg  = a.darkFg  ?? a.fg;
+  return {
+    '--w-accent':     hex,
+    '--w-accent-fg':  fg,
+    '--w-accent-rgb': _hexToRgb(hex),
+  };
+}

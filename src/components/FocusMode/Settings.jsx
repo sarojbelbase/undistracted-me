@@ -15,13 +15,14 @@
 
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
+import { useSettingsStore } from '../../store';
 import { General } from './settings/General';
 import { Search } from './settings/Search';
 import { Tasks } from './settings/Tasks';
 import { Panels } from './settings/Panels';
 import { Background } from './settings/Background';
 import {
-  DIALOG_STYLE,
+  DIALOG_STYLE, getDialogStyle,
   FM_INK_1, FM_INK_3,
   FM_DIVIDER,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
@@ -127,12 +128,13 @@ export const FocusModeSettings = ({
   onBgRotate,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const accent = useSettingsStore(s => s.accent);
 
   return (
     <Modal
       onClose={onClose}
       ariaLabel="Focus Mode settings"
-      style={{ width: 480, display: 'flex', flexDirection: 'column', maxHeight: '82vh', ...DIALOG_STYLE }}
+      style={{ width: 480, display: 'flex', flexDirection: 'column', maxHeight: '82vh', ...getDialogStyle(accent) }}
     >
       {/* ── Header ── */}
       <div style={{

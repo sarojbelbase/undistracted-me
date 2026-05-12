@@ -9,7 +9,7 @@ import React from 'react';
 import { Modal } from '../../ui/Modal';
 import { useSettingsStore } from '../../../store';
 import {
-  DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER,
+  DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER, getDialogStyle,
   DialogHeader, SectionLabel, Toggle,
 } from './shared';
 import {
@@ -104,6 +104,7 @@ const IconPanels = () => (
 export const PanelsDialog = ({ onClose }) => {
   const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
   const setFocusPanelEnabled = useSettingsStore(s => s.setFocusPanelEnabled);
+  const accent = useSettingsStore(s => s.accent);
 
   const allOn = PANEL_META.every(p => focusPanels[p.key] ?? true);
 
@@ -113,7 +114,7 @@ export const PanelsDialog = ({ onClose }) => {
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 360, ...DIALOG_STYLE }} ariaLabel="Manage panels">
+    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent) }} ariaLabel="Manage panels">
       <DialogHeader
         icon={<IconPanels />}
         title="Manage Panels"

@@ -12,7 +12,7 @@ import React from 'react';
 import { Modal } from '../../ui/Modal';
 import { useSettingsStore } from '../../../store';
 import {
-  DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER,
+  DIALOG_STYLE, SECTION_CARD_STYLE, SECTION_BORDER, getDialogStyle,
   DialogHeader, SectionLabel, ToggleRow, Toggle,
 } from './shared';
 import {
@@ -68,9 +68,10 @@ export const SearchBarDialog = ({
   const setFocusSearchTopSites = useSettingsStore(s => s.setFocusSearchTopSites);
   const focusSearchWeb = useSettingsStore(s => s.focusSearchWeb ?? true);
   const setFocusSearchWeb = useSettingsStore(s => s.setFocusSearchWeb);
+  const accent = useSettingsStore(s => s.accent);
 
   return (
-    <Modal onClose={onClose} style={{ width: 380, ...DIALOG_STYLE }} ariaLabel="Search bar settings">
+    <Modal onClose={onClose} style={{ width: 380, ...getDialogStyle(accent) }} ariaLabel="Search bar settings">
       <DialogHeader
         icon={<IconSearch />}
         title="Search Bar"

@@ -35,6 +35,7 @@ const getOrbRgb = () => {
 };
 import { useSettingsStore } from "../../store";
 import { getFMCardVars, FM_ORB_BG } from "./theme";
+import { getFMAccentVars } from "../../constants/accents";
 // Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
 const FocusModeSettings = lazy(() =>
   import('./Settings').then((m) => ({ default: m.FocusModeSettings }))
@@ -143,6 +144,7 @@ export const FocusMode = ({ onExit }) => {
   const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
   // Card surface style (glass vs flat) — both are always dark-tinted.
   const cardStyle = useSettingsStore((s) => s.cardStyle) || "glass";
+  const accent    = useSettingsStore((s) => s.accent);
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -219,6 +221,7 @@ export const FocusMode = ({ onExit }) => {
       style={{
         backgroundColor: bgSource === "orb" ? FM_ORB_BG : photoColor,
         ...getFMCardVars(cardStyle),
+        ...getFMAccentVars(accent),
       }}
     >
       <FocusBgLayer
