@@ -269,22 +269,11 @@ const ErrorState = () => (
 // Layout: icon + condition at top · hero temperature in the middle · city + AQI at bottom.
 // Typography does the heavy lifting; no accent colours, no decorations.
 const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI }) => (
-  <div
-    className="flex flex-col w-full h-full"
-    style={{ letterSpacing: "-0.01em" }}
-  >
+  <div className="weather-minimal flex flex-col w-full h-full">
     {/* Row 1 — icon + condition */}
     <div className="flex items-center gap-1.5 opacity-90">
       {getWeatherIcon(weather.code, weather.isDay, 24)}
-      <span
-        style={{
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          color: "var(--w-ink-3)",
-          lineHeight: 1.2,
-          textTransform: "capitalize",
-        }}
-      >
+      <span className="weather-minimal__condition">
         {weather.description}
       </span>
     </div>
@@ -295,13 +284,7 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI }) => (
     {/* Row 2 — hero temperature */}
     <div
       aria-label={`${weather.temperature} degrees ${unitLabel === "C" ? "Celsius" : "Fahrenheit"}`}
-      style={{
-        fontSize: "4.5rem",
-        fontWeight: 300,
-        lineHeight: 1,
-        color: "var(--w-ink-2)",
-        letterSpacing: "-0.04em",
-      }}
+      className="weather-minimal__temp"
     >
       {weather.temperature}°
     </div>
@@ -310,42 +293,11 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI }) => (
     <div style={{ flex: 1 }} />
 
     {/* Row 3 — city (left) + AQI badge (right) */}
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        gap: "0.5em",
-        minWidth: 0,
-      }}
-    >
+    <div className="weather-minimal__meta">
       {cityShort ? (
-        <div
-          style={{
-            fontSize: "1.35rem",
-            fontWeight: 600,
-            color: "var(--w-ink-2)",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.15,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            flex: "1 1 0",
-            minWidth: 0,
-          }}
-        >
-          {cityShort}
-        </div>
+        <div className="weather-minimal__city">{cityShort}</div>
       ) : (
-        <div
-          style={{
-            fontSize: "0.78rem",
-            fontWeight: 500,
-            color: "var(--w-ink-4)",
-            letterSpacing: "0",
-            lineHeight: 1.15,
-          }}
-        >
+        <div className="weather-minimal__unit">
           {unitLabel === "C" ? "°C" : "°F"}
         </div>
       )}

@@ -267,99 +267,37 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) 
 
       {/* ── Time label — top, orb-tinted ────────────────────────────────────── */}
       <div
-        style={{
-          position: 'absolute',
-          top: 32,
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          color: timelabelRgba,
-          fontSize: '0.8rem',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          animation: 'lookaway-rise 1s cubic-bezier(0.16,1,0.3,1) 0.15s both',
-          userSelect: 'none',
-        }}
+        className="la-time-label"
+        style={{ color: timelabelRgba }}
       >
         {timeLabel}
       </div>
 
       {/* ── Center content ────────────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '0 32px',
-          maxWidth: 580,
-          animation: 'lookaway-rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.06s both',
-        }}
-      >
-        {/* Title — airy, light weight, high contrast */}
-        <h1
-          style={{
-            color: titleColor,
-            fontSize: 'clamp(2.4rem, 5.5vw, 4.2rem)',
-            fontWeight: 200,
-            letterSpacing: '-0.01em',
-            lineHeight: 1.06,
-            margin: '0 0 1.1rem',
-            userSelect: 'none',
-          }}
-        >
+      <div className="la-center">
+        {/* Title */}
+        <h1 className="la-title" style={{ color: titleColor }}>
           {msg.title}
         </h1>
 
-        {/* Subtitle — softer, mid-weight */}
-        <p
-          style={{
-            color: subtitleRgba,
-            fontSize: '1rem',
-            fontWeight: 400,
-            letterSpacing: '0.01em',
-            lineHeight: 1.72,
-            maxWidth: 400,
-            margin: '0 0 2.6rem',
-            userSelect: 'none',
-          }}
-        >
+        {/* Subtitle */}
+        <p className="la-subtitle" style={{ color: subtitleRgba }}>
           {msg.subtitle}
         </p>
 
-        {/* Timer — orb-tinted, monospace, light weight */}
+        {/* Timer */}
         <div
           aria-live="polite"
           aria-label={`${remaining} seconds remaining`}
-          style={{
-            color: timerRgba,
-            fontSize: 'clamp(1.7rem, 3.2vw, 2.6rem)',
-            fontFamily: "'SF Mono','Fira Code','Consolas',monospace",
-            fontWeight: 300,
-            letterSpacing: '0.12em',
-            fontVariantNumeric: 'tabular-nums',
-            userSelect: 'none',
-          }}
+          className="la-timer"
+          style={{ color: timerRgba }}
         >
           {fmtMMSS(remaining)}
         </div>
       </div>
 
       {/* ── Ghost action row — skip + lock screen ─────────────────────────── */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 44,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 14,
-          animation: 'lookaway-rise 1s ease-out 0.3s both',
-        }}
-      >
+      <div className="la-actions">
         {/* ── Primary actions: Skip + Lock Screen ── */}
         <div style={{ display: 'flex', gap: 32 }}>
           <GhostBtn onClick={dismiss} isDark={isDark}>
