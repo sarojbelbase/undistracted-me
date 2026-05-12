@@ -24,11 +24,11 @@ import { Background } from './settings/Background';
 import {
   DIALOG_STYLE, getDialogStyle,
   FM_INK_1, FM_INK_3,
-  FM_DIVIDER,
+  FM_DIVIDER, FM_SURFACE,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
 } from './theme';
 import { CloseButton } from './dialog/shared';
-import { GearFillIcon } from '../../assets/svg/GearFillIcon';
+import { GearCogIcon } from '../../assets/svg/GearCogIcon';
 import { Search as SearchIcon } from 'react-bootstrap-icons';
 import { TasksCheckboxIcon } from '../../assets/svg/TasksCheckboxIcon';
 import { PanelsLayoutIcon } from '../../assets/svg/PanelsLayoutIcon';
@@ -40,7 +40,7 @@ const TABS = [
   {
     id: 'general',
     label: 'General',
-    icon: (active) => <GearFillIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
+    icon: (active) => <GearCogIcon color={active ? 'var(--w-accent)' : FM_ICON_STROKE} />,
   },
   {
     id: 'search',
@@ -143,10 +143,10 @@ export const FocusModeSettings = ({
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-          background: 'color-mix(in srgb, var(--w-accent) 15%, transparent)',
+          background: FM_SURFACE,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <GearFillIcon size={18} color="var(--w-accent)" />
+          <GearCogIcon size={18} color={FM_ICON_STROKE} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: FM_INK_1, lineHeight: '1.2' }}>
