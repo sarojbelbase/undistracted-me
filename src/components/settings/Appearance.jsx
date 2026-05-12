@@ -110,25 +110,25 @@ export const Appearance = () => {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {ACCENT_COLORS.map(color => {
-            const locked = color.name === 'Matte Black' && (mode === 'dark' || mode === 'auto');
+            const isDarkMode = mode === 'dark' || mode === 'auto';
+            const swatchHex = isDarkMode ? (color.darkHex ?? color.hex) : color.hex;
             const selected = accent === color.name;
             return (
               <TooltipBtn
                 key={color.name}
-                tooltip={locked ? 'Not available in dark mode' : color.name}
-                onClick={() => !locked && setAccent(color.name)}
+                tooltip={color.name}
+                onClick={() => setAccent(color.name)}
                 style={{
                   width: 26, height: 26, borderRadius: '50%', border: 'none', padding: 0,
-                  backgroundColor: color.hex,
+                  backgroundColor: swatchHex,
                   boxShadow: selected ? 'inset 0 0 0 99px rgba(0,0,0,0.22)' : 'none',
-                  opacity: locked ? 0.3 : 1,
-                  cursor: locked ? 'not-allowed' : 'pointer',
+                  cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.15s ease',
                   flexShrink: 0,
                 }}
               >
-                {selected && <CheckLg size={12} style={{ color: color.fg }} />}
+                {selected && <CheckLg size={12} style={{ color: isDarkMode ? (color.darkFg ?? color.fg) : color.fg }} />}
               </TooltipBtn>
             );
           })}

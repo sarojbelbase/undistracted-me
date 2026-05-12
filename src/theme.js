@@ -59,11 +59,14 @@ export const applyTheme = (accent, mode, cardStyle = 'glass') => {
   const tokens = resolved === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
-  // Accent colour
+  // Accent colour — pick the luminous dark-mode tonal variant when in dark mode
   const color = ACCENT_COLORS.find(a => a.name === accent) || ACCENT_COLORS[0];
-  root.style.setProperty('--w-accent', color.hex);
-  root.style.setProperty('--w-accent-fg', color.fg);
-  root.style.setProperty('--w-accent-rgb', hexToRgb(color.hex));
+  const isDark = resolved === 'dark';
+  const accentHex = isDark ? (color.darkHex ?? color.hex) : color.hex;
+  const accentFg  = isDark ? (color.darkFg  ?? color.fg)  : color.fg;
+  root.style.setProperty('--w-accent',     accentHex);
+  root.style.setProperty('--w-accent-fg',  accentFg);
+  root.style.setProperty('--w-accent-rgb', hexToRgb(accentHex));
   root.dataset.mode = resolved;
 
   // Card / surface style tokens

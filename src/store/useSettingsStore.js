@@ -144,16 +144,10 @@ export const useSettingsStore = create(
       },
 
       setMode: (mode) => {
-        const prevAccent = get().accent;
-        // 'Matte Black' accent is only valid in explicit light mode.
-        // In 'dark' or 'auto' (which can resolve to dark at night) swap to Blueberry.
-        const accent =
-          (mode === "dark" || mode === "auto") && prevAccent === "Matte Black"
-            ? "Blueberry"
-            : prevAccent;
+        const accent = get().accent;
         // cardStyle is a global preference — never overwritten by mode changes
         const cardStyle = get().cardStyle;
-        set({ mode, accent });
+        set({ mode });
         // Mirror to legacy key — Playwright tests assert localStorage.getItem('app_mode').
         try {
           localStorage.setItem(STORAGE_KEYS._LEGACY.MODE, mode);
