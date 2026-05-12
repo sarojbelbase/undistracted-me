@@ -11,27 +11,18 @@
 
 import Parser from 'rss-parser';
 import { assertOrigin } from '../_config.js';
+import { PRESET_FEEDS } from '../../src/widgets/rss/feeds.js';
 
-// ── Source label mapping ──────────────────────────────────────────────────────
+// ── Source label mapping (derived from PRESET_FEEDS — single source of truth) ─
 
-const SOURCE_NAMES = {
-  'news.ycombinator.com': 'Hacker News',
-  'hnrss.org': 'Hacker News',
-  'feeds.bbci.co.uk': 'BBC',
-  'ekantipur.com': 'Kantipur',
-  'myrepublica.nagariknetwork.com': 'Republica',
-  'kathmandupost.com': 'Kathmandu Post',
-  'rss.nytimes.com': 'NYT',
-  'feeds.theguardian.com': 'The Guardian',
-  'aljazeera.com': 'Al Jazeera',
-  'npr.org': 'NPR',
-  'feeds.arstechnica.com': 'Ars Technica',
-  'techcrunch.com': 'TechCrunch',
-  'wired.com': 'Wired',
-  'theverge.com': 'The Verge',
-  'rss.dw.com': 'DW',
-  'feeds.reuters.com': 'Reuters',
-};
+const SOURCE_NAMES = Object.fromEntries(
+  PRESET_FEEDS.flatMap(f => {
+    try {
+      const hostname = new URL(f.url).hostname.replace(/^www\./, '');
+      return [[hostname, f.label]];
+    } catch { return []; }
+  })
+);
 
 function sourceName(feedUrl) {
   try {
