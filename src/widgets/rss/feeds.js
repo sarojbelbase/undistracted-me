@@ -25,7 +25,10 @@ export const PRESET_FEEDS = [
   { id: 'wired', label: 'Wired', url: 'https://www.wired.com/feed/rss', category: 'tech' },
   { id: 'mit', label: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/', category: 'tech' },
   // ── Nepal ─────────────────────────────────────────────────────────────────
-  { id: 'kantipur', label: 'Kantipur', url: 'https://ekantipur.com/rss', category: 'nepal' },
+  { id: 'onlinekhabar', label: 'Online Khabar', url: 'https://www.onlinekhabar.com/feed', category: 'nepal' },
+  { id: 'setopati', label: 'Setopati', url: 'https://setopati.com/feed', category: 'nepal' },
+  { id: 'ratopati', label: 'Ratopati', url: 'https://ratopati.com/feed', category: 'nepal' },
+  { id: 'nagarik', label: 'Nagarik News', url: 'https://nagariknetwork.com/rss', category: 'nepal' },
   { id: 'ktmpost', label: 'Kathmandu Post', url: 'https://kathmandupost.com/rss', category: 'nepal' },
 ];
 
