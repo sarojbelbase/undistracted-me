@@ -45,6 +45,7 @@ export const useSpotify = () => {
     if (!connected) { setSpotify(null); return; }
     let cancelled = false;
     const fetchSpotify = async () => {
+      if (document.hidden) return; // skip when tab is not visible
       try {
         const data = await getCurrentPlayback();
         if (cancelled) return;
@@ -65,7 +66,13 @@ export const useSpotify = () => {
     };
     fetchSpotify();
     const timerId = setInterval(fetchSpotify, 5000);
-    return () => { cancelled = true; clearInterval(timerId); };
+    const onVisible = () => { if (!document.hidden) fetchSpotify(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(timerId);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [connected]);
 
   // Interpolate progress locally every second while playing.

@@ -7,11 +7,26 @@ import {
   useWakeLock,
   useCenterOnDark,
 } from "./hooks";
-
 import {
   getBgSource,
   setBgSource as persistBgSource,
 } from "../../utilities/unsplash";
+import { useSettingsStore } from "../../store";
+import { getFMCardVars, FM_ORB_BG } from "./theme";
+import { getFMAccentVars } from "../../constants/accents";
+import { getOrbRgbById } from "../../constants/orbPalettes";
+import { TopZone } from "./zones/TopZone";
+import { CenterZone } from "./zones/CenterZone";
+import { BottomZone } from "./zones/BottomZone";
+import { LeftZone } from "./zones/LeftZone";
+import { RightZone } from "./zones/RightZone";
+import { BottomRightZone } from "./zones/BottomRightZone";
+import { ZONES } from "./config";
+
+// Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
+const FocusModeSettings = lazy(() =>
+  import('./Settings').then((m) => ({ default: m.FocusModeSettings }))
+);
 
 // ─── Background localStorage helpers ─────────────────────────────────────────
 const CUSTOM_URL_KEY = 'fm_custom_bg_url';
@@ -20,33 +35,7 @@ const persistCustomUrl = (url) => { try { if (url) localStorage.setItem(CUSTOM_U
 
 const ORB_PALETTE_KEY = 'fm_orb_palette_id';
 const getOrbPaletteId = () => { try { return localStorage.getItem(ORB_PALETTE_KEY) || 'blueberry'; } catch { return 'blueberry'; } };
-const ORB_PALETTES = [
-  { id: 'blueberry', rgb: '54,133,230' },
-  { id: 'strawberry', rgb: '198,38,46' },
-  { id: 'bubblegum', rgb: '222,62,128' },
-  { id: 'grape', rgb: '165,109,226' },
-  { id: 'orange', rgb: '243,115,41' },
-  { id: 'mint', rgb: '40,188,163' },
-  { id: 'latte', rgb: '207,162,94' },
-];
-const getOrbRgb = () => {
-  const id = getOrbPaletteId();
-  return id === 'accent' ? null : (ORB_PALETTES.find(p => p.id === id)?.rgb || null);
-};
-import { useSettingsStore } from "../../store";
-import { getFMCardVars, FM_ORB_BG } from "./theme";
-import { getFMAccentVars } from "../../constants/accents";
-// Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
-const FocusModeSettings = lazy(() =>
-  import('./Settings').then((m) => ({ default: m.FocusModeSettings }))
-);
-import { TopZone } from "./zones/TopZone";
-import { CenterZone } from "./zones/CenterZone";
-import { BottomZone } from "./zones/BottomZone";
-import { LeftZone } from "./zones/LeftZone";
-import { RightZone } from "./zones/RightZone";
-import { BottomRightZone } from "./zones/BottomRightZone";
-import { ZONES } from "./config";
+const getOrbRgb = () => getOrbRgbById(getOrbPaletteId());
 
 const FG_MASK =
   "linear-gradient(to bottom, transparent 0%, transparent 64%, rgba(0,0,0,0.5) 78%, black 100%)";
@@ -144,7 +133,7 @@ export const FocusMode = ({ onExit }) => {
   const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
   // Card surface style (glass vs flat) — both are always dark-tinted.
   const cardStyle = useSettingsStore((s) => s.cardStyle) || "glass";
-  const accent    = useSettingsStore((s) => s.accent);
+  const accent = useSettingsStore((s) => s.accent);
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);

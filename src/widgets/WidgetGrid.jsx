@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { Responsive, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
 
 import { WIDGET_REGISTRY } from "./index";
 import { STORAGE_KEYS } from "../constants/storageKeys";

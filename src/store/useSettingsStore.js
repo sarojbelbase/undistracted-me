@@ -93,6 +93,10 @@ const fromLegacy = () => {
   };
 };
 
+/** Returns 'light' or 'dark' modePrefs key based on the current mode value. */
+const resolvedModeKey = (mode) =>
+  (mode === 'dark' || mode === 'auto') ? 'dark' : 'light';
+
 export const useSettingsStore = create(
   persist(
     (set, get) => ({
@@ -113,11 +117,6 @@ export const useSettingsStore = create(
       },
 
       // ── Helpers ────────────────────────────────────────────────────────
-      /** Returns 'light' or 'dark' key for modePrefs based on current mode */
-      _resolvedModeKey: () => {
-        const m = get().mode;
-        return m === "dark" || m === "auto" ? "dark" : "light";
-      },
 
       // ── Actions ────────────────────────────────────────────────────────
 
@@ -199,10 +198,10 @@ export const useSettingsStore = create(
 
       /** Widget surface style — 'flat' | 'glass' */
       setCardStyle: (cardStyle) => {
-        const resolvedKey = get()._resolvedModeKey();
+        const key = resolvedModeKey(get().mode);
         const modePrefs = {
           ...get().modePrefs,
-          [resolvedKey]: { ...get().modePrefs?.[resolvedKey], cardStyle },
+          [key]: { ...get().modePrefs?.[key], cardStyle },
         };
         set({ cardStyle, modePrefs });
         applyTheme(get().accent, get().mode, cardStyle);

@@ -12,6 +12,7 @@
  *   - 'idle' (no data yet): refresh immediately
  */
 import { useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useLocationStore } from "../store/useLocationStore";
 
 const BROWSER_TTL_MS = 6 * 60 * 60_000; // 6 hours
@@ -19,13 +20,16 @@ const IP_TTL_MS = 30 * 60_000; // 30 minutes
 const SUN_TICK_MS = 60_000; // 1 minute
 
 export const useLocation = () => {
-  const refresh = useLocationStore((s) => s.refresh);
-  const refreshSunTimes = useLocationStore((s) => s.refreshSunTimes);
-  const source = useLocationStore((s) => s.source);
-  const lastUpdated = useLocationStore((s) => s.lastUpdated);
-  const status = useLocationStore((s) => s.status);
-  const lat = useLocationStore((s) => s.lat);
-  const lon = useLocationStore((s) => s.lon);
+  const { refresh, refreshSunTimes, source, lastUpdated, status, lat, lon } =
+    useLocationStore(useShallow(s => ({
+      refresh: s.refresh,
+      refreshSunTimes: s.refreshSunTimes,
+      source: s.source,
+      lastUpdated: s.lastUpdated,
+      status: s.status,
+      lat: s.lat,
+      lon: s.lon,
+    })));
 
   useEffect(() => {
     // Decide whether to refresh on mount
@@ -57,7 +61,7 @@ export const useLocation = () => {
     if (typeof chrome !== "undefined" && chrome.runtime?.id) {
       chrome.runtime
         .sendMessage({ type: "PREFETCH_SYNC", lat, lon })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [lat, lon]);
 };
