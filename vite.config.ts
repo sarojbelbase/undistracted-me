@@ -305,6 +305,16 @@ const rssProxy = (): Plugin => ({
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  // Guard: production builds must have a real OAuth client ID or the
+  // extension will ship with the placeholder and Google sign-in silently fails.
+  if (mode === "production" && !env.EXTENSION_CLIENT_ID) {
+    throw new Error(
+      "[build] EXTENSION_CLIENT_ID is not set. " +
+      "Add it to your .env.local or CI environment before publishing."
+    );
+  }
+
   const dynamicManifest = JSON.parse(JSON.stringify(manifest));
   if (dynamicManifest.oauth2) {
     dynamicManifest.oauth2.client_id =

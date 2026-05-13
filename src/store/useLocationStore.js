@@ -58,7 +58,13 @@ const reverseGeocodeCity = async (lat, lon) => {
   try {
     const r = await fetch(
       `${NOMINATIM_REVERSE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
-      { signal: AbortSignal.timeout(5000), headers: { 'Accept-Language': 'en' } },
+      {
+        signal: AbortSignal.timeout(5000),
+        headers: {
+          'Accept-Language': 'en',
+          'User-Agent': 'UndistractedMe/3.0 (https://undistractedme.sarojbelbase.com.np)',
+        },
+      },
     );
     if (!r.ok) return '';
     const d = await r.json();
