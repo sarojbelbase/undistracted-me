@@ -4,6 +4,7 @@ import { extractColorFromImage } from '../utilities/favicon';
 import { ACCENT_COLORS } from '../theme';
 import { getOrbRgbById } from '../constants/orbPalettes';
 import bgImage from '../assets/img/bg.webp';
+import { useSettingsStore } from '../store';
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 
@@ -77,9 +78,10 @@ export function useCanvasBg({ canvasBg, setCanvasBg, isDark, accent }) {
   const [fullLoadedUrl, setFullLoadedUrl] = useState(null);
 
   const onThumbLoad = useCallback((e) => {
-    extractColorFromImage(e.currentTarget, color =>
-      setCanvasBg(prev => ({ ...prev, color }))
-    );
+    extractColorFromImage(e.currentTarget, color => {
+      const current = useSettingsStore.getState().canvasBg;
+      setCanvasBg({ ...current, color });
+    });
     setThumbLoadedUrl(bgThumbUrl);
   }, [bgThumbUrl, setCanvasBg]);
 

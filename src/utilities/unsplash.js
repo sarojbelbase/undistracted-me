@@ -49,14 +49,17 @@ export const getThumbUrl = (photo) => {
 
 // ─── Cache helpers ────────────────────────────────────────────────────────────
 
+let _libraryCache = null;
+
 const readCache = () => {
-  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch { return []; }
+  if (_libraryCache !== null) return _libraryCache;
+  try { _libraryCache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch { _libraryCache = []; }
+  return _libraryCache;
 };
 
 const writeCache = (items) => {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(items.slice(0, LIBRARY_MAX)));
-  } catch { /* localStorage quota exceeded — silently skip */ }
+  _libraryCache = items.slice(0, LIBRARY_MAX);
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(_libraryCache)); } catch { /* quota exceeded */ }
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -140,7 +143,7 @@ export const getPhotoLibrary = () => readCache();
 
 /** True when photo fetching is available (direct key OR proxy API). */
 export const hasUnsplashKey = () => !!PHOTOS_API_URL;
-export const clearPhotoCache = () => localStorage.removeItem(CACHE_KEY);
+export const clearPhotoCache = () => { _libraryCache = null; localStorage.removeItem(CACHE_KEY); };
 export const getCachedPhotoSync = () => readCache()[0] || null;
 
 /**
