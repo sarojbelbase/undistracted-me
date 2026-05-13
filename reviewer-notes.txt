@@ -39,6 +39,8 @@ NON-OBVIOUS PATTERNS
      (()=>{ const _b=[...bytes], _s=seed; return _b.map((b,i) =>
        String.fromCharCode(b^((_s*17+i*7)%256))).join('') })()
 
+   Source to verify: plugins/obscureEnvKeys.ts (fully documented).
+
 
 2. Google OAuth — Firefox path
    ----------------------------
@@ -66,6 +68,39 @@ NON-OBVIOUS PATTERNS
    No client_secret is needed or used on this path.
 
 
+4. Spotify OAuth — PKCE (both Chrome and Firefox)
+   ------------------------------------------------
+   Standard PKCE flow. The Spotify API does not require a client_secret for
+   PKCE token exchange — only the client_id and code_verifier are sent.
+   Token exchange goes directly to accounts.spotify.com/api/token.
+   Tokens are stored in chrome.storage.local (extension) or sessionStorage
+   (website mode — scoped to the browser session, cleared on close).
+   Source: src/widgets/media/utils.js
+
+
+5. Content script — YouTube and SoundCloud
+   -----------------------------------------
+   Injected into *://*.youtube.com/* and *://*.soundcloud.com/* (manifest
+   content_scripts). Both domains are also listed in host_permissions to
+   allow programmatic re-injection after extension install/reload via
+   chrome.scripting.executeScript (bg.js:injectMediaScript).
+   File: src/utilities/media.js
+
+   What it does:
+   - Polls navigator.mediaSession every second for metadata changes.
+   - Sends MEDIA_SESSION_UPDATE / MEDIA_SESSION_CLEAR messages to the
+     background service worker via chrome.runtime.sendMessage.
+   - Receives MEDIA_ACTION commands from the SW and dispatches keyboard
+     events or button clicks to control playback on the page.
+
+   What it does NOT do:
+   - No innerHTML / outerHTML / document.write / eval.
+   - No data sent to any external server.
+   - No DOM injection that could be spoofed.
+   - All incoming messages are validated against an explicit allowlist:
+       VALID_ACTIONS = new Set(['play','pause','next','previous'])
+
+
 6. Google Tasks integration
    -------------------------
    Scope requested: https://www.googleapis.com/auth/tasks
@@ -86,19 +121,14 @@ NON-OBVIOUS PATTERNS
 
    What it does NOT do:
    - Does not read, write, or list any task list other than @default.
-   - Does not read task notes, due dates, or sub-tasks beyond what the API
-     returns for the list (those fields are simply discarded in normalizeTask).
-   - Does not sync, cache, or send task data to any server — all data stays
-     in the extension's React state and is discarded when the tab is closed.
+   - Does not sync, cache, or send task data to any server.
    - Does not request tasks.readonly; the full tasks scope is needed because
      the extension both reads and writes (create, complete, delete).
 
    UI surface:
    The Tasks panel lives in the bottom-right corner of Focus Mode only. It is
-   opt-in (disabled by default in Focus Mode settings) and requires an explicit
-   "Connect Google" action within the panel before any API call is made.
-   The sign-in prompt is the standard Google OAuth consent screen — the user
-   sees exactly which permissions are being requested before granting access.
+   opt-in (disabled by default) and requires an explicit "Connect Google"
+   action before any API call is made.
 
 
 7. Google OAuth scopes — full list
@@ -119,55 +149,38 @@ NON-OBVIOUS PATTERNS
    revoke access at any time from myaccount.google.com/permissions.
 
 
-4. Spotify OAuth — PKCE (both Chrome and Firefox)
-   ------------------------------------------------
-   Standard PKCE flow. The Spotify API does not require a client_secret for
-   PKCE token exchange — only the client_id and code_verifier are sent.
-   Token exchange goes directly to accounts.spotify.com/api/token.
-   Tokens are stored in chrome.storage.local (extension) or sessionStorage
-   (website mode — scoped to the browser session, cleared on close).
-   Source: src/widgets/spotify/utils.js
-
-
-5. Content script — SoundCloud only
-   -----------------------------------
-   Injected into *://*.soundcloud.com/* (manifest content_scripts).
-   File: src/utilities/media.js
-
-   What it does:
-   - Polls navigator.mediaSession every second for metadata changes.
-   - Sends MEDIA_SESSION_UPDATE / MEDIA_SESSION_CLEAR messages to the
-     background service worker via chrome.runtime.sendMessage.
-   - Receives MEDIA_ACTION commands from the SW and clicks SoundCloud's
-     own player buttons (.playControl, .skipControl__next, etc).
-
-   What it does NOT do:
-   - No innerHTML / outerHTML / document.write / eval.
-   - No data sent to any external server.
-   - No DOM injection that could be spoofed.
-
-
 PERMISSIONS USED
 ----------------
 
   identity     — Google OAuth (Chrome: getAuthToken) and Spotify OAuth
-                 (chrome.identity.launchWebAuthFlow for PKCE).
+                 (chrome.identity.launchWebAuthFlow for PKCE on Firefox).
 
   storage      — Widget configuration, Spotify tokens, Google Calendar
                  event cache. Sensitive data uses chrome.storage.local only.
+                 Non-sensitive UI flags use localStorage.
 
   geolocation  — Weather widget auto-location. User is prompted by the
                  browser before any coordinates are read.
 
-  topSites     — Quick Access widget shows the user's top-visited sites.
-                 Data is displayed inline and never sent anywhere.
+  topSites     — Quick Access widget shows the user's top-visited sites
+                 as a shortcut grid on the new tab page. Data is never
+                 sent to any server.
 
   tabs         — Two uses:
-                 (a) chrome.tabs.query: check if active tab is already
+                 (a) chrome.tabs.query: check if the active tab is already
                      the new tab page before showing an OS look-away
-                     notification (avoids double-notifying).
-                 (b) chrome.tabs.sendMessage: route MEDIA_ACTION commands
-                     (play/pause/next/prev) to the SoundCloud content script.
+                     notification (avoids double-notifying the user).
+                 (b) chrome.tabs.query + tabs.sendMessage: route MEDIA_ACTION
+                     commands (play/pause/next/prev) to the YouTube /
+                     SoundCloud content script in the correct tab.
+
+  scripting    — chrome.scripting.executeScript is used by the background
+                 service worker (bg.js:injectMediaScript) to re-inject
+                 media.js into already-open YouTube and SoundCloud tabs
+                 when the extension is installed or reloaded. Without this,
+                 media controls would not work in tabs opened before the
+                 extension was loaded until the user manually refreshes them.
+                 The only file ever injected is the bundled src/utilities/media.js.
 
   notifications — Event reminders (Google Calendar), pomodoro timer done,
                   look-away break timer.
@@ -183,8 +196,9 @@ THIRD-PARTY SERVICES CONTACTED
   Service                          Purpose                     PII sent?
   -------------------------------- --------------------------- ----------
   api.open-meteo.com               Weather data (no key)       No
+  air-quality-api.open-meteo.com   AQI / PM2.5 data (no key)  No
   geocoding-api.open-meteo.com     City name search            No
-  nominatim.openstreetmap.org      Reverse geocoding           IP only
+  nominatim.openstreetmap.org      Reverse geocoding           IP only *
   freeipapi.com                    IP-based location fallback  IP only
   ipapi.co                         IP-based location (web mode IP only
                                    only; extension blocked)
@@ -197,6 +211,11 @@ THIRD-PARTY SERVICES CONTACTED
   people.googleapis.com            Google Contacts API         OAuth token
   oauth2.googleapis.com            Google token endpoint (FF)  via server
   undistractedme.sarojbelbase.com  Our Vercel proxy backend    API key
+
+  * Nominatim requests include a User-Agent identifying the extension
+    (UndistractedMe/3.0) per OSM Nominatim usage policy. Reverse-geocode
+    calls are deduped: if the user has not moved more than 500 m since the
+    last lookup, the cached city name is reused and Nominatim is not called.
 
   IP-based geolocation is used only as a last-resort fallback when the user
   has not granted browser geolocation permission and has not set a city
@@ -217,3 +236,4 @@ In website mode (VITE_WEBSITE_MODE=true):
     The CONNECTED_FLAG boolean (non-sensitive) remains in localStorage for
     a synchronous isConnected() check.
   - Extension badge, topSites, and content script features are disabled.
+
