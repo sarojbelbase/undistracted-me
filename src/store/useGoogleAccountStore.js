@@ -89,8 +89,8 @@ export const useGoogleAccountStore = create((set, get) => ({
     // Background cleanup — pass null like the earlier code to avoid fetching a token
     // right after clearAllCachedAuthTokens (which can cause chrome.identity to hang).
     try { await signOutGoogle(null); } catch { /* best-effort */ }
-    disconnectCalendar().catch(() => { });
-    disconnectContacts().catch(() => { });
+    Promise.resolve(disconnectCalendar()).catch(() => { });
+    Promise.resolve(disconnectContacts()).catch(() => { });
   },
 
   clearError: () => set({ error: null }),
