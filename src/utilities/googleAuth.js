@@ -20,7 +20,10 @@ const FF_CLIENT_ID = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID || '';
 const API_KEY = import.meta.env.VITE_API_KEY || '';
 
 // Absolute URL — works from moz-extension:// and chrome-extension:// origins.
-const FF_BACKEND_TOKEN_URL = `${PRODUCTION_BASE_URL}/api/auth/google/token`;
+// During dev: use localhost:3000 (when running `vercel dev`)
+// Production: use PRODUCTION_BASE_URL
+const isDev = import.meta.env.DEV || false;
+const FF_BACKEND_TOKEN_URL = isDev ? 'http://localhost:3000/api/auth/google/token' : `${PRODUCTION_BASE_URL}/api/auth/google/token`;
 
 const FF_TOKEN_KEY = 'google_ff_tokens';
 
