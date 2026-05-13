@@ -113,7 +113,6 @@ const App = () => {
     defaultView,
     lookAwayEnabled,
     lookAwayInterval,
-    lookAwayNotify,
     canvasBg,
     setCanvasBg,
     cardStyle,
@@ -177,7 +176,7 @@ const App = () => {
   useLookAwayScheduler({
     enabled: lookAwayEnabled,
     intervalMins: lookAwayInterval,
-    notify: lookAwayNotify,
+    notify: true,
     onTrigger: () => setShowLookAway(true),
   });
 
