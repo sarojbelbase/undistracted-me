@@ -26,8 +26,9 @@ const ALLOWED_REDIRECT_URIS = [
 ];
 
 // Regex to allow extension redirect URIs (Chrome/Firefox MV3)
-// Pattern: https://{alphanumeric}.chromiumapp.org/ or similar extension formats
-const EXTENSION_REDIRECT_PATTERN = /^https:\/\/[a-z0-9]+\.chromiumapp\.org\/?$/i;
+// Chrome: https://{extension-id}.chromiumapp.org/
+// Firefox: https://{extension-id}.extensions.allizom.org/
+const EXTENSION_REDIRECT_PATTERN = /^https:\/\/[a-z0-9]+\.(chromiumapp\.org|extensions\.allizom\.org)\/?$/i;
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { assertOrigin(req, res, 'POST, OPTIONS'); return res.status(204).end(); }
