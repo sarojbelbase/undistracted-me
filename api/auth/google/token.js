@@ -25,6 +25,10 @@ const ALLOWED_REDIRECT_URIS = [
   'http://localhost:5173/callbacks/auth.html',
 ];
 
+// Regex to allow extension redirect URIs (Chrome/Firefox MV3)
+// Pattern: https://{alphanumeric}.chromiumapp.org/ or similar extension formats
+const EXTENSION_REDIRECT_PATTERN = /^https:\/\/[a-z0-9]+\.chromiumapp\.org\/?$/i;
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { assertOrigin(req, res, 'POST, OPTIONS'); return res.status(204).end(); }
   if (!assertOrigin(req, res, 'POST, OPTIONS')) return;
@@ -58,7 +62,8 @@ export default async function handler(req, res) {
     if (!code || !code_verifier || !redirect_uri) {
       return res.status(400).json({ error: 'code, code_verifier and redirect_uri are required' });
     }
-    if (!ALLOWED_REDIRECT_URIS.includes(redirect_uri)) {
+    const isValidRedirectUri = ALLOWED_REDIRECT_URIS.includes(redirect_uri) || EXTENSION_REDIRECT_PATTERN.test(redirect_uri);
+    if (!isValidRedirectUri) {
       return res.status(400).json({ error: 'invalid_redirect_uri' });
     }
     params.set('code', code);
