@@ -188,19 +188,36 @@ async function getTokenWeb(interactive) {
 
 function getTokenChrome(interactive) {
   return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive }, (token) => { // eslint-disable-line no-undef
-      if (chrome.runtime.lastError) { // eslint-disable-line no-undef
-        reject(new Error(chrome.runtime.lastError.message)); // eslint-disable-line no-undef
-      } else {
-        resolve(token);
-      }
-    });
+    try {
+      // eslint-disable-next-line no-undef
+      chrome.identity.getAuthToken({ interactive }, (token) => {
+        try {
+          // eslint-disable-next-line no-undef
+          if (chrome.runtime.lastError) {
+            // eslint-disable-next-line no-undef
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(token);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    } catch (e) {
+      reject(new Error('chrome.identity.getAuthToken is not available'));
+    }
   });
 }
 
 function removeCachedTokenChrome(token) {
   return new Promise((resolve) => {
-    chrome.identity.removeCachedAuthToken({ token }, resolve); // eslint-disable-line no-undef
+    try {
+      // eslint-disable-next-line no-undef
+      chrome.identity.removeCachedAuthToken({ token }, resolve);
+    } catch (e) {
+      // Silently ignore on Firefox where this API doesn't exist
+      resolve();
+    }
   });
 }
 
@@ -358,7 +375,12 @@ export async function removeGoogleAuthToken(token) {
 export async function signOutGoogle(token) {
   await removeGoogleAuthToken(token);
   if (isChromePath() && typeof chrome !== 'undefined' && chrome.identity?.clearAllCachedAuthTokens) { // eslint-disable-line no-undef
-    await new Promise(resolve => chrome.identity.clearAllCachedAuthTokens(resolve)); // eslint-disable-line no-undef
+    try {
+      // eslint-disable-next-line no-undef
+      await new Promise(resolve => chrome.identity.clearAllCachedAuthTokens(resolve));
+    } catch (e) {
+      // Silently ignore on Firefox where this API doesn't exist
+    }
   }
 }
 
