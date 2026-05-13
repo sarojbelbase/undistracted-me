@@ -200,20 +200,39 @@ export const Widget = ({ onRemove }) => {
   // Cancel the post-skip Spotify refresh timer on unmount.
   useEffect(() => () => clearTimeout(spotifySkipTimerRef.current), []);
 
-  // Poll Chrome media every 3s as fallback when Spotify is idle
-  const fetchChromeMedia = useCallback(async () => {
-    const sessions = await getChromeMedia();
+  const applyChromeSessions = useCallback((sessions) => {
     setChromeMediaSessions(sessions);
-    // Real data arrived — clear all pending indicators
     setChromePendingTabId(null);
     setChromeSkipPending(null);
   }, []);
 
+  // ── Chrome media: instant read from storage → push via onChanged → poll fallback ──
   useEffect(() => {
-    fetchChromeMedia();
-    const id = setInterval(fetchChromeMedia, 3000);
-    return () => clearInterval(id);
-  }, [fetchChromeMedia]);
+    if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+
+    // 1. Read from storage immediately — no SW wakeup needed, works even if
+    //    SW is dormant after being killed by Chrome's MV3 idle timeout.
+    chrome.storage.local.get('chrome_media_sessions', (result) => {
+      const stored = result?.chrome_media_sessions;
+      if (Array.isArray(stored) && stored.length) applyChromeSessions(stored);
+    });
+
+    // 2. Push listener — fires the instant bg.js writes new sessions to storage.
+    //    Eliminates the 3s polling lag for any state change.
+    const onChanged = (changes, area) => {
+      if (area !== 'local' || !changes.chrome_media_sessions) return;
+      applyChromeSessions(changes.chrome_media_sessions.newValue ?? []);
+    };
+    chrome.storage.onChanged.addListener(onChanged);
+
+    // 3. Poll every 3s as a safety net (SW dormant, onChanged missed, etc.)
+    const id = setInterval(() => getChromeMedia().then(applyChromeSessions), 3000);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(onChanged);
+      clearInterval(id);
+    };
+  }, [applyChromeSessions]);
 
   // Extract colour from each chrome session's artwork (keyed by tabId)
   const updateSessionArtColor = useCallback((s) => {
