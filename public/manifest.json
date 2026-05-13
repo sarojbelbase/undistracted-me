@@ -31,12 +31,11 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}",
-      "strict_min_version": "128.0",
-      "data_collection_permissions": {
-        "required": [],
-        "optional": []
-      }
+      "strict_min_version": "128.0"
     }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'none';"
   },
   "homepage_url": "https://undistractedme.sarojbelbase.com.np",
   "permissions": [

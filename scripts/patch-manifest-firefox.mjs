@@ -77,20 +77,16 @@ if (manifest.web_accessible_resources) {
   });
 }
 
-// 6. Fix browser_specific_settings: empty required[] fails Firefox schema validation
-if (manifest.browser_specific_settings?.gecko?.data_collection_permissions) {
-  const dcp = manifest.browser_specific_settings.gecko.data_collection_permissions;
-  if (Array.isArray(dcp.required) && dcp.required.length === 0) {
-    delete dcp.required;
-  }
-  if (Array.isArray(dcp.optional) && dcp.optional.length === 0) {
-    delete dcp.optional;
-  }
-  // If both were removed, remove the whole data_collection_permissions object
-  if (Object.keys(dcp).length === 0) {
-    delete manifest.browser_specific_settings.gecko.data_collection_permissions;
-  }
+// 6. Ensure Firefox-required fields are present
+if (!manifest.browser_specific_settings) {
+  manifest.browser_specific_settings = {};
 }
+if (!manifest.browser_specific_settings.gecko) {
+  manifest.browser_specific_settings.gecko = {};
+}
+// Note: data_collection_permissions is only supported in Firefox 140+.
+// With strict_min_version: 128.0, we omit it to avoid validation errors.
+// Future: when minimum version is raised to 140+, add this field.
 
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 console.log('✓ manifest.json patched for Firefox');
