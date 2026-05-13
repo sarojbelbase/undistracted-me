@@ -24,6 +24,8 @@ import { useSettingsPanel } from "./hooks/useSettingsPanel";
 import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
+import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
+import bgImage from "./assets/img/bg.webp";
 
 // ── On-demand lazy components ────────────────────────────────────────────────
 
@@ -120,6 +122,29 @@ const BreakpointBadge = () => {
     </div>
   );
 };
+
+// ── FocusMode Suspense fallback ────────────────────────────────────────────────
+// Synchronously reads localStorage to match the actual background the user configured,
+// eliminating the dark flash when the FocusMode chunk is still loading.
+const CUSTOM_BG_KEY = 'fm_custom_bg_url';
+function FMFallback() {
+  const src = getBgSource();
+  const base = "fixed inset-0 z-50 bg-cover bg-center";
+  if (src === 'orb') {
+    return <div className={base} style={{ backgroundColor: '#060608' }} />;
+  }
+  if (src === 'curated') {
+    const photo = getCachedPhotoSync();
+    return <div className={base} style={{ backgroundColor: photo?.color || '#18191b' }} />;
+  }
+  if (src === 'custom') {
+    let url = null;
+    try { url = localStorage.getItem(CUSTOM_BG_KEY); } catch { /* ignore */ }
+    if (url) return <div className={base} style={{ backgroundImage: `url(${url})` }} />;
+  }
+  // 'default' — show bg.webp (exact match to FocusMode's default state)
+  return <div className={base} style={{ backgroundImage: `url(${bgImage})` }} />;
+}
 
 const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
@@ -265,11 +290,7 @@ const App = () => {
           style={{ display: showFocusMode ? "block" : "none" }}
           inert={!showFocusMode}
         >
-          <Suspense fallback={
-            showFocusMode
-              ? <div className="fixed inset-0 z-50" style={{ backgroundColor: '#060608' }} />
-              : null
-          }>
+          <Suspense fallback={showFocusMode ? <FMFallback /> : null}>
             <FocusMode onExit={closeFocusMode} />
           </Suspense>
         </div>
