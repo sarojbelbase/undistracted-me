@@ -175,8 +175,9 @@ export const useLocationStore = create(
 
         if (fromBrowser) {
           const { lat, lon } = fromBrowser;
+          const sameCoords = prevLat != null && haversineKm(prevLat, prevLon, lat, lon) < 0.5;
           const [city, detectedTz] = await Promise.all([
-            reverseGeocodeCity(lat, lon),
+            sameCoords ? Promise.resolve(get().city) : reverseGeocodeCity(lat, lon),
             Promise.resolve(Intl.DateTimeFormat().resolvedOptions().timeZone),
           ]);
           set({

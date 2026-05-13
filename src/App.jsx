@@ -137,7 +137,9 @@ const App = () => {
     })));
   const canvasBg = useSettingsStore(s => s.canvasBg);
   const setCanvasBg = useSettingsStore(s => s.setCanvasBg);
-  const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
+  const instances = useWidgetInstancesStore(s => s.instances);
+  const addInstance = useWidgetInstancesStore(s => s.addInstance);
+  const removeInstance = useWidgetInstancesStore(s => s.removeInstance);
   const { settingsOpenAt, clearSettingsOpenAt } = useUIStore();
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────

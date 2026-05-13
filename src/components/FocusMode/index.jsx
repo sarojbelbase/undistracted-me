@@ -12,6 +12,7 @@ import {
   setBgSource as persistBgSource,
 } from "../../utilities/unsplash";
 import { useSettingsStore } from "../../store";
+import { useShallow } from "zustand/react/shallow";
 import { getFMCardVars, FM_ORB_BG } from "./theme";
 import { getFMAccentVars } from "../../constants/accents";
 import { getOrbRgbById } from "../../constants/orbPalettes";
@@ -132,8 +133,11 @@ export const FocusMode = ({ onExit }) => {
   const effectiveSearchDark = bgSource === "curated" ? searchDark : true;
   const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
   // Card surface style (glass vs flat) — both are always dark-tinted.
-  const cardStyle = useSettingsStore((s) => s.cardStyle) || "glass";
-  const accent = useSettingsStore((s) => s.accent);
+  const { cardStyle, accent } = useSettingsStore(useShallow(s => ({
+    cardStyle: s.cardStyle,
+    accent: s.accent,
+  })));
+  const effectiveCardStyle = cardStyle || "glass";
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -209,7 +213,7 @@ export const FocusMode = ({ onExit }) => {
       className="fixed inset-0 z-50 overflow-hidden"
       style={{
         backgroundColor: bgSource === "orb" ? FM_ORB_BG : photoColor,
-        ...getFMCardVars(cardStyle),
+        ...getFMCardVars(effectiveCardStyle),
         ...getFMAccentVars(accent),
       }}
     >
