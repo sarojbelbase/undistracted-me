@@ -209,6 +209,7 @@
 
 // Breathing pulse on the central bloom
 @keyframes lookaway-bloom {
+
   0%,
   100% {
     opacity: 0.55;
@@ -282,6 +283,8 @@
   }
 }
 
+// bpOrbSpin / bpOrbCounter reuse the shared orb keyframes defined below —
+// kept as aliases so background-picker SCSS can reference either name.
 @keyframes bpOrbSpin {
   to {
     transform: rotate(360deg);
@@ -295,6 +298,7 @@
 }
 
 @keyframes bpOrbBloom {
+
   0%,
   100% {
     opacity: 1;
@@ -360,6 +364,7 @@
 }
 
 @keyframes orbBloom {
+
   0%,
   100% {
     opacity: 1;
@@ -375,6 +380,7 @@
 // ── Weather atmosphere (.wa-*) ────────────────────────────────────────────────
 
 @keyframes wa-sun {
+
   0%,
   100% {
     transform: scale(1);
@@ -388,6 +394,7 @@
 }
 
 @keyframes wa-moon {
+
   0%,
   100% {
     transform: translateY(0);
@@ -560,6 +567,7 @@
 }
 
 @keyframes wa-fog-a {
+
   0%,
   100% {
     transform: translateX(0);
@@ -573,6 +581,7 @@
 }
 
 @keyframes wa-fog-a-breezy {
+
   0%,
   100% {
     transform: translateX(0);
@@ -598,6 +607,7 @@
 }
 
 @keyframes wa-fog-b {
+
   0%,
   100% {
     transform: translateX(0);
@@ -611,6 +621,7 @@
 }
 
 @keyframes wa-fog-b-breezy {
+
   0%,
   100% {
     transform: translateX(0);
@@ -624,6 +635,7 @@
 }
 
 @keyframes wa-cloud {
+
   0%,
   100% {
     transform: translateX(0);
@@ -635,6 +647,7 @@
 }
 
 @keyframes wa-cloud-breezy {
+
   0%,
   100% {
     transform: translateX(0);
@@ -656,6 +669,7 @@
 }
 
 @keyframes wa-flash {
+
   0%,
   87%,
   100% {
@@ -680,6 +694,7 @@
 }
 
 @keyframes wa-bolt {
+
   0%,
   88%,
   91%,
@@ -710,6 +725,7 @@
 // Pulsing scale + opacity — communicates "live" air quality reading.
 // Referenced by the inline style animation property on the AQIBadge dot.
 @keyframes aqi-breathe {
+
   0%,
   100% {
     transform: scale(1);
@@ -765,5 +781,23 @@
 @keyframes rss-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+// ── prefers-reduced-motion ────────────────────────────────────────────────────
+// Stops all infinite animations for users who have enabled "Reduce Motion"
+// in their OS (macOS: Accessibility → Reduce Motion; Windows: ease of access).
+// One-shot entrance animations collapse to 1ms — imperceptibly brief — so
+// interactive feedback (button clicks, panel opens) is not lost entirely.
+// The animation-play-state: paused approach is avoided intentionally because
+// it freezes mid-frame instead of resetting, producing a jarring snapshot.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.15s !important; // keep hover/focus transitions but fast
+    scroll-behavior: auto !important;
   }
 }
