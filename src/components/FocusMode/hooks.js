@@ -15,11 +15,11 @@ const MAX_HISTORY = 12;
 export const useFocusWeather = () => {
   const [weather, setWeather] = useState(null);
   // Read from Zustand widgetSettings — reactive to same-tab setting changes.
-  const weatherSettings = useWidgetInstancesStore(s => {
+  const weatherSettings = useWidgetInstancesStore(useShallow(s => {
     const inst = s.instances.find(i => i.type === 'weather');
     const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['weather']) : s.widgetSettings['weather'];
     return ws ?? null;
-  });
+  }));
 
   // Fall back to the centralized location store when no manual location is set
   const { geoLat, geoLon, geoSource } = useLocationStore(
@@ -363,6 +363,10 @@ import { getChromeMedia, sendChromeMediaAction } from '../../widgets/media/utils
  * Returns the top session (most recently active) as a normalized track object,
  * or null when nothing is playing.
  * Also returns a `sendAction(action)` helper for play/pause/next/previous.
+ *
+ * Polling is skipped while the tab is hidden (user switched to another tab)
+ * and resumes immediately when the tab becomes visible again — avoids sending
+ * unnecessary SW messages when the new-tab page isn't in view.
  */
 export function useChromeMedia() {
   const [sessions, setSessions] = useState([]);
@@ -371,7 +375,9 @@ export function useChromeMedia() {
 
   useEffect(() => {
     let cancelled = false;
-    const fetch = async () => {
+
+    const poll = async () => {
+      if (document.hidden) return;
       const data = await getChromeMedia();
       if (!cancelled) {
         setSessions(data);
@@ -381,9 +387,17 @@ export function useChromeMedia() {
         setSkipPending(null);
       }
     };
-    fetch();
-    const id = setInterval(fetch, 3000);
-    return () => { cancelled = true; clearInterval(id); };
+
+    poll();
+    const id = setInterval(poll, 3000);
+    const onVisible = () => { if (!document.hidden) poll(); };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   const top = sessions[0] ?? null;

@@ -1,7 +1,6 @@
 import "./App.css";
 import "./styles/main.scss";
 import React, { useState, Suspense, lazy, useEffect } from "react";
-import { Analytics } from "@vercel/analytics/react";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
@@ -27,7 +26,16 @@ import { useCommandPalette } from "./hooks/useCommandPalette";
 // ── On-demand lazy components ────────────────────────────────────────────────
 // None of these appear on the initial new-tab render, so we defer them.
 
-import { FocusMode } from "./components/FocusMode";
+// FocusMode is the largest feature — defer until the user first opens it.
+const FocusMode = lazy(() =>
+  import("./components/FocusMode").then((m) => ({ default: m.FocusMode })),
+);
+
+// Analytics is only used on the web demo — lazy-import so the module is never
+// parsed in extension builds where `chrome` is defined and it never renders.
+const Analytics = lazy(() =>
+  import("@vercel/analytics/react").then((m) => ({ default: m.Analytics })),
+);
 
 const LookAway = lazy(() =>
   import("./components/LookAway").then((m) => ({ default: m.LookAway })),
@@ -243,7 +251,9 @@ const App = () => {
           style={{ display: showFocusMode ? "block" : "none" }}
           inert={!showFocusMode}
         >
-          <FocusMode onExit={closeFocusMode} />
+          <Suspense fallback={null}>
+            <FocusMode onExit={closeFocusMode} />
+          </Suspense>
         </div>
       )}
 
@@ -264,7 +274,11 @@ const App = () => {
         </Suspense>
       )}
 
-      {typeof chrome === "undefined" && <Analytics />}
+      {typeof chrome === "undefined" && (
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
+      )}
 
       {/* Command Palette — Cmd+K / Ctrl+K */}
       {commandPaletteOpen && !showFocusMode && (

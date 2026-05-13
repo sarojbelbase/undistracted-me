@@ -344,6 +344,10 @@ export default defineConfig(({ mode }) => {
         "process.env.NODE_ENV": JSON.stringify("development"),
       },
     build: {
+      // Target modern Chrome/Firefox versions to allow native ES2022+ syntax
+      // (optional chaining, nullish coalescing, class fields, logical assignment)
+      // to pass through without polyfill transforms — real bundle size saving.
+      target: ['chrome120', 'firefox128'],
       // Strip console.warn/console.error in extension production builds.
       // console.error is kept for real runtime errors; warn is dev-only noise.
       minify: "esbuild",
@@ -356,10 +360,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id: string) {
             // ── Vendor libs ──────────────────────────────────────────────
-            if (
-              id.includes("node_modules/react-grid-layout") ||
-              id.includes("node_modules/react-resizable")
-            )
+            if (id.includes("node_modules/react-grid-layout"))
               return "grid";
             if (id.includes("node_modules/react-bootstrap-icons"))
               return "icons";
@@ -375,6 +376,8 @@ export default defineConfig(({ mode }) => {
               id.includes("node_modules/@lexical")
             )
               return "editor";
+            if (id.includes("node_modules/@vercel/analytics"))
+              return "analytics";
           },
         },
       },
