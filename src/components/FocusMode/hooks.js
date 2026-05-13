@@ -4,6 +4,9 @@ import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
 import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync, getPhotoLibrary } from '../../utilities/unsplash';
 import { useWidgetInstancesStore } from '../../store';
 import { useLocationStore } from '../../store/useLocationStore';
+import { getChromeMedia, sendChromeMediaAction } from '../../widgets/media/utils';
+import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
+import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 // Shared hooks — also usable by canvas-mode widgets
 import { useSpotify } from '../../widgets/media/useSpotify';
 
@@ -27,6 +30,7 @@ export const useFocusWeather = () => {
   );
 
   useEffect(() => {
+    let cancelled = false;
     const location = weatherSettings?.location ?? null;
     const unit = weatherSettings?.unit ?? 'metric';
     const load = async () => {
@@ -43,12 +47,12 @@ export const useFocusWeather = () => {
         }
         const cityName = location?.name || '';
         const data = await fetchOpenMeteo(lat, lon, unit);
-        setWeather({ ...parseWeather(data, cityName), unit });
+        if (!cancelled) setWeather({ ...parseWeather(data, cityName), unit });
       } catch { }
     };
     load();
     const timerId = setInterval(load, 30 * 60_000);
-    return () => clearInterval(timerId);
+    return () => { cancelled = true; clearInterval(timerId); };
   }, [weatherSettings, geoLat, geoLon, geoSource]);
   return weather;
 };
@@ -145,7 +149,7 @@ export const useWakeLock = (active) => {
       try { lockRef.current = await navigator.wakeLock.request('screen'); } catch { }
     };
     acquire();
-    const onVisible = () => { if (document.visibilityState === 'visible') acquire(); };
+    const onVisible = () => { if (document.visibilityState === 'visible' && !lockRef.current) acquire(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
@@ -178,7 +182,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
     if (!url || url.includes('unsplash.com/photos/')) return;
 
     // Immediately assume dark (safe default) while the analysis runs.
-    setZones({ clock: true, greet: true });
+    setZones({ clock: true, search: true, greet: true });
 
     let cancelled = false;
     const img = new Image();
@@ -251,7 +255,11 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
       } catch { }
     };
     img.src = url;
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      img.onload = null;
+      img.src = ''; // cancels any in-flight network request
+    };
   }, [slotA, slotB, activeSlot]);
   return zones;
 };
@@ -356,8 +364,6 @@ export function switchToTab(tab) {
 
 // ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───
 
-import { getChromeMedia, sendChromeMediaAction } from '../../widgets/media/utils';
-
 /**
  * Polls the background SW for browser media sessions every 3s.
  * Returns the top session (most recently active) as a normalized track object,
@@ -427,9 +433,6 @@ export function useChromeMedia() {
 
 // ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
 
-import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
-import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
-
 const gtasks = () => import('../../utilities/googleTasks');
 
 export function useFocusTasks() {
@@ -445,6 +448,11 @@ export function useFocusTasks() {
   // Tracks whether the initial auth attempt has completed (success or failure).
   // Until this is true the panel shows skeleton instead of "Connect Tasks".
   const [hasAttempted, setHasAttempted] = useState(false);
+
+  // Ref mirror of tasks — lets mutation callbacks read the current list without
+  // being in their dependency arrays (avoids recreating on every task change).
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
 
   const load = useCallback(async () => {
     if (!isGoogleAuthAvailable()) { setHasAttempted(true); return; }
@@ -493,7 +501,7 @@ export function useFocusTasks() {
   }, []);
 
   const toggle = useCallback(async (taskId) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasksRef.current.find(t => t.id === taskId);
     if (!task) return;
     const done = !task.completed;
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: done } : t));
@@ -503,26 +511,26 @@ export function useFocusTasks() {
     } catch {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !done } : t));
     }
-  }, [tasks]);
+  }, []);
 
   const edit = useCallback(async (taskId, newTitle) => {
     if (!newTitle.trim()) return;
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasksRef.current.find(t => t.id === taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle } : t));
     try {
       const { updateGoogleTask } = await gtasks();
       await updateGoogleTask(taskId, { title: newTitle }, task?.listId);
     } catch { load(); }
-  }, [tasks, load]);
+  }, [load]);
 
   const remove = useCallback(async (taskId) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasksRef.current.find(t => t.id === taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
       const { deleteGoogleTask } = await gtasks();
       await deleteGoogleTask(taskId, task?.listId);
     } catch { load(); }
-  }, [tasks, load]);
+  }, [load]);
 
   return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, hasAttempted, add, toggle, edit, remove, reload: load };
 }

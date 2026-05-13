@@ -15,6 +15,7 @@ import { useSettingsStore, useWidgetInstancesStore } from "./store";
 import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
 import { useGoogleAccountStore } from "./store/useGoogleAccountStore";
 import { useUIStore } from "./store/useUIStore";
+import { useShallow } from "zustand/react/shallow";
 import { useAutoTheme } from "./hooks/useAutoTheme";
 import { useLocation } from "./hooks/useLocation";
 import { useFocusMode } from "./hooks/useFocusMode";
@@ -115,16 +116,17 @@ const App = () => {
   const [showLookAway, setShowLookAway] = useState(false);
 
   // ── Stores ──────────────────────────────────────────────────────────────────
-  const {
-    mode,
-    accent,
-    defaultView,
-    lookAwayEnabled,
-    lookAwayInterval,
-    canvasBg,
-    setCanvasBg,
-    cardStyle,
-  } = useSettingsStore();
+  const { mode, accent, defaultView, lookAwayEnabled, lookAwayInterval, cardStyle } =
+    useSettingsStore(useShallow(s => ({
+      mode: s.mode,
+      accent: s.accent,
+      defaultView: s.defaultView,
+      lookAwayEnabled: s.lookAwayEnabled,
+      lookAwayInterval: s.lookAwayInterval,
+      cardStyle: s.cardStyle,
+    })));
+  const canvasBg = useSettingsStore(s => s.canvasBg);
+  const setCanvasBg = useSettingsStore(s => s.setCanvasBg);
   const { instances, addInstance, removeInstance } = useWidgetInstancesStore();
   const { settingsOpenAt, clearSettingsOpenAt } = useUIStore();
 
