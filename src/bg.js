@@ -196,20 +196,21 @@ chrome.runtime.onStartup.addListener(injectMediaScript);
  * Programmatically injects media.js into any already-open tabs that match the
  * content_scripts patterns. Necessary because manifest content_scripts are only
  * auto-injected into pages that load *after* the extension is installed/reloaded.
+ *
+ * Reads the content script path from the manifest at runtime so it works
+ * correctly regardless of build-time filename hashing.
  */
 function injectMediaScript() {
-  const patterns = [
-    "*://*.soundcloud.com/*",
-    "*://*.youtube.com/*",
-  ];
+  const cs = chrome.runtime.getManifest().content_scripts?.[0];
+  const files = cs?.js;
+  const patterns = cs?.matches;
+  if (!files?.length || !patterns?.length) return;
+
   chrome.tabs.query({ url: patterns }, (tabs) => {
     for (const tab of tabs ?? []) {
       if (!tab.id) continue;
       chrome.scripting
-        .executeScript({
-          target: { tabId: tab.id },
-          files: ["src/utilities/media.js"],
-        })
+        .executeScript({ target: { tabId: tab.id }, files })
         .catch(() => {
           /* tab may be discarded or restricted */
         });
@@ -263,7 +264,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         const isNewTab =
           activeTab?.url === "chrome://newtab/" ||
           activeTab?.pendingUrl === "chrome://newtab/" ||
-          activeTab?.url?.startsWith("chrome-extension://");
+          activeTab?.url?.startsWith("chrome-extension://") ||
+          activeTab?.url?.startsWith("moz-extension://");
         if (!isNewTab) {
           chrome.notifications.create(
             'lookaway_' + Date.now(),

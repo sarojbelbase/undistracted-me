@@ -1,19 +1,24 @@
 /**
  * Patches dist/ for Firefox compatibility after a Vite/CRXJS build.
  *
- * CRXJS generates a service-worker-loader.js that uses ES module `import`
- * syntax and sets `"type": "module"` in the manifest background field.
- * Firefox MV3 does NOT support module-type service workers — this is the
- * primary cause of "addon seems corrupt" errors.
+ * CRXJS 2.x outputs `background.scripts` pointing at the hashed bg.js bundle.
+ * That bundle uses ES module `import` syntax — which is INVALID in a non-module
+ * background context.  Firefox 128+ supports module-type service workers, so
+ * the correct fix is to switch to:
+ *
+ *   { "service_worker": "service-worker-loader.js", "type": "module" }
+ *
+ * CRXJS always emits service-worker-loader.js as a stable (non-hashed) module
+ * entry that simply does `import './assets/bg.js-<hash>.js'`. Using it as a
+ * module service worker lets Firefox load the ES-module bundle correctly.
  *
  * This script also removes other Chrome-only manifest fields:
- *   - "type": "module" on background  (Firefox rejects module SWs)
  *   - "favicon" permission            (chrome.favicon API, not in Firefox)
  *   - "oauth2" key                    (Chrome identity manifest field)
  *   - "use_dynamic_url"               (Chrome-only web_accessible_resources field)
  */
 
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -23,15 +28,16 @@ const manifestPath = resolve(distDir, 'manifest.json');
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 
-// 1. Fix background: Firefox prefers background.scripts over background.service_worker.
-//    Find the actual hashed bg.js asset and point directly to it.
+// 1. Fix background: Firefox 128+ supports module-type service workers.
+//    CRXJS outputs background.scripts with the hashed ES-module bundle, which
+//    Firefox rejects because background.scripts is a non-module context.
+//    Instead, point to service-worker-loader.js (stable, non-hashed) as a
+//    module service worker — this is what Firefox 128+ expects.
 if (manifest.background) {
-  const assets = readdirSync(resolve(distDir, 'assets'));
-  const bgAsset = assets.find(f => f.startsWith('bg.js') && f.endsWith('.js'));
-  if (!bgAsset) throw new Error('Could not find bg.js asset in dist/assets/');
-
-  manifest.background = { scripts: [`assets/${bgAsset}`] };
-  console.log(`✓ background switched to scripts: ['assets/${bgAsset}']`);
+  const loaderPath = resolve(distDir, 'service-worker-loader.js');
+  if (!existsSync(loaderPath)) throw new Error('service-worker-loader.js not found in dist/');
+  manifest.background = { service_worker: 'service-worker-loader.js', type: 'module' };
+  console.log('✓ background set to module service worker: service-worker-loader.js');
 }
 
 // 2. Fix author: Firefox requires a string, not an object
