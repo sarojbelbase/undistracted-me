@@ -15,6 +15,16 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { applyTheme } from "../theme";
 import { STORAGE_KEYS } from "../constants/storageKeys";
+import { DEFAULT_NOTIFICATION_TYPES } from "../constants/notifications";
+
+/** Sync notification config to chrome.storage.local so bg.js can read it. */
+function _syncNotifications(enabled, types) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.set({ notif_enabled: enabled, notif_types: types });
+    }
+  } catch { /* unavailable in tests / web build */ }
+}
 
 export const STORE_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -37,7 +47,6 @@ const fromLegacy = () => {
         dateFormat: stored.state.dateFormat ?? "gregorian",
         lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
         lookAwayInterval: stored.state.lookAwayInterval ?? 20,
-        lookAwayNotify: stored.state.lookAwayNotify ?? true,
         canvasBg: (() => {
           const cb = stored.state.canvasBg ?? {
             type: "orb",
@@ -53,6 +62,8 @@ const fromLegacy = () => {
           light: { cardStyle: stored.state.cardStyle ?? "glass" },
           dark: { cardStyle: stored.state.cardStyle ?? "glass" },
         },
+        notificationsEnabled: stored.state.notificationsEnabled ?? true,
+        notificationTypes: stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
       };
   } catch {
     /* ignore */
@@ -71,13 +82,14 @@ const fromLegacy = () => {
       localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || "gregorian",
     lookAwayEnabled: false,
     lookAwayInterval: 20,
-    lookAwayNotify: true,
     canvasBg: { type: "orb", orbId: "accent", url: null },
     cardStyle: "glass",
     modePrefs: {
       light: { cardStyle: "flat" },
       dark: { cardStyle: "glass" },
     },
+    notificationsEnabled: true,
+    notificationTypes: DEFAULT_NOTIFICATION_TYPES,
   };
 };
 
@@ -166,7 +178,19 @@ export const useSettingsStore = create(
       /** LookAway eye-break reminders */
       setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),
       setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),
-      setLookAwayNotify: (lookAwayNotify) => set({ lookAwayNotify }),
+
+      /** Master switch for all extension browser notifications. */
+      setNotificationsEnabled: (enabled) => {
+        set({ notificationsEnabled: enabled });
+        _syncNotifications(enabled, get().notificationTypes);
+      },
+
+      /** Toggle a single notification type on/off by id. */
+      setNotificationType: (type, enabled) => {
+        const types = { ...get().notificationTypes, [type]: enabled };
+        set({ notificationTypes: types });
+        _syncNotifications(get().notificationsEnabled, types);
+      },
 
       /** Canvas background — { type: 'solid'|'orb'|'curated'|'custom', orbId?, url? } */
       setCanvasBg: (canvasBg) => {

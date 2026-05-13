@@ -14,6 +14,7 @@ import {
   RSS_FEED_PROXY_URL,
   GCAL_EVENTS_API,
 } from './constants/urls.js';
+import { buildNotification } from './constants/notifications.js';
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
@@ -36,6 +37,25 @@ const notified = new Set();
 // Stores lat/lon sent from the page for weather pre-fetching
 let prefetchCoords = null; // { lat, lon } or null
 
+// ─── Notification config (synced from page via chrome.storage.local) ─────────
+let notifConfig = {
+  enabled: true,
+  types: { events: true, countdown: true, pomodoro: true, lookaway: true },
+};
+
+async function loadNotifConfig() {
+  try {
+    const result = await chrome.storage.local.get(['notif_enabled', 'notif_types']);
+    if (result.notif_enabled !== undefined) notifConfig.enabled = result.notif_enabled;
+    if (result.notif_types) notifConfig.types = { ...notifConfig.types, ...result.notif_types };
+  } catch { /* storage unavailable */ }
+}
+
+/** Returns true if the given notification type is permitted by user config. */
+function notifAllowed(type) {
+  return notifConfig.enabled && notifConfig.types[type] !== false;
+}
+
 function checkEventReminders() {
   let events = [];
   try {
@@ -56,15 +76,11 @@ function checkEventReminders() {
     const diff = startMs - now;
     if (diff >= 0 && diff <= WINDOW_MS) {
       notified.add(key);
-      const minsTxt = Math.ceil(diff / 60000);
-      const endTxt = ev.endTime ? ` · ends ${ev.endTime}` : "";
-      chrome.notifications.create(`event_${key}`, {
-        type: "basic",
-        iconUrl: "favicon/lotus128.png",
-        title: ev.title,
-        message: `Starting in ${minsTxt} min${endTxt}`,
-        priority: 1,
-      });
+      if (!notifAllowed('events')) continue;
+      chrome.notifications.create(
+        `event_${key}`,
+        buildNotification('events', { title: ev.title, diffMs: diff, endTime: ev.endTime }),
+      );
     }
   }
 }
@@ -84,14 +100,65 @@ async function syncEventsFromStorage() {
   }
 }
 
-// ─── Lifecycle ────────────────────────────────────────────────────────────────
+// ─── Occasion reminders (birthdays & anniversaries) ──────────────────────────
+
+async function checkOccasionReminders() {
+  if (!notifAllowed('occasion')) return;
+
+  const today = new Date();
+  const todayMonth = today.getMonth() + 1;
+  const todayDay = today.getDate();
+  const todayHour = today.getHours();
+  const year = today.getFullYear();
+
+  // Only fire at 9 AM or later — never at midnight or random wake-up times.
+  if (todayHour < 9) return;
+
+  let all = [];
+  let firedSet = new Set();
+  try {
+    const result = await chrome.storage.local.get(['contacts_birthdays_cache', 'occasions_manual', 'occasions_fired']);
+    all = [
+      ...(result.contacts_birthdays_cache ?? []),
+      ...(result.occasions_manual ?? []),
+    ];
+    // occasions_fired: array of keys already notified (persists across SW restarts)
+    firedSet = new Set(result.occasions_fired ?? []);
+  } catch { return; }
+
+  const newlyFired = [];
+
+  for (const entry of all) {
+    if (!entry.month || !entry.day || !entry.name) continue;
+    if (Number(entry.month) !== todayMonth || Number(entry.day) !== todayDay) continue;
+
+    const key = `occasion_${entry.name}_${entry.type}_${year}`;
+    if (notified.has(key) || firedSet.has(key)) continue;
+    notified.add(key);
+    newlyFired.push(key);
+
+    chrome.notifications.create(
+      `occ_${Date.now()}`,
+      buildNotification('occasion', { name: entry.name, occType: entry.type || 'birthday' }),
+    );
+  }
+
+  if (newlyFired.length > 0) {
+    // Persist so re-opened SW doesn't re-fire the same day.
+    // Prune stale keys from previous years to keep storage lean.
+    const pruned = [...firedSet].filter(k => k.endsWith(`_${year}`));
+    chrome.storage.local.set({ occasions_fired: [...pruned, ...newlyFired] });
+  }
+}
 
 globalThis.addEventListener("install", () => {
   globalThis.skipWaiting();
 });
 
 globalThis.addEventListener("activate", (event) => {
-  event.waitUntil(globalThis.clients.claim());
+  event.waitUntil(
+    globalThis.clients.claim().then(() => loadNotifConfig()),
+  );
   // Ensure alarms exist
   chrome.alarms.get(ALARM_TICK, (a) => {
     if (!a) chrome.alarms.create(ALARM_TICK, { periodInMinutes: 1 });
@@ -145,7 +212,10 @@ function injectMediaScript() {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === ALARM_TICK) syncEventsFromStorage();
+  if (alarm.name === ALARM_TICK) {
+    syncEventsFromStorage();
+    checkOccasionReminders();
+  }
   if (alarm.name === ALARM_PREFETCH) {
     runWeatherPrefetch();
     runGcalPrefetch();
@@ -181,6 +251,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     // via storage.onChanged — a system notification on top would be redundant.
     chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
       if (lookaway_notify === false) return; // user opted out
+      if (!notifAllowed('lookaway')) return; // master/type toggle off
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
         const isNewTab =
@@ -188,14 +259,10 @@ chrome.alarms.onAlarm.addListener((alarm) => {
           activeTab?.pendingUrl === "chrome://newtab/" ||
           activeTab?.url?.startsWith("chrome-extension://");
         if (!isNewTab) {
-          chrome.notifications.create("lookaway_" + Date.now(), {
-            type: "basic",
-            iconUrl: "favicon/lotus128.png",
-            title: "Time to look away 👁",
-            message:
-              "Give your eyes a 20-second break. Open a new tab when ready.",
-            priority: 1,
-          });
+          chrome.notifications.create(
+            'lookaway_' + Date.now(),
+            buildNotification('lookaway'),
+          );
         }
       });
     });
@@ -498,25 +565,19 @@ async function runRssPrefetch() {
 // ─── Messages from the page ───────────────────────────────────────────────────
 
 function handlePomodoroDone(msg) {
-  chrome.notifications.create("pomodoro_done", {
-    type: "basic",
-    iconUrl: "favicon/lotus128.png",
-    title: "🍅 Focus session complete!",
-    message: msg.preset
-      ? `Your ${msg.preset} session is done. Take a break.`
-      : "Your focus session is done. Take a break.",
-    priority: 2,
-  });
+  if (!notifAllowed('pomodoro')) return;
+  chrome.notifications.create(
+    'pomodoro_done',
+    buildNotification('pomodoro', { preset: msg.preset }),
+  );
 }
 
 function handleCountdownDone(msg) {
-  chrome.notifications.create(`countdown_done_${Date.now()}`, {
-    type: "basic",
-    iconUrl: "favicon/lotus128.png",
-    title: "⏳ Countdown complete!",
-    message: msg.title || "Your countdown has ended.",
-    priority: 2,
-  });
+  if (!notifAllowed('countdown')) return;
+  chrome.notifications.create(
+    `countdown_done_${Date.now()}`,
+    buildNotification('countdown', { title: msg.title }),
+  );
 }
 
 function handleEventsUpdated(msg) {
@@ -592,6 +653,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "LOOKAWAY_SYNC") {
     handleLookawaySync(msg);
+    return;
+  }
+  if (msg.type === "NOTIFICATIONS_SYNC") {
+    if (msg.enabled !== undefined) notifConfig.enabled = msg.enabled;
+    if (msg.types) notifConfig.types = { ...notifConfig.types, ...msg.types };
+    chrome.storage.local.set({ notif_enabled: notifConfig.enabled, notif_types: notifConfig.types });
     return;
   }
   if (msg.type === "LOOKAWAY_FIRE") {

@@ -227,13 +227,25 @@ export function disconnectContacts() {
 const MANUAL_KEY = 'birthdays_manual';
 
 export function loadManualBirthdays() {
-  try { return JSON.parse(localStorage.getItem(MANUAL_KEY) || '[]'); }
-  catch { return []; }
+  try {
+    const arr = JSON.parse(localStorage.getItem(MANUAL_KEY) || '[]');
+    // Seed chrome.storage.local on first read so bg.js can access them.
+    chrome?.storage?.local?.get?.('occasions_manual').then((r) => { // eslint-disable-line no-undef
+      if (!r?.occasions_manual?.length && arr.length) {
+        chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
+      }
+    }).catch(() => { });
+    return arr;
+  } catch { return []; }
 }
 
 function saveManualBirthdays(arr) {
-  try { localStorage.setItem(MANUAL_KEY, JSON.stringify(arr)); }
-  catch { /* storage full */ }
+  try {
+    localStorage.setItem(MANUAL_KEY, JSON.stringify(arr));
+    // Mirror to chrome.storage.local so bg.js can fire occasion notifications
+    // without needing access to localStorage (SW can't read it directly).
+    chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
+  } catch { /* storage full */ }
 }
 
 export function addManualBirthday(name, type, month, day) {
