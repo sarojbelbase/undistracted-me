@@ -70,7 +70,7 @@ export const Widget = ({ onRemove }) => {
           {/* Meta info: sync age · refresh (only when calendar is connected) */}
           <div className="flex items-center gap-1.5 min-w-0">
             <span
-              className="text-[11px] font-medium truncate"
+              className="text-[11px] font-semibold truncate"
               style={{ color: 'var(--w-ink-4)' }}
             >
               {syncLabel}
