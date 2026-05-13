@@ -46,6 +46,18 @@ const SegBtn = ({ onClick, disabled, label, children }) => (
   </TooltipBtn>
 );
 
+// ─── Static style object — defined at module scope to avoid recreation per render ──
+const SEG_TRACK = {
+  display: 'inline-flex', alignItems: 'center',
+  background: 'rgba(0,0,0,0.05)', borderRadius: 8,
+  padding: 2, gap: 1, marginLeft: 'auto',
+};
+
+// Pure helper — also defined outside the component to avoid recreation per render.
+const segBtn = (onClick, content, disabled = false, key = undefined, label = undefined) => (
+  <SegBtn key={key} onClick={onClick} disabled={disabled} label={label}>{content}</SegBtn>
+);
+
 // ─── Nav dot (pagination dot with Popup tooltip) ──────────────────────────────
 const NavDot = ({ active, label, onClick, hue }) => {
   const btnRef = useRef(null);
@@ -103,10 +115,13 @@ export const Widget = ({ id, onRemove }) => {
   const [localIdx, setLocalIdx] = useState(initIdx);
   const saveTimerRef = useRef(null);
 
+  // Clear debounce timer on unmount to prevent stale writes after widget removal.
+  useEffect(() => () => clearTimeout(saveTimerRef.current), []);
+
   const localText = localNotes[localIdx] ?? '';
   const total = localNotes.length;
-  const { titleLine, bodyText: bodyForCount } = splitNote(localText);
-  const wordCount = bodyForCount.trim() ? bodyForCount.trim().split(/\s+/).length : 0;
+  const { titleLine, bodyText } = splitNote(localText);
+  const wordCount = bodyText.trim() ? bodyText.trim().split(/\s+/).length : 0;
 
   // ── Change handlers ──────────────────────────────────────────────────────────
   const persist = useCallback((next) => {
@@ -144,8 +159,6 @@ export const Widget = ({ id, onRemove }) => {
       persist(next); return next;
     });
   }, [localIdx, persist]);
-
-  const { bodyText } = splitNote(localNotes[localIdx] ?? '');
 
   // ── Navigation ────────────────────────────────────────────────────────────────
   const jumpTo = useCallback((n) => {
@@ -198,15 +211,6 @@ export const Widget = ({ id, onRemove }) => {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [mode, close]);
-
-  const SEG_TRACK = {
-    display: 'inline-flex', alignItems: 'center',
-    background: 'rgba(0,0,0,0.05)', borderRadius: 8,
-    padding: 2, gap: 1, marginLeft: 'auto',
-  };
-  const segBtn = (onClick, content, disabled = false, key = undefined, label = undefined) => (
-    <SegBtn key={key} onClick={onClick} disabled={disabled} label={label}>{content}</SegBtn>
-  );
 
   const navControls = (
     <div style={SEG_TRACK}>
@@ -270,7 +274,7 @@ export const Widget = ({ id, onRemove }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           {localNotes.map((note, i) => (
             <NavDot
-              key={`dot-${i}-${note.slice(0, 6)}`}
+              key={`dot-${i}`}
               active={i === localIdx}
               label={`Note ${i + 1} of ${total}`}
               onClick={() => jumpTo(i)}
@@ -286,7 +290,7 @@ export const Widget = ({ id, onRemove }) => {
             flex: 1, minWidth: 0,
             textAlign: 'left', border: 'none', background: 'transparent',
             cursor: 'pointer', padding: '0 4px',
-            fontSize: '0.625rem', fontWeight: 500,
+            fontSize: '0.625rem', fontWeight: 600,
             color: titleLine.trim() ? 'var(--w-ink-4)' : 'var(--w-ink-6)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             letterSpacing: '0.01em', transition: 'color 0.12s',
@@ -327,7 +331,7 @@ export const Widget = ({ id, onRemove }) => {
             padding: '0 10px 0 8px',
             background: 'rgba(0,0,0,0.05)', cursor: 'pointer',
             color: 'var(--w-ink-3)', flexShrink: 0,
-            fontSize: '0.6875rem', fontWeight: 500,
+            fontSize: '0.6875rem', fontWeight: 600,
             transition: 'background 0.12s',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}

@@ -6,6 +6,7 @@
 // parent (background-dependent, cannot be self-determined here).
 
 import { useState, useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { getTimeParts } from '../../../widgets/clock/utils';
 import { onClockTick } from '../../../utilities/sharedClock';
 import { useSettingsStore } from '../../../store';
@@ -37,8 +38,9 @@ const renderSearchBar = (searchOnDark, showSearch) => showSearch ? (
 ) : null;
 
 export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDark = true }) => {
-  const clockFormat = useSettingsStore(s => s.clockFormat) || '24h';
-  const focusSearchBar = useSettingsStore(s => s.focusSearchBar ?? true);
+  const { clockFormat, focusSearchBar } = useSettingsStore(
+    useShallow(s => ({ clockFormat: s.clockFormat || '24h', focusSearchBar: s.focusSearchBar ?? true })),
+  );
   const [parts, setParts] = useState(() => getTimeParts(clockFormat));
   const update = useCallback(() => setParts(getTimeParts(clockFormat)), [clockFormat]);
   useEffect(() => onClockTick(update), [update]);

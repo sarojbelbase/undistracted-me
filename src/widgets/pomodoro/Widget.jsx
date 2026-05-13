@@ -30,13 +30,17 @@ const saveTimer = (id, state) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  // Restore from localStorage exactly once at mount — lazy useState initializers
-  // guarantee the function runs only on the first render, never on re-renders.
-  const [phase, setPhase] = useState(() => loadTimer(id)?.phase ?? 'pick');
-  const [preset, setPreset] = useState(() => loadTimer(id)?.preset ?? null);
-  const [duration, setDuration] = useState(() => loadTimer(id)?.duration ?? 0);
-  const [remaining, setRemaining] = useState(() => loadTimer(id)?.remaining ?? 0);
-  const [running, setRunning] = useState(() => loadTimer(id)?.running ?? false);
+  // Read localStorage exactly once — shared across all useState initializers via ref.
+  // This matches the useFocusPhoto initRef pattern used elsewhere in the codebase.
+  const initRef = useRef(undefined);
+  if (initRef.current === undefined) initRef.current = loadTimer(id);
+  const init = initRef.current;
+
+  const [phase, setPhase] = useState(() => init?.phase ?? 'pick');
+  const [preset, setPreset] = useState(() => init?.preset ?? null);
+  const [duration, setDuration] = useState(() => init?.duration ?? 0);
+  const [remaining, setRemaining] = useState(() => init?.remaining ?? 0);
+  const [running, setRunning] = useState(() => init?.running ?? false);
   const [customInput, setCustomInput] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const intervalRef = useRef(null);

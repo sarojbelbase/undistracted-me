@@ -124,9 +124,11 @@ export const useGoogleCalendar = () => {
   const fetchedRef = useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
     loadCachedGcalEvents().then(cached => {
-      if (cached.length > 0) setGcalEvents(cached);
+      if (!cancelled && cached.length > 0) setGcalEvents(cached);
     });
+    return () => { cancelled = true; };
   }, []);
 
   // Background sync — non-interactive, never triggers OAuth UI
@@ -224,8 +226,10 @@ export const useGoogleProfile = () => {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    loadCachedProfile().then(p => { if (p) setProfile(p); });
-    getGoogleProfile().then(p => { if (p) setProfile(p); });
+    let cancelled = false;
+    loadCachedProfile().then(p => { if (!cancelled && p) setProfile(p); });
+    getGoogleProfile().then(p => { if (!cancelled && p) setProfile(p); });
+    return () => { cancelled = true; };
   }, []);
 
   return profile;
