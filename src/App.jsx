@@ -12,6 +12,7 @@ import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
 import { FocusModeButton } from "./components/ui/FocusModeButton";
 import { useSettingsStore, useWidgetInstancesStore } from "./store";
+import { STORE_KEY } from "./store/useSettingsStore";
 import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
 import { useGoogleAccountStore } from "./store/useGoogleAccountStore";
 import { useUIStore } from "./store/useUIStore";
@@ -25,11 +26,20 @@ import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
 
 // ── On-demand lazy components ────────────────────────────────────────────────
-// None of these appear on the initial new-tab render, so we defer them.
 
-// FocusMode is the largest feature — defer until the user first opens it.
+const _focusModeChunk = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (stored?.state?.defaultView === 'focus') {
+      return import("./components/FocusMode");
+    }
+  } catch { /* ignore */ }
+  return null;
+})();
+
 const FocusMode = lazy(() =>
-  import("./components/FocusMode").then((m) => ({ default: m.FocusMode })),
+  (_focusModeChunk || import("./components/FocusMode"))
+    .then((m) => ({ default: m.FocusMode })),
 );
 
 // Analytics is only used on the web demo — lazy-import so the module is never
@@ -253,7 +263,11 @@ const App = () => {
           style={{ display: showFocusMode ? "block" : "none" }}
           inert={!showFocusMode}
         >
-          <Suspense fallback={null}>
+          <Suspense fallback={
+            showFocusMode
+              ? <div className="fixed inset-0 z-50" style={{ backgroundColor: '#060608' }} />
+              : null
+          }>
             <FocusMode onExit={closeFocusMode} />
           </Suspense>
         </div>
