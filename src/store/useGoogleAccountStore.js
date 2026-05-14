@@ -19,6 +19,7 @@ import {
 } from '../utilities/googleAuth';
 import { disconnectCalendar } from '../utilities/googleCalendar';
 import { disconnectContacts } from '../utilities/googleContacts';
+import { friendlyError } from '../utilities/index';
 
 /** Custom event dispatched on connect/disconnect so hooks can react without prop-drilling. */
 export const GOOGLE_ACCOUNT_CHANGED = 'google_account_changed';
@@ -72,7 +73,7 @@ export const useGoogleAccountStore = create((set, get) => ({
         new CustomEvent(GOOGLE_ACCOUNT_CHANGED, { detail: { connected: true, profile } }),
       );
     } catch (err) {
-      set({ connecting: false, error: err.message || 'Sign-in failed. Try again.' });
+      set({ connecting: false, error: friendlyError(err) });
     }
   },
 

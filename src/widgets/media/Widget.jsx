@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill, MusicNoteBeamed } from 'react-bootstrap-icons';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { TintedChip } from '../../components/ui/TintedChip';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { SpotifyIcon as SpotifyBrandIcon } from '../../assets/brand/icons';
 import { BaseWidget } from '../BaseWidget';
 import {
@@ -533,19 +534,21 @@ export const Widget = ({ onRemove }) => {
                   aria-hidden="true"
                 />
               )}
-              <button
-                onClick={() => handleChromePlayPause(activeSession)}
-                className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  color: '#000',
-                  opacity: chromePendingTabId === activeSession?.tabId ? 0.65 : 1,
-                  transition: 'opacity 0.2s, transform 0.15s',
-                }}
-                aria-label={activeSession?.playbackState === 'playing' ? 'Pause' : 'Play'}
-              >
-                {activeSession?.playbackState === 'playing' ? <PauseFill size={16} /> : <PlayFill size={16} />}
-              </button>
+              <TooltipBtn tooltip={activeSession?.playbackState === 'playing' ? 'Pause' : 'Play'}>
+                <button
+                  onClick={() => handleChromePlayPause(activeSession)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    color: '#000',
+                    opacity: chromePendingTabId === activeSession?.tabId ? 0.65 : 1,
+                    transition: 'opacity 0.2s, transform 0.15s',
+                  }}
+                  aria-label={activeSession?.playbackState === 'playing' ? 'Pause' : 'Play'}
+                >
+                  {activeSession?.playbackState === 'playing' ? <PauseFill size={16} /> : <PlayFill size={16} />}
+                </button>
+              </TooltipBtn>
             </div>
             <div className="relative">
               {chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'next' && (
@@ -555,20 +558,22 @@ export const Widget = ({ onRemove }) => {
                   aria-hidden="true"
                 />
               )}
-              <button
-                onClick={() => handleChromeNext(activeSession)}
-                className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"
-                style={{
-                  backgroundColor: chromeBtnBg,
-                  color: chromeInk,
-                  border: chromeBtnBorder,
-                  opacity: chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'next' ? 0.6 : 1,
-                  transition: 'opacity 0.2s',
-                }}
-                aria-label="Next"
-              >
-                <SkipEndFill size={13} />
-              </button>
+              <TooltipBtn tooltip="Next">
+                <button
+                  onClick={() => handleChromeNext(activeSession)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"
+                  style={{
+                    backgroundColor: chromeBtnBg,
+                    color: chromeInk,
+                    border: chromeBtnBorder,
+                    opacity: chromeSkipPending?.tabId === activeSession?.tabId && chromeSkipPending?.action === 'next' ? 0.6 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
+                  aria-label="Next"
+                >
+                  <SkipEndFill size={13} />
+                </button>
+              </TooltipBtn>
             </div>
           </div>
         </div>
@@ -620,19 +625,22 @@ export const Widget = ({ onRemove }) => {
                 aria-hidden="true"
               />
             )}
-            <button
-              onClick={handlePrev}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-              style={{
-                backgroundColor: btnBg,
-                color: inkColor,
-                border: btnBorder,
-                opacity: spotifySkipPending === 'prev' ? 0.6 : 1,
-                transition: 'opacity 0.2s',
-              }}
-            >
-              <SkipStartFill size={13} />
-            </button>
+            <TooltipBtn tooltip="Previous">
+              <button
+                onClick={handlePrev}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                style={{
+                  backgroundColor: btnBg,
+                  color: inkColor,
+                  border: btnBorder,
+                  opacity: spotifySkipPending === 'prev' ? 0.6 : 1,
+                  transition: 'opacity 0.2s',
+                }}
+                aria-label="Previous"
+              >
+                <SkipStartFill size={13} />
+              </button>
+            </TooltipBtn>
           </div>
           <div className="relative">
             {spotifyPending && (
@@ -642,18 +650,21 @@ export const Widget = ({ onRemove }) => {
                 aria-hidden="true"
               />
             )}
-            <button
-              onClick={handlePlayPause}
-              className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.9)',
-                color: '#000',
-                opacity: spotifyPending ? 0.65 : 1,
-                transition: 'opacity 0.2s, transform 0.15s',
-              }}
-            >
-              {track.isPlaying ? <PauseFill size={16} /> : <PlayFill size={16} />}
-            </button>
+            <TooltipBtn tooltip={track.isPlaying ? 'Pause' : 'Play'}>
+              <button
+                onClick={handlePlayPause}
+                className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  color: '#000',
+                  opacity: spotifyPending ? 0.65 : 1,
+                  transition: 'opacity 0.2s, transform 0.15s',
+                }}
+                aria-label={track.isPlaying ? 'Pause' : 'Play'}
+              >
+                {track.isPlaying ? <PauseFill size={16} /> : <PlayFill size={16} />}
+              </button>
+            </TooltipBtn>
           </div>
           <div className="relative">
             {spotifySkipPending === 'next' && (
@@ -663,19 +674,22 @@ export const Widget = ({ onRemove }) => {
                 aria-hidden="true"
               />
             )}
-            <button
-              onClick={handleNext}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-              style={{
-                backgroundColor: btnBg,
-                color: inkColor,
-                border: btnBorder,
-                opacity: spotifySkipPending === 'next' ? 0.6 : 1,
-                transition: 'opacity 0.2s',
-              }}
-            >
-              <SkipEndFill size={13} />
-            </button>
+            <TooltipBtn tooltip="Next">
+              <button
+                onClick={handleNext}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                style={{
+                  backgroundColor: btnBg,
+                  color: inkColor,
+                  border: btnBorder,
+                  opacity: spotifySkipPending === 'next' ? 0.6 : 1,
+                  transition: 'opacity 0.2s',
+                }}
+                aria-label="Next"
+              >
+                <SkipEndFill size={13} />
+              </button>
+            </TooltipBtn>
           </div>
         </div>
       </div>

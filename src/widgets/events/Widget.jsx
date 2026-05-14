@@ -1,5 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
+
+const EventSkeleton = () => (
+  <div className="flex-1 flex flex-col gap-3.5">
+    {[0, 1].map(i => (
+      <div key={i} className="flex flex-col gap-1.5 animate-pulse">
+        <div className="h-3 rounded-full" style={{ width: i === 0 ? '60%' : '48%', background: 'var(--w-border)' }} />
+        <div className="h-2.5 rounded-full" style={{ width: i === 0 ? '40%' : '32%', background: 'var(--w-border)' }} />
+      </div>
+    ))}
+  </div>
+);
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
@@ -92,7 +103,9 @@ export const Widget = ({ onRemove }) => {
         </div>
 
         {/* ── Event list / empty state ── */}
-        {upcomingEvents.length === 0 ? (
+        {loading && upcomingEvents.length === 0 ? (
+          <EventSkeleton />
+        ) : upcomingEvents.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
             <CalendarEvent size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
             <p className="w-muted font-semibold">

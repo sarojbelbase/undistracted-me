@@ -16,6 +16,7 @@ import {
   fetchAndCacheProfile as fetchSpotifyProfile,
   getSpotifyProfile,
 } from '../../widgets/media/utils';
+import { friendlyError } from '../../utilities/index';
 
 // Event key shared with media/Widget.jsx for Spotify connect/disconnect sync.
 const SPOTIFY_ACCOUNT_CHANGED = 'spotify_account_changed';
@@ -59,7 +60,7 @@ const SpotifySection = () => {
       if (p) setProfile(p);
       globalThis.dispatchEvent(new CustomEvent(SPOTIFY_ACCOUNT_CHANGED, { detail: { connected: true, profile: p } }));
     } catch (err) {
-      setError(err.message || 'Could not connect. Try again.');
+      setError(friendlyError(err));
     } finally {
       setConnecting(false);
     }

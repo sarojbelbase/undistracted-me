@@ -2,11 +2,50 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
+import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume } from './utils';
 import config from './config';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 const DEFAULT_STOCK_SETTINGS = { symbols: ['NEPSE'] };
+
+// ── Skeleton bone ──────────────────────────────────────────────────────────────
+const Bone = ({ width, height = '0.9rem', className = '' }) => (
+  <div
+    className={`rounded animate-pulse ${className}`}
+    style={{ width, height, background: 'var(--w-border)', flexShrink: 0 }}
+  />
+);
+
+const StockSingleSkeleton = () => (
+  <div className="flex flex-col gap-2 px-3 pt-1 pb-2">
+    <Bone width="5rem" height="1.7rem" />
+    <Bone width="3.5rem" height="0.75rem" />
+    <div className="flex gap-3 mt-1">
+      <Bone width="2rem" height="0.65rem" />
+      <Bone width="2rem" height="0.65rem" />
+      <Bone width="2rem" height="0.65rem" />
+    </div>
+  </div>
+);
+
+const StockListSkeleton = ({ count }) => (
+  <div className="flex flex-col flex-1">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="flex items-center justify-between px-3 py-2 animate-pulse"
+        style={{ borderBottom: i < count - 1 ? '1px solid var(--card-border)' : 'none' }}
+      >
+        <div className="flex flex-col gap-1">
+          <Bone width="3rem" height="0.65rem" />
+          <Bone width="2.5rem" height="0.8rem" />
+        </div>
+        <Bone width="2.5rem" height="0.65rem" />
+      </div>
+    ))}
+  </div>
+);
 
 const DIR_COLOR = {
   up: 'var(--w-success)',
@@ -155,6 +194,7 @@ export const Widget = ({ id, onRemove }) => {
 
   useEffect(() => { load(); }, [load]);
 
+  const isFirstLoad = loading && !refreshedAt;
   const isSingle = symbols.length <= 1;
   const primarySym = symbols[0];
   const chart = isSingle ? (chartMap[primarySym] ?? null) : null;
@@ -183,18 +223,20 @@ export const Widget = ({ id, onRemove }) => {
       {ageLabel && (
         <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>{ageLabel}</span>
       )}
-      <button
-        onClick={load}
-        disabled={loading}
-        aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
-        className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
-        style={{ color: inkMuted }}
-      >
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M13.5 8a5.5 5.5 0 1 1-1.07-3.3" />
-          <polyline points="12 2 13.5 4.7 10.8 5.5" />
-        </svg>
-      </button>
+      <TooltipBtn tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}>
+        <button
+          onClick={load}
+          disabled={loading}
+          aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
+          className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
+          style={{ color: inkMuted }}
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.07-3.3" />
+            <polyline points="12 2 13.5 4.7 10.8 5.5" />
+          </svg>
+        </button>
+      </TooltipBtn>
     </div>
   );
 
@@ -213,7 +255,9 @@ export const Widget = ({ id, onRemove }) => {
           {RefreshBtn}
         </div>
         <div className="flex flex-col flex-1">
-          {symbols.map((sym, i) => (
+          {isFirstLoad ? (
+            <StockListSkeleton count={symbols.length} />
+          ) : symbols.map((sym, i) => (
             <StockRow
               key={sym}
               sym={sym}
@@ -248,52 +292,58 @@ export const Widget = ({ id, onRemove }) => {
 
       {/* ── Body — natural height, never flex-stretched ── */}
       <div className="shrink-0 px-3 pb-0">
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mt-0.5">
-          <span
-            className="font-semibold leading-none tabular-nums transition-colors duration-300"
-            style={{
-              fontSize: priceSize,
-              color: isDead ? inkMuted : 'var(--w-ink-1)',
-            }}
-          >
-            {chart ? fmtPrice(chart.ltp) : '—'}
-          </span>
-        </div>
-
-        {/* Change row */}
-        <div className="flex items-center gap-1.5 mt-1" style={{ color: isDead ? inkMuted : color, transition: 'color 0.3s' }}>
-          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
-            {!isDead && stats?.dir === 'up'
-              ? <polygon points="4,0 8,8 0,8" />
-              : !isDead && stats?.dir === 'down'
-                ? <polygon points="0,0 8,0 4,8" />
-                : <rect x="0" y="3" width="8" height="2" rx="1" />
-            }
-          </svg>
-          <span className="text-xs font-semibold tabular-nums">
-            {isDead ? '0.00' : `${stats?.change > 0 ? '+' : ''}${fmtPrice(stats?.change)}`}
-          </span>
-          <span className="text-[10px] font-medium tabular-nums" style={{ opacity: isDead ? 0.4 : 1 }}>
-            ({isDead ? '0.00%' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`})
-          </span>
-        </div>
-
-        {/* O / H / L — always visible in single-stock view */}
-        <div className="grid grid-cols-3 items-baseline gap-x-2 mt-1.5">
-          {[
-            { label: 'O', val: chart?.open },
-            { label: 'H', val: chart?.high },
-            { label: 'L', val: chart?.low },
-          ].map(({ label, val }) => (
-            <div key={label} className="flex items-baseline gap-0.5">
-              <span className="font-medium shrink-0" style={{ fontSize: ohlSize, color: inkMuted }}>{label}</span>
-              <span className="tabular-nums shrink-0 transition-colors duration-300" style={{ fontSize: ohlSize, color: isDead ? inkMuted : 'var(--w-ink-3)' }}>
-                {val != null ? fmtOHL(val) : '—'}
+        {isFirstLoad ? (
+          <StockSingleSkeleton />
+        ) : (
+          <>
+            {/* Price */}
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span
+                className="font-semibold leading-none tabular-nums transition-colors duration-300"
+                style={{
+                  fontSize: priceSize,
+                  color: isDead ? inkMuted : 'var(--w-ink-1)',
+                }}
+              >
+                {chart ? fmtPrice(chart.ltp) : '—'}
               </span>
             </div>
-          ))}
-        </div>
+
+            {/* Change row */}
+            <div className="flex items-center gap-1.5 mt-1" style={{ color: isDead ? inkMuted : color, transition: 'color 0.3s' }}>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
+                {!isDead && stats?.dir === 'up'
+                  ? <polygon points="4,0 8,8 0,8" />
+                  : !isDead && stats?.dir === 'down'
+                    ? <polygon points="0,0 8,0 4,8" />
+                    : <rect x="0" y="3" width="8" height="2" rx="1" />
+                }
+              </svg>
+              <span className="text-xs font-semibold tabular-nums">
+                {isDead ? '0.00' : `${stats?.change > 0 ? '+' : ''}${fmtPrice(stats?.change)}`}
+              </span>
+              <span className="text-[10px] font-medium tabular-nums" style={{ opacity: isDead ? 0.4 : 1 }}>
+                ({isDead ? '0.00%' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`})
+              </span>
+            </div>
+
+            {/* O / H / L — always visible in single-stock view */}
+            <div className="grid grid-cols-3 items-baseline gap-x-2 mt-1.5">
+              {[
+                { label: 'O', val: chart?.open },
+                { label: 'H', val: chart?.high },
+                { label: 'L', val: chart?.low },
+              ].map(({ label, val }) => (
+                <div key={label} className="flex items-baseline gap-0.5">
+                  <span className="font-medium shrink-0" style={{ fontSize: ohlSize, color: inkMuted }}>{label}</span>
+                  <span className="tabular-nums shrink-0 transition-colors duration-300" style={{ fontSize: ohlSize, color: isDead ? inkMuted : 'var(--w-ink-3)' }}>
+                    {val != null ? fmtOHL(val) : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Elastic gap — fills available space when card is tall, collapses to 0 when short */}

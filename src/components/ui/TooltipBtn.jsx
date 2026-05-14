@@ -17,10 +17,15 @@ export const TooltipBtn = ({ tooltip, children, onMouseEnter, onMouseLeave, ...r
   const ref = useRef(null);
   const [anchor, setAnchor] = useState(null);
 
+  // Forward tooltip string as aria-label when no explicit aria-label is passed,
+  // so screen readers announce the button purpose even without hover.
+  const ariaLabel = rest['aria-label'] ?? (typeof tooltip === 'string' ? tooltip : undefined);
+
   return (
     <>
       <button
         ref={ref}
+        aria-label={ariaLabel}
         onMouseEnter={(e) => {
           setAnchor(ref.current?.getBoundingClientRect() ?? null);
           onMouseEnter?.(e);
