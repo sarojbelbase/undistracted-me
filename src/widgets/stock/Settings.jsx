@@ -23,7 +23,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
     setLoading(true);
     fetchCompanies()
       .then(setCompanies)
-      .catch(() => setError('Could not load companies'))
+      .catch(() => setError('Could not load stock symbols. Check your connection.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -106,7 +106,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
           <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>Loading…</p>
         )}
         {error && (
-          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-danger)' }}>{error}</p>
+          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-danger)' }} aria-live="polite" role="alert">{error}</p>
         )}
         {!loading && !error && query.trim() && filtered.length === 0 && (
           <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>No results</p>

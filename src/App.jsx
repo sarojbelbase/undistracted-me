@@ -57,7 +57,6 @@ const LookAway = lazy(() =>
 const CommandPalette = lazy(() =>
   import("./components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
-
 // WidgetCatalog renders at App level (not inside ControlCluster) so keep its
 // lazy import here; the preloader is passed down as a prop.
 const catalogImport = () =>
@@ -198,7 +197,6 @@ const App = () => {
   const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
   const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
-
   // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
   useEffect(() => {
     useUIStore.getState().setFocusModeActive(showFocusMode);

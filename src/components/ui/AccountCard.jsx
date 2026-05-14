@@ -154,7 +154,7 @@ export const AccountCard = ({
 
       {/* Error */}
       {error && (
-        <p className="text-[11px] leading-snug m-0" style={{ color: 'var(--w-danger)' }}>
+        <p className="text-[11px] leading-snug m-0" style={{ color: 'var(--w-danger)' }} aria-live="polite" role="alert">
           {error}
         </p>
       )}

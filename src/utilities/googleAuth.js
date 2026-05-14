@@ -171,7 +171,9 @@ async function getTokenWeb(interactive) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(`Google token exchange failed: ${body.error || res.status}`);
+    const errCode = body.error || res.status;
+    if (String(errCode).includes('invalid_grant')) throw new Error('Your session expired. Please sign in again.');
+    throw new Error(`Google token exchange failed: ${errCode}`);
   }
 
   const tokens = await res.json();
@@ -309,7 +311,7 @@ async function getTokenFirefox(interactive) {
   });
 
   const code = new URL(responseUrl).searchParams.get('code');
-  if (!code) throw new Error('No authorization code in response');
+  if (!code) throw new Error('Sign-in was interrupted. Please try again.');
 
   const res = await fetch(FF_BACKEND_TOKEN_URL, {
     method: 'POST',
@@ -319,7 +321,9 @@ async function getTokenFirefox(interactive) {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(`Google token exchange failed: ${body.error || res.status}`);
+    const errCode = body.error || res.status;
+    if (String(errCode).includes('invalid_grant')) throw new Error('Your session expired. Please sign in again.');
+    throw new Error(`Google token exchange failed: ${errCode}`);
   }
 
   const tokens = await res.json();

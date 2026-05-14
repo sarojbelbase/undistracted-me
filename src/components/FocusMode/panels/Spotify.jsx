@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { MusicNoteBeamed, PauseFill, PlayFill, SkipStartFill, SkipEndFill } from 'react-bootstrap-icons';
 import { FOCUS_THEME, FM_SPINNER_RING, FM_SPINNER_ACTIVE } from '../theme';
+import { TooltipBtn } from '../../ui/TooltipBtn';
 
 export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPending }) => {
   const t = FOCUS_THEME;
@@ -45,12 +46,15 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
 
       {/* Playback controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
-        <button
-          onClick={onPrev}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'prev' ? 0.5 : 1, transition: 'opacity 0.2s' }}
-        >
-          <SkipStartFill size={14} />
-        </button>
+        <TooltipBtn tooltip="Previous">
+          <button
+            onClick={onPrev}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'prev' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+            aria-label="Previous"
+          >
+            <SkipStartFill size={14} />
+          </button>
+        </TooltipBtn>
         <div style={{ position: 'relative' }}>
           {pending && (
             <div
@@ -59,19 +63,25 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
               aria-hidden="true"
             />
           )}
-          <button
-            onClick={onToggle}
-            style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pending ? 0.75 : 1, transition: 'opacity 0.2s' }}
-          >
-            {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
-          </button>
+          <TooltipBtn tooltip={track.isPlaying ? 'Pause' : 'Play'}>
+            <button
+              onClick={onToggle}
+              style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pending ? 0.75 : 1, transition: 'opacity 0.2s' }}
+              aria-label={track.isPlaying ? 'Pause' : 'Play'}
+            >
+              {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
+            </button>
+          </TooltipBtn>
         </div>
-        <button
-          onClick={onNext}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'next' ? 0.5 : 1, transition: 'opacity 0.2s' }}
-        >
-          <SkipEndFill size={14} />
-        </button>
+        <TooltipBtn tooltip="Next">
+          <button
+            onClick={onNext}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'next' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+            aria-label="Next"
+          >
+            <SkipEndFill size={14} />
+          </button>
+        </TooltipBtn>
       </div>
     </div>
   );

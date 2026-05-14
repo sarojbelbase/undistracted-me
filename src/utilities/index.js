@@ -163,3 +163,19 @@ function makeUid(prefix = '') {
     const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     return prefix ? `${prefix}_${suffix}` : suffix;
 }
+
+/**
+ * Maps a raw error to a user-facing message.
+ * Handles known OAuth, network, and API error patterns.
+ */
+export function friendlyError(err) {
+    const msg = err?.message || '';
+    if (!msg) return 'Something went wrong. Please try again.';
+    if (/failed to fetch|network|networkerror/i.test(msg)) return 'Network error — check your connection.';
+    if (/popup_closed|user_cancelled|cancelled|Sign-in cancelled/i.test(msg)) return 'Sign-in was cancelled.';
+    if (/popup.*blocked|blocked.*popup/i.test(msg)) return 'Pop-up was blocked — allow pop-ups for this site and try again.';
+    if (/invalid_grant/i.test(msg)) return 'Your session expired. Please sign in again.';
+    if (/not_authenticated|not authenticated/i.test(msg)) return 'Please sign in to Google first.';
+    if (/interrupted|no authorization code/i.test(msg)) return 'Sign-in was interrupted. Please try again.';
+    return msg;
+}

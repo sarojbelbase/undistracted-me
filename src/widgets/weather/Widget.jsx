@@ -5,6 +5,8 @@ import config from "./config";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { Settings } from "./Settings";
 import { GeoAlt } from "react-bootstrap-icons";
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import {
   getWeatherIcon,
   fetchOpenMeteo,
@@ -251,17 +253,20 @@ const LocationDeniedState = () => (
   </div>
 );
 
-const ErrorState = () => (
+const ErrorState = ({ onRetry }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
     <GeoAlt size={22} style={{ color: "var(--w-ink-4)", opacity: 0.65 }} />
     <p className="w-muted font-semibold">Couldn&apos;t load weather</p>
-    <p className="w-caption leading-relaxed">
-      Open{" "}
-      <span className="font-semibold" style={{ color: "var(--w-ink-3)" }}>
-        Settings
-      </span>{" "}
-      to check your location.
-    </p>
+    <p className="w-caption leading-relaxed">Check your connection or location.</p>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        className="mt-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-75"
+        style={{ background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)', color: 'var(--w-accent)' }}
+      >
+        Try again
+      </button>
+    )}
   </div>
 );
 
@@ -591,6 +596,7 @@ function getWeatherContent({
   locationDenied,
   location,
   error,
+  onRetry,
   weather,
   style,
   unitLabel,
@@ -603,7 +609,7 @@ function getWeatherContent({
   showAQI,
 }) {
   if (locationDenied && !location) return <LocationDeniedState />;
-  if (error) return <ErrorState />;
+  if (error) return <ErrorState onRetry={onRetry} />;
   if (style === "expressive") {
     if (!weather) return <ExpressiveSkeleton />;
     return (
@@ -652,6 +658,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
   const [error, setError] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Read auto-location from the centralized location store.
   // When the store updates (e.g. VPN switch), geoLat/geoLon change and
@@ -761,7 +768,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
     if (!cached?.fresh) load();
     const timerId = setInterval(load, 30 * 60_000);
     return () => { mounted = false; clearInterval(timerId); };
-  }, [location, unit, geoLat, geoLon, geoSource, geoCity]);
+  }, [location, unit, geoLat, geoLon, geoSource, geoCity, refreshKey]);
 
   const settingsContent = (
     <Settings
@@ -786,6 +793,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
     locationDenied,
     location,
     error,
+    onRetry: () => { setError(null); setRefreshKey(k => k + 1); },
     weather,
     style,
     unitLabel,
@@ -806,6 +814,17 @@ export const Widget = ({ id = "weather", onRemove }) => {
       onRemove={onRemove}
     >
       {content}
+      {/* Manual refresh button — hover reveal in bottom-right corner */}
+      {weather && (
+        <TooltipBtn
+          tooltip="Refresh weather"
+          onClick={() => { setError(null); setRefreshKey(k => k + 1); }}
+          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-6 h-6 flex items-center justify-center rounded-full"
+          style={{ color: 'var(--w-ink-4)' }}
+        >
+          <RefreshIcon />
+        </TooltipBtn>
+      )}
     </BaseWidget>
   );
 };
