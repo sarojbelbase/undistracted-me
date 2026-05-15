@@ -205,10 +205,11 @@ export const requestAndCacheCoords = () => {
  * Synchronously compute the effective mode ('light' | 'dark') for 'auto' setting.
  *
  * Priority:
- *   1. If real coordinates are cached (from browser geolocation or IP), use sun times.
- *   2. Otherwise fall back to the OS color-scheme preference — this is correct on
- *      every platform and handles the common case where the user hasn't granted
- *      location yet (or is running the extension where IP geo is blocked).
+ *   1. Zustand location store persist ('location_state') — always populated with
+ *      real lat/lon from browser geolocation or IP; computes fresh sun times so
+ *      this path is immune to stale stored timestamps.
+ *   2. Legacy auto_theme_coords — written by older builds via requestAndCacheCoords.
+ *   3. OS color-scheme preference — last resort when no location is available.
  *
  * Safe to call at module init time (no async, no side effects).
  *
@@ -216,23 +217,29 @@ export const requestAndCacheCoords = () => {
  * @returns {'light' | 'dark'}
  */
 export const computeAutoMode = (date = new Date()) => {
-  const source = getCachedCoordsSource();
-  if (source === 'default') {
-    // No real location cached — defer to OS preference so the result is at least
-    // correct for the user's system rather than tied to Kathmandu time.
-    if (globalThis.window?.matchMedia) {
-      return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // Tier 1: Zustand location_state — the canonical source of truth for coords.
+  // Always try this first; it is populated even when auto_theme_coords is absent.
+  try {
+    const locationState = JSON.parse(localStorage.getItem('location_state'));
+    const s = locationState?.state;
+    if (s?.source && s.source !== 'default' &&
+      typeof s.lat === 'number' && typeof s.lon === 'number') {
+      const sunTimes = getSunTimes(s.lat, s.lon, date);
+      if (sunTimes) return getEffectiveMode(sunTimes, date);
     }
-    return 'light';
+  } catch { /* storage unavailable */ }
+
+  // Tier 2: legacy auto_theme_coords (populated by requestAndCacheCoords in older builds).
+  const legacySource = getCachedCoordsSource();
+  if (legacySource !== 'default') {
+    const { lat, lon } = getCachedCoords();
+    const sunTimes = getSunTimes(lat, lon, date);
+    if (sunTimes) return getEffectiveMode(sunTimes, date);
   }
-  const { lat, lon } = getCachedCoords();
-  const sunTimes = getSunTimes(lat, lon, date);
-  // Polar regions (midnight sun / polar night) — fall back to OS preference
-  if (!sunTimes) {
-    if (globalThis.window?.matchMedia) {
-      return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
+
+  // Tier 3: OS preference — correct on every platform when no location is known.
+  if (globalThis.window?.matchMedia) {
+    return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
-  return getEffectiveMode(sunTimes, date);
+  return 'light';
 };
