@@ -1,3 +1,6 @@
+import { useSettingsStore } from '../store/useSettingsStore';
+import { applyFirstRunDefaultsToStorage } from '../utilities/applyFirstRunDefaults';
+
 /** Collect all localStorage entries into a plain object, values parsed back to JS types. */
 const collectAll = () => {
   const data = {};
@@ -58,8 +61,20 @@ export const importFromFile = (onError) => {
   input.click();
 };
 
-/** Clear every localStorage key and reload. */
+/** Clear every localStorage key and reload.
+ *  Preserves quickTourSeenVersion so the onboarding tour is not shown again.
+ *  Re-applies first-run widget defaults so the dashboard starts populated. */
 export const resetSettings = () => {
+  // Preserve tour seen status — user has already completed onboarding.
+  const tourVersion = useSettingsStore.getState().quickTourSeenVersion;
   localStorage.clear();
-  window.location.reload();
+  if (tourVersion) {
+    localStorage.setItem('undistracted_settings', JSON.stringify({
+      state: { quickTourSeenVersion: tourVersion },
+      version: 0,
+    }));
+  }
+  // Re-populate widget data with first-run defaults.
+  applyFirstRunDefaultsToStorage();
+  globalThis.location.reload();
 };

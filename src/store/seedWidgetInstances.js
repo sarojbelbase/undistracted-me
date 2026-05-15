@@ -12,6 +12,7 @@
 import { WIDGET_REGISTRY } from '../widgets';
 import { CURRENT_PLATFORM } from '../constants/env';
 import { useWidgetInstancesStore } from './useWidgetInstancesStore';
+import { applyFirstRunDefaults } from '../utilities/applyFirstRunDefaults';
 
 const isSupportedOnPlatform = (widget) => {
   const p = widget.platforms?.[CURRENT_PLATFORM];
@@ -25,4 +26,7 @@ export const seedWidgetInstancesIfEmpty = () => {
       .filter((w) => w.enabled && isSupportedOnPlatform(w))
       .map((w) => ({ id: w.type, type: w.type })),
   });
+  // Apply first-run widget defaults immediately after seeding so they are in
+  // the Zustand store and localStorage BEFORE widgets mount on the next render.
+  applyFirstRunDefaults();
 };
