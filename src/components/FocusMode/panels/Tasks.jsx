@@ -18,6 +18,7 @@ import {
 } from '../theme';
 import { CloseIcon } from '../../../assets/svg/CloseIcon';
 import { TrashIcon } from '../../../assets/svg/TrashIcon';
+import { Input } from '../../ui/Input';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 // All surface tokens reference FM_* constants — always dark glass, never CSS vars.
@@ -228,7 +229,7 @@ const AddTaskInput = ({ onAdd, centerOnDark = true }) => {
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.45 }}>
           <path d="M6 1v10M1 6h10" stroke={t.iconStroke} strokeWidth="1.6" strokeLinecap="round" />
         </svg>
-        <input
+        <Input
           value={value}
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') commit(); }}
@@ -237,14 +238,10 @@ const AddTaskInput = ({ onAdd, centerOnDark = true }) => {
           placeholder="New task…"
           className="fm-taskinput"
           style={{
-            flex: 1,
-            background: 'transparent',
-            border: 'none',
             color: t.textColor,
-            fontSize: 12.5,
-            outline: 'none',
-            minWidth: 0,
+            WebkitTextFillColor: t.textColor,
             caretColor: t.caret,
+            fontSize: 13,
           }}
         />
         <style>{`.fm-taskinput::placeholder { color: ${t.placeholder}; }`}</style>
