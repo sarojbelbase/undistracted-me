@@ -38,6 +38,7 @@ const TasksPillSkeleton = () => (
 
 export const BottomRightZone = ({
   taskState,
+  centerOnDark = true,
   externalDialogOpen,
   onCloseExternalDialog,
 }) => {
@@ -56,7 +57,7 @@ export const BottomRightZone = ({
       {focusTasks && (
         <div className="pointer-events-auto" style={{ position: "absolute", bottom: 24, right: 24, zIndex: 22 }} onClick={e => e.stopPropagation()} role="none">
           <Suspense fallback={<TasksPillSkeleton />}>
-            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} onOpenDialog={() => setDialogOpen(true)} />
+            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} onOpenDialog={() => setDialogOpen(true)} centerOnDark={centerOnDark} />
           </Suspense>
         </div>
       )}

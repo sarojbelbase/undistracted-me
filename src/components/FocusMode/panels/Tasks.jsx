@@ -13,7 +13,8 @@ import {
   FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
   FM_INK_1, FM_INK_2, FM_INK_4,
   FM_SUCCESS, FM_SUCCESS_BG, FM_SUCCESS_BORDER,
-  FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
+  FM_TOGGLE_OFF_BG,
+  getTokens,
 } from '../theme';
 import { CloseIcon } from '../../../assets/svg/CloseIcon';
 import { TrashIcon } from '../../../assets/svg/TrashIcon';
@@ -201,9 +202,10 @@ const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
 
 // ─── Add task input ───────────────────────────────────────────────────────────
 
-const AddTaskInput = ({ onAdd }) => {
+const AddTaskInput = ({ onAdd, centerOnDark = true }) => {
   const [value, setValue] = useState('');
   const [focused, setFocused] = useState(false);
+  const t = getTokens(centerOnDark);
 
   const commit = () => {
     if (value.trim()) { onAdd(value.trim()); setValue(''); }
@@ -218,15 +220,13 @@ const AddTaskInput = ({ onAdd }) => {
           gap: 8,
           padding: '6px 10px',
           borderRadius: 9,
-          background: INPUT_BG,
-          border: focused
-            ? `1px solid ${FM_INK_4}`
-            : SECTION_BORDER,
-          transition: 'border-color 0.15s',
+          background: focused ? t.pillBgFocused : t.pillBg,
+          border: `1px solid ${focused ? t.pillBorderFoc : t.pillBorder}`,
+          transition: 'background 0.15s, border-color 0.15s',
         }}
       >
-        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.3 }}>
-          <path d="M6 1v10M1 6h10" stroke="white" strokeWidth="1.6" strokeLinecap="round" />
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.45 }}>
+          <path d="M6 1v10M1 6h10" stroke={t.iconStroke} strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <input
           value={value}
@@ -235,16 +235,19 @@ const AddTaskInput = ({ onAdd }) => {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="New task…"
+          className="fm-taskinput"
           style={{
             flex: 1,
             background: 'transparent',
             border: 'none',
-            color: BRIGHT,
+            color: t.textColor,
             fontSize: 12.5,
             outline: 'none',
             minWidth: 0,
+            caretColor: t.caret,
           }}
         />
+        <style>{`.fm-taskinput::placeholder { color: ${t.placeholder}; }`}</style>
         {value.trim() && (
           <button
             onClick={commit}
@@ -310,7 +313,7 @@ function pillLabel(remaining, loading) {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, connecting, add, toggle, edit, remove, reload, onOpenDialog }) => {
+export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, connecting, add, toggle, edit, remove, reload, onOpenDialog, centerOnDark = true }) => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);
@@ -467,7 +470,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
               )}
             </ul>
 
-            <AddTaskInput onAdd={add} />
+            <AddTaskInput onAdd={add} centerOnDark={centerOnDark} />
           </>
         </div>
       )}
