@@ -28,5 +28,6 @@
 @use 'focus-mode'; // .fm-* Focus Mode layout
 @use 'look-away'; // .la-* Look Away overlay
 @use 'widgets'; // .weather-minimal-* and other widget layout helpers
+@use 'quick-tour'; // .qt-* Quick Tour onboarding overlay
 @use 'dark-overrides'; // [data-mode="dark"] Tailwind utility overrides
 @use 'utilities'; // .animate-*, .no-scrollbar, keyboard focus ring

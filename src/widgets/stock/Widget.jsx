@@ -223,19 +223,18 @@ export const Widget = ({ id, onRemove }) => {
       {ageLabel && (
         <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>{ageLabel}</span>
       )}
-      <TooltipBtn tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}>
-        <button
-          onClick={load}
-          disabled={loading}
-          aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
-          className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
-          style={{ color: inkMuted }}
-        >
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M13.5 8a5.5 5.5 0 1 1-1.07-3.3" />
-            <polyline points="12 2 13.5 4.7 10.8 5.5" />
-          </svg>
-        </button>
+      <TooltipBtn
+        tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
+        onClick={load}
+        disabled={loading}
+        aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
+        className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
+        style={{ color: inkMuted }}
+      >
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M13.5 8a5.5 5.5 0 1 1-1.07-3.3" />
+          <polyline points="12 2 13.5 4.7 10.8 5.5" />
+        </svg>
       </TooltipBtn>
     </div>
   );

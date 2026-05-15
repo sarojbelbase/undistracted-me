@@ -64,6 +64,7 @@ const fromLegacy = () => {
         },
         notificationsEnabled: stored.state.notificationsEnabled ?? true,
         notificationTypes: stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
+        quickTourSeenVersion: stored.state.quickTourSeenVersion ?? null,
       };
   } catch {
     /* ignore */
@@ -90,6 +91,7 @@ const fromLegacy = () => {
     },
     notificationsEnabled: true,
     notificationTypes: DEFAULT_NOTIFICATION_TYPES,
+    quickTourSeenVersion: null,
   };
 };
 
@@ -102,6 +104,11 @@ export const useSettingsStore = create(
     (set, get) => ({
       // ── State (seeded from legacy keys on first load) ──────────────────
       ...fromLegacy(),
+
+      // ── Onboarding ────────────────────────────────────────────────────────
+      /** Unix-ms timestamp of the very first time this store was initialised. */
+      firstInstalledAt: Date.now(),
+
       clockFormat: "24h",
       focusSearchBar: true,
       focusTasks: true,
@@ -119,6 +126,12 @@ export const useSettingsStore = create(
       // ── Helpers ────────────────────────────────────────────────────────
 
       // ── Actions ────────────────────────────────────────────────────────
+
+      /**
+       * Call once the user finishes or dismisses the quick tour.
+       * Pass the current app version string, e.g. '3.0.0'.
+       */
+      markQuickTourSeen: (version) => set({ quickTourSeenVersion: version }),
 
       setLanguage: (language) => {
         set({ language });

@@ -57,6 +57,10 @@ const LookAway = lazy(() =>
 const CommandPalette = lazy(() =>
   import("./components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
+
+const QuickTour = lazy(() =>
+  import("./components/QuickTour").then((m) => ({ default: m.QuickTour })),
+);
 // WidgetCatalog renders at App level (not inside ControlCluster) so keep its
 // lazy import here; the preloader is passed down as a prop.
 const catalogImport = () =>
@@ -325,6 +329,11 @@ const App = () => {
           />
         </Suspense>
       )}
+
+      {/* Quick Tour — shown once per major version on first install / update */}
+      <Suspense fallback={null}>
+        <QuickTour />
+      </Suspense>
 
       {/* Dev-only breakpoint badge — bottom-left */}
       {import.meta.env.DEV && <BreakpointBadge />}
