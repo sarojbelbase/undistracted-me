@@ -64,13 +64,25 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
       // themeInit.js and the useState initializer use — so we never flash the
       // wrong mode while waiting for the async refresh to land.
       const sunriseDate = sunrise ? new Date(sunrise) : null;
-      const sunsetDate  = sunset  ? new Date(sunset)  : null;
+      const sunsetDate = sunset ? new Date(sunset) : null;
       const stale =
         !sunriseDate ||
         !sunsetDate ||
         sunriseDate.toDateString() !== now.toDateString();
 
       if (stale) {
+        // If we have lat/lon from the Zustand store, compute today's sun times
+        // directly — this is instant and immune to the async refresh delay.
+        if (lat != null && lon != null) {
+          const freshSunTimes = getSunTimes(lat, lon, now);
+          if (freshSunTimes) {
+            const effective = getEffectiveMode(freshSunTimes, now);
+            applyEffective(effective);
+            timer = setTimeout(computeAndSchedule, msUntilNext(effective, freshSunTimes, lat, lon, now));
+            return;
+          }
+        }
+        // No coords yet — use computeAutoMode() which reads from localStorage directly.
         applyEffective(computeAutoMode(now));
         timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
         return;
@@ -88,7 +100,7 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
       // so we only apply OS preference when there are no valid sun times.
       const now = new Date();
       const sunriseDate = sunrise ? new Date(sunrise) : null;
-      const sunsetDate  = sunset  ? new Date(sunset)  : null;
+      const sunsetDate = sunset ? new Date(sunset) : null;
       const stale =
         !sunriseDate ||
         !sunsetDate ||
