@@ -251,6 +251,7 @@ export const FocusMode = ({ onExit }) => {
       {ZONES.bottomRight?.enable && (
         <BottomRightZone
           taskState={taskState}
+          centerOnDark={effectiveClockDark}
         />
       )}
       {ZONES.top.enable && (
