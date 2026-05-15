@@ -206,7 +206,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
             const h = reg.breakpoints?.xxs?.h ?? reg.h;
             const height = h * ROW_H + (h - 1) * GAP;
             return (
-              <div key={id} style={{ height }}>
+              <div key={id} data-widget-type={type} style={{ height }}>
                 <Suspense fallback={null}>{widget}</Suspense>
               </div>
             );
@@ -252,6 +252,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           return (
             <div
               key={id}
+              data-widget-type={type}
               className="group relative w-full h-full transition-opacity duration-200"
               style={{
                 opacity: 1,
