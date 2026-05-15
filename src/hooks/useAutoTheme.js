@@ -57,16 +57,26 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
     const computeAndSchedule = () => {
       const now = new Date();
 
-      // Use sun times whenever they exist — even if source is 'default' (Kathmandu
-      // fallback), stored rise/set timestamps are a better signal than OS preference.
-      // Only fall back to prefers-color-scheme when there is no sun data at all.
-      if (!sunrise || !sunset) {
-        applyEffective(mq?.matches ? 'dark' : 'light');
+      // Guard: location store sun times may be absent (Zustand not yet hydrated)
+      // or from a previous calendar day (persisted from yesterday's session and
+      // the async location refresh hasn't completed yet). In either case, use
+      // computeAutoMode() — the same fresh, localStorage-based computation that
+      // themeInit.js and the useState initializer use — so we never flash the
+      // wrong mode while waiting for the async refresh to land.
+      const sunriseDate = sunrise ? new Date(sunrise) : null;
+      const sunsetDate  = sunset  ? new Date(sunset)  : null;
+      const stale =
+        !sunriseDate ||
+        !sunsetDate ||
+        sunriseDate.toDateString() !== now.toDateString();
+
+      if (stale) {
+        applyEffective(computeAutoMode(now));
         timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
         return;
       }
 
-      const sunTimes = { sunrise: new Date(sunrise), sunset: new Date(sunset) };
+      const sunTimes = { sunrise: sunriseDate, sunset: sunsetDate };
       const effective = getEffectiveMode(sunTimes, now);
       applyEffective(effective);
 
@@ -74,9 +84,17 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
     };
 
     const handleMediaChange = () => {
-      // Only switch to OS preference when there is no real sun data
-      if (!sunrise || !sunset) {
-        applyEffective(mq.matches ? 'dark' : 'light');
+      // OS color-scheme changed — re-derive mode using the same stale-guard logic
+      // so we only apply OS preference when there are no valid sun times.
+      const now = new Date();
+      const sunriseDate = sunrise ? new Date(sunrise) : null;
+      const sunsetDate  = sunset  ? new Date(sunset)  : null;
+      const stale =
+        !sunriseDate ||
+        !sunsetDate ||
+        sunriseDate.toDateString() !== now.toDateString();
+      if (stale) {
+        applyEffective(computeAutoMode(now));
       }
     };
     mq?.addEventListener('change', handleMediaChange);
