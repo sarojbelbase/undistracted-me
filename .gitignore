@@ -14,3 +14,4 @@ examples/new_ones
 src/assets/backgrounds/
 builds
 .DS_Store
+public/showcase
