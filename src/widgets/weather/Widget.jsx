@@ -4,9 +4,33 @@ import { BaseWidget } from "../BaseWidget";
 import config from "./config";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { Settings } from "./Settings";
-import { GeoAlt } from "react-bootstrap-icons";
-import { RefreshIcon } from '../../assets/svg/RefreshIcon';
-import { TooltipBtn } from '../../components/ui/TooltipBtn';
+import { GeoAlt, SunriseFill, SunsetFill } from "react-bootstrap-icons";
+
+import { getSunTimes } from '../../utilities/sunTime';
+
+// ── Solar event logic ─────────────────────────────────────────────────────────
+/**
+ * Returns the single *next* solar event for the given coordinates:
+ *  - Before today's sunrise  → today's sunrise, label "sunrise"
+ *  - Daytime (between events) → today's sunset,  label "sunset"
+ *  - Past today's sunset      → tomorrow's sunrise, label "tmr"
+ */
+function getNextSunEvent(lat, lon) {
+  const now = new Date();
+  const today = getSunTimes(lat, lon, now);
+  if (!today) return null;
+  if (now < today.sunrise) {
+    return { time: today.sunrise, label: 'sunrise', isSunrise: true };
+  }
+  if (now < today.sunset) {
+    return { time: today.sunset, label: 'sunset', isSunrise: false };
+  }
+  const tmrDate = new Date(now);
+  tmrDate.setDate(tmrDate.getDate() + 1);
+  const tmr = getSunTimes(lat, lon, tmrDate);
+  if (!tmr) return null;
+  return { time: tmr.sunrise, label: 'tmr', isSunrise: true };
+}
 import {
   getWeatherIcon,
   fetchOpenMeteo,
@@ -60,6 +84,34 @@ const MinimalSkeleton = () => (
     <Bone width="4.5rem" height="1.4rem" className="rounded-lg" />
   </div>
 );
+
+// ── Sunrise / Sunset strip ────────────────────────────────────────────────────
+const fmtSunTime = (d) =>
+  d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+
+const SunriseSunset = ({ sunTimes }) => {
+  if (!sunTimes) return null;
+  return (
+    <div
+      aria-label={`Sunrise ${fmtSunTime(sunTimes.sunrise)}, sunset ${fmtSunTime(sunTimes.sunset)}`}
+      style={{ display: 'flex', alignItems: 'center', gap: '0.45em', flexShrink: 0 }}
+    >
+      <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}>
+        <SunriseFill size={8} style={{ color: '#f59e0b', flexShrink: 0 }} />
+        <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+          {fmtSunTime(sunTimes.sunrise)}
+        </span>
+      </span>
+      <span aria-hidden style={{ fontSize: '0.5rem', color: 'var(--w-ink-5)', lineHeight: 1 }}>·</span>
+      <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}>
+        <SunsetFill size={8} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+        <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+          {fmtSunTime(sunTimes.sunset)}
+        </span>
+      </span>
+    </div>
+  );
+};
 
 // ── AQI breathing-dot badge ──────────────────────────────────────────────────
 /**
@@ -270,45 +322,129 @@ const ErrorState = ({ onRetry }) => (
   </div>
 );
 
-// ── Minimal mode — inspired by Apple Weather widget ───────────────────────────
-// Layout: icon + condition at top · hero temperature in the middle · city + AQI at bottom.
-// Typography does the heavy lifting; no accent colours, no decorations.
-const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI }) => (
-  <div className="weather-minimal flex flex-col w-full h-full">
-    {/* Row 1 — icon + condition */}
-    <div className="flex items-center gap-1.5 opacity-90">
-      {getWeatherIcon(weather.code, weather.isDay, 24)}
-      <span className="weather-minimal__condition">
-        {weather.description}
-      </span>
-    </div>
-
-    {/* Spacer */}
-    <div style={{ flex: 1 }} />
-
-    {/* Row 2 — hero temperature */}
-    <div
-      aria-label={`${weather.temperature} degrees ${unitLabel === "C" ? "Celsius" : "Fahrenheit"}`}
-      className="weather-minimal__temp"
-    >
-      {weather.temperature}°
-    </div>
-
-    {/* Spacer */}
-    <div style={{ flex: 1 }} />
-
-    {/* Row 3 — city (left) + AQI badge (right) */}
-    <div className="weather-minimal__meta">
-      {cityShort ? (
-        <div className="weather-minimal__city">{cityShort}</div>
-      ) : (
-        <div className="weather-minimal__unit">
-          {unitLabel === "C" ? "°C" : "°F"}
-        </div>
+// ── Minimal-mode AQI chip — dot + level label, hover for number + PM2.5 ──────
+const MinimalAQIChip = ({ value, pm25 }) => {
+  const ref = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  const level = getAQILevel(value);
+  if (!level || value == null) return null;
+  return (
+    <>
+      <div
+        ref={ref}
+        role="img"
+        aria-label={`Air quality: ${level.label}, AQI ${value}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.25em',
+          cursor: 'default',
+          userSelect: 'none',
+          flexShrink: 0,
+        }}
+        onMouseEnter={() => setAnchor(ref.current?.getBoundingClientRect() ?? null)}
+        onMouseLeave={() => setAnchor(null)}
+      >
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-block',
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            backgroundColor: level.color,
+            flexShrink: 0,
+            animation: 'aqi-breathe 2.8s ease-in-out infinite',
+          }}
+        />
+        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: level.color, lineHeight: 1 }}>
+          {level.label}
+        </span>
+      </div>
+      {anchor && (
+        <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: level.color, whiteSpace: 'nowrap' }}>
+            {level.label}
+          </div>
+          <div style={{ fontSize: '0.65rem', fontWeight: 500, color: 'var(--w-ink-4)', marginTop: '1px', whiteSpace: 'nowrap' }}>
+            AQI {value}
+            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ''}
+          </div>
+        </Popup>
       )}
-      {/* AQI badge — only shown when data is available and feature is enabled */}
+    </>
+  );
+};
+// ── Minimal mode — Apple Weather-style ───────────────────────────────────────
+// Layout: condition at top · hero temp centred · bottom row (city+AQI left / sun event right)
+const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI, sunEvent, showSunTimes }) => (
+  <div className="weather-minimal flex flex-col w-full h-full">
+    {/* Row 1 — icon + condition (left) · AQI (right) */}
+    <div className="flex items-center gap-1.5" style={{ justifyContent: 'space-between' }}>
+      <div className="flex items-center gap-1.5 opacity-90" style={{ minWidth: 0 }}>
+        {getWeatherIcon(weather.code, weather.isDay, 24)}
+        <span className="weather-minimal__condition">
+          {weather.description}
+        </span>
+      </div>
       {showAQI && aqi?.value != null && (
-        <AQIBadge value={aqi.value} pm25={aqi.pm25} />
+        <MinimalAQIChip value={aqi.value} pm25={aqi.pm25} />
+      )}
+    </div>
+
+    {/* Centre zone — hero temperature, vertically centred */}
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+      <div
+        aria-label={`${weather.temperature} degrees ${unitLabel === "C" ? "Celsius" : "Fahrenheit"}`}
+        className="weather-minimal__temp"
+      >
+        {weather.temperature}°
+      </div>
+    </div>
+
+    {/* Bottom row — city (left) · sun event (right) */}
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '0.5em' }}>
+      {/* Left: city name */}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        {cityShort ? (
+          <div className="weather-minimal__city">{cityShort}</div>
+        ) : (
+          <div className="weather-minimal__unit">
+            {unitLabel === "C" ? "°C" : "°F"}
+          </div>
+        )}
+      </div>
+
+      {/* Right: next solar event — time on top, label below */}
+      {showSunTimes && sunEvent && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            flexShrink: 0,
+            gap: '0.18em',
+          }}
+        >
+          <div
+            aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}
+          >
+            {sunEvent.isSunrise
+              ? <SunriseFill size={10} style={{ color: 'rgba(245,158,11,0.9)', flexShrink: 0 }} />
+              : <SunsetFill size={10} style={{ color: 'rgba(139,92,246,0.9)', flexShrink: 0 }} />
+            }
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--w-ink-2)', lineHeight: 1 }}>
+              {fmtSunTime(sunEvent.time)}
+            </span>
+          </div>
+          <span
+            aria-hidden
+            style={{ fontSize: '0.58rem', fontWeight: 500, color: 'var(--w-ink-4)', lineHeight: 1 }}
+          >
+            {sunEvent.label}
+          </span>
+        </div>
       )}
     </div>
   </div>
@@ -404,6 +540,8 @@ const ExpressiveView = ({
   setAtmoAnchor,
   aqi,
   showAQI,
+  sunEvent,
+  showSunTimes,
 }) => {
   // Pre-compute level so JSX below only calls getAQILevel once
   const aqiLevel =
@@ -528,65 +666,99 @@ const ExpressiveView = ({
 
       <div style={{ flex: 1 }} />
 
-      {/* ── BOTTOM-RIGHT: condition + quip ── */}
+      {/* ── BOTTOM ROW: sunrise/sunset (left) + forecast+quip (right) ── */}
       <div
-        className="flex flex-col items-end"
         style={{
           position: "relative",
           zIndex: 1,
-          letterSpacing: 0,
+          display: "flex",
+          alignItems: "flex-end",
           paddingBottom: "2px",
         }}
       >
-        {forecast && (
+        {showSunTimes && sunEvent && (
           <div
-            data-testid="weather-condition-row"
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.16em',
+              flexShrink: 0,
             }}
           >
+            <div
+              aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.2em' }}
+            >
+              {sunEvent.isSunrise
+                ? <SunriseFill size={8} style={{ color: 'rgba(245,158,11,0.9)', flexShrink: 0 }} />
+                : <SunsetFill size={8} style={{ color: 'rgba(139,92,246,0.9)', flexShrink: 0 }} />
+              }
+              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+                {fmtSunTime(sunEvent.time)}
+              </span>
+            </div>
             <span
+              aria-hidden
+              style={{ fontSize: '0.52rem', fontWeight: 500, color: 'var(--w-ink-5)', lineHeight: 1 }}
+            >
+              {sunEvent.label}
+            </span>
+          </div>
+        )}
+        <div
+          className="flex flex-col items-end"
+          style={{ marginLeft: "auto", letterSpacing: 0 }}
+        >
+          {forecast && (
+            <div
+              data-testid="weather-condition-row"
               style={{
-                fontSize: "0.88rem",
-                fontWeight: 700,
-                color: "var(--w-accent)",
-                textTransform: "capitalize",
-                lineHeight: 1.2,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
               }}
             >
-              {forecast.type === "clearing"
-                ? "clearing up"
-                : forecast.description}
-            </span>
-            <span
+              <span
+                style={{
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  color: "var(--w-accent)",
+                  textTransform: "capitalize",
+                  lineHeight: 1.2,
+                }}
+              >
+                {forecast.type === "clearing"
+                  ? "clearing up"
+                  : forecast.description}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.55rem",
+                  fontWeight: 600,
+                  color: "var(--w-ink-5)",
+                  lineHeight: 1.5,
+                }}
+              >
+                {getForecastLabel(forecast)}
+              </span>
+            </div>
+          )}
+          {quip && (
+            <div
+              data-testid="weather-quip"
               style={{
-                fontSize: "0.55rem",
+                fontSize: "0.70rem",
                 fontWeight: 600,
-                color: "var(--w-ink-5)",
-                lineHeight: 1.5,
+                color: "var(--w-ink-4)",
+                lineHeight: 1.3,
+                textAlign: "right",
+                marginTop: "0.18em",
               }}
             >
-              {getForecastLabel(forecast)}
-            </span>
-          </div>
-        )}
-        {quip && (
-          <div
-            data-testid="weather-quip"
-            style={{
-              fontSize: "0.70rem",
-              fontWeight: 600,
-              color: "var(--w-ink-4)",
-              lineHeight: 1.3,
-              textAlign: "right",
-              marginTop: "0.18em",
-            }}
-          >
-            {quip}
-          </div>
-        )}
+              {quip}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -607,6 +779,9 @@ function getWeatherContent({
   forecast,
   aqi,
   showAQI,
+  sunTimes,
+  sunEvent,
+  showSunTimes,
 }) {
   if (locationDenied && !location) return <LocationDeniedState />;
   if (error) return <ErrorState onRetry={onRetry} />;
@@ -623,6 +798,8 @@ function getWeatherContent({
         setAtmoAnchor={setAtmoAnchor}
         aqi={aqi}
         showAQI={showAQI}
+        sunEvent={sunEvent}
+        showSunTimes={showSunTimes}
       />
     );
   }
@@ -635,6 +812,8 @@ function getWeatherContent({
       unitLabel={unitLabel}
       aqi={aqi}
       showAQI={showAQI}
+      sunEvent={sunEvent}
+      showSunTimes={showSunTimes}
     />
   );
 }
@@ -647,8 +826,9 @@ export const Widget = ({ id = "weather", onRemove }) => {
     unit: "metric",
     style: "minimal",
     showAQI: true,
+    showSunTimes: true,
   });
-  const { location, unit, showAQI = true } = settings;
+  const { location, unit, showAQI = true, showSunTimes = true } = settings;
   // Normalise legacy 'simple' value to 'minimal'
   const style =
     settings.style === "simple" ? "minimal" : (settings.style ?? "minimal");
@@ -778,6 +958,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
       unit={unit}
       style={style}
       showAQI={showAQI}
+      showSunTimes={showSunTimes}
     />
   );
 
@@ -789,6 +970,17 @@ export const Widget = ({ id = "weather", onRemove }) => {
 
   // City displayed as first comma-segment (safe when weather exists)
   const cityShort = weather?.city?.split(",")?.[0]?.trim() || "";
+
+  // Sunrise/sunset — computed locally (no API needed) from available coords
+  const sunLat = location?.lat ?? geoLat;
+  const sunLon = location?.lon ?? geoLon;
+  const sunTimes = sunLat != null && sunLon != null
+    ? getSunTimes(sunLat, sunLon)
+    : null;
+  const sunEvent = showSunTimes && sunLat != null && sunLon != null
+    ? getNextSunEvent(sunLat, sunLon)
+    : null;
+
   const content = getWeatherContent({
     locationDenied,
     location,
@@ -804,6 +996,9 @@ export const Widget = ({ id = "weather", onRemove }) => {
     forecast,
     aqi,
     showAQI,
+    sunTimes,
+    sunEvent,
+    showSunTimes,
   });
 
   return (
@@ -814,17 +1009,6 @@ export const Widget = ({ id = "weather", onRemove }) => {
       onRemove={onRemove}
     >
       {content}
-      {/* Manual refresh button — hover reveal in bottom-right corner */}
-      {weather && (
-        <TooltipBtn
-          tooltip="Refresh weather"
-          onClick={() => { setError(null); setRefreshKey(k => k + 1); }}
-          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-6 h-6 flex items-center justify-center rounded-full"
-          style={{ color: 'var(--w-ink-4)' }}
-        >
-          <RefreshIcon />
-        </TooltipBtn>
-      )}
     </BaseWidget>
   );
 };
