@@ -33,6 +33,11 @@ const AQI_OPTIONS = [
   { label: "Hide", value: false },
 ];
 
+const SUN_OPTIONS = [
+  { label: "Show", value: true },
+  { label: "Hide", value: false },
+];
+
 export const Settings = ({
   location,
   onChange,
@@ -40,6 +45,7 @@ export const Settings = ({
   unit = "metric",
   style = "minimal",
   showAQI = true,
+  showSunTimes = true,
 }) => {
   // style: 'minimal' | 'expressive'
   const [query, setQuery] = useState(location?.name || "");
@@ -148,6 +154,14 @@ export const Settings = ({
         options={AQI_OPTIONS}
         value={showAQI}
         onChange={(v) => onChange("showAQI", v)}
+      />
+
+      {/* ── Sun times ── */}
+      <SegmentedControl
+        label="Sun Times"
+        options={SUN_OPTIONS}
+        value={showSunTimes}
+        onChange={(v) => onChange("showSunTimes", v)}
       />
 
       {/* ── Location ── */}
