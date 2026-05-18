@@ -52,6 +52,7 @@ describe('TZ_OPTIONS', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────
 // GREETINGS catalogue
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -79,24 +80,34 @@ describe('getGreeting', () => {
     expect(g).toHaveProperty('label');
   });
 
-  it('hour 0 → midnight greeting (nothing good happens after midnight)', () => {
+  it('returns a non-empty prefix and label for all hours', () => {
+    for (let h = 0; h < 24; h++) {
+      const g = getGreeting(h);
+      expect(typeof g.prefix).toBe('string');
+      expect(g.prefix.length).toBeGreaterThan(0);
+      expect(typeof g.label).toBe('string');
+      expect(g.label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns midnight-pool greeting for hour 0', () => {
     const g = getGreeting(0);
-    expect(g.prefix).toMatch(/nothing good/i);
+    expect(g.from).toBe(0);
   });
 
-  it('hour 5 → early morning greeting', () => {
+  it('returns early-morning greeting for hour 5', () => {
     const g = getGreeting(5);
-    expect(g.prefix).toMatch(/early bird/i);
+    expect(g.from).toBe(5);
   });
 
-  it('hour 12 → midday greeting', () => {
+  it('returns noon greeting for hour 12', () => {
     const g = getGreeting(12);
-    expect(g.label).toMatch(/afternoon/i);
+    expect(g.from).toBe(12);
   });
 
-  it('hour 23 → late night greeting', () => {
+  it('returns late-night greeting for hour 23', () => {
     const g = getGreeting(23);
-    expect(g.prefix).toMatch(/get some/i);
+    expect(g.from).toBe(22);
   });
 
   it('returns a greeting for every hour 0–23 without throwing', () => {
