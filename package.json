@@ -33,7 +33,7 @@
 		"@lexical/react": "^0.44.0",
 		"@lexical/rich-text": "^0.44.0",
 		"@vercel/analytics": "^2.0.1",
-		"dayjs": "^1.11.20",
+		"dayjs": "^1.11.21",
 		"lexical": "^0.44.0",
 		"react": "^19.2.6",
 		"react-bootstrap-icons": "^1.11.6",
@@ -56,11 +56,11 @@
 		"esbuild": "^0.28.0",
 		"jsdom": "^29.1.1",
 		"postcss": "^8.5.15",
-		"sass": "^1.99.0",
+		"sass": "^1.100.0",
 		"tailwindcss": "^4.3.0",
-		"vite": "^8.0.13",
+		"vite": "^8.0.14",
 		"vitest": "^4.1.7",
-		"web-ext": "^10.1.0"
+		"web-ext": "^10.2.0"
 	},
 	"browserslist": {
 		"production": [
