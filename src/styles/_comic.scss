@@ -1,0 +1,570 @@
+// ─── Comic Card Style — Full Visual System ───────────────────────────────────
+//
+// Activated via  data-card-style="comic"  on :root (set by applyTheme).
+//
+// Design language: warm newsprint paper, thick ink borders, hard offset
+// shadows, letterpress-stamped typography, rubber-stamp button presses.
+//
+// Layered approach — complexity lives here, not in JS components:
+//   1.  Typography      — letterpress text-shadows, bolder weights, tight tracking
+//   2.  Progress dots   — rounded-square stamps vs perfect circles
+//   3.  Interactive UI  — buttons press in (translate on :active), inputs
+//                         look cut-out from paper stock
+//   4.  Structural      — dividers become dashed tear-lines, panel separators
+//                         get a double-border inkbleed hint
+//   5.  Dark mode       — reverses shadow direction; accent glow replaces bleed
+//
+// The bold halftone dot grid lives on the PAGE BACKGROUND (useCanvasBg.js).
+// Cards carry only the fine 3-layer scan-line + crosshatch + accent-dot grain
+// so every typography contrast ratio stays at WCAG AA or above.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Light mode (cream paper + dark ink) ──────────────────────────────────────
+
+:root[data-card-style="comic"] {
+  // ── 1. Typography ─────────────────────────────────────────────────────────
+
+  // Level 1 — Display: clock digits, large numbers, big dates
+  // The double text-shadow creates a letterpress "ink-offset" illusion:
+  // a dark near-shadow plus a fainter far-shadow mimics ink bleeding into paper.
+  .w-display {
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+
+  // Level 2 — Heading: widget titles, section names
+  .w-heading {
+    font-weight: 800;
+    letter-spacing: -0.015em;
+  }
+
+  // Level 3 — Title rows (accent-coloured labels)
+  // Accent text on cream paper is already high-contrast; add just a whisper of
+  // offset to feel printed rather than floating on screen.
+  .w-title-bold,
+  .w-sub-bold {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .w-title-soft,
+  .w-sub-soft {
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  // Period — AM/PM, secondary units
+  // Uppercase tracking + weight = rubber-stamp look beside the display number.
+  .w-period {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  // Level 5 — Body text
+  // Just a small weight bump: paper has higher perceived contrast than glass,
+  // so regular-weight text can look washed out without a bit more density.
+  .w-body {
+    font-weight: 500;
+  }
+
+  // Level 6 & 7 — Captions and labels
+  // Uppercase + wide tracking = typewriter metadata / stamps.
+  .w-caption {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .w-label {
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  // Muted / empty-state copy
+  // Cream paper has less background luminance variation than glass blur, so muted
+  // text needs slightly higher opacity to avoid looking washed out.
+  .w-muted {
+    opacity: 0.78;
+    font-weight: 500;
+  }
+
+  // ── 2. Progress dots (day-progress widget) ────────────────────────────────
+  //
+  // Round dots → rounded squares. Feels like individual ink stamps on paper
+  // rather than modern UI circles. The minimal rotation adds hand-placed charm.
+
+  .w-dot {
+    border-radius: 4px; // just off-round — "die-cut" stamp shape
+    transition:
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .w-dot-active {
+    // A paper-depth shadow: the filled dot slightly embosses above the surface.
+    box-shadow: 0.5px 0.5px 0 rgba(0, 0, 0, 0.22);
+  }
+
+  // ── 3. Interactive UI ─────────────────────────────────────────────────────
+
+  // Buttons — "rubber stamp" feel:
+  //   • Heavy font weight reads like block-print text.
+  //   • :active translate(1px, 1px) collapses the card's 4px offset shadow,
+  //     simulating a physical stamp being pressed onto paper.
+  button:not([disabled]) {
+    font-weight: 700;
+
+    &:active {
+      transform: translate(1px, 1px);
+    }
+  }
+
+  // ── Text inputs — rugged fill-in-the-blank boxes ────────────────────────
+  //
+  // Problem: a straight 2px CSS border inside a card that already has a 2px
+  // ink border creates an ugly "box-inside-a-box" double-border look.
+  //
+  // Solution: replace the rectangular border with two slightly-offset
+  // concentric box-shadow rings. The 1px diagonal gap between them reads
+  // as an imprecise hand-drawn stroke rather than a clean CSS rule.
+  // Asymmetric 8-value border-radius (different H and V radius per corner)
+  // means no two corners are the same angle — organic, never boxy.
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="search"],
+  input[type="email"],
+  input:not([type]) {
+    border: none !important;
+    outline: none !important;
+    border-radius: 5px 7px 5px 6px / 6px 5px 7px 5px !important;
+    font-weight: 500;
+    // No ring, no ghost. The color difference between input panel-bg and the
+    // surrounding card is the affordance. Clean and borderless.
+    box-shadow: none !important;
+
+    // Focus: hard offset accent shadow lands below-right, same vocabulary
+    // as the widget card's outer shadow. Does not wrap around.
+    &:focus {
+      outline: none !important;
+    }
+
+    &::placeholder {
+      font-weight: 400;
+      opacity: 0.5;
+    }
+  }
+
+  // Notes title input (full-page mode headline) — completely clean.
+  // This is a large title field; it should read as ink on paper, not a form box.
+  .notes-title,
+  .notes-widget-title {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border-radius: 0 !important;
+    &:focus {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  }
+
+  // ── Textareas — ink directly on paper ────────────────────────────────────
+  //
+  // The notes body (and any full-panel textarea) should feel like writing
+  // on the paper surface, not writing inside a box on the paper.
+  // The card's outer ink border IS the container boundary — a second border
+  // on the textarea itself creates the double-box problem the user flagged.
+  //
+  // Strip all borders; let the warm paper background show through.
+  // A soft ambient inset shadow hints at the recessed writing surface.
+  textarea {
+    border: none !important;
+    outline: none !important;
+    border-radius: 3px !important;
+    background-color: transparent !important; // writes on the card paper
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.03) !important;
+
+    // The card's ink border IS the container boundary — focus should add
+    // no second border, ring, or offset shadow.  The cursor provides
+    // enough affordance; this is ink on paper, not a form box.
+    &:focus,
+    &:focus-visible {
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.03) !important;
+      outline: none !important;
+    }
+
+    &::placeholder {
+      font-weight: 400;
+      opacity: 0.45;
+    }
+  }
+
+  // Select dropdowns
+  select {
+    background-color: var(--panel-bg) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 5px 7px 5px 6px / 6px 5px 7px 5px !important;
+    box-shadow:
+      0 0 0 2px rgba(0, 0, 0, 0.68),
+      1px 1px 0 2px rgba(0, 0, 0, 0.12) !important;
+    font-weight: 600;
+  }
+
+  // ── 4. Structural dividers ────────────────────────────────────────────────
+  //
+  // Solid rules → dashed tear-lines.
+  // The gap pattern mimics a perforated page edge or old-press rule.
+
+  hr {
+    border-top: 1px dashed var(--card-border);
+    border-bottom: none;
+    opacity: 0.65;
+  }
+
+  // Inner section separators inside panels/modals.
+  // Many components render a 1px bottom-border on list items.
+  // Reinforce the "printed" separation with a slightly heavier dashed line.
+  [style*="borderBottom"],
+  [style*="border-bottom"] {
+    // Cannot override inline-style border-bottom with a simple CSS rule due to
+    // specificity — instead add a subtle box-shadow underline that layers below
+    // the inline style without interfering with layout.
+    // This gives each row a faint "ruled paper" underline.
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  // ── 5. Scrollbars — ink-stained narrow rails ──────────────────────────────
+  //
+  // Thin, squared-off scrollbar thumbs feel like the edge of a printed page.
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.18);
+    border-radius: 2px; // squared vs the usual pill
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.32);
+  }
+}
+
+// ── Dark mode overrides ───────────────────────────────────────────────────────
+//
+// Dark comic: aged dark paper (#1c1710) with parchment ink (#d4c9a8 borders).
+// Text is light-on-dark — the letterpress shadow direction reverses so the
+// "emboss" reads as depth rather than a lift.
+
+:root[data-mode="dark"][data-card-style="comic"] {
+  // Large display: depth shadow below + very faint accent glow
+  // (mimics the halation around letters in old-press printing under lamplight).
+  .w-display {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.65),
+      1px 1px 0 rgba(0, 0, 0, 0.42),
+      0 0 14px rgba(var(--w-accent-rgb), 0.1);
+  }
+
+  // Headings: simpler depth — no glow, just shadow drop.
+  .w-heading {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.55),
+      1px 1px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .w-title-bold,
+  .w-sub-bold {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
+
+  // Dots on dark paper: negative shadow inside the dot hints at embossing.
+  .w-dot {
+    box-shadow:
+      inset 0 0.5px 0 rgba(0, 0, 0, 0.5),
+      0 0.5px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .w-dot-active {
+    box-shadow:
+      0.5px 0.5px 0 rgba(0, 0, 0, 0.45),
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+    transform: rotate(3deg);
+  }
+
+  // Inputs on dark paper: thin parchment ghost ring unfocused,
+  // hard accent offset on focus — same language as light mode.
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="search"],
+  input[type="email"],
+  input:not([type]) {
+    background-color: var(--panel-bg) !important;
+    box-shadow: none !important;
+
+    &:focus {
+      outline: none !important;
+    }
+  }
+
+  // Textarea on dark paper — same as light: ink on paper, no focus border.
+  textarea {
+    background-color: transparent !important;
+    box-shadow: none !important;
+
+    &:focus,
+    &:focus-visible {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  }
+
+  .notes-title,
+  .notes-widget-title {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    &:focus {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  }
+
+  // Dark scrollbar: faint parchment-toned thumb.
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(212, 201, 168, 0.22);
+
+    &:hover {
+      background-color: rgba(212, 201, 168, 0.38);
+    }
+  }
+
+  // Section underlines read as glowing ruled lines on dark paper.
+  [style*="borderBottom"],
+  [style*="border-bottom"] {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  // ── Full-screen Notes dark — dark paper + parchment dot grid ─────────
+  .notes-fullscreen {
+    background-color: #1c1710 !important;
+    background-image: radial-gradient(
+      circle,
+      rgba(212, 201, 168, 0.08) 1px,
+      transparent 1px
+    ) !important;
+    background-size: 24px 24px !important;
+  }
+
+  .notes-fullscreen-topbar {
+    border-bottom: 1.5px solid rgba(212, 201, 168, 0.12) !important;
+  }
+
+  .notes-fullscreen-nav {
+    background: rgba(212, 201, 168, 0.05) !important;
+  }
+
+  .notes-fullscreen button:hover {
+    background: rgba(212, 201, 168, 0.1) !important;
+  }
+
+  .notes-fullscreen-nav [style*="rgba(0,0,0,0.1)"] {
+    background: rgba(212, 201, 168, 0.18) !important;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Organic corner overrides — dashboard context only
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Comic mode doesn’t allow geometrically perfect circles or uniform pill shapes.
+// Every rounded corner should feel slightly hand-drawn — each corner a different
+// angle, no two the same. We override the Tailwind round utilities here so
+// all dashboard widgets, modals, chips, and shell buttons pick this up without
+// touching individual component files.
+//
+// Rules:
+//   - Images (:not(img)) are excluded — avatar/icon circles stay round.
+//   - Tiny status dots (.rounded-full.w-1, .h-1 etc.) stay round.
+//   - Focus Mode (.fm-root) gets a HARD RESET at the end — its inputs and
+//     corner radii must never receive comic treatment because it runs its
+//     own dark-glass token system over a cinematic photo backdrop.
+// ─────────────────────────────────────────────────────────────────────────────
+
+:root[data-card-style="comic"] {
+  // ── Pill / fully-rounded shapes ────────────────────────────────────────────────
+  // ControlCluster outer pill, FocusModeButton, chip links, etc.
+  // Keep them looking like "panels" not "bubbles".
+  // Exclude tiny dimension dots via :not([class*="w-1 "]):not([class*="h-1 "]),
+  // and images so avatar circles stay round.
+  button.rounded-full:not(img),
+  a.rounded-full:not(img),
+  div.rounded-full:not(img):not([class*="w-1 "])
+    :not([class*="h-1 "])
+    :not([class*="w-1.5 "])
+    :not([class*="h-1.5 "]) {
+    border-radius: 10px 12px 10px 11px / 11px 10px 12px 10px !important;
+  }
+
+  // ── Large card-scale rounding (rounded-2xl) ──────────────────────────────
+  // Settings Segment wrappers, AccountCard sections, inner modal panels.
+  .rounded-2xl:not(img) {
+    border-radius: var(--card-radius, 14px 13px 15px 14px) !important;
+  }
+
+  // ── Medium rounding (rounded-xl, rounded-lg) ───────────────────────────
+  // TintedChip, widget buttons, date chips (Today / Tomorrow / This week),
+  // event row remove buttons, favicon containers.
+  .rounded-xl:not(img) {
+    border-radius: 9px 11px 9px 10px / 10px 9px 11px 9px !important;
+  }
+
+  .rounded-lg:not(img) {
+    border-radius: 6px 8px 6px 7px / 7px 6px 8px 6px !important;
+  }
+
+  // ── Small rounding (rounded-md) ─────────────────────────────────────
+  .rounded-md:not(img) {
+    border-radius: 4px 5px 4px 5px / 5px 4px 5px 4px !important;
+  }
+
+  // ── Widget Catalog drawer — organic corners ──────────────────────────
+  // The catalog uses inline border-radius values (not Tailwind classes)
+  // so it needs explicit comic overrides for its pill/circle shapes.
+  .wc-icon-box {
+    border-radius: 9px 11px 9px 10px / 10px 9px 11px 9px !important;
+  }
+  .wc-tab {
+    border-radius: 20px 22px 19px 21px / 21px 19px 22px 20px !important;
+  }
+  .wc-close-btn,
+  .wc-stepper-btn {
+    border-radius: 10px 12px 10px 11px / 11px 10px 12px 10px !important;
+  }
+  .wc-pill-btn,
+  .wc-active-badge {
+    border-radius: 20px 22px 19px 21px / 21px 19px 22px 20px !important;
+  }
+
+  // Reduce glassy blur — comic is paper, not cinema.
+  .wc-backdrop {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  // ── Full-screen Notes — comic paper + dot grid ──────────────────────
+  .notes-fullscreen {
+    // Cream paper with dot-grid notebook pattern (24px spacing).
+    background-color: #faf5ec !important;
+    background-image: radial-gradient(
+      circle,
+      rgba(0, 0, 0, 0.07) 1px,
+      transparent 1px
+    ) !important;
+    background-size: 24px 24px !important;
+  }
+
+  // Top bar — thicker ink divider.
+  .notes-fullscreen-topbar {
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.15) !important;
+  }
+
+  // Nav track — comic panel background.
+  .notes-fullscreen-nav {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border-radius: 8px 10px 8px 9px / 9px 8px 10px 8px !important;
+  }
+
+  // All buttons inside the full-screen view — organic corners.
+  .notes-fullscreen button {
+    border-radius: 6px 8px 6px 7px / 7px 6px 8px 6px !important;
+    font-weight: 600 !important;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+
+  // Nav dividers — ink lines.
+  .notes-fullscreen-nav [style*="rgba(0,0,0,0.1)"] {
+    background: rgba(0, 0, 0, 0.18) !important;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Focus Mode hard reset (.fm-root)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Focus Mode is a cinematic dark-glass overlay over a photo/orb backdrop.
+// It runs its own --fm-card-* token system (see FocusMode/theme.jsx) and must
+// NEVER receive comic input styling or corner overrides. The .fm-root class is
+// added to FocusMode’s root div in index.jsx — this block resets everything.
+//
+// Higher specificity (:root[...] .fm-root ...) beats the global comic rules.
+
+:root[data-card-style="comic"] .fm-root {
+  // Inputs and textareas: strip comic paper treatment entirely.
+  // FM’s inputs are transparent or glass-styled via inline styles — they
+  // should never show the cream panel-bg or the ink-stroke box-shadow.
+  input,
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="search"],
+  input[type="email"],
+  input:not([type]),
+  textarea,
+  select {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: initial !important;
+    font-weight: inherit !important;
+
+    &::placeholder {
+      opacity: inherit !important;
+      font-weight: inherit !important;
+    }
+    &:focus {
+      box-shadow: none !important;
+    }
+  }
+
+  // Rounded corners: restore Tailwind’s original values so FM pill shapes
+  // (search bar pill, card panels, dropdown menus) remain geometrically
+  // correct for the cinematic glass aesthetic.
+  .rounded-full {
+    border-radius: 9999px !important;
+  }
+  .rounded-2xl {
+    border-radius: 1rem !important;
+  }
+  .rounded-xl {
+    border-radius: 0.75rem !important;
+  }
+  .rounded-lg {
+    border-radius: 0.5rem !important;
+  }
+  .rounded-md {
+    border-radius: 0.375rem !important;
+  }
+
+  // Buttons: undo the font-weight / active-translate overrides
+  button:not([disabled]) {
+    font-weight: inherit !important;
+    &:active {
+      transform: none !important;
+    }
+  }
+}
