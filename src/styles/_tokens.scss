@@ -7,7 +7,15 @@
 :root {
   // ── Page background ──────────────────────────────────────────────────────
   --w-page-bg: #ebebeb;
-  --gradient: linear-gradient(#131416, #202125, #18191B, #121315, #1C1D21, #141517, #161719);
+  --gradient: linear-gradient(
+    #131416,
+    #202125,
+    #18191b,
+    #121315,
+    #1c1d21,
+    #141517,
+    #161719
+  );
   --white: #e1e0e4;
 
   // ── Ink scale (light mode defaults — must match LIGHT_TOKENS in theme.js) ─
@@ -41,11 +49,18 @@
   // ── Card surface tokens (glass defaults, overwritten by applyTheme) ──────
   --card-bg: rgba(255, 255, 255, 0.44);
   --card-border: rgba(0, 0, 0, 0.09);
+  --card-border-width: 1px;
+  --card-radius: 1rem;
   --card-blur: blur(28px) saturate(180%);
-  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 8px 32px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 32px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
+  // Texture layers: overridden to the 3-layer grain stack in comic mode.
+  --card-texture: none;
+  --card-texture-size: auto;
   --modal-bg: #f5f5f5;
   --modal-shadow: 0 8px 40px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.07);
-  --modal-overlay-bg: rgba(0, 0, 0, 0.10);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.1);
   --modal-overlay-blur: blur(10px) saturate(150%);
   --panel-bg: rgba(255, 255, 255, 0.55);
 }

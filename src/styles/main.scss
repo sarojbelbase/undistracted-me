@@ -14,20 +14,21 @@
 // Tailwind (@import "tailwindcss") and font @import live in App.css so they
 // stay in a plain CSS file (required for Tailwind v4 PostCSS processing).
 
-@use 'config'; // Variables, mixins — no CSS output
-@use 'tokens'; // :root CSS custom properties
-@use 'reset'; // Browser / element resets
-@use 'typography'; // .w-display, .w-heading, .w-label etc.
-@use 'animations'; // All @keyframes
-@use 'scrollbars'; // Global thin auto-hiding scrollbar + .no-scrollbar
-@use 'notes'; // .notes-title, .notes-textarea
-@use 'lexical'; // .lex-* Lexical WYSIWYG editor
-@use 'markdown'; // .md-* Markdown preview
-@use 'react-grid'; // .react-grid-*, drag handles, placeholder
-@use 'widget-catalog'; // .wc-* drawer panel
-@use 'focus-mode'; // .fm-* Focus Mode layout
-@use 'look-away'; // .la-* Look Away overlay
-@use 'widgets'; // .weather-minimal-* and other widget layout helpers
-@use 'quick-tour'; // .qt-* Quick Tour onboarding overlay
-@use 'dark-overrides'; // [data-mode="dark"] Tailwind utility overrides
-@use 'utilities'; // .animate-*, .no-scrollbar, keyboard focus ring
+@use "config"; // Variables, mixins — no CSS output
+@use "tokens"; // :root CSS custom properties
+@use "reset"; // Browser / element resets
+@use "typography"; // .w-display, .w-heading, .w-label etc.
+@use "animations"; // All @keyframes
+@use "scrollbars"; // Global thin auto-hiding scrollbar + .no-scrollbar
+@use "notes"; // .notes-title, .notes-textarea
+@use "lexical"; // .lex-* Lexical WYSIWYG editor
+@use "markdown"; // .md-* Markdown preview
+@use "react-grid"; // .react-grid-*, drag handles, placeholder
+@use "widget-catalog"; // .wc-* drawer panel
+@use "focus-mode"; // .fm-* Focus Mode layout
+@use "look-away"; // .la-* Look Away overlay
+@use "widgets"; // .weather-minimal-* and other widget layout helpers
+@use "quick-tour"; // .qt-* Quick Tour onboarding overlay
+@use "dark-overrides"; // [data-mode="dark"] Tailwind utility overrides
+@use "comic"; // [data-card-style="comic"] paper & ink visual system
+@use "utilities"; // .animate-*, .no-scrollbar, keyboard focus ring

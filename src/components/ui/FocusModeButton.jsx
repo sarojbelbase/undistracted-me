@@ -1,7 +1,7 @@
-import React from 'react';
-import { MoonStarsFill } from 'react-bootstrap-icons';
-import { focusShortcut } from '../../hooks/useFocusMode';
-import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from '../../theme/canvas';
+import React from "react";
+import { MoonStarsFill } from "react-bootstrap-icons";
+import { focusShortcut } from "../../hooks/useFocusMode";
+import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
 
 /**
  * Top-left pill button that opens Focus Mode.
@@ -13,12 +13,12 @@ export const FocusModeButton = ({ isDark, onClick }) => (
       onClick={onClick}
       className="group flex items-center rounded-full transition-all duration-300 focus:outline-none cursor-pointer"
       style={{
-        padding: '7px 12px',
-        background: 'var(--card-bg)',
-        backdropFilter: 'var(--card-blur)',
-        WebkitBackdropFilter: 'var(--card-blur)',
-        border: '1px solid var(--card-border)',
-        boxShadow: 'var(--card-shadow)',
+        padding: "7px 12px",
+        background: "var(--card-bg)",
+        backdropFilter: "var(--card-blur)",
+        WebkitBackdropFilter: "var(--card-blur)",
+        border: "var(--card-border-width, 1px) solid var(--card-border)",
+        boxShadow: "var(--card-shadow)",
       }}
     >
       <MoonStarsFill
@@ -31,7 +31,10 @@ export const FocusModeButton = ({ isDark, onClick }) => (
           className="pl-2 text-xs font-semibold whitespace-nowrap select-none tracking-wide"
           style={{ color: CANVAS_ICON_LABEL(isDark) }}
         >
-          Focus <span style={{ opacity: 0.55, fontSize: '10px', fontWeight: 500 }}>{focusShortcut}</span>
+          Focus{" "}
+          <span style={{ opacity: 0.55, fontSize: "10px", fontWeight: 500 }}>
+            {focusShortcut}
+          </span>
         </span>
       </span>
     </button>

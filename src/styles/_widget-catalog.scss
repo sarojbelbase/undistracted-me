@@ -1,4 +1,4 @@
-@use 'config' as c;
+@use "config" as c;
 
 // ─── Widget Catalog Drawer  (.wc-*) ───────────────────────────────────────────
 // Right-side macOS-style panel — accent-free, theme-aware.
@@ -15,7 +15,12 @@
   --wc-bg: #ffffff;
   --wc-bg-2: #f7f7f8;
   --wc-bg-3: #f0f0f2;
-  --wc-panel-bg: rgba(250, 250, 251, 0.88); // semi-transparent — blurred world shows through
+  --wc-panel-bg: rgba(
+    250,
+    250,
+    251,
+    0.88
+  ); // semi-transparent — blurred world shows through
   --wc-border: rgba(0, 0, 0, 0.07);
   --wc-border-med: rgba(0, 0, 0, 0.11);
   --wc-ink-1: #0f0f10;
@@ -46,15 +51,110 @@
   // Panel uses semi-transparent bg so the blurred backdrop shows through.
   background: var(--wc-panel-bg);
   border-left: 1px solid var(--wc-border);
-  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.10);
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.1);
   transition: transform 0.38s #{c.$ease-pop};
   will-change: transform;
   overflow: hidden;
 }
 
+// ── Comic token overrides ───────────────────────────────────────────────────
+// Same paper-and-ink language as widget cards: cream paper tones, thick ink
+// borders, hard offset shadow.  Text colours delegate to --w-ink-* so they
+// automatically pick up the comic-darkened ink scale.
+:root[data-card-style="comic"] .wc-panel {
+  --wc-panel-bg: #faf5ec;
+  --wc-bg: #faf5ec;
+  --wc-bg-2: #f2eada;
+  --wc-bg-3: #e8dfcc;
+  --wc-border: rgba(0, 0, 0, 0.15);
+  --wc-border-med: rgba(0, 0, 0, 0.28);
+  --wc-ink-1: var(--w-ink-1);
+  --wc-ink-2: var(--w-ink-2);
+  --wc-ink-3: var(--w-ink-3);
+  --wc-ink-4: var(--w-ink-4);
+  --wc-ink-5: var(--w-ink-5);
+  --wc-ink-6: var(--w-ink-6);
+  --wc-active-fill: rgba(0, 0, 0, 0.04);
+  --wc-active-bar: var(--w-accent);
+  --wc-tab-active-bg: #111111;
+  --wc-tab-active-fg: #faf5ec;
+  --wc-badge-bg: #111111;
+  --wc-badge-fg: #faf5ec;
+  --wc-add-hover-bg: #111111;
+  --wc-add-hover-fg: #faf5ec;
+
+  // Hard offset shadow + thick ink left border
+  box-shadow: -4px 4px 0 0 #111111;
+  border-left: 2px solid #111111;
+
+  // Bump 1px borders → 1.5px for a heavier ink feel.
+  // Structural dividers — border-bottom / border-top.
+  .wc-header,
+  .wc-tabs,
+  .wc-row {
+    border-bottom-width: 2px !important;
+  }
+  .wc-footer {
+    border-top-width: 2px !important;
+  }
+  // UI element borders.
+  .wc-icon-box,
+  .wc-tab,
+  .wc-pill-btn,
+  .wc-close-btn,
+  .wc-active-badge,
+  .wc-stepper-btn:disabled {
+    border-width: 2px !important;
+  }
+}
+
+:root[data-mode="dark"][data-card-style="comic"] .wc-panel {
+  --wc-panel-bg: #1c1710;
+  --wc-bg: #1c1710;
+  --wc-bg-2: #241e15;
+  --wc-bg-3: #2d261b;
+  --wc-border: rgba(212, 201, 168, 0.12);
+  --wc-border-med: rgba(212, 201, 168, 0.22);
+  --wc-ink-1: var(--w-ink-1);
+  --wc-ink-2: var(--w-ink-2);
+  --wc-ink-3: var(--w-ink-3);
+  --wc-ink-4: var(--w-ink-4);
+  --wc-ink-5: var(--w-ink-5);
+  --wc-ink-6: var(--w-ink-6);
+  --wc-active-fill: rgba(212, 201, 168, 0.06);
+  --wc-active-bar: var(--w-accent);
+  --wc-tab-active-bg: #d4c9a8;
+  --wc-tab-active-fg: #1c1710;
+  --wc-badge-bg: #d4c9a8;
+  --wc-badge-fg: #1c1710;
+  --wc-add-hover-bg: #d4c9a8;
+  --wc-add-hover-fg: #1c1710;
+
+  box-shadow: -4px 4px 0 0 rgba(212, 201, 168, 0.55);
+  border-left: 2px solid #d4c9a8;
+
+  // Bump 1px borders → 1.5px — same as light comic.
+  .wc-header,
+  .wc-tabs,
+  .wc-row {
+    border-bottom-width: 2px !important;
+  }
+  .wc-footer {
+    border-top-width: 2px !important;
+  }
+  .wc-icon-box,
+  .wc-tab,
+  .wc-pill-btn,
+  .wc-close-btn,
+  .wc-active-badge,
+  .wc-stepper-btn:disabled {
+    border-width: 2px !important;
+  }
+}
+
 // ── Dark mode token overrides ─────────────────────────────────────────────────
 [data-mode="dark"] .wc-panel {
-  --wc-panel-bg: rgba(22, 22, 24, 0.90);
+  --wc-panel-bg: rgba(22, 22, 24, 0.9);
   --wc-bg: #1a1a1c;
   --wc-bg-2: #242426;
   --wc-bg-3: #2e2e30;
@@ -100,7 +200,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .wc-panel,
   .wc-panel--leaving,
   .wc-backdrop,
@@ -179,7 +278,10 @@
   border: 1px solid var(--wc-border-med);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  transition:
+    background 0.14s,
+    color 0.14s,
+    border-color 0.14s;
   line-height: 1.4;
   letter-spacing: 0.01em;
 
@@ -210,7 +312,7 @@
 
     &:hover {
       background: rgba(192, 57, 43, 0.22);
-      border-color: rgba(192, 57, 43, 0.50);
+      border-color: rgba(192, 57, 43, 0.5);
       color: var(--wc-danger-fg-hover);
     }
   }
@@ -238,7 +340,10 @@
   color: var(--wc-ink-3);
   border: 1px solid var(--wc-border);
   cursor: pointer;
-  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  transition:
+    background 0.14s,
+    color 0.14s,
+    border-color 0.14s;
   flex-shrink: 0;
 
   &:hover {
@@ -250,7 +355,7 @@
 
 [data-mode="dark"] .wc-close-btn:hover {
   background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.40);
+  border-color: rgba(239, 68, 68, 0.4);
   color: var(--wc-danger-fg);
 }
 
@@ -269,7 +374,7 @@
 
 [data-mode="dark"] .btn-close:hover {
   background: rgba(239, 68, 68, 0.14) !important;
-  border-color: rgba(239, 68, 68, 0.40) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
   color: var(--wc-danger-fg) !important;
 }
 
@@ -300,7 +405,10 @@
   background: transparent;
   color: var(--wc-ink-3);
   border: 1px solid transparent;
-  transition: background 0.14s, color 0.14s, border-color 0.14s;
+  transition:
+    background 0.14s,
+    color 0.14s,
+    border-color 0.14s;
   flex-shrink: 0;
   letter-spacing: 0.01em;
 
@@ -325,11 +433,11 @@
 .wc-tab-cnt {
   font-size: 9.5px;
   font-weight: 600;
-  opacity: 0.50;
+  opacity: 0.5;
 }
 
 .wc-tab--active .wc-tab-cnt {
-  opacity: 0.60;
+  opacity: 0.6;
 }
 
 // ── List scroll container ─────────────────────────────────────────────────────
@@ -364,7 +472,7 @@
   color: var(--wc-ink-5);
 
   &::after {
-    content: '';
+    content: "";
     flex: 1;
     height: 1px;
     background: var(--wc-border);
@@ -446,7 +554,9 @@
   color: var(--wc-ink-3);
   border: 1px solid var(--wc-border);
   flex-shrink: 0;
-  transition: background 0.14s, color 0.14s;
+  transition:
+    background 0.14s,
+    color 0.14s;
 }
 
 .wc-icon-box--active {
@@ -508,10 +618,13 @@
   border-radius: 50%;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.13s, color 0.13s, transform 0.10s;
+  transition:
+    background 0.13s,
+    color 0.13s,
+    transform 0.1s;
 
   &:active:not(:disabled) {
-    transform: scale(0.90);
+    transform: scale(0.9);
   }
 
   &:disabled {
@@ -539,7 +652,7 @@
 [data-mode="dark"] .wc-stepper-btn--remove {
   background: rgba(210, 40, 40, 0.22);
   color: var(--wc-danger-fg);
-  border: 1.5px solid rgba(210, 40, 40, 0.50);
+  border: 1.5px solid rgba(210, 40, 40, 0.5);
 
   &:hover {
     background: rgba(210, 40, 40, 0.36);

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { XLg } from 'react-bootstrap-icons';
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { XLg } from "react-bootstrap-icons";
 
 /**
  * Shared modal primitive. Handles ESC key, portal, glass/flat surface, no overlay scrim.
@@ -21,23 +21,28 @@ export const Modal = ({
   title,
   onClose,
   children,
-  className = '',
+  className = "",
   style = {},
-  maxHeight = '70vh',
+  maxHeight = "70vh",
   ariaLabel,
 }) => {
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
   const panelStyle = {
-    background: 'var(--card-bg)',
-    backdropFilter: 'var(--card-blur)',
-    WebkitBackdropFilter: 'var(--card-blur)',
-    border: '1px solid var(--card-border)',
-    boxShadow: 'var(--card-shadow)',
+    backgroundColor: "var(--card-bg)",
+    backgroundImage: "var(--card-texture, none)",
+    backgroundSize: "var(--card-texture-size, auto)",
+    backdropFilter: "var(--card-blur)",
+    WebkitBackdropFilter: "var(--card-blur)",
+    border: "var(--card-border-width, 1px) solid var(--card-border)",
+    borderRadius: "var(--card-radius, 1rem)",
+    boxShadow: "var(--card-shadow)",
     ...style,
   };
 
@@ -45,7 +50,7 @@ export const Modal = ({
     <dialog
       open
       aria-modal="true"
-      aria-label={ariaLabel ?? title ?? 'Dialog'}
+      aria-label={ariaLabel ?? title ?? "Dialog"}
       tabIndex={-1}
       className="fixed inset-0 z-100 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
     >
@@ -54,45 +59,49 @@ export const Modal = ({
         aria-hidden="true"
         className="absolute inset-0"
         style={{
-          background: 'var(--modal-overlay-bg)',
-          backdropFilter: 'var(--modal-overlay-blur)',
-          WebkitBackdropFilter: 'var(--modal-overlay-blur)',
+          background: "var(--modal-overlay-bg)",
+          backdropFilter: "var(--modal-overlay-blur)",
+          WebkitBackdropFilter: "var(--modal-overlay-blur)",
         }}
       />
       {title ? (
         <div
-          className={`relative flex flex-col rounded-2xl overflow-hidden animate-fade-in ${className}`}
+          className={`relative flex flex-col overflow-hidden animate-fade-in ${className}`}
           style={{ ...panelStyle, maxHeight }}
         >
           <div
             className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-            style={{ borderBottom: '1px solid var(--card-border)' }}
+            style={{
+              borderBottom:
+                "var(--card-border-width, 1px) solid var(--card-border)",
+            }}
           >
-            <span className="font-semibold text-sm" style={{ color: 'var(--w-ink-1)' }}>
+            <span
+              className="font-semibold text-sm"
+              style={{ color: "var(--w-ink-1)" }}
+            >
               {title}
             </span>
             <button
               onClick={onClose}
               aria-label={`Close ${title}`}
               className="w-6 h-6 flex items-center justify-center rounded-full transition-colors btn-close cursor-pointer"
-              style={{ color: 'var(--w-ink-3)' }}
+              style={{ color: "var(--w-ink-3)" }}
             >
               <XLg size={12} aria-hidden="true" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 py-3">
-            {children}
-          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-3">{children}</div>
         </div>
       ) : (
         <div
-          className={`relative rounded-2xl overflow-hidden animate-fade-in ${className}`}
+          className={`relative overflow-hidden animate-fade-in ${className}`}
           style={panelStyle}
         >
           {children}
         </div>
       )}
     </dialog>,
-    document.body
+    document.body,
   );
 };

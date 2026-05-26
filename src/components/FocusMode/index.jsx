@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  Suspense,
+  lazy,
+} from "react";
 import { OrbBackground } from "../ui/OrbBackground";
 import bgImage from "../../assets/img/bg.webp";
 import {
@@ -26,16 +33,33 @@ import { ZONES } from "./config";
 
 // Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
 const FocusModeSettings = lazy(() =>
-  import('./Settings').then((m) => ({ default: m.FocusModeSettings }))
+  import("./Settings").then((m) => ({ default: m.FocusModeSettings })),
 );
 
 // ─── Background localStorage helpers ─────────────────────────────────────────
-const CUSTOM_URL_KEY = 'fm_custom_bg_url';
-const getCustomBgUrl = () => { try { return localStorage.getItem(CUSTOM_URL_KEY) || null; } catch { return null; } };
-const persistCustomUrl = (url) => { try { if (url) localStorage.setItem(CUSTOM_URL_KEY, url); else localStorage.removeItem(CUSTOM_URL_KEY); } catch { } };
+const CUSTOM_URL_KEY = "fm_custom_bg_url";
+const getCustomBgUrl = () => {
+  try {
+    return localStorage.getItem(CUSTOM_URL_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+const persistCustomUrl = (url) => {
+  try {
+    if (url) localStorage.setItem(CUSTOM_URL_KEY, url);
+    else localStorage.removeItem(CUSTOM_URL_KEY);
+  } catch {}
+};
 
-const ORB_PALETTE_KEY = 'fm_orb_palette_id';
-const getOrbPaletteId = () => { try { return localStorage.getItem(ORB_PALETTE_KEY) || 'blueberry'; } catch { return 'blueberry'; } };
+const ORB_PALETTE_KEY = "fm_orb_palette_id";
+const getOrbPaletteId = () => {
+  try {
+    return localStorage.getItem(ORB_PALETTE_KEY) || "blueberry";
+  } catch {
+    return "blueberry";
+  }
+};
 const getOrbRgb = () => getOrbRgbById(getOrbPaletteId());
 
 const FG_MASK =
@@ -133,10 +157,12 @@ export const FocusMode = ({ onExit }) => {
   const effectiveSearchDark = bgSource === "curated" ? searchDark : true;
   const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
   // Card surface style (glass vs flat) — both are always dark-tinted.
-  const { cardStyle, accent } = useSettingsStore(useShallow(s => ({
-    cardStyle: s.cardStyle,
-    accent: s.accent,
-  })));
+  const { cardStyle, accent } = useSettingsStore(
+    useShallow((s) => ({
+      cardStyle: s.cardStyle,
+      accent: s.accent,
+    })),
+  );
   const effectiveCardStyle = cardStyle || "glass";
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
@@ -174,8 +200,8 @@ export const FocusMode = ({ onExit }) => {
   }, [isFullscreen, resetHideTimer]);
 
   const toggleFullscreen = useCallback(() => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
-    else document.documentElement.requestFullscreen().catch(() => { });
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => {});
   }, []);
 
   // ── Google auth (shared state for Tasks panel) ──────────────────
@@ -185,8 +211,7 @@ export const FocusMode = ({ onExit }) => {
   const [settingsTab, setSettingsTab] = useState(null); // null = closed, else tab id
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === "Escape" && settingsTab === null)
-        onExit();
+      if (e.key === "Escape" && settingsTab === null) onExit();
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
@@ -210,7 +235,7 @@ export const FocusMode = ({ onExit }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className="fixed inset-0 z-50 overflow-hidden fm-root"
       style={{
         backgroundColor: bgSource === "orb" ? FM_ORB_BG : photoColor,
         ...getFMCardVars(effectiveCardStyle),
@@ -260,7 +285,7 @@ export const FocusMode = ({ onExit }) => {
           isFullscreen={isFullscreen}
           toggleFullscreen={toggleFullscreen}
           uiVisible={uiVisible}
-          onOpenSettings={(tab) => setSettingsTab(tab ?? 'search')}
+          onOpenSettings={(tab) => setSettingsTab(tab ?? "search")}
         />
       )}
 
@@ -271,7 +296,11 @@ export const FocusMode = ({ onExit }) => {
             initialTab={settingsTab}
             bgSource={bgSource}
             bgCustomUrl={bgSource === "custom" ? customBgUrl : null}
-            bgPhotoUrl={bgSource === "curated" ? photo?.regular || photo?.url || null : null}
+            bgPhotoUrl={
+              bgSource === "curated"
+                ? photo?.regular || photo?.url || null
+                : null
+            }
             onBgApply={(type, opts = {}) => handleBgChange(type, opts.url)}
             onBgRotate={rotate}
           />

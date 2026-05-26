@@ -31,17 +31,20 @@ import bgImage from "./assets/img/bg.webp";
 
 const _focusModeChunk = (() => {
   try {
-    const stored = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    if (stored?.state?.defaultView === 'focus') {
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (stored?.state?.defaultView === "focus") {
       return import("./components/FocusMode");
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 })();
 
 const FocusMode = lazy(() =>
-  (_focusModeChunk || import("./components/FocusMode"))
-    .then((m) => ({ default: m.FocusMode })),
+  (_focusModeChunk || import("./components/FocusMode")).then((m) => ({
+    default: m.FocusMode,
+  })),
 );
 
 // Analytics is only used on the web demo — lazy-import so the module is never
@@ -55,7 +58,9 @@ const LookAway = lazy(() =>
 );
 
 const CommandPalette = lazy(() =>
-  import("./components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+  import("./components/CommandPalette").then((m) => ({
+    default: m.CommandPalette,
+  })),
 );
 
 const QuickTour = lazy(() =>
@@ -129,24 +134,38 @@ const BreakpointBadge = () => {
 // ── FocusMode Suspense fallback ────────────────────────────────────────────────
 // Synchronously reads localStorage to match the actual background the user configured,
 // eliminating the dark flash when the FocusMode chunk is still loading.
-const CUSTOM_BG_KEY = 'fm_custom_bg_url';
+const CUSTOM_BG_KEY = "fm_custom_bg_url";
 function FMFallback() {
   const src = getBgSource();
   const base = "fixed inset-0 z-50 bg-cover bg-center";
-  if (src === 'orb') {
-    return <div className={base} style={{ backgroundColor: '#060608' }} />;
+  if (src === "orb") {
+    return <div className={base} style={{ backgroundColor: "#060608" }} />;
   }
-  if (src === 'curated') {
+  if (src === "curated") {
     const photo = getCachedPhotoSync();
-    return <div className={base} style={{ backgroundColor: photo?.color || '#18191b' }} />;
+    return (
+      <div
+        className={base}
+        style={{ backgroundColor: photo?.color || "#18191b" }}
+      />
+    );
   }
-  if (src === 'custom') {
+  if (src === "custom") {
     let url = null;
-    try { url = localStorage.getItem(CUSTOM_BG_KEY); } catch { /* ignore */ }
-    if (url) return <div className={base} style={{ backgroundImage: `url(${url})` }} />;
+    try {
+      url = localStorage.getItem(CUSTOM_BG_KEY);
+    } catch {
+      /* ignore */
+    }
+    if (url)
+      return (
+        <div className={base} style={{ backgroundImage: `url(${url})` }} />
+      );
   }
   // 'default' — show bg.webp (exact match to FocusMode's default state)
-  return <div className={base} style={{ backgroundImage: `url(${bgImage})` }} />;
+  return (
+    <div className={base} style={{ backgroundImage: `url(${bgImage})` }} />
+  );
 }
 
 const App = () => {
@@ -154,20 +173,28 @@ const App = () => {
   const [showLookAway, setShowLookAway] = useState(false);
 
   // ── Stores ──────────────────────────────────────────────────────────────────
-  const { mode, accent, defaultView, lookAwayEnabled, lookAwayInterval, cardStyle } =
-    useSettingsStore(useShallow(s => ({
+  const {
+    mode,
+    accent,
+    defaultView,
+    lookAwayEnabled,
+    lookAwayInterval,
+    cardStyle,
+  } = useSettingsStore(
+    useShallow((s) => ({
       mode: s.mode,
       accent: s.accent,
       defaultView: s.defaultView,
       lookAwayEnabled: s.lookAwayEnabled,
       lookAwayInterval: s.lookAwayInterval,
       cardStyle: s.cardStyle,
-    })));
-  const canvasBg = useSettingsStore(s => s.canvasBg);
-  const setCanvasBg = useSettingsStore(s => s.setCanvasBg);
-  const instances = useWidgetInstancesStore(s => s.instances);
-  const addInstance = useWidgetInstancesStore(s => s.addInstance);
-  const removeInstance = useWidgetInstancesStore(s => s.removeInstance);
+    })),
+  );
+  const canvasBg = useSettingsStore((s) => s.canvasBg);
+  const setCanvasBg = useSettingsStore((s) => s.setCanvasBg);
+  const instances = useWidgetInstancesStore((s) => s.instances);
+  const addInstance = useWidgetInstancesStore((s) => s.addInstance);
+  const removeInstance = useWidgetInstancesStore((s) => s.removeInstance);
   const { settingsOpenAt, clearSettingsOpenAt } = useUIStore();
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
@@ -179,7 +206,9 @@ const App = () => {
   }, []);
 
   // ── Seed default widgets on fresh install / after reset ──────────────────────
-  useEffect(() => { seedWidgetInstancesIfEmpty(); }, []);
+  useEffect(() => {
+    seedWidgetInstancesIfEmpty();
+  }, []);
 
   // ── Theme ───────────────────────────────────────────────────────────────────
   const effectiveMode = useAutoTheme(mode, accent, cardStyle);
@@ -188,8 +217,14 @@ const App = () => {
   // ── Feature hooks ────────────────────────────────────────────────────────────
   const { showFocusMode, focusModeEverShown, openFocusMode, closeFocusMode } =
     useFocusMode(defaultView);
-  const { showSettings, settingsInitialTab, panelRef, toggleSettings, closeSettings, openAtTab } =
-    useSettingsPanel();
+  const {
+    showSettings,
+    settingsInitialTab,
+    panelRef,
+    toggleSettings,
+    closeSettings,
+    openAtTab,
+  } = useSettingsPanel();
 
   // Open Settings at the accounts tab when any widget calls openAccountsDialog().
   useEffect(() => {
@@ -199,7 +234,7 @@ const App = () => {
     }
   }, [settingsOpenAt, openAtTab, clearSettingsOpenAt]);
   const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
-  const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent });
+  const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent, cardStyle });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
   // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
   useEffect(() => {
@@ -278,7 +313,10 @@ const App = () => {
         </Suspense>
       )}
 
-      <div className="relative z-3 w-full h-full overflow-x-hidden pt-16" style={{ overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }}>
+      <div
+        className="relative z-3 w-full h-full overflow-x-hidden pt-16"
+        style={{ overflowY: "scroll", WebkitOverflowScrolling: "touch" }}
+      >
         <WidgetGrid
           instances={instances}
           onRemoveInstance={removeInstance}
@@ -324,9 +362,7 @@ const App = () => {
       {/* Command Palette — Cmd+K / Ctrl+K */}
       {commandPaletteOpen && !showFocusMode && (
         <Suspense fallback={null}>
-          <CommandPalette
-            onClose={closeCommandPalette}
-          />
+          <CommandPalette onClose={closeCommandPalette} />
         </Suspense>
       )}
 
