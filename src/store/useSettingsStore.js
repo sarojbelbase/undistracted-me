@@ -20,10 +20,12 @@ import { DEFAULT_NOTIFICATION_TYPES } from "../constants/notifications";
 /** Sync notification config to chrome.storage.local so bg.js can read it. */
 function _syncNotifications(enabled, types) {
   try {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    if (typeof chrome !== "undefined" && chrome.storage?.local) {
       chrome.storage.local.set({ notif_enabled: enabled, notif_types: types });
     }
-  } catch { /* unavailable in tests / web build */ }
+  } catch {
+    /* unavailable in tests / web build */
+  }
 }
 
 export const STORE_KEY = STORAGE_KEYS.SETTINGS;
@@ -49,7 +51,7 @@ const fromLegacy = () => {
         lookAwayInterval: stored.state.lookAwayInterval ?? 20,
         canvasBg: (() => {
           const cb = stored.state.canvasBg ?? {
-            type: "orb",
+            type: "solid",
             orbId: "accent",
             url: null,
           };
@@ -63,7 +65,8 @@ const fromLegacy = () => {
           dark: { cardStyle: stored.state.cardStyle ?? "glass" },
         },
         notificationsEnabled: stored.state.notificationsEnabled ?? true,
-        notificationTypes: stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
+        notificationTypes:
+          stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
         quickTourSeenVersion: stored.state.quickTourSeenVersion ?? null,
       };
   } catch {
@@ -71,19 +74,21 @@ const fromLegacy = () => {
   }
   // Legacy single-key fallback
   const _prefersDark =
-    typeof window !== 'undefined' &&
-    (window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
   return {
     language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || "en",
     accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || "Matte Black",
-    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || (_prefersDark ? 'dark' : 'light'),
+    mode:
+      localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) ||
+      (_prefersDark ? "dark" : "light"),
     defaultView:
       localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || "canvas",
     dateFormat:
       localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || "gregorian",
     lookAwayEnabled: false,
     lookAwayInterval: 20,
-    canvasBg: { type: "orb", orbId: "accent", url: null },
+    canvasBg: { type: "solid", orbId: "accent", url: null },
     cardStyle: "glass",
     modePrefs: {
       light: { cardStyle: "flat" },
@@ -97,7 +102,7 @@ const fromLegacy = () => {
 
 /** Returns 'light' or 'dark' modePrefs key based on the current mode value. */
 const resolvedModeKey = (mode) =>
-  (mode === 'dark' || mode === 'auto') ? 'dark' : 'light';
+  mode === "dark" || mode === "auto" ? "dark" : "light";
 
 export const useSettingsStore = create(
   persist(

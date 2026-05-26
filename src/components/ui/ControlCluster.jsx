@@ -1,13 +1,19 @@
-import React, { forwardRef, Suspense, lazy } from 'react';
-import { Grid3x3GapFill, GearFill, Grid1x2Fill } from 'react-bootstrap-icons';
-import { SearchIcon } from '../../assets/svg/SearchIcon';
-import { TooltipBtn } from './TooltipBtn';
-import { CANVAS_ICON_COLOR, CANVAS_ICON_ACTIVE, CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
-import { useUIStore } from '../../store/useUIStore';
-import { cmdKey } from '../../hooks/useCommandPalette';
+import React, { forwardRef, Suspense, lazy } from "react";
+import { Grid3x3GapFill, GearFill, Grid1x2Fill } from "react-bootstrap-icons";
+import { SearchIcon } from "../../assets/svg/SearchIcon";
+import { TooltipBtn } from "./TooltipBtn";
+import {
+  CANVAS_ICON_COLOR,
+  CANVAS_ICON_ACTIVE,
+  CANVAS_DIVIDER,
+  CANVAS_DIVIDER_DARK,
+} from "../../theme/canvas";
+import { useUIStore } from "../../store/useUIStore";
+import { cmdKey } from "../../hooks/useCommandPalette";
 
 // Settings is only ever rendered from within the cluster — lazy-load it here.
-const settingsImport = () => import('../Settings').then(m => ({ default: m.Settings }));
+const settingsImport = () =>
+  import("../Settings").then((m) => ({ default: m.Settings }));
 const Settings = lazy(settingsImport);
 // Kick off the settings chunk on hover of the gear button (before the click).
 const preloadSettings = () => settingsImport();
@@ -27,14 +33,14 @@ export const ControlCluster = forwardRef(function ControlCluster(
     showSettings,
     toggleSettings,
     closeSettings,
-    settingsInitialTab = 'appearance',
+    settingsInitialTab = "appearance",
     onOpenCatalog,
     onPreloadCatalog,
     onPreviewLookAway,
   },
   ref,
 ) {
-  const hoverBg = isDark ? 'hover:bg-white/10' : 'hover:bg-black/10';
+  const hoverBg = isDark ? "hover:bg-white/10" : "hover:bg-black/10";
   const iconColor = CANVAS_ICON_COLOR(isDark);
   const gearColor = (() => {
     if (!showSettings) return iconColor;
@@ -47,14 +53,13 @@ export const ControlCluster = forwardRef(function ControlCluster(
       <div
         className="flex items-center rounded-full"
         style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--card-border)',
-          backdropFilter: 'var(--card-blur)',
-          WebkitBackdropFilter: 'var(--card-blur)',
-          boxShadow: 'var(--card-shadow)',
+          background: "var(--card-bg)",
+          border: "var(--card-border-width, 1px) solid var(--card-border)",
+          backdropFilter: "var(--card-blur)",
+          WebkitBackdropFilter: "var(--card-blur)",
+          boxShadow: "var(--card-shadow)",
         }}
       >
-
         {/* Search / Command Palette */}
         <TooltipBtn
           tooltip={`Search (${cmdKey})`}
@@ -68,15 +73,19 @@ export const ControlCluster = forwardRef(function ControlCluster(
 
         {/* Arrange */}
         <TooltipBtn
-          tooltip={arrangeMode ? 'Done (Esc)' : 'Arrange'}
-          className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${arrangeMode ? '' : hoverBg}`}
+          tooltip={arrangeMode ? "Done (Esc)" : "Arrange"}
+          className={`relative group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer ${arrangeMode ? "" : hoverBg}`}
           data-arrange-toggle
           onClick={toggleArrangeMode}
-          style={arrangeMode ? { background: 'var(--w-accent)', borderRadius: '9999px' } : {}}
+          style={
+            arrangeMode
+              ? { background: "var(--w-accent)", borderRadius: "9999px" }
+              : {}
+          }
         >
           <Grid1x2Fill
             size={16}
-            style={{ color: arrangeMode ? 'var(--w-accent-fg)' : iconColor }}
+            style={{ color: arrangeMode ? "var(--w-accent-fg)" : iconColor }}
           />
         </TooltipBtn>
 

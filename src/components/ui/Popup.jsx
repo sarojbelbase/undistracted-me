@@ -1,5 +1,5 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useRef, useState, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 
 const MARGIN = 10; // min gap from every viewport edge
 
@@ -16,10 +16,18 @@ const MARGIN = 10; // min gap from every viewport edge
  *   className   — extra classes on the card (e.g. "p-3 gap-2.5 max-w-[260px]")
  *   children    — popup content
  */
-export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 gap-2.5 max-w-65' }) => {
+export const Popup = ({
+  anchor,
+  children,
+  preferAbove = false,
+  className = "p-3 gap-2.5 max-w-65",
+}) => {
   const ref = useRef(null);
   const [style, setStyle] = useState({
-    position: 'fixed', opacity: 0, pointerEvents: 'none', zIndex: 9999,
+    position: "fixed",
+    opacity: 0,
+    pointerEvents: "none",
+    zIndex: 9999,
   });
 
   useLayoutEffect(() => {
@@ -37,13 +45,20 @@ export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 
     const spaceBelow = vh - anchor.bottom - m;
     const spaceAbove = anchor.top - m;
     const goAbove = preferAbove
-      ? (spaceAbove >= th || spaceAbove >= spaceBelow)
-      : (spaceBelow < th && spaceAbove > spaceBelow);
+      ? spaceAbove >= th || spaceAbove >= spaceBelow
+      : spaceBelow < th && spaceAbove > spaceBelow;
 
     let top = goAbove ? anchor.top - th - 6 : anchor.bottom + 6;
     top = Math.max(m, Math.min(top, vh - th - m));
 
-    setStyle({ position: 'fixed', zIndex: 9999, pointerEvents: 'none', opacity: 1, left, top });
+    setStyle({
+      position: "fixed",
+      zIndex: 9999,
+      pointerEvents: "none",
+      opacity: 1,
+      left,
+      top,
+    });
   }, [anchor, preferAbove]);
 
   if (!anchor) return null;
@@ -53,14 +68,17 @@ export const Popup = ({ anchor, children, preferAbove = false, className = 'p-3 
       ref={ref}
       style={{
         ...style,
-        background: 'var(--card-bg)',
-        backdropFilter: 'var(--card-blur)',
-        WebkitBackdropFilter: 'var(--card-blur)',
-        border: '1px solid var(--card-border)',
-        boxShadow: 'var(--card-shadow)',
-        transition: 'opacity 80ms ease',
+        backgroundColor: "var(--card-bg)",
+        backgroundImage: "var(--card-texture, none)",
+        backgroundSize: "var(--card-texture-size, auto)",
+        backdropFilter: "var(--card-blur)",
+        WebkitBackdropFilter: "var(--card-blur)",
+        border: "var(--card-border-width, 1px) solid var(--card-border)",
+        borderRadius: "var(--card-radius, 0.75rem)",
+        boxShadow: "var(--card-shadow)",
+        transition: "opacity 80ms ease",
       }}
-      className={`rounded-xl shadow-xl flex flex-col w-max ${className}`}
+      className={`shadow-xl flex flex-col w-max ${className}`}
     >
       {children}
     </div>,

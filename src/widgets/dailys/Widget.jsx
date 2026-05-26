@@ -10,7 +10,7 @@ import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
 
 const MODE_OPTIONS = [
-  { label: "Wit", value: "quote" },
+  { label: "Quote", value: "quote" },
   { label: "Joke", value: "joke" },
   { label: "Fact", value: "fact" },
 ];
