@@ -1,28 +1,46 @@
-import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import { PlusLg, Trash3, HourglassSplit, ArrowRepeat, CalendarEvent } from 'react-bootstrap-icons';
-import { TintedChip } from '../../components/ui/TintedChip';
-import { ConfirmButton } from '../../components/ui/ConfirmButton';
-import { AddCountdown } from './AddCountdown';
-import { BaseWidget } from '../BaseWidget';
-import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
-import { todayStr } from '../../utilities';
-import { notifyUser } from '../../utilities/chrome';
-import { getNextOccurrence, formatCountdown, formatTargetDate } from './utils';
-import config from './config';
-import { fmt12, calcDuration } from '../events/utils';
-import { STORAGE_KEYS } from '../../constants/storageKeys';
-import { onClockTick } from '../../utilities/sharedClock';
+import React, { useState, useEffect, useCallback, useReducer } from "react";
+import {
+  PlusLg,
+  Trash3,
+  HourglassSplit,
+  ArrowRepeat,
+  CalendarEvent,
+} from "react-bootstrap-icons";
+import { TintedChip } from "../../components/ui/TintedChip";
+import { ConfirmButton } from "../../components/ui/ConfirmButton";
+import { AddCountdown } from "./AddCountdown";
+import { BaseWidget } from "../BaseWidget";
+import { useEvents, useGoogleCalendar } from "../../hooks/useEvents";
+import { todayStr } from "../../utilities";
+import { notifyUser } from "../../utilities/chrome";
+import { getNextOccurrence, formatCountdown, formatTargetDate } from "./utils";
+import config from "./config";
+import { fmt12, calcDuration } from "../events/utils";
+import { STORAGE_KEYS } from "../../constants/storageKeys";
+import { onClockTick } from "../../utilities/sharedClock";
 
 const loadCustom = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_EVENTS) || '[]'); }
-  catch { return []; }
+  try {
+    return JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_EVENTS) || "[]",
+    );
+  } catch {
+    return [];
+  }
 };
-const saveCustom = (list) => localStorage.setItem(STORAGE_KEYS.COUNTDOWN_EVENTS, JSON.stringify(list));
+const saveCustom = (list) =>
+  localStorage.setItem(STORAGE_KEYS.COUNTDOWN_EVENTS, JSON.stringify(list));
 const loadPinned = (id) => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.countdownPinned(id)) || 'null'); }
-  catch { return null; }
+  try {
+    return JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.countdownPinned(id)) || "null",
+    );
+  } catch {
+    return null;
+  }
 };
-const savePinned = (id, p) => localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
+const savePinned = (id, p) =>
+  localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
 
 // ─── Notification helpers ────────────────────────────────────────────────────
 // Stores notified event keys in localStorage keyed by today's date so each
@@ -30,23 +48,40 @@ const savePinned = (id, p) => localStorage.setItem(STORAGE_KEYS.countdownPinned(
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const wasNotified = (id) => {
   try {
-    const map = JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || '{}');
+    const map = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
+    );
     return map[id] === todayKey();
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 };
 const markNotified = (id) => {
   try {
-    const map = JSON.parse(localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || '{}');
+    const map = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
+    );
     // Prune old dates
-    Object.keys(map).forEach(k => { if (map[k] !== todayKey()) delete map[k]; });
+    Object.keys(map).forEach((k) => {
+      if (map[k] !== todayKey()) delete map[k];
+    });
     map[id] = todayKey();
     localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
-  } catch { }
+  } catch {}
 };
 
-const sendNotification = (title, body) => notifyUser(title, body, 'COUNTDOWN_DONE');
+const sendNotification = (title, body) =>
+  notifyUser(title, body, "COUNTDOWN_DONE");
 
-const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemoveCustom, onPin, onClose }) => {
+const CountdownSettings = ({
+  custom,
+  pinned,
+  upcomingEvents,
+  onAddCustom,
+  onRemoveCustom,
+  onPin,
+  onClose,
+}) => {
   const [showAdd, setShowAdd] = useState(false);
 
   return (
@@ -54,12 +89,20 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       {/* ── Custom Countdowns ── */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}>My Countdowns</p>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: "var(--w-ink-4)", letterSpacing: "0.1em" }}
+          >
+            My Countdowns
+          </p>
           <button
             type="button"
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[10px] px-2.5 py-1"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+            style={{
+              background: "var(--w-accent)",
+              color: "var(--w-accent-fg)",
+            }}
           >
             <PlusLg size={9} />
             New
@@ -69,33 +112,52 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
         {custom.length === 0 ? (
           <div
             className="rounded-2xl flex flex-col items-center text-center py-7 px-5"
-            style={{ background: 'var(--panel-bg)', border: '1.5px dashed var(--card-border)' }}
+            style={{
+              background: "var(--panel-bg)",
+              border: "1.5px dashed var(--card-border)",
+            }}
           >
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-              style={{ background: 'color-mix(in srgb, var(--w-accent) 10%, transparent)' }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--w-accent) 10%, transparent)",
+              }}
             >
-              <HourglassSplit size={22} style={{ color: 'var(--w-accent)', opacity: 0.75 }} />
+              <HourglassSplit
+                size={22}
+                style={{ color: "var(--w-accent)", opacity: 0.75 }}
+              />
             </div>
-            <p className="w-body font-semibold mb-1">Nothing to count down to</p>
-            <p className="w-muted leading-relaxed mb-4" style={{ maxWidth: '180px' }}>
+            <p className="w-body font-semibold mb-1">
+              Nothing to count down to
+            </p>
+            <p
+              className="w-muted leading-relaxed mb-4"
+              style={{ maxWidth: "180px" }}
+            >
               Track birthdays, trips, launches — anything that matters.
             </p>
-            <TintedChip size="sm" onClick={() => setShowAdd(true)} className="flex items-center gap-1.5">
+            <TintedChip
+              size="sm"
+              onClick={() => setShowAdd(true)}
+              className="flex items-center gap-1.5"
+            >
               <PlusLg size={9} />
               Add your first countdown
             </TintedChip>
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            {custom.map(cd => {
+            {custom.map((cd) => {
               const next = getNextOccurrence(cd);
               const { days, hours, minutes: mins } = formatCountdown(next);
-              const isPinned = pinned?.type === 'custom' && pinned?.id === cd.id;
-              const isPast = next < new Date() && cd.repeat === 'none';
+              const isPinned =
+                pinned?.type === "custom" && pinned?.id === cd.id;
+              const isPast = next < new Date() && cd.repeat === "none";
 
               const cdLabel = (() => {
-                if (isPast) return 'Past';
+                if (isPast) return "Past";
                 if (days > 0) return `${days}d`;
                 if (hours > 0) return `${hours}h`;
                 return `${mins}m`;
@@ -110,36 +172,75 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                 >
                   <div
                     className="w-1.5 rounded-xs shrink-0 self-stretch"
-                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
+                    style={{
+                      backgroundColor: "var(--w-accent)",
+                      minHeight: "38px",
+                    }}
                   />
                   <button
                     className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2 pr-1"
-                    onClick={() => { onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
+                    onClick={() => {
+                      onPin({ type: "custom", id: cd.id });
+                      onClose?.();
+                    }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                      <p
+                        className="text-[13px] font-semibold leading-snug truncate"
+                        style={{ color: "var(--w-ink-1)" }}
+                      >
                         {cd.title}
                       </p>
                       <div className="flex items-center gap-1">
                         {isPinned && (
                           <>
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                            <span
+                              className="text-[11px] font-semibold"
+                              style={{ color: "var(--w-ink-4)" }}
+                            >
+                              Pinned
+                            </span>
+                            <span
+                              className="text-[11px] font-semibold select-none"
+                              style={{ color: "var(--w-ink-6)" }}
+                            >
+                              ·
+                            </span>
                           </>
                         )}
-                        <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cdDate}</span>
-                        {cd.repeat !== 'none' && (
+                        <span
+                          className="text-[11px] font-semibold"
+                          style={{ color: "var(--w-ink-5)" }}
+                        >
+                          {cdDate}
+                        </span>
+                        {cd.repeat !== "none" && (
                           <>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
-                            <ArrowRepeat size={9} style={{ color: 'var(--w-ink-5)' }} />
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cd.repeat}</span>
+                            <span
+                              className="text-[11px] font-semibold select-none"
+                              style={{ color: "var(--w-ink-6)" }}
+                            >
+                              ·
+                            </span>
+                            <ArrowRepeat
+                              size={9}
+                              style={{ color: "var(--w-ink-5)" }}
+                            />
+                            <span
+                              className="text-[11px] font-semibold"
+                              style={{ color: "var(--w-ink-5)" }}
+                            >
+                              {cd.repeat}
+                            </span>
                           </>
                         )}
                       </div>
                     </div>
                     <span
                       className="text-[13px] font-bold shrink-0 tabular-nums"
-                      style={{ color: isPast ? 'var(--w-ink-5)' : 'var(--w-accent)' }}
+                      style={{
+                        color: isPast ? "var(--w-ink-5)" : "var(--w-accent)",
+                      }}
                     >
                       {cdLabel}
                     </span>
@@ -148,7 +249,7 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
                     onConfirm={() => onRemoveCustom(cd.id)}
                     label={`Remove ${cd.title}`}
                     className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 mr-1.5"
-                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
+                    style={{ color: "var(--w-ink-4)", background: "none" }}
                   >
                     <Trash3 size={13} />
                   </ConfirmButton>
@@ -160,34 +261,61 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
       </div>
 
       {/* Divider */}
-      <div className="mb-4" style={{ height: '1px', background: 'rgba(0,0,0,0.1)' }} />
+      <div
+        className="mb-4"
+        style={{ height: "1px", background: "rgba(0,0,0,0.1)" }}
+      />
 
       {/* ── From Calendar Events ── */}
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}>From Calendar</p>
+        <p
+          className="text-[10px] font-semibold uppercase tracking-widest mb-3"
+          style={{ color: "var(--w-ink-4)", letterSpacing: "0.1em" }}
+        >
+          From Calendar
+        </p>
 
         {upcomingEvents.length === 0 ? (
           <div
             className="rounded-2xl flex flex-col items-center text-center py-6 px-5"
-            style={{ background: 'var(--panel-bg)', border: '1.5px dashed var(--card-border)' }}
+            style={{
+              background: "var(--panel-bg)",
+              border: "1.5px dashed var(--card-border)",
+            }}
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center mb-2.5"
-              style={{ background: 'color-mix(in srgb, var(--w-accent) 10%, transparent)' }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--w-accent) 10%, transparent)",
+              }}
             >
-              <CalendarEvent size={18} style={{ color: 'var(--w-accent)', opacity: 0.75 }} />
+              <CalendarEvent
+                size={18}
+                style={{ color: "var(--w-accent)", opacity: 0.75 }}
+              />
             </div>
             <p className="w-body font-semibold mb-1">No upcoming events</p>
-            <p className="w-muted leading-relaxed" style={{ maxWidth: '180px' }}>
+            <p
+              className="w-muted leading-relaxed"
+              style={{ maxWidth: "180px" }}
+            >
               Add events in the Events widget and pin them here as countdowns.
             </p>
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            {upcomingEvents.slice(0, 8).map(ev => {
-              const isPinned = pinned?.type === 'event' && pinned?.eventId === ev.id;
-              const evDate = new Date(`${ev.startDate}T${ev.startTime || '00:00'}`);
-              const { days: evDays, hours: evHours, minutes: evMins } = formatCountdown(evDate);
+            {upcomingEvents.slice(0, 8).map((ev) => {
+              const isPinned =
+                pinned?.type === "event" && pinned?.eventId === ev.id;
+              const evDate = new Date(
+                `${ev.startDate}T${ev.startTime || "00:00"}`,
+              );
+              const {
+                days: evDays,
+                hours: evHours,
+                minutes: evMins,
+              } = formatCountdown(evDate);
               const evLabel = (() => {
                 if (evDays > 0) return `${evDays}d`;
                 if (evHours > 0) return `${evHours}h`;
@@ -195,35 +323,86 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
               })();
 
               const evStartLabel = fmt12(ev.startTime);
-              const evDuration = calcDuration(ev.startTime, ev.endTime, ev.startDate, ev.endDate);
+              const evDuration = calcDuration(
+                ev.startTime,
+                ev.endTime,
+                ev.startDate,
+                ev.endDate,
+              );
 
               return (
-                <div key={ev.id} className="relative flex items-stretch gap-3 group">
+                <div
+                  key={ev.id}
+                  className="relative flex items-stretch gap-3 group"
+                >
                   <div
                     className="w-1.5 rounded-xs shrink-0 self-stretch"
-                    style={{ backgroundColor: 'var(--w-accent)', minHeight: '38px' }}
+                    style={{
+                      backgroundColor: "var(--w-accent)",
+                      minHeight: "38px",
+                    }}
                   />
                   <button
                     className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2"
-                    onClick={() => { onPin({ type: 'event', eventId: ev.id }); onClose?.(); }}
+                    onClick={() => {
+                      onPin({ type: "event", eventId: ev.id });
+                      onClose?.();
+                    }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
+                      <p
+                        className="text-[13px] font-semibold leading-snug truncate"
+                        style={{ color: "var(--w-ink-1)" }}
+                      >
                         {ev.title}
                       </p>
                       <div className="flex items-center gap-1">
                         {isPinned && (
                           <>
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                            <span
+                              className="text-[11px] font-semibold"
+                              style={{ color: "var(--w-ink-4)" }}
+                            >
+                              Pinned
+                            </span>
+                            <span
+                              className="text-[11px] font-semibold select-none"
+                              style={{ color: "var(--w-ink-6)" }}
+                            >
+                              ·
+                            </span>
                           </>
                         )}
-                        {evStartLabel && <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{evStartLabel}</span>}
-                        {evStartLabel && evDuration && <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>}
-                        {evDuration && <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{evDuration}</span>}
+                        {evStartLabel && (
+                          <span
+                            className="text-[11px] font-semibold"
+                            style={{ color: "var(--w-ink-5)" }}
+                          >
+                            {evStartLabel}
+                          </span>
+                        )}
+                        {evStartLabel && evDuration && (
+                          <span
+                            className="text-[11px] font-semibold select-none"
+                            style={{ color: "var(--w-ink-6)" }}
+                          >
+                            ·
+                          </span>
+                        )}
+                        {evDuration && (
+                          <span
+                            className="text-[11px] font-semibold"
+                            style={{ color: "var(--w-ink-5)" }}
+                          >
+                            {evDuration}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: 'var(--w-accent)' }}>
+                    <span
+                      className="text-[13px] font-bold shrink-0 tabular-nums"
+                      style={{ color: "var(--w-accent)" }}
+                    >
                       {evLabel}
                     </span>
                   </button>
@@ -236,7 +415,11 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
 
       {showAdd && (
         <AddCountdown
-          onSave={(cd) => { onAddCustom(cd); onPin({ type: 'custom', id: cd.id }); onClose?.(); }}
+          onSave={(cd) => {
+            onAddCustom(cd);
+            onPin({ type: "custom", id: cd.id });
+            onClose?.();
+          }}
           onClose={() => setShowAdd(false)}
         />
       )}
@@ -251,25 +434,25 @@ const CountdownSettings = ({ custom, pinned, upcomingEvents, onAddCustom, onRemo
 function monthsTier(days) {
   const months = Math.floor(days / 30);
   const rounded = days % 30 >= 15 ? months + 1 : months;
-  return { main: String(rounded), unit: rounded === 1 ? 'mo' : 'mos' };
+  return { main: String(rounded), unit: rounded === 1 ? "mo" : "mos" };
 }
 
 function daysTier(days, hours) {
   const rounded = hours >= 12 ? days + 1 : days;
-  if (rounded >= 30) return { main: '1', unit: 'mo' };
-  return { main: String(rounded), unit: rounded === 1 ? 'day' : 'days' };
+  if (rounded >= 30) return { main: "1", unit: "mo" };
+  return { main: String(rounded), unit: rounded === 1 ? "day" : "days" };
 }
 
 function hoursTier(hours, mins) {
   const rounded = mins >= 30 ? hours + 1 : hours;
-  if (rounded >= 24) return { main: '1', unit: 'day' };
-  return { main: String(rounded), unit: rounded === 1 ? 'hr' : 'hrs' };
+  if (rounded >= 24) return { main: "1", unit: "day" };
+  return { main: String(rounded), unit: rounded === 1 ? "hr" : "hrs" };
 }
 
 function minsTier(mins, secs) {
   const rounded = secs >= 30 ? mins + 1 : mins;
-  if (rounded >= 60) return { main: '1', unit: 'hr' };
-  return { main: String(rounded), unit: 'min' };
+  if (rounded >= 60) return { main: "1", unit: "hr" };
+  return { main: String(rounded), unit: "min" };
 }
 
 // Every unit rounds to nearest: e.g. 1d 14h → 2 days, 2h 35m → 3 hrs, 45m 40s → 46 min
@@ -283,89 +466,147 @@ function countdownValue(aDays, aHours, aMins, aTotalSecs) {
 }
 
 function getTitleFontSize(titleLen) {
-  if (titleLen <= 12) return 'clamp(1.05rem, 2.4vw, 1.4rem)';
-  if (titleLen <= 22) return 'clamp(0.9rem, 2vw, 1.15rem)';
-  if (titleLen <= 36) return 'clamp(0.8rem, 1.75vw, 1rem)';
-  return 'clamp(0.7rem, 1.5vw, 0.88rem)';
+  if (titleLen <= 12) return "clamp(1.05rem, 2.4vw, 1.4rem)";
+  if (titleLen <= 22) return "clamp(0.9rem, 2vw, 1.15rem)";
+  if (titleLen <= 36) return "clamp(0.8rem, 1.75vw, 1rem)";
+  return "clamp(0.7rem, 1.5vw, 0.88rem)";
 }
 
-function resolveActiveTarget(target, totalSeconds, upcomingEvents, today, custom) {
+function resolveActiveTarget(
+  target,
+  totalSeconds,
+  upcomingEvents,
+  today,
+  custom,
+) {
   if (!target || totalSeconds >= 60) return target;
   const now = new Date();
-  const nextEv = upcomingEvents.find(e =>
-    e.id !== target.id &&
-    new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now
+  const nextEv = upcomingEvents.find(
+    (e) =>
+      e.id !== target.id &&
+      new Date(`${e.startDate || today}T${e.startTime || "00:00"}`) > now,
   );
-  if (nextEv) return {
-    title: nextEv.title,
-    nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`),
-    startTime: nextEv.startTime,
-    endTime: nextEv.endTime,
-    isEvent: true,
-    isGcal: nextEv._source === 'gcal',
-    id: nextEv.id,
-  };
+  if (nextEv)
+    return {
+      title: nextEv.title,
+      nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || "00:00"}`),
+      startTime: nextEv.startTime,
+      endTime: nextEv.endTime,
+      isEvent: true,
+      isGcal: nextEv._source === "gcal",
+      id: nextEv.id,
+    };
   const sorted = custom
-    .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
-    .filter(cd => cd._next > now && cd.id !== target.id)
+    .map((cd) => ({ ...cd, _next: getNextOccurrence(cd) }))
+    .filter((cd) => cd._next > now && cd.id !== target.id)
     .sort((a, b) => a._next - b._next);
-  if (sorted[0]) return {
-    title: sorted[0].title,
-    nextDate: sorted[0]._next,
-    startTime: sorted[0].targetTime,
-    isEvent: false,
-    isGcal: false,
-    id: sorted[0].id,
-    repeat: sorted[0].repeat,
-  };
+  if (sorted[0])
+    return {
+      title: sorted[0].title,
+      nextDate: sorted[0]._next,
+      startTime: sorted[0].targetTime,
+      isEvent: false,
+      isGcal: false,
+      id: sorted[0].id,
+      repeat: sorted[0].repeat,
+    };
   return null;
 }
 
 function calcDurStr(startTime, endTime) {
   if (!startTime || !endTime) return null;
-  const [sh, sm] = startTime.split(':').map(Number);
-  const [eh, em] = endTime.split(':').map(Number);
-  const diff = (eh * 60 + em) - (sh * 60 + sm);
+  const [sh, sm] = startTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
+  const diff = eh * 60 + em - (sh * 60 + sm);
   if (diff <= 0) return null;
   if (diff < 60) return `${diff}min`;
-  const h = Math.floor(diff / 60), m = diff % 60;
+  const h = Math.floor(diff / 60),
+    m = diff % 60;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 // Returns { target, shouldClearPin } — shouldClearPin=true if the pinned event is past grace window
 function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
-  if (pinned?.type === 'event') {
-    const ev = allEvents.find(e => e.id === pinned.eventId);
+  if (pinned?.type === "event") {
+    const ev = allEvents.find((e) => e.id === pinned.eventId);
     if (ev) {
-      const nextDate = new Date(`${ev.startDate}T${ev.startTime || '00:00'}`);
+      const nextDate = new Date(`${ev.startDate}T${ev.startTime || "00:00"}`);
       if (nextDate >= new Date(Date.now() - 2 * 60 * 1000)) {
-        return { target: { title: ev.title, nextDate, startTime: ev.startTime, endTime: ev.endTime, isEvent: true, isGcal: ev._source === 'gcal', id: ev.id }, shouldClearPin: false };
+        return {
+          target: {
+            title: ev.title,
+            nextDate,
+            startTime: ev.startTime,
+            endTime: ev.endTime,
+            isEvent: true,
+            isGcal: ev._source === "gcal",
+            id: ev.id,
+          },
+          shouldClearPin: false,
+        };
       }
       return { target: null, shouldClearPin: true };
     }
-  } else if (pinned?.type === 'custom') {
-    const cd = custom.find(c => c.id === pinned.id);
+  } else if (pinned?.type === "custom") {
+    const cd = custom.find((c) => c.id === pinned.id);
     if (cd) {
-      return { target: { title: cd.title, nextDate: getNextOccurrence(cd), startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat }, shouldClearPin: false };
+      return {
+        target: {
+          title: cd.title,
+          nextDate: getNextOccurrence(cd),
+          startTime: cd.targetTime,
+          isEvent: false,
+          isGcal: false,
+          id: cd.id,
+          repeat: cd.repeat,
+        },
+        shouldClearPin: false,
+      };
     }
   }
 
   // Fallback: auto-pick the next future event
   const now = new Date();
-  const nextEv = upcomingEvents.find(e => new Date(`${e.startDate || today}T${e.startTime || '00:00'}`) > now);
+  const nextEv = upcomingEvents.find(
+    (e) => new Date(`${e.startDate || today}T${e.startTime || "00:00"}`) > now,
+  );
   if (nextEv) {
-    return { target: { title: nextEv.title, nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || '00:00'}`), startTime: nextEv.startTime, endTime: nextEv.endTime, isEvent: true, isGcal: nextEv._source === 'gcal', id: nextEv.id }, shouldClearPin: false };
+    return {
+      target: {
+        title: nextEv.title,
+        nextDate: new Date(
+          `${nextEv.startDate}T${nextEv.startTime || "00:00"}`,
+        ),
+        startTime: nextEv.startTime,
+        endTime: nextEv.endTime,
+        isEvent: true,
+        isGcal: nextEv._source === "gcal",
+        id: nextEv.id,
+      },
+      shouldClearPin: false,
+    };
   }
 
   // Fallback: auto-pick nearest future custom countdown
   if (custom.length > 0) {
     const sorted = custom
-      .map(cd => ({ ...cd, _next: getNextOccurrence(cd) }))
-      .filter(cd => cd._next > now)
+      .map((cd) => ({ ...cd, _next: getNextOccurrence(cd) }))
+      .filter((cd) => cd._next > now)
       .sort((a, b) => a._next - b._next);
     if (sorted[0]) {
       const cd = sorted[0];
-      return { target: { title: cd.title, nextDate: cd._next, startTime: cd.targetTime, isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat }, shouldClearPin: false };
+      return {
+        target: {
+          title: cd.title,
+          nextDate: cd._next,
+          startTime: cd.targetTime,
+          isEvent: false,
+          isGcal: false,
+          id: cd.id,
+          repeat: cd.repeat,
+        },
+        shouldClearPin: false,
+      };
     }
   }
 
@@ -376,7 +617,7 @@ function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
 export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
   const [pinned, setPinned] = useState(() => loadPinned(id));
-  const [, forceUpdate] = useReducer(n => n + 1, 0);
+  const [, forceUpdate] = useReducer((n) => n + 1, 0);
 
   const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
@@ -385,52 +626,83 @@ export const Widget = ({ id, onRemove }) => {
 
   // Only show events that haven't started yet (or started < 2 min ago)
   const upcomingEvents = allEvents
-    .filter(e => {
-      const dt = new Date(`${e.startDate || today}T${e.startTime || '00:00'}`);
+    .filter((e) => {
+      const dt = new Date(`${e.startDate || today}T${e.startTime || "00:00"}`);
       return dt >= new Date(Date.now() - 2 * 60 * 1000);
     })
     .sort((a, b) => {
-      const aKey = `${a.startDate || today}T${a.startTime || '99:99'}`;
-      const bKey = `${b.startDate || today}T${b.startTime || '99:99'}`;
+      const aKey = `${a.startDate || today}T${a.startTime || "99:99"}`;
+      const bKey = `${b.startDate || today}T${b.startTime || "99:99"}`;
       return aKey.localeCompare(bKey);
     });
 
-  const setPin = useCallback((p) => {
-    setPinned(p);
-    savePinned(id, p);
-  }, [id]);
+  const setPin = useCallback(
+    (p) => {
+      setPinned(p);
+      savePinned(id, p);
+    },
+    [id],
+  );
 
-  const addCustom = useCallback((cd) => {
-    setCustom(prev => { const next = [...prev, cd]; saveCustom(next); return next; });
-    // Mirror to widget_events so it appears in the Events widget
-    addEventToStore({
-      id: cd.id,
-      title: cd.title,
-      startDate: cd.targetDate,
-      startTime: cd.targetTime || '',
-      endDate: cd.targetDate,
-      endTime: '',
-      _fromCountdown: true,
-    });
-  }, [addEventToStore]);
+  const addCustom = useCallback(
+    (cd) => {
+      setCustom((prev) => {
+        const next = [...prev, cd];
+        saveCustom(next);
+        return next;
+      });
+      // Mirror to widget_events so it appears in the Events widget
+      addEventToStore({
+        id: cd.id,
+        title: cd.title,
+        startDate: cd.targetDate,
+        startTime: cd.targetTime || "",
+        endDate: cd.targetDate,
+        endTime: "",
+        _fromCountdown: true,
+      });
+    },
+    [addEventToStore],
+  );
 
-  const removeCustom = useCallback((id) => {
-    setCustom(prev => { const next = prev.filter(c => c.id !== id); saveCustom(next); return next; });
-    setPinned(p => {
-      if (p?.type === 'custom' && p?.id === id) { savePinned(null); return null; }
-      return p;
-    });
-    // Remove the mirror from widget_events
-    removeEventFromStore(id);
-  }, [removeEventFromStore]);
+  const removeCustom = useCallback(
+    (id) => {
+      setCustom((prev) => {
+        const next = prev.filter((c) => c.id !== id);
+        saveCustom(next);
+        return next;
+      });
+      setPinned((p) => {
+        if (p?.type === "custom" && p?.id === id) {
+          savePinned(null);
+          return null;
+        }
+        return p;
+      });
+      // Remove the mirror from widget_events
+      removeEventFromStore(id);
+    },
+    [removeEventFromStore],
+  );
 
   // Re-render every second for live countdown — shared timer, no extra setInterval
   useEffect(() => onClockTick(forceUpdate), []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   // target shape: { title, nextDate, startTime?, isEvent, isGcal, id, repeat? }
-  const { target, shouldClearPin } = resolveTarget(pinned, allEvents, upcomingEvents, today, custom);
-  if (shouldClearPin) setTimeout(() => setPin(null), 0);
+  const { target, shouldClearPin } = resolveTarget(
+    pinned,
+    allEvents,
+    upcomingEvents,
+    today,
+    custom,
+  );
+
+  useEffect(() => {
+    if (!shouldClearPin) return;
+    const id = setTimeout(() => setPin(null), 0);
+    return () => clearTimeout(id);
+  }, [shouldClearPin]);
 
   // ── Notifications: fire once per event per day ──────────────────────────────
   const { totalSeconds = 0 } = target ? formatCountdown(target.nextDate) : {};
@@ -442,18 +714,23 @@ export const Widget = ({ id, onRemove }) => {
     markNotified(notifKey);
 
     if (target.isEvent) {
-      sendNotification(target.title, target.isGcal ? 'Google Calendar event is starting' : 'Event is starting');
+      sendNotification(
+        target.title,
+        target.isGcal
+          ? "Google Calendar event is starting"
+          : "Event is starting",
+      );
     } else {
-      sendNotification('Countdown complete', target.title);
+      sendNotification("Countdown complete", target.title);
     }
 
     // Auto-clear pinned custom (once) so we advance to next
-    if (pinned?.type === 'custom') {
-      const cd = custom.find(c => c.id === pinned.id);
-      if (cd?.repeat === 'none') setTimeout(() => setPin(null), 10_000);
+    if (pinned?.type === "custom") {
+      const cd = custom.find((c) => c.id === pinned.id);
+      if (cd?.repeat === "none") setTimeout(() => setPin(null), 10_000);
     }
     // Auto-clear pinned event so we advance to next
-    if (pinned?.type === 'event') {
+    if (pinned?.type === "event") {
       setTimeout(() => setPin(null), 10_000);
     }
   }, [notifKey, totalSeconds === 0]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -471,48 +748,77 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   // ── When current event hits zero, advance display to the next upcoming ───────
-  const activeTarget = resolveActiveTarget(target, totalSeconds, upcomingEvents, today, custom);
+  const activeTarget = resolveActiveTarget(
+    target,
+    totalSeconds,
+    upcomingEvents,
+    today,
+    custom,
+  );
 
-  const { days: aDays = 0, hours: aHours = 0, minutes: aMins = 0, totalSeconds: aTotalSecs = 0 } =
-    activeTarget ? formatCountdown(activeTarget.nextDate) : {};
+  const {
+    days: aDays = 0,
+    hours: aHours = 0,
+    minutes: aMins = 0,
+    totalSeconds: aTotalSecs = 0,
+  } = activeTarget ? formatCountdown(activeTarget.nextDate) : {};
 
   // ── Human-readable countdown value ─────────────────────────────────────────
   const cv = countdownValue(aDays, aHours, aMins, aTotalSecs);
 
   const fmtTime = (t) => {
     if (!t) return null;
-    const [h, m] = t.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+    const [h, m] = t.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
   };
 
   const durStr = calcDurStr(activeTarget?.startTime, activeTarget?.endTime);
 
   // Start time only — "3:15 PM"
-  const startTimeStr = activeTarget?.startTime ? fmtTime(activeTarget.startTime) : null;
+  const startTimeStr = activeTarget?.startTime
+    ? fmtTime(activeTarget.startTime)
+    : null;
 
   // Dynamic title font size
   const titleLen = activeTarget?.title?.length ?? 0;
   const titleFontSize = getTitleFontSize(titleLen);
 
   return (
-    <BaseWidget className="p-4 flex flex-col" settingsContent={settingsContent} settingsTitle={config.title} modalWidth="w-[26rem]" onRemove={onRemove}>
+    <BaseWidget
+      className="p-4 flex flex-col"
+      settingsContent={settingsContent}
+      settingsTitle={config.title}
+      modalWidth="w-[26rem]"
+      onRemove={onRemove}
+    >
       {activeTarget ? (
         <div className="flex-1 flex flex-row items-center gap-0 min-w-0 overflow-hidden">
-
           {/* Left: big number + unit */}
-          <div className="flex flex-col items-center justify-center shrink-0 pr-4" style={{ minWidth: 0 }}>
+          <div
+            className="flex flex-col items-center justify-center shrink-0 pr-4"
+            style={{ minWidth: 0 }}
+          >
             {cv.main ? (
               <>
                 <span
                   className="font-black leading-none"
-                  style={{ fontSize: 'clamp(2.8rem, 6vw, 4.4rem)', color: 'var(--w-accent)', letterSpacing: '-0.04em', lineHeight: 1 }}
+                  style={{
+                    fontSize: "clamp(2.8rem, 6vw, 4.4rem)",
+                    color: "var(--w-accent)",
+                    letterSpacing: "-0.04em",
+                    lineHeight: 1,
+                  }}
                 >
                   {cv.main}
                 </span>
                 <span
                   className="font-bold mt-0.5"
-                  style={{ fontSize: 'clamp(0.9rem, 2vw, 1.15rem)', color: 'var(--w-ink-2)', letterSpacing: '-0.01em' }}
+                  style={{
+                    fontSize: "clamp(0.9rem, 2vw, 1.15rem)",
+                    color: "var(--w-ink-2)",
+                    letterSpacing: "-0.01em",
+                  }}
                 >
                   {cv.unit}
                 </span>
@@ -520,7 +826,11 @@ export const Widget = ({ id, onRemove }) => {
             ) : (
               <span
                 className="font-black leading-none"
-                style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: 'var(--w-accent)', letterSpacing: '-0.03em' }}
+                style={{
+                  fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)",
+                  color: "var(--w-accent)",
+                  letterSpacing: "-0.03em",
+                }}
               >
                 &lt;1m
               </span>
@@ -528,7 +838,14 @@ export const Widget = ({ id, onRemove }) => {
           </div>
 
           {/* Divider — not full height, centered */}
-          <div className="shrink-0 my-auto" style={{ width: '1px', height: '65%', backgroundColor: 'rgba(0,0,0,0.1)' }} />
+          <div
+            className="shrink-0 my-auto"
+            style={{
+              width: "1px",
+              height: "65%",
+              backgroundColor: "rgba(0,0,0,0.1)",
+            }}
+          />
 
           {/* Right: title + time */}
           <div className="flex-1 flex flex-col justify-center gap-2 pl-4 min-w-0 overflow-hidden">
@@ -537,48 +854,70 @@ export const Widget = ({ id, onRemove }) => {
               style={{
                 fontSize: titleFontSize,
                 fontWeight: 700,
-                color: 'var(--w-ink-1)',
+                color: "var(--w-ink-1)",
                 lineHeight: 1.3,
-                display: '-webkit-box',
+                display: "-webkit-box",
                 WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                overflowWrap: 'break-word',
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                overflowWrap: "break-word",
               }}
             >
               {activeTarget.title}
             </p>
 
             {/* Start time · duration + repeat badge on same line */}
-            {(startTimeStr || (activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event')) && (
+            {(startTimeStr ||
+              (activeTarget.repeat &&
+                activeTarget.repeat !== "none" &&
+                activeTarget.repeat !== "event")) && (
               <div className="flex items-center gap-1.5 flex-wrap">
                 {startTimeStr && (
-                  <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--w-ink-3)', lineHeight: 1, letterSpacing: '-0.01em' }}>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      color: "var(--w-ink-3)",
+                      lineHeight: 1,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
                     {startTimeStr}
-                    {durStr && <span style={{ color: 'var(--w-ink-4)' }}> · {durStr}</span>}
+                    {durStr && (
+                      <span style={{ color: "var(--w-ink-4)" }}>
+                        {" "}
+                        · {durStr}
+                      </span>
+                    )}
                   </p>
                 )}
-                {activeTarget.repeat && activeTarget.repeat !== 'none' && activeTarget.repeat !== 'event' && (
-                  <span
-                    className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'var(--panel-bg)', color: 'var(--w-ink-4)' }}
-                  >
-                    <ArrowRepeat size={8} />{activeTarget.repeat}
-                  </span>
-                )}
+                {activeTarget.repeat &&
+                  activeTarget.repeat !== "none" &&
+                  activeTarget.repeat !== "event" && (
+                    <span
+                      className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: "var(--panel-bg)",
+                        color: "var(--w-ink-4)",
+                      }}
+                    >
+                      <ArrowRepeat size={8} />
+                      {activeTarget.repeat}
+                    </span>
+                  )}
               </div>
             )}
           </div>
-
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <HourglassSplit size={28} style={{ color: 'var(--w-ink-4)' }} />
+          <HourglassSplit size={28} style={{ color: "var(--w-ink-4)" }} />
           <p className="w-muted text-sm">No countdowns yet.</p>
-          <p className="text-xs" style={{ color: 'var(--w-ink-4)' }}>Add events or open settings to create one.</p>
+          <p className="text-xs" style={{ color: "var(--w-ink-4)" }}>
+            Add events or open settings to create one.
+          </p>
         </div>
       )}
     </BaseWidget>
   );
 };
-

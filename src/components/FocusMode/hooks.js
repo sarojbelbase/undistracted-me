@@ -1,16 +1,28 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { fetchOpenMeteo, parseWeather } from '../../widgets/weather/utils.jsx';
-import { getCurrentPhoto, rotatePhoto, jumpToPhotoById, getCachedPhotoSync, getPhotoLibrary } from '../../utilities/unsplash';
-import { useWidgetInstancesStore } from '../../store';
-import { useLocationStore } from '../../store/useLocationStore';
-import { getChromeMedia, sendChromeMediaAction } from '../../widgets/media/utils';
-import { isGoogleAuthAvailable, getGoogleUserProfile } from '../../utilities/googleAuth';
-import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { fetchOpenMeteo, parseWeather } from "../../widgets/weather/utils.jsx";
+import {
+  getCurrentPhoto,
+  rotatePhoto,
+  jumpToPhotoById,
+  getCachedPhotoSync,
+  getPhotoLibrary,
+} from "../../utilities/unsplash";
+import { useWidgetInstancesStore } from "../../store";
+import { useLocationStore } from "../../store/useLocationStore";
+import {
+  getChromeMedia,
+  sendChromeMediaAction,
+} from "../../widgets/media/utils";
+import {
+  isGoogleAuthAvailable,
+  getGoogleUserProfile,
+} from "../../utilities/googleAuth";
+import { useGoogleAccountStore } from "../../store/useGoogleAccountStore";
 // Shared hooks — also usable by canvas-mode widgets
-import { useSpotify } from '../../widgets/media/useSpotify';
+import { useSpotify } from "../../widgets/media/useSpotify";
 
-const HISTORY_KEY = 'fm_search_history';
+const HISTORY_KEY = "fm_search_history";
 const MAX_HISTORY = 12;
 
 // ─── Weather ──────────────────────────────────────────────────────────────────
@@ -18,60 +30,68 @@ const MAX_HISTORY = 12;
 export const useFocusWeather = () => {
   const [weather, setWeather] = useState(null);
   // Read from Zustand widgetSettings — reactive to same-tab setting changes.
-  const weatherSettings = useWidgetInstancesStore(useShallow(s => {
-    const inst = s.instances.find(i => i.type === 'weather');
-    const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['weather']) : s.widgetSettings['weather'];
-    return ws ?? null;
-  }));
+  const weatherSettings = useWidgetInstancesStore(
+    useShallow((s) => {
+      const inst = s.instances.find((i) => i.type === "weather");
+      const ws = inst
+        ? (s.widgetSettings[inst.id] ?? s.widgetSettings["weather"])
+        : s.widgetSettings["weather"];
+      return ws ?? null;
+    }),
+  );
 
   // Fall back to the centralized location store when no manual location is set
   const { geoLat, geoLon, geoSource } = useLocationStore(
-    useShallow(s => ({ geoLat: s.lat, geoLon: s.lon, geoSource: s.source })),
+    useShallow((s) => ({ geoLat: s.lat, geoLon: s.lon, geoSource: s.source })),
   );
 
   useEffect(() => {
     let cancelled = false;
     const location = weatherSettings?.location ?? null;
-    const unit = weatherSettings?.unit ?? 'metric';
+    const unit = weatherSettings?.unit ?? "metric";
     const load = async () => {
       try {
         let lat, lon;
         if (location) {
           lat = location.lat;
           lon = location.lon;
-        } else if (geoSource !== 'default' && geoLat != null) {
+        } else if (geoSource !== "default" && geoLat != null) {
           lat = geoLat;
           lon = geoLon;
         } else {
           return; // No usable location
         }
-        const cityName = location?.name || '';
+        const cityName = location?.name || "";
         const data = await fetchOpenMeteo(lat, lon, unit);
         if (!cancelled) setWeather({ ...parseWeather(data, cityName), unit });
-      } catch { }
+      } catch {}
     };
     load();
     const timerId = setInterval(load, 30 * 60_000);
-    return () => { cancelled = true; clearInterval(timerId); };
+    return () => {
+      cancelled = true;
+      clearInterval(timerId);
+    };
   }, [weatherSettings, geoLat, geoLon, geoSource]);
   return weather;
 };
 
 // ─── Stocks (delegates to shared hook) ───────────────────────────────────────
 
-export { useStocks as useFocusStocks } from '../../widgets/stock/useStocks';
+export { useStocks as useFocusStocks } from "../../widgets/stock/useStocks";
 
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
 export const useFocusPhoto = () => {
   // Read cached photo once at mount via useRef — avoids repeated localStorage reads.
   const initRef = useRef(undefined);
-  if (initRef.current === undefined) initRef.current = getCachedPhotoSync() ?? null;
+  if (initRef.current === undefined)
+    initRef.current = getCachedPhotoSync() ?? null;
   const cached = initRef.current;
   const [photo, setPhoto] = useState(cached);
   const [slotA, setSlotA] = useState(cached?.regular ?? null);
   const [slotB, setSlotB] = useState(null);
-  const [activeSlot, setActiveSlot] = useState('a');
+  const [activeSlot, setActiveSlot] = useState("a");
   // Seed with the already-displayed URL so the mount effect's applyPhoto
   // short-circuits when getCachedPhotoSync and getCurrentPhoto return the same
   // photo — preventing a spurious slot-switch on first render.
@@ -84,9 +104,14 @@ export const useFocusPhoto = () => {
     if (url === prevUrlRef.current) return;
     prevUrlRef.current = url;
     setPhoto(p);
-    setActiveSlot(cur => {
-      if (cur === 'a') { setSlotB(url); return 'b'; }
-      else { setSlotA(url); return 'a'; }
+    setActiveSlot((cur) => {
+      if (cur === "a") {
+        setSlotB(url);
+        return "b";
+      } else {
+        setSlotA(url);
+        return "a";
+      }
     });
   }, []);
 
@@ -95,25 +120,29 @@ export const useFocusPhoto = () => {
   // The photo object, when provided, is used directly — skipping the cache lookup
   // that was prone to returning the wrong photo when a concurrent download
   // rewrote the cache between the user's click and the timer firing.
-  const rotate = useCallback(async (targetId, targetPhoto) => {
-    prevUrlRef.current = null; // force re-apply even if same URL
-    if (targetId) {
-      jumpToPhotoById(targetId);
-      // Use the passed photo object if available; otherwise fall back to cache lookup.
-      const p = targetPhoto
-        ?? getPhotoLibrary().find(ph => ph.id === targetId)
-        ?? await getCurrentPhoto();
+  const rotate = useCallback(
+    async (targetId, targetPhoto) => {
+      prevUrlRef.current = null; // force re-apply even if same URL
+      if (targetId) {
+        jumpToPhotoById(targetId);
+        // Use the passed photo object if available; otherwise fall back to cache lookup.
+        const p =
+          targetPhoto ??
+          getPhotoLibrary().find((ph) => ph.id === targetId) ??
+          (await getCurrentPhoto());
+        if (p) applyPhoto(p);
+        return p;
+      }
+      const p = await rotatePhoto();
       if (p) applyPhoto(p);
+      else {
+        const fallback = await getCurrentPhoto();
+        if (fallback) applyPhoto(fallback);
+      }
       return p;
-    }
-    const p = await rotatePhoto();
-    if (p) applyPhoto(p);
-    else {
-      const fallback = await getCurrentPhoto();
-      if (fallback) applyPhoto(fallback);
-    }
-    return p;
-  }, [applyPhoto]);
+    },
+    [applyPhoto],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -125,10 +154,15 @@ export const useFocusPhoto = () => {
     };
     init();
     const id = setInterval(() => {
-      if (!mounted) return;
-      rotatePhoto().then(p => { if (mounted && p) applyPhoto(p); });
+      if (!mounted || document.hidden) return;
+      rotatePhoto().then((p) => {
+        if (mounted && p) applyPhoto(p);
+      });
     }, 45 * 60_000);
-    return () => { mounted = false; clearInterval(id); };
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
   }, [applyPhoto]);
 
   return { photo, slotA, slotB, activeSlot, rotate };
@@ -140,20 +174,24 @@ export const useWakeLock = (active) => {
   const lockRef = useRef(null);
   useEffect(() => {
     if (!active) {
-      lockRef.current?.release().catch(() => { });
+      lockRef.current?.release().catch(() => {});
       lockRef.current = null;
       return;
     }
     const acquire = async () => {
-      if (!('wakeLock' in navigator)) return;
-      try { lockRef.current = await navigator.wakeLock.request('screen'); } catch { }
+      if (!("wakeLock" in navigator)) return;
+      try {
+        lockRef.current = await navigator.wakeLock.request("screen");
+      } catch {}
     };
     acquire();
-    const onVisible = () => { if (document.visibilityState === 'visible' && !lockRef.current) acquire(); };
-    document.addEventListener('visibilitychange', onVisible);
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !lockRef.current) acquire();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-      lockRef.current?.release().catch(() => { });
+      document.removeEventListener("visibilitychange", onVisible);
+      lockRef.current?.release().catch(() => {});
       lockRef.current = null;
     };
   }, [active]);
@@ -174,28 +212,33 @@ export const useWakeLock = (active) => {
  * Returns: { clock: bool, greet: bool }
  */
 export const useCenterOnDark = (slotA, slotB, activeSlot) => {
-  const [zones, setZones] = useState({ clock: true, search: true, greet: true });
+  const [zones, setZones] = useState({
+    clock: true,
+    search: true,
+    greet: true,
+  });
   useEffect(() => {
     // slotA/slotB hold CDN image URLs (p.regular). Never use the Unsplash page
     // URL (p.url) here — that origin blocks cross-origin canvas reads.
-    const url = activeSlot === 'a' ? slotA : slotB;
-    if (!url || url.includes('unsplash.com/photos/')) return;
+    const url = activeSlot === "a" ? slotA : slotB;
+    if (!url || url.includes("unsplash.com/photos/")) return;
 
     // Immediately assume dark (safe default) while the analysis runs.
     setZones({ clock: true, search: true, greet: true });
 
     let cancelled = false;
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       if (cancelled) return;
       try {
         // Render the full image into a fixed-size canvas for sampling.
         const W = 320;
         const H = Math.round((img.naturalHeight / img.naturalWidth) * W);
-        const canvas = document.createElement('canvas');
-        canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const canvas = document.createElement("canvas");
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
         ctx.drawImage(img, 0, 0, W, H);
 
         // Helper: compute a perceptual luminance estimate for a pixel rectangle.
@@ -212,8 +255,10 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
         //
         // Uses gamma-corrected sRGB → relative luminance (WCAG 2.1).
         const lumOf = (x, y, w, h) => {
-          x = Math.max(0, Math.round(x)); y = Math.max(0, Math.round(y));
-          w = Math.min(W - x, Math.round(w)); h = Math.min(H - y, Math.round(h));
+          x = Math.max(0, Math.round(x));
+          y = Math.max(0, Math.round(y));
+          w = Math.min(W - x, Math.round(w));
+          h = Math.min(H - y, Math.round(h));
           if (w <= 0 || h <= 0) return 0.5;
           const d = ctx.getImageData(x, y, w, h).data;
           const n = d.length / 4;
@@ -252,13 +297,13 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
           search: searchLum < 0.45,
           greet: greetLum < 0.45,
         });
-      } catch { }
+      } catch {}
     };
     img.src = url;
     return () => {
       cancelled = true;
       img.onload = null;
-      img.src = ''; // cancels any in-flight network request
+      img.src = ""; // cancels any in-flight network request
     };
   }, [slotA, slotB, activeSlot]);
   return zones;
@@ -269,12 +314,14 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 export const useFocusTimezones = () => {
   // Read directly from Zustand widgetSettings — reactive to same-tab changes,
   // no polling interval or storage event listener needed.
-  const timezones = useWidgetInstancesStore(useShallow(s => {
-    const clockInst = s.instances.find(i => i.type === 'clock');
-    if (!clockInst) return [];
-    const ws = s.widgetSettings[clockInst.id] ?? s.widgetSettings['clock'];
-    return ws?.timezones ?? [];
-  }));
+  const timezones = useWidgetInstancesStore(
+    useShallow((s) => {
+      const clockInst = s.instances.find((i) => i.type === "clock");
+      if (!clockInst) return [];
+      const ws = s.widgetSettings[clockInst.id] ?? s.widgetSettings["clock"];
+      return ws?.timezones ?? [];
+    }),
+  );
   return timezones;
 };
 
@@ -290,27 +337,35 @@ export const useFocusSpotify = () => {
 // ─── Search bar utilities (used by panels/SearchBar.jsx) ──────────────────────
 
 export function getHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
 export function pushHistory(query) {
   if (!query.trim()) return;
-  const prev = getHistory().filter(q => q !== query);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify([query, ...prev].slice(0, MAX_HISTORY)));
+  const prev = getHistory().filter((q) => q !== query);
+  localStorage.setItem(
+    HISTORY_KEY,
+    JSON.stringify([query, ...prev].slice(0, MAX_HISTORY)),
+  );
 }
 
 // Autocomplete fetch — CORS is bypassed in the extension via host_permissions;
 // in Vite dev mode the suggestProxy middleware in vite.config.ts handles it.
-const IS_DEV = typeof location !== 'undefined' && location.hostname === 'localhost';
+const IS_DEV =
+  typeof location !== "undefined" && location.hostname === "localhost";
 
 function suggestUrl(engine) {
   if (!engine.suggest) return null;
   if (!IS_DEV) return engine.suggest;
   const u = new URL(engine.suggest);
-  const client = u.searchParams.get('client') || 'chrome';
-  const ds = u.searchParams.get('ds') || '';
+  const client = u.searchParams.get("client") || "chrome";
+  const ds = u.searchParams.get("ds") || "";
   if (ds) return `/api/suggest?client=${client}&ds=${ds}&q=`;
-  if (client === 'ddg') return '/api/suggest?client=ddg&q=';
+  if (client === "ddg") return "/api/suggest?client=ddg&q=";
   return `/api/suggest?client=${client}&q=`;
 }
 
@@ -328,37 +383,59 @@ export async function fetchSuggestionsAsync(engine, query) {
       // Google/YouTube (flat):   ["query", ["s1", "s2", ...]]
       // Google/YouTube (nested): ["query", [["s1", 0, [...]], ...]]
       // DDG type=list:            ["query", ["s1", "s2", ...]]
-      raw = data[1].map(item => (typeof item === 'string' ? item : item?.[0]));
-    } else if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0]?.phrase) {
-      raw = data.map(d => d.phrase); // DDG legacy: [{phrase: '...'}, ...]
+      raw = data[1].map((item) =>
+        typeof item === "string" ? item : item?.[0],
+      );
+    } else if (
+      Array.isArray(data) &&
+      data.length > 0 &&
+      typeof data[0] === "object" &&
+      data[0]?.phrase
+    ) {
+      raw = data.map((d) => d.phrase); // DDG legacy: [{phrase: '...'}, ...]
     }
-    return raw.filter(s => typeof s === 'string').slice(0, 6);
-  } catch { return []; }
+    return raw.filter((s) => typeof s === "string").slice(0, 6);
+  } catch {
+    return [];
+  }
 }
 
 export function searchOpenTabs(query) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     /* eslint-disable no-undef */
-    if (typeof chrome === 'undefined' || !chrome.tabs?.query) { resolve([]); return; }
+    if (typeof chrome === "undefined" || !chrome.tabs?.query) {
+      resolve([]);
+      return;
+    }
     try {
       chrome.tabs.query({ currentWindow: true }, (tabs) => {
-        if (chrome.runtime?.lastError) { resolve([]); return; }
+        if (chrome.runtime?.lastError) {
+          resolve([]);
+          return;
+        }
         const q = query.toLowerCase();
         const matches = (tabs || [])
-          .filter(t => t.title?.toLowerCase().includes(q) || t.url?.toLowerCase().includes(q))
+          .filter(
+            (t) =>
+              t.title?.toLowerCase().includes(q) ||
+              t.url?.toLowerCase().includes(q),
+          )
           .slice(0, 3);
         resolve(matches);
       });
-    } catch { resolve([]); }
+    } catch {
+      resolve([]);
+    }
     /* eslint-enable no-undef */
   });
 }
 
 export function switchToTab(tab) {
   /* eslint-disable no-undef */
-  if (typeof chrome === 'undefined' || !chrome.tabs?.update) return;
+  if (typeof chrome === "undefined" || !chrome.tabs?.update) return;
   chrome.tabs.update(tab.id, { active: true });
-  if (chrome.windows?.update) chrome.windows.update(tab.windowId, { focused: true });
+  if (chrome.windows?.update)
+    chrome.windows.update(tab.windowId, { focused: true });
   /* eslint-enable no-undef */
 }
 
@@ -396,50 +473,57 @@ export function useChromeMedia() {
 
     poll();
     const id = setInterval(poll, 3000);
-    const onVisible = () => { if (!document.hidden) poll(); };
-    document.addEventListener('visibilitychange', onVisible);
+    const onVisible = () => {
+      if (!document.hidden) poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       cancelled = true;
       clearInterval(id);
-      document.removeEventListener('visibilitychange', onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
   const top = sessions[0] ?? null;
 
-  const track = top ? {
-    title: top.title || 'Playing',
-    artist: top.artist || top.host || '',
-    albumArt: top.artwork || null,
-    isPlaying: top.playbackState === 'playing',
-    tabId: top.tabId,
-    host: top.host,
-    // No duration info from mediaSession, so progress bar is omitted.
-    durationMs: null,
-    progressMs: null,
-  } : null;
+  const track = top
+    ? {
+        title: top.title || "Playing",
+        artist: top.artist || top.host || "",
+        albumArt: top.artwork || null,
+        isPlaying: top.playbackState === "playing",
+        tabId: top.tabId,
+        host: top.host,
+        // No duration info from mediaSession, so progress bar is omitted.
+        durationMs: null,
+        progressMs: null,
+      }
+    : null;
 
-  const sendAction = useCallback((action) => {
-    if (!top) return;
-    if (action === 'play' || action === 'pause') setPending(true);
-    if (action === 'next') setSkipPending('next');
-    if (action === 'previous') setSkipPending('prev');
-    sendChromeMediaAction(action, top.tabId);
-  }, [top]);
+  const sendAction = useCallback(
+    (action) => {
+      if (!top) return;
+      if (action === "play" || action === "pause") setPending(true);
+      if (action === "next") setSkipPending("next");
+      if (action === "previous") setSkipPending("prev");
+      sendChromeMediaAction(action, top.tabId);
+    },
+    [top],
+  );
 
   return { track, sendAction, pending, skipPending };
 }
 
 // ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
 
-const gtasks = () => import('../../utilities/googleTasks');
+const gtasks = () => import("../../utilities/googleTasks");
 
 export function useFocusTasks() {
   // Single source of truth — read directly from the Zustand store.
   // When connected flips (connect/disconnect from anywhere in the app),
   // this hook re-renders and the effect below responds immediately.
-  const connected = useGoogleAccountStore(s => s.connected);
+  const connected = useGoogleAccountStore((s) => s.connected);
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -455,7 +539,10 @@ export function useFocusTasks() {
   tasksRef.current = tasks;
 
   const load = useCallback(async () => {
-    if (!isGoogleAuthAvailable()) { setHasAttempted(true); return; }
+    if (!isGoogleAuthAvailable()) {
+      setHasAttempted(true);
+      return;
+    }
     setLoading(true);
     try {
       const { fetchGoogleTasks } = await gtasks();
@@ -463,7 +550,9 @@ export function useFocusTasks() {
       setTasks(list);
       setGtasksConnected(true);
       // Fetch profile lazily — non-blocking, don't await
-      getGoogleUserProfile().then(p => { if (p) setUserProfile(p); });
+      getGoogleUserProfile().then((p) => {
+        if (p) setUserProfile(p);
+      });
     } catch {
       setTasks([]);
       setGtasksConnected(false);
@@ -489,49 +578,86 @@ export function useFocusTasks() {
 
   const add = useCallback(async (title) => {
     if (!title.trim()) return;
-    const optimistic = { id: `opt-${Date.now()}`, title, completed: false, due: null, notes: null, listId: '@default' };
-    setTasks(prev => [optimistic, ...prev]);
+    const optimistic = {
+      id: `opt-${Date.now()}`,
+      title,
+      completed: false,
+      due: null,
+      notes: null,
+      listId: "@default",
+    };
+    setTasks((prev) => [optimistic, ...prev]);
     try {
       const { addGoogleTask } = await gtasks();
       const created = await addGoogleTask(title);
-      setTasks(prev => prev.map(t => t.id === optimistic.id ? created : t));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === optimistic.id ? created : t)),
+      );
     } catch {
-      setTasks(prev => prev.filter(t => t.id !== optimistic.id));
+      setTasks((prev) => prev.filter((t) => t.id !== optimistic.id));
     }
   }, []);
 
   const toggle = useCallback(async (taskId) => {
-    const task = tasksRef.current.find(t => t.id === taskId);
+    const task = tasksRef.current.find((t) => t.id === taskId);
     if (!task) return;
     const done = !task.completed;
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: done } : t));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, completed: done } : t)),
+    );
     try {
       const { completeGoogleTask } = await gtasks();
       await completeGoogleTask(taskId, done, task.listId);
     } catch {
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !done } : t));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, completed: !done } : t)),
+      );
     }
   }, []);
 
-  const edit = useCallback(async (taskId, newTitle) => {
-    if (!newTitle.trim()) return;
-    const task = tasksRef.current.find(t => t.id === taskId);
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle } : t));
-    try {
-      const { updateGoogleTask } = await gtasks();
-      await updateGoogleTask(taskId, { title: newTitle }, task?.listId);
-    } catch { load(); }
-  }, [load]);
+  const edit = useCallback(
+    async (taskId, newTitle) => {
+      if (!newTitle.trim()) return;
+      const task = tasksRef.current.find((t) => t.id === taskId);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, title: newTitle } : t)),
+      );
+      try {
+        const { updateGoogleTask } = await gtasks();
+        await updateGoogleTask(taskId, { title: newTitle }, task?.listId);
+      } catch {
+        load();
+      }
+    },
+    [load],
+  );
 
-  const remove = useCallback(async (taskId) => {
-    const task = tasksRef.current.find(t => t.id === taskId);
-    setTasks(prev => prev.filter(t => t.id !== taskId));
-    try {
-      const { deleteGoogleTask } = await gtasks();
-      await deleteGoogleTask(taskId, task?.listId);
-    } catch { load(); }
-  }, [load]);
+  const remove = useCallback(
+    async (taskId) => {
+      const task = tasksRef.current.find((t) => t.id === taskId);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      try {
+        const { deleteGoogleTask } = await gtasks();
+        await deleteGoogleTask(taskId, task?.listId);
+      } catch {
+        load();
+      }
+    },
+    [load],
+  );
 
-  return { tasks, loading, gtasksConnected, setGtasksConnected, userProfile, setUserProfile, hasAttempted, add, toggle, edit, remove, reload: load };
+  return {
+    tasks,
+    loading,
+    gtasksConnected,
+    setGtasksConnected,
+    userProfile,
+    setUserProfile,
+    hasAttempted,
+    add,
+    toggle,
+    edit,
+    remove,
+    reload: load,
+  };
 }
-

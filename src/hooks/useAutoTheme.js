@@ -5,16 +5,20 @@
  * Coordinates and sun times come from useLocationStore (single source of truth).
  * See utilities/useAutoTheme.js (re-export stub) for historical context.
  */
-import { useEffect, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { applyTheme } from '../theme';
-import { getSunTimes, getEffectiveMode, computeAutoMode } from '../utilities/sunTime';
-import { useLocationStore } from '../store/useLocationStore';
+import { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { applyTheme } from "../theme";
+import {
+  getSunTimes,
+  getEffectiveMode,
+  computeAutoMode,
+} from "../utilities/sunTime";
+import { useLocationStore } from "../store/useLocationStore";
 
 /** Pure helper — no React. Computes ms until the next dark↔light transition. */
 const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   if (!sunTimes) return 60 * 60 * 1000;
-  if (effective === 'light') {
+  if (effective === "light") {
     const ms = sunTimes.sunset - now;
     return ms > 0 ? ms + 30_000 : 60 * 60 * 1000;
   }
@@ -29,25 +33,32 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   return 60 * 60 * 1000;
 };
 
-export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
+export const useAutoTheme = (mode, accent, cardStyle = "glass") => {
   // Read location + sun data from the centralized store
   const { lat, lon, source, sunrise, sunset } = useLocationStore(
-    useShallow(s => ({ lat: s.lat, lon: s.lon, source: s.source, sunrise: s.sunrise, sunset: s.sunset })),
+    useShallow((s) => ({
+      lat: s.lat,
+      lon: s.lon,
+      source: s.source,
+      sunrise: s.sunrise,
+      sunset: s.sunset,
+    })),
   );
 
   const [effectiveMode, setEffectiveMode] = useState(() => {
-    if (mode !== 'auto') return mode;
+    if (mode !== "auto") return mode;
     return computeAutoMode();
   });
 
   useEffect(() => {
-    if (mode !== 'auto') {
+    if (mode !== "auto") {
       setEffectiveMode(mode);
       return;
     }
 
     let timer;
-    const mq = globalThis.window?.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    const mq =
+      globalThis.window?.matchMedia?.("(prefers-color-scheme: dark)") ?? null;
 
     const applyEffective = (effective) => {
       setEffectiveMode(effective);
@@ -78,7 +89,10 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
           if (freshSunTimes) {
             const effective = getEffectiveMode(freshSunTimes, now);
             applyEffective(effective);
-            timer = setTimeout(computeAndSchedule, msUntilNext(effective, freshSunTimes, lat, lon, now));
+            timer = setTimeout(
+              computeAndSchedule,
+              msUntilNext(effective, freshSunTimes, lat, lon, now),
+            );
             return;
           }
         }
@@ -92,7 +106,10 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
       const effective = getEffectiveMode(sunTimes, now);
       applyEffective(effective);
 
-      timer = setTimeout(computeAndSchedule, msUntilNext(effective, sunTimes, lat, lon, now));
+      timer = setTimeout(
+        computeAndSchedule,
+        msUntilNext(effective, sunTimes, lat, lon, now),
+      );
     };
 
     const handleMediaChange = () => {
@@ -109,15 +126,15 @@ export const useAutoTheme = (mode, accent, cardStyle = 'glass') => {
         applyEffective(computeAutoMode(now));
       }
     };
-    mq?.addEventListener('change', handleMediaChange);
+    mq?.addEventListener("change", handleMediaChange);
 
     computeAndSchedule();
 
     return () => {
       clearTimeout(timer);
-      mq?.removeEventListener('change', handleMediaChange);
+      mq?.removeEventListener("change", handleMediaChange);
     };
-  }, [mode, accent, cardStyle, source, sunrise, sunset, lat, lon]);
+  }, [mode, accent, cardStyle, sunrise, sunset, lat, lon]);
 
   return effectiveMode;
 };

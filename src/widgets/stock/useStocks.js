@@ -9,44 +9,61 @@
 //   data === null    → loading
 //   data === 'error' → fetch failed / no data
 
-import { useState, useEffect } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { fetchChart } from './utils';
-import { useWidgetInstancesStore } from '../../store';
+import { useState, useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { fetchChart } from "./utils";
+import { useWidgetInstancesStore } from "../../store";
 
-const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
-const SW_CACHE_KEY = 'stocks_sw_cache';
+const isExtension = typeof chrome !== "undefined" && !!chrome.runtime?.id;
+const SW_CACHE_KEY = "stocks_sw_cache";
 const CACHE_TTL_MS = 10 * 60_000; // use SW cache if < 10 min old
 
 export const useStocks = () => {
   const [stocks, setStocks] = useState([]);
 
-  const symbols = useWidgetInstancesStore(useShallow(s => {
-    const inst = s.instances.find(i => i.type === 'stock');
-    const ws = inst ? (s.widgetSettings[inst.id] ?? s.widgetSettings['stock']) : s.widgetSettings['stock'];
-    return ws?.symbols ?? [];
-  }));
+  const symbols = useWidgetInstancesStore(
+    useShallow((s) => {
+      const inst = s.instances.find((i) => i.type === "stock");
+      const ws = inst
+        ? (s.widgetSettings[inst.id] ?? s.widgetSettings["stock"])
+        : s.widgetSettings["stock"];
+      return ws?.symbols ?? [];
+    }),
+  );
 
-  // Sync symbols to service worker whenever they change so SW can pre-fetch
+  // Sync symbols to service worker whenever they change so SW can pre-fetch.
+  // Use JSON-stringified key to avoid spurious sends when symbols is a new array
+  // with the same contents (e.g. inline defaults from useWidgetSettings).
+  const symbolsKey = JSON.stringify(symbols);
   useEffect(() => {
     if (!isExtension || !symbols.length) return;
-    chrome.runtime.sendMessage({ type: 'STOCKS_CONFIG_SYNC', symbols }).catch(() => { });
-  }, [symbols]);
+    chrome.runtime
+      .sendMessage({ type: "STOCKS_CONFIG_SYNC", symbols })
+      .catch(() => {});
+  }, [symbolsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!symbols.length) { setStocks([]); return; }
+    if (!symbols.length) {
+      setStocks([]);
+      return;
+    }
 
     let cancelled = false;
 
     const writeCache = (data) => {
       if (!isExtension) return;
-      chrome.storage.local.set({ [SW_CACHE_KEY]: { data, fetchedAt: Date.now() } }).catch(() => { });
+      chrome.storage.local
+        .set({ [SW_CACHE_KEY]: { data, fetchedAt: Date.now() } })
+        .catch(() => {});
     };
 
     const loadFromNetwork = async () => {
-      const loadSymbol = (sym) => fetchChart(sym).catch(() => 'error');
+      const loadSymbol = (sym) => fetchChart(sym).catch(() => "error");
       const results = await Promise.all(symbols.map(loadSymbol));
-      const data = symbols.map((sym, i) => ({ sym, data: results[i] ?? 'error' }));
+      const data = symbols.map((sym, i) => ({
+        sym,
+        data: results[i] ?? "error",
+      }));
       if (!cancelled) {
         setStocks(data);
         writeCache(data);
@@ -69,11 +86,13 @@ export const useStocks = () => {
             if (!cancelled) setStocks(cached.data);
             return; // fresh enough — SW alarm will refresh in background
           }
-        } catch { /* storage unavailable */ }
+        } catch {
+          /* storage unavailable */
+        }
       }
 
       // No fresh cache — show skeleton then fetch
-      if (!cancelled) setStocks(symbols.map(sym => ({ sym, data: null })));
+      if (!cancelled) setStocks(symbols.map((sym) => ({ sym, data: null })));
       await loadFromNetwork();
     };
 

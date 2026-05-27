@@ -189,13 +189,23 @@ export const FocusMode = ({ onExit }) => {
       clearTimeout(hideTimerRef.current);
       return;
     }
-    globalThis.addEventListener("mousemove", resetHideTimer);
+    let rafId;
+    const onMove = () => {
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          resetHideTimer();
+          rafId = null;
+        });
+      }
+    };
+    globalThis.addEventListener("mousemove", onMove);
     globalThis.addEventListener("mousedown", resetHideTimer);
     resetHideTimer();
     return () => {
-      globalThis.removeEventListener("mousemove", resetHideTimer);
+      globalThis.removeEventListener("mousemove", onMove);
       globalThis.removeEventListener("mousedown", resetHideTimer);
       clearTimeout(hideTimerRef.current);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [isFullscreen, resetHideTimer]);
 
