@@ -4,7 +4,7 @@
  * Shared hooks for the local event store and Google Calendar integration.
  * See widgets/useEvents.js (re-export stub) for historical context.
  */
-import { useState, useEffect, useCallback, useReducer, useRef } from 'react';
+import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import {
   getCalendarEvents,
   isCalendarConnected,
@@ -13,17 +13,17 @@ import {
   getGoogleProfile,
   loadCachedProfile,
   loadGcalSyncedAt,
-} from '../utilities/googleCalendar';
-import { sendToServiceWorker } from '../utilities/chrome';
-import { STORAGE_KEYS } from '../constants/storageKeys';
-import { GOOGLE_ACCOUNT_CHANGED } from '../store/useGoogleAccountStore';
+} from "../utilities/googleCalendar";
+import { sendToServiceWorker } from "../utilities/chrome";
+import { STORAGE_KEYS } from "../constants/storageKeys";
+import { GOOGLE_ACCOUNT_CHANGED } from "../store/useGoogleAccountStore";
 
 const STORAGE_KEY = STORAGE_KEYS.EVENTS;
-const SYNC_EVENT = 'widget_events_changed';
+const SYNC_EVENT = "widget_events_changed";
 
 const load = () => {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   } catch {
     return [];
   }
@@ -31,7 +31,7 @@ const load = () => {
 
 const save = (events) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-  sendToServiceWorker({ type: 'EVENTS_UPDATED', events });
+  sendToServiceWorker({ type: "EVENTS_UPDATED", events });
 };
 
 // Module-level cache — shared across all useEvents instances so mutations are visible immediately
@@ -48,11 +48,14 @@ export const useEvents = () => {
       cache = load();
       forceRerender();
     };
+    const onStorage = (e) => {
+      if (e.key === STORAGE_KEY) onSync();
+    };
     globalThis.addEventListener(SYNC_EVENT, onSync);
-    globalThis.addEventListener('storage', onSync);
+    globalThis.addEventListener("storage", onStorage);
     return () => {
       globalThis.removeEventListener(SYNC_EVENT, onSync);
-      globalThis.removeEventListener('storage', onSync);
+      globalThis.removeEventListener("storage", onStorage);
     };
   }, []);
 
@@ -63,7 +66,7 @@ export const useEvents = () => {
   }, []);
 
   const removeEvent = useCallback((id) => {
-    cache = cache.filter(e => e.id !== id);
+    cache = cache.filter((e) => e.id !== id);
     save(cache);
     broadcast();
   }, []);
@@ -77,23 +80,23 @@ export const useEvents = () => {
 export const formatEventTime = (event) => {
   const fmt = (date, time) => {
     if (!date) return null;
-    const d = new Date(`${date}T${time || '00:00'}`);
+    const d = new Date(`${date}T${time || "00:00"}`);
     const h = d.getHours();
     const m = d.getMinutes();
-    const ampm = h >= 12 ? 'PM' : 'AM';
+    const ampm = h >= 12 ? "PM" : "AM";
     const h12 = h % 12 || 12;
-    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
   };
   const s = fmt(event.startDate, event.startTime);
   const e = fmt(event.endDate, event.endTime);
   if (s && e) return `${s} – ${e}`;
   if (s) return s;
-  return '';
+  return "";
 };
 
 export const eventStartDate = (event) => {
   if (!event.startDate) return null;
-  return new Date(`${event.startDate}T${event.startTime || '00:00'}`);
+  return new Date(`${event.startDate}T${event.startTime || "00:00"}`);
 };
 
 // ─── Google Calendar hook ────────────────────────────────────────────────────
@@ -107,11 +110,15 @@ let _gcalInflightInteractive = null;
 const fetchCalendarOnce = (interactive = false) => {
   if (interactive) {
     if (_gcalInflightInteractive) return _gcalInflightInteractive;
-    _gcalInflightInteractive = getCalendarEvents(true).finally(() => { _gcalInflightInteractive = null; });
+    _gcalInflightInteractive = getCalendarEvents(true).finally(() => {
+      _gcalInflightInteractive = null;
+    });
     return _gcalInflightInteractive;
   }
   if (_gcalInflight) return _gcalInflight;
-  _gcalInflight = getCalendarEvents(false).finally(() => { _gcalInflight = null; });
+  _gcalInflight = getCalendarEvents(false).finally(() => {
+    _gcalInflight = null;
+  });
   return _gcalInflight;
 };
 
@@ -125,10 +132,12 @@ export const useGoogleCalendar = () => {
 
   useEffect(() => {
     let cancelled = false;
-    loadCachedGcalEvents().then(cached => {
+    loadCachedGcalEvents().then((cached) => {
       if (!cancelled && cached.length > 0) setGcalEvents(cached);
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Background sync — non-interactive, never triggers OAuth UI
@@ -169,11 +178,18 @@ export const useGoogleCalendar = () => {
         setConnected(true);
       } else {
         setConnected(false);
-        let msg = 'Could not connect. Try again.';
-        if (err.message?.includes('403') || err.message?.includes('SERVICE_DISABLED')) {
-          msg = 'Calendar API not enabled. Check your Google Cloud Console.';
-        } else if (err.message?.includes('bad client id') || err.message?.includes('OAuth2')) {
-          msg = 'Sign-in failed: extension not configured for OAuth. Contact the developer.';
+        let msg = "Could not connect. Try again.";
+        if (
+          err.message?.includes("403") ||
+          err.message?.includes("SERVICE_DISABLED")
+        ) {
+          msg = "Calendar API not enabled. Check your Google Cloud Console.";
+        } else if (
+          err.message?.includes("bad client id") ||
+          err.message?.includes("OAuth2")
+        ) {
+          msg =
+            "Sign-in failed: extension not configured for OAuth. Contact the developer.";
         }
         setError(msg);
       }
@@ -196,9 +212,12 @@ export const useGoogleCalendar = () => {
   }, [refresh]);
 
   useEffect(() => {
-    const tid = setInterval(() => {
-      if (connected) refresh();
-    }, 60 * 60 * 1000);
+    const tid = setInterval(
+      () => {
+        if (connected) refresh();
+      },
+      60 * 60 * 1000,
+    );
     return () => clearInterval(tid);
   }, [connected, refresh]);
 
@@ -216,7 +235,8 @@ export const useGoogleCalendar = () => {
       }
     };
     globalThis.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
-    return () => globalThis.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+    return () =>
+      globalThis.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
   }, [refresh]);
 
   return { gcalEvents, loading, connected, error, syncedAt, refresh, connect };
@@ -227,9 +247,15 @@ export const useGoogleProfile = () => {
 
   useEffect(() => {
     let cancelled = false;
-    loadCachedProfile().then(p => { if (!cancelled && p) setProfile(p); });
-    getGoogleProfile().then(p => { if (!cancelled && p) setProfile(p); });
-    return () => { cancelled = true; };
+    loadCachedProfile().then((p) => {
+      if (!cancelled && p) setProfile(p);
+    });
+    getGoogleProfile().then((p) => {
+      if (!cancelled && p) setProfile(p);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return profile;

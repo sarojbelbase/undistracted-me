@@ -69,27 +69,35 @@ export const BaseWidget = forwardRef(
     // When the dropdown mounts, measure it and compute the best position before paint
     useLayoutEffect(() => {
       if (!menuOpen || !dropRef.current || !btnRef.current) return;
-      const M = 8; // min gap from viewport edge
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const btn = btnRef.current.getBoundingClientRect();
-      const { width: dw, height: dh } = dropRef.current.getBoundingClientRect();
 
-      // Horizontal: prefer aligning right edge with button's right edge; flip left if needed
-      let left = btn.right - dw;
-      if (left < M) left = btn.left; // flip to align left edges
-      left = Math.max(M, Math.min(left, vw - dw - M));
+      const measure = () => {
+        const M = 8; // min gap from viewport edge
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const btn = btnRef.current.getBoundingClientRect();
+        const { width: dw, height: dh } =
+          dropRef.current.getBoundingClientRect();
 
-      // Vertical: prefer below button; flip above when more space there
-      const spaceBelow = vh - btn.bottom - M;
-      const spaceAbove = btn.top - M;
-      let top =
-        spaceBelow >= dh || spaceBelow >= spaceAbove
-          ? btn.bottom + 4
-          : btn.top - dh - 4;
-      top = Math.max(M, Math.min(top, vh - dh - M));
+        // Horizontal: prefer aligning right edge with button's right edge; flip left if needed
+        let left = btn.right - dw;
+        if (left < M) left = btn.left; // flip to align left edges
+        left = Math.max(M, Math.min(left, vw - dw - M));
 
-      setDropStyle({ position: "fixed", zIndex: 9999, top, left });
+        // Vertical: prefer below button; flip above when more space there
+        const spaceBelow = vh - btn.bottom - M;
+        const spaceAbove = btn.top - M;
+        let top =
+          spaceBelow >= dh || spaceBelow >= spaceAbove
+            ? btn.bottom + 4
+            : btn.top - dh - 4;
+        top = Math.max(M, Math.min(top, vh - dh - M));
+
+        setDropStyle({ position: "fixed", zIndex: 9999, top, left });
+      };
+
+      measure();
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
     }, [menuOpen]);
 
     const hasMenu = settingsContent || onRemove;

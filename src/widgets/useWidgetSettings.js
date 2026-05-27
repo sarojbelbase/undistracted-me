@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { useWidgetInstancesStore } from '../store/useWidgetInstancesStore';
+import { useCallback, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 
 /**
  * Reads and writes per-widget settings from the Zustand widget instances store.
@@ -17,11 +17,17 @@ import { useWidgetInstancesStore } from '../store/useWidgetInstancesStore';
  * tests that seed / read it directly continue to work.
  */
 export const useWidgetSettings = (widgetId, defaults) => {
+  // Stabilise defaults reference so the selector doesn't create new arrays/objects
+  // on every store tick — prevents cross-widget re-render cascades.
+  const defaultsRef = useRef(defaults);
+  defaultsRef.current = defaults;
+
   // Read — shallow-compare the merged settings object so only real changes cause re-renders
   const settings = useWidgetInstancesStore(
     useShallow((s) => {
       const stored = s.widgetSettings[widgetId];
-      return stored ? { ...defaults, ...stored } : defaults;
+      const d = defaultsRef.current;
+      return stored ? { ...d, ...stored } : d;
     }),
   );
 
@@ -36,5 +42,3 @@ export const useWidgetSettings = (widgetId, defaults) => {
 
   return [settings, updateSetting];
 };
-
-

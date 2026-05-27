@@ -6,7 +6,7 @@ import { useWidgetSettings } from "../useWidgetSettings";
 import { Settings } from "./Settings";
 import { GeoAlt, SunriseFill, SunsetFill } from "react-bootstrap-icons";
 
-import { getSunTimes } from '../../utilities/sunTime';
+import { getSunTimes } from "../../utilities/sunTime";
 
 // ── Solar event logic ─────────────────────────────────────────────────────────
 /**
@@ -20,16 +20,16 @@ function getNextSunEvent(lat, lon) {
   const today = getSunTimes(lat, lon, now);
   if (!today) return null;
   if (now < today.sunrise) {
-    return { time: today.sunrise, label: 'sunrise', isSunrise: true };
+    return { time: today.sunrise, label: "sunrise", isSunrise: true };
   }
   if (now < today.sunset) {
-    return { time: today.sunset, label: 'sunset', isSunrise: false };
+    return { time: today.sunset, label: "sunset", isSunrise: false };
   }
   const tmrDate = new Date(now);
   tmrDate.setDate(tmrDate.getDate() + 1);
   const tmr = getSunTimes(lat, lon, tmrDate);
   if (!tmr) return null;
-  return { time: tmr.sunrise, label: 'tmr', isSunrise: true };
+  return { time: tmr.sunrise, label: "tmr", isSunrise: true };
 }
 import {
   getWeatherIcon,
@@ -87,25 +87,61 @@ const MinimalSkeleton = () => (
 
 // ── Sunrise / Sunset strip ────────────────────────────────────────────────────
 const fmtSunTime = (d) =>
-  d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+  d
+    .toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toLowerCase();
 
 const SunriseSunset = ({ sunTimes }) => {
   if (!sunTimes) return null;
   return (
     <div
       aria-label={`Sunrise ${fmtSunTime(sunTimes.sunrise)}, sunset ${fmtSunTime(sunTimes.sunset)}`}
-      style={{ display: 'flex', alignItems: 'center', gap: '0.45em', flexShrink: 0 }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "0.45em",
+        flexShrink: 0,
+      }}
     >
-      <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}>
-        <SunriseFill size={8} style={{ color: '#f59e0b', flexShrink: 0 }} />
-        <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+      <span
+        aria-hidden
+        style={{ display: "flex", alignItems: "center", gap: "0.22em" }}
+      >
+        <SunriseFill size={8} style={{ color: "#f59e0b", flexShrink: 0 }} />
+        <span
+          style={{
+            fontSize: "0.62rem",
+            fontWeight: 600,
+            color: "var(--w-ink-4)",
+            lineHeight: 1,
+          }}
+        >
           {fmtSunTime(sunTimes.sunrise)}
         </span>
       </span>
-      <span aria-hidden style={{ fontSize: '0.5rem', color: 'var(--w-ink-5)', lineHeight: 1 }}>·</span>
-      <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}>
-        <SunsetFill size={8} style={{ color: '#8b5cf6', flexShrink: 0 }} />
-        <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+      <span
+        aria-hidden
+        style={{ fontSize: "0.5rem", color: "var(--w-ink-5)", lineHeight: 1 }}
+      >
+        ·
+      </span>
+      <span
+        aria-hidden
+        style={{ display: "flex", alignItems: "center", gap: "0.22em" }}
+      >
+        <SunsetFill size={8} style={{ color: "#8b5cf6", flexShrink: 0 }} />
+        <span
+          style={{
+            fontSize: "0.62rem",
+            fontWeight: 600,
+            color: "var(--w-ink-4)",
+            lineHeight: 1,
+          }}
+        >
           {fmtSunTime(sunTimes.sunset)}
         </span>
       </span>
@@ -309,12 +345,17 @@ const ErrorState = ({ onRetry }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
     <GeoAlt size={22} style={{ color: "var(--w-ink-4)", opacity: 0.65 }} />
     <p className="w-muted font-semibold">Couldn&apos;t load weather</p>
-    <p className="w-caption leading-relaxed">Check your connection or location.</p>
+    <p className="w-caption leading-relaxed">
+      Check your connection or location.
+    </p>
     {onRetry && (
       <button
         onClick={onRetry}
         className="mt-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-75"
-        style={{ background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)', color: 'var(--w-accent)' }}
+        style={{
+          background: "color-mix(in srgb, var(--w-accent) 14%, transparent)",
+          color: "var(--w-accent)",
+        }}
       >
         Try again
       </button>
@@ -335,40 +376,64 @@ const MinimalAQIChip = ({ value, pm25 }) => {
         role="img"
         aria-label={`Air quality: ${level.label}, AQI ${value}`}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.25em',
-          cursor: 'default',
-          userSelect: 'none',
+          display: "flex",
+          alignItems: "center",
+          gap: "0.25em",
+          cursor: "default",
+          userSelect: "none",
           flexShrink: 0,
         }}
-        onMouseEnter={() => setAnchor(ref.current?.getBoundingClientRect() ?? null)}
+        onMouseEnter={() =>
+          setAnchor(ref.current?.getBoundingClientRect() ?? null)
+        }
         onMouseLeave={() => setAnchor(null)}
       >
         <span
           aria-hidden
           style={{
-            display: 'inline-block',
+            display: "inline-block",
             width: 6,
             height: 6,
-            borderRadius: '50%',
+            borderRadius: "50%",
             backgroundColor: level.color,
             flexShrink: 0,
-            animation: 'aqi-breathe 2.8s ease-in-out infinite',
+            animation: "aqi-breathe 2.8s ease-in-out infinite",
           }}
         />
-        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: level.color, lineHeight: 1 }}>
+        <span
+          style={{
+            fontSize: "0.7rem",
+            fontWeight: 600,
+            color: level.color,
+            lineHeight: 1,
+          }}
+        >
           {level.label}
         </span>
       </div>
       {anchor && (
         <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: level.color, whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              color: level.color,
+              whiteSpace: "nowrap",
+            }}
+          >
             {level.label}
           </div>
-          <div style={{ fontSize: '0.65rem', fontWeight: 500, color: 'var(--w-ink-4)', marginTop: '1px', whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              fontSize: "0.65rem",
+              fontWeight: 500,
+              color: "var(--w-ink-4)",
+              marginTop: "1px",
+              whiteSpace: "nowrap",
+            }}
+          >
             AQI {value}
-            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ''}
+            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ""}
           </div>
         </Popup>
       )}
@@ -377,11 +442,25 @@ const MinimalAQIChip = ({ value, pm25 }) => {
 };
 // ── Minimal mode — Apple Weather-style ───────────────────────────────────────
 // Layout: condition at top · hero temp centred · bottom row (city+AQI left / sun event right)
-const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI, sunEvent, showSunTimes }) => (
+const MinimalView = ({
+  weather,
+  cityShort,
+  unitLabel,
+  aqi,
+  showAQI,
+  sunEvent,
+  showSunTimes,
+}) => (
   <div className="weather-minimal flex flex-col w-full h-full">
     {/* Row 1 — icon + condition (left) · AQI (right) */}
-    <div className="flex items-center gap-1.5" style={{ justifyContent: 'space-between' }}>
-      <div className="flex items-center gap-1.5 opacity-90" style={{ minWidth: 0 }}>
+    <div
+      className="flex items-center gap-1.5"
+      style={{ justifyContent: "space-between" }}
+    >
+      <div
+        className="flex items-center gap-1.5 opacity-90"
+        style={{ minWidth: 0 }}
+      >
         {getWeatherIcon(weather.code, weather.isDay, 24)}
         <span className="weather-minimal__condition">
           {weather.description}
@@ -393,7 +472,7 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI, sunEvent, sh
     </div>
 
     {/* Centre zone — hero temperature, vertically centred */}
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+    <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
       <div
         aria-label={`${weather.temperature} degrees ${unitLabel === "C" ? "Celsius" : "Fahrenheit"}`}
         className="weather-minimal__temp"
@@ -403,7 +482,14 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI, sunEvent, sh
     </div>
 
     {/* Bottom row — city (left) · sun event (right) */}
-    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '0.5em' }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "space-between",
+        gap: "0.5em",
+      }}
+    >
       {/* Left: city name */}
       <div style={{ minWidth: 0, flex: 1 }}>
         {cityShort ? (
@@ -419,28 +505,47 @@ const MinimalView = ({ weather, cityShort, unitLabel, aqi, showAQI, sunEvent, sh
       {showSunTimes && sunEvent && (
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
             flexShrink: 0,
-            gap: '0.18em',
+            gap: "0.18em",
           }}
         >
           <div
             aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.22em' }}
+            style={{ display: "flex", alignItems: "center", gap: "0.22em" }}
           >
-            {sunEvent.isSunrise
-              ? <SunriseFill size={10} style={{ color: 'rgba(245,158,11,0.9)', flexShrink: 0 }} />
-              : <SunsetFill size={10} style={{ color: 'rgba(139,92,246,0.9)', flexShrink: 0 }} />
-            }
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--w-ink-2)', lineHeight: 1 }}>
+            {sunEvent.isSunrise ? (
+              <SunriseFill
+                size={10}
+                style={{ color: "rgba(245,158,11,0.9)", flexShrink: 0 }}
+              />
+            ) : (
+              <SunsetFill
+                size={10}
+                style={{ color: "rgba(139,92,246,0.9)", flexShrink: 0 }}
+              />
+            )}
+            <span
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                color: "var(--w-ink-2)",
+                lineHeight: 1,
+              }}
+            >
               {fmtSunTime(sunEvent.time)}
             </span>
           </div>
           <span
             aria-hidden
-            style={{ fontSize: '0.58rem', fontWeight: 500, color: 'var(--w-ink-4)', lineHeight: 1 }}
+            style={{
+              fontSize: "0.58rem",
+              fontWeight: 500,
+              color: "var(--w-ink-4)",
+              lineHeight: 1,
+            }}
           >
             {sunEvent.label}
           </span>
@@ -457,7 +562,9 @@ const AQIBadgeExtended = ({ aqi, aqiLevel }) => {
     <>
       <div
         ref={ref}
-        onMouseEnter={() => setAnchor(ref.current?.getBoundingClientRect() ?? null)}
+        onMouseEnter={() =>
+          setAnchor(ref.current?.getBoundingClientRect() ?? null)
+        }
         onMouseLeave={() => setAnchor(null)}
         style={{
           display: "flex",
@@ -656,9 +763,7 @@ const ExpressiveView = ({
         )}
         {/* Third line: AQI — dot (colour = severity) + number + level label */}
         {aqiLevel && (
-          <div
-            style={{ marginTop: "0.12em" }}
-          >
+          <div style={{ marginTop: "0.12em" }}>
             <AQIBadgeExtended aqi={aqi} aqiLevel={aqiLevel} />
           </div>
         )}
@@ -679,27 +784,46 @@ const ExpressiveView = ({
         {showSunTimes && sunEvent && (
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.16em',
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.16em",
               flexShrink: 0,
             }}
           >
             <div
               aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.2em' }}
+              style={{ display: "flex", alignItems: "center", gap: "0.2em" }}
             >
-              {sunEvent.isSunrise
-                ? <SunriseFill size={8} style={{ color: 'rgba(245,158,11,0.9)', flexShrink: 0 }} />
-                : <SunsetFill size={8} style={{ color: 'rgba(139,92,246,0.9)', flexShrink: 0 }} />
-              }
-              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--w-ink-4)', lineHeight: 1 }}>
+              {sunEvent.isSunrise ? (
+                <SunriseFill
+                  size={8}
+                  style={{ color: "rgba(245,158,11,0.9)", flexShrink: 0 }}
+                />
+              ) : (
+                <SunsetFill
+                  size={8}
+                  style={{ color: "rgba(139,92,246,0.9)", flexShrink: 0 }}
+                />
+              )}
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 600,
+                  color: "var(--w-ink-4)",
+                  lineHeight: 1,
+                }}
+              >
                 {fmtSunTime(sunEvent.time)}
               </span>
             </div>
             <span
               aria-hidden
-              style={{ fontSize: '0.52rem', fontWeight: 500, color: 'var(--w-ink-5)', lineHeight: 1 }}
+              style={{
+                fontSize: "0.52rem",
+                fontWeight: 500,
+                color: "var(--w-ink-5)",
+                lineHeight: 1,
+              }}
             >
               {sunEvent.label}
             </span>
@@ -882,18 +1006,25 @@ export const Widget = ({ id = "weather", onRemove }) => {
       // If the service worker pre-fetched data (always metric), use it for
       // instant display while the live fetch runs. Only applies to auto-location
       // metric mode — manual locations and imperial aren't covered by the SW cache.
-      if (!location && unit === 'metric' && geoLat != null) {
-        chrome?.storage?.local?.get?.('weather_sw_cache').then((result) => {
-          if (!mounted) return;
-          const sw = result?.weather_sw_cache;
-          if (!sw) return;
-          if (Date.now() - sw.fetchedAt > 30 * 60_000) return; // older than 30 min
-          // Accept if coords are within ~1 km (0.01°)
-          if (Math.abs(sw.lat - geoLat) > 0.01 || Math.abs(sw.lon - geoLon) > 0.01) return;
-          setWeather(parseWeather(sw.data, geoCity || ''));
-          setForecast(parseForecast(sw.data));
-          if (sw.aqiData) setAqi(parseAQI(sw.aqiData));
-        }).catch(() => { });
+      if (!location && unit === "metric" && geoLat != null) {
+        chrome?.storage?.local
+          ?.get?.("weather_sw_cache")
+          .then((result) => {
+            if (!mounted) return;
+            const sw = result?.weather_sw_cache;
+            if (!sw) return;
+            if (Date.now() - sw.fetchedAt > 30 * 60_000) return; // older than 30 min
+            // Accept if coords are within ~1 km (0.01°)
+            if (
+              Math.abs(sw.lat - geoLat) > 0.01 ||
+              Math.abs(sw.lon - geoLon) > 0.01
+            )
+              return;
+            setWeather(parseWeather(sw.data, geoCity || ""));
+            setForecast(parseForecast(sw.data));
+            if (sw.aqiData) setAqi(parseAQI(sw.aqiData));
+          })
+          .catch(() => {});
       }
     }
 
@@ -947,8 +1078,11 @@ export const Widget = ({ id = "weather", onRemove }) => {
     // Skip network if cache is fresh (< 30 min old); still schedule the interval
     if (!cached?.fresh) load();
     const timerId = setInterval(load, 30 * 60_000);
-    return () => { mounted = false; clearInterval(timerId); };
-  }, [location, unit, geoLat, geoLon, geoSource, geoCity, refreshKey]);
+    return () => {
+      mounted = false;
+      clearInterval(timerId);
+    };
+  }, [location, unit, geoLat, geoLon, geoSource, refreshKey]);
 
   const settingsContent = (
     <Settings
@@ -974,18 +1108,21 @@ export const Widget = ({ id = "weather", onRemove }) => {
   // Sunrise/sunset — computed locally (no API needed) from available coords
   const sunLat = location?.lat ?? geoLat;
   const sunLon = location?.lon ?? geoLon;
-  const sunTimes = sunLat != null && sunLon != null
-    ? getSunTimes(sunLat, sunLon)
-    : null;
-  const sunEvent = showSunTimes && sunLat != null && sunLon != null
-    ? getNextSunEvent(sunLat, sunLon)
-    : null;
+  const sunTimes =
+    sunLat != null && sunLon != null ? getSunTimes(sunLat, sunLon) : null;
+  const sunEvent =
+    showSunTimes && sunLat != null && sunLon != null
+      ? getNextSunEvent(sunLat, sunLon)
+      : null;
 
   const content = getWeatherContent({
     locationDenied,
     location,
     error,
-    onRetry: () => { setError(null); setRefreshKey(k => k + 1); },
+    onRetry: () => {
+      setError(null);
+      setRefreshKey((k) => k + 1);
+    },
     weather,
     style,
     unitLabel,
