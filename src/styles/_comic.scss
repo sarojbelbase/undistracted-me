@@ -158,8 +158,11 @@
 
   // Notes title input (full-page mode headline) — completely clean.
   // This is a large title field; it should read as ink on paper, not a form box.
-  .notes-title,
-  .notes-widget-title {
+  // Use input.notes-title (not just .notes-title) to win specificity over
+  // the input[type="text"] rule above (both are 0,2,1 — this one wins because
+  // it appears later in the cascade).
+  input.notes-title,
+  input.notes-widget-title {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -330,8 +333,9 @@
     }
   }
 
-  .notes-title,
-  .notes-widget-title {
+  // Notes title inputs — must use input.notes-title to beat input[type="text"] specificity
+  input.notes-title,
+  input.notes-widget-title {
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
@@ -371,16 +375,36 @@
     border-bottom: 1.5px solid rgba(212, 201, 168, 0.12) !important;
   }
 
-  .notes-fullscreen-nav {
+  .notes-fullscreen-nav,
+  .notes-seg-track {
     background: rgba(212, 201, 168, 0.05) !important;
   }
 
-  .notes-fullscreen button:hover {
+  .notes-fullscreen button:hover,
+  .notes-seg-btn:not(:disabled):hover {
     background: rgba(212, 201, 168, 0.1) !important;
   }
 
-  .notes-fullscreen-nav [style*="rgba(0,0,0,0.1)"] {
+  .notes-nav-divider {
     background: rgba(212, 201, 168, 0.18) !important;
+  }
+
+  // ── Lexical checklist / bullet dots — parchment-tinted in dark mode ──
+  // Checklist boxes use var(--w-border) which is dark-on-dark in this mode.
+  // Override to a visible parchment tone so the checkbox outline reads clearly.
+  .lex-li-unchecked::before,
+  .lex-li-checked::before {
+    border-color: rgba(212, 201, 168, 0.35) !important;
+  }
+
+  // Regular unordered list disc markers inherit currentColor — ensure they're visible.
+  .lex-ul {
+    color: var(--w-ink-3);
+  }
+
+  // Ordered list numbers — same treatment.
+  .lex-ol {
+    color: var(--w-ink-3);
   }
 }
 
