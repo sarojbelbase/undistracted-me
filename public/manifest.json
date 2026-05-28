@@ -20,7 +20,8 @@
       "32": "favicon/lotus32.png",
       "128": "favicon/lotus128.png"
     },
-    "default_title": "Undistracted Me"
+    "default_title": "New Tab Page",
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "src/bg.js"
@@ -73,13 +74,8 @@
   ],
   "content_scripts": [
     {
-      "matches": [
-        "*://*.soundcloud.com/*",
-        "*://*.youtube.com/*"
-      ],
-      "js": [
-        "src/utilities/media.js"
-      ],
+      "matches": ["*://*.soundcloud.com/*", "*://*.youtube.com/*"],
+      "js": ["src/utilities/media.js"],
       "run_at": "document_idle"
     }
   ],

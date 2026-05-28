@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { FaviconIcon } from "../../components/ui/FaviconIcon";
-import { getDefaultName, faviconCache, getHostname } from "../../utilities/favicon";
-
-const cleanTitle = (raw, url) => {
-  if (!raw) return getDefaultName(url);
-  const t = raw
-    .replaceAll(/\(\d+\)\s*/g, "")
-    .replace(/\s*[-|]\s+.+/, "")
-    .trim();
-  return t || getDefaultName(url);
-};
+import { faviconCache, getHostname } from "../../utilities/favicon";
+import { shorthandFromUrl } from "../../utilities/index";
 
 // Named group/tile — hover scoped to individual tile only
-const Tile = ({ href, url, title }) => {
+const Tile = ({ href, url }) => {
   const [color, setColor] = useState(null);
   const [loading, setLoading] = useState(() => !faviconCache.has(getHostname(url)));
   const onSettled = useCallback(() => setLoading(false), []);
@@ -41,7 +33,7 @@ const Tile = ({ href, url, title }) => {
         className="w-full text-center truncate px-0.5"
         style={{ fontSize: "9px", lineHeight: "1.2", color: "var(--w-ink-4)", fontWeight: 500 }}
       >
-        {title}
+        {shorthandFromUrl(url)}
       </span>
     </a>
   );
@@ -77,7 +69,6 @@ export const Widget = ({ id, onRemove }) => {
               key={site.url}
               href={site.url}
               url={site.url}
-              title={cleanTitle(site.title, site.url)}
             />
           ))}
         </div>

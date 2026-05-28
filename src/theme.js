@@ -19,6 +19,8 @@ const LIGHT_TOKENS = {
   "--w-page-bg": "#ebebeb",
   "--w-danger": "#ef4444" /* semantic error / destructive red      */,
   "--w-success": "#22c55e" /* semantic success / live green         */,
+  "--w-sunrise": "#f59e0b" /* sunrise icon — warm amber             */,
+  "--w-sunset": "#8b5cf6" /* sunset icon — cool purple             */,
 };
 
 const DARK_TOKENS = {
@@ -39,6 +41,8 @@ const DARK_TOKENS = {
     "#f87171" /* semantic error / destructive red (lighter for dark bg) */,
   "--w-success":
     "#4ade80" /* semantic success / live green (lighter for dark bg)    */,
+  "--w-sunrise": "#fbbf24" /* sunrise icon — brighter amber for dark bg */,
+  "--w-sunset": "#a78bfa" /* sunset icon — brighter purple for dark bg */,
 };
 
 const hexToRgb = (hex) => {

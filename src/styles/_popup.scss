@@ -1,0 +1,508 @@
+// ─── Extension Popup SCSS ─────────────────────────────────────────────────────
+// All popup styling lives here. Uses CSS custom properties from _tokens.scss
+// (overwritten at runtime by applyTheme in theme.js) so dark/light mode
+// switching is automatic via [data-mode="dark"] selectors.
+
+// ── Root container ───────────────────────────────────────────────────────────
+.popup-root {
+  width: 360px;
+  overflow: hidden;
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f7;
+  color: var(--w-ink-2);
+
+  [data-mode="dark"] & {
+    background: #0d0d0d;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Hero
+//   Top row:   left (date + clock) · right (weather) — one flex, same height
+//   Below:     BS date → greeting (stacked)
+//   Bottom-right: sun-event chip
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-hero {
+  padding: 22px 18px 16px;
+  background: linear-gradient(170deg, #fafafc 0%, #f2f2f6 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+  [data-mode="dark"] & {
+    background: linear-gradient(170deg, #141418 0%, #0d0d0d 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+  }
+}
+
+// ── Top row: left (date + clock) · right (weather) ──────────────────
+
+.popup-hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-hero__left {
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-hero__date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--w-ink-2);
+}
+
+.popup-hero__date-bs {
+  font-weight: 700;
+  color: var(--w-ink-5);
+}
+
+.popup-hero__clock {
+  font-size: 50px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--w-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Weather card (right, normal flow) ─────────────────────────────
+
+.popup-hero__weather {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  [data-mode="dark"] & {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.popup-hero__weather-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-hero__temp {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--w-ink-2);
+  line-height: 1;
+}
+
+.popup-hero__weather-desc {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--w-ink-4);
+}
+
+.popup-hero__weather-city {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--w-ink-4);
+}
+
+// ── Bottom row: greeting (left) · sun chip (right) ─────────────────
+
+.popup-hero__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 12px;
+}
+
+.popup-hero__greeting-prefix {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  line-height: 1.2;
+}
+
+.popup-hero__greeting-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--w-accent);
+  line-height: 1.2;
+}
+
+// ── Sun chip (right, flex row with bottom-left) ─────────────────────
+
+.popup-hero__sun {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--w-ink-3);
+  background: rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  [data-mode="dark"] & {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.popup-hero__sun-label {
+  font-weight: 700;
+}
+
+.popup-hero__sun-icon--rise {
+  color: var(--w-sunrise);
+}
+
+.popup-hero__sun-icon--set {
+  color: var(--w-sunset);
+}
+
+// ── Weather skeleton (pulsing placeholder) ────────────────────────────────
+
+@keyframes popup-skeleton-pulse {
+
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.popup-hero__skeleton {
+  display: block;
+  border-radius: 4px;
+  background: var(--w-ink-6);
+  animation: popup-skeleton-pulse 1.4s ease-in-out infinite;
+
+  &--temp {
+    width: 38px;
+    height: 20px;
+  }
+
+  &--desc {
+    width: 52px;
+    height: 9px;
+    margin-top: 2px;
+  }
+
+  &--city {
+    width: 60px;
+    height: 9px;
+    margin-top: 2px;
+  }
+}
+
+.popup-hero__skeleton-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--w-ink-6);
+  animation: popup-skeleton-pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Section chrome — shared border-bottom + padding across sections
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-section {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+  [data-mode="dark"] & {
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Current Tab Bookmark
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-ctab {
+  padding: 10px 16px;
+}
+
+.popup-ctab__card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  [data-mode="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  &--saved {
+    background: rgba(34, 197, 94, 0.06);
+    border-color: rgba(34, 197, 94, 0.25);
+
+    [data-mode="dark"] & {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: rgba(34, 197, 94, 0.25);
+    }
+  }
+}
+
+.popup-ctab__favicon,
+.popup-ctab__favicon-placeholder {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.popup-ctab__favicon-placeholder {
+  background: var(--w-accent);
+  opacity: 0.15;
+}
+
+.popup-ctab__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.popup-ctab__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--w-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popup-ctab__host {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popup-ctab__saved {
+  font-size: 10px;
+  color: var(--w-success);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.popup-ctab__save-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--w-accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+
+  [data-mode="dark"] & {
+    color: #0d0d0d;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Bookmarks
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-bookmarks {
+  padding: 6px 16px;
+}
+
+.popup-bookmarks__heading {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--w-ink-5);
+  margin-bottom: 6px;
+}
+
+.popup-bookmarks__list {
+  max-height: 110px;
+  overflow-y: auto;
+}
+
+.popup-bookmarks__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--w-ink-2);
+  font-size: 10px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.025);
+
+    [data-mode="dark"] & {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+}
+
+.popup-bookmarks__favicon {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.popup-bookmarks__title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.popup-bookmarks__remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--w-ink-6);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  .popup-bookmarks__item:hover & {
+    opacity: 1;
+  }
+
+  &--confirming {
+    opacity: 1;
+    color: var(--w-danger);
+  }
+}
+
+.popup-bookmarks__confirm {
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Quick Links (top sites)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-quick-links {
+  padding: 8px 16px 4px;
+}
+
+.popup-quick-links__heading {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--w-ink-5);
+  margin-bottom: 8px;
+}
+
+.popup-quick-links__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.popup-quick-links__link {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.popup-quick-links__tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease;
+
+  [data-mode="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .popup-quick-links__link:hover & {
+    transform: scale(1.12);
+  }
+}
+
+.popup-quick-links__favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.popup-quick-links__label {
+  font-size: 7.5px;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 48px;
+  text-align: center;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Footer
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  margin-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+  [data-mode="dark"] & {
+    border-top-color: rgba(255, 255, 255, 0.07);
+  }
+}
+
+.popup-footer__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--w-ink-4);
+  opacity: 0.6;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
