@@ -165,6 +165,22 @@ function makeUid(prefix = '') {
 }
 
 /**
+ * Extract a human-readable shorthand from a URL.
+ *   https://www.github.com/saroj  →  "Github"
+ *   https://mail.google.com/      →  "Mail"
+ *   not-a-url                     →  "N" (first-letter fallback)
+ */
+export function shorthandFromUrl(url) {
+    try {
+        const hostname = new URL(url).hostname.replace(/^www\./, '');
+        const part = hostname.split('.')[0];
+        return part.charAt(0).toUpperCase() + part.slice(1);
+    } catch {
+        return (url || '?').charAt(0).toUpperCase();
+    }
+}
+
+/**
  * Maps a raw error to a user-facing message.
  * Handles known OAuth, network, and API error patterns.
  */
