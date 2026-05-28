@@ -7,8 +7,8 @@ import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
  * Top-left pill button that opens Focus Mode.
  * Expands on hover to show the keyboard shortcut label.
  */
-export const FocusModeButton = ({ isDark, onClick, style }) => (
-  <div className="absolute top-5 left-5 z-50" style={style}>
+export const FocusModeButton = ({ isDark, onClick }) => (
+  <div className="absolute top-5 left-5 z-50">
     <button
       onClick={onClick}
       className="group flex items-center rounded-full transition-all duration-300 focus:outline-none cursor-pointer"

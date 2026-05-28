@@ -24,7 +24,7 @@ const CarouselNav = ({ mode, onSelect }) => {
   return (
     <div
       aria-label="Mode navigation"
-      style={{ display: "flex", alignItems: "center", gap: 5 }}
+      className="dailys-nav"
     >
       {MODE_OPTIONS.map((m, k) => (
         <button
@@ -35,17 +35,7 @@ const CarouselNav = ({ mode, onSelect }) => {
           }}
           aria-label={`Switch to ${m.label}`}
           title={`Switch to ${m.label}`}
-          style={{
-            padding: 0,
-            border: "none",
-            height: 4,
-            width: k === index ? 12 : 4,
-            borderRadius: 999,
-            background: "var(--w-ink-1)",
-            opacity: k === index ? 0.8 : 0.25,
-            cursor: "pointer",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
+          className={`dailys-nav__dot ${k === index ? "dailys-nav__dot--active" : "dailys-nav__dot--inactive"}`}
         />
       ))}
     </div>
@@ -83,7 +73,7 @@ const AdaptiveText = ({ text, fontFamily, fontWeight, textLineHeight }) => {
           title={text}
           areaWidth={area.w}
           areaHeight={area.h}
-          onClick={() => {}}
+          onClick={() => { }}
           fontFamily={fontFamily}
           fontWeight={fontWeight}
           textLineHeight={textLineHeight}
@@ -128,10 +118,8 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
 
   return (
     <div
-      className="absolute inset-0 select-none flex flex-col p-4"
+      className="absolute inset-0 select-none flex flex-col p-4 dailys-card"
       style={{
-        touchAction: "pan-y",
-        cursor: "default",
         transform: dragX
           ? `translateX(${dragX}px) rotate(${dragX * 0.01}deg)`
           : "none",
@@ -143,17 +131,7 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          position: "relative",
-          width: "100%",
-          overflow: "hidden",
-          paddingTop: "0.125rem",
-          paddingBottom: "0.375rem",
-        }}
-      >
+      <div className="dailys-text-area">
         <AdaptiveText
           text={item.text}
           fontFamily='"Google Sans", ui-sans-serif, sans-serif'
@@ -162,38 +140,14 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
         />
       </div>
 
-      <div className="flex items-center justify-between shrink-0 pt-1.5 gap-2">
-        <span
-          className="text-[0.65rem] font-semibold px-2.5 py-0.5 rounded-full tracking-wide shrink-0"
-          style={{
-            background: "color-mix(in srgb, var(--w-accent) 12%, transparent)",
-            color: "var(--w-accent)",
-          }}
-        >
+      <div className="dailys-footer">
+        <span className="dailys-badge">
           {mode?.charAt(0).toUpperCase() + mode?.slice(1)}
         </span>
         {item.author && (
-          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
-            <div
-              style={{
-                width: "8px",
-                height: "1.5px",
-                background: "var(--w-accent)",
-                opacity: 0.35,
-                borderRadius: "2px",
-                flexShrink: 0,
-              }}
-            />
-            <span
-              className="truncate"
-              style={{
-                fontSize: "0.6rem",
-                fontWeight: 700,
-                color: "var(--w-ink-4)",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-              }}
-            >
+          <div className="dailys-author">
+            <div className="dailys-author__bar" />
+            <span className="truncate dailys-author__name">
               {item.author}
             </span>
           </div>
