@@ -1,12 +1,12 @@
 import "./App.css";
 import "./styles/main.scss";
-import React, { useState, Suspense, lazy, useEffect } from "react";
+import React, { useState, Suspense, lazy, useEffect, useMemo } from "react";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
   snoozeLookAway,
 } from "./components/LookAway/hooks";
-import { WidgetGrid } from "./widgets/WidgetGrid";
+import { WidgetGrid, quantizeWidth } from "./widgets/WidgetGrid";
 
 import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
@@ -172,6 +172,9 @@ const App = () => {
   const [showCatalog, setShowCatalog] = useState(false);
   const [showLookAway, setShowLookAway] = useState(false);
 
+  // Viewport breakpoint for aligning top-right cluster with grid margins
+  const bp = useBreakpoint();
+
   // ── Stores ──────────────────────────────────────────────────────────────────
   const {
     mode,
@@ -264,6 +267,12 @@ const App = () => {
     onTrigger: () => setShowLookAway(true),
   });
 
+  // Align ControlCluster's right edge with the grid container's right edge
+  const clusterRight = useMemo(() => {
+    const qw = quantizeWidth(bp.width);
+    return (bp.width - qw) / 2;
+  }, [bp.width]);
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div
@@ -280,7 +289,7 @@ const App = () => {
         style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
       />
 
-      <FocusModeButton isDark={isDark} onClick={openFocusMode} />
+      <FocusModeButton isDark={isDark} onClick={openFocusMode} style={{ left: clusterRight }} />
 
       <ControlCluster
         ref={panelRef}
@@ -300,6 +309,7 @@ const App = () => {
           setShowLookAway(true);
           closeSettings();
         }}
+        style={{ right: clusterRight }}
       />
 
       {showCatalog && (

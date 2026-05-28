@@ -29,9 +29,16 @@ const RGL_PADDING = Object.fromEntries(
 function quantizeWidth(width) {
   const { cols, margin, padding } =
     BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
-  const colW = Math.round((width - 2 * padding - (cols - 1) * margin) / cols);
+  // Use Math.floor so the quantized grid never exceeds the container width.
+  // Math.round can push the grid past the viewport (e.g. 1440→1454 at lg),
+  // which breaks visual symmetry between left and right margins when the
+  // container clips the overflow.
+  const colW = Math.floor((width - 2 * padding - (cols - 1) * margin) / cols);
   return colW * cols + (cols - 1) * margin + 2 * padding;
 }
+
+// Exported so ControlCluster can align its right edge with the grid.
+export { quantizeWidth, BP_SPECS };
 
 // O(1) lookup: type → registry entry (includes Component)
 const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map((w) => [w.type, w]));
@@ -217,7 +224,11 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   }
 
   return (
-    <div className="w-full relative select-none" ref={containerRef}>
+    <div
+      className="relative select-none mx-auto"
+      ref={containerRef}
+      style={{ width: quantizedWidth, maxWidth: "100%" }}
+    >
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
