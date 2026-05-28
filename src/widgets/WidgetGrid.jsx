@@ -7,6 +7,10 @@ import { STORAGE_KEYS } from "../constants/storageKeys";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
+// Consistent horizontal margin (container edge padding) across all breakpoints.
+// Vertical padding per breakpoint is preserved in BP_SPECS for fine-tuning.
+const WIDGETGRID_X_MARGIN = 12;
+
 const BP_SPECS = [
   { name: "lg", minW: 1200, cols: 48, margin: 14, padding: 14 },
   { name: "md", minW: 996, cols: 40, margin: 16, padding: 16 },
@@ -22,23 +26,22 @@ const RGL_COLS = Object.fromEntries(BP_SPECS.map((s) => [s.name, s.cols]));
 const RGL_MARGIN = Object.fromEntries(
   BP_SPECS.map((s) => [s.name, [s.margin, s.margin]]),
 );
+// containerPadding: [horizontal, vertical] — horizontal is the consistent
+// WIDGETGRID_X_MARGIN; vertical stays per-breakpoint for layout tuning.
 const RGL_PADDING = Object.fromEntries(
-  BP_SPECS.map((s) => [s.name, [s.padding, s.padding]]),
+  BP_SPECS.map((s) => [s.name, [WIDGETGRID_X_MARGIN, s.padding]]),
 );
 
 function quantizeWidth(width) {
-  const { cols, margin, padding } =
+  const { cols, margin } =
     BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
-  // Use Math.floor so the quantized grid never exceeds the container width.
-  // Math.round can push the grid past the viewport (e.g. 1440→1454 at lg),
-  // which breaks visual symmetry between left and right margins when the
-  // container clips the overflow.
-  const colW = Math.floor((width - 2 * padding - (cols - 1) * margin) / cols);
-  return colW * cols + (cols - 1) * margin + 2 * padding;
+  const colW = Math.round((width - 2 * WIDGETGRID_X_MARGIN - (cols - 1) * margin) / cols);
+  // Clamp: never exceed the actual container width — otherwise RGL
+  // over-estimates available space and right-edge items eat into the
+  // containerPadding, breaking the symmetrical 12px margin.
+  const qw = colW * cols + (cols - 1) * margin + 2 * WIDGETGRID_X_MARGIN;
+  return Math.min(qw, width);
 }
-
-// Exported so ControlCluster can align its right edge with the grid.
-export { quantizeWidth, BP_SPECS };
 
 // O(1) lookup: type → registry entry (includes Component)
 const REG_MAP = Object.fromEntries(WIDGET_REGISTRY.map((w) => [w.type, w]));
@@ -194,7 +197,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // Below 480px (xxs breakpoint) we skip RGL entirely and render a plain
   // vertical stack so native touch-scroll works with zero friction.
   if (width < 480 && !arrangeMode) {
-    const PAD = 6;
+    const PAD = WIDGETGRID_X_MARGIN;
     const GAP = 6;
     const ROW_H = 8.5;
     // Sort by xxs y position so visual order matches what RGL would show
@@ -224,89 +227,89 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   }
 
   return (
-    <div
-      className="relative select-none mx-auto"
-      ref={containerRef}
-      style={{ width: quantizedWidth, maxWidth: "100%" }}
-    >
+    <div className="w-full relative select-none" ref={containerRef}>
       {/* Dot grid — visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
         style={{ opacity: showOverlay ? 0.5 : 0 }}
       />
-      <Responsive
-        className="layout"
-        layouts={layoutItems}
-        width={quantizedWidth}
-        breakpoints={RGL_BREAKPOINTS}
-        cols={RGL_COLS}
-        rowHeight={8.5}
-        isDraggable={arrangeMode}
-        draggableHandle=".widget-drag-handle"
-        isResizable={false}
-        compactType="vertical"
-        preventCollision={false}
-        margin={RGL_MARGIN}
-        containerPadding={RGL_PADDING}
-        useCSSTransforms={false}
-        onLayoutChange={handleLayoutChange}
-        onDragStart={handleDragStart}
-        onDragStop={handleDragStop}
-      >
-        {(instances || []).map(({ id, type }) => {
-          const widget = renderWidget(
-            id,
-            type,
-            onRemoveInstance ? () => onRemoveInstance(id) : undefined,
-          );
-          if (!widget) return null;
-          return (
-            <div
-              key={id}
-              data-widget-type={type}
-              className="group relative w-full h-full transition-opacity duration-200"
-              style={{
-                opacity: 1,
-                touchAction: arrangeMode ? "none" : "pan-y",
-              }}
-            >
-              {/* Drag handle — visible only in arrange mode */}
+      {/* Center the quantized grid so any underflow from integer column-width
+           snapping is split evenly across both sides instead of all landing on the right. */}
+      <div style={{ width: quantizedWidth, margin: "0 auto" }}>
+        <Responsive
+          className="layout"
+          layouts={layoutItems}
+          width={quantizedWidth}
+          breakpoints={RGL_BREAKPOINTS}
+          cols={RGL_COLS}
+          rowHeight={8.5}
+          isDraggable={arrangeMode}
+          draggableHandle=".widget-drag-handle"
+          isResizable={false}
+          compactType="vertical"
+          preventCollision={false}
+          margin={RGL_MARGIN}
+          containerPadding={RGL_PADDING}
+          useCSSTransforms={false}
+          onLayoutChange={handleLayoutChange}
+          onDragStart={handleDragStart}
+          onDragStop={handleDragStop}
+        >
+          {(instances || []).map(({ id, type }) => {
+            const widget = renderWidget(
+              id,
+              type,
+              onRemoveInstance ? () => onRemoveInstance(id) : undefined,
+            );
+            if (!widget) return null;
+            return (
               <div
-                className={`widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
-                  flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
-                  cursor-grab active:cursor-grabbing select-none
-                  transition-opacity duration-200 ${arrangeMode ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                key={id}
+                data-widget-type={type}
+                className="group relative w-full h-full transition-opacity duration-200"
                 style={{
-                  backgroundColor: "var(--card-bg)",
-                  backdropFilter: "var(--card-blur)",
-                  border: "1px solid var(--card-border)",
-                  borderTop: "none",
-                  boxShadow: "var(--card-shadow)",
+                  opacity: 1,
+                  touchAction: arrangeMode ? "none" : "pan-y",
                 }}
-                aria-label="Drag to move"
               >
-                {[0, 1, 2, 3].map((i) => (
-                  <span
-                    key={i}
-                    className="block w-0.75 h-0.75 rounded-xl"
-                    style={{ backgroundColor: "var(--w-ink-3)" }}
-                  />
-                ))}
+                {/* Drag handle — visible only in arrange mode */}
+                <div
+                  className={`widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
+                    flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl
+                    cursor-grab active:cursor-grabbing select-none
+                    transition-opacity duration-200 ${arrangeMode ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                  style={{
+                    backgroundColor: "var(--card-bg)",
+                    backdropFilter: "var(--card-blur)",
+                    border: "1px solid var(--card-border)",
+                    borderTop: "none",
+                    boxShadow: "var(--card-shadow)",
+                  }}
+                  aria-label="Drag to move"
+                >
+                  {[0, 1, 2, 3].map((i) => (
+                    <span
+                      key={i}
+                      className="block w-0.75 h-0.75 rounded-xl"
+                      style={{ backgroundColor: "var(--w-ink-3)" }}
+                    />
+                  ))}
+                </div>
+                {/* Intercept mousedown so widget content receives clicks without triggering rgl drag.
+                     pointer-events:none in arrange mode prevents options/menus from opening. */}
+                <div
+                  role="none"
+                  className="h-full w-full"
+                  style={{ pointerEvents: arrangeMode ? "none" : undefined }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <Suspense fallback={null}>{widget}</Suspense>
+                </div>
               </div>
-              {/* Intercept mousedown so widget content receives clicks without triggering rgl drag.
-                   pointer-events:none in arrange mode prevents options/menus from opening. */}
-              <div
-                role="none"
-                className="h-full w-full"
-                style={{ pointerEvents: arrangeMode ? "none" : undefined }}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                <Suspense fallback={null}>{widget}</Suspense>
-              </div>
-            </div>
-          );
-        })}
-      </Responsive>
+            );
+          })}
+        </Responsive>
+      </div>
     </div>
   );
 });
