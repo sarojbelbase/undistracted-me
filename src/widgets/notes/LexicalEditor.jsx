@@ -192,22 +192,6 @@ function LinkEditorPlugin() {
 
   if (!visible) return null;
 
-  const fieldStyle = {
-    display: 'flex', flexDirection: 'column', gap: 5,
-  };
-  const labelStyle = {
-    fontSize: '0.68rem', fontWeight: 600,
-    letterSpacing: '0.06em', textTransform: 'uppercase',
-    color: 'var(--w-ink-5)',
-  };
-  const inputWrapStyle = {
-    display: 'flex', alignItems: 'center',
-    background: 'var(--w-surface-2)',
-    border: '1px solid var(--w-border)',
-    borderRadius: 8, padding: '0 10px',
-    height: 36,
-  };
-
   return createPortal(
     <dialog
       ref={dialogRefCallback}
@@ -215,25 +199,17 @@ function LinkEditorPlugin() {
       onCancel={handleCancel}
       onClick={handleDialogClick}
       onKeyDown={handleKeyDown}
-      style={{
-        position: 'fixed', top: pos.top, left: pos.left, zIndex: 10000,
-        margin: 0, padding: '14px 14px 12px',
-        background: 'var(--w-surface)', border: '1px solid var(--w-border)',
-        borderRadius: 12, boxShadow: 'var(--modal-shadow)',
-        width: 320,
-        display: 'flex', flexDirection: 'column', gap: 12,
-      }}
+      className="lex-link-dialog"
+      style={{ top: pos.top, left: pos.left }}
     >
-      {/* ── Header ── */}
-      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--w-ink-2)' }}>
+      <div className="lex-link-dialog-header">
         {selectedText ? 'Edit link' : 'Insert link'}
       </div>
 
-      {/* ── Link text field ── */}
       {selectedText && (
-        <div style={fieldStyle}>
-          <label htmlFor="lex-link-text" style={labelStyle}>Link text</label>
-          <div style={inputWrapStyle}>
+        <div className="lex-link-dialog-field">
+          <label htmlFor="lex-link-text" className="lex-link-dialog-label">Link text</label>
+          <div className="lex-link-dialog-input-wrap">
             <Input
               id="lex-link-text"
               value={linkText}
@@ -246,10 +222,9 @@ function LinkEditorPlugin() {
         </div>
       )}
 
-      {/* ── URL field ── */}
-      <div style={fieldStyle}>
-        <label htmlFor="lex-link-url" style={labelStyle}>URL</label>
-        <div style={inputWrapStyle}>
+      <div className="lex-link-dialog-field">
+        <label htmlFor="lex-link-url" className="lex-link-dialog-label">URL</label>
+        <div className="lex-link-dialog-input-wrap">
           <Input
             ref={inputRef}
             id="lex-link-url"
@@ -266,33 +241,15 @@ function LinkEditorPlugin() {
         </div>
       </div>
 
-      {/* ── Actions ── */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-        <button
-          type="button"
-          onClick={close}
-          style={{
-            flex: 1, height: 34, border: '1px solid var(--w-border)',
-            background: 'transparent', color: 'var(--w-ink-3)',
-            fontSize: '0.8rem', fontWeight: 500, borderRadius: 8,
-            cursor: 'pointer', transition: 'background 0.12s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--w-surface-2)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-        >
+      <div className="lex-link-dialog-actions">
+        <button type="button" onClick={close} className="lex-link-dialog-cancel-btn">
           Cancel
         </button>
         <button
           type="button"
           onClick={url.trim() ? apply : undefined}
-          style={{
-            flex: 2, height: 34, border: 'none',
-            background: url.trim() ? 'var(--w-accent)' : 'var(--w-surface-2)',
-            color: url.trim() ? 'var(--w-accent-fg)' : 'var(--w-ink-5)',
-            fontSize: '0.8rem', fontWeight: 600, borderRadius: 8,
-            cursor: url.trim() ? 'pointer' : 'default',
-            transition: 'background 0.15s, color 0.15s',
-          }}
+          disabled={!url.trim()}
+          className="lex-link-dialog-apply-btn"
         >
           Apply link
         </button>
@@ -328,15 +285,6 @@ function ValueSyncPlugin({ value, lastSentRef, onReady }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  return null;
-}
-
-// ── Expose imperative focus() to parent via ref ───────────────────────────────
-function RefPlugin({ editorRef }) {
-  const [editor] = useLexicalComposerContext();
-  useEffect(() => {
-    if (editorRef) editorRef.current = editor;
-  }, [editor, editorRef]);
   return null;
 }
 
@@ -445,7 +393,7 @@ const LexicalEditor = forwardRef(function LexicalEditor(
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div className="notes-lexical-shell">
         <RichTextPlugin
           contentEditable={
             <ContentEditable
@@ -470,7 +418,6 @@ const LexicalEditor = forwardRef(function LexicalEditor(
         <MarkdownShortcutPlugin transformers={MY_TRANSFORMERS} />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
         <ValueSyncPlugin value={value} lastSentRef={lastSentRef} onReady={(e) => { editorInstanceRef.current = e; }} />
-        <RefPlugin editorRef={editorInstanceRef} />
       </div>
     </LexicalComposer>
   );

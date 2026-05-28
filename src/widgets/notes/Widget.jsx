@@ -23,8 +23,6 @@ import { TooltipBtn } from "../../components/ui/TooltipBtn";
 // Only fetched the first time a user expands a note to full-screen mode.
 const LexicalEditor = lazy(() => import("./LexicalEditor"));
 
-const PAD = 20;
-
 // ─── Per-note hue palette (cycles by note index) ─────────────────────────────
 const NOTE_HUES = [
   "#F5C842", // warm yellow
@@ -42,56 +40,10 @@ const SegBtn = ({ onClick, disabled, label, children }) => (
     onClick={disabled ? undefined : onClick}
     disabled={disabled}
     tooltip={disabled ? undefined : label}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 4,
-      border: "none",
-      borderRadius: 6,
-      padding: "2px 5px",
-      fontSize: "0.6875rem",
-      fontWeight: 600,
-      lineHeight: 1,
-      background: "transparent",
-      color: disabled ? "var(--w-ink-6)" : "var(--w-ink-3)",
-      cursor: disabled ? "default" : "pointer",
-      transition: "background 0.12s, color 0.12s",
-      minHeight: 22,
-    }}
-    onMouseEnter={(e) => {
-      if (!disabled) e.currentTarget.style.background = "rgba(0,0,0,0.06)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "transparent";
-    }}
+    className="notes-seg-btn"
   >
     {children}
   </TooltipBtn>
-);
-
-// ─── Static style object — defined at module scope to avoid recreation per render ──
-const SEG_TRACK = {
-  display: "inline-flex",
-  alignItems: "center",
-  background: "rgba(0,0,0,0.05)",
-  borderRadius: 8,
-  padding: 2,
-  gap: 1,
-  marginLeft: "auto",
-};
-
-// Pure helper — also defined outside the component to avoid recreation per render.
-const segBtn = (
-  onClick,
-  content,
-  disabled = false,
-  key = undefined,
-  label = undefined,
-) => (
-  <SegBtn key={key} onClick={onClick} disabled={disabled} label={label}>
-    {content}
-  </SegBtn>
 );
 
 // ─── Nav dot (pagination dot with Popup tooltip) ──────────────────────────────
@@ -104,17 +56,8 @@ const NavDot = ({ active, label, onClick, hue }) => {
         ref={btnRef}
         onClick={onClick}
         aria-label={label}
-        style={{
-          width: active ? 14 : 5,
-          height: 5,
-          borderRadius: 99,
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-          background: active ? hue : "var(--w-ink-6)",
-          opacity: active ? 1 : 0.35,
-          transition: "all 0.2s ease",
-        }}
+        className={`notes-nav-dot${active ? " notes-nav-dot--active" : ""}`}
+        style={active ? { background: hue } : undefined}
         onMouseEnter={() =>
           setAnchor(btnRef.current?.getBoundingClientRect() ?? null)
         }
@@ -122,14 +65,7 @@ const NavDot = ({ active, label, onClick, hue }) => {
       />
       {anchor && (
         <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
-          <span
-            style={{
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              color: "var(--w-ink-2)",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <span className="notes-nav-counter" style={{ color: "var(--w-ink-2)", whiteSpace: "nowrap" }}>
             {label}
           </span>
         </Popup>
@@ -281,18 +217,25 @@ export const Widget = ({ id, onRemove }) => {
   const [mode, setMode] = useState("widget");
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
+  const hasAutoFocusedRef = useRef(false);
 
-  const openPage = useCallback(() => setMode("page"), []);
+  const openPage = useCallback(() => {
+    hasAutoFocusedRef.current = false;
+    setMode("page");
+  }, []);
   const close = useCallback(() => setMode("widget"), []);
 
+  // Auto-focus on first entry to page mode
   useEffect(() => {
     if (mode !== "page") return;
-    setTimeout(() => {
+    const timer = setTimeout(() => {
+      if (hasAutoFocusedRef.current) return;
+      hasAutoFocusedRef.current = true;
       if (!titleLine.trim()) titleRef.current?.focus();
       else bodyRef.current?.focus();
     }, 60);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+    return () => clearTimeout(timer);
+  }, [mode, titleLine]);
 
   useEffect(() => {
     if (mode === "widget") return;
@@ -304,54 +247,29 @@ export const Widget = ({ id, onRemove }) => {
   }, [mode, close]);
 
   const navControls = (
-    <div className="notes-fullscreen-nav" style={SEG_TRACK}>
-      {segBtn(goPrev, <ChevronLeft size={12} />, localIdx === 0, "prev")}
-      <span
-        style={{
-          fontSize: "0.625rem",
-          fontVariantNumeric: "tabular-nums",
-          fontWeight: 600,
-          color: "var(--w-ink-4)",
-          padding: "0 4px",
-          userSelect: "none",
-        }}
-      >
+    <div className="notes-seg-track notes-fullscreen-nav">
+      <SegBtn onClick={goPrev} disabled={localIdx === 0} label="Previous note">
+        <ChevronLeft size={12} />
+      </SegBtn>
+      <span className="notes-nav-counter">
         {localIdx + 1}/{total}
       </span>
-      {segBtn(
-        goNext,
-        <ChevronRight size={12} />,
-        localIdx >= total - 1,
-        "next",
-      )}
+      <SegBtn onClick={goNext} disabled={localIdx >= total - 1} label="Next note">
+        <ChevronRight size={12} />
+      </SegBtn>
 
-      {/* Divider */}
-      <div
-        style={{
-          width: 1,
-          height: 16,
-          background: "rgba(0,0,0,0.1)",
-          margin: "0 2px",
-          flexShrink: 0,
-        }}
-      />
+      <div className="notes-nav-divider" />
 
-      {segBtn(addNote, <Plus size={13} />, false, "add", "New note")}
+      <SegBtn onClick={addNote} label="New note">
+        <Plus size={13} />
+      </SegBtn>
 
-      {/* Divider */}
-      <div
-        style={{
-          width: 1,
-          height: 16,
-          background: "rgba(0,0,0,0.1)",
-          margin: "0 2px",
-          flexShrink: 0,
-        }}
-      />
+      <div className="notes-nav-divider" />
 
       <ConfirmButton
         onConfirm={deleteNote}
         label={total <= 1 ? "Clear note" : "Delete note"}
+        className="notes-seg-btn"
         style={{
           borderRadius: 6,
           padding: "2px 7px",
@@ -367,24 +285,13 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   // ── Widget card ───────────────────────────────────────────────────────────────
-  const noteHue = NOTE_HUES[localIdx % NOTE_HUES.length];
-
   const widgetCard = (
     <BaseWidget
       className="flex flex-col overflow-hidden"
       cardStyle={{ borderRadius: "14px" }}
       onRemove={onRemove}
     >
-      {/* Writing surface — 16px top breathing room, 12px before status bar */}
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          padding: `16px ${PAD}px 12px`,
-        }}
-      >
+      <div className="notes-writing-surface">
         <textarea
           id="notes-body"
           name="notes-body"
@@ -396,27 +303,8 @@ export const Widget = ({ id, onRemove }) => {
         />
       </div>
 
-      {/* Status bar — 32px tall for comfortable touch target + breathing room */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          height: 32,
-          flexShrink: 0,
-          paddingLeft: 14,
-          paddingRight: 10,
-          borderTop: "1px solid rgba(127,127,127,0.1)",
-          gap: 6,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            flexShrink: 0,
-          }}
-        >
+      <div className="notes-status-bar">
+        <div className="notes-status-dots">
           {localNotes.map((note, i) => (
             <NavDot
               key={`dot-${i}`}
@@ -431,127 +319,38 @@ export const Widget = ({ id, onRemove }) => {
           onClick={openPage}
           aria-label="Open in full screen"
           tooltip="Write in fullscreen"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            textAlign: "left",
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            padding: "0 4px",
-            fontSize: "0.625rem",
-            fontWeight: 600,
-            color: titleLine.trim() ? "var(--w-ink-4)" : "var(--w-ink-6)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            letterSpacing: "0.01em",
-            transition: "color 0.12s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--w-ink-2)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = titleLine.trim()
-              ? "var(--w-ink-4)"
-              : "var(--w-ink-6)";
-          }}
+          className={`notes-title-btn${titleLine.trim() ? "" : " notes-title-btn--empty"}`}
         >
           {titleLine.trim() || `Note ${localIdx + 1}`}
         </TooltipBtn>
         {localText.trim() && (
-          <span
-            style={{
-              fontSize: "0.5625rem",
-              fontVariantNumeric: "tabular-nums",
-              color: "var(--w-ink-6)",
-              letterSpacing: "0.04em",
-              userSelect: "none",
-              flexShrink: 0,
-            }}
-          >
+          <span className="notes-word-count">
             {wordCount}w
           </span>
         )}
       </div>
     </BaseWidget>
   );
+
   // ── Full-screen ──────────────────────────────────────────────────────────────
   const pageOverlay =
     mode === "page" &&
     createPortal(
-      <div
-        className="fixed inset-0 flex flex-col notes-fullscreen"
-        style={{ zIndex: 200, background: "var(--w-surface)" }}
-      >
-        {/* Minimal top bar: back left, nav controls right */}
-        <div
-          className="notes-fullscreen-topbar"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            height: 44,
-            flexShrink: 0,
-            paddingLeft: 12,
-            paddingRight: 12,
-            gap: 8,
-            borderBottom: "1px solid var(--w-border)",
-          }}
-        >
-          {/* Back — same pattern as Pomodoro */}
+      <div className="fixed inset-0 flex flex-col notes-fullscreen">
+        <div className="notes-fullscreen-topbar">
           <button
             onClick={close}
             aria-label="Back to widget"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              height: 28,
-              border: "none",
-              borderRadius: 7,
-              padding: "0 10px 0 8px",
-              background: "rgba(0,0,0,0.05)",
-              cursor: "pointer",
-              color: "var(--w-ink-3)",
-              flexShrink: 0,
-              fontSize: "0.6875rem",
-              fontWeight: 600,
-              transition: "background 0.12s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(0,0,0,0.1)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(0,0,0,0.05)";
-            }}
+            className="notes-fullscreen-back-btn"
           >
             <ArrowLeft size={13} />
             <span>Notes</span>
           </button>
-          <div style={{ marginLeft: "auto" }}>{navControls}</div>
+          {navControls}
         </div>
 
-        {/* Centred writing column */}
-        <div
-          style={{
-            flex: 1,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              flex: 1,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              maxWidth: 740,
-              width: "100%",
-              margin: "0 auto",
-              padding: "20px 28px 14px",
-            }}
-          >
+        <div className="notes-fullscreen-editor-wrap">
+          <div className="notes-fullscreen-writing-col">
             {/* Title */}
             <input
               ref={titleRef}
@@ -568,29 +367,11 @@ export const Widget = ({ id, onRemove }) => {
               }}
               placeholder="Title"
               className="notes-title"
-              style={{
-                display: "block",
-                width: "100%",
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                padding: 0,
-                paddingLeft: 6,
-                fontFamily: "inherit",
-                fontSize: "2rem",
-                fontWeight: 700,
-                color: "var(--w-ink-1)",
-                lineHeight: 1.2,
-                letterSpacing: "-0.02em",
-                flexShrink: 0,
-              }}
             />
             {/* Lexical WYSIWYG editor — lazy loaded */}
             <Suspense
               fallback={
-                <div
-                  style={{ flex: 1, paddingTop: 18, color: "var(--w-ink-5)" }}
-                >
+                <div style={{ flex: 1, paddingTop: 18, color: "var(--w-ink-5)" }}>
                   …
                 </div>
               }
@@ -615,15 +396,7 @@ export const Widget = ({ id, onRemove }) => {
               />
             </Suspense>
             {localText.trim() && (
-              <div
-                style={{
-                  paddingTop: 14,
-                  fontSize: "0.625rem",
-                  color: "var(--w-ink-6)",
-                  letterSpacing: "0.04em",
-                  flexShrink: 0,
-                }}
-              >
+              <div className="notes-word-count-footer">
                 {wordCount}&thinsp;{wordCount === 1 ? "word" : "words"}
               </div>
             )}

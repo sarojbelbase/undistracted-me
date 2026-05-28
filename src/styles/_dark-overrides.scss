@@ -43,4 +43,33 @@
   .text-gray-900 {
     color: var(--w-ink-1) !important;
   }
+
+  // ─── Notes fullscreen dark mode ─────────────────────────────────────────
+  .notes-fullscreen {
+    background-color: var(--w-surface) !important;
+  }
+
+  .notes-seg-track {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .notes-seg-btn:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .notes-nav-divider {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .notes-fullscreen-back-btn {
+    background: rgba(255, 255, 255, 0.08);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  }
+
+  .notes-status-bar {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
 }

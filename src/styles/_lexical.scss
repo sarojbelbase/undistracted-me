@@ -239,3 +239,92 @@ dialog[aria-label="Link editor"]::backdrop {
 .lex-content ::selection {
   background: rgba(99, 102, 241, 0.15);
 }
+
+// ─── Link Editor Dialog (Ctrl+K) ────────────────────────────────────────────
+
+.lex-link-dialog {
+  position: fixed;
+  z-index: 10000;
+  margin: 0;
+  padding: 14px 14px 12px;
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
+  border-radius: 12px;
+  box-shadow: var(--modal-shadow);
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lex-link-dialog-header {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--w-ink-2);
+}
+
+.lex-link-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lex-link-dialog-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--w-ink-5);
+}
+
+.lex-link-dialog-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--w-surface-2);
+  border: 1px solid var(--w-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 36px;
+}
+
+.lex-link-dialog-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.lex-link-dialog-cancel-btn {
+  flex: 1;
+  height: 34px;
+  border: 1px solid var(--w-border);
+  background: transparent;
+  color: var(--w-ink-3);
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: var(--w-surface-2);
+  }
+}
+
+.lex-link-dialog-apply-btn {
+  flex: 2;
+  height: 34px;
+  border: none;
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:disabled {
+    background: var(--w-surface-2);
+    color: var(--w-ink-5);
+    cursor: default;
+  }
+}
