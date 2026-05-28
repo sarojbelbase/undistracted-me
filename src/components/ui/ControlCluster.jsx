@@ -37,6 +37,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
     onOpenCatalog,
     onPreloadCatalog,
     onPreviewLookAway,
+    style,
   },
   ref,
 ) {
@@ -49,7 +50,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
   const openCommandPalette = useUIStore((s) => s.openCommandPalette);
 
   return (
-    <div ref={ref} className="absolute top-5 right-5 z-50">
+    <div ref={ref} className="absolute top-5 right-5 z-50" style={style}>
       <div
         className="flex items-center rounded-full"
         style={{
