@@ -4,7 +4,7 @@
  * Shared hooks for the local event store and Google Calendar integration.
  * See widgets/useEvents.js (re-export stub) for historical context.
  */
-import { useState, useEffect, useCallback, useReducer } from "react";
+import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import {
   getCalendarEvents,
   isCalendarConnected,

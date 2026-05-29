@@ -190,22 +190,6 @@ export const Widget = ({ id, onRemove }) => {
     return () => obs.disconnect();
   }, []);
 
-  const load = useCallback(async () => {
-    if (!symbols.length) return;
-    setLoading(true);
-    try {
-      const results = await Promise.all(symbols.map(sym => fetchChart(sym).catch(() => null)));
-      const newMap = {};
-      symbols.forEach((sym, i) => { newMap[sym] = results[i]; });
-      setChartMap(newMap);
-      setRefreshedAt(Date.now());
-    } finally {
-      setLoading(false);
-    }
-  }, [symbols]);
-
-  useEffect(() => { load(); }, [load]);
-
   const isFirstLoad = loading && !refreshedAt;
   const isSingle = symbols.length <= 1;
   const primarySym = symbols[0];

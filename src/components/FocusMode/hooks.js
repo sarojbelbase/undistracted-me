@@ -11,16 +11,10 @@ import {
 import { useWidgetInstancesStore } from "../../store";
 import { useLocationStore } from "../../store/useLocationStore";
 import {
-  getChromeMedia,
-  sendChromeMediaAction,
-} from "../../widgets/media/utils";
-import {
   isGoogleAuthAvailable,
   getGoogleUserProfile,
 } from "../../utilities/googleAuth";
 import { useGoogleAccountStore } from "../../store/useGoogleAccountStore";
-// Shared hooks — also usable by canvas-mode widgets
-import { useSpotify } from "../../widgets/media/useSpotify";
 
 const HISTORY_KEY = "fm_search_history";
 const MAX_HISTORY = 12;
@@ -305,14 +299,9 @@ export const useFocusTimezones = () => {
   return timezones;
 };
 
-// ─── Spotify (delegates to shared hook) ──────────────────────────────────────
-//
-// useFocusSpotify is an alias of useSpotify with the old return shape
-// (spotifyProgress) preserved for backward-compat with index.jsx.
-export const useFocusSpotify = () => {
-  const { spotify, progress: spotifyProgress, ...rest } = useSpotify();
-  return { spotify, spotifyProgress, ...rest };
-};
+// ─── Spotify (direct re-export of shared hook) ───────────────────────────────
+
+export { useSpotify as useFocusSpotify } from "../../widgets/media/useSpotify";
 
 // ─── Search bar utilities (used by panels/SearchBar.jsx) ──────────────────────
 
@@ -431,69 +420,7 @@ export function switchToTab(tab) {
  * and resumes immediately when the tab becomes visible again — avoids sending
  * unnecessary SW messages when the new-tab page isn't in view.
  */
-export function useChromeMedia() {
-  const [sessions, setSessions] = useState([]);
-  const [pending, setPending] = useState(false);
-  const [skipPending, setSkipPending] = useState(null); // 'next' | 'prev' | null
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const poll = async () => {
-      if (document.hidden) return;
-      const data = await getChromeMedia();
-      if (!cancelled) {
-        setSessions(data);
-        // Clear pending indicators once the next poll arrives — the action has
-        // propagated to the source tab by this point.
-        setPending(false);
-        setSkipPending(null);
-      }
-    };
-
-    poll();
-    const id = setInterval(poll, 3000);
-    const onVisible = () => {
-      if (!document.hidden) poll();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, []);
-
-  const top = sessions[0] ?? null;
-
-  const track = top
-    ? {
-      title: top.title || "Playing",
-      artist: top.artist || top.host || "",
-      albumArt: top.artwork || null,
-      isPlaying: top.playbackState === "playing",
-      tabId: top.tabId,
-      host: top.host,
-      // No duration info from mediaSession, so progress bar is omitted.
-      durationMs: null,
-      progressMs: null,
-    }
-    : null;
-
-  const sendAction = useCallback(
-    (action) => {
-      if (!top) return;
-      if (action === "play" || action === "pause") setPending(true);
-      if (action === "next") setSkipPending("next");
-      if (action === "previous") setSkipPending("prev");
-      sendChromeMediaAction(action, top.tabId);
-    },
-    [top],
-  );
-
-  return { track, sendAction, pending, skipPending };
-}
+export { useChromeMedia } from "../../widgets/media/useChromeMedia";
 
 // ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
 

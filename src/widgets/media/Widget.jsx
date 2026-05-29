@@ -10,8 +10,8 @@ import {
   isSpotifyConnected,
   getCurrentPlayback, setPlayPause, skipNext, skipPrev,
   extractAlbumColor, getSpotifyProfile, fetchAndCacheProfile,
-  getChromeMedia, sendChromeMediaAction,
 } from './utils';
+import { useChromeMedia } from './useChromeMedia';
 // Event key shared with Accounts settings tab for Spotify connect/disconnect sync.
 const SPOTIFY_ACCOUNT_CHANGED = 'spotify_account_changed';
 
@@ -143,19 +143,23 @@ export const Widget = ({ onRemove }) => {
 
   const lastArtRef = useRef(null);
   const tickRef = useRef(null);
-  const [chromeMediaSessions, setChromeMediaSessions] = useState([]);
+  // ── Chrome media — shared hook (onChanged push + 30s fallback) ──────────
+  const {
+    sessions: chromeMediaSessions,
+    sendAction: chromeSendAction,
+    pending: chromePendingActive,
+    skipPending: chromeSkipPendingActive,
+  } = useChromeMedia();
+
+  // Map shared hook state to widget-local names (backward-compat with rendering code)
+  const chromePendingTabId = chromePendingActive ? 1 : null;
+  const chromeSkipPending = chromeSkipPendingActive;
   const [chromeAlbumColors, setChromeAlbumColors] = useState({});
   const chromeArtRef = useRef({});
   const [chromeTrackAnimKey, setChromeTrackAnimKey] = useState(0);
   const prevChromeTrackIdRef = useRef(null);
-  const [chromePendingTabId, setChromePendingTabId] = useState(null);
-  const chromePendingTimeoutRef = useRef(null);
   const [spotifyPending, setSpotifyPending] = useState(false);
-  // 'next' | 'prev' | null — which skip button is in-flight for Spotify
   const [spotifySkipPending, setSpotifySkipPending] = useState(null);
-  // { tabId, action } | null — pending skip for chrome sessions
-  const [chromeSkipPending, setChromeSkipPending] = useState(null);
-  const chromeSkipPendingTimeoutRef = useRef(null);
   // Ref for the post-skip Spotify refresh timer so it can be cancelled on unmount.
   const spotifySkipTimerRef = useRef(null);
 
@@ -213,43 +217,7 @@ export const Widget = ({ onRemove }) => {
   // Cancel the post-skip Spotify refresh timer on unmount.
   useEffect(() => () => clearTimeout(spotifySkipTimerRef.current), []);
 
-  const applyChromeSessions = useCallback((sessions) => {
-    setChromeMediaSessions(sessions);
-    setChromePendingTabId(null);
-    setChromeSkipPending(null);
-  }, []);
-
-  // ── Chrome media: instant read from storage → push via onChanged → poll fallback ──
-  useEffect(() => {
-    if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
-
-    // 1. Read from storage immediately — no SW wakeup needed, works even if
-    //    SW is dormant after being killed by Chrome's MV3 idle timeout.
-    chrome.storage.local.get('chrome_media_sessions', (result) => {
-      const stored = result?.chrome_media_sessions;
-      if (Array.isArray(stored) && stored.length) applyChromeSessions(stored);
-    });
-
-    // 2. Push listener — fires the instant bg.js writes new sessions to storage.
-    //    Eliminates the 3s polling lag for any state change.
-    const onChanged = (changes, area) => {
-      if (area !== 'local' || !changes.chrome_media_sessions) return;
-      applyChromeSessions(changes.chrome_media_sessions.newValue ?? []);
-    };
-    chrome.storage.onChanged.addListener(onChanged);
-
-    // 3. Poll every 30s as a safety net (SW dormant, onChanged missed, etc.).
-    //    The primary path is the onChanged push listener above — this is just
-    //    a fallback, so a longer interval is fine and saves ~90% of requests.
-    const id = setInterval(() => getChromeMedia().then(applyChromeSessions), 30_000);
-
-    return () => {
-      chrome.storage.onChanged.removeListener(onChanged);
-      clearInterval(id);
-    };
-  }, [applyChromeSessions]);
-
-  // Extract colour from each chrome session's artwork (keyed by tabId)
+  // ── Album colour extraction from Chrome sessions ────────────────────────
   const updateSessionArtColor = useCallback((s) => {
     if (!s.artwork || chromeArtRef.current[s.tabId] === s.artwork) return;
     chromeArtRef.current[s.tabId] = s.artwork;
