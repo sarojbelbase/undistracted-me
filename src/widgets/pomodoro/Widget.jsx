@@ -83,6 +83,8 @@ export const Widget = ({ id, onRemove }) => {
     localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
   };
 
+  const lastSaveRef = useRef(0); // throttle localStorage writes to every 5s
+
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (running && !done) {
@@ -94,8 +96,10 @@ export const Widget = ({ id, onRemove }) => {
             localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
             // Notify via service worker so it works even when tab isn't focused
             sendToServiceWorker({ type: 'POMODORO_DONE', preset });
-          } else {
-            // Refresh persisted endTime every tick so it stays accurate
+          } else if (next % 5 === 0 && next !== lastSaveRef.current) {
+            // Persist every 5 s instead of every tick — crash recovery only
+            // needs approximate state; being off by ≤5 s is acceptable.
+            lastSaveRef.current = next;
             saveTimer(id, { phase: 'timer', preset, duration, remaining: next, running: true });
           }
           return next;

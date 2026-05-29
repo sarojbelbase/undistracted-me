@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { fetchOpenMeteo, parseWeather } from "../../widgets/weather/utils.jsx";
+import { useWeather } from "../../hooks/useWeather";
 import {
   getCurrentPhoto,
   rotatePhoto,
@@ -28,7 +28,6 @@ const MAX_HISTORY = 12;
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
 export const useFocusWeather = () => {
-  const [weather, setWeather] = useState(null);
   // Read from Zustand widgetSettings — reactive to same-tab setting changes.
   const weatherSettings = useWidgetInstancesStore(
     useShallow((s) => {
@@ -45,35 +44,16 @@ export const useFocusWeather = () => {
     useShallow((s) => ({ geoLat: s.lat, geoLon: s.lon, geoSource: s.source })),
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    const location = weatherSettings?.location ?? null;
-    const unit = weatherSettings?.unit ?? "metric";
-    const load = async () => {
-      try {
-        let lat, lon;
-        if (location) {
-          lat = location.lat;
-          lon = location.lon;
-        } else if (geoSource !== "default" && geoLat != null) {
-          lat = geoLat;
-          lon = geoLon;
-        } else {
-          return; // No usable location
-        }
-        const cityName = location?.name || "";
-        const data = await fetchOpenMeteo(lat, lon, unit);
-        if (!cancelled) setWeather({ ...parseWeather(data, cityName), unit });
-      } catch {}
-    };
-    load();
-    const timerId = setInterval(load, 30 * 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(timerId);
-    };
-  }, [weatherSettings, geoLat, geoLon, geoSource]);
-  return weather;
+  const location = weatherSettings?.location ?? null;
+  const unit = weatherSettings?.unit ?? "metric";
+
+  // Resolve coords: manual location → geo store → nothing
+  const lat = location?.lat ?? (geoSource !== "default" ? geoLat : null);
+  const lon = location?.lon ?? (geoSource !== "default" ? geoLon : null);
+  const city = location?.name || "";
+
+  const { weather } = useWeather({ lat, lon, unit, cityName: city });
+  return weather ? { ...weather, unit } : null;
 };
 
 // ─── Stocks (delegates to shared hook) ───────────────────────────────────────
@@ -174,7 +154,7 @@ export const useWakeLock = (active) => {
   const lockRef = useRef(null);
   useEffect(() => {
     if (!active) {
-      lockRef.current?.release().catch(() => {});
+      lockRef.current?.release().catch(() => { });
       lockRef.current = null;
       return;
     }
@@ -182,7 +162,7 @@ export const useWakeLock = (active) => {
       if (!("wakeLock" in navigator)) return;
       try {
         lockRef.current = await navigator.wakeLock.request("screen");
-      } catch {}
+      } catch { }
     };
     acquire();
     const onVisible = () => {
@@ -191,7 +171,7 @@ export const useWakeLock = (active) => {
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
-      lockRef.current?.release().catch(() => {});
+      lockRef.current?.release().catch(() => { });
       lockRef.current = null;
     };
   }, [active]);
@@ -297,7 +277,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
           search: searchLum < 0.45,
           greet: greetLum < 0.45,
         });
-      } catch {}
+      } catch { }
     };
     img.src = url;
     return () => {
@@ -489,16 +469,16 @@ export function useChromeMedia() {
 
   const track = top
     ? {
-        title: top.title || "Playing",
-        artist: top.artist || top.host || "",
-        albumArt: top.artwork || null,
-        isPlaying: top.playbackState === "playing",
-        tabId: top.tabId,
-        host: top.host,
-        // No duration info from mediaSession, so progress bar is omitted.
-        durationMs: null,
-        progressMs: null,
-      }
+      title: top.title || "Playing",
+      artist: top.artist || top.host || "",
+      albumArt: top.artwork || null,
+      isPlaying: top.playbackState === "playing",
+      tabId: top.tabId,
+      host: top.host,
+      // No duration info from mediaSession, so progress bar is omitted.
+      durationMs: null,
+      progressMs: null,
+    }
     : null;
 
   const sendAction = useCallback(

@@ -41,7 +41,7 @@ export const LeftZone = () => {
     [localEvents, gcalEvents],
   );
 
-  const stocks = useFocusStocks();
+  const { stocks } = useFocusStocks();
   const occasions = useOccasions();
 
   const {

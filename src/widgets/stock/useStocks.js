@@ -1,15 +1,18 @@
 // ─── Shared stocks hook ────────────────────────────────────────────────────────
 //
-// Used by both Focus Mode (LeftPanel → Stock.jsx) and can be adopted by the
-// canvas stock widget. Reads configured symbols from the first stock widget
-// instance's settings via Zustand and polls merolagani.com for chart data.
+// Used by both Focus Mode (LeftPanel → Stock.jsx) and the canvas stock widget.
+// Reads configured symbols from the first stock widget instance's settings via
+// Zustand and polls merolagani.com for chart data.  Reads from the SW background
+// cache (stocks_sw_cache) first for instant display on new-tab open.
 //
 // Returns:
-//   stocks – [{ sym: string, data: ChartData | null | 'error' }]
+//   stocks  – [{ sym: string, data: ChartData | null | 'error' }]
+//   refresh – () => void  force an immediate network re-fetch
+//
 //   data === null    → loading
 //   data === 'error' → fetch failed / no data
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useReducer } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { fetchChart } from "./utils";
 import { useWidgetInstancesStore } from "../../store";
@@ -20,6 +23,8 @@ const CACHE_TTL_MS = 10 * 60_000; // use SW cache if < 10 min old
 
 export const useStocks = () => {
   const [stocks, setStocks] = useState([]);
+  // Increment this to force an immediate network re-fetch (bypasses SW cache)
+  const [refreshKey, bumpRefresh] = useReducer((c) => c + 1, 0);
 
   const symbols = useWidgetInstancesStore(
     useShallow((s) => {
@@ -39,7 +44,7 @@ export const useStocks = () => {
     if (!isExtension || !symbols.length) return;
     chrome.runtime
       .sendMessage({ type: "STOCKS_CONFIG_SYNC", symbols })
-      .catch(() => {});
+      .catch(() => { });
   }, [symbolsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -54,7 +59,7 @@ export const useStocks = () => {
       if (!isExtension) return;
       chrome.storage.local
         .set({ [SW_CACHE_KEY]: { data, fetchedAt: Date.now() } })
-        .catch(() => {});
+        .catch(() => { });
     };
 
     const loadFromNetwork = async () => {
@@ -104,7 +109,7 @@ export const useStocks = () => {
       cancelled = true;
       clearInterval(timerId);
     };
-  }, [symbols]);
+  }, [symbols, refreshKey]);
 
-  return stocks;
+  return { stocks, refresh: bumpRefresh };
 };
