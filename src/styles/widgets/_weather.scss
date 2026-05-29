@@ -1,0 +1,38 @@
+// ─── Weather Widget ──────────────────────────────────────────────────────────
+// BEM: .wthr-*
+// Only precip-bar classes used by Widget.jsx; rest is Tailwind + inline styles.
+
+.wthr-precip-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  margin-top: 0.5rem;
+  height: 18px;
+}
+
+.wthr-precip-bar {
+  width: 5px;
+  border-radius: 1.5px;
+  cursor: default;
+  border: none;
+  padding: 0;
+  outline: none;
+  display: block;
+  flex-shrink: 0;
+
+  &--active {
+    background-color: var(--w-ink-3);
+  }
+
+  &--inactive {
+    background-color: var(--panel-bg);
+    opacity: 1;
+  }
+}
+
+.wthr-precip-popup__text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--w-ink-2);
+  white-space: nowrap;
+}

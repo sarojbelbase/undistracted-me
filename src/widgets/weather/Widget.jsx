@@ -246,25 +246,16 @@ const PrecipBarItem = ({ pop, i, isActive }) => {
   const [anchor, setAnchor] = useState(null);
   const show = () => setAnchor(ref.current?.getBoundingClientRect() ?? null);
   const hide = () => setAnchor(null);
+  const barHeight = `${Math.max(2, Math.round((pop / 100) * 16))}px`;
+  const barOpacity = isActive ? Math.max(0.2, pop / 100) : 1;
   return (
     <>
       <button
         ref={ref}
         type="button"
         aria-label={`+${i}h: ${pop}%`}
-        style={{
-          width: "5px",
-          height: `${Math.max(2, Math.round((pop / 100) * 16))}px`,
-          borderRadius: "1.5px",
-          backgroundColor: isActive ? "var(--w-ink-3)" : "var(--panel-bg)",
-          opacity: isActive ? Math.max(0.2, pop / 100) : 1,
-          cursor: "default",
-          border: "none",
-          padding: 0,
-          outline: "none",
-          display: "block",
-          flexShrink: 0,
-        }}
+        className={`wthr-precip-bar ${isActive ? "wthr-precip-bar--active" : "wthr-precip-bar--inactive"}`}
+        style={{ height: barHeight, opacity: barOpacity }}
         onMouseEnter={show}
         onMouseLeave={hide}
         onFocus={show}
@@ -272,14 +263,7 @@ const PrecipBarItem = ({ pop, i, isActive }) => {
       />
       {anchor && (
         <Popup anchor={anchor} preferAbove className="px-2.5 py-1">
-          <span
-            style={{
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              color: "var(--w-ink-2)",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <span className="wthr-precip-popup__text">
             {`+${i}h: ${pop}%`}
           </span>
         </Popup>
@@ -290,8 +274,7 @@ const PrecipBarItem = ({ pop, i, isActive }) => {
 
 const PrecipBars = ({ popSlots, eventHour }) => (
   <div
-    className="flex items-end gap-px mt-2"
-    style={{ height: "18px" }}
+    className="wthr-precip-bars"
     aria-label="Hourly precipitation probability"
   >
     {popSlots.map((pop, i) => (
@@ -1024,7 +1007,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
             setForecast(parseForecast(sw.data));
             if (sw.aqiData) setAqi(parseAQI(sw.aqiData));
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     }
 

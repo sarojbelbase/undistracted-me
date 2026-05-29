@@ -20,7 +20,6 @@
 @use "typography"; // .w-display, .w-heading, .w-label etc.
 @use "animations"; // All @keyframes
 @use "scrollbars"; // Global thin auto-hiding scrollbar + .no-scrollbar
-@use "notes"; // .notes-title, .notes-textarea
 @use "lexical"; // .lex-* Lexical WYSIWYG editor
 @use "markdown"; // .md-* Markdown preview
 @use "react-grid"; // .react-grid-*, drag handles, placeholder
@@ -28,6 +27,19 @@
 @use "focus-mode"; // .fm-* Focus Mode layout
 @use "look-away"; // .la-* Look Away overlay
 @use "widgets"; // .weather-minimal-* and other widget layout helpers
+@use "widgets/rss";
+@use "widgets/weather";
+@use "widgets/notes";
+@use "widgets/pomodoro";
+@use "widgets/stock";
+@use "widgets/countdown";
+@use "widgets/occasions";
+@use "widgets/bookmark";
+@use "widgets/calendar";
+@use "widgets/events";
+@use "widgets/clock";
+@use "widgets/progress";
+@use "widgets/quickAccess";
 @use "quick-tour"; // .qt-* Quick Tour onboarding overlay
 @use "dark-overrides"; // [data-mode="dark"] Tailwind utility overrides
 @use "comic"; // [data-card-style="comic"] paper & ink visual system

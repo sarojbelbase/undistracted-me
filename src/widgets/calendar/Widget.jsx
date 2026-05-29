@@ -68,41 +68,31 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="relative text-sm font-semibold w-7 h-7 mx-auto flex items-center justify-center rounded-full cursor-pointer transition-colors focus:outline-none overflow-hidden"
-        style={isCurrent
-          ? { backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }
-          : { color: isWeekend ? 'var(--w-ink-5)' : 'var(--w-ink-4)', backgroundColor: hovered ? CANVAS_HOVER_OVERLAY : undefined }}
+        className={`cal-day-cell${isCurrent ? ' cal-day-cell--today' : isWeekend ? ' cal-day-cell--weekend' : ' cal-day-cell--weekday'}`}
+        style={isCurrent ? undefined : { backgroundColor: hovered ? CANVAS_HOVER_OVERLAY : undefined }}
         aria-label={`Add event on ${dateStr}`}
       >
-        {/* Number — fades out on hover to reveal the + below */}
-        <span style={{ transition: 'opacity 0.12s', opacity: hovered ? 0 : 1 }}>
+        <span className="cal-day-cell__number" style={{ opacity: hovered ? 0 : 1 }}>
           {day}
         </span>
 
-        {/* + icon overlay — centered, fades in on hover */}
         <span
           aria-hidden="true"
-          style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: hovered ? 1 : 0, transition: 'opacity 0.12s',
-            color: isCurrent ? 'var(--w-accent-fg)' : 'var(--w-accent)',
-          }}
+          className="cal-day-cell__plus"
+          style={{ color: isCurrent ? 'var(--w-accent-fg)' : 'var(--w-accent)' }}
         >
           <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M4.5 1v7M1 4.5h7" />
           </svg>
         </span>
 
-        {/* Event dot — anchored inside button at bottom, fades out on hover */}
         {hasEvents && (
           <span
             aria-hidden="true"
+            className="cal-day-cell__dot"
             style={{
-              position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
-              width: 4, height: 4, borderRadius: '50%',
               backgroundColor: isCurrent ? 'var(--w-accent-fg)' : 'var(--w-accent)',
-              opacity: hovered ? 0 : 1, transition: 'opacity 0.12s',
+              opacity: hovered ? 0 : 1,
             }}
           />
         )}
@@ -170,12 +160,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
             <TooltipBtn
               onClick={() => setMonthOffset(o => o - 1)}
               tooltip="Previous month"
-              className="p-1 rounded transition-colors group/btn"
-              style={{ color: 'var(--w-ink-5)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-5)'; }}
-              onMouseDown={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
-              onMouseUp={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              className="cal-nav-btn"
               aria-label="Previous month"
             >
               <ChevronLeft />
@@ -183,12 +168,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
             <TooltipBtn
               onClick={() => setMonthOffset(o => o + 1)}
               tooltip="Next month"
-              className="p-1 rounded transition-colors"
-              style={{ color: 'var(--w-ink-5)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--w-ink-5)'; }}
-              onMouseDown={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
-              onMouseUp={e => { e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+              className="cal-nav-btn"
               aria-label="Next month"
             >
               <ChevronRight />

@@ -1,0 +1,338 @@
+// ─── RSS News Widget ──────────────────────────────────────────────────────────
+// BEM: .rss-*
+
+@use 'common' as *;
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+.rss-bone {
+  @include skeleton-bone;
+  background-color: rgba(0, 0, 0, 0.06); // override mixin default
+}
+
+.rss-skeleton-row {
+  padding: 10px 14px 9px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.052);
+
+  &--last {
+    border-bottom: none;
+  }
+}
+
+.rss-skeleton-row__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rss-skeleton-row__meta {
+  margin-top: 5px;
+}
+
+// ── Headline Row (Digest mode) ────────────────────────────────────────────────
+
+.rss-headline-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.052);
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.027);
+  }
+
+  &--last {
+    border-bottom: none;
+  }
+}
+
+.rss-headline-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rss-headline-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 2.5px;
+}
+
+.rss-headline-row__source {
+  @include text-truncate;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: var(--w-ink-4);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  max-width: 70%;
+}
+
+.rss-headline-row__dot {
+  font-size: 0.4375rem;
+  color: var(--w-ink-6);
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 0.5px;
+}
+
+.rss-headline-row__time {
+  font-size: 0.5625rem;
+  font-weight: 400;
+  color: var(--w-ink-5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.rss-headline-row__title {
+  @include text-truncate;
+  font-size: 0.7875rem;
+  font-weight: 600;
+  color: var(--w-ink-1);
+  line-height: 1.33;
+  letter-spacing: -0.011em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+// ── Marquee / Spotlight card background layers ─────────────────────────────────
+
+.rss-marquee-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.rss-marquee-bg__ink {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #0f0f11 0%, #1a1a1f 55%, #0b0b0d 100%);
+}
+
+.rss-marquee-bg__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 65% at 15% 0%, rgba(255, 255, 255, 0.09) 0%, transparent 60%);
+}
+
+.rss-marquee-bg__accent {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 45% at 85% 100%, color-mix(in srgb, var(--w-accent) 25%, transparent) 0%, transparent 65%);
+}
+
+// ── Marquee card layout ───────────────────────────────────────────────────────
+
+.rss-marquee {
+  touch-action: pan-y;
+  cursor: default;
+}
+
+.rss-marquee__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 14px;
+}
+
+.rss-marquee__top-row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.rss-marquee__source-pill {
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.rss-marquee__spacer {
+  flex: 1;
+}
+
+.rss-marquee__refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s, background 0.2s;
+  margin-right: 4px;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.rss-marquee__time {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.rss-marquee__title-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 5px;
+}
+
+.rss-marquee__nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  pointer-events: auto;
+  margin-top: auto;
+}
+
+.rss-marquee__arrow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s, background 0.2s;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  &--hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.rss-dot-nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rss-dot-nav__dot {
+  @include dot-nav-dot;
+  background: rgba(255, 255, 255, 0.22);
+
+  &--active {
+    width: 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  &--hovered {
+    transform: scale(1.6);
+    background: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.rss-footer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-top: auto;
+  pointer-events: auto;
+}
+
+.rss-feed-pill {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--w-ink-4);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &--active {
+    background: var(--w-accent);
+    color: var(--w-accent-fg);
+    border-color: var(--w-accent);
+  }
+
+  &:hover:not(&--active) {
+    color: var(--w-accent);
+    border-color: var(--w-accent);
+  }
+}
+
+.rss-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+@keyframes rss-text-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rss-text-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rss-text-in-prev {
+  animation: rss-text-in-prev 0.3s ease-out both;
+}
+
+.rss-text-in-next {
+  animation: rss-text-in-next 0.3s ease-out both;
+}

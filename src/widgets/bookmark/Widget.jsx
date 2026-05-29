@@ -67,14 +67,8 @@ const BookmarkSettings = ({
     <div className="flex flex-col gap-4">
       {/* Live icon preview */}
       {fullUrl && (
-        <div
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-          style={{ backgroundColor: "var(--panel-bg)" }}
-        >
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: "var(--panel-bg)" }}
-          >
+        <div className="bm-settings-preview">
+          <div className="bm-settings-preview__icon">
             <FaviconIcon
               key={`preview-${fullUrl}-${iconMode}-${previewKey}`}
               url={fullUrl}
@@ -82,25 +76,18 @@ const BookmarkSettings = ({
               iconMode={iconMode}
             />
           </div>
-          <div className="flex-1 min-w-0">
-            <div
-              className="text-xs font-semibold truncate"
-              style={{ color: "var(--w-ink-2)" }}
-            >
+          <div className="bm-settings-preview__info">
+            <div className="bm-settings-preview__name">
               {localName || derivedName || previewHostname}
             </div>
-            <div
-              className="text-xs truncate"
-              style={{ color: "var(--w-ink-5)" }}
-            >
+            <div className="bm-settings-preview__hostname">
               {previewHostname}
             </div>
           </div>
           <TooltipBtn
             type="button"
             onClick={handleRefresh}
-            className="p-1.5 rounded-lg transition-opacity hover:opacity-70 active:opacity-40 shrink-0"
-            style={{ color: "var(--w-ink-4)" }}
+            className="bm-refresh-btn"
             tooltip="Refresh icon"
           >
             <RefreshIcon />
@@ -150,11 +137,7 @@ const BookmarkSettings = ({
       <button
         onClick={handleSave}
         disabled={!canSave}
-        className="w-full px-4 py-2 text-xs rounded-xl font-semibold transition-opacity disabled:opacity-40 hover:opacity-90"
-        style={{
-          backgroundColor: "var(--w-accent)",
-          color: "var(--w-accent-fg)",
-        }}
+        className="bm-save-btn"
       >
         {isEditing ? "Update Bookmark" : "Add Bookmark"}
       </button>

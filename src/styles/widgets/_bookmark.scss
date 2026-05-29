@@ -1,0 +1,79 @@
+// ─── Bookmark Widget ─────────────────────────────────────────────────────────
+// BEM: .bm-*
+
+@use 'common' as *;
+
+// ── Settings: icon preview row ──────────────────────────────────────────────
+
+.bm-settings-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--panel-bg);
+}
+
+.bm-settings-preview__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--panel-bg);
+}
+
+.bm-settings-preview__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bm-settings-preview__name {
+  @include text-truncate;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--w-ink-2);
+}
+
+.bm-settings-preview__hostname {
+  @include text-truncate;
+  font-size: 0.75rem;
+  color: var(--w-ink-5);
+}
+
+// ── Settings: save button ───────────────────────────────────────────────────
+
+.bm-save-btn {
+  @include accent-btn;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  border-radius: 0.75rem;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
+// ── Refresh icon button ─────────────────────────────────────────────────────
+
+.bm-refresh-btn {
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  color: var(--w-ink-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &:active {
+    opacity: 0.4;
+  }
+}

@@ -1,0 +1,105 @@
+// ─── Calendar Widget ─────────────────────────────────────────────────────────
+// BEM: .cal-*
+
+// ── Day cell ─────────────────────────────────────────────────────────────────
+
+.cal-day-cell {
+  position: relative;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border: none;
+  outline: none;
+  overflow: hidden;
+
+  &--today {
+    background-color: var(--w-accent);
+    color: var(--w-accent-fg);
+  }
+
+  &--weekday {
+    color: var(--w-ink-4);
+  }
+
+  &--weekend {
+    color: var(--w-ink-5);
+  }
+}
+
+.cal-day-cell__number {
+  transition: opacity 0.12s;
+}
+
+.cal-day-cell__plus {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s;
+
+  .cal-day-cell:hover & {
+    opacity: 1;
+  }
+
+  .cal-day-cell:hover &~.cal-day-cell__number {
+    opacity: 0;
+  }
+}
+
+.cal-day-cell__dot {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--w-accent);
+  opacity: 1;
+  transition: opacity 0.12s;
+
+  .cal-day-cell:hover & {
+    opacity: 0;
+  }
+
+  .cal-day-cell--today & {
+    background-color: var(--w-accent-fg);
+  }
+}
+
+// ── Month nav ────────────────────────────────────────────────────────────────
+
+.cal-nav-btn {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s;
+  color: var(--w-ink-5);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--w-ink-3);
+  }
+}
+
+// ── Weekday header ───────────────────────────────────────────────────────────
+
+.cal-weekday-header {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--w-ink-5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

@@ -1,0 +1,170 @@
+// ─── Countdown Widget ────────────────────────────────────────────────────────
+// BEM: .cdn-*
+
+@use 'common' as *;
+
+// ── Section label (settings) ─────────────────────────────────────────────────
+
+.cdn-section-label {
+  @include section-label;
+}
+
+// ── Add button (settings) ────────────────────────────────────────────────────
+
+.cdn-add-btn {
+  @include accent-btn;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 0.25rem 0.625rem;
+}
+
+// ── Empty state (settings) ───────────────────────────────────────────────────
+
+.cdn-empty-state {
+  @include empty-state-card;
+}
+
+.cdn-empty-state__icon-circle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  background: color-mix(in srgb, var(--w-accent) 10%, transparent);
+}
+
+.cdn-empty-state__icon-circle--small {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.cdn-empty-state__hint {
+  max-width: 180px;
+}
+
+// ── Countdown list item ──────────────────────────────────────────────────────
+
+.cdn-list-item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+
+  &--past {
+    opacity: 0.4;
+  }
+}
+
+.cdn-list-item__bar {
+  width: 0.375rem;
+  border-radius: 0.125rem;
+  flex-shrink: 0;
+  align-self: stretch;
+  background-color: var(--w-accent);
+  min-height: 38px;
+}
+
+.cdn-list-item__btn {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem 0.5rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.cdn-list-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.cdn-list-item__title {
+  @include text-truncate;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.375;
+  color: var(--w-ink-1);
+}
+
+.cdn-list-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cdn-list-item__meta-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--w-ink-5);
+}
+
+.cdn-list-item__meta-dot {
+  font-size: 11px;
+  font-weight: 600;
+  user-select: none;
+  color: var(--w-ink-6);
+}
+
+// ── Countdown label (days/hours) ─────────────────────────────────────────────
+
+.cdn-label {
+  @include tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &--active {
+    color: var(--w-accent);
+  }
+
+  &--past {
+    color: var(--w-ink-5);
+  }
+}
+
+// ── Delete button ────────────────────────────────────────────────────────────
+
+.cdn-delete-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  border-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 0.375rem;
+  color: var(--w-ink-4);
+  background: none;
+  border: none;
+
+  .cdn-list-item:hover & {
+    opacity: 1;
+  }
+}
+
+// ── Settings divider ─────────────────────────────────────────────────────────
+
+.cdn-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}

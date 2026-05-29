@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
 
 const EventSkeleton = () => (
-  <div className="flex-1 flex flex-col gap-3.5">
+  <div className="evt-skeleton">
     {[0, 1].map(i => (
       <div key={i} className="flex flex-col gap-1.5 animate-pulse">
-        <div className="h-3 rounded-full" style={{ width: i === 0 ? '60%' : '48%', background: 'var(--w-border)' }} />
-        <div className="h-2.5 rounded-full" style={{ width: i === 0 ? '40%' : '32%', background: 'var(--w-border)' }} />
+        <div className="evt-skeleton__line" style={{ width: i === 0 ? '60%' : '48%', height: '0.75rem' }} />
+        <div className="evt-skeleton__line" style={{ width: i === 0 ? '40%' : '32%', height: '0.625rem' }} />
       </div>
     ))}
   </div>
@@ -80,10 +80,7 @@ export const Widget = ({ onRemove }) => {
 
           {/* Meta info: sync age · refresh (only when calendar is connected) */}
           <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className="text-[11px] font-semibold truncate"
-              style={{ color: 'var(--w-ink-4)' }}
-            >
+            <span className="evt-sync-label">
               {syncLabel}
             </span>
             {connected && (
@@ -106,8 +103,8 @@ export const Widget = ({ onRemove }) => {
         {loading && upcomingEvents.length === 0 ? (
           <EventSkeleton />
         ) : upcomingEvents.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-            <CalendarEvent size={24} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
+          <div className="evt-empty">
+            <CalendarEvent size={24} className="evt-empty__icon" />
             <p className="w-muted font-semibold">
               No upcoming events
             </p>
@@ -135,8 +132,7 @@ export const Widget = ({ onRemove }) => {
             onMouseDown={e => e.stopPropagation()}
             tooltip="New event"
             aria-label="New event"
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-85 cursor-pointer shrink-0"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+            className="evt-add-btn"
           >
             <PlusLg size={22} />
           </TooltipBtn>

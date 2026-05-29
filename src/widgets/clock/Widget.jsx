@@ -44,14 +44,11 @@ export const Widget = ({ id, onRemove }) => {
     >
       {/* Time + AM/PM inline, baseline-aligned — no awkward stacking */}
       <div className="flex items-baseline gap-1 flex-wrap justify-center">
-        <span className="w-display tabular-nums" style={{ fontSize: mainSize, lineHeight: 1 }}>
+        <span className="clk-main-time" style={{ fontSize: mainSize }}>
           {parts.time}
         </span>
         {parts.period && (
-          <span
-            className="font-semibold tracking-wider"
-            style={{ fontSize: '0.8rem', color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}
-          >
+          <span className="clk-period">
             {parts.period}
           </span>
         )}
@@ -66,31 +63,22 @@ export const Widget = ({ id, onRemove }) => {
       {/* Extra timezone clocks — subtle rule separates from main clock */}
       {hasTZ && (
         <div
-          className={`w-full flex ${extraTimes.length === 1 ? 'justify-center' : 'justify-evenly'} gap-2 pt-2`}
+          className={`clk-tz-section ${extraTimes.length === 1 ? 'clk-tz-section--single' : 'clk-tz-section--multi'}`}
           style={{ borderTop: `1px solid ${CLOCK_TIMEZONE_DIVIDER}` }}
         >
           {extraTimes.map(({ time, period, label }) => (
-            <div key={label} className="flex flex-col items-center gap-0.5">
-              <div className="flex items-baseline gap-0.5">
-                <span
-                  className="tabular-nums font-semibold"
-                  style={{ fontSize: '0.875rem', color: 'var(--w-ink-2)' }}
-                >
+            <div key={label} className="clk-tz-item">
+              <div className="clk-tz-time-row">
+                <span className="clk-tz-time">
                   {time}
                 </span>
                 {period && (
-                  <span
-                    className="font-semibold"
-                    style={{ fontSize: '0.55rem', color: 'var(--w-ink-4)' }}
-                  >
+                  <span className="clk-tz-period">
                     {period}
                   </span>
                 )}
               </div>
-              <span
-                className="text-center leading-tight font-medium"
-                style={{ fontSize: '0.68rem', color: 'var(--w-ink-4)', maxWidth: '5rem' }}
-              >
+              <span className="clk-tz-label">
                 {label}
               </span>
             </div>

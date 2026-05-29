@@ -28,21 +28,18 @@ import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 
 const Bone = ({ w, h = "0.6875rem" }) => (
   <div
-    className="animate-pulse rounded"
-    style={{ width: w, height: h, backgroundColor: "rgba(0,0,0,0.06)", flexShrink: 0 }}
+    className="rss-bone animate-pulse"
+    style={{ width: w, height: h }}
   />
 );
 
 const SkeletonRow = ({ isLast = false }) => (
-  <div style={{
-    padding: "10px 14px 9px",
-    borderBottom: isLast ? "none" : "1px solid rgba(0,0,0,0.052)",
-  }}>
-    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+  <div className={`rss-skeleton-row${isLast ? " rss-skeleton-row--last" : ""}`}>
+    <div className="rss-skeleton-row__lines">
       <Bone w="91%" h="0.72rem" />
       <Bone w="65%" h="0.72rem" />
     </div>
-    <div style={{ marginTop: 5 }}>
+    <div className="rss-skeleton-row__meta">
       <Bone w="5rem" h="0.5rem" />
     </div>
   </div>
@@ -58,57 +55,29 @@ const HeadlineRow = ({ item, isLast = false }) => {
       type="button"
       onMouseDown={(e) => e.stopPropagation()}
       onClick={() => { if (item.link) window.open(item.link, "_blank", "noopener"); }}
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 10,
-        width: "100%",
-        textAlign: "left",
-        padding: "10px 12px 10px 14px",
-        background: "transparent",
-        border: "none",
-        borderBottom: isLast ? "none" : "1px solid rgba(0,0,0,0.052)",
-        outline: "none",
-        cursor: "pointer",
-        flexShrink: 0,
-        transition: "background 0.14s ease",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.027)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+      className={`rss-headline-row${isLast ? " rss-headline-row--last" : ""}`}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="rss-headline-row__body">
         {/* Source · time */}
         {(item.source || time) && (
-          <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 2.5 }}>
+          <div className="rss-headline-row__meta">
             {item.source && (
-              <span style={{
-                fontSize: "0.5625rem", fontWeight: 700, color: "var(--w-ink-4)",
-                letterSpacing: "0.02em", textTransform: "uppercase",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%",
-              }}>
+              <span className="rss-headline-row__source">
                 {item.source}
               </span>
             )}
             {item.source && time && (
-              <span style={{ fontSize: "0.4375rem", color: "var(--w-ink-6)", flexShrink: 0, lineHeight: 1, marginTop: 0.5 }}>·</span>
+              <span className="rss-headline-row__dot">·</span>
             )}
             {time && (
-              <span style={{ fontSize: "0.5625rem", fontWeight: 400, color: "var(--w-ink-5)", whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span className="rss-headline-row__time">
                 {time}
               </span>
             )}
           </div>
         )}
         {/* Title */}
-        <p style={{
-          fontSize: "0.7875rem", fontWeight: 600, color: "var(--w-ink-1)",
-          lineHeight: 1.33,
-          letterSpacing: "-0.011em",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}>
+        <p className="rss-headline-row__title">
           {item.title}
         </p>
       </div>
@@ -176,10 +145,8 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
   return (
     <div
       ref={cardRef}
-      className="absolute inset-0 select-none"
+      className="absolute inset-0 select-none rss-marquee"
       style={{
-        touchAction: "pan-y",
-        cursor: "default",
         transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.01}deg)` : "none",
         transition: releasing ? "transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
       }}
@@ -192,53 +159,31 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
       aria-label={item.title}
     >
       {/* ── Rich gradient background (text-only, no images) ──────────────── */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: "inherit" }}>
+      <div className="rss-marquee-bg">
         {/* Deep ink base */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(150deg, #0f0f11 0%, #1a1a1f 55%, #0b0b0d 100%)",
-        }} />
+        <div className="rss-marquee-bg__ink" />
         {/* Editorial highlight — top-left warm glow */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 100% 65% at 15% 0%, rgba(255,255,255,0.09) 0%, transparent 60%)",
-        }} />
+        <div className="rss-marquee-bg__glow" />
         {/* Accent color pulse — driven by CSS var (theme-aware) */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 70% 45% at 85% 100%, color-mix(in srgb, var(--w-accent) 25%, transparent) 0%, transparent 65%)",
-        }} />
+        <div className="rss-marquee-bg__accent" />
       </div>
 
       {/* ── Full-height flex column: source/time top · title fills below ── */}
-      <div style={{
-        position: "absolute", inset: 0,
-        display: "flex", flexDirection: "column",
-        padding: "10px 12px 14px",
-      }}>
+      <div className="rss-marquee__content">
 
         {/* Top row: source pill · [refresh] · time */}
-        <div style={{
-          display: "flex", alignItems: "center",
-          flexShrink: 0,
-          animation: `${textAnim} 0.3s ease-out both`,
-        }}>
+        <div
+          className="rss-marquee__top-row"
+          style={{ animation: `${textAnim} 0.3s ease-out both` }}
+        >
           {item.source && (
-            <span style={{
-              fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.1em",
-              textTransform: "uppercase", color: "rgba(255,255,255,0.6)",
-              backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              padding: "3px 7px", borderRadius: 999,
-              flexShrink: 0,
-            }}>
+            <span className="rss-marquee__source-pill">
               {item.source}
             </span>
           )}
 
           {/* Spacer */}
-          <div style={{ flex: 1 }} />
+          <div className="rss-marquee__spacer" />
 
           {/* Refresh button */}
           <button
@@ -246,42 +191,22 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onRefresh(); }}
             aria-label="Refresh feed"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-              background: "rgba(255,255,255,0.07)",
-              border: "none", cursor: "pointer",
-              color: "rgba(255,255,255,0.5)",
-              transition: "color 0.2s, background 0.2s",
-              marginRight: 4,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "rgba(255,255,255,0.9)";
-              e.currentTarget.style.background = "rgba(255,255,255,0.14)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-              e.currentTarget.style.background = "rgba(255,255,255,0.07)";
-            }}
+            className="rss-marquee__refresh-btn"
           >
             <RefreshIcon size={10} spinning={isLoading} />
           </button>
 
           {/* Timestamp */}
           {time && (
-            <span style={{ fontSize: "0.6rem", fontWeight: 600, color: "rgba(255,255,255,0.45)", flexShrink: 0 }}>
-              {time}
-            </span>
+            <span className="rss-marquee__time">{time}</span>
           )}
         </div>
 
         {/* Title block — fills the remaining space, title anchored top, nav pinned bottom */}
-        <div style={{
-          flex: 1,
-          display: "flex", flexDirection: "column",
-          paddingTop: 5,
-          animation: `${textAnim} 0.35s 0.06s ease-out both`,
-        }}>
+        <div
+          className="rss-marquee__title-block"
+          style={{ animation: `${textAnim} 0.35s 0.06s ease-out both` }}
+        >
           <ExpressiveTitle
             title={item.title || ""}
             areaWidth={area.w}
@@ -294,7 +219,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
           {/* ── Dot nav + arrow buttons row — pinned to bottom via margin-top:auto ── */}
           {total > 1 && (
             <div
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, pointerEvents: "auto", marginTop: "auto" }}
+              className="rss-marquee__nav-row"
               onClick={(e) => e.stopPropagation()}
             >
               {/* ← Prev */}

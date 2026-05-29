@@ -162,14 +162,12 @@ export const Widget = ({ id, onRemove }) => {
                 value={customInput}
                 onChange={e => setCustomInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCustomStart()}
-                className="w-20 border rounded-xl px-2 py-1.5 text-xs outline-none text-center"
-                style={{ borderColor: 'var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--w-ink-1)' }}
+                className="pom-custom-input"
               />
               <button
                 onClick={handleCustomStart}
                 disabled={!customInput}
-                className="px-3 py-2 rounded-xl text-xs font-semibold disabled:opacity-40"
-                style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+                className="pom-custom-start-btn"
               >Start</button>
             </div>
           )}
@@ -185,18 +183,12 @@ export const Widget = ({ id, onRemove }) => {
       <div className="flex items-center justify-between w-full shrink-0">
         <button
           onClick={backToPick}
-          className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-          style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
+          className="pom-circle-btn"
         >
           <ArrowLeft size={12} />
         </button>
         <span
-          className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-          style={{
-            background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)',
-            color: 'var(--w-accent)',
-            border: '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)',
-          }}
+          className="pom-preset-pill"
         >
           {preset}
         </span>
@@ -206,7 +198,7 @@ export const Widget = ({ id, onRemove }) => {
       {/* Big countdown — drain mask drains text from right as time passes */}
       <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
         <span
-          className="font-bold tabular-nums leading-none select-none"
+          className="pom-timer-countdown"
           style={{
             fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
             color: done ? 'var(--w-accent)' : 'var(--w-ink-1)',
@@ -217,7 +209,7 @@ export const Widget = ({ id, onRemove }) => {
       </div>
 
       {done && (
-        <p className="shrink-0 text-center text-[10px] font-semibold tracking-wide" style={{ color: 'var(--w-accent)' }}>
+        <p className="pom-timer-done-label">
           SESSION COMPLETE
         </p>
       )}
@@ -226,16 +218,14 @@ export const Widget = ({ id, onRemove }) => {
       <div className="flex items-center justify-between w-full shrink-0 pt-0.5 pb-0.5">
         <button
           onClick={reset}
-          className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-          style={{ backgroundColor: 'var(--card-bg)', backdropFilter: 'var(--card-blur)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
+          className="pom-circle-btn"
         >
           <ArrowCounterclockwise size={13} />
         </button>
         <button
           onClick={() => setRunning(r => !r)}
           disabled={done}
-          className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all disabled:opacity-40 hover:scale-105"
-          style={{ backgroundColor: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+          className="pom-play-btn"
         >
           {running ? <PauseFill size={13} /> : <PlayFill size={13} />}
         </button>

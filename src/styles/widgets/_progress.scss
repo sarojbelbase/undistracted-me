@@ -1,0 +1,14 @@
+// ─── Progress Widget ─────────────────────────────────────────────────────────
+// BEM: .prg-*
+//
+// Dot styling uses the shared .w-dot / .w-dot-active classes from
+// _typography.scss — no need to duplicate here.
+
+// ── Percentage label ─────────────────────────────────────────────────────────
+
+.prg-pct {
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--w-accent);
+}
