@@ -11,6 +11,21 @@ import { fetchFeed, readRssCache, writeRssCache } from './utils';
 
 const POLL_INTERVAL = 15 * 60 * 1000;
 
+/** Maximum items stored per feed to prevent localStorage bloat from verbose feeds. */
+const MAX_CACHED_ITEMS = 30;
+
+/** Cap items to MAX_CACHED_ITEMS newest (by isoDate descending) before caching. */
+const capItems = (items) => {
+  if (items.length <= MAX_CACHED_ITEMS) return items;
+  return [...items]
+    .sort((a, b) => {
+      const da = a.isoDate ? new Date(a.isoDate).getTime() : 0;
+      const db = b.isoDate ? new Date(b.isoDate).getTime() : 0;
+      return db - da;
+    })
+    .slice(0, MAX_CACHED_ITEMS);
+};
+
 /**
  * @param {Array<{label: string, url: string}>} feeds
  * @returns {{ items, loading, error, refreshedAt, refresh }}
@@ -55,7 +70,7 @@ export function useRssMulti(feeds = []) {
         const fetched = await fetchFeed(cacheKey, feed.url);
         // Inject source label into every item
         const tagged = fetched.map((item) => ({ ...item, source: feed.label }));
-        writeRssCache(cacheKey, tagged);
+        writeRssCache(cacheKey, capItems(tagged));
         return tagged;
       }),
     );

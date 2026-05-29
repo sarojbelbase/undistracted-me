@@ -40,14 +40,17 @@ export const useStocks = () => {
     setStocks(next);
   };
 
-  const symbols = useWidgetInstancesStore(
+  // Two-step selector: first find the stock instance id (stable),
+  // then read only that instance's symbols — avoids re-rendering on
+  // unrelated widget setting changes (e.g. notes keystrokes, RSS refresh).
+  const stockInstId = useWidgetInstancesStore(
     useShallow((s) => {
       const inst = s.instances.find((i) => i.type === "stock");
-      const ws = inst
-        ? (s.widgetSettings[inst.id] ?? s.widgetSettings["stock"])
-        : s.widgetSettings["stock"];
-      return ws?.symbols ?? [];
+      return inst?.id ?? "stock";
     }),
+  );
+  const symbols = useWidgetInstancesStore(
+    useShallow((s) => (s.widgetSettings[stockInstId]?.symbols) ?? []),
   );
 
   // Sync symbols to service worker whenever they change so SW can pre-fetch.

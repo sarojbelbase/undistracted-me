@@ -67,7 +67,7 @@ function setContactsDisconnectedFlag() {
   localStorage.setItem(DISCONNECTED_KEY, '1');
 }
 
-export function clearContactsDisconnectedFlag() {
+function clearContactsDisconnectedFlag() {
   localStorage.removeItem(DISCONNECTED_KEY);
 }
 

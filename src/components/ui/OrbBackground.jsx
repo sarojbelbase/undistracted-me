@@ -22,7 +22,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
   return (
     <>
       {/* ── Group A — main CW spin (40 s) ── */}
-      <div aria-hidden style={{
+      <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbSpin 40s linear infinite',
         transformOrigin: '50% 50%',
@@ -51,7 +51,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
       </div>
 
       {/* ── Group B — CCW spin (28 s) ── */}
-      <div aria-hidden style={{
+      <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbCounter 28s linear infinite',
         transformOrigin: '50% 50%',
@@ -79,7 +79,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
       </div>
 
       {/* ── Group C — slow CW drift (60 s) — fills bottom-right & mid voids ── */}
-      <div aria-hidden style={{
+      <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbDrift 60s linear infinite',
         transformOrigin: '50% 50%',
