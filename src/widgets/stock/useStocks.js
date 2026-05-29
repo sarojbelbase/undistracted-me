@@ -12,7 +12,7 @@
 //   data === null    → loading
 //   data === 'error' → fetch failed / no data
 
-import { useState, useEffect, useCallback, useReducer } from "react";
+import { useState, useEffect, useReducer, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { fetchChart } from "./utils";
 import { useWidgetInstancesStore } from "../../store";
@@ -25,6 +25,20 @@ export const useStocks = () => {
   const [stocks, setStocks] = useState([]);
   // Increment this to force an immediate network re-fetch (bypasses SW cache)
   const [refreshKey, bumpRefresh] = useReducer((c) => c + 1, 0);
+  // Track previous LTPs to skip re-renders when data hasn't changed
+  const prevLtpRef = useRef(null);
+
+  /**
+   * Only update state if the data actually changed — prevents re-renders
+   * when the 5-min interval fires but prices are identical (market closed,
+   * stale cache re-read, etc.).
+   */
+  const stableSetStocks = (next) => {
+    const nextKey = next.map((s) => (s.data && s.data !== 'error' ? s.data.ltp : null)).join(',');
+    if (nextKey === prevLtpRef.current) return; // no change — skip re-render
+    prevLtpRef.current = nextKey;
+    setStocks(next);
+  };
 
   const symbols = useWidgetInstancesStore(
     useShallow((s) => {
@@ -49,11 +63,14 @@ export const useStocks = () => {
 
   useEffect(() => {
     if (!symbols.length) {
+      prevLtpRef.current = null; // reset on symbol change
       setStocks([]);
       return;
     }
 
     let cancelled = false;
+    // Reset comparison key when symbols change — always render new symbol set
+    prevLtpRef.current = null;
 
     const writeCache = (data) => {
       if (!isExtension) return;
@@ -70,7 +87,7 @@ export const useStocks = () => {
         data: results[i] ?? "error",
       }));
       if (!cancelled) {
-        setStocks(data);
+        stableSetStocks(data);
         writeCache(data);
       }
     };
@@ -88,7 +105,7 @@ export const useStocks = () => {
             cached.data.length === symbols.length &&
             cached.data.every((row, i) => row.sym === symbols[i])
           ) {
-            if (!cancelled) setStocks(cached.data);
+            if (!cancelled) stableSetStocks(cached.data);
             return; // fresh enough — SW alarm will refresh in background
           }
         } catch {
@@ -97,7 +114,7 @@ export const useStocks = () => {
       }
 
       // No fresh cache — show skeleton then fetch
-      if (!cancelled) setStocks(symbols.map((sym) => ({ sym, data: null })));
+      if (!cancelled) stableSetStocks(symbols.map((sym) => ({ sym, data: null })));
       await loadFromNetwork();
     };
 

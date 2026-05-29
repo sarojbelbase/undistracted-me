@@ -46,7 +46,7 @@ export const LeftZone = () => {
 
   const {
     spotify,
-    spotifyProgress,
+    progress,
     handleToggle,
     handleNext,
     handlePrev,
@@ -59,8 +59,8 @@ export const LeftZone = () => {
   const { track: chromeTrack, sendAction: chromeSendAction, pending: chromePending, skipPending: chromeSkipPending } = useChromeMedia();
 
   const spotifyTrack = useMemo(
-    () => spotify ? { ...spotify, progressMs: spotifyProgress } : null,
-    [spotify, spotifyProgress],
+    () => spotify ? { ...spotify, progressMs: progress } : null,
+    [spotify, progress],
   );
 
   // Show the browser media card only when Spotify has no active track.
