@@ -442,8 +442,6 @@ export const ExpressiveTitle = ({
     el.style.fontFamily = w0.fontFamily;
     el.style.fontWeight = String(w0.fontWeight);
     el.style.letterSpacing = w0.letterSpacing;
-    // Match the actual rendered lineHeight — Devanagari spans use 1.3, not 1.0.
-    // Without this the measurement is too short and the button clips the text.
     el.style.lineHeight = String(w0.lineHeight);
 
     // Descent factor per script:
@@ -467,7 +465,10 @@ export const ExpressiveTitle = ({
     el.style.fontSize = fs + 'px';
     // Width safety: if any single token overflows the container (e.g. a long
     // indivisible word in a condensed font), shrink 1px at a time until it fits.
-    while (fs > 10 && el.scrollWidth > areaWidth) {
+    // NOTE: scrollWidth is always an integer but areaWidth can be fractional
+    // (e.g. 219.797). Adding a 1px tolerance prevents false positives from
+    // ceiling rounding (scrollWidth=220 > areaWidth=219.797 → true incorrectly).
+    while (fs > 10 && el.scrollWidth > Math.ceil(areaWidth)) {
       fs -= 1;
       el.style.fontSize = fs + 'px';
     }
