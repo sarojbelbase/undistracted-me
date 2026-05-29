@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
 
 const EventSkeleton = () => (
@@ -14,7 +14,8 @@ const EventSkeleton = () => (
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
-import { humanizeAge } from "./utils";
+import { useAgeLabel } from '../../hooks/useAgeLabel';
+import { onClockTick } from '../../utilities/sharedClock';
 import { AddEvent } from './AddEvent';
 import { AllEventsModal } from './AllEventsModal';
 import config from './config';
@@ -29,21 +30,18 @@ export const Widget = ({ onRemove }) => {
   const { gcalEvents, loading, connected, syncedAt, refresh } = useGoogleCalendar();
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [ageLabel, setAgeLabel] = useState(() => humanizeAge(syncedAt));
+  const ageLabel = useAgeLabel(syncedAt);
   const [now, setNow] = useState(() => new Date());
+  const lastMinuteRef = useRef(now.getMinutes());
 
-  useEffect(() => {
-    setAgeLabel(humanizeAge(syncedAt));
-    if (!syncedAt) return;
-    const tid = setInterval(() => setAgeLabel(humanizeAge(syncedAt)), 30_000);
-    return () => clearInterval(tid);
-  }, [syncedAt]);
-
-  // Tick every minute so past events disappear in real-time
-  useEffect(() => {
-    const tid = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(tid);
-  }, []);
+  // Tick every minute so past events disappear in real-time — uses shared clock
+  useEffect(() => onClockTick(() => {
+    const d = new Date();
+    if (d.getMinutes() !== lastMinuteRef.current) {
+      lastMinuteRef.current = d.getMinutes();
+      setNow(d);
+    }
+  }), []);
 
   const today = todayStr();
 

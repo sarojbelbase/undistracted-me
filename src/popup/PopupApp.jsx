@@ -14,12 +14,7 @@ import { getTimeParts } from "../widgets/clock/utils";
 import { getGreeting } from "../data/greetings";
 import { getDateParts } from "../widgets/dateToday/utils";
 import { getSunTimes } from "../utilities/sunTime";
-import {
-  fetchOpenMeteo,
-  parseWeather,
-  readWeatherCache,
-  writeWeatherCache,
-} from "../widgets/weather/utils.jsx";
+import { useWeather } from "../hooks/useWeather";
 import {
   addBookmark,
   loadBookmarks,
@@ -109,42 +104,12 @@ export const PopupApp = () => {
   const ne = getDateParts("ne");
 
   // ── Weather ───────────────────────────────────────────────────────────────
-  const [weather, setWeather] = useState(null);
-  const [weatherLoading, setWeatherLoading] = useState(true);
-
-  useEffect(() => {
-    if (typeof lat !== "number" || typeof lon !== "number") return;
-
-    const locKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
-
-    // 1. Try cache first — instant paint
-    const cached = readWeatherCache(locKey, "metric");
-    if (cached?.weather) {
-      setWeather(cached.weather);
-      setWeatherLoading(false);
-      if (cached.fresh) return; // still valid, no network needed
-    }
-
-    // 2. Fetch fresh (background refresh if we had stale cache)
-    let c = false;
-    setWeatherLoading(!cached?.weather);
-
-    fetchOpenMeteo(lat, lon)
-      .then((d) => {
-        if (c) return;
-        const parsed = parseWeather(d);
-        setWeather(parsed);
-        setWeatherLoading(false);
-        writeWeatherCache(parsed, null, null, locKey, "metric");
-      })
-      .catch(() => {
-        if (!c) setWeatherLoading(false);
-      });
-
-    return () => {
-      c = true;
-    };
-  }, [lat, lon]);
+  const { weather, loading: weatherLoading } = useWeather({
+    lat: typeof lat === 'number' ? lat : null,
+    lon: typeof lon === 'number' ? lon : null,
+    unit: 'metric',
+    cityName: city || '',
+  });
 
   const sunEvent = relSun(lat, lon);
   const weatherDesc = weather?.description

@@ -33,16 +33,10 @@ function getNextSunEvent(lat, lon) {
 }
 import {
   getWeatherIcon,
-  fetchOpenMeteo,
-  parseWeather,
-  parseForecast,
-  readWeatherCache,
-  writeWeatherCache,
-  fetchAQI,
-  parseAQI,
   getAQILevel,
 } from "./utils.jsx";
 import { useLocationStore } from "../../store/useLocationStore";
+import { useWeather } from "../../hooks/useWeather";
 import { getWeatherQuip } from "../../data/weatherQuips";
 import {
   WeatherAtmosphere,
@@ -959,113 +953,49 @@ export const Widget = ({ id = "weather", onRemove }) => {
     })),
   );
 
-  useEffect(() => {
-    let mounted = true;
-    setError(null);
+  // Resolve coords: manual location → geo store
+  const resolvedLat = location?.lat ?? (geoSource !== "default" && geoLat != null ? geoLat : null);
+  const resolvedLon = location?.lon ?? (geoSource !== "default" && geoLon != null ? geoLon : null);
+  const resolvedCity = location
+    ? (location.name?.split(",")[0]?.trim() || "")
+    : (geoCity || "");
 
-    // ── Instant pre-population from cache ──────────────────────────────────
-    // Eliminates the skeleton on every subsequent new-tab open.
-    // The background fetch below still runs if data is stale (> 30 min).
-    // Auto-location key includes actual coords so the cache naturally misses
-    // when the user switches VPNs or upgrades from the Kathmandu fallback.
-    let cacheKey;
-    if (location) {
-      cacheKey = `${location.lat},${location.lon}`;
-    } else if (geoLat === null || geoLat === undefined) {
-      cacheKey = "auto";
-    } else {
-      cacheKey = `geo:${geoLat},${geoLon}`;
-    }
-    const cached = readWeatherCache(cacheKey, unit);
-    if (cached?.weather) {
-      setWeather(cached.weather);
-      setForecast(cached.forecast);
-      if (cached.aqi) setAqi(cached.aqi);
-    } else {
+  // Shared weather hook — covers SW cache → localStorage → direct fetch waterfall
+  const {
+    weather: hookWeather,
+    forecast: hookForecast,
+    aqi: hookAqi,
+    loading: hookLoading,
+  } = useWeather({
+    lat: resolvedLat,
+    lon: resolvedLon,
+    unit,
+    cityName: resolvedCity,
+    full: true,
+  });
+
+  // Sync hook output to widget state (allows the rest of the widget to read from
+  // weather/forecast/aqi as before without changing any rendering code).
+  useEffect(() => { setWeather(hookWeather); }, [hookWeather]);
+  useEffect(() => { setForecast(hookForecast); }, [hookForecast]);
+  useEffect(() => { setAqi(hookAqi); }, [hookAqi]);
+
+  // Location-denied detection
+  useEffect(() => {
+    if (!location && (geoSource === "default" || geoLat == null)) {
+      setLocationDenied(geoSource === "default");
       setWeather(null);
       setForecast(null);
-
-      // ── SW background-cache hydration ──────────────────────────────────
-      // If the service worker pre-fetched data (always metric), use it for
-      // instant display while the live fetch runs. Only applies to auto-location
-      // metric mode — manual locations and imperial aren't covered by the SW cache.
-      if (!location && unit === "metric" && geoLat != null) {
-        chrome?.storage?.local
-          ?.get?.("weather_sw_cache")
-          .then((result) => {
-            if (!mounted) return;
-            const sw = result?.weather_sw_cache;
-            if (!sw) return;
-            if (Date.now() - sw.fetchedAt > 30 * 60_000) return; // older than 30 min
-            // Accept if coords are within ~1 km (0.01°)
-            if (
-              Math.abs(sw.lat - geoLat) > 0.01 ||
-              Math.abs(sw.lon - geoLon) > 0.01
-            )
-              return;
-            setWeather(parseWeather(sw.data, geoCity || ""));
-            setForecast(parseForecast(sw.data));
-            if (sw.aqiData) setAqi(parseAQI(sw.aqiData));
-          })
-          .catch(() => { });
-      }
+      setAqi(null);
+    } else {
+      setLocationDenied(false);
     }
+  }, [location, geoLat, geoSource]);
 
-    const load = async () => {
-      try {
-        let lat,
-          lon,
-          resolvedCity = "";
-
-        if (location) {
-          ({ lat, lon } = location);
-          // Only the first segment before a comma:
-          // "Jāwalākhel, Bagmati Province, Nepal" → "Jāwalākhel"
-          resolvedCity = location.name?.split(",")[0]?.trim() || "";
-        } else {
-          // Use coordinates from the centralized location store.
-          // source='default' means both GPS and IP geo failed — treat as denied.
-          if (geoSource === "default" || geoLat == null) {
-            setLocationDenied(geoSource === "default");
-            return;
-          }
-          lat = geoLat;
-          lon = geoLon;
-          resolvedCity = geoCity || "";
-          setLocationDenied(false);
-        }
-
-        // Fetch weather + AQI in parallel; AQI failure is non-fatal
-        const [data, aqiData] = await Promise.all([
-          fetchOpenMeteo(lat, lon, unit),
-          fetchAQI(lat, lon).catch(() => null),
-        ]);
-
-        if (!mounted) return;
-        const current = parseWeather(data, resolvedCity);
-        setWeather(current);
-
-        const fc = parseForecast(data);
-        setForecast(fc);
-
-        const parsedAQI = aqiData ? parseAQI(aqiData) : null;
-        setAqi(parsedAQI);
-
-        // Persist fresh result (including AQI) so next tab open is instant
-        writeWeatherCache(current, fc, parsedAQI, cacheKey, unit);
-      } catch (e) {
-        if (mounted) setError(e.message);
-      }
-    };
-
-    // Skip network if cache is fresh (< 30 min old); still schedule the interval
-    if (!cached?.fresh) load();
-    const timerId = setInterval(load, 30 * 60_000);
-    return () => {
-      mounted = false;
-      clearInterval(timerId);
-    };
-  }, [location, unit, geoLat, geoLon, geoSource, refreshKey]);
+  // Map loading state
+  useEffect(() => {
+    if (!hookLoading) setError(null);
+  }, [hookLoading]);
 
   const settingsContent = (
     <Settings

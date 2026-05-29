@@ -184,12 +184,24 @@ export const Widget = ({ onRemove }) => {
     extractAlbumColor(track.albumArt).then(setAlbumColor);
   }, [track?.albumArt]);
 
-  // Poll playback every 5s when connected
+  // Poll playback every 5s when connected AND tab is visible — pause when
+  // hidden to avoid wasted network requests. Resumes instantly on visibility change.
   useEffect(() => {
     if (!connected) return;
     fetchPlayback();
-    const id = setInterval(fetchPlayback, 5000);
-    return () => clearInterval(id);
+    let id;
+    const startPoll = () => {
+      clearInterval(id);
+      id = setInterval(fetchPlayback, 5000);
+    };
+    const stopPoll = () => clearInterval(id);
+    const onVis = () => {
+      if (document.visibilityState === 'visible') { fetchPlayback(); startPoll(); }
+      else stopPoll();
+    };
+    onVis(); // start immediately if visible
+    document.addEventListener('visibilitychange', onVis);
+    return () => { stopPoll(); document.removeEventListener('visibilitychange', onVis); };
   }, [connected, fetchPlayback]);
 
   // Smooth local progress tick — kept for potential future use, currently no-op
@@ -226,8 +238,10 @@ export const Widget = ({ onRemove }) => {
     };
     chrome.storage.onChanged.addListener(onChanged);
 
-    // 3. Poll every 3s as a safety net (SW dormant, onChanged missed, etc.)
-    const id = setInterval(() => getChromeMedia().then(applyChromeSessions), 3000);
+    // 3. Poll every 30s as a safety net (SW dormant, onChanged missed, etc.).
+    //    The primary path is the onChanged push listener above — this is just
+    //    a fallback, so a longer interval is fine and saves ~90% of requests.
+    const id = setInterval(() => getChromeMedia().then(applyChromeSessions), 30_000);
 
     return () => {
       chrome.storage.onChanged.removeListener(onChanged);

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { fetchChart, buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume } from './utils';
+import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume } from './utils';
 import config from './config';
+import { useStocks } from './useStocks';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
@@ -155,9 +156,28 @@ export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_STOCK_SETTINGS);
   const { symbols = [] } = settings;
 
-  const [chartMap, setChartMap] = useState({});
-  const [loading, setLoading] = useState(false);
+  // Shared stocks hook — reads SW cache first, falls back to direct fetch.
+  // Same hook used by Focus Mode, so data is shared across contexts.
+  const { stocks, refresh } = useStocks();
+
+  // Derive chartMap + loading from the shared hook output
+  const { chartMap, loading } = useMemo(() => {
+    const map = {};
+    let anyLoading = false;
+    for (const s of stocks) {
+      if (s.data === null) { anyLoading = true; map[s.sym] = null; }
+      else if (s.data === 'error') { map[s.sym] = null; }
+      else { map[s.sym] = s.data; }
+    }
+    return { chartMap: map, loading: anyLoading };
+  }, [stocks]);
+
+  // Track refresh timestamp for the age label
   const [refreshedAt, setRefreshedAt] = useState(null);
+  useEffect(() => {
+    if (!loading) setRefreshedAt(Date.now());
+  }, [loading]);
+
   const ageLabel = useAgeLabel(refreshedAt);
 
   const cardRef = useRef(null);
@@ -217,7 +237,7 @@ export const Widget = ({ id, onRemove }) => {
       )}
       <TooltipBtn
         tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
-        onClick={load}
+        onClick={refresh}
         disabled={loading}
         aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
         className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}

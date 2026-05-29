@@ -55,6 +55,11 @@ const solarHour = (lat, lon, rising, date) => {
   return ((UT % 24) + 24) % 24;
 };
 
+// Same-day cache — getSunTimes is called every minute by useLocation, but the
+// solar calculation only changes once per calendar day.  Caching by date+lat+lon
+// eliminates ~1438 redundant trig computations per day.
+const _sunCache = { key: '', result: null };
+
 /**
  * Calculate sunrise and sunset times for a given date and location.
  *
@@ -64,6 +69,9 @@ const solarHour = (lat, lon, rising, date) => {
  * @returns {{ sunrise: Date, sunset: Date } | null}  null for polar regions
  */
 export const getSunTimes = (lat, lon, date = new Date()) => {
+  const cacheKey = `${date.toDateString()}|${lat.toFixed(2)}|${lon.toFixed(2)}`;
+  if (_sunCache.key === cacheKey && _sunCache.result) return _sunCache.result;
+
   const riseUTC = solarHour(lat, lon, true, date);
   const setUTC = solarHour(lat, lon, false, date);
   if (riseUTC === null || setUTC === null) return null;
@@ -93,7 +101,10 @@ export const getSunTimes = (lat, lon, date = new Date()) => {
     return base; // fallback (should not be reached)
   };
 
-  return { sunrise: toDate(riseUTC), sunset: toDate(setUTC) };
+  const result = { sunrise: toDate(riseUTC), sunset: toDate(setUTC) };
+  _sunCache.key = cacheKey;
+  _sunCache.result = result;
+  return result;
 };
 
 /**

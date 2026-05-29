@@ -4,7 +4,7 @@
  * Shared hooks for the local event store and Google Calendar integration.
  * See widgets/useEvents.js (re-export stub) for historical context.
  */
-import { useState, useEffect, useCallback, useReducer, useRef } from "react";
+import { useState, useEffect, useCallback, useReducer } from "react";
 import {
   getCalendarEvents,
   isCalendarConnected,
@@ -34,29 +34,34 @@ const save = (events) => {
   sendToServiceWorker({ type: "EVENTS_UPDATED", events });
 };
 
-// Module-level cache — shared across all useEvents instances so mutations are visible immediately
+// Module-level cache — shared across all useEvents instances
 let cache = load();
 
-const broadcast = () => globalThis.dispatchEvent(new Event(SYNC_EVENT));
+// Module-level subscriber set — only ONE event listener exists globally,
+// no matter how many widgets call useEvents().  Each instance gets its own
+// rerender callback stored in the Set; the single listener iterates them all.
+const subscribers = new Set();
+
+const broadcast = () => {
+  cache = load();
+  subscribers.forEach((fn) => fn());
+};
+
+// One-shot init: register the single global listeners (runs once at module load)
+if (typeof globalThis !== "undefined") {
+  globalThis.addEventListener(SYNC_EVENT, broadcast);
+  globalThis.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) broadcast();
+  });
+}
 
 // Returns [events, addEvent, removeEvent] — all components stay in sync via SYNC_EVENT
 export const useEvents = () => {
   const [, forceRerender] = useReducer((c) => c + 1, 0);
 
   useEffect(() => {
-    const onSync = () => {
-      cache = load();
-      forceRerender();
-    };
-    const onStorage = (e) => {
-      if (e.key === STORAGE_KEY) onSync();
-    };
-    globalThis.addEventListener(SYNC_EVENT, onSync);
-    globalThis.addEventListener("storage", onStorage);
-    return () => {
-      globalThis.removeEventListener(SYNC_EVENT, onSync);
-      globalThis.removeEventListener("storage", onStorage);
-    };
+    subscribers.add(forceRerender);
+    return () => subscribers.delete(forceRerender);
   }, []);
 
   const addEvent = useCallback((event) => {
