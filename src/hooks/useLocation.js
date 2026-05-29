@@ -10,8 +10,12 @@
  *   - 'browser' source: refresh after 6 hours (GPS coords are stable)
  *   - 'ip' source: refresh after 30 minutes (VPN detection window)
  *   - 'idle' (no data yet): refresh immediately
+ *
+ * Power-saving: intervals are paused when the tab is hidden (background /
+ * laptop closed) and resumed on visibility change. This prevents useless
+ * sun-recalculation and geo-refresh cycles on tabs the user isn't looking at.
  */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useLocationStore } from "../store/useLocationStore";
 
@@ -31,6 +35,10 @@ export const useLocation = () => {
       lon: s.lon,
     })));
 
+  // Refs to track interval IDs so we can clear/reset them on visibility change.
+  const geoTimerRef = useRef(null);
+  const sunTimerRef = useRef(null);
+
   useEffect(() => {
     // Decide whether to refresh on mount
     const ttl = source === "browser" ? BROWSER_TTL_MS : IP_TTL_MS;
@@ -40,17 +48,35 @@ export const useLocation = () => {
       refresh();
     }
 
-    // Re-check every 30 min regardless of source — detects VPN switches for
-    // IP-based locations; for browser-grade coords this is effectively a no-op
-    // because getCurrentPosition will return the cached fix within the 6h maximumAge.
-    const geoTimer = setInterval(refresh, IP_TTL_MS);
+    const startTimers = () => {
+      stopTimers();
+      geoTimerRef.current = setInterval(refresh, IP_TTL_MS);
+      sunTimerRef.current = setInterval(refreshSunTimes, SUN_TICK_MS);
+    };
 
-    // Recalculate isDay every minute so dark/light transitions happen on time
-    const sunTimer = setInterval(refreshSunTimes, SUN_TICK_MS);
+    const stopTimers = () => {
+      if (geoTimerRef.current) { clearInterval(geoTimerRef.current); geoTimerRef.current = null; }
+      if (sunTimerRef.current) { clearInterval(sunTimerRef.current); sunTimerRef.current = null; }
+    };
+
+    startTimers();
+
+    // Pause timers when the tab is hidden — no need to recalculate the sun
+    // or check geo-location for a tab the user can't see.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        // Immediately recalc sun times on return (they may have crossed sunrise/sunset)
+        refreshSunTimes();
+        startTimers();
+      } else {
+        stopTimers();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      clearInterval(geoTimer);
-      clearInterval(sunTimer);
+      stopTimers();
+      document.removeEventListener('visibilitychange', onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Stable Zustand references — intentionally empty dep array

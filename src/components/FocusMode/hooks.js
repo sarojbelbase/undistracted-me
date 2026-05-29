@@ -23,14 +23,18 @@ const MAX_HISTORY = 12;
 
 export const useFocusWeather = () => {
   // Read from Zustand widgetSettings — reactive to same-tab setting changes.
-  const weatherSettings = useWidgetInstancesStore(
+  // Use a two-step selector to avoid creating a new reference on every
+  // unrelated store mutation (e.g. notes keystrokes, RSS refresh).
+  // Step 1: find the weather instance id (stable unless instances array reorders).
+  const weatherInstId = useWidgetInstancesStore(
     useShallow((s) => {
       const inst = s.instances.find((i) => i.type === "weather");
-      const ws = inst
-        ? (s.widgetSettings[inst.id] ?? s.widgetSettings["weather"])
-        : s.widgetSettings["weather"];
-      return ws ?? null;
+      return inst?.id ?? "weather";
     }),
+  );
+  // Step 2: read only that instance's settings — isolated from other widget writes.
+  const weatherSettings = useWidgetInstancesStore(
+    useShallow((s) => s.widgetSettings[weatherInstId] ?? null),
   );
 
   // Fall back to the centralized location store when no manual location is set

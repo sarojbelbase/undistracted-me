@@ -74,6 +74,8 @@ const WidgetCatalog = lazy(catalogImport);
 const preloadCatalog = () => catalogImport();
 
 // ── Dev-only breakpoint indicator ───────────────────────────────────────────
+// Wrapped in import.meta.env.DEV so the hook, component, and resize listener
+// are dead-code-eliminated in production builds — zero runtime cost.
 
 const BP_CONFIG = [
   { name: "xxs", maxWidth: 480, color: "#a78bfa" },
@@ -83,53 +85,57 @@ const BP_CONFIG = [
   { name: "lg", maxWidth: Infinity, color: "#f87171" },
 ];
 
-const useBreakpoint = () => {
-  const getW = () =>
-    window.innerWidth || document.documentElement.clientWidth || 0;
-  const fromW = (w) => ({
-    ...(BP_CONFIG.find((bp) => w < bp.maxWidth) ?? BP_CONFIG.at(-1)),
-    width: w,
-  });
-  const [bp, setBp] = React.useState(() => fromW(getW()));
-  React.useEffect(() => {
-    const update = () => setBp(fromW(getW()));
-    globalThis.addEventListener("resize", update);
-    update(); // sync after mount in case initial width was 0
-    return () => globalThis.removeEventListener("resize", update);
-  }, []);
-  return bp;
-};
+const useBreakpoint = import.meta.env.DEV
+  ? () => {
+    const getW = () =>
+      window.innerWidth || document.documentElement.clientWidth || 0;
+    const fromW = (w) => ({
+      ...(BP_CONFIG.find((bp) => w < bp.maxWidth) ?? BP_CONFIG.at(-1)),
+      width: w,
+    });
+    const [bp, setBp] = React.useState(() => fromW(getW()));
+    React.useEffect(() => {
+      const update = () => setBp(fromW(getW()));
+      globalThis.addEventListener("resize", update);
+      update(); // sync after mount in case initial width was 0
+      return () => globalThis.removeEventListener("resize", update);
+    }, []);
+    return bp;
+  }
+  : null; // tree-shaken in production
 
-const BreakpointBadge = () => {
-  const bp = useBreakpoint();
-  return (
-    <div
-      className="fixed bottom-3 left-4 z-9999 flex items-center gap-1.5 px-2.5 py-1 rounded-full select-none font-mono text-[11px] font-semibold"
-      style={{
-        backgroundColor: "rgba(0,0,0,0.65)",
-        backdropFilter: "blur(8px)",
-        color: bp.color,
-        border: `1px solid ${bp.color}40`,
-        letterSpacing: "0.06em",
-      }}
-    >
-      <span
+const BreakpointBadge = import.meta.env.DEV
+  ? () => {
+    const bp = useBreakpoint();
+    return (
+      <div
+        className="fixed bottom-3 left-4 z-9999 flex items-center gap-1.5 px-2.5 py-1 rounded-full select-none font-mono text-[11px] font-semibold"
         style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          backgroundColor: bp.color,
-          display: "inline-block",
-          flexShrink: 0,
+          backgroundColor: "rgba(0,0,0,0.65)",
+          backdropFilter: "blur(8px)",
+          color: bp.color,
+          border: `1px solid ${bp.color}40`,
+          letterSpacing: "0.06em",
         }}
-      />
-      {bp.name}
-      <span style={{ color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
-        {bp.width}px
-      </span>
-    </div>
-  );
-};
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            backgroundColor: bp.color,
+            display: "inline-block",
+            flexShrink: 0,
+          }}
+        />
+        {bp.name}
+        <span style={{ color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
+          {bp.width}px
+        </span>
+      </div>
+    );
+  }
+  : () => null; // tree-shaken in production
 
 // ── FocusMode Suspense fallback ────────────────────────────────────────────────
 // Synchronously reads localStorage to match the actual background the user configured,

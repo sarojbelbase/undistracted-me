@@ -44,8 +44,19 @@ const subscribers = new Set();
 
 const broadcast = () => {
   cache = load();
-  subscribers.forEach((fn) => fn());
+  // Batch all subscriber re-renders into a single animation frame so
+  // multiple rapid event changes (e.g. bulk import, calendar sync) don't
+  // cause N sequential synchronous re-renders blocking the main thread.
+  // On low-RAM machines with slow storage (eMMC), the JSON.parse inside
+  // load() can take 5–15ms — doing it once per frame instead of once per
+  // event mutation is a significant win.
+  if (broadcast._rafId) return; // already scheduled — coalesce
+  broadcast._rafId = requestAnimationFrame(() => {
+    broadcast._rafId = null;
+    subscribers.forEach((fn) => fn());
+  });
 };
+broadcast._rafId = null;
 
 // One-shot init: register the single global listeners (runs once at module load)
 if (typeof globalThis !== "undefined") {

@@ -4,7 +4,6 @@
  * Photo library model:
  *  - library[0] = currently displayed photo.
  *  - rotatePhoto()      → cycles head→tail, returns new head (never destroys).
- *  - downloadNewPhoto() → force-fetches a brand new photo, prepends to library.
  *  - deletePhoto(id)    → removes a photo from the library.
  *  - jumpToPhotoById(id)→ moves any photo to head without discarding others.
  *  - getPhotoLibrary()  → returns the full cached library.
@@ -35,14 +34,16 @@ export const setSelectedPhotoId = (id) => { try { if (id) localStorage.setItem(S
  * Uses Vercel Image Optimization served from the production deployment so
  * it works from any environment — local dev, staging, or extension.
  * Falls back to the full-res URL when no source URL is available.
+ *
+ * Since we now strip non-essential fields from the cache (see stripPhotoFields),
+ * `small` and `thumb` may not exist. Compute from `regular` or `url` directly.
  */
 export const getThumbUrl = (photo) => {
   if (!photo) return null;
   // In local dev, /_vercel/image is cross-origin and CORS-blocked. Use the raw blob URL directly.
   const isLocalDev = typeof location !== 'undefined' && location.hostname === 'localhost';
-  const src = photo.regular || photo.url || photo.small;
+  const src = photo.regular || photo.url;
   if (isLocalDev) return src || null;
-  if (photo.thumb) return photo.thumb;
   if (!src) return null;
   return `${PRODUCTION_BASE_URL}/_vercel/image?url=${encodeURIComponent(src)}&w=200&q=70`;
 };
@@ -94,12 +95,6 @@ export const rotatePhoto = async () => {
   return readCache()[0];
 };
 
-/** Re-download the curated set and return the first photo. */
-export const downloadNewPhoto = async () => {
-  await downloadCuratedPhotos();
-  return readCache()[0] || null;
-};
-
 /** Remove a photo from the library by id. */
 export const deletePhoto = (id) => {
   writeCache(readCache().filter(c => c.id !== id));
@@ -142,18 +137,8 @@ export const jumpToPhotoById = (id, photoData = null) => {
 export const getPhotoLibrary = () => readCache();
 
 /** True when photo fetching is available (direct key OR proxy API). */
-export const hasUnsplashKey = () => !!PHOTOS_API_URL;
 export const clearPhotoCache = () => { _libraryCache = null; localStorage.removeItem(CACHE_KEY); };
 export const getCachedPhotoSync = () => readCache()[0] || null;
-
-/**
- * Pre-warm: fetch up to 2 photos on app boot so Focus Mode
- * opens instantly with a fresh image.
- */
-export const prewarmPhotos = async () => {
-  if (readCache().length > 0) return;
-  await downloadCuratedPhotos();
-};
 
 // ─── Background source ────────────────────────────────────────────────────────
 
@@ -174,6 +159,29 @@ export const setBgSource = (src) => {
 // ─── Download curated set ─────────────────────────────────────────────────────
 
 /**
+ * Strip non-essential fields from a photo object before storing.
+ *
+ * The full API response includes `small`, `thumb`, `description`, `width`,
+ * `height`, and other fields we never read. Stripping them reduces
+ * localStorage footprint from ~2 KB/photo to ~400 bytes/photo — a 5× saving.
+ *
+ * Essential fields kept:
+ *  - id, regular, url  — display URLs
+ *  - color              — dominant colour for background placeholder
+ *  - author, authorUrl  — Unsplash attribution (ToS requirement)
+ *  - cachedAt           — cache freshness tracking
+ */
+const ESSENTIAL_FIELDS = ['id', 'regular', 'url', 'color', 'author', 'authorUrl', 'cachedAt'];
+
+const stripPhotoFields = (photo) => {
+  const stripped = {};
+  for (const k of ESSENTIAL_FIELDS) {
+    if (photo[k] !== undefined) stripped[k] = photo[k];
+  }
+  return stripped;
+};
+
+/**
  * Fetch the complete curated photo list from the Vercel proxy and replace
  * the local library with those photos.
  *
@@ -190,7 +198,7 @@ export const downloadCuratedPhotos = async () => {
     const photos = await res.json();
     if (!Array.isArray(photos) || photos.length === 0) return null;
 
-    const stamped = photos.map(p => ({ ...p, cachedAt: Date.now() }));
+    const stamped = photos.map(p => stripPhotoFields({ ...p, cachedAt: Date.now() }));
     writeCache(stamped);
     // Re-apply the user's last explicit selection so page refreshes and
     // concurrent downloads don't discard their chosen photo.

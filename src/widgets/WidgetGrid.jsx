@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
 import { Responsive, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 
@@ -166,10 +166,15 @@ export const WidgetGrid = React.memo(function WidgetGrid({
         });
         if (unchanged) return prev;
       }
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify(next));
+      // Persist is deferred to onDragStop — avoids per-pixel synchronous I/O
+      // during drag which causes jank on low-RAM machines with slow storage.
       return next;
     });
   }, []);
+
+  // Keep a ref to the latest layouts so onDragStop can persist without a stale closure.
+  const layoutsRef = useRef(layouts);
+  layoutsRef.current = layouts;
 
   const handleDragStart = useCallback((_layout, oldItem) => {
     setDraggingId(oldItem.i);
@@ -177,6 +182,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   const handleDragStop = useCallback(() => {
     setDraggingId(null);
+    // Persist layouts once per drag operation — not on every pixel movement.
+    // This eliminates the per-frame JSON.stringify + localStorage.setItem that
+    // was blocking the main thread during drag on slow storage (eMMC/HDD).
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(layoutsRef.current));
   }, []);
 
   // Safety net: if onDragStop doesn't fire (mouse released outside viewport), clear state

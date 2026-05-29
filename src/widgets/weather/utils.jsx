@@ -5,9 +5,6 @@
 import {
   OPEN_METEO_WEATHER_API,
   OPEN_METEO_AQI_API,
-  NOMINATIM_REVERSE_API,
-  IPAPI_GEO_URL,
-  FREEIPAPI_GEO_URL,
 } from '../../constants/urls.js';
 import {
   SunFill,
@@ -26,9 +23,11 @@ import {
 } from "react-bootstrap-icons";
 
 /** No longer needed — kept so any lingering import doesn't crash. */
-export const API_KEY = null;
+const API_KEY = null;
 
 // ── WMO weather interpretation code → human description ──────────────────────
+// (getCoords, reverseGeocode, getCoordsFromIP were removed — superseded by
+// the centralized useLocationStore. See src/store/useLocationStore.js.)
 const WMO = {
   0: "clear sky",
   1: "mainly clear",
@@ -81,47 +80,8 @@ export const getWeatherIcon = (code, isDay, size = 52) => {
   return <CloudFill {...p} />;
 };
 
-/**
- * Requests the user's geolocation. Returns { lat, lon }.
- */
-export const getCoords = () =>
-  new Promise((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(
-      ({ coords: { latitude: lat, longitude: lon } }) => resolve({ lat, lon }),
-      reject,
-      { timeout: 8_000 },
-    ),
-  );
-
-/**
- * Reverse-geocode {lat, lon} → city name using OSM Nominatim (free, no key).
- * Returns the suburb/town/city/county closest to the point, or ''.
- */
-export const reverseGeocode = async (lat, lon) => {
-  try {
-    const r = await fetch(
-      `${NOMINATIM_REVERSE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
-      {
-        signal: AbortSignal.timeout(5000),
-        headers: { "Accept-Language": "en" },
-      },
-    );
-    if (!r.ok) return "";
-    const d = await r.json();
-    const a = d.address || {};
-    return (
-      a.suburb ||
-      a.neighbourhood ||
-      a.town ||
-      a.city ||
-      a.county ||
-      a.state ||
-      ""
-    );
-  } catch {
-    return "";
-  }
-};
+// ── (getCoords, reverseGeocode, getCoordsFromIP removed — superseded by
+//     the centralized useLocationStore in src/store/useLocationStore.js) ──
 
 /**
  * Single Open-Meteo call — returns current + 12h hourly forecast.
@@ -246,46 +206,6 @@ export const parseForecast = (data) => {
     hours: bestCount,
     type: "persist",
   };
-};
-
-/**
- * Fallback auto-location via IP geolocation.
- * Tries ipapi.co first (consistent with sunTime.js), then freeipapi.com.
- * Returns { lat, lon, city } or null.
- */
-export const getCoordsFromIP = async () => {
-  const isExtension = typeof chrome !== "undefined" && !!chrome.runtime?.id;
-  // ipapi.co — same service used by sunTime.js; skip for extension origins
-  if (!isExtension) {
-    try {
-      const r = await fetch(IPAPI_GEO_URL, {
-        signal: AbortSignal.timeout(5000),
-      });
-      if (r.ok) {
-        const d = await r.json();
-        if (typeof d.latitude === "number" && typeof d.longitude === "number") {
-          return { lat: d.latitude, lon: d.longitude, city: d.city || "" };
-        }
-      }
-    } catch {
-      /* fall through */
-    }
-  }
-  // freeipapi.com — CORS-enabled, also works from extension origins
-  try {
-    const r = await fetch(FREEIPAPI_GEO_URL, {
-      signal: AbortSignal.timeout(5000),
-    });
-    if (r.ok) {
-      const d = await r.json();
-      if (typeof d.latitude === "number" && typeof d.longitude === "number") {
-        return { lat: d.latitude, lon: d.longitude, city: d.cityName || "" };
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
 };
 
 // ── Weather result cache (localStorage) ──────────────────────────────────────

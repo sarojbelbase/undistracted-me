@@ -409,6 +409,19 @@
   }
 }
 
+// ── Respect OS reduced-motion preference ──────────────────────────────────────
+// Disables all continuously-running orb animations so integrated GPUs on
+// low-RAM machines don't waste compositor budget on invisible background layers.
+// The orb blobs remain visible as a static gradient — aesthetics are preserved,
+// only the rotation/bloom motion is paused.
+@media (prefers-reduced-motion: reduce) {
+
+  .orb-animated,
+  .orb-animated * {
+    animation: none !important;
+  }
+}
+
 // ── Weather atmosphere (.wa-*) ────────────────────────────────────────────────
 
 @keyframes wa-sun {

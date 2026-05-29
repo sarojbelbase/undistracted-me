@@ -25,7 +25,7 @@ function setDisconnectedFlag() {
   try { localStorage.setItem(GCAL_DISCONNECTED_KEY, '1'); } catch { /* ignore */ }
 }
 
-export function clearDisconnectedFlag() {
+function clearDisconnectedFlag() {
   try { localStorage.removeItem(GCAL_DISCONNECTED_KEY); } catch { /* ignore */ }
 }
 
@@ -123,7 +123,7 @@ async function saveProfileCache(profile) {
   await chrome?.storage?.local?.set({ [PROFILE_CACHE_KEY]: profile }); // eslint-disable-line no-undef
 }
 
-export async function clearProfileCache() {
+async function clearProfileCache() {
   _profileMemCache = null;
   await chrome?.storage?.local?.remove(PROFILE_CACHE_KEY); // eslint-disable-line no-undef
 }
