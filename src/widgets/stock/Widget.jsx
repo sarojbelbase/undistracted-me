@@ -12,8 +12,8 @@ const DEFAULT_STOCK_SETTINGS = { symbols: ['NEPSE'] };
 // ── Skeleton bone ──────────────────────────────────────────────────────────────
 const Bone = ({ width, height = '0.9rem', className = '' }) => (
   <div
-    className={`rounded animate-pulse ${className}`}
-    style={{ width, height, background: 'var(--w-border)', flexShrink: 0 }}
+    className={`stk-bone ${className}`}
+    style={{ width, height }}
   />
 );
 
@@ -34,8 +34,7 @@ const StockListSkeleton = ({ count }) => (
     {Array.from({ length: count }).map((_, i) => (
       <div
         key={i}
-        className="flex items-center justify-between px-3 py-2 animate-pulse"
-        style={{ borderBottom: i < count - 1 ? '1px solid var(--card-border)' : 'none' }}
+        className={`flex items-center justify-between px-3 py-2 animate-pulse${i < count - 1 ? ' stk-row--divider' : ''}`}
       >
         <div className="flex flex-col gap-1">
           <Bone width="3rem" height="0.65rem" />
@@ -119,31 +118,24 @@ const StockRow = ({ sym, data, isLast }) => {
 
   return (
     <div
-      className="flex items-center justify-between px-3 py-2 gap-2"
-      style={{ borderBottom: isLast ? 'none' : '1px solid var(--card-border)' }}
+      className={`stk-row${isLast ? '' : ' stk-row--divider'}`}
     >
       {/* Left: symbol on top, price below */}
-      <div className="flex flex-col gap-0.5 min-w-0">
-        <span
-          className="text-[10px] font-bold uppercase tracking-widest leading-none truncate"
-          style={{ color: isDead ? inkMuted : 'var(--w-accent)', letterSpacing: '0.08em' }}
-        >
+      <div className="stk-row__left">
+        <span className={`stk-row__symbol${isDead ? ' stk-row__symbol--dead' : ' stk-row__symbol--live'}`}>
           {sym}
         </span>
-        <span
-          className="tabular-nums text-sm font-semibold leading-none"
-          style={{ color: isDead ? inkMuted : 'var(--w-ink-1)' }}
-        >
+        <span className={`stk-row__price${isDead ? ' stk-row__price--dead' : ' stk-row__price--live'}`}>
           {data ? fmtPrice(data.ltp) : '—'}
         </span>
       </div>
 
       {/* Right: direction arrow + percentage */}
       <div
-        className="flex items-center gap-0.5 shrink-0"
+        className="stk-row__right"
         style={{ color: isDead ? inkMuted : color }}
       >
-        <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
+        <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor" className={isDead ? 'stk-row__arrow-icon--dead' : 'stk-row__arrow-icon'}>
           {!isDead && stats?.dir === 'up'
             ? <polygon points="4,0 8,8 0,8" />
             : !isDead && stats?.dir === 'down'
@@ -151,7 +143,7 @@ const StockRow = ({ sym, data, isLast }) => {
               : <rect x="0" y="3" width="8" height="2" rx="1" />
           }
         </svg>
-        <span className="text-[11px] font-semibold tabular-nums">
+        <span className="stk-row__pct">
           {isDead ? '—' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`}
         </span>
       </div>
@@ -221,7 +213,7 @@ export const Widget = ({ id, onRemove }) => {
   const RefreshBtn = (
     <div className="flex items-center gap-1.5">
       {ageLabel && (
-        <span className="text-[10px]" style={{ color: 'var(--w-ink-5)' }}>{ageLabel}</span>
+        <span className="stk-age-label">{ageLabel}</span>
       )}
       <TooltipBtn
         tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
@@ -250,7 +242,7 @@ export const Widget = ({ id, onRemove }) => {
         onRemove={onRemove}
       >
         <div className="flex items-center justify-between px-3 pt-2 pb-1 shrink-0">
-          <span className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>{symbols.length >= 2 ? 'Watchlist' : 'Stock'}</span>
+          <span className="stk-list-header-label">{symbols.length >= 2 ? 'Watchlist' : 'Stock'}</span>
           {RefreshBtn}
         </div>
         <div className="flex flex-col flex-1">
@@ -281,8 +273,7 @@ export const Widget = ({ id, onRemove }) => {
       {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-3 pt-3 pb-1 shrink-0">
         <span
-          className="text-xs font-bold tracking-widest uppercase"
-          style={{ color: isDead ? inkMuted : 'var(--w-ink-1)', letterSpacing: '0.12em' }}
+          className={`stk-header-symbol${isDead ? ' stk-header-symbol--dead' : ' stk-header-symbol--live'}`}
         >
           {primarySym || '—'}
         </span>

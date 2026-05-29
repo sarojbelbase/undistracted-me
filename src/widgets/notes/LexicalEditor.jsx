@@ -28,7 +28,9 @@ import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode, TOGGLE_LINK_COMMAND, $isLinkNode } from '@lexical/link';
 import { $getRoot, $getSelection, $isRangeSelection, $createRangeSelection, $setSelection, $getNodeByKey } from 'lexical';
 
-// ── Ctrl+K link editor ────────────────────────────────────────────────────────
+// ── Ctrl+Shift+K link editor ──────────────────────────────────────────────────
+// Ctrl+K is reserved by browsers (focus search bar), so we use Ctrl+Shift+K
+// instead — same convention as Notion, Google Docs, and Slack.
 function LinkEditorPlugin() {
   const [editor] = useLexicalComposerContext();
   const [visible, setVisible] = useState(false);
@@ -47,8 +49,13 @@ function LinkEditorPlugin() {
 
   const openLinkInput = useCallback(() => {
     const sel = globalThis.getSelection?.();
-    const rect = sel?.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : null;
-    if (rect) setPos({ top: rect.bottom + 8, left: Math.max(8, rect.left) });
+    const hasSelection = sel && !sel.isCollapsed;
+    const rect = hasSelection ? sel.getRangeAt(0).getBoundingClientRect() : null;
+    if (rect) {
+      setPos({ top: rect.bottom + 8, left: Math.max(8, rect.left) });
+    } else {
+      setPos({ center: true });
+    }
     let prefill = '';
     let text = '';
     editor.getEditorState().read(() => {
@@ -99,7 +106,7 @@ function LinkEditorPlugin() {
 
   useEffect(() => {
     const keyHandler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
         e.preventDefault();
         openLinkInput();
       }
@@ -200,7 +207,10 @@ function LinkEditorPlugin() {
       onClick={handleDialogClick}
       onKeyDown={handleKeyDown}
       className="lex-link-dialog"
-      style={{ top: pos.top, left: pos.left }}
+      style={pos.center
+        ? { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
+        : { top: pos.top, left: pos.left }
+      }
     >
       <div className="lex-link-dialog-header">
         {selectedText ? 'Edit link' : 'Insert link'}

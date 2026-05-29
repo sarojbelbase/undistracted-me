@@ -67,7 +67,7 @@ const markNotified = (id) => {
     });
     map[id] = todayKey();
     localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
-  } catch {}
+  } catch { }
 };
 
 const sendNotification = (title, body) =>
@@ -89,20 +89,13 @@ const CountdownSettings = ({
       {/* ── Custom Countdowns ── */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <p
-            className="text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: "var(--w-ink-4)", letterSpacing: "0.1em" }}
-          >
+          <p className="cdn-section-label">
             My Countdowns
           </p>
           <button
             type="button"
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[10px] px-2.5 py-1"
-            style={{
-              background: "var(--w-accent)",
-              color: "var(--w-accent-fg)",
-            }}
+            className="cdn-add-btn"
           >
             <PlusLg size={9} />
             New
@@ -110,20 +103,8 @@ const CountdownSettings = ({
         </div>
 
         {custom.length === 0 ? (
-          <div
-            className="rounded-2xl flex flex-col items-center text-center py-7 px-5"
-            style={{
-              background: "var(--panel-bg)",
-              border: "1.5px dashed var(--card-border)",
-            }}
-          >
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--w-accent) 10%, transparent)",
-              }}
-            >
+          <div className="cdn-empty-state">
+            <div className="cdn-empty-state__icon-circle">
               <HourglassSplit
                 size={22}
                 style={{ color: "var(--w-accent)", opacity: 0.75 }}
@@ -133,8 +114,7 @@ const CountdownSettings = ({
               Nothing to count down to
             </p>
             <p
-              className="w-muted leading-relaxed mb-4"
-              style={{ maxWidth: "180px" }}
+              className="w-muted leading-relaxed mb-4 cdn-empty-state__hint"
             >
               Track birthdays, trips, launches — anything that matters.
             </p>
@@ -167,89 +147,58 @@ const CountdownSettings = ({
               return (
                 <div
                   key={cd.id}
-                  className="relative flex items-stretch gap-3 group"
-                  style={{ opacity: isPast ? 0.4 : 1 }}
+                  className={`cdn-list-item${isPast ? ' cdn-list-item--past' : ''}`}
                 >
-                  <div
-                    className="w-1.5 rounded-xs shrink-0 self-stretch"
-                    style={{
-                      backgroundColor: "var(--w-accent)",
-                      minHeight: "38px",
-                    }}
-                  />
+                  <div className="cdn-list-item__bar" />
                   <button
-                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2 pr-1"
+                    className="cdn-list-item__btn"
                     onClick={() => {
                       onPin({ type: "custom", id: cd.id });
                       onClose?.();
                     }}
                   >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <p
-                        className="text-[13px] font-semibold leading-snug truncate"
-                        style={{ color: "var(--w-ink-1)" }}
-                      >
+                    <div className="cdn-list-item__info">
+                      <p className="cdn-list-item__title">
                         {cd.title}
                       </p>
-                      <div className="flex items-center gap-1">
+                      <div className="cdn-list-item__meta">
                         {isPinned && (
                           <>
-                            <span
-                              className="text-[11px] font-semibold"
-                              style={{ color: "var(--w-ink-4)" }}
-                            >
+                            <span className="cdn-list-item__meta-text">
                               Pinned
                             </span>
-                            <span
-                              className="text-[11px] font-semibold select-none"
-                              style={{ color: "var(--w-ink-6)" }}
-                            >
+                            <span className="cdn-list-item__meta-dot">
                               ·
                             </span>
                           </>
                         )}
-                        <span
-                          className="text-[11px] font-semibold"
-                          style={{ color: "var(--w-ink-5)" }}
-                        >
+                        <span className="cdn-list-item__meta-text">
                           {cdDate}
                         </span>
                         {cd.repeat !== "none" && (
                           <>
-                            <span
-                              className="text-[11px] font-semibold select-none"
-                              style={{ color: "var(--w-ink-6)" }}
-                            >
+                            <span className="cdn-list-item__meta-dot">
                               ·
                             </span>
                             <ArrowRepeat
                               size={9}
                               style={{ color: "var(--w-ink-5)" }}
                             />
-                            <span
-                              className="text-[11px] font-semibold"
-                              style={{ color: "var(--w-ink-5)" }}
-                            >
+                            <span className="cdn-list-item__meta-text">
                               {cd.repeat}
                             </span>
                           </>
                         )}
                       </div>
                     </div>
-                    <span
-                      className="text-[13px] font-bold shrink-0 tabular-nums"
-                      style={{
-                        color: isPast ? "var(--w-ink-5)" : "var(--w-accent)",
-                      }}
-                    >
+                    <span className={`cdn-label${isPast ? ' cdn-label--past' : ' cdn-label--active'}`}>
                       {cdLabel}
                     </span>
                   </button>
                   <ConfirmButton
                     onConfirm={() => onRemoveCustom(cd.id)}
                     label={`Remove ${cd.title}`}
-                    className="w-7 h-7 flex items-center justify-center self-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 mr-1.5"
-                    style={{ color: "var(--w-ink-4)", background: "none" }}
+                    className="cdn-delete-btn"
                   >
                     <Trash3 size={13} />
                   </ConfirmButton>
@@ -261,35 +210,19 @@ const CountdownSettings = ({
       </div>
 
       {/* Divider */}
-      <div
-        className="mb-4"
-        style={{ height: "1px", background: "rgba(0,0,0,0.1)" }}
-      />
+      <div className="cdn-divider" />
 
       {/* ── From Calendar Events ── */}
       <div>
         <p
-          className="text-[10px] font-semibold uppercase tracking-widest mb-3"
-          style={{ color: "var(--w-ink-4)", letterSpacing: "0.1em" }}
+          className="cdn-section-label mb-3"
         >
           From Calendar
         </p>
 
         {upcomingEvents.length === 0 ? (
-          <div
-            className="rounded-2xl flex flex-col items-center text-center py-6 px-5"
-            style={{
-              background: "var(--panel-bg)",
-              border: "1.5px dashed var(--card-border)",
-            }}
-          >
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center mb-2.5"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--w-accent) 10%, transparent)",
-              }}
-            >
+          <div className="cdn-empty-state">
+            <div className="cdn-empty-state__icon-circle cdn-empty-state__icon-circle--small">
               <CalendarEvent
                 size={18}
                 style={{ color: "var(--w-accent)", opacity: 0.75 }}
@@ -871,42 +804,42 @@ export const Widget = ({ id, onRemove }) => {
               (activeTarget.repeat &&
                 activeTarget.repeat !== "none" &&
                 activeTarget.repeat !== "event")) && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {startTimeStr && (
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      color: "var(--w-ink-3)",
-                      lineHeight: 1,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {startTimeStr}
-                    {durStr && (
-                      <span style={{ color: "var(--w-ink-4)" }}>
-                        {" "}
-                        · {durStr}
-                      </span>
-                    )}
-                  </p>
-                )}
-                {activeTarget.repeat &&
-                  activeTarget.repeat !== "none" &&
-                  activeTarget.repeat !== "event" && (
-                    <span
-                      className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {startTimeStr && (
+                    <p
                       style={{
-                        backgroundColor: "var(--panel-bg)",
-                        color: "var(--w-ink-4)",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        color: "var(--w-ink-3)",
+                        lineHeight: 1,
+                        letterSpacing: "-0.01em",
                       }}
                     >
-                      <ArrowRepeat size={8} />
-                      {activeTarget.repeat}
-                    </span>
+                      {startTimeStr}
+                      {durStr && (
+                        <span style={{ color: "var(--w-ink-4)" }}>
+                          {" "}
+                          · {durStr}
+                        </span>
+                      )}
+                    </p>
                   )}
-              </div>
-            )}
+                  {activeTarget.repeat &&
+                    activeTarget.repeat !== "none" &&
+                    activeTarget.repeat !== "event" && (
+                      <span
+                        className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: "var(--panel-bg)",
+                          color: "var(--w-ink-4)",
+                        }}
+                      >
+                        <ArrowRepeat size={8} />
+                        {activeTarget.repeat}
+                      </span>
+                    )}
+                </div>
+              )}
           </div>
         </div>
       ) : (

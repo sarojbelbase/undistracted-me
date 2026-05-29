@@ -1,0 +1,163 @@
+// ─── Occasions Widget ────────────────────────────────────────────────────────
+// BEM: .occ-*
+
+@use 'common' as *;
+
+// ── Avatar ───────────────────────────────────────────────────────────────────
+
+.occ-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  user-select: none;
+}
+
+// ── Days chip ────────────────────────────────────────────────────────────────
+
+.occ-days-chip {
+  @include tabular-nums;
+  font-size: 10px;
+  flex-shrink: 0;
+
+  &--today {
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--w-accent);
+    color: var(--w-accent-fg);
+    letter-spacing: 0.01em;
+  }
+
+  &--tomorrow {
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--panel-bg);
+    color: var(--w-ink-3);
+    border: 1px solid var(--card-border);
+  }
+
+  &--urgent {
+    font-weight: 600;
+    color: var(--w-accent);
+  }
+
+  &--normal {
+    font-weight: 600;
+    color: var(--w-ink-5);
+  }
+}
+
+// ── List row ─────────────────────────────────────────────────────────────────
+
+.occ-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+
+  &--divider {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  &--highlight {
+    background: color-mix(in srgb, var(--w-accent) 5%, transparent);
+    border-radius: 12px;
+    margin: 0 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border: 1px solid color-mix(in srgb, var(--w-accent) 20%, transparent);
+    margin-bottom: 4px;
+  }
+}
+
+.occ-row__bar {
+  align-self: stretch;
+  border-radius: 999px;
+  flex-shrink: 0;
+  width: 3px;
+  opacity: 1;
+}
+
+.occ-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.occ-row__name {
+  @include text-truncate;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+
+  &--highlight {
+    color: var(--w-accent);
+  }
+
+  &--normal {
+    color: var(--w-ink-1);
+  }
+}
+
+.occ-row__type {
+  font-size: 10px;
+  margin-top: 0.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--w-ink-4);
+}
+
+// ── Connect / empty prompts ──────────────────────────────────────────────────
+
+.occ-prompt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.occ-prompt__icon {
+  color: var(--w-ink-5);
+  opacity: 0.3;
+}
+
+.occ-prompt__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--w-ink-3);
+}
+
+.occ-prompt__hint {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--w-ink-5);
+}
+
+// ── Empty state ──────────────────────────────────────────────────────────────
+
+.occ-empty {
+  @include empty-state;
+  flex: 1;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+}
+
+.occ-empty__emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+// ── Refresh row ──────────────────────────────────────────────────────────────
+
+.occ-age-label {
+  font-size: 10px;
+  color: var(--w-ink-4);
+}

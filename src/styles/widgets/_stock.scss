@@ -1,0 +1,117 @@
+// ─── Stock Widget ────────────────────────────────────────────────────────────
+// BEM: .stk-*
+
+@use 'common' as *;
+
+// ── Skeleton bones ───────────────────────────────────────────────────────────
+
+.stk-bone {
+  @include skeleton-bone;
+}
+
+// ── Stock row (list view) ────────────────────────────────────────────────────
+
+.stk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+
+  &--divider {
+    border-bottom: 1px solid var(--card-border);
+  }
+}
+
+.stk-row__left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.stk-row__symbol {
+  @include text-truncate;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+
+  &--dead {
+    color: var(--w-ink-5);
+  }
+
+  &--live {
+    color: var(--w-accent);
+    letter-spacing: 0.08em;
+  }
+}
+
+.stk-row__price {
+  @include tabular-nums;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+
+  &--dead {
+    color: var(--w-ink-5);
+  }
+
+  &--live {
+    color: var(--w-ink-1);
+  }
+}
+
+.stk-row__right {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.stk-row__arrow-icon {
+  opacity: 1;
+
+  &--dead {
+    opacity: 0.3;
+  }
+}
+
+.stk-row__pct {
+  @include tabular-nums;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+// ── Single-stock header ──────────────────────────────────────────────────────
+
+.stk-header-symbol {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  &--dead {
+    color: var(--w-ink-5);
+  }
+
+  &--live {
+    color: var(--w-ink-1);
+  }
+}
+
+// ── Age / refresh row ────────────────────────────────────────────────────────
+
+.stk-age-label {
+  font-size: 10px;
+  color: var(--w-ink-5);
+}
+
+// ── List view header ─────────────────────────────────────────────────────────
+
+.stk-list-header-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--w-ink-3);
+}

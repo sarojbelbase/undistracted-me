@@ -1,0 +1,147 @@
+// ─── Shared Widget Mixins ─────────────────────────────────────────────────────
+//
+// Mixins extracted from duplicated patterns across widget SCSS files.
+// Import with:  @use 'common' as *;   then call  @include mixin-name;
+//
+// Every mixin here appears in 3+ widget files.  Widget-specific overrides
+// go AFTER the @include so they win via normal CSS cascade.
+
+// ── Skeleton loading placeholder ──────────────────────────────────────────────
+//
+// Used by: rss (.rss-bone), stock (.stk-bone), events (.evt-skeleton__line),
+//          quickAccess (.qa-tile__icon-wrap--loading)
+//
+// Override `background` after @include if the widget needs a different fill.
+
+@mixin skeleton-bone($radius: 0.25rem) {
+  flex-shrink: 0;
+  border-radius: $radius;
+  background: var(--w-border);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+// ── Single-line text truncate ─────────────────────────────────────────────────
+//
+// Used by: rss (headline-row__source, headline-row__title),
+//          notes (title-btn), occasions (row__name), stock (row__symbol),
+//          countdown (list-item__title), clock (tz-label), quickAccess (tile__label)
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Tabular numbers ───────────────────────────────────────────────────────────
+//
+// Used by: pomodoro (timer-countdown), stock (row__price, row__pct),
+//          countdown (label), occasions (days-chip), clock (main-time, tz-time),
+//          notes (word-count)
+
+@mixin tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Accent-coloured primary button ────────────────────────────────────────────
+//
+// Used by: pomodoro (.pom-custom-start-btn), bookmark (.bm-save-btn),
+//          countdown (.cdn-add-btn), events (.evt-add-btn)
+//
+// Override padding, border-radius, font-size after @include as needed.
+
+@mixin accent-btn {
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// ── Circle icon button ────────────────────────────────────────────────────────
+//
+// Used by: pomodoro (.pom-circle-btn), events (.evt-add-btn — overrides bg)
+//
+// The shared pattern is the 50% border-radius + flex-centered icon layout.
+// Override colors, border, shadow after @include for widget-specific styles.
+
+@mixin circle-btn($size: 2rem) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+
+// ── Dot nav indicator (carousel pagination) ───────────────────────────────────
+//
+// Used by: rss (.rss-dot-nav__dot), notes (.notes-nav-dot),
+//          _widgets.scss (.dailys-nav__dot)
+//
+// A small circle that stretches into a pill when active.
+// Override colors after @include for light-on-dark vs dark-on-light contexts.
+
+@mixin dot-nav-dot($size: 4px, $active-width: 14px) {
+  width: $size;
+  height: $size;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--active {
+    width: $active-width;
+    opacity: 0.8;
+  }
+}
+
+// ── Empty state — centred flex column ─────────────────────────────────────────
+//
+// Used by: events (.evt-empty), occasions (.occ-empty), countdown (partial)
+
+@mixin empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+// ── Empty state — card with dashed border ─────────────────────────────────────
+//
+// Used by: countdown (.cdn-empty-state)
+
+@mixin empty-state-card {
+  @include empty-state;
+  border-radius: 1rem;
+  padding: 1.75rem 1.25rem;
+  background: var(--panel-bg);
+  border: 1.5px dashed var(--card-border);
+}
+
+// ── Section label (settings panel header) ─────────────────────────────────────
+//
+// Used by: countdown (.cdn-section-label), stock (.stk-list-header-label)
+// The canonical .w-label from _typography.scss covers most cases; this mixin
+// matches the tighter 10px/uppercase variant.
+
+@mixin section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--w-ink-4);
+}

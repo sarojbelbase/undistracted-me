@@ -58,10 +58,7 @@ const DaysChip = ({ days }) => {
 
   if (days === 0) {
     return (
-      <span
-        className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
-        style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', letterSpacing: '0.01em' }}
-      >
+      <span className="occ-days-chip occ-days-chip--today">
         Today 🎉
       </span>
     );
@@ -69,10 +66,7 @@ const DaysChip = ({ days }) => {
 
   if (days === 1) {
     return (
-      <span
-        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-        style={{ background: 'var(--panel-bg)', color: 'var(--w-ink-3)', border: '1px solid var(--card-border)' }}
-      >
+      <span className="occ-days-chip occ-days-chip--tomorrow">
         Tomorrow
       </span>
     );
@@ -80,10 +74,7 @@ const DaysChip = ({ days }) => {
 
   const urgent = days <= 7;
   return (
-    <span
-      className="text-[10px] font-semibold tabular-nums shrink-0"
-      style={{ color: urgent ? 'var(--w-accent)' : 'var(--w-ink-5)' }}
-    >
+    <span className={`occ-days-chip${urgent ? ' occ-days-chip--urgent' : ' occ-days-chip--normal'}`}>
       {label}
     </span>
   );
@@ -101,11 +92,11 @@ const TypeIcon = ({ type, size = 11 }) => {
 // ─── Empty / unauthenticated states ──────────────────────────────────────────
 
 const ConnectPrompt = ({ onConnect, onAdd }) => (
-  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 text-center">
-    <PersonHeart size={24} style={{ color: 'var(--w-ink-5)', opacity: 0.3 }} />
+  <div className="occ-prompt">
+    <PersonHeart size={24} className="occ-prompt__icon" />
     <div className="flex flex-col items-center gap-1.5">
-      <p className="text-xs font-semibold" style={{ color: 'var(--w-ink-3)' }}>No occasions yet</p>
-      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--w-ink-5)' }}>
+      <p className="occ-prompt__title">No occasions yet</p>
+      <p className="occ-prompt__hint">
         Connect Google Contacts to sync birthdays or add them manually.
       </p>
     </div>
@@ -113,8 +104,8 @@ const ConnectPrompt = ({ onConnect, onAdd }) => (
 );
 
 const EmptyState = () => (
-  <div className="flex-1 flex flex-col items-center justify-center gap-1.5 px-4 py-2">
-    <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>🎊</span>
+  <div className="occ-empty">
+    <span className="occ-empty__emoji">🎊</span>
     <p className="w-muted font-semibold">Nothing coming up</p>
     <p className="w-muted">No birthdays in your contacts</p>
   </div>
@@ -125,38 +116,23 @@ const EmptyState = () => (
 const ListRow = ({ entry, isLast, highlight }) => {
   return (
     <div
-      className="flex items-center gap-2.5 px-4 py-2.5"
-      style={{
-        borderBottom: isLast ? 'none' : '1px solid rgba(0,0,0,0.1)',
-        background: highlight
-          ? 'color-mix(in srgb, var(--w-accent) 5%, transparent)'
-          : undefined,
-        borderRadius: highlight ? 12 : undefined,
-        margin: highlight ? '0 10px' : undefined,
-        paddingLeft: highlight ? 12 : undefined,
-        paddingRight: highlight ? 12 : undefined,
-        border: highlight ? '1px solid color-mix(in srgb, var(--w-accent) 20%, transparent)' : undefined,
-        marginBottom: highlight ? 4 : undefined,
-      }}
+      className={`occ-row${isLast ? '' : ' occ-row--divider'}${highlight ? ' occ-row--highlight' : ''}`}
     >
       {/* Left urgency bar */}
       <div
-        className="self-stretch rounded-full shrink-0"
-        style={{ width: 3, backgroundColor: highlight ? 'var(--w-accent)' : urgencyColor(entry.daysAway), opacity: 1 }}
+        className="occ-row__bar"
+        style={{ backgroundColor: highlight ? 'var(--w-accent)' : urgencyColor(entry.daysAway) }}
       />
 
       {/* Avatar */}
       <Avatar name={entry.name} size={30} />
 
       {/* Name + type */}
-      <div className="flex-1 min-w-0">
-        <div
-          className="text-xs font-semibold leading-tight truncate"
-          style={{ color: highlight ? 'var(--w-accent)' : 'var(--w-ink-1)' }}
-        >
+      <div className="occ-row__info">
+        <div className={`occ-row__name${highlight ? ' occ-row__name--highlight' : ' occ-row__name--normal'}`}>
           {entry.name}
         </div>
-        <div className="text-[10px] mt-0.5 flex items-center gap-1" style={{ color: 'var(--w-ink-4)' }}>
+        <div className="occ-row__type">
           <TypeIcon type={entry.type} size={10} />
           {typeLabel(entry.type)}
         </div>
@@ -245,7 +221,7 @@ export const Widget = ({ id, onRemove }) => {
   const RefreshRow = connected && (
     <div className="flex items-center gap-1.5">
       {ageLabel && (
-        <span className="text-[10px]" style={{ color: 'var(--w-ink-4)' }}>
+        <span className="occ-age-label">
           {ageLabel}
         </span>
       )}

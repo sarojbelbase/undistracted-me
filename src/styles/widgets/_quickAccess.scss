@@ -1,0 +1,60 @@
+// ─── Quick Access Widget ─────────────────────────────────────────────────────
+// BEM: .qa-*
+
+@use 'common' as *;
+
+// ── Tile ─────────────────────────────────────────────────────────────────────
+
+.qa-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  outline: none;
+  min-width: 0;
+}
+
+.qa-tile__icon-wrap {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+
+  .qa-tile:hover & {
+    transform: scale(1.1);
+  }
+
+  .qa-tile:active & {
+    transform: scale(0.95);
+  }
+
+  &--loading {
+    @include skeleton-bone($radius: 0.75rem);
+    width: 2.25rem;
+    height: 2.25rem;
+    background-color: var(--w-surface-3);
+    border: 1px solid transparent;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+.qa-tile__label {
+  @include text-truncate;
+  width: 100%;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1.2;
+  color: var(--w-ink-4);
+  font-weight: 500;
+}
+
+// ── Unsupported state ────────────────────────────────────────────────────────
+
+.qa-unsupported {
+  font-size: 11px;
+  color: var(--w-ink-5);
+}

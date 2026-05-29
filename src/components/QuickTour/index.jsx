@@ -182,16 +182,16 @@ const Step2 = () => (
 
     <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3">
       {FEATURES.map(({ Icon, title, desc, color }) => (
-        <div key={title} className="flex flex-col items-center justify-center gap-1.5 p-3 text-center rounded-xl qt-feature-card">
+        <div key={title} className="flex flex-col items-center justify-center gap-1 p-3 text-center rounded-xl qt-feature-card">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: `${color}18`, border: `1px solid ${color}22` }}
           >
-            <Icon size={17} style={{ color }} />
+            <Icon size={14} style={{ color }} />
           </div>
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1">
             <p className="text-[11px] font-semibold leading-tight qt-feature-title">{title}</p>
-            <p className="text-[9.5px] leading-snug line-clamp-2 qt-feature-desc">{desc}</p>
+            <p className="text-[9.5px] font-semibold leading-snug tracking-tighter qt-feature-desc">{desc}</p>
           </div>
         </div>
       ))}

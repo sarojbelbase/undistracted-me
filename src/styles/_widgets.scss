@@ -2,6 +2,8 @@
 // Shared display classes for widget content that have no dynamic JS values.
 // All colors reference CSS custom properties so they adapt to light/dark mode.
 
+@use 'widgets/common' as *;
+
 // ── Weather — Minimal mode ────────────────────────────────────────────────────
 
 // Root container — negative kerning applied globally
@@ -69,13 +71,8 @@
 
 // Individual nav dot
 .dailys-nav__dot {
-  padding: 0;
-  border: none;
-  height: 4px;
-  border-radius: 999px;
+  @include dot-nav-dot($size: 4px, $active-width: 12px);
   background: var(--w-ink-1);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--active {
     width: 12px;

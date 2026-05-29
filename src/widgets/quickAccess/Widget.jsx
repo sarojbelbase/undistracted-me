@@ -15,24 +15,21 @@ const Tile = ({ href, url }) => {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex flex-col items-center gap-1 group/tile outline-none min-w-0"
+      className="qa-tile"
     >
       <div
-        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 group-hover/tile:scale-110 group-active/tile:scale-95${loading ? ' animate-pulse' : ''}`}
+        className={`qa-tile__icon-wrap${loading ? ' qa-tile__icon-wrap--loading' : ''}`}
         style={color ? {
           backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
           border: `1px solid color-mix(in srgb, ${color} 38%, transparent)`,
-        } : {
-          backgroundColor: loading ? 'var(--w-surface-3)' : 'var(--panel-bg)',
-          border: loading ? '1px solid transparent' : '1px solid var(--card-border)',
-        }}
+        } : color === null && !loading ? {
+          backgroundColor: 'var(--panel-bg)',
+          border: '1px solid var(--card-border)',
+        } : undefined}
       >
         <FaviconIcon url={url} size={22} onColor={setColor} onSettled={onSettled} />
       </div>
-      <span
-        className="w-full text-center truncate px-0.5"
-        style={{ fontSize: "9px", lineHeight: "1.2", color: "var(--w-ink-4)", fontWeight: 500 }}
-      >
+      <span className="qa-tile__label">
         {shorthandFromUrl(url)}
       </span>
     </a>

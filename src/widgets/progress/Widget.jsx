@@ -41,7 +41,7 @@ export const Widget = ({ id = 'progress', onRemove }) => {
         <div className="flex items-baseline gap-1.5 min-w-0">
           <span className="w-sub-soft truncate">{progress.label} Progress</span>
         </div>
-        <span className="w-sub-bold shrink-0" style={{ fontSize: '1.05rem' }}>{progress.percentage}%</span>
+        <span className="prg-pct">{progress.percentage}%</span>
       </div>
       <div className="flex-1 flex items-center">
         <div className="grid grid-cols-6 gap-y-3 w-full place-items-center">
