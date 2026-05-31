@@ -107,7 +107,7 @@
 
 ### New Widgets & Features (Planned)
 
-- [ ] **Cross-device Sync** — `chrome.storage.sync` layer that mirrors settings, widget instances, events, and bookmarks across all signed-in Chrome instances. Last-write-wins with per-key timestamps; merge-conflict UI in Settings. Sync status badge ("Synced 2m ago"). Opt-out toggle.
+- [x] **Cross-device Sync** — `chrome.storage.sync` layer that mirrors settings, widget instances, events, and bookmarks across all signed-in Chrome instances. Last-write-wins with per-key timestamps; sync status badge ("Synced 2m ago"). Opt-out toggle in General settings.
   > _Feasibility: Very High — chrome.storage.sync is built-in; 100KB / 512-item limit is ample for settings + widget list + events. Doesn't sync ephemeral data (weather cache, Unsplash, RSS items)._
 
 - [ ] **YouTube Watch Later Widget** — Shows the user's Watch Later playlist via YouTube Data API v3. `youtube.readonly` scope. Thumbnail cards with duration badge, title, channel name. Click to watch. Reuses `useGoogleAccountStore`. New widget under `src/widgets/youtube/`.
@@ -122,7 +122,7 @@
 - [ ] **Enriched Pomodoro** — Phase 1: sound chime on timer end, session history + stats (today's focus minutes, weekly streak, total sessions), circular progress ring during timer. Phase 2: auto-start breaks (5/10/15 min), session notes, rain-sound toggle (reuses `api/audio/rain.js`). New hook `usePomodoroHistory.js`. Extended presets.
   > _Feasibility: Very High — Incremental on existing pomodoro widget. Sound already wired (`api/audio/`). Stats stored in localStorage with same pattern as events._
 
-- [ ] **Expense Tracker Widget** — Simple 3-second expense logging: amount → category → done. Weekly summary with CSS bar breakdown by category. All world currencies (~50, curated), locale-aware formatting via `Intl.NumberFormat`. Export to CSV/JSON. Persists to localStorage, cap 500 entries. New widget under `src/widgets/expense/`.
+- [x] **Expense Tracker Widget** — Simple 3-second expense logging: amount → category → done. Weekly summary with CSS bar breakdown by category. All world currencies (~50, curated), locale-aware formatting via `Intl.NumberFormat`. Export to CSV/JSON. Persists to localStorage, cap 500 entries. New widget under `src/widgets/expense/`.
   > _Feasibility: Very High — Zero dependencies; `Intl.NumberFormat` is native. Same localStorage pattern as Events/Pomodoro. Emoji category icons — no SVG work._
 
 ### Testing & DX

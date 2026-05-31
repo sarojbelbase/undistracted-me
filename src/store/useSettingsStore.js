@@ -16,6 +16,7 @@ import { persist } from "zustand/middleware";
 import { applyTheme } from "../theme";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 import { DEFAULT_NOTIFICATION_TYPES } from "../constants/notifications";
+import syncEngine from "../utilities/syncEngine";
 
 /** Sync notification config to chrome.storage.local so bg.js can read it. */
 function _syncNotifications(enabled, types) {
@@ -68,6 +69,7 @@ const fromLegacy = () => {
         notificationTypes:
           stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
         quickTourSeenVersion: stored.state.quickTourSeenVersion ?? null,
+        syncEnabled: stored.state.syncEnabled ?? false,
       };
   } catch {
     /* ignore */
@@ -97,6 +99,7 @@ const fromLegacy = () => {
     notificationsEnabled: true,
     notificationTypes: DEFAULT_NOTIFICATION_TYPES,
     quickTourSeenVersion: null,
+    syncEnabled: false,
   };
 };
 
@@ -224,6 +227,16 @@ export const useSettingsStore = create(
         set({ cardStyle, modePrefs });
         applyTheme(get().accent, get().mode, cardStyle);
       },
+
+      /** Enable / disable cross-device sync via chrome.storage.sync */
+      setSyncEnabled: (syncEnabled) => {
+        set({ syncEnabled });
+        if (syncEnabled) {
+          syncEngine.enableSync();
+        } else {
+          syncEngine.disableSync();
+        }
+      },
     }),
     {
       name: STORE_KEY,
@@ -235,8 +248,26 @@ export const useSettingsStore = create(
             state.mode || "light",
             state.cardStyle || "glass",
           );
+          // Schedule sync push after rehydration (debounced, no-op if sync disabled)
+          if (state.syncEnabled) {
+            syncEngine.schedulePush(STORAGE_KEYS.SETTINGS);
+          }
         }
       },
     },
   ),
 );
+
+// After hydration, subscribe to all state changes and schedule sync pushes.
+// Debounced at 500ms — rapid changes (e.g., dragging a slider) result in a
+// single push. The _sync_ts stamp prevents ping-pong loops between devices.
+let _settingsHydrated = false;
+useSettingsStore.persist.onFinishHydration(() => {
+  _settingsHydrated = true;
+});
+useSettingsStore.subscribe((state) => {
+  if (!_settingsHydrated) return;
+  if (state.syncEnabled) {
+    syncEngine.schedulePush(STORAGE_KEYS.SETTINGS);
+  }
+});
