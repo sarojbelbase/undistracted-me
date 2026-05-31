@@ -31,6 +31,7 @@ export const BaseWidget = forwardRef(
       settingsTitle = "Settings",
       modalWidth = "w-80",
       cardStyle = {},
+      menuItems = [],
     },
     ref,
   ) => {
@@ -100,7 +101,7 @@ export const BaseWidget = forwardRef(
       return () => window.removeEventListener("resize", measure);
     }, [menuOpen]);
 
-    const hasMenu = settingsContent || onRemove;
+    const hasMenu = settingsContent || onRemove || menuItems.length > 0;
 
     return (
       <div ref={ref} className="relative h-full group">
@@ -206,6 +207,21 @@ export const BaseWidget = forwardRef(
                   Settings
                 </button>
               )}
+              {menuItems.map((item, idx) => (
+                <button
+                  key={item.label ?? idx}
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    item.onClick();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+                  style={{ color: "var(--w-ink-1)" }}
+                >
+                  {item.label}
+                </button>
+              ))}
               {onRemove && (
                 <ConfirmButton
                   role="menuitem"
