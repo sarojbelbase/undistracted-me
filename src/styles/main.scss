@@ -40,6 +40,7 @@
 @use "widgets/clock";
 @use "widgets/progress";
 @use "widgets/quickAccess";
+@use "widgets/expense";
 @use "quick-tour"; // .qt-* Quick Tour onboarding overlay
 @use "dark-overrides"; // [data-mode="dark"] Tailwind utility overrides
 @use "comic"; // [data-card-style="comic"] paper & ink visual system
