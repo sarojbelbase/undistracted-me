@@ -52,7 +52,6 @@
     "declarativeNetRequest"
   ],
   "host_permissions": [
-    "<all_urls>",
     "https://undistractedme.sarojbelbase.com.np/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
