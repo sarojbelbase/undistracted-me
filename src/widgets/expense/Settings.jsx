@@ -5,8 +5,10 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { CURRENCIES } from '../../data/currencies';
+import { DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
 
 const EXPENSE_PREFIX = 'expense_data_';
+const EXPENSES_CHANGED = 'expense_data_changed';
 
 const RANGE_OPTIONS = [
   { label: 'Week', value: 'week' },
@@ -14,40 +16,23 @@ const RANGE_OPTIONS = [
   { label: 'Year', value: 'year' },
 ];
 
-function budgetKeyForRange(range) {
-  if (range === 'month') return 'monthBudget';
-  if (range === 'year') return 'yearBudget';
-  return 'weekBudget';
-}
-
-function budgetLabelForRange(range) {
-  if (range === 'month') return 'Monthly';
-  if (range === 'year') return 'Yearly';
-  return 'Weekly';
-}
-
 export const ExpenseSettings = ({ id, onClose }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    currency: 'USD',
-    weekStartsOn: 'monday',
-    timeRange: 'week',
-    weekBudget: '',
-    monthBudget: '',
-    yearBudget: '',
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_EXPENSE_SETTINGS);
 
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [importError, setImportError] = useState(null);
 
   const currency = settings.currency ?? 'USD';
   const timeRange = settings.timeRange ?? 'week';
 
-  const budgetValue = settings[budgetKeyForRange(timeRange)] ?? '';
+  const budgetKey = RANGE_CONFIG[timeRange]?.budgetKey ?? 'weekBudget';
+  const budgetValue = settings[budgetKey] ?? '';
 
   const setCurrency = useCallback((c) => updateSetting('currency', c), [updateSetting]);
   const setTimeRange = useCallback((v) => updateSetting('timeRange', v), [updateSetting]);
   const setBudget = useCallback((v) => {
-    updateSetting(budgetKeyForRange(timeRange), v);
-  }, [updateSetting, timeRange]);
+    updateSetting(budgetKey, v);
+  }, [updateSetting, budgetKey]);
 
   const handleExportCSV = () => {
     try {
@@ -78,9 +63,15 @@ export const ExpenseSettings = ({ id, onClose }) => {
       try {
         const text = reader.result;
         const lines = text.split('\n').filter(l => l.trim());
-        if (lines.length < 2) return; // need header + data
+        if (lines.length < 2) {
+          setImportError('CSV file is empty or missing headers.');
+          return;
+        }
         const header = lines[0].toLowerCase();
-        if (!header.includes('date') || !header.includes('amount')) return;
+        if (!header.includes('date') || !header.includes('amount')) {
+          setImportError('CSV must have Date and Amount columns.');
+          return;
+        }
         const newEntries = [];
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].split(',');
@@ -100,9 +91,15 @@ export const ExpenseSettings = ({ id, onClose }) => {
         }
         if (newEntries.length > 0) {
           localStorage.setItem(EXPENSE_PREFIX + id, JSON.stringify(newEntries.slice(0, 500)));
-          window.location.reload();
+          setImportError(null);
+          // Dispatch event instead of reloading — useExpenses will pick it up
+          try { window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
+        } else {
+          setImportError('No valid expense rows found in CSV.');
         }
-      } catch { /* ignore */ }
+      } catch {
+        setImportError('Failed to parse CSV file.');
+      }
     };
     reader.readAsText(file);
     e.target.value = ''; // reset so same file can be re-imported
@@ -139,7 +136,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
     try {
       localStorage.removeItem(EXPENSE_PREFIX + id);
       localStorage.removeItem('expense_migrated_' + id);
-      window.location.reload();
+      try { window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
     }
     catch { /* ignore */ }
   };
@@ -175,7 +172,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
       {/* ── Budget ────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1.5">
         <span className="w-label">
-          Budget ({budgetLabelForRange(timeRange)})
+          Budget ({RANGE_CONFIG[timeRange]?.label ?? 'Weekly'})
         </span>
         <SettingsInput
           type="number"
@@ -228,6 +225,13 @@ export const ExpenseSettings = ({ id, onClose }) => {
             Export CSV
           </button>
         </div>
+
+        {/* Import error feedback */}
+        {importError && (
+          <div className="rounded-lg px-3 py-2 text-[10px] font-medium leading-relaxed" style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}>
+            {importError}
+          </div>
+        )}
 
         {/* Guidance callout */}
         <div className="rounded-lg px-3 py-2.5 flex items-start gap-2 exp-data__callout">

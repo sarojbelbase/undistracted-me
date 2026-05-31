@@ -9,6 +9,7 @@ import { CANVAS_DIVIDER } from '../../theme/canvas';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
+import { BlockedSites } from './BlockedSites';
 
 // Icon map for each notification type
 const NOTIF_ICONS = {
@@ -210,6 +211,12 @@ export const General = ({ onPreviewLookAway }) => {
           </div>
         )}
       </div>
+
+      {/* ── Divider ── */}
+      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+
+      {/* ── Blocked Sites ── */}
+      <BlockedSites />
 
       {/* ── Divider ── */}
       <div style={{ height: 1, background: CANVAS_DIVIDER }} />

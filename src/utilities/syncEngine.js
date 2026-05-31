@@ -26,6 +26,7 @@
  */
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { isExtension } from './index';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -60,11 +61,6 @@ let lastSyncAt = null;
 let debounceTimers = {};
 let changeListener = null;
 let onChangeCallbacks = new Set(); // external listeners for UI updates
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const isExtension = () =>
-  typeof chrome !== 'undefined' && !!chrome?.runtime?.id && !!chrome?.storage?.sync;
 
 /** Generate a short random device ID for metadata tracking. */
 const generateDeviceId = () =>
@@ -426,7 +422,7 @@ const setupChangeListener = () => {
 
         // Notify external listeners (e.g., SyncStatusBadge)
         onChangeCallbacks.forEach((cb) => {
-          try { cb(localKey, adopted); } catch { /* ignore */ }
+          try { cb(localKey, remote.v); } catch { /* ignore */ }
         });
       }
     }

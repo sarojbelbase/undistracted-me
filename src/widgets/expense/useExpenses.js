@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   CupFill,
   CartFill,
@@ -15,6 +15,7 @@ import {
   ShieldFill,
   GridFill,
 } from 'react-bootstrap-icons';
+import { startOf, startOfDay, endOfDay } from './dates';
 
 const MAX_ENTRIES = 500;
 const PREFIX = 'expense_data_';
@@ -116,9 +117,53 @@ export function getCategoryInfo(catId) {
   return DEFAULT_CATEGORIES.find((c) => c.id === catId) ?? DEFAULT_CATEGORIES[13];
 }
 
+// ─── Category colors (keyed by category id, not index) ──────────────────────
+
+export const CAT_COLORS = {
+  bills: { bg: 'hsla(210, 60%, 50%, 0.13)', fg: 'hsla(210, 60%, 48%, 1)' },
+  rent: { bg: 'hsla(25, 55%, 50%, 0.13)', fg: 'hsla(25, 55%, 48%, 1)' },
+  groceries: { bg: 'hsla(150, 45%, 42%, 0.13)', fg: 'hsla(150, 45%, 40%, 1)' },
+  health: { bg: 'hsla(350, 55%, 52%, 0.13)', fg: 'hsla(350, 55%, 50%, 1)' },
+  food: { bg: 'hsla(40, 60%, 48%, 0.13)', fg: 'hsla(40, 60%, 46%, 1)' },
+  shopping: { bg: 'hsla(300, 35%, 48%, 0.13)', fg: 'hsla(300, 35%, 46%, 1)' },
+  tech: { bg: 'hsla(190, 55%, 45%, 0.13)', fg: 'hsla(190, 55%, 43%, 1)' },
+  gifts: { bg: 'hsla(330, 50%, 55%, 0.13)', fg: 'hsla(330, 50%, 53%, 1)' },
+  transport: { bg: 'hsla(10, 50%, 48%, 0.13)', fg: 'hsla(10, 50%, 46%, 1)' },
+  travel: { bg: 'hsla(200, 65%, 50%, 0.13)', fg: 'hsla(200, 65%, 48%, 1)' },
+  work: { bg: 'hsla(270, 40%, 48%, 0.13)', fg: 'hsla(270, 40%, 46%, 1)' },
+  insurance: { bg: 'hsla(120, 38%, 42%, 0.13)', fg: 'hsla(120, 38%, 40%, 1)' },
+  entertainment: { bg: 'hsla(50, 65%, 45%, 0.13)', fg: 'hsla(50, 65%, 43%, 1)' },
+  other: { bg: 'hsla(0, 0%, 50%, 0.10)', fg: 'hsla(0, 0%, 42%, 1)' },
+};
+
+export function getCatColor(catId) {
+  return CAT_COLORS[catId] ?? CAT_COLORS.other;
+}
+
+// ─── Shared settings defaults ───────────────────────────────────────────────
+
+export const DEFAULT_EXPENSE_SETTINGS = {
+  currency: 'USD',
+  weekStartsOn: 'monday',
+  timeRange: 'week',
+  weekBudget: '',
+  monthBudget: '',
+  yearBudget: '',
+};
+
+export const RANGE_CONFIG = {
+  week: { budgetKey: 'weekBudget', label: 'Weekly', periodLabel: 'This week spending' },
+  month: { budgetKey: 'monthBudget', label: 'Monthly', periodLabel: 'This month spending' },
+  year: { budgetKey: 'yearBudget', label: 'Yearly', periodLabel: 'This year spending' },
+};
+
 function load(widgetId) {
   try {
-    migrateIfNeeded(widgetId);
+    // Only run migration once — check marker before calling the function
+    const markerKey = MIGRATED_MARKER + widgetId;
+    if (!localStorage.getItem(markerKey)) {
+      migrateIfNeeded(widgetId);
+    }
     const raw = localStorage.getItem(PREFIX + widgetId);
     if (!raw) return [];
     const p = JSON.parse(raw);
@@ -132,58 +177,6 @@ function save(widgetId, list) {
     localStorage.setItem(PREFIX + widgetId, JSON.stringify(t));
     return t;
   } catch { return list; }
-}
-
-// ─── Day boundary helpers ────────────────────────────────────────────────────
-
-function startOfDay(offset = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() - offset);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function endOfDay(offset = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() - offset);
-  d.setHours(23, 59, 59, 999);
-  return d.getTime();
-}
-
-// ─── Time-range boundary helpers ─────────────────────────────────────────────
-
-function startOfWeek(weekStartsOn) {
-  const d = new Date();
-  const day = d.getDay();
-  let off;
-  if (weekStartsOn === 'monday') {
-    off = day === 0 ? 6 : day - 1;
-  } else {
-    off = day;
-  }
-  d.setDate(d.getDate() - off);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function startOfMonth() {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function startOfYear() {
-  const d = new Date();
-  d.setMonth(0, 1);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function startOf(range, weekStartsOn) {
-  if (range === 'month') return startOfMonth();
-  if (range === 'year') return startOfYear();
-  return startOfWeek(weekStartsOn);
 }
 
 // ─── Summary computation ─────────────────────────────────────────────────────
@@ -223,14 +216,14 @@ export function computeDayComparison(list) {
   if (yesterdayTotal > 0) {
     pctChange = ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100;
   } else if (todayTotal > 0) {
-    pctChange = 100; // yesterday was 0, today has expenses
+    pctChange = 100;
   }
 
   return {
     today: { total: todayTotal, count: todayItems.length },
     yesterday: { total: yesterdayTotal, count: yesterdayItems.length },
     pctChange,
-    maxForBar: Math.max(todayTotal, yesterdayTotal, 1), // never 0 for bar scaling
+    maxForBar: Math.max(todayTotal, yesterdayTotal, 1),
   };
 }
 
@@ -286,6 +279,17 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
   const clearAll = useCallback(() => {
     setExpenses([]);
     save(widgetId, []);
+  }, [widgetId]);
+
+  // Re-read from localStorage when import/clear fires the custom event
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.widgetId === widgetId) {
+        setExpenses(load(widgetId));
+      }
+    };
+    window.addEventListener('expense_data_changed', handler);
+    return () => window.removeEventListener('expense_data_changed', handler);
   }, [widgetId]);
 
   return {

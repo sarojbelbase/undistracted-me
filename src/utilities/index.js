@@ -184,6 +184,11 @@ export function shorthandFromUrl(url) {
  * Maps a raw error to a user-facing message.
  * Handles known OAuth, network, and API error patterns.
  */
+
+/** Shared check — are we running inside a Chrome/Firefox extension? */
+export const isExtension = () =>
+    typeof chrome !== 'undefined' && !!chrome?.runtime?.id;
+
 export function friendlyError(err) {
     const msg = err?.message || '';
     if (!msg) return 'Something went wrong. Please try again.';
