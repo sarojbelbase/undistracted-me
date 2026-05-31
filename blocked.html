@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkmate</title>
+    <style>
+      /* Prevent FOUC — set bg before JS loads */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #060608;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="blocked-root"></div>
+    <script type="module" src="/src/blocked/index.jsx"></script>
+  </body>
+
+</html>

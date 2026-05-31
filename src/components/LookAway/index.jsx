@@ -2,19 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { LockFill } from 'react-bootstrap-icons';
 import { MESSAGES } from '../../data/lookawayMessages';
+import { ORB_PALETTES } from '../../constants/orbPalettes';
+import RingProgress from '../ui/RingProgress';
 
-// 7 vibes — one picked randomly per overlay instance, independent of accent
-const ORB_PALETTES = [
-  '54,133,230',    // Blueberry
-  '198,38,46',     // Strawberry
-  '222,62,128',    // Bubblegum
-  '165,109,226',   // Grape
-  '243,115,41',    // Orange
-  '40,188,163',    // Mint
-  '207,162,94',    // Latte
-];
-
-
+// Extract just the rgb strings from the shared palette objects
+const ORB_RGBS = ORB_PALETTES.map(p => p.rgb);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,32 +19,6 @@ const getTimeLabel = () => {
   const m = d.getMinutes();
   const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
   return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
-};
-
-// SVG ring constants
-const RING_R = 7;
-const RING_CIRC = 2 * Math.PI * RING_R;
-
-// ─── Thin ring progress (accent-tinted) ───────────────────────────────────────
-
-const RingProgress = ({ progress, orbRgb }) => {
-  const dashOffset = RING_CIRC * (1 - progress);
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <circle cx="9" cy="9" r={RING_R} stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
-      <circle
-        cx="9" cy="9" r={RING_R}
-        stroke={`rgba(${orbRgb},0.8)`}
-        strokeWidth="1.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={RING_CIRC}
-        strokeDashoffset={dashOffset}
-        transform="rotate(-90 9 9)"
-        style={{ transition: 'stroke-dashoffset 1.05s linear' }}
-      />
-    </svg>
-  );
 };
 
 // ─── Ghost text button (no border, no band) ───────────────────────────────────
@@ -100,7 +66,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) 
   const [msg] = useState(() => MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
   // Pick a random palette once per overlay mount — independent of user accent
   const orbRgb = useMemo(
-    () => ORB_PALETTES[Math.floor(Math.random() * ORB_PALETTES.length)],
+    () => ORB_RGBS[Math.floor(Math.random() * ORB_RGBS.length)],
     []
   );
 

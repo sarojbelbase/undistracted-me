@@ -15,6 +15,7 @@ import {
   GCAL_EVENTS_API,
 } from './constants/urls.js';
 import { buildNotification } from './constants/notifications.js';
+import { initSiteBlocker } from './utilities/siteBlocker.js';
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
@@ -186,6 +187,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_RSS, { periodInMinutes: 30 });
   chrome.alarms.create(ALARM_STOCKS, { periodInMinutes: 15 });
   injectMediaScript();
+  initSiteBlocker();
 });
 
 // Also inject on service worker startup — covers the case where Chrome restarts
@@ -218,7 +220,7 @@ function injectMediaScript() {
   });
 }
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_TICK) {
     syncEventsFromStorage();
     checkOccasionReminders();
@@ -274,6 +276,28 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         }
       });
     });
+  }
+
+  // ── Site blocker auto-unblock alarm ──────────────────────────────────────
+  if (alarm.name.startsWith('UM_UNBLOCK_')) {
+    const domain = alarm.name.replace('UM_UNBLOCK_', '').replace(/_/g, '.');
+    // Remove the DNR rule directly — we can't use unblockSite() here because
+    // it reads localStorage which is unavailable in the service worker.
+    try {
+      const existing = await chrome.declarativeNetRequest.getDynamicRules();
+      const targetId = existing.find(
+        r => r.id >= 1000 && (
+          r.condition?.urlFilter === `||${domain}/` ||
+          r.condition?.regexFilter?.includes(domain.replace(/\./g, '\\.'))
+        )
+      )?.id;
+      if (targetId) {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [targetId],
+        });
+      }
+    } catch { /* DNR API unavailable */ }
+    chrome.alarms.clear(alarm.name);
   }
 });
 
@@ -655,6 +679,46 @@ function handleChromeMediaAction(msg) {
   }
 }
 
+/** Schedule alarms to auto-unblock sites when their timers expire.
+ *  Reads from chrome.storage.local (not localStorage — SW has no DOM access). */
+async function scheduleUnblockAlarms() {
+  try {
+    const { blocked_sites } = await chrome.storage.local.get('blocked_sites');
+    const sites = blocked_sites || [];
+    const now = Date.now();
+    for (const site of sites) {
+      if (!site.domain || !site.blockedUntil) continue;
+      const delayMin = Math.max(0.1, (site.blockedUntil - now) / 60000);
+      const alarmName = 'UM_UNBLOCK_' + site.domain.replace(/\./g, '_');
+      // Only create if not already scheduled
+      const existing = await chrome.alarms.get(alarmName);
+      if (!existing) {
+        chrome.alarms.create(alarmName, { delayInMinutes: delayMin });
+      }
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// React to blocked_sites changes from the popup/newtab page (which write to
+// chrome.storage.local in blockSite). This is how the SW learns about new blocks.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.blocked_sites) {
+    scheduleUnblockAlarms();
+  }
+});
+
+/** Handles BLOCK_SITE message from the popup — blocks and schedules unblock alarm. */
+async function handleBlockSite(msg, sendResponse) {
+  try {
+    const { siteBlocker } = await import('./utilities/siteBlocker.js');
+    await siteBlocker.blockSite(msg.domain, msg.durationMinutes || 30);
+    await scheduleUnblockAlarms();
+    sendResponse?.({ success: true });
+  } catch (err) {
+    sendResponse?.({ success: false, error: err.message });
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "POMODORO_DONE") {
     handlePomodoroDone(msg);
@@ -711,6 +775,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "CHROME_MEDIA_ACTION") {
     handleChromeMediaAction(msg);
+    return;
+  }
+  if (msg.type === "UNBLOCK_SITE") {
+    handleBlockSite(msg, sendResponse);
+    return true; // async
   }
   if (msg.type === "PREFETCH_SYNC" && msg.lat && msg.lon) {
     handlePrefetchSync(msg);

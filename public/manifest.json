@@ -48,9 +48,11 @@
     "notifications",
     "alarms",
     "tabs",
-    "scripting"
+    "scripting",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://undistractedme.sarojbelbase.com.np/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
@@ -74,9 +76,26 @@
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.soundcloud.com/*", "*://*.youtube.com/*"],
-      "js": ["src/utilities/media.js"],
+      "matches": [
+        "*://*.soundcloud.com/*",
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "src/utilities/media.js"
+      ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "assets/blocked*.js",
+        "assets/blocked*.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "oauth2": {
