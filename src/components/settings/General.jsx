@@ -8,6 +8,7 @@ import { useSettingsStore } from '../../store';
 import { CANVAS_DIVIDER } from '../../theme/canvas';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
+import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 
 // Icon map for each notification type
 const NOTIF_ICONS = {
@@ -58,6 +59,7 @@ export const General = ({ onPreviewLookAway }) => {
     lookAwayInterval, setLookAwayInterval,
     notificationsEnabled, setNotificationsEnabled,
     notificationTypes, setNotificationType,
+    syncEnabled, setSyncEnabled,
   } = useSettingsStore();
 
   return (
@@ -177,6 +179,34 @@ export const General = ({ onPreviewLookAway }) => {
                 </button>
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Divider ── */}
+      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+
+      {/* ── Cross-Device Sync ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <SectionLabel>Cross-Device Sync</SectionLabel>
+            <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
+              Mirror settings, widgets, and events across your devices
+            </p>
+          </div>
+          <Toggle checked={syncEnabled} onChange={setSyncEnabled} />
+        </div>
+
+        {/* Status badge */}
+        {syncEnabled && (
+          <div style={{
+            padding: '8px 12px', borderRadius: 10,
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--card-border)',
+          }}>
+            <SyncStatusBadge />
           </div>
         )}
       </div>

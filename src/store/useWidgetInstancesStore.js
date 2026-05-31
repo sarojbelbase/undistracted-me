@@ -17,6 +17,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import syncEngine from '../utilities/syncEngine';
+import { useSettingsStore } from './useSettingsStore';
 
 const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;
 
@@ -124,6 +126,23 @@ export const useWidgetInstancesStore = create(
           ...persisted?.widgetSettings,
         },
       }),
+      // Schedule sync push after rehydration (debounced, no-op if sync disabled)
+      onRehydrateStorage: () => () => {
+        syncEngine.schedulePush(STORAGE_KEYS.WIDGET_INSTANCES);
+      },
     },
   ),
 );
+
+// After hydration, subscribe to state changes and schedule sync pushes.
+// Checks syncEnabled from settings store — only pushes if user has sync on.
+let _wiHydrated = false;
+useWidgetInstancesStore.persist.onFinishHydration(() => {
+  _wiHydrated = true;
+});
+useWidgetInstancesStore.subscribe(() => {
+  if (!_wiHydrated) return;
+  if (useSettingsStore.getState().syncEnabled) {
+    syncEngine.schedulePush(STORAGE_KEYS.WIDGET_INSTANCES);
+  }
+});
