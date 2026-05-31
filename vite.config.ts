@@ -367,6 +367,11 @@ export default defineConfig(({ mode }) => {
         pure: ["console.log", "console.warn", "console.debug", "console.info"],
       },
       rollupOptions: {
+        input: {
+          index: 'index.html',
+          popup: 'popup.html',
+          blocked: 'blocked.html',
+        },
         output: {
           manualChunks(id: string) {
             // ── Vendor libs ──────────────────────────────────────────────
