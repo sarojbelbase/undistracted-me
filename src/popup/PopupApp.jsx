@@ -19,13 +19,13 @@ import {
   addBookmark,
   loadBookmarks,
   removeBookmark,
-  isBookmarked,
   onBookmarksChanged,
 } from "../data/sharedBookmarks";
 import { capitalize } from "./utils";
 
 import { PopupHero } from "../components/Popup/PopupHero";
 import { CurrentTabBookmark } from "../components/Popup/CurrentTabBookmark";
+import { BlockedSitesSection } from "../components/Popup/BlockedSitesSection";
 import { BookmarksSection } from "../components/Popup/BookmarksSection";
 import { QuickLinksSection } from "../components/Popup/QuickLinksSection";
 import { PopupFooter } from "../components/Popup/PopupFooter";
@@ -159,6 +159,10 @@ export const PopupApp = () => {
   const removeBm = (url) => {
     const next = removeBookmark(url);
     setBookmarks(next);
+    // If the deleted bookmark was the current tab, reset the saved state
+    if (curTab && url === curTab.url) {
+      setTabSaved(false);
+    }
   };
 
   // ── Top sites ─────────────────────────────────────────────────────────────
@@ -184,7 +188,8 @@ export const PopupApp = () => {
       curTab.url?.startsWith("moz-extension")
     );
 
-  const tabAlreadySaved = curTab ? isBookmarked(curTab.url) : false;
+  // Derived: is the current tab already bookmarked? Reacts to bookmark changes.
+  const isSaved = tabSaved || (curTab ? bookmarks.some(b => b.url === curTab.url) : false);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Render
@@ -208,11 +213,13 @@ export const PopupApp = () => {
       {showCurTab && (
         <CurrentTabBookmark
           curTab={curTab}
-          tabSaved={tabSaved}
-          tabAlreadySaved={tabAlreadySaved}
+          isSaved={isSaved}
           onSave={saveCurTab}
+          onBlocked={() => setTabSaved(false)}
         />
       )}
+
+      <BlockedSitesSection />
 
       <BookmarksSection bookmarks={bookmarks} onRemove={removeBm} />
 
