@@ -32,7 +32,7 @@ const Segment = ({ children, style = {} }) => (
 );
 
 export const Appearance = () => {
-  const { mode, setMode, accent, setAccent, cardStyle, setCardStyle } = useSettingsStore();
+  const { mode, setMode, accent, setAccent, cardStyle, setCardStyle, canvasBg, setCanvasBg } = useSettingsStore();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -62,6 +62,42 @@ export const Appearance = () => {
                   fontSize: 10, lineHeight: '1.3',
                   color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {hint}
+                </span>
+              </button>
+            );
+          })}
+        </Segment>
+      </div>
+
+      {/* ── Background ── */}
+      <div>
+        <SectionLabel>Background</SectionLabel>
+        <Segment>
+          {[
+            { id: 'solid', label: 'Solid', hint: 'Accent tint, no motion' },
+            { id: 'orb', label: 'Motion', hint: 'Animated color orb' },
+          ].map(({ id, label, hint }) => {
+            const selected = (canvasBg?.type ?? 'solid') === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setCanvasBg({ type: id, orbId: canvasBg?.orbId ?? 'blueberry', url: null, color: null })}
+                style={{
+                  flex: 1,
+                  display: 'flex', flexDirection: 'column', gap: 2,
+                  padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  textAlign: 'left', transition: 'all 0.15s ease',
+                  background: selected ? 'var(--w-accent)' : 'transparent',
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-2)' }}>
+                  {label}
+                </span>
+                <span style={{
+                  fontSize: 10, lineHeight: '1.3',
+                  color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
                 }}>
                   {hint}
                 </span>

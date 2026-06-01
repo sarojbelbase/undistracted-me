@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+/** Single source of truth for the default settings tab. */
+export const DEFAULT_SETTINGS_TAB = 'general';
+
 export function useSettingsPanel() {
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsInitialTab, setSettingsInitialTab] = useState('appearance');
+  const [settingsInitialTab, setSettingsInitialTab] = useState(DEFAULT_SETTINGS_TAB);
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -25,13 +28,13 @@ export function useSettingsPanel() {
 
   const toggleSettings = useCallback(() => {
     setShowSettings(s => {
-      if (s) setSettingsInitialTab('appearance'); // reset on close
+      if (s) setSettingsInitialTab(DEFAULT_SETTINGS_TAB); // reset on close
       return !s;
     });
   }, []);
   const closeSettings = useCallback(() => {
     setShowSettings(false);
-    setSettingsInitialTab('appearance');
+    setSettingsInitialTab(DEFAULT_SETTINGS_TAB);
   }, []);
   const openAtTab = useCallback((tab) => {
     setSettingsInitialTab(tab);
