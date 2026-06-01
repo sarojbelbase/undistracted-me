@@ -295,26 +295,30 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     }
 
     // Normal firing during an active session — signal open tabs.
-    chrome.storage.local.set({ lookaway_due: now });
-    // Only show OS notification if no new tab page is visible AND user wants notifications.
-    // If the user already has a new tab open, the in-page overlay fires
-    // via storage.onChanged — a system notification on top would be redundant.
-    chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
-      if (lookaway_notify === false) return; // user opted out
-      if (!notifAllowed('lookaway')) return; // master/type toggle off
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const activeTab = tabs[0];
-        const isNewTab =
-          activeTab?.url === "chrome://newtab/" ||
-          activeTab?.pendingUrl === "chrome://newtab/" ||
-          activeTab?.url?.startsWith("chrome-extension://") ||
-          activeTab?.url?.startsWith("moz-extension://");
-        if (!isNewTab) {
-          chrome.notifications.create(
-            'lookaway_' + Date.now(),
-            buildNotification('lookaway'),
-          );
-        }
+    // Check if lookaway is actually enabled before doing anything.
+    chrome.storage.local.get("lookaway_enabled", ({ lookaway_enabled }) => {
+      if (lookaway_enabled === false) return;
+      chrome.storage.local.set({ lookaway_due: now });
+      // Only show OS notification if no new tab page is visible AND user wants notifications.
+      // If the user already has a new tab open, the in-page overlay fires
+      // via storage.onChanged — a system notification on top would be redundant.
+      chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
+        if (lookaway_notify === false) return; // user opted out
+        if (!notifAllowed('lookaway')) return; // master/type toggle off
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const activeTab = tabs[0];
+          const isNewTab =
+            activeTab?.url === "chrome://newtab/" ||
+            activeTab?.pendingUrl === "chrome://newtab/" ||
+            activeTab?.url?.startsWith("chrome-extension://") ||
+            activeTab?.url?.startsWith("moz-extension://");
+          if (!isNewTab) {
+            chrome.notifications.create(
+              'lookaway_' + Date.now(),
+              buildNotification('lookaway'),
+            );
+          }
+        });
       });
     });
   }
@@ -667,7 +671,10 @@ function handleEventsUpdated(msg) {
 }
 
 function handleLookawaySync(msg) {
-  chrome.storage.local.set({ lookaway_notify: msg.notify !== false });
+  chrome.storage.local.set({
+    lookaway_notify: msg.notify !== false,
+    lookaway_enabled: msg.enabled,
+  });
   if (msg.enabled) {
     chrome.alarms.get(ALARM_LOOKAWAY, (existing) => {
       if (

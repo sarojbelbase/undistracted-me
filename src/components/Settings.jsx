@@ -1,11 +1,11 @@
 /**
  * Settings — tabbed settings modal for Canvas mode.
  *
- * Tabs: Appearance · General · Background · Accounts · Data
+ * Tabs: General · Appearance · Accounts · Data
  *
  * Props:
  *   onClose            () => void
- *   initialTab         'appearance' | 'general' | 'background' | 'accounts'
+ *   initialTab         'general' | 'appearance' | 'accounts'
  *   onPreviewLookAway  () => void   — closes modal + shows look-away overlay
  */
 
@@ -15,13 +15,12 @@ import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
 import { Modal } from './ui/Modal';
 import { Appearance } from './settings/Appearance';
 import { General } from './settings/General';
-import { Background } from './settings/Background';
 import { Accounts } from './settings/Accounts';
 import { Data } from './settings/Data';
 import { CANVAS_DIVIDER } from '../theme/canvas';
+import { DEFAULT_SETTINGS_TAB } from '../hooks/useSettingsPanel';
 import { AppearanceIcon } from '../assets/svg/AppearanceIcon';
 import { GearCogIcon } from '../assets/svg/GearCogIcon';
-import { BackgroundSceneIcon } from '../assets/svg/BackgroundSceneIcon';
 import { AccountPersonIcon } from '../assets/svg/AccountPersonIcon';
 import { GearFillIcon } from '../assets/svg/GearFillIcon';
 
@@ -29,19 +28,14 @@ import { GearFillIcon } from '../assets/svg/GearFillIcon';
 
 const TABS = [
   {
-    id: 'appearance',
-    label: 'Appearance',
-    icon: (active) => <AppearanceIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
-  },
-  {
     id: 'general',
     label: 'General',
     icon: (active) => <GearCogIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
   },
   {
-    id: 'background',
-    label: 'Background',
-    icon: (active) => <BackgroundSceneIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+    id: 'appearance',
+    label: 'Appearance',
+    icon: (active) => <AppearanceIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
   },
   {
     id: 'accounts',
@@ -109,7 +103,7 @@ const TabBar = ({ active, onChange }) => (
 
 export const Settings = ({
   onClose,
-  initialTab = 'appearance',
+  initialTab = DEFAULT_SETTINGS_TAB,
   onPreviewLookAway,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -172,7 +166,6 @@ export const Settings = ({
       >
         {activeTab === 'appearance' && <Appearance />}
         {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
-        {activeTab === 'background' && <Background />}
         {activeTab === 'accounts' && <Accounts />}
         {activeTab === 'data' && <Data />}
       </div>

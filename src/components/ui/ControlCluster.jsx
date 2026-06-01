@@ -10,6 +10,7 @@ import {
 } from "../../theme/canvas";
 import { useUIStore } from "../../store/useUIStore";
 import { cmdKey } from "../../hooks/useCommandPalette";
+import { DEFAULT_SETTINGS_TAB } from "../../hooks/useSettingsPanel";
 
 // Settings is only ever rendered from within the cluster — lazy-load it here.
 const settingsImport = () =>
@@ -33,7 +34,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
     showSettings,
     toggleSettings,
     closeSettings,
-    settingsInitialTab = "appearance",
+    settingsInitialTab = DEFAULT_SETTINGS_TAB,
     onOpenCatalog,
     onPreloadCatalog,
     onPreviewLookAway,
