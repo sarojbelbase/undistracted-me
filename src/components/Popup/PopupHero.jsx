@@ -24,6 +24,36 @@ export const PopupHero = ({
 }) => {
   const shortWeekday = en.weekday.slice(0, 3);
 
+  // Compute weather section content outside JSX to avoid nested ternary
+  const weatherContent = (() => {
+    if (weatherLoading) {
+      return (
+        <>
+          <div className="popup-hero__weather-row">
+            <span className="popup-hero__skeleton-icon" />
+            <span className="popup-hero__skeleton popup-hero__skeleton--temp" />
+          </div>
+          <span className="popup-hero__skeleton popup-hero__skeleton--desc" />
+          {city && <span className="popup-hero__skeleton popup-hero__skeleton--city" />}
+        </>
+      );
+    }
+    if (weather) {
+      return (
+        <>
+          <div className="popup-hero__weather-row">
+            {getWeatherIcon(weather.code, weather.isDay ?? isDay ?? true, 20)}
+            <span className="popup-hero__temp">{weather.temperature}°</span>
+          </div>
+          {weatherDesc && <span className="popup-hero__weather-desc">{weatherDesc}</span>}
+          {city && <span className="popup-hero__weather-city">{city}</span>}
+        </>
+      );
+    }
+    if (city) return <span className="popup-hero__weather-city">{city}</span>;
+    return null;
+  })();
+
   return (
     <div className="popup-hero">
       {/* ── Top row: left (date + clock) · right (weather) — same height ── */}
@@ -37,37 +67,7 @@ export const PopupHero = ({
         </div>
 
         <div className="popup-hero__weather">
-          {weatherLoading ? (
-            <>
-              <div className="popup-hero__weather-row">
-                <span className="popup-hero__skeleton-icon" />
-                <span className="popup-hero__skeleton popup-hero__skeleton--temp" />
-              </div>
-              <span className="popup-hero__skeleton popup-hero__skeleton--desc" />
-              {city && (
-                <span className="popup-hero__skeleton popup-hero__skeleton--city" />
-              )}
-            </>
-          ) : weather ? (
-            <>
-              <div className="popup-hero__weather-row">
-                {getWeatherIcon(
-                  weather.code,
-                  weather.isDay ?? isDay ?? true,
-                  20,
-                )}
-                <span className="popup-hero__temp">{weather.temperature}°</span>
-              </div>
-              {weatherDesc && (
-                <span className="popup-hero__weather-desc">{weatherDesc}</span>
-              )}
-              {city && (
-                <span className="popup-hero__weather-city">{city}</span>
-              )}
-            </>
-          ) : (
-            city && <span className="popup-hero__weather-city">{city}</span>
-          )}
+          {weatherContent}
         </div>
       </div>
 

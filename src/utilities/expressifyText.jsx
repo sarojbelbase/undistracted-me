@@ -186,7 +186,7 @@ function layoutRhythmScore(lines, heroIdx) {
 function isLatinWord(word) {
   // Match any character that is clearly a non-Latin script (Devanagari U+0900-097F,
   // extended Devanagari, CJK, Arabic, Hebrew, Thai, etc.)
-  return !/[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0E00-\u0E7F\u0E80-\u0EFF\u4E00-\u9FFF\u3040-\u30FF\u0600-\u06FF\u0590-\u05FF]/.test(word);
+  return !/[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0E00-\u0E7F\u0E80-\u0EFF\u4E00-\u9FFF\u3040-\u30FF\u0600-\u06FF\u0590-\u05FF]/.test(word); // NOSONAR
 }
 
 // ─── Word scoring ─────────────────────────────────────────────────────────────
@@ -280,7 +280,7 @@ function makeTokens(words, heroIdx, bodySize, heroSize, fontFamily) {
 }
 
 // ─── Uniform fallback (short titles, no hero) ─────────────────────────────────
-function uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight = 400, textLineHeight) {
+function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeight, fontWeight = 400) {
   // Devanagari (Hind) needs 1.3 line-height at both canvas-estimate and DOM stages.
   // Using 1.0 here caused the canvas binary search to oversize the font, making the
   // DOM measurement have to correct downward on every render.
@@ -378,13 +378,13 @@ export function expressiveLayout(
   title,
   areaWidth,
   areaHeight,
+  textLineHeight,
   fontFamily = '"League Gothic", "Hind", ui-sans-serif, sans-serif',
   fontWeight = 400,
-  textLineHeight,
 ) {
   const words = title.split(/\s+/).filter(w => w && !PUNCT_ONLY.test(w));
-  if (words.length === 0) return uniformFallback(['…'], areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
-  return uniformFallback(words, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight);
+  if (words.length === 0) return uniformFallback(['…'], areaWidth, areaHeight, fontFamily, textLineHeight, fontWeight);
+  return uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeight, fontWeight);
 }
 // ─── ExpressiveTitle ─────────────────────────────────────────────────────
 /**
@@ -429,9 +429,9 @@ export const ExpressiveTitle = ({
   // expressiveLayout for token metadata (font-family / weight / letter-spacing).
   // DOM binary search overrides the fontSize below.
   const layout = useMemo(
-    () => expressiveLayout(title, areaWidth, areaHeight, fontFamily, fontWeight, textLineHeight),
+    () => expressiveLayout(title, areaWidth, areaHeight, textLineHeight, fontFamily, fontWeight),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [title, areaWidth, areaHeight, fontsReady, fontFamily, fontWeight, textLineHeight],
+    [title, areaWidth, areaHeight, fontsReady, textLineHeight, fontFamily, fontWeight],
   );
 
   useLayoutEffect(() => {
@@ -450,7 +450,8 @@ export const ExpressiveTitle = ({
     // Devanagari / Hind (lh≥1.25): leading already covers matras.
     // We bake the descent into the binary search condition so the found
     // font-size guarantees textH + descentPx ≤ areaHeight — no overflow clipping.
-    const descentFactor = w0.lineHeight >= 1.25 ? 0.08 : w0.lineHeight > 1 ? 0.12 : 0.28;
+    const lineH = w0.lineHeight;
+    const descentFactor = lineH >= 1.25 ? 0.08 : lineH > 1 ? 0.12 : 0.28; // NOSONAR
 
     let lo = 10, hi = Math.min(areaHeight * 0.6, areaWidth * 0.4);
     for (let i = 0; i < 20; i++) {

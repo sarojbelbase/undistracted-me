@@ -13,7 +13,7 @@ import { applyTheme } from "../theme";
 import { getTimeParts } from "../widgets/clock/utils";
 import { getGreeting } from "../data/greetings";
 import { getDateParts } from "../widgets/dateToday/utils";
-import { getSunTimes } from "../utilities/sunTime";
+import { getSunTimes, computeAutoMode } from "../utilities/sunTime";
 import { useWeather } from "../hooks/useWeather";
 import {
   addBookmark,
@@ -73,20 +73,24 @@ const relSun = (lat, lon) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const PopupApp = () => {
-  const [, setFrame] = useState(0);
-  useEffect(() => onClockTick(() => setFrame((n) => n + 1)), []);
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => onClockTick(() => setClockTick(n => n + 1)), []);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
+  const mode = useSettingsStore((s) => s.mode);
+  // Resolve 'auto' once — same sun-time logic that applyTheme + themeInit use.
+  // Previously isDark used window.matchMedia which could disagree with
+  // computeAutoMode (e.g. daytime + OS dark → mismatched CSS vars vs data-mode).
+  const resolvedMode = mode === 'auto' ? computeAutoMode() : (mode || 'light');
+
   useEffect(() => {
     const s = useSettingsStore.getState();
     applyTheme(
       s.accent || "Matte Black",
-      s.mode || "light",
+      resolvedMode,
       s.cardStyle || "glass",
     );
   }, []);
-
-  const mode = useSettingsStore((s) => s.mode);
 
   const { lat, lon, city, isDay } = useLocationStore(
     useShallow((s) => ({
@@ -174,11 +178,6 @@ export const PopupApp = () => {
   }, []);
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  const isDark =
-    mode === "dark" ||
-    (mode === "auto" &&
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-color-scheme: dark)").matches);
 
   const showCurTab =
     curTab &&
@@ -196,7 +195,7 @@ export const PopupApp = () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className="popup-root" data-mode={isDark ? "dark" : "light"}>
+    <div className="popup-root" data-mode={resolvedMode} data-tick={clockTick}>
       <PopupHero
         tm={tm}
         greet={greet}

@@ -34,7 +34,7 @@ const RGL_PADDING = Object.fromEntries(
 
 function quantizeWidth(width) {
   const { cols, margin } =
-    BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS[BP_SPECS.length - 1];
+    BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS.at(-1);
   const colW = Math.round((width - 2 * WIDGETGRID_X_MARGIN - (cols - 1) * margin) / cols);
   // Clamp: never exceed the actual container width — otherwise RGL
   // over-estimates available space and right-edge items eat into the

@@ -58,10 +58,8 @@ export const ExpenseSettings = ({ id, onClose }) => {
   const handleImportCSV = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
+    file.text().then((text) => {
       try {
-        const text = reader.result;
         const lines = text.split('\n').filter(l => l.trim());
         if (lines.length < 2) {
           setImportError('CSV file is empty or missing headers.');
@@ -77,13 +75,13 @@ export const ExpenseSettings = ({ id, onClose }) => {
           const cols = lines[i].split(',');
           if (cols.length < 4) continue;
           const dateStr = cols[0]?.trim();
-          const amount = parseFloat(cols[1]?.trim());
+          const amount = Number.parseFloat(cols[1]?.trim());
           const currencyCode = cols[2]?.trim() || currency;
           const category = cols[3]?.trim() || 'other';
           const note = (cols[4] || '').trim().replace(/^"|"$/g, '');
-          if (!dateStr || isNaN(amount) || amount <= 0) continue;
+          if (!dateStr || Number.isNaN(amount) || amount <= 0) continue;
           const createdAt = new Date(dateStr).getTime();
-          if (isNaN(createdAt)) continue;
+          if (Number.isNaN(createdAt)) continue;
           newEntries.push({
             id: `exp_${createdAt}_${Math.random().toString(36).slice(2, 8)}`,
             amount, currency: currencyCode, category, note, createdAt,
@@ -93,15 +91,16 @@ export const ExpenseSettings = ({ id, onClose }) => {
           localStorage.setItem(EXPENSE_PREFIX + id, JSON.stringify(newEntries.slice(0, 500)));
           setImportError(null);
           // Dispatch event instead of reloading — useExpenses will pick it up
-          try { window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
+          try { globalThis.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
         } else {
           setImportError('No valid expense rows found in CSV.');
         }
       } catch {
         setImportError('Failed to parse CSV file.');
       }
-    };
-    reader.readAsText(file);
+    }).catch(() => {
+      setImportError('Failed to read CSV file.');
+    });
     e.target.value = ''; // reset so same file can be re-imported
   };
 
@@ -136,7 +135,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
     try {
       localStorage.removeItem(EXPENSE_PREFIX + id);
       localStorage.removeItem('expense_migrated_' + id);
-      try { window.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
+      try { globalThis.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
     }
     catch { /* ignore */ }
   };
@@ -189,11 +188,13 @@ export const ExpenseSettings = ({ id, onClose }) => {
       <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="w-label">Data</span>
-          <span
+          <button
+            type="button"
             className="relative exp-disclaimer-tip"
             style={{ display: 'inline-flex' }}
             onMouseEnter={() => setShowDisclaimer(true)}
             onMouseLeave={() => setShowDisclaimer(false)}
+            aria-label="Import info"
           >
             <span className="cursor-pointer rounded-full flex items-center justify-center transition-colors exp-disclaimer__trigger">
               <InfoCircle size={13} />
@@ -203,7 +204,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
                 Importing a CSV will replace all existing expenses. Export first to keep a backup.
               </div>
             )}
-          </span>
+          </button>
         </div>
 
         {/* Import / Export row */}

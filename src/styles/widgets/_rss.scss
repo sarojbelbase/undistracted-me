@@ -94,7 +94,8 @@
 }
 
 .rss-headline-row__title {
-  @include text-truncate;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.7875rem;
   font-weight: 600;
   color: var(--w-ink-1);

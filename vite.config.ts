@@ -316,7 +316,7 @@ export default defineConfig(({ mode }) => {
     );
   }
 
-  const dynamicManifest = JSON.parse(JSON.stringify(manifest));
+  const dynamicManifest = structuredClone(manifest);
   if (env.EXTENSION_CLIENT_ID && dynamicManifest.oauth2) {
     dynamicManifest.oauth2.client_id = env.EXTENSION_CLIENT_ID;
   }
@@ -330,6 +330,7 @@ export default defineConfig(({ mode }) => {
         "VITE_GOOGLE_DESKTOP_CLIENT_ID",
       ]),
       react(),
+      // @ts-ignore
       crx({ manifest: dynamicManifest }),
       faviconWaterfall(),
       googleTokenProxy(),
@@ -368,9 +369,9 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         input: {
-          index: 'index.html',
-          popup: 'popup.html',
-          blocked: 'blocked.html',
+          index: 'entries/index.html',
+          popup: 'entries/popup.html',
+          blocked: 'entries/blocked.html',
         },
         output: {
           manualChunks(id: string) {

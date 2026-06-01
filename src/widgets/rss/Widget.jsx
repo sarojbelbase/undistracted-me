@@ -143,7 +143,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
   const textAnim = direction === "prev" ? "rss-text-in-prev" : "rss-text-in-next";
 
   return (
-    <div
+    <article
       ref={cardRef}
       className="absolute inset-0 select-none rss-marquee"
       style={{
@@ -155,7 +155,6 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
       onPointerUp={handlePointerUp}
       onMouseEnter={() => setNavHovered(true)}
       onMouseLeave={() => setNavHovered(false)}
-      role="article"
       aria-label={item.title}
     >
       {/* ── Rich gradient background (text-only, no images) ──────────────── */}
@@ -221,6 +220,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             <div
               className="rss-marquee__nav-row"
               onClick={(e) => e.stopPropagation()}
+              role="toolbar"
             >
               {/* ← Prev */}
               <button
@@ -343,7 +343,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 
@@ -498,18 +498,12 @@ export const Widget = ({ id, onRemove }) => {
   const showSkeleton = loading && orderedItems.length === 0;
   const showError = !!error && !showSkeleton;
 
-  const storyCount = orderedItems.length;
   const feedCount = allActiveFeeds.length;
-  const storyWord = storyCount === 1 ? "story" : "stories";
   const feedWord = feedCount === 1 ? "feed" : "feeds";
-  let sourceName;
-  if (storyCount > 0) {
-    sourceName = `${feedCount} ${feedWord} · ${storyCount} ${storyWord} `;
-  } else if (feedCount === 1) {
-    sourceName = allActiveFeeds[0].label;
-  } else {
-    sourceName = `${feedCount} feeds`;
-  }
+  // Digest header is narrower — use a compact variant without story count
+  const digestLabel = feedCount === 1
+    ? allActiveFeeds[0]?.label ?? '1 feed'
+    : `${feedCount} ${feedWord}`;
 
   // Reset state when active feeds change
   useEffect(() => {
@@ -623,7 +617,7 @@ export const Widget = ({ id, onRemove }) => {
       >
         <Broadcast size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
         <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
-          {sourceName}
+          {digestLabel}
         </span>
         <div className="flex items-center gap-1 shrink-0">
           {ageLabel && (

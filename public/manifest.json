@@ -21,18 +21,21 @@
       "128": "favicon/lotus128.png"
     },
     "default_title": "New Tab Page",
-    "default_popup": "popup.html"
+    "default_popup": "entries/popup.html"
   },
   "background": {
     "service_worker": "src/bg.js"
   },
   "chrome_url_overrides": {
-    "newtab": "index.html"
+    "newtab": "entries/index.html"
   },
   "browser_specific_settings": {
     "gecko": {
       "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}",
-      "strict_min_version": "128.0"
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": []
+      }
     }
   },
   "content_security_policy": {
@@ -52,6 +55,7 @@
     "declarativeNetRequest"
   ],
   "host_permissions": [
+    "*://*/*",
     "https://undistractedme.sarojbelbase.com.np/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
@@ -88,7 +92,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "blocked.html",
+        "entries/blocked.html",
         "assets/blocked*.js",
         "assets/blocked*.css"
       ],

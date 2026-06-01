@@ -76,8 +76,7 @@ const fromLegacy = () => {
   }
   // Legacy single-key fallback
   const _prefersDark =
-    typeof window !== "undefined" &&
-    (window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
+    globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   return {
     language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || "en",
     accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || "Matte Black",

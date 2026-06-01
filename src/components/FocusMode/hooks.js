@@ -46,8 +46,9 @@ export const useFocusWeather = () => {
   const unit = weatherSettings?.unit ?? "metric";
 
   // Resolve coords: manual location → geo store → nothing
-  const lat = location?.lat ?? (geoSource !== "default" ? geoLat : null);
-  const lon = location?.lon ?? (geoSource !== "default" ? geoLon : null);
+  const useGeo = geoSource !== "default";
+  const lat = location?.lat ?? (useGeo ? geoLat : null);
+  const lon = location?.lon ?? (useGeo ? geoLon : null);
   const city = location?.name || "";
 
   const { weather } = useWeather({ lat, lon, unit, cityName: city });
@@ -305,7 +306,7 @@ export const useFocusTimezones = () => {
 
 // ─── Spotify (direct re-export of shared hook) ───────────────────────────────
 
-export { useSpotify as useFocusSpotify } from "../../widgets/media/useSpotify";
+export { useSpotify as useFocusSpotify } from "../../widgets/media/hooks/useSpotify";
 
 // ─── Search bar utilities (used by panels/SearchBar.jsx) ──────────────────────
 
@@ -424,7 +425,7 @@ export function switchToTab(tab) {
  * and resumes immediately when the tab becomes visible again — avoids sending
  * unnecessary SW messages when the new-tab page isn't in view.
  */
-export { useChromeMedia } from "../../widgets/media/useChromeMedia";
+export { useChromeMedia } from "../../widgets/media/hooks/useChromeMedia";
 
 // ─── Focus tasks (Google Tasks) ──────────────────────────────────────────────
 

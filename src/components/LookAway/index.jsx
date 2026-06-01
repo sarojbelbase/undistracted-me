@@ -302,6 +302,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) 
             const isActive = snoozeActive === mins;
             const baseColor = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.22)';
             const hoverColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)';
+            const borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
             const activeBg = `rgba(${orbRgb},0.18)`;
             const activeBorder = `rgba(${orbRgb},0.38)`;
             const activeColor = `rgba(${orbRgb},${isDark ? 0.9 : 1})`;
@@ -312,7 +313,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) 
                 onClick={() => handleSnooze(mins)}
                 style={{
                   background: isActive ? activeBg : 'transparent',
-                  border: `1px solid ${isActive ? activeBorder : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)')}`,
+                  border: `1px solid ${isActive ? activeBorder : borderColor}`,
                   borderRadius: 999,
                   padding: '3px 10px',
                   fontSize: '0.72rem',

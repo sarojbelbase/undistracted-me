@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { MESSAGES } from '../data/lookawayMessages';
 import { ORB_PALETTES } from '../constants/orbPalettes';
 import { shorthandFromUrl } from '../utilities/index';
+import { computeAutoMode } from '../utilities/sunTime';
 
 // ─── Module-level: read blocked domain + info once, before React mounts ──────
 
@@ -62,14 +63,47 @@ const readSettings = () => {
   }
 };
 
-/** Resolve 'auto' mode using OS preference */
+/** Resolve 'auto' mode using sun-time math — same logic as themeInit + applyTheme. */
 const resolveMode = (mode) => {
-  if (mode === 'auto') {
-    return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-  }
+  if (mode === 'auto') return computeAutoMode();
   return mode === 'dark' ? 'dark' : 'light';
+};
+
+// ─── Theme colour tokens ─────────────────────────────────────────────────────
+
+const getThemeTokens = (isDark, orbRgb) => ({
+  bg: isDark ? '#060608' : '#f5f5f7',
+  titleColor: isDark ? '#ffffff' : '#0a0a0c',
+  msgColor: isDark ? 'rgba(255,255,255,0.36)' : 'rgba(0,0,0,0.38)',
+  timerColor: isDark ? `rgba(${orbRgb},0.7)` : `rgba(${orbRgb},0.8)`,
+  orbOpacity1: isDark ? 0.38 : 0.28,
+  orbOpacity2: isDark ? 0.22 : 0.16,
+  orbOpacity3: isDark ? 0.16 : 0.1,
+  vignetteStart: isDark ? 'rgba(4,4,6,0.65)' : 'rgba(245,245,247,0.55)',
+  vignetteEnd: isDark ? 'rgba(2,2,4,0.92)' : 'rgba(240,240,242,0.90)',
+});
+
+/** Check localStorage — is the current domain still blocked as infinite? */
+const isNowInfinite = (blockedDomain) => {
+  try {
+    const raw = localStorage.getItem('blocked_sites');
+    if (!raw) return false;
+    const sites = JSON.parse(raw);
+    if (!Array.isArray(sites)) return false;
+    return sites.some(s => s.domain === blockedDomain && s.infinite);
+  } catch { return false; }
+};
+
+/** Remove a domain from the blocked_sites list in localStorage. */
+const removeBlockedEntry = (blockedDomain) => {
+  try {
+    const raw = localStorage.getItem('blocked_sites');
+    if (!raw) return;
+    const sites = JSON.parse(raw);
+    if (!Array.isArray(sites)) return;
+    const filtered = sites.filter(s => s.domain !== blockedDomain);
+    localStorage.setItem('blocked_sites', JSON.stringify(filtered));
+  } catch { /* ignore */ }
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -102,32 +136,8 @@ const BlockedPage = () => {
     if (!tick) return;
 
     if (remainingMs <= 0 && !redirecting) {
-      // ── Safety check: re-read from localStorage before navigating ──
-      // If the block was changed to infinite (or the entry was re-created
-      // as infinite) between page load and now, abort navigation.
-      try {
-        const raw = localStorage.getItem('blocked_sites');
-        if (raw) {
-          const sites = JSON.parse(raw);
-          if (Array.isArray(sites)) {
-            const current = sites.find(s => s.domain === blockedDomain);
-            if (current?.infinite) return; // Block is now infinite — stay put
-          }
-        }
-      } catch { /* ignore */ }
-
-      // Remove the expired entry from localStorage so the DNR rule
-      // gets cleaned up on the next initSiteBlocker (or by the SW alarm).
-      try {
-        const raw = localStorage.getItem('blocked_sites');
-        if (raw) {
-          const sites = JSON.parse(raw);
-          if (Array.isArray(sites)) {
-            const filtered = sites.filter(s => s.domain !== blockedDomain);
-            localStorage.setItem('blocked_sites', JSON.stringify(filtered));
-          }
-        }
-      } catch { /* ignore */ }
+      if (isNowInfinite(blockedDomain)) return;
+      removeBlockedEntry(blockedDomain);
 
       // Show "Redirecting now..." for 5 seconds, then navigate
       setRedirecting(true);
@@ -163,18 +173,11 @@ const BlockedPage = () => {
   const elapsed = totalDurationMs > 0 ? 1 - remainingMs / totalDurationMs : 1;
   const progress = Math.min(1, Math.max(0, elapsed));
 
-  // ── Theme-aware colour tokens (matching LookAway's palette) ─────────────
-  const bg = isDark ? '#060608' : '#f5f5f7';
-  const titleColor = isDark ? '#ffffff' : '#0a0a0c';
-  const msgColor = isDark ? 'rgba(255,255,255,0.36)' : 'rgba(0,0,0,0.38)';
-  const timerColor = isDark
-    ? `rgba(${orbRgb},0.7)`
-    : `rgba(${orbRgb},0.8)`;
-  const orbOpacity1 = isDark ? 0.38 : 0.28;
-  const orbOpacity2 = isDark ? 0.22 : 0.16;
-  const orbOpacity3 = isDark ? 0.16 : 0.1;
-  const vignetteStart = isDark ? 'rgba(4,4,6,0.65)' : 'rgba(245,245,247,0.55)';
-  const vignetteEnd = isDark ? 'rgba(2,2,4,0.92)' : 'rgba(240,240,242,0.90)';
+  const {
+    bg, titleColor, msgColor, timerColor,
+    orbOpacity1, orbOpacity2, orbOpacity3,
+    vignetteStart, vignetteEnd,
+  } = getThemeTokens(isDark, orbRgb);
 
   return (
     <div

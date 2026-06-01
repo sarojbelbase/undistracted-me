@@ -43,7 +43,7 @@ const _focusModeChunk = (() => {
 })();
 
 const FocusMode = lazy(() =>
-  (_focusModeChunk || import("./components/FocusMode")).then((m) => ({
+  (_focusModeChunk ?? import("./components/FocusMode")).then((m) => ({
     default: m.FocusMode,
   })),
 );

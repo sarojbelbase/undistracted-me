@@ -62,22 +62,38 @@ const WMO = {
 export const wmoDescription = (code) => WMO[code] ?? "unknown";
 
 // ── Icon mapping (WMO codes 0–99) ─────────────────────────────────────────────
+
+const STATIC_ICONS = {
+  3: CloudsFill, 45: CloudFogFill, 48: CloudFogFill,
+  66: CloudSleetFill, 67: CloudSleetFill,
+};
+// Ranges mapped to single icons
+const RANGE_ICONS = [
+  [51, 57, CloudDrizzleFill], [71, 77, CloudSnowFill],
+  [85, 86, CloudSnowFill], [95, 99, CloudLightningRainFill],
+];
+// Codes that share an icon
+const SHARED_ICONS = [
+  [[61, 80], CloudRainFill], [[63, 81], CloudRainFill], [[65, 82], CloudRainHeavyFill],
+];
+
+const resolveIcon = (code) => {
+  if (STATIC_ICONS[code]) return STATIC_ICONS[code];
+  for (const [lo, hi, Icon] of RANGE_ICONS) {
+    if (code >= lo && code <= hi) return Icon;
+  }
+  for (const [codes, Icon] of SHARED_ICONS) {
+    if (codes.includes(code)) return Icon;
+  }
+  return CloudFill;
+};
+
 export const getWeatherIcon = (code, isDay, size = 52) => {
-  const p = { size, style: { color: "var(--w-ink-4)", flexShrink: 0 } };
+  const p = { size, style: { color: 'var(--w-ink-4)', flexShrink: 0 } };
   if (code === 0) return isDay ? <SunFill {...p} /> : <MoonStarsFill {...p} />;
-  if (code <= 2)
-    return isDay ? <CloudSunFill {...p} /> : <CloudMoonFill {...p} />;
-  if (code === 3) return <CloudsFill {...p} />;
-  if (code === 45 || code === 48) return <CloudFogFill {...p} />;
-  if (code >= 51 && code <= 57) return <CloudDrizzleFill {...p} />;
-  if (code === 66 || code === 67) return <CloudSleetFill {...p} />;
-  if (code === 61 || code === 80) return <CloudRainFill {...p} />;
-  if (code === 63 || code === 81) return <CloudRainFill {...p} />;
-  if (code === 65 || code === 82) return <CloudRainHeavyFill {...p} />;
-  if (code >= 71 && code <= 77) return <CloudSnowFill {...p} />;
-  if (code === 85 || code === 86) return <CloudSnowFill {...p} />;
-  if (code >= 95) return <CloudLightningRainFill {...p} />;
-  return <CloudFill {...p} />;
+  if (code <= 2) return isDay ? <CloudSunFill {...p} /> : <CloudMoonFill {...p} />;
+  const Icon = resolveIcon(code);
+  return <Icon {...p} />;
 };
 
 // ── (getCoords, reverseGeocode, getCoordsFromIP removed — superseded by
@@ -288,7 +304,7 @@ export const AQI_LEVELS = [
 export const getAQILevel = (value) => {
   if (value == null || value < 0) return null;
   return (
-    AQI_LEVELS.find((l) => value <= l.max) ?? AQI_LEVELS[AQI_LEVELS.length - 1]
+    AQI_LEVELS.find((l) => value <= l.max) ?? AQI_LEVELS.at(-1)
   );
 };
 
@@ -318,7 +334,7 @@ export const fetchAQI = (lat, lon) => {
 export const parseAQI = (data) => ({
   value: data?.current?.us_aqi ?? null,
   pm25:
-    data?.current?.pm2_5 != null
+    data?.current?.pm2_5 == null
       ? Math.round(data.current.pm2_5 * 10) / 10
       : null,
 });

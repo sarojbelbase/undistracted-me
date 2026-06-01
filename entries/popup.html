@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,11 +17,14 @@
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
+
       [data-mode="dark"],
       [data-mode="dark"] body {
         background: #141414;
       }
+
       @media (prefers-color-scheme: dark) {
+
         html:not([data-mode="light"]),
         html:not([data-mode="light"]) body {
           background: #141414;
@@ -28,8 +32,10 @@
       }
     </style>
   </head>
+
   <body>
     <div id="popup-root"></div>
     <script type="module" src="/src/popup/index.jsx"></script>
   </body>
+
 </html>

@@ -82,12 +82,13 @@ export const useStocks = () => {
         .catch(() => { });
     };
 
+    const loadSymbol = (sym) => fetchChart(sym).catch(() => 'error');
+
     const loadFromNetwork = async () => {
-      const loadSymbol = (sym) => fetchChart(sym).catch(() => "error");
       const results = await Promise.all(symbols.map(loadSymbol));
       const data = symbols.map((sym, i) => ({
         sym,
-        data: results[i] ?? "error",
+        data: results[i] ?? 'error',
       }));
       if (!cancelled) {
         stableSetStocks(data);

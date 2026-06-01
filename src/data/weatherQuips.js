@@ -477,6 +477,31 @@ export const pickQuip = (arr) => {
  *   { weekday?: 0–6, tempTrend?: 'warming'|'cooling'|null }
  * @returns {string}
  */
+const _windQuip = (group, windGust) => {
+  if (group === 'thunder') return null;
+  if (windGust >= 65) return pickQuip(WIND_QUIPS.storm);
+  if (windGust >= 45 && !['rain', 'snow'].includes(group)) return pickQuip(WIND_QUIPS.strong);
+  if (windGust >= 20 && ['clear', 'cloudy'].includes(group)) return pickQuip(WIND_QUIPS.breezy);
+  return null;
+};
+
+const _tempQuip = (code, feels, ctx) => {
+  if (code <= 2 && feels <= 10) return pickQuip(TEMP_QUIPS.cold_sunny);
+  if (ctx.tempTrend === 'warming') return pickQuip(TEMP_QUIPS.warming);
+  if (ctx.tempTrend === 'cooling') return pickQuip(TEMP_QUIPS.cooling);
+  return null;
+};
+
+const _moodQuip = (group, isDay, ctx) => {
+  if (group !== 'clear') return null;
+  if (!isDay) return pickQuip(MOOD_QUIPS.clear_night);
+  const day = ctx.weekday ?? new Date().getDay();
+  if (day === 1) return pickQuip(MOOD_QUIPS.monday);
+  if (day === 5) return pickQuip(MOOD_QUIPS.friday);
+  if (day === 0 || day === 6) return pickQuip(MOOD_QUIPS.weekend);
+  return null;
+};
+
 export const getWeatherQuip = (forecast, weather, ctx = {}) => {
   if (!forecast && !weather) return '';
 
@@ -487,38 +512,17 @@ export const getWeatherQuip = (forecast, weather, ctx = {}) => {
   const fType = forecast?.type;
   const windGust = ctx.windGust ?? weather?.windGust ?? 0;
 
-  // ── Wind override — storm/strong gusts take priority (except thunder, which
-  //    already implies extreme conditions and has its own copy) ──────────────
-  if (group !== 'thunder') {
-    if (windGust >= 65) return pickQuip(WIND_QUIPS.storm);
-    // Strong wind only overrides when the condition isn't already dramatic rain/snow
-    if (windGust >= 45 && !['rain', 'snow'].includes(group)) return pickQuip(WIND_QUIPS.strong);
-    // Breezy nudge — only on clear/cloudy days where wind is the main story
-    if (windGust >= 20 && ['clear', 'cloudy'].includes(group)) return pickQuip(WIND_QUIPS.breezy);
-  }
+  const windResult = _windQuip(group, windGust);
+  if (windResult) return windResult;
 
-  // ── Temperature overrides ──────────────────────────────────────────────
-  // 1. Sunny + cold (apparent temp ≤ 10 °C)
-  if (code <= 2 && feels <= 10) {
-    return pickQuip(TEMP_QUIPS.cold_sunny);
-  }
+  const tempResult = _tempQuip(code, feels, ctx);
+  if (tempResult) return tempResult;
 
-  // 2. Explicit temp trend passed in from parent (needs hourly temp data)
-  if (ctx.tempTrend === 'warming') return pickQuip(TEMP_QUIPS.warming);
-  if (ctx.tempTrend === 'cooling') return pickQuip(TEMP_QUIPS.cooling);
-
-  // ── Condition-based bank ───────────────────────────────────────────────
   const bank = QUIPS[group]?.[fType];
   if (bank?.length) return pickQuip(bank);
 
-  // ── Mood fallback (clear persist day/night, or nothing matched) ────────
-  if (group === 'clear') {
-    if (!isDay) return pickQuip(MOOD_QUIPS.clear_night);
-    const day = ctx.weekday ?? new Date().getDay();
-    if (day === 1) return pickQuip(MOOD_QUIPS.monday);
-    if (day === 5) return pickQuip(MOOD_QUIPS.friday);
-    if (day === 0 || day === 6) return pickQuip(MOOD_QUIPS.weekend);
-  }
+  const moodResult = _moodQuip(group, isDay, ctx);
+  if (moodResult) return moodResult;
 
   return isDay ? pickQuip(MOOD_QUIPS.desk) : pickQuip(MOOD_QUIPS.desk_night);
 };

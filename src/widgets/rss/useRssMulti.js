@@ -53,10 +53,16 @@ export function useRssMulti(feeds = []) {
     setRefreshedAt(Date.now());
   }, []);
 
+  // Epoch counter — only the most recently initiated load may update state.
+  // Prevents a slow initial load(false) from overwriting fresh results
+  // delivered by a faster manual load(true) triggered by the refresh button.
+  const epochRef = useRef(0);
+
   const load = useCallback(async (forceNetwork = false) => {
     const current = feedsRef.current;
     if (!current.length) return;
 
+    const epoch = ++epochRef.current;
     setLoading(true);
     setError(null);
 
@@ -74,6 +80,9 @@ export function useRssMulti(feeds = []) {
         return tagged;
       }),
     );
+
+    // If a newer load started while we were waiting, discard these results
+    if (epochRef.current !== epoch) return;
 
     const allItems = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
     const anyError = results.every((r) => r.status === 'rejected');
