@@ -151,7 +151,11 @@ src/
                          ring progress timer, dismiss / snooze
       hooks.js         — useLookAwayScheduler: syncs chrome.alarm via SW LOOKAWAY_SYNC
                          message; falls back to setInterval in dev; stale-break detection
-    Settings.jsx       — Dashboard global settings overlay (appearance, LookAway config)
+    Settings.jsx       — Dashboard global settings overlay (tabs: Appearance · General · Background · Accounts · Data)
+                         General: Launch Mode, Look Away, Blocked Sites, Notifications.
+                         Data: Cross-Device Sync (toggle + SyncStatusBadge), Backup & Restore
+                         (Export/Import .json), Reset (ConfirmButton with 4s hold).
+                         Import/export/reset migrated here from WidgetCatalog.
   ui/                  — shared UI components (see src/components/ui/ section below)
   widgets/
     WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence
@@ -160,7 +164,7 @@ src/
     useWidgetSettings.js — backed by Zustand `useWidgetInstancesStore.widgetSettings`;
                            mirrored to `widgetSettings_${id}` localStorage for legacy compat
     useEvents.js       — @deprecated re-export stub; canonical path is src/hooks/useEvents.js
-    WidgetCatalog.jsx  — widget picker drawer with categories
+    WidgetCatalog.jsx  — widget picker drawer with categories (import/export/reset moved to Data tab)
     settingsIO.js      — settings import/export helpers
     index.js           — WIDGET_TYPES, WIDGET_REGISTRY (15 widgets), all exports
     clock/             — live 1s clock, 24h/12h, extra timezone rows, time-aware greetings
@@ -178,11 +182,13 @@ src/
     bookmarks/         — Google Favicon API, chrome.topSites + manual Pinned, AddModal
     quickAccess/       — Top 6 chrome.topSites dock: favicon tiles with color extraction,
                          letter fallback, hover scale animation
-    pomodoro/          — pick (preset pills) → timer;
+    pomodoro/          — enriched focus timer: pick (preset pills) → timer; Web Audio chime;
+                         auto-break (5/10/15 min); session notes; rain sounds; session history with stats.
                          TWO storage keys: (1) `pomodoro_timer_state_${id}` — full state incl.
-                         `endTime` for elapsed-time recovery on tab restore; (2) `fm_pomodoro`
+                         `endTime`, `sessionType` for elapsed-time recovery on tab restore; (2) `fm_pomodoro`
                          — written ONLY while timer is running (for Focus Mode PanelCard);
-                         removed when paused or in pick phase
+                         removed when paused or in pick phase. Settings panel with chime/rain/break toggles,
+                         break duration selector, and stats (sessions, streak, today minutes, weekly chart).
     spotify/           — PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas
                          color extraction, 5s polling + local tick between polls.
                          Multi-player: ChromeMediaStrip for browser media sessions (YouTube,
@@ -192,6 +198,10 @@ src/
                          only disconnectSpotify() wipes them. not_authenticated → setTrack(null)
                          NOT setConnected(false), to avoid re-showing the onboarding screen.
     facts/             — daily interesting fact widget
+    rss/               — RSS news headlines: Spotlight + Digest layouts; OPML import/export;
+                         pure DOMParser parser (zero deps); sample OPML with Nepali news + podcasts.
+                         Data section in Settings with Export OPML + Import OPML, guidance callout,
+                         and Sample OPML download.
     stock/             — NEPSE stock tickers (see Stock Widget section)
     occasions/         — Birthdays, anniversaries, special days widget.
                          Sources: Google Contacts (People API) + manual entries.
@@ -200,16 +210,16 @@ src/
                          Deduplicates between Google Contacts and manual entries.
 ```
 
-## Widget Registry (15 widgets)
+## Widget Registry (16 widgets)
 ```
 time:     clock, dateToday, progress, countdown
-planning: events, calendar, pomodoro, notes, occasions (birthdays)
-info:     weather, facts, stock
-tools:    bookmarks, quickAccess, spotify
+planning: events, calendar, pomodoro, notes, occasions (birthdays), expense
+info:     weather, facts, stock, rss, dailys
+tools:    bookmarks, quickAccess, media (spotify)
 ```
 
 WIDGET_TYPES values (type strings in `widget_instances` store):
-`clock`, `dateToday`, `progress`, `events`, `weather`, `calendar`, `countdown`, `notes`, `bookmark`, `quickAccess`, `pomodoro`, `spotify`, `facts`, `stock`, `birthdays`
+`clock`, `dateToday`, `progress`, `events`, `weather`, `calendar`, `countdown`, `notes`, `bookmark`, `quickAccess`, `pomodoro`, `media`, `facts`, `stock`, `occasions`, `dailys`, `rss`, `expense`
 
 ## LookAway Eye-Break System (`src/components/LookAway/`)
 
@@ -277,7 +287,7 @@ Zone-based layout driven by `config.js` ZONES object. Each zone is a separate co
 
 ### LeftZone (`zones/LeftZone.jsx`)
 Glass panel cards (order driven by ZONES.left.items):
-- `PomodoroPanel` — reads `fm_pomodoro` localStorage; shows timer + drain bar
+- `PomodoroPanel` — reads `fm_pomodoro` localStorage; shows timer + drain bar + sessionType
 - `EventPanel` — active event (priority) or soonest upcoming; title + time-until
 - `OccasionPanel` — next upcoming birthday/anniversary from occasions widget
 - `StockPanel` — reads from Zustand `useWidgetInstancesStore`, polls every 5min; symbol + price + ↑↓%
@@ -475,8 +485,9 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 | `COUNTDOWN_EVENTS` | `countdown_events` | Countdown widget's own event list |
 | `countdownPinned(id)` | `countdown_pinned_${id}` | Per-instance pinned countdown event |
 | `COUNTDOWN_NOTIFIED` | `cd_notified` | `{ [eventId]: 'YYYY-MM-DD' }` — per-day dedup; old dates pruned on read |
-| `POMODORO` | `fm_pomodoro` | `{ running, remaining, total, preset }` written ONLY while timer is running |
-| `pomodoroTimerState(id)` | `pomodoro_timer_state_${id}` | Full per-instance timer state incl. `endTime` for recovery on tab restore |
+| `POMODORO` | `fm_pomodoro` | `{ running, remaining, total, preset, sessionType }` written ONLY while timer is running |
+| `pomodoroTimerState(id)` | `pomodoro_timer_state_${id}` | Full per-instance timer state incl. `endTime`, `sessionType` for recovery on tab restore |
+| `pomodoro_history` | — | `[{ id, preset, duration, completedAt, note, type }]` — max 500 entries, oldest trimmed |
 | `LOCATION_STATE` | `location_state` | Zustand persist for useLocationStore (`{ lat, lon, city, timezone, source, sunrise, sunset, isDay, status, lastUpdated }`) |
 | `UNSPLASH_CACHE` | `fm_unsplash_cache` | `[{ id, url, regular, color, author, ... }]` max 10 items |
 | `FOCUS_TIMEZONES` | `fm_world_clocks` | Legacy key — defined in STORAGE_KEYS but not actively used; RightZone reads from Zustand directly |
@@ -549,6 +560,10 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 - **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)` — only one tab runs the real timer
 - **`useGoogleAccountStore.connect()`**: call this to trigger interactive Google OAuth — do NOT call `getGoogleAuthToken(true)` from UI components directly
 - **`mode='auto'`**: `setMode('auto')` does NOT call `applyTheme` directly — `useAutoTheme` does it after mount once sunrise/sunset is resolved
+- **Data tab**: Global settings → Data tab hosts Cross-Device Sync, Backup & Restore (Export/Import .json), and Reset. Import/export/reset were migrated here from WidgetCatalog to reduce tab-bar clutter.
+- **OPML import/export**: RSS widget only supports OPML (no JSON). Uses native `DOMParser` for parsing, supports file picker + paste XML, preview with checkboxes, nested folder flattening, and URL deduplication. Export generates valid OPML with proper XML escaping. Sample OPML includes real Nepali news feeds organized in folders.
+- **Web Audio chime**: `pomodoro/chime.js` uses the Web Audio API (`OscillatorNode` + `GainNode`) for a D4→G4 completion chime — zero external audio files, works offline. Same pattern usable in any widget needing audio feedback.
+- **CSS-only bar charts**: Pomodoro's weekly stats and Expense widget both use CSS-only horizontal/vertical bars (no Chart.js). The `.pom-stats-chart` uses `grid-template-columns: repeat(7, 1fr)` for the weekly view; `.pom-stats-grid` uses `grid-template-columns: repeat(3, 1fr)` for stat chips spanning full width.
 
 ## Data (`src/data/`)
 - `bikramSambatCalendar.js` — BS calendar data (used by Nepali date conversion utilities)

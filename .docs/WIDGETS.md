@@ -108,15 +108,14 @@ Hosts all widget instances using `react-grid-layout`'s `<Responsive>` grid.
 
 **File:** `src/widgets/WidgetCatalog.jsx`
 
-A slide-in drawer panel (portalled to `document.body`) for adding/removing widget instances. Also hosts **Export / Import / Reset** settings buttons.
+A slide-in drawer panel (portalled to `document.body`) for adding/removing widget instances.
 
 **Key implementation details:**
 
 - **3-phase animation**: `entering → open → leaving`. A double-`requestAnimationFrame` ensures the browser has a real "from" state before the CSS transition fires.
 - **Category tabs**: `all | time | planning | info | tools`. In "all" view, widgets are grouped under section headers using `CATEGORY_ORDER`.
 - **Stepper UX**: Each widget row shows `[−] count [+]` controls. Clicking `+` calls `onAddInstance(type)`; `−` removes the last instance of that type.
-- **Import flow**: Opens a hidden `<input type="file">`, reads JSON, calls `importSettings`, then reloads the page.
-- **Reset**: Wrapped in `ConfirmButton` (4-second timeout) to prevent accidental data loss.
+- **Footer**: Shows "+ Add · − Remove from Canvas" hint and a "Buy Me Momo" link. Import/export/reset were migrated to the Data tab in Global Settings.
 
 ---
 
@@ -141,7 +140,7 @@ updateSetting('format', '12h');
 
 **File:** `src/widgets/settingsIO.js`
 
-Provides three functions for the WidgetCatalog toolbar:
+Provides three functions used by the **Data tab** in Global Settings:
 
 | Function | Behaviour |
 |---|---|
@@ -492,26 +491,36 @@ quickAccess/
 
 **Category:** `planning` · **Type:** `pomodoro`
 
-**What it does:** A focus timer with preset durations (25 min, 30 min, 1 hr) and a custom input. Two phases: **pick** (select duration) and **timer** (countdown with play/pause/reset/back). Persists across tab closes and syncs running state to Focus Mode.
+**What it does:** A full-featured focus timer with preset durations (25 min, 30 min, 1 hr, Custom), auto-break support, session notes, ambient rain sounds, completion chime, and session history with stats. Two phases: **pick** (select duration) and **timer** (countdown with play/pause/reset/back). Persists across tab closes and syncs running state to Focus Mode.
 
 **Files:**
 ```
 pomodoro/
-  Widget.jsx — main component (all logic inline)
-  config.js
-  utils.js   — PRESETS, formatTime, readPomodoro
+  Widget.jsx   — main component + PickPhase, DoneState sub-components
+  Settings.jsx — chime, rain, auto-break toggles; break duration; session stats with weekly chart
+  config.js    — grid position, icon, type, settingsComponent
+  constants.js — PRESETS, BREAK_OPTIONS, PHASE, SESSION_TYPE, DEFAULT_SETTINGS
+  chime.js     — Web Audio API two-tone completion chime (zero dependencies)
+  utils.js     — formatTime, readPomodoro, loadHistory, saveSession, getStreak, getTodayMinutes, getWeeklyStats
 ```
 
 **Key implementation details:**
 
-- **Persistence**: `loadTimer(id)` / `saveTimer(id, state)` use `STORAGE_KEYS.pomodoroTimerState(id)` (per-instance key). When saving a running timer, the absolute `endTime` (epoch ms) is stored. On restore, `remaining = max(0, round((endTime - Date.now()) / 1000))` — so time elapsed while the tab was closed is correctly accounted for.
-- **Interval**: `setInterval(..., 1000)` decrements remaining. On reaching 0: clears the key, calls `sendToServiceWorker({ type: 'POMODORO_DONE', preset })` for an OS notification (even when the tab isn't focused).
-- **Focus Mode sync**: While running, `localStorage['fm_pomodoro']` is written with `{ running, remaining, total, preset }`. `readPomodoro()` in `utils.js` reads this — used by Focus Mode's LeftZone `PomodoroPanel`.
+- **Persistence**: `loadTimer(id)` / `saveTimer(id, state)` use `STORAGE_KEYS.pomodoroTimerState(id)` (per-instance key). When saving a running timer, the absolute `endTime` (epoch ms) is stored. On restore, `remaining = max(0, round((endTime - Date.now()) / 1000))` — so time elapsed while the tab was closed is correctly accounted for. State includes `sessionType` ('focus'|'break') for break mode restore.
+- **Interval**: `setInterval(..., 1000)` decrements remaining. Saves every 5 seconds for crash recovery. On reaching 0: fires completion side-effects (history save, chime, SW notification).
+- **Chime**: `chime.js` uses Web Audio API to generate a pleasant D4→G4 two-tone chime for focus complete, and a softer C5 tone for break complete. Zero external files — works offline.
+- **Auto-break**: Configurable 5/10/15 min break timer auto-offered after focus sessions complete. Controlled by `autoBreak` + `breakDuration` settings. Break phase uses muted styling (gray preset pill) and a separate Break Complete chime.
+- **Session notes**: A textarea appears in the Done state allowing the user to journal what they accomplished. Saved to history along with session metadata.
+- **Session history**: `saveSession()` writes to `localStorage['pomodoro_history']` (max 500 entries, oldest trimmed). Each entry: `{ id, preset, duration, completedAt, note, type }`.
+- **Stats** (in Settings): Session count, consecutive-day streak, today's focus minutes, and a CSS-only weekly bar chart (7 columns, accent bars). Uses `getStreak()`, `getTodayMinutes()`, `getWeeklyStats()` from utils.js.
+- **Rain sounds**: Integrated via `useRainStream` hook. Toggled from Settings (not visible on widget face). Hidden `<audio>` element managed by the hook with 3s crossfade.
+- **Focus Mode sync**: While running, `localStorage['fm_pomodoro']` is written with `{ running, remaining, total, preset, sessionType }`. `readPomodoro()` in `utils.js` reads this — used by Focus Mode's LeftZone `PomodoroPanel`. Cleared when paused or in pick phase.
 - **Custom input**: Appears when the "Custom" preset pill is clicked. Accepts decimal minutes (e.g. `1.5` → 90 seconds). `Enter` key starts the timer.
-- **`done` state**: `remaining === 0 && phase === 'timer'`. Shows "SESSION COMPLETE" label; play/pause button is disabled. Reset re-arms to the original duration.
-- `PRESETS = [{ label: '25 min', secs: 1500 }, ...]` — `secs: null` signals the "Custom" special case.
+- **Done state**: Shows "Session Complete" / "Break Complete" label (sentence case), note textarea, and action buttons. If auto-break is enabled, a "Start {X}m Break" button appears alongside "Done".
+- `PRESETS = [{ label: '25 min', secs: 1500 }, ...]` — `secs: null` signals the "Custom" special case. Defined in `constants.js`, re-exported via `utils.js` for backward compatibility with Focus Mode.
+- Sub-components extracted to keep cognitive complexity in check: `PickPhase`, `DoneState`, and the timer display is rendered inline with a clean centered countdown (no progress ring — removed per design review).
 
-**Settings:** None (no `settingsContent`).
+**Settings:** `soundEnabled: boolean`, `autoBreak: boolean`, `breakDuration: 5|10|15`, `rainSound: boolean`. All read via `useWidgetSettings(id, DEFAULT_SETTINGS)`.
 
 ---
 
@@ -648,31 +657,37 @@ dailys/
 
 **Category:** `info` · **Type:** `rss`
 
-**What it does:** Displays news headlines from RSS feeds. Two layouts: **Spotlight** (marquee card, one story at a time, swipeable/auto-advancing) and **Digest** (scrollable list of headline rows). Supports curated preset feeds and custom JSON-uploaded feeds.
+**What it does:** Displays news headlines from RSS feeds. Two layouts: **Spotlight** (marquee card, one story at a time, swipeable/auto-advancing) and **Digest** (scrollable list of headline rows). Supports curated preset feeds and custom OPML-imported feeds (OPML is the universal RSS subscription exchange format).
 
 **Files:**
 ```
 rss/
-  Widget.jsx     — main component (750 lines) + MarqueeCard, HeadlineRow, skeletons
-  Settings.jsx   — preset toggles + custom JSON upload
+  Widget.jsx      — main component (750 lines) + MarqueeCard, HeadlineRow, skeletons
+  Settings.jsx    — preset toggles + OPML import/export Data section
   config.js
-  constants.js   — VIEW_MODES, AUTO_ADVANCE_MS (20s)
-  useRss.js      — single-feed hook with cache + polling
-  useRssMulti.js — multi-feed hook (parallel fetch, merge, sort by date)
-  utils.js       — rssUrl, PRESET_FEEDS, cache, fetchFeed, relativeTime
+  constants.js    — VIEW_MODES, AUTO_ADVANCE_MS (20s)
+  opmlParser.js   — DOMParser-based OPML parser + generateOPML export + sample OPML
+  OPMLImport.jsx  — collapsible OPML import panel (File picker + Paste XML with preview)
+  useRss.js       — single-feed hook with cache + polling
+  useRssMulti.js  — multi-feed hook (parallel fetch, merge, sort by date)
+  utils.js        — rssUrl, PRESET_FEEDS, cache, fetchFeed, relativeTime
 ```
 
 **Key implementation details:**
 
-- **17 preset feeds** across 3 categories: International (BBC, Reuters, Guardian, Al Jazeera, DW, NPR, NY Times), Tech (Hacker News, The Verge, TechCrunch, Ars Technica, Wired, MIT Tech Review), Nepal (Kantipur, Republica, Kathmandu Post). Default active: `['hn', 'bbc', 'guardian']`.
+- **17 preset feeds** across 3 categories: International (BBC, Guardian, Al Jazeera, DW, NPR, NY Times), Tech (Hacker News, The Verge, TechCrunch, Ars Technica, Wired, MIT Tech Review), Nepal (Online Khabar, Setopati, Ratopati, Nagarik News, Kathmandu Post). Default active: `['hn', 'bbc', 'guardian']`.
+- **OPML Import**: Pure `DOMParser`-based parser (`opmlParser.js`) — zero dependencies. Supports nested folder flattening, URL deduplication, and URL validation (invalid URLs flagged with ⚠️). Two methods: file picker (`.opml`/`.xml`) and paste XML text. Shows a preview with per-feed checkboxes before importing. Already-existing feeds are grayed out and disabled. Merges with custom feeds, skipping duplicates.
+- **OPML Export**: `generateOPML()` creates valid OPML XML from the current custom feeds with proper XML escaping. Downloaded via `downloadFile()` blob helper.
+- **Sample OPML**: `generateSampleOPML()` produces a ready-to-use OPML with real Nepali news feeds organized in "News" and "Podcasts" folders, demonstrating the nested outline structure.
+- **JSON support removed**: Only OPML is supported for import/export. The Data section has Export OPML + Import OPML buttons, a guidance callout mentioning online OPML generators and podcast support, and footer actions (Sample OPML | Clear All).
 - **CORS proxy**: RSS feeds are CORS-blocked. The proxy at `https://undistractedme.sarojbelbase.com.np/api/rss/feed?url=...` is used in both web and extension contexts. Dev uses the Vite dev server middleware.
 - **Cache**: `localStorage['rss_cache_{feedId}']` — TTL 10 min. Cache is read instantly on mount; network fetch skipped if cache is fresh.
-- `useRssMulti`: Fetches all active feeds in `Promise.allSettled`, injects a `source` label into each item, sorts by `isoDate` descending, merges into a flat list. Each feed's cache key is `custom_${url}`.
+- `useRssMulti`: Fetches all active feeds in `Promise.allSettled`, injects a `source` label into each item, sorts by `isoDate` descending, merges into a flat list. Each feed's cache key is `custom_${url}`. Epoch counter prevents slow initial loads from overwriting faster manual refreshes.
 - **Seen-links deduplication**: `seenLinksRef` tracks links already shown; new items from a refresh are prepended without duplicating existing ones.
 - **IntersectionObserver** on a `sentinelRef` at the bottom of the Digest list triggers loading more items when scrolled into view (`visibleCount` incremented).
-- **Spotlight / MarqueeCard**: Touch/mouse drag support (`handlePointerDown/Move/Up`) with resistance (`dx / (1 + Math.abs(dx) * 0.008)`). Swipes > 40px navigate; smaller ones snap back. Auto-advance via a 20s `setInterval`. Scrolling dot pagination indicator with a "sliding" active dot.
-- **Source mode**: `'presets'` (from `PRESET_FEEDS`) and `'custom'` (from uploaded JSON) are mutually exclusive. Custom feeds are stored as `[{ label, url, active }]`.
-- **Settings**: Custom feeds uploaded via drag-and-drop or file picker (JSON format: `[{ label, url }]`). Parse errors shown inline. Existing custom feeds can be individually toggled or replaced.
+- **Spotlight / MarqueeCard**: Touch/mouse drag support (`handlePointerDown/Move/Up`) with resistance. Swipes > 40px navigate; smaller ones snap back. Auto-advance via a 20s `setInterval`. Scrolling dot pagination indicator.
+- **Source mode**: `'presets'` (from `PRESET_FEEDS`) and `'custom'` (from OPML imports) are mutually exclusive. Custom feeds are stored as `[{ label, url, active }]`.
+- **Data section** (in Settings): Follows the expense tracker pattern with `w-label` "Data" header, InfoCircle disclaimer tooltip ("Importing replaces all existing feeds..."), Export OPML + Import OPML accent buttons, guidance callout about OPML format, and footer with Sample OPML and Clear All (ConfirmButton, danger style).
 
 **Settings:** `activeFeedIds: string[]`, `customFeeds: {label, url, active}[]`, `sourceMode: 'presets'|'custom'`, `viewMode: 'marquee'|'brief'`.
 
