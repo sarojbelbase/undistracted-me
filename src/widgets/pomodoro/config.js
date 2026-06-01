@@ -1,4 +1,5 @@
 import { Widget } from './Widget';
+import { PomodoroSettings } from './Settings';
 import { StopwatchFill } from 'react-bootstrap-icons';
 
 export default {
@@ -6,7 +7,7 @@ export default {
   title: 'Pomodoro',
   category: 'planning',
   icon: StopwatchFill,
-  description: 'Focus timer (Pomodoro)',
+  description: 'Focus timer with breaks and rain sounds',
   enabled: true,
   platforms: {
     extension: { supported: true },
@@ -21,4 +22,5 @@ export default {
     xxs: { x: 0, y: 166, w: 8, h: 18 },
   },
   Component: Widget,
+  settingsComponent: PomodoroSettings,
 };

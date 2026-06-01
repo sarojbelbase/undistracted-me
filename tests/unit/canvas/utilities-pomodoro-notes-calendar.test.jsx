@@ -199,7 +199,7 @@ describe('PomodoroWidget — timer controls', () => {
     expect(document.body.textContent).toContain('24:57');
   });
 
-  it('shows SESSION COMPLETE when timer reaches 0', () => {
+  it('shows Session Complete when timer reaches 0', () => {
     render(<PomodoroWidget key="session-complete" />);
     fireEvent.click(screen.getByText('Custom'));
     const input = document.querySelector('input[type="number"]');
@@ -207,7 +207,7 @@ describe('PomodoroWidget — timer controls', () => {
     fireEvent.click(screen.getByText('Start'));
     fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(5 * 1000); });
-    expect(screen.getByText('SESSION COMPLETE')).toBeTruthy();
+    expect(screen.getByText('Session Complete')).toBeTruthy();
   });
 
   it('stores pomodoro state in localStorage when running', () => {
