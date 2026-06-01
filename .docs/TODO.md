@@ -113,13 +113,13 @@
 - [ ] **YouTube Watch Later Widget** — Shows the user's Watch Later playlist via YouTube Data API v3. `youtube.readonly` scope. Thumbnail cards with duration badge, title, channel name. Click to watch. Reuses `useGoogleAccountStore`. New widget under `src/widgets/youtube/`.
   > _Feasibility: High — API is straightforward; Watch Later playlist ID is always `WL`. Thumbnail-rich card layout matches existing media widget patterns._
 
-- [ ] **OPML Import for RSS** — Import feeds from OPML files (standard RSS feed exchange format). Two methods: file picker + paste text. Parses with built-in `DOMParser`. Preview parsed feeds before import, merge with existing (skip duplicates). Add to existing RSS widget Settings.
+- [x] **OPML Import for RSS** — Import feeds from OPML files (standard RSS feed exchange format). Two methods: file picker + paste text. Parses with built-in `DOMParser`. Preview parsed feeds before import, merge with existing (skip duplicates). Add to existing RSS widget Settings.
   > _Feasibility: High — No dependencies; `DOMParser` is native. OPML structure is simple XML. ~80 lines of import logic in RSS settings._
 
 - [x] **Website Blocker (Popup → Block)** — Block distracting sites directly from the popup. "Block this site" button next to the current tab card. Uses `chrome.declarativeNetRequest` dynamic rules. Blocked sites list in Settings with manual add/remove. Blocked page shows tasteful "This site is blocked" overlay with unblock option.
   > _Feasibility: High — declarativeNetRequest is the MV3-native approach, no host permissions needed. 5000-dynamic-rule limit is ample. New utility `siteBlocker.js` + Popup UI + Settings section._
 
-- [ ] **Enriched Pomodoro** — Phase 1: sound chime on timer end, circular progress ring during timer. Phase 2: auto-start breaks (5/10/15 min), session notes, rain-sound toggle (reuses `api/audio/rain.js`).
+- [x] **Enriched Pomodoro** — Phase 1: sound chime on timer end, circular progress ring during timer. Phase 2: auto-start breaks (5/10/15 min), session notes, rain-sound toggle (reuses `api/audio/rain.js`).
   > _Feasibility: Very High — Incremental on existing pomodoro widget. Sound already wired (`api/audio/`). Stats stored in localStorage with same pattern as events._
 
 - [x] **Expense Tracker Widget** — Simple 3-second expense logging: amount → category → done. Weekly summary with CSS bar breakdown by category. All world currencies (~50, curated), locale-aware formatting via `Intl.NumberFormat`. Export to CSV/JSON. Persists to localStorage, cap 500 entries. New widget under `src/widgets/expense/`.
