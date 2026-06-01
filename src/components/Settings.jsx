@@ -1,7 +1,7 @@
 /**
  * Settings — tabbed settings modal for Canvas mode.
  *
- * Tabs: Appearance · General · Background · Accounts
+ * Tabs: Appearance · General · Background · Accounts · Data
  *
  * Props:
  *   onClose            () => void
@@ -11,12 +11,13 @@
 
 
 import React, { useState } from 'react';
-import { XLg } from 'react-bootstrap-icons';
+import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
 import { Modal } from './ui/Modal';
 import { Appearance } from './settings/Appearance';
 import { General } from './settings/General';
 import { Background } from './settings/Background';
 import { Accounts } from './settings/Accounts';
+import { Data } from './settings/Data';
 import { CANVAS_DIVIDER } from '../theme/canvas';
 import { AppearanceIcon } from '../assets/svg/AppearanceIcon';
 import { GearCogIcon } from '../assets/svg/GearCogIcon';
@@ -46,6 +47,11 @@ const TABS = [
     id: 'accounts',
     label: 'Accounts',
     icon: (active) => <AccountPersonIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+  {
+    id: 'data',
+    label: 'Data',
+    icon: (active) => <CloudArrowUpFill size={13} color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
   },
 ];
 
@@ -168,6 +174,7 @@ export const Settings = ({
         {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
         {activeTab === 'background' && <Background />}
         {activeTab === 'accounts' && <Accounts />}
+        {activeTab === 'data' && <Data />}
       </div>
     </Modal>
   );

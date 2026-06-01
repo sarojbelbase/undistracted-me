@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ConfirmButton } from '../components/ui/ConfirmButton';
 import { TooltipBtn } from '../components/ui/TooltipBtn';
 import { Popup } from '../components/ui/Popup';
 import { createPortal } from 'react-dom';
 import {
   XLg, PlusLg, DashLg,
-  BoxArrowUpRight, Upload, Download, ArrowCounterclockwise,
+  BoxArrowUpRight,
   InfoCircleFill, GearFill, ClockFill, CalendarEventFill,
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
-import { exportSettings, importFromFile, resetSettings } from './settingsIO';
 import { CURRENT_PLATFORM } from '../constants/env';
 
 /** Returns 'full' | 'partial' | 'none' for the widget on the current platform. */
@@ -67,11 +65,11 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
       tooltipContent = [];
       const order = ['extension', 'web', 'phone'];
       const platforms = Object.keys(widget.platforms).sort((a, b) => order.indexOf(a) - order.indexOf(b));
-      
+
       platforms.forEach(plat => {
         const p = widget.platforms[plat];
         const name = plat.charAt(0).toUpperCase() + plat.slice(1);
-        
+
         if (p.supported === true) {
           tooltipContent.push(`✅ ${name}: Supported`);
         } else if (p.supported === false) {
@@ -135,9 +133,9 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
         >
           <DashLg size={12} />
         </TooltipBtn>
-        
+
         <span className="wc-stepper-count" style={{ opacity: disabled ? 0.4 : 1, visibility: (isActive || disabled) ? 'visible' : 'hidden' }}>{count}</span>
-        
+
         <TooltipBtn
           className={`wc-stepper-btn wc-stepper-btn--add${isActive ? ' wc-stepper-btn--add-active' : ''}`}
           onClick={e => { if (!disabled) onAdd(e); }}
@@ -153,8 +151,6 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
 
 // ─── Main catalog ──────────────────────────────────────────────────────────────
 export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onClose }) => {
-  const [importError, setImportError] = useState(null);
-  const [importOk, setImportOk] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [phase, setPhase] = useState('entering'); // entering → open → leaving
 
@@ -188,13 +184,6 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     if (last) onRemoveInstance(last.id);
   };
 
-  const handleImport = () => {
-    importFromFile((err) => {
-      if (err) { setImportError(String(err)); setTimeout(() => setImportError(null), 3500); }
-      else { setImportOk(true); setTimeout(() => setImportOk(false), 2000); }
-    });
-  };
-
   const filteredWidgets = activeTab === 'all'
     ? WIDGET_REGISTRY
     : WIDGET_REGISTRY.filter(w => w.category === activeTab);
@@ -220,23 +209,6 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         <div className="wc-header">
           <div className="wc-header-left">
             <span className="wc-title">Widgets</span>
-          </div>
-
-          <div className="wc-header-center">
-            <TooltipBtn className="wc-pill-btn" onClick={exportSettings} tooltip="Export settings">
-              <Upload size={11} /><span>Export</span>
-            </TooltipBtn>
-            <TooltipBtn className="wc-pill-btn" onClick={handleImport} tooltip="Import settings">
-              <Download size={11} /><span>{importOk ? 'Done!' : 'Import'}</span>
-            </TooltipBtn>
-            <ConfirmButton
-              onConfirm={resetSettings}
-              label="Reset settings"
-              className="wc-pill-btn"
-              timeout={4000}
-            >
-              <ArrowCounterclockwise size={11} /><span>Reset</span>
-            </ConfirmButton>
           </div>
 
           <div className="wc-header-right">
@@ -308,10 +280,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
           }
         </ul>
         <div className="wc-footer">
-          {importError
-            ? <span className="wc-footer-err">{importError}</span>
-            : <span className="wc-footer-hint">+ Add &nbsp;·&nbsp; − Remove from Canvas</span>
-          }
+          <span className="wc-footer-hint">+ Add &nbsp;·&nbsp; − Remove from Canvas</span>
           <a
             href="https://buymemomo.com/sarojbelbase"
             target="_blank"

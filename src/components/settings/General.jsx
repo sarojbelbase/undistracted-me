@@ -8,17 +8,7 @@ import { useSettingsStore } from '../../store';
 import { CANVAS_DIVIDER } from '../../theme/canvas';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
-import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 import { BlockedSites } from './BlockedSites';
-
-// Icon map for each notification type
-const NOTIF_ICONS = {
-  events: <CalendarEvent size={13} />,
-  occasion: <Gift size={13} />,
-  countdown: <HourglassSplit size={13} />,
-  pomodoro: <AlarmFill size={13} />,
-  lookaway: <Eye size={13} />,
-};
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -28,6 +18,14 @@ const SectionLabel = ({ children }) => (
     {children}
   </p>
 );
+
+const NOTIF_ICONS = {
+  events: <CalendarEvent size={13} />,
+  occasion: <Gift size={13} />,
+  countdown: <HourglassSplit size={13} />,
+  pomodoro: <AlarmFill size={13} />,
+  lookaway: <Eye size={13} />,
+};
 
 const Toggle = ({ checked, onChange }) => (
   <button
@@ -60,7 +58,6 @@ export const General = ({ onPreviewLookAway }) => {
     lookAwayInterval, setLookAwayInterval,
     notificationsEnabled, setNotificationsEnabled,
     notificationTypes, setNotificationType,
-    syncEnabled, setSyncEnabled,
   } = useSettingsStore();
 
   return (
@@ -184,37 +181,6 @@ export const General = ({ onPreviewLookAway }) => {
         )}
       </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
-
-      {/* ── Cross-Device Sync ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Header row */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <SectionLabel>Cross-Device Sync</SectionLabel>
-            <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
-              Mirror settings, widgets, and events across your devices
-            </p>
-          </div>
-          <Toggle checked={syncEnabled} onChange={setSyncEnabled} />
-        </div>
-
-        {/* Status badge */}
-        {syncEnabled && (
-          <div style={{
-            padding: '8px 12px', borderRadius: 10,
-            background: 'var(--panel-bg)',
-            border: '1px solid var(--card-border)',
-          }}>
-            <SyncStatusBadge />
-          </div>
-        )}
-      </div>
-
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
-
       {/* ── Blocked Sites ── */}
       <BlockedSites />
 
@@ -223,7 +189,6 @@ export const General = ({ onPreviewLookAway }) => {
 
       {/* ── Notifications ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
           <div>
             <SectionLabel>Notifications</SectionLabel>
@@ -234,7 +199,6 @@ export const General = ({ onPreviewLookAway }) => {
           <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} />
         </div>
 
-        {/* Per-type rows */}
         {notificationsEnabled && (
           <div style={{
             display: 'flex', flexDirection: 'column',
@@ -256,7 +220,6 @@ export const General = ({ onPreviewLookAway }) => {
                     transition: 'background 0.14s',
                   }}
                 >
-                  {/* Icon badge */}
                   <div style={{
                     width: 26, height: 26, borderRadius: 7, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -269,7 +232,6 @@ export const General = ({ onPreviewLookAway }) => {
                     {NOTIF_ICONS[id]}
                   </div>
 
-                  {/* Label + description */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{
                       fontSize: 11.5, fontWeight: 600, lineHeight: 1.2,
@@ -283,7 +245,6 @@ export const General = ({ onPreviewLookAway }) => {
                     </p>
                   </div>
 
-                  {/* Toggle */}
                   <Toggle
                     checked={active}
                     onChange={(v) => setNotificationType(id, v)}
@@ -292,6 +253,12 @@ export const General = ({ onPreviewLookAway }) => {
               );
             })}
           </div>
+        )}
+
+        {!notificationsEnabled && (
+          <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', lineHeight: '1.5', textAlign: 'center' }}>
+            Enable notifications above to choose which alerts you want to receive.
+          </p>
         )}
       </div>
 
