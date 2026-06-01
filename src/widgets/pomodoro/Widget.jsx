@@ -4,6 +4,7 @@ import {
 } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { PillButton } from '../../components/ui/PillButton';
+import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { sendToServiceWorker } from '../../utilities/chrome';
 import { useRainStream } from '../../hooks/useRainStream';
 import { useWidgetSettings } from '../useWidgetSettings';
@@ -73,14 +74,14 @@ const PickPhase = React.memo(({
   showCustom, customInput, onCustomInputChange, onCustomStart,
   onPresetClick, onRemove, settingsContent,
 }) => (
-  <BaseWidget className="p-3 flex flex-col items-center justify-center gap-3" onRemove={onRemove} settingsContent={settingsContent} settingsTitle="Pomodoro">
+  <BaseWidget className="p-3 flex flex-col items-center justify-center gap-3" onRemove={onRemove} settingsContent={settingsContent} settingsTitle="Pomodoro Settings">
     <div className="text-center">
       <p className="w-heading">Focus Timer</p>
       <p className="w-muted mt-0.5">Pick a duration</p>
     </div>
 
     <div className="flex flex-col gap-2 w-full items-center">
-      <div className="flex gap-1.5 justify-center flex-wrap">
+      <div className="pom-preset-row flex gap-1.5 justify-center flex-wrap">
         {PRESETS.map((p) => (
           <PillButton
             key={p.label}
@@ -322,16 +323,20 @@ export const Widget = ({ id, onRemove }) => {
   // TIMER / BREAK PHASE
   // ═══════════════════════════════════════════════════════════════════════
   return (
-    <BaseWidget className="p-3 flex flex-col gap-1" onRemove={onRemove} settingsContent={settingsContent} settingsTitle="Pomodoro">
+    <BaseWidget className="p-3 flex flex-col gap-1" onRemove={onRemove} settingsContent={settingsContent} settingsTitle="Pomodoro Settings">
       {/* NOSONAR: ambient rain audio has no speech/dialogue content */}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio ref={rainAudioRef} loop preload="none" />
 
       {/* ── Top row: back + preset label ─────────────────────────────── */}
       <div className="flex items-center justify-between w-full shrink-0">
-        <button onClick={backToPick} className="pom-circle-btn" aria-label="Back to timer selection">
+        <ConfirmButton
+          onConfirm={backToPick}
+          label="Back to timer selection"
+          className="pom-circle-btn"
+        >
           <ArrowLeft size={12} />
-        </button>
+        </ConfirmButton>
         <span
           className="pom-preset-pill"
           style={isBreak ? {

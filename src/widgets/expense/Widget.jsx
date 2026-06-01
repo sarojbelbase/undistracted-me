@@ -161,78 +161,75 @@ export const Widget = ({ id, onRemove }) => {
           <div ref={heroRef} className="exp-card__hero">
             <span
               className="exp-card__amount"
-              style={amountFontSize ? { fontSize: amountFontSize } : undefined}
+              style={{
+                ...(amountFontSize ? { fontSize: amountFontSize } : undefined),
+                ...(isEmpty ? { color: 'var(--w-ink-5)' } : undefined),
+              }}
             >
               {amountText}
             </span>
-            <span className="exp-card__period">{periodLabel}</span>
+            <span className="exp-card__period">
+              {isEmpty ? 'Start tracking your expenses' : periodLabel}
+            </span>
           </div>
 
-          {/* ── Empty / No-budget prompt ─────────────────────────────── */}
-          {budget === null && (
-            <div className="exp-card__no-budget">
-              <span className="exp-card__no-budget-text">
-                {isEmpty
-                  ? 'Add your first expense to get started'
-                  : 'Set a budget to track your spending'}
-              </span>
+          {/* ── Progress bar (always visible, greyed when no budget) ── */}
+          <div className="exp-card__progress">
+            <div
+              className="exp-card__progress-track"
+              style={budget === null ? { background: 'rgba(0,0,0,0.04)' } : undefined}
+            >
+              <div
+                className="exp-card__progress-fill"
+                style={{
+                  width: budget === null ? '0%' : `${barWidth}%`,
+                  background: budget === null ? 'transparent' : overBudget ? 'var(--w-danger)' : 'var(--w-ink-1)',
+                }}
+              />
             </div>
-          )}
+            <span
+              className="exp-card__progress-pct"
+              style={{ color: budget === null ? 'var(--w-ink-6)' : overBudget ? 'var(--w-danger)' : undefined }}
+            >
+              {budget === null ? '—' : `${pct}%`}
+            </span>
+          </div>
 
-          {/* ── Progress bar ─────────────────────────────────────────── */}
-          {budget !== null && (
-            <div className="exp-card__progress">
-              <div className="exp-card__progress-track">
-                <div
-                  className="exp-card__progress-fill"
-                  style={{
-                    width: `${barWidth}%`,
-                    background: overBudget ? 'var(--w-danger)' : 'var(--w-ink-1)',
-                  }}
-                />
-              </div>
+          {/* ── Budget row (always visible) ────────────────────────── */}
+          <div ref={budgetRowRef} className="exp-card__budget-row">
+            <div className="exp-card__budget-side" style={{ flex: budgetFlex }}>
+              <span className="exp-card__budget-side-label">
+                <CashStack className="exp-card__budget-icon" />
+                Budget
+              </span>
               <span
-                className="exp-card__progress-pct"
-                style={{ color: overBudget ? 'var(--w-danger)' : undefined }}
+                className="exp-card__budget-side-amount"
+                style={{
+                  fontSize: budgetFontSize ?? 13,
+                  ...(budget === null ? { color: 'var(--w-ink-5)' } : undefined),
+                }}
               >
-                {pct}%
+                {budget === null ? 'Not set' : budgetText}
               </span>
             </div>
-          )}
-
-          {/* ── Budget row ─────────────────────────────────────────── */}
-          {budget !== null && (
-            <div ref={budgetRowRef} className="exp-card__budget-row">
-              <div className="exp-card__budget-side" style={{ flex: budgetFlex }}>
-                <span className="exp-card__budget-side-label">
-                  <CashStack className="exp-card__budget-icon" />
-                  Budget
-                </span>
-                <span
-                  className="exp-card__budget-side-amount"
-                  style={budgetFontSize ? { fontSize: budgetFontSize } : undefined}
-                >
-                  {budgetText}
-                </span>
-              </div>
-              <span className="exp-card__budget-divider" />
-              <div className="exp-card__budget-side" style={{ flex: leftFlex }}>
-                <span className="exp-card__budget-side-label">
-                  <CheckCircleFill className="exp-card__budget-icon" />
-                  Left
-                </span>
-                <span
-                  className="exp-card__budget-side-amount"
-                  style={{
-                    ...(leftFontSize ? { fontSize: leftFontSize } : undefined),
-                    ...(overBudget ? { color: 'var(--w-danger)' } : undefined),
-                  }}
-                >
-                  {leftText}
-                </span>
-              </div>
+            <span className="exp-card__budget-divider" />
+            <div className="exp-card__budget-side" style={{ flex: leftFlex }}>
+              <span className="exp-card__budget-side-label">
+                <CheckCircleFill className="exp-card__budget-icon" />
+                Left
+              </span>
+              <span
+                className="exp-card__budget-side-amount"
+                style={{
+                  fontSize: leftFontSize ?? 13,
+                  ...(overBudget ? { color: 'var(--w-danger)' } : undefined),
+                  ...(budget === null ? { color: 'var(--w-ink-5)' } : undefined),
+                }}
+              >
+                {budget === null ? 'Not set' : leftText}
+              </span>
             </div>
-          )}
+          </div>
 
 
         </div>

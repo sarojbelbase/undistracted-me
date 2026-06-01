@@ -21,7 +21,13 @@
   color: var(--w-accent);
 }
 
-// ── Preset label pill ───────────────────────────────────────────────────────
+// ── Preset pill row (override shared PillButton padding) ────────────────────
+
+.pom-preset-row button {
+  padding: 0.375rem 0.75rem; // 6px × 12px — more breathing room than PillButton's px-2.5 py-0.5
+}
+
+// ── Preset label pill (active state badge during timer) ─────────────────────
 
 .pom-preset-pill {
   font-size: 0.75rem;

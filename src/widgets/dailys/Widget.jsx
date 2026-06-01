@@ -5,6 +5,7 @@ import { QUOTES } from "../../data/quotes";
 import { FACTS } from "../../data/facts";
 import { useDailyJoke } from "./useDailyJoke";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { Toggle } from "../../components/ui/Toggle";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
@@ -161,8 +162,12 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { mode: "quote" });
+  const [settings, updateSetting] = useWidgetSettings(id, {
+    mode: "quote",
+    autoSlide: true,
+  });
   const mode = settings.mode ?? "quote";
+  const autoSlide = settings.autoSlide ?? true;
 
   const { joke, loading } = useDailyJoke();
   const quote = QUOTES[getDailyIndex(QUOTES.length)];
@@ -203,17 +208,36 @@ export const Widget = ({ id, onRemove }) => {
   }, [mode, updateSetting]);
 
   useEffect(() => {
+    if (!autoSlide) return;
     const timer = setInterval(onNext, 30_000);
     return () => clearInterval(timer);
-  }, [onNext]);
+  }, [onNext, autoSlide]);
 
   const settingsContent = (
-    <SegmentedControl
-      label="Mode"
-      options={MODE_OPTIONS}
-      value={mode}
-      onChange={(v) => updateSetting("mode", v)}
-    />
+    <div className="flex flex-col gap-4">
+      <SegmentedControl
+        label="Mode"
+        options={MODE_OPTIONS}
+        value={mode}
+        onChange={(v) => updateSetting("mode", v)}
+      />
+      <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', marginTop: -4, marginBottom: -4 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <span className="w-label">Auto-slide</span>
+          <p style={{
+            fontSize: '10.5px', color: 'var(--w-ink-5)',
+            marginTop: -4, lineHeight: 1.4,
+          }}>
+            Cycles through quote, joke, and fact every 30 seconds
+          </p>
+        </div>
+        <Toggle
+          checked={autoSlide}
+          onChange={(v) => updateSetting("autoSlide", v)}
+        />
+      </div>
+    </div>
   );
 
   return (
