@@ -65,6 +65,38 @@ const faviconWaterfall = (): Plugin => ({
   },
 });
 
+/**
+ * Dev-only: rewrites any /*.html request to /entries/*.html so every
+ * CRXJS entry point is accessible at the root without the /entries/ prefix.
+ *
+ *   /index.html   → /entries/index.html
+ *   /popup.html   → /entries/popup.html
+ *   /blocked.html → /entries/blocked.html
+ *   /              → /entries/index.html
+ */
+const rootRedirect = (): Plugin => ({
+  name: "root-redirect",
+  configureServer(server) {
+    server.middlewares.use("/", (req, res, next) => {
+      if (req.method !== "GET") return next();
+      const url = req.url ?? "";
+      // / → index
+      if (url === "/") {
+        res.writeHead(302, { Location: "/entries/index.html" });
+        res.end();
+        return;
+      }
+      // /anything.html → /entries/anything.html
+      if (url.endsWith(".html") && !url.startsWith("/entries/")) {
+        res.writeHead(302, { Location: `/entries${url}` });
+        res.end();
+        return;
+      }
+      next();
+    });
+  },
+});
+
 /** Reads the full request body as a parsed JSON object. */
 const readBody = (
   req: import("node:http").IncomingMessage,
@@ -333,6 +365,7 @@ export default defineConfig(({ mode }) => {
       // @ts-ignore
       crx({ manifest: dynamicManifest }),
       faviconWaterfall(),
+      rootRedirect(),
       googleTokenProxy(),
       suggestProxy(),
       rssProxy(),
