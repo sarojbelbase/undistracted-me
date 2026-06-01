@@ -67,6 +67,8 @@ export const BlockedSites = () => {
 
   const TIMER_PRESETS = [{ label: '30m', mins: 30 }, { label: '1h', mins: 60 }, { label: '2h', mins: 120 }, { label: '4h', mins: 240 }, { label: '8h', mins: 480 }];
 
+  const pluralSuffix = sites.length === 1 ? '' : 's';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
@@ -77,7 +79,7 @@ export const BlockedSites = () => {
           <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
             {sites.length === 0
               ? 'No sites blocked. Use the popup to block distracting sites.'
-              : `${sites.length} site${sites.length !== 1 ? 's' : ''} blocked`}
+              : `${sites.length} site${pluralSuffix} blocked`}
           </p>
         </div>
       </div>

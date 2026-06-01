@@ -24,9 +24,8 @@ export function endOfDay(offset = 0) {
 export function startOfWeek(weekStartsOn = 'monday') {
   const d = new Date();
   const day = d.getDay();
-  const off = weekStartsOn === 'monday'
-    ? (day === 0 ? 6 : day - 1)
-    : day;
+  const mondayOffset = day === 0 ? 6 : day - 1;
+  const off = weekStartsOn === 'monday' ? mondayOffset : day;
   d.setDate(d.getDate() - off);
   d.setHours(0, 0, 0, 0);
   return d.getTime();

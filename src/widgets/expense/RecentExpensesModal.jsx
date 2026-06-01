@@ -10,11 +10,8 @@ import { MONTHS, formatDate, getPeriodBounds, getPeriodLabel } from './dates';
 
 function dailyTotals(expenses, start, end) {
   const map = {};
-  const cursor = new Date(start);
-  while (cursor <= end) {
-    const key = cursor.toDateString();
-    map[key] = 0;
-    cursor.setDate(cursor.getDate() + 1);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { // NOSONAR
+    map[d.toDateString()] = 0;
   }
   expenses.forEach((e) => {
     if (e.createdAt >= start.getTime() && e.createdAt <= end.getTime()) {
@@ -105,8 +102,8 @@ function Sparkline({ data, width = 280, height = 80, accent = 'var(--w-accent)' 
   if (!data || data.length < 2) {
     // Single point or empty: tiny dot or nothing
     return (
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="flex-shrink-0">
-        {data && data.length === 1 && data[0].value > 0 && (
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0">
+        {data?.length === 1 && data[0].value > 0 && (
           <circle cx={width / 2} cy={height / 2} r="3" fill={accent} opacity="0.6" />
         )}
       </svg>
@@ -170,7 +167,7 @@ function Sparkline({ data, width = 280, height = 80, accent = 'var(--w-accent)' 
   const gradientId = `spark-grad-${accent.replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="flex-shrink-0">
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0">
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={accent} stopOpacity="0.25" />
@@ -273,7 +270,7 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
         <div>
           <p className="text-[15px] font-semibold exp-modal__title">Recent Expenses</p>
           <p className="text-[11px] font-semibold mt-0.5 exp-modal__subtitle">
-            {expenses.length} expense{expenses.length !== 1 ? 's' : ''}
+            {expenses.length} expense{expenses.length === 1 ? '' : 's'}
           </p>
         </div>
         <button
@@ -303,7 +300,7 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
               <button
                 type="button"
                 onClick={() => setPeriodOffset(o => canGoNext ? o + 1 : o)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors exp-modal__period-arrow ${!canGoNext ? 'opacity-30 pointer-events-none' : ''}`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors exp-modal__period-arrow ${canGoNext ? '' : 'opacity-30 pointer-events-none'}`}
                 aria-label="Next period"
                 disabled={!canGoNext}
               >
@@ -318,7 +315,7 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
 
             {/* Period total */}
             <p className="text-center text-[10px] font-semibold mt-1 exp-modal__period-total">
-              {formatAmount(filterTotal, currency)} this {timeRange === 'week' ? 'week' : timeRange === 'month' ? 'month' : 'year'}
+              {formatAmount(filterTotal, currency)} this {timeRange}
             </p>
           </div>
         </div>
@@ -338,13 +335,13 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
         {hasAny && !hasFiltered && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <p className="text-[12px] font-semibold exp-modal__empty-text">
-              No expenses in this {timeRange === 'week' ? 'week' : timeRange === 'month' ? 'month' : 'year'}.
+              No expenses in this {timeRange}.
             </p>
           </div>
         )}
 
         {/* ── YEAR: month-grouped collapsible sections ─────────────────────── */}
-        {timeRange === 'year' && monthGroups && monthGroups.map(([key, month]) => {
+        {timeRange === 'year' && monthGroups?.map(([key, month]) => {
           const isOpen = expandedMonths.has(key);
           let lastDate = null;
 

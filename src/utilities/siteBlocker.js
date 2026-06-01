@@ -25,10 +25,10 @@ const NEVER_BLOCK_PROTOCOLS = [
 ];
 
 /** Domains that should never be blocked. */
-const NEVER_BLOCK_DOMAINS = [
+const NEVER_BLOCK_DOMAINS = new Set([
   'localhost', '127.0.0.1', '[::1]',
   'undistractedme.sarojbelbase.com.np',
-];
+]);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export const extractDomain = (urlOrDomain) => {
       return null;
     }
     const hostname = url.hostname.replace(/^www\./, '').toLowerCase();
-    if (NEVER_BLOCK_DOMAINS.includes(hostname)) return null;
+    if (NEVER_BLOCK_DOMAINS.has(hostname)) return null;
     return hostname || null;
   } catch {
     return null;
@@ -98,8 +98,8 @@ const writeBlockedSites = (domains) => {
  */
 const buildRule = (domain, ruleId) => {
   const baseUrl = isExtension()
-    ? chrome.runtime.getURL('/blocked.html')
-    : '/blocked.html';
+    ? chrome.runtime.getURL('/entries/blocked.html')
+    : '/entries/blocked.html';
   // Pass the blocked domain as a query param — DNR strips document.referrer
   const blockedUrl = baseUrl + '?d=' + encodeURIComponent(domain);
 

@@ -288,8 +288,8 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
         setExpenses(load(widgetId));
       }
     };
-    window.addEventListener('expense_data_changed', handler);
-    return () => window.removeEventListener('expense_data_changed', handler);
+    globalThis.addEventListener('expense_data_changed', handler); // NOSONAR
+    return () => globalThis.removeEventListener('expense_data_changed', handler); // NOSONAR
   }, [widgetId]);
 
   return {

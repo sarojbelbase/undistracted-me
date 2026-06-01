@@ -44,17 +44,58 @@ let notifConfig = {
   types: { events: true, countdown: true, pomodoro: true, lookaway: true },
 };
 
+/**
+ * Restore media sessions from storage, validating that each tab still exists
+ * AND its content script is reachable.  Zombie content scripts (extension
+ * reloaded during dev, tab never refreshed) cannot receive messages from the
+ * new SW, so chrome.tabs.sendMessage fails — we drop those sessions.
+ */
+async function _restoreMediaSessions(stored) {
+  if (!stored.length) return;
+  try {
+    const existingTabs = await chrome.tabs.query({});
+    const existingIds = new Set(existingTabs.map(t => t.id));
+    // Keep only entries whose tabs still exist
+    let valid = stored.filter(s => existingIds.has(s.tabId));
+
+    // Ping each valid tab's content script — if it's unreachable
+    // (zombie from a previous extension reload), drop the session.
+    const pingResults = await Promise.allSettled(
+      valid.map(s =>
+        chrome.tabs.sendMessage(s.tabId, { type: 'MEDIA_PING' }).then(() => true)
+      ),
+    );
+    valid = valid.filter((_, i) => pingResults[i].status === 'fulfilled');
+
+    if (valid.length < stored.length) {
+      chromeSessions = {};
+      chromeSessionOrder = [];
+      for (const s of valid) {
+        chromeSessions[s.tabId] = s;
+        chromeSessionOrder.push(s.tabId);
+      }
+      _persistMediaSessions();
+    } else {
+      for (const s of valid) {
+        chromeSessions[s.tabId] = s;
+        chromeSessionOrder.push(s.tabId);
+      }
+    }
+  } catch {
+    // tabs.query may fail early in SW startup — keep all stored entries
+    for (const s of stored) {
+      chromeSessions[s.tabId] = s;
+      chromeSessionOrder.push(s.tabId);
+    }
+  }
+}
+
 async function loadNotifConfig() {
   try {
     const result = await chrome.storage.local.get(['notif_enabled', 'notif_types', 'chrome_media_sessions']);
     if (result.notif_enabled !== undefined) notifConfig.enabled = result.notif_enabled;
     if (result.notif_types) notifConfig.types = { ...notifConfig.types, ...result.notif_types };
-    // Repopulate in-memory media sessions from storage so GET_CHROME_MEDIA
-    // has data immediately after SW is woken without waiting for content scripts.
-    for (const s of result.chrome_media_sessions ?? []) {
-      chromeSessions[s.tabId] = s;
-      chromeSessionOrder.push(s.tabId);
-    }
+    await _restoreMediaSessions(result.chrome_media_sessions ?? []);
   } catch { /* storage unavailable */ }
 }
 
@@ -122,7 +163,7 @@ async function checkOccasionReminders() {
   if (todayHour < 9) return;
 
   let all = [];
-  let firedSet = new Set();
+  let firedSet; // NOSONAR — reassigned in try block, initial value never read
   try {
     const result = await chrome.storage.local.get(['contacts_birthdays_cache', 'occasions_manual', 'occasions_fired']);
     all = [
@@ -280,7 +321,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
   // ── Site blocker auto-unblock alarm ──────────────────────────────────────
   if (alarm.name.startsWith('UM_UNBLOCK_')) {
-    const domain = alarm.name.replace('UM_UNBLOCK_', '').replace(/_/g, '.');
+    const domain = alarm.name.replace('UM_UNBLOCK_', '').replaceAll('_', '.');
     // Remove the DNR rule directly — we can't use unblockSite() here because
     // it reads localStorage which is unavailable in the service worker.
     try {
@@ -288,7 +329,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       const targetId = existing.find(
         r => r.id >= 1000 && (
           r.condition?.urlFilter === `||${domain}/` ||
-          r.condition?.regexFilter?.includes(domain.replace(/\./g, '\\.'))
+          r.condition?.regexFilter?.includes(domain.replaceAll('.', '.'))
         )
       )?.id;
       if (targetId) {
@@ -520,10 +561,10 @@ const RSS_QUEUE_MAX = 20;
  * avoid ES module import issues in the MV3 service worker build).
  */
 function _rssGetTag(xml, tag) {
-  const re = new RegExp('<' + tag + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + tag + '>', 'i');
+  const re = new RegExp(String.raw`<${tag}(?:\s[^>]*)?>([\s\S]*?)<\/${tag}>`, 'i');
   const m = re.exec(xml);
   if (!m) return '';
-  return m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+  return m[1].replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').trim();
 }
 
 function _rssParseItems(xml, fallback) {
@@ -535,22 +576,30 @@ function _rssParseItems(xml, fallback) {
     const b = m[1];
     const title = _rssGetTag(b, 'title');
     if (!title) continue;
-    let link = '';
-    if (isAtom) {
-      const lm = /<link[^>]+href=["']([^"']+)["']/i.exec(b);
-      link = lm ? lm[1] : _rssGetTag(b, 'id');
-    } else {
-      link = b.match(/<link>([\s\S]*?)<\/link>/i)?.[1]?.trim() || _rssGetTag(b, 'guid');
-    }
-    const dateStr = isAtom
-      ? (_rssGetTag(b, 'updated') || _rssGetTag(b, 'published'))
-      : (_rssGetTag(b, 'pubDate') || _rssGetTag(b, 'dc:date'));
-    let isoDate = '';
-    if (dateStr) { try { isoDate = new Date(dateStr).toISOString(); } catch { /**/ } }
-    const source = _rssGetTag(b, isAtom ? 'name' : 'dc:creator') || _rssGetTag(b, 'author') || fallback;
-    items.push({ title, link: (link || '').replace(/&amp;/g, '&').trim(), pubDate: dateStr, isoDate, source });
+    const link = _rssExtractLink(b, isAtom);
+    const { dateStr, isoDate } = _rssExtractDate(b, isAtom);
+    const sourceTag = isAtom ? 'name' : 'dc:creator';
+    const source = _rssGetTag(b, sourceTag) || _rssGetTag(b, 'author') || fallback;
+    items.push({ title, link: (link || '').replaceAll('&amp;', '&').trim(), pubDate: dateStr, isoDate, source });
   }
   return items;
+}
+
+function _rssExtractLink(b, isAtom) {
+  if (isAtom) {
+    const lm = /<link[^>]+href=["']([^"']+)["']/i.exec(b);
+    return lm ? lm[1] : _rssGetTag(b, 'id');
+  }
+  return /<link>([\s\S]*?)<\/link>/i.exec(b)?.[1]?.trim() || _rssGetTag(b, 'guid');
+}
+
+function _rssExtractDate(b, isAtom) {
+  const dateStr = isAtom
+    ? (_rssGetTag(b, 'updated') || _rssGetTag(b, 'published'))
+    : (_rssGetTag(b, 'pubDate') || _rssGetTag(b, 'dc:date'));
+  let isoDate = '';
+  if (dateStr) { try { isoDate = new Date(dateStr).toISOString(); } catch { /**/ } }
+  return { dateStr, isoDate };
 }
 
 async function runRssPrefetch() {
@@ -641,7 +690,7 @@ function handleLookawaySync(msg) {
 function handleMediaSessionUpdate(msg, sender) {
   const tabId = sender?.tab?.id ?? null;
   if (tabId === null) return;
-  chromeSessions[tabId] = { ...msg.data, tabId };
+  chromeSessions[tabId] = { ...msg.data, tabId, lastUpdated: Date.now() };
   chromeSessionOrder = [
     tabId,
     ...chromeSessionOrder.filter((id) => id !== tabId),
@@ -682,21 +731,18 @@ function handleChromeMediaAction(msg) {
 /** Schedule alarms to auto-unblock sites when their timers expire.
  *  Reads from chrome.storage.local (not localStorage — SW has no DOM access). */
 async function scheduleUnblockAlarms() {
-  try {
-    const { blocked_sites } = await chrome.storage.local.get('blocked_sites');
-    const sites = blocked_sites || [];
-    const now = Date.now();
-    for (const site of sites) {
-      if (!site.domain || !site.blockedUntil) continue;
-      const delayMin = Math.max(0.1, (site.blockedUntil - now) / 60000);
-      const alarmName = 'UM_UNBLOCK_' + site.domain.replace(/\./g, '_');
-      // Only create if not already scheduled
-      const existing = await chrome.alarms.get(alarmName);
-      if (!existing) {
-        chrome.alarms.create(alarmName, { delayInMinutes: delayMin });
-      }
+  const { blocked_sites } = await chrome.storage.local.get('blocked_sites');
+  const sites = blocked_sites || [];
+  const now = Date.now();
+  for (const site of sites) {
+    if (!site.domain || !site.blockedUntil) continue;
+    const delayMin = Math.max(0.1, (site.blockedUntil - now) / 60000);
+    const alarmName = 'UM_UNBLOCK_' + site.domain.replaceAll('.', '_');
+    const existing = await chrome.alarms.get(alarmName);
+    if (!existing) {
+      chrome.alarms.create(alarmName, { delayInMinutes: delayMin });
     }
-  } catch (e) { /* ignore */ }
+  }
 }
 
 // React to blocked_sites changes from the popup/newtab page (which write to
@@ -719,90 +765,93 @@ async function handleBlockSite(msg, sendResponse) {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "POMODORO_DONE") {
-    handlePomodoroDone(msg);
-    return;
+/**
+ * Validates that each session's tab still exists and its content script is
+ * reachable (not a zombie from a previous extension reload).  Cleans up
+ * invalid entries from memory and storage, then sends the valid list.
+ * Falls back to reading from storage when the input list is empty.
+ */
+async function _validateAndSendSessions(candidates, sendResponse) {
+  // If we have live candidates, validate them.  Otherwise read from storage.
+  let sessions = candidates;
+  if (!sessions.length) {
+    const result = await chrome.storage.local.get('chrome_media_sessions');
+    sessions = result.chrome_media_sessions ?? [];
   }
-  if (msg.type === "COUNTDOWN_DONE") {
-    handleCountdownDone(msg);
-    return;
-  }
-  if (msg.type === "EVENTS_UPDATED" && msg.events) {
-    handleEventsUpdated(msg);
-    return;
-  }
-  if (msg.type === "LOOKAWAY_SYNC") {
-    handleLookawaySync(msg);
-    return;
-  }
-  if (msg.type === "NOTIFICATIONS_SYNC") {
+
+  if (!sessions.length) { sendResponse([]); return; }
+
+  let valid = sessions;
+  try {
+    const existingTabs = await chrome.tabs.query({});
+    const existingIds = new Set(existingTabs.map(t => t.id));
+    valid = sessions.filter(s => existingIds.has(s.tabId));
+
+    // Ping each valid tab's content script — unreachable = zombie, drop it.
+    if (valid.length) {
+      const pings = await Promise.allSettled(
+        valid.map(s =>
+          chrome.tabs.sendMessage(s.tabId, { type: 'MEDIA_PING' }).then(() => true)
+        ),
+      );
+      valid = valid.filter((_, i) => pings[i].status === 'fulfilled');
+    }
+
+    if (valid.length < sessions.length) {
+      // Rebuild in-memory state from only the still-valid sessions
+      chromeSessions = {};
+      chromeSessionOrder = [];
+      for (const s of valid) {
+        chromeSessions[s.tabId] = s;
+        chromeSessionOrder.push(s.tabId);
+      }
+      _persistMediaSessions();
+    }
+  } catch { /* tabs.query failed — return as-is */ }
+
+  sendResponse(valid);
+}
+
+// Message handler dispatch table
+const MESSAGE_HANDLERS = {
+  POMODORO_DONE: (msg) => handlePomodoroDone(msg),
+  COUNTDOWN_DONE: (msg) => handleCountdownDone(msg),
+  EVENTS_UPDATED: (msg) => { if (msg.events) handleEventsUpdated(msg); },
+  LOOKAWAY_SYNC: (msg) => handleLookawaySync(msg),
+  NOTIFICATIONS_SYNC: (msg) => {
     if (msg.enabled !== undefined) notifConfig.enabled = msg.enabled;
     if (msg.types) notifConfig.types = { ...notifConfig.types, ...msg.types };
     chrome.storage.local.set({ notif_enabled: notifConfig.enabled, notif_types: notifConfig.types });
-    return;
-  }
-  if (msg.type === "LOOKAWAY_FIRE") {
-    chrome.storage.local.set({ lookaway_due: Date.now() });
-    return;
-  }
-  if (msg.type === "MEDIA_SESSION_UPDATE") {
-    handleMediaSessionUpdate(msg, sender);
-    return;
-  }
-  if (msg.type === "MEDIA_SESSION_CLEAR") {
-    handleMediaSessionClear(sender);
-    return;
-  }
-  if (msg.type === "GET_CHROME_MEDIA") {
+  },
+  LOOKAWAY_FIRE: () => chrome.storage.local.set({ lookaway_due: Date.now() }),
+  MEDIA_SESSION_UPDATE: (msg, sender) => handleMediaSessionUpdate(msg, sender),
+  MEDIA_SESSION_CLEAR: (_msg, sender) => handleMediaSessionClear(sender),
+  GET_CHROME_MEDIA: (_msg, _sender, sendResponse) => {
     const live = chromeSessionOrder.map((id) => chromeSessions[id]).filter(Boolean);
-    if (live.length > 0) {
-      sendResponse(live);
-      return true;
-    }
-    // SW was just woken — in-memory state is empty. Read from storage so the
-    // widget gets data immediately without waiting for the next content-script poll.
-    chrome.storage.local.get('chrome_media_sessions', (result) => {
-      const stored = result.chrome_media_sessions ?? [];
-      // Repopulate in-memory so subsequent calls are instant.
-      for (const s of stored) {
-        chromeSessions[s.tabId] = s;
-        if (!chromeSessionOrder.includes(s.tabId)) chromeSessionOrder.push(s.tabId);
-      }
-      sendResponse(stored);
-    });
-    return true; // async sendResponse
-  }
-  if (msg.type === "CHROME_MEDIA_ACTION") {
-    handleChromeMediaAction(msg);
-    return;
-  }
-  if (msg.type === "UNBLOCK_SITE") {
-    handleBlockSite(msg, sendResponse);
-    return true; // async
-  }
-  if (msg.type === "PREFETCH_SYNC" && msg.lat && msg.lon) {
-    handlePrefetchSync(msg);
-    return;
-  }
-  if (msg.type === "RSS_CONFIG_SYNC" && Array.isArray(msg.feeds)) {
-    // Page sends updated feed list whenever settings change; persist and fetch.
-    chrome.storage.local.set({ rss_feed_config: msg.feeds });
-    runRssPrefetch();
-    return;
-  }
-  if (msg.type === "STOCKS_CONFIG_SYNC" && Array.isArray(msg.symbols)) {
-    // Page sends updated symbol list whenever settings change; persist and fetch.
-    chrome.storage.local.set({ stocks_config: msg.symbols });
-    runStocksPrefetch();
-    return;
-  }
+    // Validate live sessions — restored storage entries may reference tabs
+    // whose content scripts are unreachable (zombie from extension reload).
+    _validateAndSendSessions(live, sendResponse);
+    return true;
+  },
+  CHROME_MEDIA_ACTION: (msg) => handleChromeMediaAction(msg),
+  UNBLOCK_SITE: (msg, _sender, sendResponse) => { handleBlockSite(msg, sendResponse); return true; },
+  PREFETCH_SYNC: (msg) => { if (msg.lat && msg.lon) handlePrefetchSync(msg); },
+  RSS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.feeds)) { chrome.storage.local.set({ rss_feed_config: msg.feeds }); runRssPrefetch(); } },
+  STOCKS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.symbols)) { chrome.storage.local.set({ stocks_config: msg.symbols }); runStocksPrefetch(); } },
+};
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  const handler = MESSAGE_HANDLERS[msg.type];
+  if (handler) return handler(msg, sender, sendResponse);
 });
 
-// Clear stored Chrome media state when the source tab is closed
+// Clear stored Chrome media state when the source tab is closed.
+// Must persist to storage — otherwise stale sessions survive SW restarts
+// and get restored, causing phantom media cards after tabs are gone.
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (chromeSessions[tabId]) {
     delete chromeSessions[tabId];
     chromeSessionOrder = chromeSessionOrder.filter((id) => id !== tabId);
+    _persistMediaSessions();
   }
 });

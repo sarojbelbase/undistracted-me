@@ -8,7 +8,7 @@ export const PopupFooter = () => {
   const openDashboard = (e) => {
     e.preventDefault();
     if (typeof chrome !== "undefined" && chrome.tabs?.create) {
-      chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
+      chrome.tabs.create({ url: chrome.runtime.getURL("entries/index.html") });
     }
   };
 

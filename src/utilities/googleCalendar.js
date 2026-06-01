@@ -5,10 +5,9 @@
  * Chrome  → chrome.identity.getAuthToken() (seamless, no user setup needed)
  * Firefox → PKCE flow via launchWebAuthFlow() (requires Desktop App client in GCP)
  */
-import { getGoogleAuthToken, removeGoogleAuthToken, isGoogleAuthAvailable } from './googleAuth';
+import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
+export { isGoogleAuthAvailable } from './googleAuth';
 import { GCAL_EVENTS_API, GOOGLE_USERINFO_API } from '../constants/urls.js';
-
-export { isGoogleAuthAvailable };
 
 const CALENDAR_API = GCAL_EVENTS_API;
 
@@ -96,7 +95,7 @@ export async function clearGcalCache() {
 const PROFILE_CACHE_KEY = 'gcal_profile_cache';
 
 // Module-level memory cache for the Google profile.
-let _profileMemCache = undefined; // undefined = not yet loaded, null = loaded but empty
+let _profileMemCache; // undefined = not yet loaded, null = loaded but empty
 
 export async function loadCachedProfile() {
   if (_profileMemCache !== undefined) return _profileMemCache;

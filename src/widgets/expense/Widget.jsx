@@ -61,10 +61,10 @@ export const Widget = ({ id, onRemove }) => {
   const pct = budget && budget > 0 ? Math.round((summary.total / budget) * 100) : 0;
   const overBudget = pct > 100;
   const barWidth = Math.min(pct, 100);
-  const leftAmount = budget !== null ? budget - summary.total : null;
+  const leftAmount = budget == null ? null : budget - summary.total;
 
   const settingsContent = useMemo(
-    () => (onClose) => <ExpenseSettings id={id} onClose={onClose} />,
+    () => (onClose) => <ExpenseSettings id={id} onClose={onClose} />, // NOSONAR
     [id],
   );
 
@@ -82,8 +82,8 @@ export const Widget = ({ id, onRemove }) => {
   const [leftFlex, setLeftFlex] = useState('1 1 0%');
 
   const amountText = isEmpty ? formatAmount(0, currency) : formatAmount(summary.total, currency);
-  const budgetText = budget !== null ? formatAmount(budget, currency) : '';
-  const leftText = leftAmount !== null ? formatAmount(leftAmount, currency) : '';
+  const budgetText = budget == null ? '' : formatAmount(budget, currency);
+  const leftText = leftAmount == null ? '' : formatAmount(leftAmount, currency);
 
   useLayoutEffect(() => {
     const el = heroRef.current;
@@ -116,7 +116,7 @@ export const Widget = ({ id, onRemove }) => {
   return (
     <>
       <BaseWidget
-        className="p-0 flex flex-col !overflow-visible"
+        className="p-0 flex flex-col overflow-visible!"
         onRemove={onRemove}
         settingsContent={settingsContent}
         settingsTitle="Expense Settings"

@@ -153,7 +153,7 @@ const readAllSync = async () => {
 const notifyHooks = (localKey) => {
   // Events: the useEvents hook listens for 'widget_events_changed'
   if (localKey === STORAGE_KEYS.EVENTS) {
-    try { window.dispatchEvent(new Event('widget_events_changed')); } catch { /* ignore */ }
+    try { globalThis.dispatchEvent(new Event('widget_events_changed')); } catch { /* ignore */ }
   }
   // For other keys, hooks subscribe via Zustand — no custom event needed.
   // Zustand re-reads from localStorage on next page load.
