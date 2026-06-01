@@ -57,6 +57,11 @@ const ICON = 'favicon/lotus128.png';
 /**
  * Builds a chrome.notifications payload for a given type.
  *
+ * Every notification follows three principles:
+ *   • No emoji — let the words carry the weight
+ *   • Contextual — the user knows immediately what this is about
+ *   • Human — sounds like a thoughtful assistant, not a robot reading a spec
+ *
  * @param {'events'|'occasion'|'countdown'|'pomodoro'|'lookaway'} type
  * @param {object} data — type-specific fields (see below)
  *
@@ -74,12 +79,12 @@ export function buildNotification(type, data = {}) {
     case 'events': {
       const mins = Math.ceil((data.diffMs ?? 0) / 60_000);
       const timing = mins <= 1 ? 'Starting now' : `In ${mins} min`;
-      const suffix = data.endTime ? ` · ends ${data.endTime}` : '';
+      const detail = data.endTime ? ` until ${data.endTime}` : '';
       return {
         type: 'basic',
         iconUrl: ICON,
-        title: `📅 ${data.title}`,
-        message: `${timing}${suffix}`,
+        title: data.title,
+        message: `${timing}${detail}`,
         priority: 1,
       };
     }
@@ -90,8 +95,8 @@ export function buildNotification(type, data = {}) {
         return {
           type: 'basic',
           iconUrl: ICON,
-          title: `🎊 ${name}'s Anniversary`,
-          message: 'Today is the day, celebrate together!',
+          title: `${name}'s anniversary`,
+          message: `They said yes, they showed up, they stayed. Today marks another year of that.`,
           priority: 1,
         };
       }
@@ -99,17 +104,17 @@ export function buildNotification(type, data = {}) {
         return {
           type: 'basic',
           iconUrl: ICON,
-          title: `🌟 ${name}`,
-          message: 'A special day to celebrate!',
+          title: `A day for ${name}`,
+          message: `Whatever makes today special, it matters. Do not let it slip by unnoticed.`,
           priority: 1,
         };
       }
-      // birthday (default)
+      // birthday
       return {
         type: 'basic',
         iconUrl: ICON,
-        title: `🎂 ${name}'s Birthday`,
-        message: 'Today is the day, don\'t forget to wish them well!',
+        title: `${name} turns a year older today`,
+        message: `A warm wish costs nothing and lands deeper than you think. Reach out while the day is still here.`,
         priority: 1,
       };
     }
@@ -119,19 +124,21 @@ export function buildNotification(type, data = {}) {
       return {
         type: 'basic',
         iconUrl: ICON,
-        title: label ? `⏱ ${label}` : '⏱ Countdown Completed',
-        message: label ? 'Your countdown has ended. Time to act.' : 'Your countdown is up.',
+        title: label || 'Countdown finished',
+        message: label
+          ? `Your countdown for "${label}" just ended.`
+          : 'The timer you set has reached zero. Time to move.',
         priority: 2,
       };
     }
 
     case 'pomodoro': {
-      const session = data.preset ? `${data.preset} session` : 'Focus session';
+      const duration = data.preset || 'Focus';
       return {
         type: 'basic',
         iconUrl: ICON,
-        title: '⏱ Focus Session Completed',
-        message: `${session} done — take a well-earned break.`,
+        title: `${duration} session complete`,
+        message: `Step away for a few minutes. Stretch your legs, refill your water, let your eyes rest on something distant. You earned the pause.`,
         priority: 2,
       };
     }
@@ -140,8 +147,8 @@ export function buildNotification(type, data = {}) {
       return {
         type: 'basic',
         iconUrl: ICON,
-        title: '👁 Time for a 20-second break',
-        message: 'Look 20 feet away for 20 s — the 20-20-20 rule keeps eye strain away.',
+        title: 'Time for a break',
+        message: 'Complete the challenge on your screen, if you can.',
         priority: 1,
       };
 
