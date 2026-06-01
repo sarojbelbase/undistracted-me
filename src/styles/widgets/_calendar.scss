@@ -1,5 +1,5 @@
 // ─── Calendar Widget ─────────────────────────────────────────────────────────
-// BEM: .cal-*
+// Two-row sliding week view. BEM: .cal-*
 
 // ── Day cell ─────────────────────────────────────────────────────────────────
 
@@ -7,8 +7,8 @@
   position: relative;
   font-size: 0.875rem;
   font-weight: 600;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.825rem;
+  height: 1.825rem;
   margin-left: auto;
   margin-right: auto;
   display: flex;
@@ -16,10 +16,11 @@
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
   border: none;
   outline: none;
   overflow: hidden;
+  flex-shrink: 0;
 
   &--today {
     background-color: var(--w-accent);
@@ -27,12 +28,20 @@
   }
 
   &--weekday {
-    color: var(--w-ink-4);
+    color: var(--w-ink-2);
   }
 
   &--weekend {
-    color: var(--w-ink-5);
+    color: var(--w-ink-4);
   }
+}
+
+.cal-day-cell--empty {
+  width: 1.825rem;
+  height: 1.825rem;
+  margin-left: auto;
+  margin-right: auto;
+  flex-shrink: 0;
 }
 
 .cal-day-cell__number {
@@ -51,10 +60,6 @@
   .cal-day-cell:hover & {
     opacity: 1;
   }
-
-  .cal-day-cell:hover &~.cal-day-cell__number {
-    opacity: 0;
-  }
 }
 
 .cal-day-cell__dot {
@@ -66,7 +71,6 @@
   height: 4px;
   border-radius: 50%;
   background-color: var(--w-accent);
-  opacity: 1;
   transition: opacity 0.12s;
 
   .cal-day-cell:hover & {
@@ -75,6 +79,27 @@
 
   .cal-day-cell--today & {
     background-color: var(--w-accent-fg);
+  }
+}
+
+// ── Week rows ────────────────────────────────────────────────────────────────
+
+.cal-week-row {
+
+  // Primary row — standard weight
+  &--secondary {
+    .cal-day-cell {
+      color: var(--w-ink-4);
+
+      &--today {
+        background-color: var(--w-accent);
+        color: var(--w-accent-fg);
+      }
+
+      &--weekend {
+        color: var(--w-ink-5);
+      }
+    }
   }
 }
 
@@ -94,12 +119,29 @@
   }
 }
 
+// ── Today button ─────────────────────────────────────────────────────────────
+
+.cal-today-btn {
+  font-size: 0.6125rem;
+  font-weight: 600;
+  color: var(--w-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: var(--w-accent);
+    color: var(--w-accent-fg);
+  }
+}
+
 // ── Weekday header ───────────────────────────────────────────────────────────
 
 .cal-weekday-header {
-  font-size: 0.625rem;
+  font-size: 0.675rem;
   font-weight: 600;
   color: var(--w-ink-5);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }

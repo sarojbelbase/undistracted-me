@@ -6,7 +6,6 @@ import config from './config';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
-import { TintedChip } from '../../components/ui/TintedChip';
 import { Popup } from '../../components/ui/Popup';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
@@ -14,9 +13,8 @@ import { CANVAS_HOVER_OVERLAY } from '../../theme/canvas';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { AddEvent } from '../events/AddEvent';
 
-const TOOLTIP_MARGIN = 10; // min px gap from every viewport edge
+// ── Tooltips ─────────────────────────────────────────────────────────────────
 
-// DayTooltip uses the shared Popup component — same two-phase portal positioning
 const DayTooltip = React.memo(({ events, anchor }) => (
   <Popup anchor={anchor} className="p-3 gap-2.5 max-w-65">
     {events.map(e => (
@@ -25,12 +23,13 @@ const DayTooltip = React.memo(({ events, anchor }) => (
   </Popup>
 ));
 
-// Small tooltip shown when hovering the + add button
 const AddTooltip = ({ anchor }) => (
   <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
     <span style={{ fontSize: '11px', color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>Add new event</span>
   </Popup>
 );
+
+// ── Day Cell ─────────────────────────────────────────────────────────────────
 
 const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent }) => {
   const [anchor, setAnchor] = useState(null);
@@ -58,7 +57,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
     if (day && dateStr && onAddEvent) onAddEvent(dateStr);
   };
 
-  if (!day) return <div className="w-7 h-7" />;
+  if (!day) return <div className="cal-day-cell--empty" />;
 
   return (
     <>
@@ -75,7 +74,6 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
         <span className="cal-day-cell__number" style={{ opacity: hovered ? 0 : 1 }}>
           {day}
         </span>
-
         <span
           aria-hidden="true"
           className="cal-day-cell__plus"
@@ -85,7 +83,6 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
             <path d="M4.5 1v7M1 4.5h7" />
           </svg>
         </span>
-
         {hasEvents && (
           <span
             aria-hidden="true"
@@ -98,47 +95,129 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
         )}
       </button>
       {hovered && hoverRect && <AddTooltip anchor={hoverRect} />}
-      {anchor && (
-        <DayTooltip events={eventsForDay} anchor={anchor} />
-      )}
+      {anchor && <DayTooltip events={eventsForDay} anchor={anchor} />}
     </>
   );
 };
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 const ChevronLeft = () => <ChevronLeftIcon />;
 const ChevronRight = () => <ChevronRightIcon />;
+
+/** Pad an array of day objects to exactly `len` items with empty slots. */
+const padDays = (days, len = 7) => {
+  const out = days.slice(0, len);
+  while (out.length < len) out.push({ date: null, isCurrent: false });
+  return out;
+};
+
+/** Build a date string for a day object given calendar context. */
+const dayDateStr = (day, calendarData) => {
+  if (!day || day.date == null) return null;
+  if (day.adDate) return day.adDate;
+  return `${String(calendarData.year).padStart(4, '0')}-${String(calendarData.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`;
+};
+
+// ── Widget ───────────────────────────────────────────────────────────────────
 
 export const Widget = ({ id = 'calendar', onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULTS);
   const { calendarType } = settings;
-  // monthOffset is intentionally local — never persisted; always resets to current month on mount
+
+  // monthOffset: which month relative to today (0 = current)
   const [monthOffset, setMonthOffset] = useState(0);
+  // startWeek: which week index within calendarData.days is the top row
+  const [startWeek, setStartWeek] = useState(0);
+
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
   const [localEvents, addEvent] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
-  // Memoize to avoid re-creating the merged array on every re-render
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
   const [createDate, setCreateDate] = useState(null);
 
+  // ── Rebuild calendar data when month changes ───────────────────────────────
   const rebuild = useCallback(() => {
     setCalendarData(buildCalendarData(calendarType, monthOffset));
   }, [calendarType, monthOffset]);
 
   useEffect(() => {
     rebuild();
-    // Auto-refresh hourly only when viewing the current month so the "today" highlight stays correct
     if (monthOffset !== 0) return;
     const timer = setInterval(rebuild, 3_600_000);
     return () => clearInterval(timer);
   }, [rebuild, monthOffset]);
 
-  // Reset to current month whenever calendar type changes
   useEffect(() => { setMonthOffset(0); }, [calendarType]);
 
+  // ── Compute week geometry ──────────────────────────────────────────────────
+  const totalWeeks = Math.ceil(calendarData.days.length / 7);
+
+  // When data loads for the current month, anchor startWeek so today is visible
+  useEffect(() => {
+    if (monthOffset !== 0) return;
+    const todayIdx = calendarData.days.findIndex(d => d.isCurrent);
+    if (todayIdx < 0) return;
+    const todayWeek = Math.floor(todayIdx / 7);
+    // Show today's week as the first row, unless it's the very last week
+    // (then show second-to-last week as first row so today is in row 2)
+    const initial = todayWeek < totalWeeks - 1 ? todayWeek : Math.max(0, todayWeek - 1);
+    setStartWeek(initial);
+  }, [calendarData, monthOffset, totalWeeks]);
+
+  // Clamp startWeek when totalWeeks changes (e.g. after month transition)
+  useEffect(() => {
+    if (totalWeeks > 0 && startWeek >= totalWeeks) {
+      setStartWeek(Math.max(0, totalWeeks - 2));
+    }
+  }, [totalWeeks, startWeek]);
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  const goPrev = () => {
+    setStartWeek(prev => {
+      if (prev > 0) return prev - 1;
+      // Cross into previous month
+      setMonthOffset(m => m - 1);
+      return 0; // temporary — will be clamped when new data loads
+    });
+  };
+
+  const goNext = () => {
+    setStartWeek(prev => {
+      if (prev + 2 < totalWeeks) return prev + 1;
+      // Cross into next month
+      setMonthOffset(m => m + 1);
+      return 0;
+    });
+  };
+
+  const goToday = () => {
+    setMonthOffset(0);
+    // startWeek will be set by the useEffect above when data reloads
+  };
+
+  // ── Are we viewing the "current" fortnight? ─────────────────────────────────
+  const viewingToday = monthOffset === 0 && (() => {
+    const todayIdx = calendarData.days.findIndex(d => d.isCurrent);
+    if (todayIdx < 0) return false;
+    const todayWeek = Math.floor(todayIdx / 7);
+    return todayWeek === startWeek || todayWeek === startWeek + 1;
+  })();
+
+  // ── Slice two weeks ────────────────────────────────────────────────────────
+  const week1 = padDays(calendarData.days.slice(startWeek * 7, startWeek * 7 + 7));
+  const week2 = padDays(calendarData.days.slice((startWeek + 1) * 7, (startWeek + 1) * 7 + 7));
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <BaseWidget className="p-4 flex flex-col" settingsTitle={config.title} settingsContent={<Settings id={id} calendarType={calendarType} onChange={updateSetting} />} onRemove={onRemove}>
-        {/* Header: month + year on the left, nav arrows on the right */}
+      <BaseWidget
+        className="p-4 flex flex-col gap-2.5"
+        settingsTitle={config.title}
+        settingsContent={<Settings id={id} calendarType={calendarType} onChange={updateSetting} />}
+        onRemove={onRemove}
+      >
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <span className="w-heading">{calendarData.label}</span>
@@ -147,51 +226,70 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
             )}
           </div>
           <div className="flex items-center gap-0.5">
-            {monthOffset !== 0 && (
-              <TintedChip
-                onClick={() => setMonthOffset(0)}
-                title={buildCalendarData(calendarType, 0).label}
-                aria-label={`Go to current month`}
-                size="sm"
+            {!viewingToday && (
+              <button
+                onClick={goToday}
+                className="cal-today-btn"
+                aria-label="Go to current fortnight"
               >
-                Go To Today
-              </TintedChip>
+                Today
+              </button>
             )}
             <TooltipBtn
-              onClick={() => setMonthOffset(o => o - 1)}
-              tooltip="Previous month"
+              onClick={goPrev}
+              tooltip="Previous week"
               className="cal-nav-btn"
-              aria-label="Previous month"
+              aria-label="Previous week"
             >
               <ChevronLeft />
             </TooltipBtn>
             <TooltipBtn
-              onClick={() => setMonthOffset(o => o + 1)}
-              tooltip="Next month"
+              onClick={goNext}
+              tooltip="Next week"
               className="cal-nav-btn"
-              aria-label="Next month"
+              aria-label="Next week"
             >
               <ChevronRight />
             </TooltipBtn>
           </div>
         </div>
 
-        <div className="mt-2 grid grid-cols-7 gap-x-1 gap-y-0.5 text-center text-sm flex-1 content-start">
-          {WEEK_DAYS.map((day) => (
-            <div key={day} className="w-label pb-1">{day}</div>
+        {/* Day labels */}
+        <div className="grid grid-cols-7 gap-x-1 text-center">
+          {WEEK_DAYS.map(d => (
+            <div key={d} className="cal-weekday-header">{d}</div>
           ))}
-          {calendarData.days.map((day, index) => {
-            const col = index % 7;
-            const isWeekend = col === 0 || col === 6;
-            const dateStr = day.adDate ?? (day.date
-              ? `${String(calendarData.year).padStart(4, '0')}-${String(calendarData.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-              : null);
-            const eventsForDay = dateStr
-              ? events.filter(e => e.startDate === dateStr)
-              : [];
+        </div>
+
+        {/* Week row 1 */}
+        <div className="grid grid-cols-7 gap-x-1 text-center cal-week-row">
+          {week1.map((day, i) => {
+            const isWeekend = i === 0 || i === 6;
+            const dateStr = dayDateStr(day, calendarData);
+            const eventsForDay = dateStr ? events.filter(e => e.startDate === dateStr) : [];
             return (
               <DayCell
-                key={dateStr ?? `empty-${index}`}
+                key={dateStr ?? `w1-empty-${i}`}
+                day={day.date}
+                isCurrent={day.isCurrent}
+                isWeekend={isWeekend}
+                eventsForDay={eventsForDay}
+                dateStr={dateStr}
+                onAddEvent={setCreateDate}
+              />
+            );
+          })}
+        </div>
+
+        {/* Week row 2 */}
+        <div className="grid grid-cols-7 gap-x-1 text-center cal-week-row cal-week-row--secondary">
+          {week2.map((day, i) => {
+            const isWeekend = i === 0 || i === 6;
+            const dateStr = dayDateStr(day, calendarData);
+            const eventsForDay = dateStr ? events.filter(e => e.startDate === dateStr) : [];
+            return (
+              <DayCell
+                key={dateStr ?? `w2-empty-${i}`}
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
@@ -203,6 +301,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
           })}
         </div>
       </BaseWidget>
+
       {createDate && (
         <AddEvent
           initialDate={createDate}
