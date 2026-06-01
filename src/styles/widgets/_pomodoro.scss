@@ -134,14 +134,13 @@
   background-color: var(--card-bg);
   color: var(--w-ink-2);
   line-height: 1.4;
-  transition: border-color 0.15s;
 
   &::placeholder {
     color: var(--w-ink-5);
   }
 
-  &:focus {
-    border-color: var(--w-accent);
+  &:focus-visible {
+    outline: none;
   }
 }
 
