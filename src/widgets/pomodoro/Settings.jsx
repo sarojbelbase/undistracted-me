@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ClockHistory } from 'react-bootstrap-icons';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { PillButton } from '../../components/ui/PillButton';
+import { Toggle } from '../../components/ui/Toggle';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { BREAK_OPTIONS, DEFAULT_SETTINGS } from './constants';
 import { loadHistory, getStreak, getTodayMinutes, getWeeklyStats } from './utils';
@@ -60,19 +61,25 @@ export const PomodoroSettings = ({ id }) => {
         <span className="w-label">Timer</span>
 
         {/* End-of-session chime */}
-        <div className="flex items-center justify-between">
-          <span className="w-body" style={{ color: 'var(--w-ink-2)' }}>End-of-session chime</span>
-          <PillButton active={soundEnabled} tinted onClick={toggleSound}>
-            {soundEnabled ? 'On' : 'Off'}
-          </PillButton>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>End-of-session chime</span>
+            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
+              Plays a notification sound when the timer completes
+            </p>
+          </div>
+          <Toggle checked={soundEnabled} onChange={toggleSound} />
         </div>
 
         {/* Rain sounds */}
-        <div className="flex items-center justify-between">
-          <span className="w-body" style={{ color: 'var(--w-ink-2)' }}>Ambient rain</span>
-          <PillButton active={rainSound} tinted onClick={toggleRain}>
-            {rainSound ? 'On' : 'Off'}
-          </PillButton>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>Ambient rain</span>
+            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
+              Looping rain audio to help you focus
+            </p>
+          </div>
+          <Toggle checked={rainSound} onChange={toggleRain} />
         </div>
       </div>
 
@@ -84,11 +91,14 @@ export const PomodoroSettings = ({ id }) => {
         <span className="w-label">Breaks</span>
 
         {/* Auto-break toggle */}
-        <div className="flex items-center justify-between">
-          <span className="w-body" style={{ color: 'var(--w-ink-2)' }}>Auto-start break after session</span>
-          <PillButton active={autoBreak} tinted onClick={toggleAutoBreak}>
-            {autoBreak ? 'On' : 'Off'}
-          </PillButton>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>Auto-start break after session</span>
+            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
+              Automatically begins a break timer when focus ends
+            </p>
+          </div>
+          <Toggle checked={autoBreak} onChange={toggleAutoBreak} />
         </div>
 
         {/* Break duration */}

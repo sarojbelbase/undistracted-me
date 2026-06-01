@@ -26,41 +26,41 @@ export const PillButton = ({
   if (active && useTinted) {
     activeStyle = isComic
       ? {
-          background: "color-mix(in srgb, var(--w-accent) 18%, transparent)",
-          color: "var(--w-accent)",
-          border:
-            "1.5px solid color-mix(in srgb, var(--w-accent) 40%, transparent)",
-        }
+        background: "color-mix(in srgb, var(--w-accent) 18%, transparent)",
+        color: "var(--w-accent)",
+        border:
+          "1.5px solid color-mix(in srgb, var(--w-accent) 40%, transparent)",
+      }
       : {
-          background: "color-mix(in srgb, var(--w-accent) 14%, transparent)",
-          color: "var(--w-accent)",
-          border:
-            "1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)",
-        };
+        background: "color-mix(in srgb, var(--w-accent) 14%, transparent)",
+        color: "var(--w-accent)",
+        border:
+          "1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)",
+      };
   } else if (active) {
     activeStyle = isComic
       ? {
-          backgroundColor: "var(--w-accent)",
-          color: "var(--w-accent-fg)",
-          border: "1.5px solid transparent",
-        }
+        backgroundColor: "var(--w-accent)",
+        color: "var(--w-accent-fg)",
+        border: "1.5px solid transparent",
+      }
       : {
-          backgroundColor: "var(--w-accent)",
-          color: "var(--w-accent-fg)",
-          border: "1px solid transparent",
-        };
+        backgroundColor: "var(--w-accent)",
+        color: "var(--w-accent-fg)",
+        border: "1px solid transparent",
+      };
   } else {
     activeStyle = isComic
       ? {
-          backgroundColor: "rgba(0,0,0,0.04)",
-          color: "var(--w-ink-4)",
-          border: "1.5px solid rgba(0,0,0,0.18)",
-        }
+        backgroundColor: "rgba(0,0,0,0.04)",
+        color: "var(--w-ink-4)",
+        border: "1.5px solid rgba(0,0,0,0.18)",
+      }
       : {
-          backgroundColor: "rgba(0,0,0,0.04)",
-          color: "var(--w-ink-4)",
-          border: "1px solid rgba(0,0,0,0.08)",
-        };
+        backgroundColor: "rgba(0,0,0,0.04)",
+        color: "var(--w-ink-4)",
+        border: "1px solid rgba(0,0,0,0.08)",
+      };
   }
 
   const shape = isChip ? "rounded-md" : "rounded-full";
