@@ -62,24 +62,6 @@
   &--divider {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   }
-
-  &--highlight {
-    background: color-mix(in srgb, var(--w-accent) 5%, transparent);
-    border-radius: 12px;
-    margin: 0 10px;
-    padding-left: 12px;
-    padding-right: 12px;
-    border: 1px solid color-mix(in srgb, var(--w-accent) 20%, transparent);
-    margin-bottom: 4px;
-  }
-}
-
-.occ-row__bar {
-  align-self: stretch;
-  border-radius: 999px;
-  flex-shrink: 0;
-  width: 3px;
-  opacity: 1;
 }
 
 .occ-row__info {
@@ -92,10 +74,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.25;
-
-  &--highlight {
-    color: var(--w-accent);
-  }
 
   &--normal {
     color: var(--w-ink-1);

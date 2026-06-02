@@ -14,7 +14,6 @@ import {
   computeUpcoming,
   daysLabel,
   typeLabel,
-  urgencyColor,
   avatarColor,
   avatarLetter,
 } from './utils';
@@ -118,12 +117,6 @@ const ListRow = ({ entry, isLast, highlight }) => {
     <div
       className={`occ-row${isLast ? '' : ' occ-row--divider'}${highlight ? ' occ-row--highlight' : ''}`}
     >
-      {/* Left urgency bar */}
-      <div
-        className="occ-row__bar"
-        style={{ backgroundColor: highlight ? 'var(--w-accent)' : urgencyColor(entry.daysAway) }}
-      />
-
       {/* Avatar */}
       <Avatar name={entry.name} size={30} />
 
