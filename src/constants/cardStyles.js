@@ -18,7 +18,7 @@
 
 export const CARD_STYLES = [
   { id: "flat", label: "Flat", hint: "Solid, clean surface" },
-  { id: "glass", label: "Glass", hint: "Frosted liquid glass" },
+  { id: "glass", label: "Glass", hint: "Frosted glass with depth" },
   { id: "comic", label: "Comic", hint: "Pop-art panel style" },
 ];
 
@@ -58,32 +58,34 @@ export const CARD_STYLE_TOKENS = {
   },
   glass: {
     light: {
-      "--card-bg": "rgba(255,255,255,0.44)",
-      "--card-border": "rgba(0,0,0,0.09)",
+      "--card-bg": "rgba(255,255,255,0.65)",
+      "--card-border": "rgba(255,255,255,0.50)",
       "--card-border-width": "1px",
       "--card-radius": "1rem",
-      "--card-blur": "blur(28px) saturate(180%)",
+      "--card-blur": "blur(28px) saturate(180%) brightness(1.1) contrast(0.95)",
       "--card-shadow":
-        "inset 0 1px 0 rgba(255,255,255,0.90), 0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)",
-      "--card-texture": "none",
-      "--card-texture-size": "auto",
-      "--modal-bg": "#ffffff",
+        "inset 0 1px 0 rgba(255,255,255,0.85), 0 8px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)",
+      "--card-texture":
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\")",
+      "--card-texture-size": "256px",
+      "--modal-bg": "rgba(255,255,255,0.92)",
       "--modal-shadow":
-        "0 8px 40px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.07)",
-      "--modal-overlay-bg": "rgba(0,0,0,0.10)",
-      "--modal-overlay-blur": "blur(10px) saturate(150%)",
-      "--panel-bg": "rgba(255,255,255,0.55)",
+        "0 8px 40px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05)",
+      "--modal-overlay-bg": "rgba(0,0,0,0.08)",
+      "--modal-overlay-blur": "blur(12px) saturate(150%) brightness(1.05) contrast(0.95)",
+      "--panel-bg": "rgba(255,255,255,0.70)",
     },
     dark: {
       "--card-bg": "rgba(255,255,255,0.10)",
       "--card-border": "rgba(255,255,255,0.16)",
       "--card-border-width": "1px",
       "--card-radius": "1rem",
-      "--card-blur": "blur(28px) saturate(180%)",
+      "--card-blur": "blur(28px) saturate(150%)",
       "--card-shadow":
         "inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 16px rgba(0,0,0,0.45)",
-      "--card-texture": "none",
-      "--card-texture-size": "auto",
+      "--card-texture":
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E\")",
+      "--card-texture-size": "256px",
       "--modal-bg": "#1c1c1e",
       "--modal-shadow":
         "0 8px 40px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.35)",
