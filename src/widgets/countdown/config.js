@@ -6,7 +6,7 @@ export default {
   title: 'Countdown',
   category: 'time',
   icon: HourglassSplit,
-  description: 'Count down to any event',
+  description: 'Count down to events or track time since milestones',
   enabled: true,
   platforms: {
     extension: { supported: true },

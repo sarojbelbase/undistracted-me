@@ -13,11 +13,18 @@ import { BaseWidget } from "../BaseWidget";
 import { useEvents, useGoogleCalendar } from "../../hooks/useEvents";
 import { todayStr } from "../../utilities";
 import { notifyUser } from "../../utilities/chrome";
-import { getNextOccurrence, formatCountdown, formatTargetDate } from "./utils";
+import {
+  getNextOccurrence,
+  formatCountdown,
+  formatSince,
+  formatTargetDate,
+} from "./utils";
 import config from "./config";
 import { fmt12, calcDuration } from "../events/utils";
 import { STORAGE_KEYS } from "../../constants/storageKeys";
 import { onClockTick } from "../../utilities/sharedClock";
+
+// ─── localStorage helpers ────────────────────────────────────────────────────
 
 const loadCustom = () => {
   try {
@@ -43,8 +50,7 @@ const savePinned = (id, p) =>
   localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
 
 // ─── Notification helpers ────────────────────────────────────────────────────
-// Stores notified event keys in localStorage keyed by today's date so each
-// event only fires ONE notification per calendar day, across all new tabs.
+
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const wasNotified = (id) => {
   try {
@@ -61,7 +67,6 @@ const markNotified = (id) => {
     const map = JSON.parse(
       localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
     );
-    // Prune old dates
     Object.keys(map).forEach((k) => {
       if (map[k] !== todayKey()) delete map[k];
     });
@@ -69,9 +74,146 @@ const markNotified = (id) => {
     localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
   } catch { }
 };
-
 const sendNotification = (title, body) =>
   notifyUser(title, body, "COUNTDOWN_DONE");
+
+// ─── Countdown value tiers (countdown mode) ──────────────────────────────────
+
+function monthsTier(days) {
+  const months = Math.floor(days / 30);
+  const rounded = days % 30 >= 15 ? months + 1 : months;
+  return { main: String(rounded), unit: rounded === 1 ? "mo" : "mos" };
+}
+
+function daysTier(days, hours) {
+  const rounded = hours >= 12 ? days + 1 : days;
+  if (rounded >= 30) return { main: "1", unit: "mo" };
+  return { main: String(rounded), unit: rounded === 1 ? "day" : "days" };
+}
+
+function hoursTier(hours, mins) {
+  const rounded = mins >= 30 ? hours + 1 : hours;
+  if (rounded >= 24) return { main: "1", unit: "day" };
+  return { main: String(rounded), unit: rounded === 1 ? "hr" : "hrs" };
+}
+
+function minsTier(mins, secs) {
+  const rounded = secs >= 30 ? mins + 1 : mins;
+  if (rounded >= 60) return { main: "1", unit: "hr" };
+  return { main: String(rounded), unit: "min" };
+}
+
+function countdownValue(aDays, aHours, aMins, aTotalSecs) {
+  const aSecs = aTotalSecs % 60;
+  if (aDays >= 30) return monthsTier(aDays);
+  if (aDays > 0) return daysTier(aDays, aHours);
+  if (aHours > 0) return hoursTier(aHours, aMins);
+  if (aMins > 0 || aSecs >= 30) return minsTier(aMins, aSecs);
+  return { main: null, unit: null };
+}
+
+// ─── "Since" value tiers — count UP from a past date ────────────────────────
+
+function sinceValue(days) {
+  if (days < 30) {
+    return { main: String(days), unit: days === 1 ? "day" : "days" };
+  }
+  if (days < 365) {
+    const months = Math.round(days / 30.44);
+    return { main: String(months), unit: months === 1 ? "month" : "months" };
+  }
+  const years = Math.round((days / 365.25) * 10) / 10;
+  const whole = years % 1 === 0;
+  return {
+    main: whole ? String(Math.round(years)) : years.toFixed(1),
+    unit: years === 1 ? "year" : "years",
+  };
+}
+
+// ─── Resolve which target to show ────────────────────────────────────────────
+
+function resolveEventTarget(pinned, allEvents) {
+  const ev = allEvents.find((e) => e.id === pinned.eventId);
+  if (!ev) return { target: null, shouldClearPin: false };
+  const nextDate = new Date(`${ev.startDate}T${ev.startTime || "00:00"}`);
+  if (nextDate < new Date(Date.now() - 2 * 60 * 1000)) {
+    return { target: null, shouldClearPin: true };
+  }
+  return {
+    target: {
+      title: ev.title, nextDate, startTime: ev.startTime, endTime: ev.endTime,
+      isEvent: true, isGcal: ev._source === "gcal", id: ev.id, mode: "countdown",
+    },
+    shouldClearPin: false,
+  };
+}
+
+function resolveCustomTarget(pinned, custom) {
+  const cd = custom.find((c) => c.id === pinned.id);
+  if (!cd) return { target: null, shouldClearPin: false };
+  const isSince = cd.mode === "since";
+  const nextDate = isSince
+    ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+    : getNextOccurrence(cd);
+  return {
+    target: {
+      title: cd.title, nextDate, startTime: cd.targetTime,
+      isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat,
+      mode: cd.mode || "countdown",
+    },
+    shouldClearPin: false,
+  };
+}
+
+function resolveAutoTarget(upcomingEvents, today, custom) {
+  const now = new Date();
+  // Prefer next upcoming calendar event
+  const nextEv = upcomingEvents.find(
+    (e) => new Date(`${e.startDate || today}T${e.startTime || "00:00"}`) > now,
+  );
+  if (nextEv) {
+    return {
+      target: {
+        title: nextEv.title,
+        nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || "00:00"}`),
+        startTime: nextEv.startTime, endTime: nextEv.endTime,
+        isEvent: true, isGcal: nextEv._source === "gcal", id: nextEv.id,
+        mode: "countdown",
+      },
+      shouldClearPin: false,
+    };
+  }
+  // Fallback: nearest custom countdown (or "since" countdown)
+  const sorted = custom
+    .map((cd) => ({
+      ...cd,
+      _next: cd.mode === "since"
+        ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+        : getNextOccurrence(cd),
+    }))
+    .filter((cd) => cd._next > now || cd.mode === "since")
+    .sort((a, b) => a._next - b._next);
+  if (sorted[0]) {
+    const cd = sorted[0];
+    return {
+      target: {
+        title: cd.title, nextDate: cd._next, startTime: cd.targetTime,
+        isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat,
+        mode: cd.mode || "countdown",
+      },
+      shouldClearPin: false,
+    };
+  }
+  return { target: null, shouldClearPin: false };
+}
+
+function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
+  if (pinned?.type === "event") return resolveEventTarget(pinned, allEvents);
+  if (pinned?.type === "custom") return resolveCustomTarget(pinned, custom);
+  return resolveAutoTarget(upcomingEvents, today, custom);
+}
+
+// ─── Settings Panel ──────────────────────────────────────────────────────────
 
 const CountdownSettings = ({
   custom,
@@ -89,9 +231,7 @@ const CountdownSettings = ({
       {/* ── Custom Countdowns ── */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="cdn-section-label">
-            My Countdowns
-          </p>
+          <p className="cdn-section-label">My Countdowns</p>
           <button
             type="button"
             onClick={() => setShowAdd(true)}
@@ -111,12 +251,10 @@ const CountdownSettings = ({
               />
             </div>
             <p className="w-body font-semibold mb-1">
-              Nothing to count down to
+              Nothing to track yet
             </p>
-            <p
-              className="w-muted leading-relaxed mb-4 cdn-empty-state__hint"
-            >
-              Track birthdays, trips, launches — anything that matters.
+            <p className="w-muted leading-relaxed mb-4 cdn-empty-state__hint">
+              Count down to events or track time since milestones.
             </p>
             <TintedChip
               size="sm"
@@ -130,11 +268,17 @@ const CountdownSettings = ({
         ) : (
           <div className="flex flex-col gap-1">
             {custom.map((cd) => {
-              const next = getNextOccurrence(cd);
-              const { days, hours, minutes: mins } = formatCountdown(next);
+              const isSince = cd.mode === "since";
+              const next = isSince
+                ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+                : getNextOccurrence(cd);
+              const { days, hours, minutes: mins } = isSince
+                ? formatSince(next)
+                : formatCountdown(next);
               const isPinned =
                 pinned?.type === "custom" && pinned?.id === cd.id;
-              const isPast = next < new Date() && cd.repeat === "none";
+              const isPast =
+                !isSince && next < new Date() && cd.repeat === "none";
 
               const cdLabel = (() => {
                 if (isPast) return "Past";
@@ -147,7 +291,7 @@ const CountdownSettings = ({
               return (
                 <div
                   key={cd.id}
-                  className={`cdn-list-item${isPast ? ' cdn-list-item--past' : ''}`}
+                  className={`cdn-list-item${isPast ? " cdn-list-item--past" : ""}`}
                 >
                   <div className="cdn-list-item__bar" />
                   <button
@@ -175,23 +319,36 @@ const CountdownSettings = ({
                         <span className="cdn-list-item__meta-text">
                           {cdDate}
                         </span>
-                        {cd.repeat !== "none" && (
+                        {isSince && (
                           <>
                             <span className="cdn-list-item__meta-dot">
                               ·
                             </span>
-                            <ArrowRepeat
-                              size={9}
-                              style={{ color: "var(--w-ink-5)" }}
-                            />
                             <span className="cdn-list-item__meta-text">
-                              {cd.repeat}
+                              Since
                             </span>
                           </>
                         )}
+                        {!isSince &&
+                          cd.repeat !== "none" && (
+                            <>
+                              <span className="cdn-list-item__meta-dot">
+                                ·
+                              </span>
+                              <ArrowRepeat
+                                size={9}
+                                style={{ color: "var(--w-ink-5)" }}
+                              />
+                              <span className="cdn-list-item__meta-text">
+                                {cd.repeat}
+                              </span>
+                            </>
+                          )}
                       </div>
                     </div>
-                    <span className={`cdn-label${isPast ? ' cdn-label--past' : ' cdn-label--active'}`}>
+                    <span
+                      className={`cdn-label${isPast ? " cdn-label--past" : " cdn-label--active"}`}
+                    >
                       {cdLabel}
                     </span>
                   </button>
@@ -214,9 +371,7 @@ const CountdownSettings = ({
 
       {/* ── From Calendar Events ── */}
       <div>
-        <p
-          className="cdn-section-label mb-3"
-        >
+        <p className="cdn-section-label mb-3">
           From Calendar
         </p>
 
@@ -228,7 +383,9 @@ const CountdownSettings = ({
                 style={{ color: "var(--w-accent)", opacity: 0.75 }}
               />
             </div>
-            <p className="w-body font-semibold mb-1">No upcoming events</p>
+            <p className="w-body font-semibold mb-1">
+              No upcoming events
+            </p>
             <p
               className="w-muted leading-relaxed"
               style={{ maxWidth: "180px" }}
@@ -240,7 +397,8 @@ const CountdownSettings = ({
           <div className="flex flex-col gap-1">
             {upcomingEvents.slice(0, 8).map((ev) => {
               const isPinned =
-                pinned?.type === "event" && pinned?.eventId === ev.id;
+                pinned?.type === "event" &&
+                pinned?.eventId === ev.id;
               const evDate = new Date(
                 `${ev.startDate}T${ev.startTime || "00:00"}`,
               );
@@ -360,50 +518,7 @@ const CountdownSettings = ({
   );
 };
 
-// ─── Pure helpers (module-level to keep Widget complexity low) ───────────────
-
-// ── Pure countdown value calculation ─────────────────────────────────────────
-
-function monthsTier(days) {
-  const months = Math.floor(days / 30);
-  const rounded = days % 30 >= 15 ? months + 1 : months;
-  return { main: String(rounded), unit: rounded === 1 ? "mo" : "mos" };
-}
-
-function daysTier(days, hours) {
-  const rounded = hours >= 12 ? days + 1 : days;
-  if (rounded >= 30) return { main: "1", unit: "mo" };
-  return { main: String(rounded), unit: rounded === 1 ? "day" : "days" };
-}
-
-function hoursTier(hours, mins) {
-  const rounded = mins >= 30 ? hours + 1 : hours;
-  if (rounded >= 24) return { main: "1", unit: "day" };
-  return { main: String(rounded), unit: rounded === 1 ? "hr" : "hrs" };
-}
-
-function minsTier(mins, secs) {
-  const rounded = secs >= 30 ? mins + 1 : mins;
-  if (rounded >= 60) return { main: "1", unit: "hr" };
-  return { main: String(rounded), unit: "min" };
-}
-
-// Every unit rounds to nearest: e.g. 1d 14h → 2 days, 2h 35m → 3 hrs, 45m 40s → 46 min
-function countdownValue(aDays, aHours, aMins, aTotalSecs) {
-  const aSecs = aTotalSecs % 60;
-  if (aDays >= 30) return monthsTier(aDays);
-  if (aDays > 0) return daysTier(aDays, aHours);
-  if (aHours > 0) return hoursTier(aHours, aMins);
-  if (aMins > 0 || aSecs >= 30) return minsTier(aMins, aSecs);
-  return { main: null, unit: null };
-}
-
-function getTitleFontSize(titleLen) {
-  if (titleLen <= 12) return "clamp(1.05rem, 2.4vw, 1.4rem)";
-  if (titleLen <= 22) return "clamp(0.9rem, 2vw, 1.15rem)";
-  if (titleLen <= 36) return "clamp(0.8rem, 1.75vw, 1rem)";
-  return "clamp(0.7rem, 1.5vw, 0.88rem)";
-}
+// ─── Auto-advance helper ─────────────────────────────────────────────────────
 
 function resolveActiveTarget(
   target,
@@ -413,6 +528,7 @@ function resolveActiveTarget(
   custom,
 ) {
   if (!target || totalSeconds >= 60) return target;
+  if (target.mode === "since") return target; // since mode never auto-advances
   const now = new Date();
   const nextEv = upcomingEvents.find(
     (e) =>
@@ -422,16 +538,22 @@ function resolveActiveTarget(
   if (nextEv)
     return {
       title: nextEv.title,
-      nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || "00:00"}`),
+      nextDate: new Date(
+        `${nextEv.startDate}T${nextEv.startTime || "00:00"}`,
+      ),
       startTime: nextEv.startTime,
       endTime: nextEv.endTime,
       isEvent: true,
       isGcal: nextEv._source === "gcal",
       id: nextEv.id,
+      mode: "countdown",
     };
   const sorted = custom
     .map((cd) => ({ ...cd, _next: getNextOccurrence(cd) }))
-    .filter((cd) => cd._next > now && cd.id !== target.id)
+    .filter(
+      (cd) =>
+        cd._next > now && cd.id !== target.id && cd.mode !== "since",
+    )
     .sort((a, b) => a._next - b._next);
   if (sorted[0])
     return {
@@ -442,111 +564,25 @@ function resolveActiveTarget(
       isGcal: false,
       id: sorted[0].id,
       repeat: sorted[0].repeat,
+      mode: "countdown",
     };
   return null;
 }
 
-function calcDurStr(startTime, endTime) {
-  if (!startTime || !endTime) return null;
-  const [sh, sm] = startTime.split(":").map(Number);
-  const [eh, em] = endTime.split(":").map(Number);
-  const diff = eh * 60 + em - (sh * 60 + sm);
-  if (diff <= 0) return null;
-  if (diff < 60) return `${diff}min`;
-  const h = Math.floor(diff / 60),
-    m = diff % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+// ─── Main Widget ─────────────────────────────────────────────────────────────
+
+function getNotifySeconds(target) {
+  if (!target) return {};
+  if (target.mode === "since") return { totalSeconds: 1 };
+  return formatCountdown(target.nextDate);
 }
 
-// Returns { target, shouldClearPin } — shouldClearPin=true if the pinned event is past grace window
-function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
-  if (pinned?.type === "event") {
-    const ev = allEvents.find((e) => e.id === pinned.eventId);
-    if (ev) {
-      const nextDate = new Date(`${ev.startDate}T${ev.startTime || "00:00"}`);
-      if (nextDate >= new Date(Date.now() - 2 * 60 * 1000)) {
-        return {
-          target: {
-            title: ev.title,
-            nextDate,
-            startTime: ev.startTime,
-            endTime: ev.endTime,
-            isEvent: true,
-            isGcal: ev._source === "gcal",
-            id: ev.id,
-          },
-          shouldClearPin: false,
-        };
-      }
-      return { target: null, shouldClearPin: true };
-    }
-  } else if (pinned?.type === "custom") {
-    const cd = custom.find((c) => c.id === pinned.id);
-    if (cd) {
-      return {
-        target: {
-          title: cd.title,
-          nextDate: getNextOccurrence(cd),
-          startTime: cd.targetTime,
-          isEvent: false,
-          isGcal: false,
-          id: cd.id,
-          repeat: cd.repeat,
-        },
-        shouldClearPin: false,
-      };
-    }
-  }
-
-  // Fallback: auto-pick the next future event
-  const now = new Date();
-  const nextEv = upcomingEvents.find(
-    (e) => new Date(`${e.startDate || today}T${e.startTime || "00:00"}`) > now,
-  );
-  if (nextEv) {
-    return {
-      target: {
-        title: nextEv.title,
-        nextDate: new Date(
-          `${nextEv.startDate}T${nextEv.startTime || "00:00"}`,
-        ),
-        startTime: nextEv.startTime,
-        endTime: nextEv.endTime,
-        isEvent: true,
-        isGcal: nextEv._source === "gcal",
-        id: nextEv.id,
-      },
-      shouldClearPin: false,
-    };
-  }
-
-  // Fallback: auto-pick nearest future custom countdown
-  if (custom.length > 0) {
-    const sorted = custom
-      .map((cd) => ({ ...cd, _next: getNextOccurrence(cd) }))
-      .filter((cd) => cd._next > now)
-      .sort((a, b) => a._next - b._next);
-    if (sorted[0]) {
-      const cd = sorted[0];
-      return {
-        target: {
-          title: cd.title,
-          nextDate: cd._next,
-          startTime: cd.targetTime,
-          isEvent: false,
-          isGcal: false,
-          id: cd.id,
-          repeat: cd.repeat,
-        },
-        shouldClearPin: false,
-      };
-    }
-  }
-
-  return { target: null, shouldClearPin: false };
+function getDiffValues(activeTarget) {
+  if (!activeTarget) return {};
+  if (activeTarget.mode === "since") return formatSince(activeTarget.nextDate);
+  return formatCountdown(activeTarget.nextDate);
 }
 
-// ─── Main Widget ──────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
   const [pinned, setPinned] = useState(() => loadPinned(id));
@@ -557,10 +593,11 @@ export const Widget = ({ id, onRemove }) => {
   const today = todayStr();
   const allEvents = [...localEvents, ...(gcalEvents || [])];
 
-  // Only show events that haven't started yet (or started < 2 min ago)
   const upcomingEvents = allEvents
     .filter((e) => {
-      const dt = new Date(`${e.startDate || today}T${e.startTime || "00:00"}`);
+      const dt = new Date(
+        `${e.startDate || today}T${e.startTime || "00:00"}`,
+      );
       return dt >= new Date(Date.now() - 2 * 60 * 1000);
     })
     .sort((a, b) => {
@@ -584,7 +621,6 @@ export const Widget = ({ id, onRemove }) => {
         saveCustom(next);
         return next;
       });
-      // Mirror to widget_events so it appears in the Events widget
       addEventToStore({
         id: cd.id,
         title: cd.title,
@@ -599,30 +635,27 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   const removeCustom = useCallback(
-    (id) => {
+    (cdId) => {
       setCustom((prev) => {
-        const next = prev.filter((c) => c.id !== id);
+        const next = prev.filter((c) => c.id !== cdId);
         saveCustom(next);
         return next;
       });
       setPinned((p) => {
-        if (p?.type === "custom" && p?.id === id) {
-          savePinned(null);
+        if (p?.type === "custom" && p?.id === cdId) {
+          savePinned(id, null);
           return null;
         }
         return p;
       });
-      // Remove the mirror from widget_events
-      removeEventFromStore(id);
+      removeEventFromStore(cdId);
     },
-    [removeEventFromStore],
+    [removeEventFromStore, id],
   );
 
-  // Re-render every second for live countdown — shared timer, no extra setInterval
   useEffect(() => onClockTick(forceUpdate), []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
-  // target shape: { title, nextDate, startTime?, isEvent, isGcal, id, repeat? }
   const { target, shouldClearPin } = resolveTarget(
     pinned,
     allEvents,
@@ -633,16 +666,17 @@ export const Widget = ({ id, onRemove }) => {
 
   useEffect(() => {
     if (!shouldClearPin) return;
-    const id = setTimeout(() => setPin(null), 0);
-    return () => clearTimeout(id);
+    const tid = setTimeout(() => setPin(null), 0);
+    return () => clearTimeout(tid);
   }, [shouldClearPin]);
 
-  // ── Notifications: fire once per event per day ──────────────────────────────
-  const { totalSeconds = 0 } = target ? formatCountdown(target.nextDate) : {};
+  // ── Notifications ──────────────────────────────────────────────────────────
+  const notifSeconds = getNotifySeconds(target);
+  const { totalSeconds = 0 } = notifSeconds;
   const notifKey = target ? `${target.id ?? target.title}` : null;
 
   useEffect(() => {
-    if (!notifKey || totalSeconds > 0) return;
+    if (!notifKey || totalSeconds > 0 || target?.mode === "since") return;
     if (wasNotified(notifKey)) return;
     markNotified(notifKey);
 
@@ -657,16 +691,47 @@ export const Widget = ({ id, onRemove }) => {
       sendNotification("Countdown complete", target.title);
     }
 
-    // Auto-clear pinned custom (once) so we advance to next
     if (pinned?.type === "custom") {
       const cd = custom.find((c) => c.id === pinned.id);
       if (cd?.repeat === "none") setTimeout(() => setPin(null), 10_000);
     }
-    // Auto-clear pinned event so we advance to next
     if (pinned?.type === "event") {
       setTimeout(() => setPin(null), 10_000);
     }
-  }, [notifKey, totalSeconds === 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [notifKey, totalSeconds === 0]);
+
+  // ── Compute display values ──────────────────────────────────────────────────
+  const activeTarget = resolveActiveTarget(
+    target,
+    totalSeconds,
+    upcomingEvents,
+    today,
+    custom,
+  );
+  const isSince = activeTarget?.mode === "since";
+
+  const diffValues = getDiffValues(activeTarget);
+  const {
+    days: aDays = 0,
+    hours: aHours = 0,
+    minutes: aMins = 0,
+    totalSeconds: aTotalSecs = 0,
+  } = diffValues;
+
+  const cv = isSince
+    ? sinceValue(aDays)
+    : countdownValue(aDays, aHours, aMins, aTotalSecs);
+
+  const fmtTime = (t) => {
+    if (!t) return null;
+    const [h, m] = t.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
+  };
+
+  const startTimeStr = activeTarget?.startTime
+    ? fmtTime(activeTarget.startTime)
+    : null;
 
   const settingsContent = (onClose) => (
     <CountdownSettings
@@ -680,43 +745,6 @@ export const Widget = ({ id, onRemove }) => {
     />
   );
 
-  // ── When current event hits zero, advance display to the next upcoming ───────
-  const activeTarget = resolveActiveTarget(
-    target,
-    totalSeconds,
-    upcomingEvents,
-    today,
-    custom,
-  );
-
-  const {
-    days: aDays = 0,
-    hours: aHours = 0,
-    minutes: aMins = 0,
-    totalSeconds: aTotalSecs = 0,
-  } = activeTarget ? formatCountdown(activeTarget.nextDate) : {};
-
-  // ── Human-readable countdown value ─────────────────────────────────────────
-  const cv = countdownValue(aDays, aHours, aMins, aTotalSecs);
-
-  const fmtTime = (t) => {
-    if (!t) return null;
-    const [h, m] = t.split(":").map(Number);
-    const ampm = h >= 12 ? "PM" : "AM";
-    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
-  };
-
-  const durStr = calcDurStr(activeTarget?.startTime, activeTarget?.endTime);
-
-  // Start time only — "3:15 PM"
-  const startTimeStr = activeTarget?.startTime
-    ? fmtTime(activeTarget.startTime)
-    : null;
-
-  // Dynamic title font size
-  const titleLen = activeTarget?.title?.length ?? 0;
-  const titleFontSize = getTitleFontSize(titleLen);
-
   return (
     <BaseWidget
       className="p-4 flex flex-col"
@@ -726,43 +754,29 @@ export const Widget = ({ id, onRemove }) => {
       onRemove={onRemove}
     >
       {activeTarget ? (
-        <div className="flex-1 flex flex-row items-center gap-0 min-w-0 overflow-hidden">
-          {/* Left: big number + unit */}
-          <div
-            className="flex flex-col items-center justify-center shrink-0 pr-4"
-            style={{ minWidth: 0 }}
-          >
+        <div className="cdn-widget-face">
+          {/* ── Title — event name, always visible, multi-line clamp ── */}
+          <p className="cdn-widget-title__text">
+            {activeTarget.title}
+          </p>
+
+          {/* ── Hero Number — large, centered ── */}
+          <div className="cdn-widget-number">
             {cv.main ? (
               <>
-                <span
-                  className="font-black leading-none"
-                  style={{
-                    fontSize: "clamp(2.8rem, 6vw, 4.4rem)",
-                    color: "var(--w-accent)",
-                    letterSpacing: "-0.04em",
-                    lineHeight: 1,
-                  }}
-                >
+                <span className="cdn-widget-number__value">
                   {cv.main}
                 </span>
-                <span
-                  className="font-bold mt-0.5"
-                  style={{
-                    fontSize: "clamp(0.9rem, 2vw, 1.15rem)",
-                    color: "var(--w-ink-2)",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
+                <span className="cdn-widget-number__unit">
                   {cv.unit}
+                  {isSince ? " passed" : ""}
                 </span>
               </>
             ) : (
               <span
-                className="font-black leading-none"
+                className="cdn-widget-number__value"
                 style={{
                   fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)",
-                  color: "var(--w-accent)",
-                  letterSpacing: "-0.03em",
                 }}
               >
                 &lt;1m
@@ -770,81 +784,39 @@ export const Widget = ({ id, onRemove }) => {
             )}
           </div>
 
-          {/* Divider — not full height, centered */}
-          <div
-            className="shrink-0 my-auto"
-            style={{
-              width: "1px",
-              height: "65%",
-              backgroundColor: "rgba(0,0,0,0.1)",
-            }}
-          />
-
-          {/* Right: title + time */}
-          <div className="flex-1 flex flex-col justify-center gap-2 pl-4 min-w-0 overflow-hidden">
-            {/* Title — 4-line clamp, clean truncation */}
-            <p
-              style={{
-                fontSize: titleFontSize,
-                fontWeight: 700,
-                color: "var(--w-ink-1)",
-                lineHeight: 1.3,
-                display: "-webkit-box",
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                overflowWrap: "break-word",
-              }}
-            >
-              {activeTarget.title}
-            </p>
-
-            {/* Start time · duration + repeat badge on same line */}
-            {(startTimeStr ||
-              (activeTarget.repeat &&
-                activeTarget.repeat !== "none" &&
-                activeTarget.repeat !== "event")) && (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {startTimeStr && (
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: "var(--w-ink-3)",
-                        lineHeight: 1,
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {startTimeStr}
-                      {durStr && (
-                        <span style={{ color: "var(--w-ink-4)" }}>
-                          {" "}
-                          · {durStr}
-                        </span>
-                      )}
-                    </p>
-                  )}
-                  {activeTarget.repeat &&
-                    activeTarget.repeat !== "none" &&
-                    activeTarget.repeat !== "event" && (
-                      <span
-                        className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: "var(--panel-bg)",
-                          color: "var(--w-ink-4)",
-                        }}
-                      >
-                        <ArrowRepeat size={8} />
-                        {activeTarget.repeat}
-                      </span>
-                    )}
-                </div>
+          {/* ── Meta row: date, time, badges ── */}
+          <div className="cdn-widget-meta">
+            <span className="cdn-widget-meta__date">
+              {formatTargetDate(activeTarget.nextDate)}
+            </span>
+            {startTimeStr && (
+              <>
+                <span className="cdn-widget-meta__dot">·</span>
+                <span className="cdn-widget-meta__text">
+                  {startTimeStr}
+                </span>
+              </>
+            )}
+            {isSince && (
+              <span className="cdn-widget-meta__badge">Since</span>
+            )}
+            {!isSince &&
+              activeTarget.repeat &&
+              activeTarget.repeat !== "none" &&
+              !activeTarget.isEvent && (
+                <span className="cdn-widget-meta__badge">
+                  <ArrowRepeat size={9} />
+                  {activeTarget.repeat}
+                </span>
               )}
           </div>
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <HourglassSplit size={28} style={{ color: "var(--w-ink-4)" }} />
+          <HourglassSplit
+            size={28}
+            style={{ color: "var(--w-ink-4)" }}
+          />
           <p className="w-muted text-sm">No countdowns yet.</p>
           <p className="text-xs" style={{ color: "var(--w-ink-4)" }}>
             Add events or open settings to create one.

@@ -1,5 +1,5 @@
 /**
- * Countdown widget utilities
+ * Countdown widget utilities — dual-mode (countdown + since).
  */
 
 export const REPEAT_OPTIONS = [
@@ -7,6 +7,11 @@ export const REPEAT_OPTIONS = [
   { label: 'Weekly', value: 'weekly' },
   { label: 'Monthly', value: 'monthly' },
   { label: 'Yearly', value: 'yearly' },
+];
+
+export const MODE_OPTIONS = [
+  { label: 'Countdown', value: 'countdown' },
+  { label: 'Since', value: 'since' },
 ];
 
 /**
@@ -26,7 +31,7 @@ export const getNextOccurrence = ({ targetDate, targetTime, repeat }) => {
     if (repeat === 'weekly') next.setDate(next.getDate() + 7);
     else if (repeat === 'monthly') next.setMonth(next.getMonth() + 1);
     else if (repeat === 'yearly') next.setFullYear(next.getFullYear() + 1);
-    else break; // safety — prevent infinite loop
+    else break;
   }
   return next;
 };
@@ -43,6 +48,20 @@ export const formatCountdown = (targetDate) => {
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return { days, hours, minutes, totalSeconds };
+};
+
+/**
+ * Returns time elapsed SINCE a past date.
+ * { days, months, years, totalSeconds } — all >= 0.
+ */
+export const formatSince = (targetDate) => {
+  const now = new Date();
+  const diffMs = Math.max(0, now - targetDate);
+  const totalSeconds = Math.floor(diffMs / 1_000);
+  const days = Math.floor(totalSeconds / 86400);
+  const months = Math.floor(days / 30.44); // average month
+  const years = Math.floor(days / 365.25); // average year (leap-aware)
+  return { days, months, years, totalSeconds };
 };
 
 /**
