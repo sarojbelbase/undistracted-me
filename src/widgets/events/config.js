@@ -13,7 +13,7 @@ export default {
     web: { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
     phone: { supported: 'partial', limitations: ['Google Calendar auto-sync unavailable'] },
   },
-  x: 12, y: 8, w: 14, h: 10,
+  x: 34, y: 8, w: 14, h: 10,
   breakpoints: {
     md: { x: 0, y: 8, w: 16, h: 10 },
     sm: { x: 0, y: 20, w: 12, h: 12 },
