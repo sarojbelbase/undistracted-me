@@ -16,8 +16,13 @@
 @mixin skeleton-bone($radius: 0.25rem) {
   flex-shrink: 0;
   border-radius: $radius;
-  background: var(--w-border);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(110deg,
+      var(--w-border) 30%,
+      var(--w-surface-3) 42%,
+      var(--w-surface-3) 50%,
+      var(--w-border) 58%);
+  background-size: 300% 100%;
+  animation: shimmer 2.2s ease-in-out infinite;
 }
 
 // ── Single-line text truncate ─────────────────────────────────────────────────
