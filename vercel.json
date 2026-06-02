@@ -42,6 +42,22 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/popup.html",
+      "destination": "/entries/popup.html"
+    },
+    {
+      "source": "/blocked.html",
+      "destination": "/entries/blocked.html"
+    },
+    {
+      "source": "/",
+      "destination": "/entries/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/entries/index.html"
     }
   ],
   "headers": [
