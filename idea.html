@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Widget — 9 Design Ideas</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+        background: #1c1c1e;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+      }
+
+      .matrix {
+        display: grid;
+        grid-template-columns: repeat(3, 320px);
+        grid-template-rows: repeat(3, 240px);
+        gap: 20px;
+      }
+
+      .cell {
+        background: #2c2c2e;
+        border-radius: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .cell-label {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.25);
+      }
+
+      .accent {
+        color: #a78bfa;
+      }
+
+      .muted {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .dim {
+        color: rgba(255, 255, 255, 0.28);
+      }
+
+      /* ── 1. Centered Stack (baseline) ── */
+      .idea-1 {
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+      }
+
+      .idea-1 .title {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .idea-1 .number {
+        font-size: 64px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-1 .unit {
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .idea-1 .meta {
+        font-size: 11px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .idea-1 .badge {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* ── 2. Horizontal Split ── */
+      .idea-2 {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .idea-2 .left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .idea-2 .left .number {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-2 .left .unit {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .idea-2 .right {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .idea-2 .right .title {
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .idea-2 .right .meta {
+        font-size: 11px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .idea-2 .badge {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* ── 3. Number-First Hero ── */
+      .idea-3 {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .idea-3 .number {
+        font-size: 72px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .idea-3 .unit {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+
+      .idea-3 .title {
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 80%;
+      }
+
+      .idea-3 .meta {
+        font-size: 10px;
+        margin-top: 4px;
+      }
+
+      /* ── 4. Bento Grid ── */
+      .idea-4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 10px;
+        padding: 16px;
+      }
+
+      .idea-4 .title-area {
+        grid-column: 1 / -1;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .idea-4 .num-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(167, 139, 250, 0.12);
+        border-radius: 14px;
+      }
+
+      .idea-4 .num-box .number {
+        font-size: 44px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-4 .num-box .unit {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .idea-4 .info-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        font-size: 11px;
+      }
+
+      .idea-4 .meta-area {
+        grid-column: 1 / -1;
+        font-size: 11px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      /* ── 5. Timeline Dot ── */
+      .idea-5 {
+        align-items: flex-start;
+        gap: 0;
+      }
+
+      .idea-5 .timeline {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 12px;
+      }
+
+      .idea-5 .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #a78bfa;
+        flex-shrink: 0;
+        box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+      }
+
+      .idea-5 .line {
+        flex: 1;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .idea-5 .content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-left: 22px;
+      }
+
+      .idea-5 .number {
+        font-size: 48px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-5 .unit {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .idea-5 .title {
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 6px;
+      }
+
+      .idea-5 .meta {
+        font-size: 11px;
+      }
+
+      /* ── 6. Scrolling Title ── */
+      .idea-6 {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .idea-6 .marquee {
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        margin-bottom: 8px;
+      }
+
+      .idea-6 .marquee span {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        animation: scroll 8s linear infinite;
+        padding-left: 100%;
+      }
+
+      @keyframes scroll {
+        0% {
+          transform: translateX(0);
+        }
+
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+
+      .idea-6 .number {
+        font-size: 68px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-6 .unit {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .idea-6 .meta {
+        font-size: 11px;
+        margin-top: 6px;
+      }
+
+      /* ── 7. Glass Capsule ── */
+      .idea-7 {
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        text-align: center;
+      }
+
+      .idea-7 .capsule {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 20px 32px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .idea-7 .capsule .number {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .idea-7 .capsule .unit {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .idea-7 .title {
+        font-size: 14px;
+        font-weight: 600;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .idea-7 .meta {
+        font-size: 11px;
+      }
+
+      /* ── 8. Typographic Minimal ── */
+      .idea-8 {
+        justify-content: center;
+        gap: 6px;
+        padding: 24px;
+      }
+
+      .idea-8 .row-1 {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .idea-8 .row-2 {
+        font-size: 56px;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .idea-8 .row-3 {
+        font-size: 14px;
+        font-weight: 400;
+      }
+
+      .idea-8 .row-4 {
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      /* ── 9. Progress Ring ── */
+      .idea-9 {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .idea-9 .ring-wrap {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        flex-shrink: 0;
+      }
+
+      .idea-9 .ring-wrap svg {
+        transform: rotate(-90deg);
+        width: 90px;
+        height: 90px;
+      }
+
+      .idea-9 .ring-wrap .ring-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.08);
+        stroke-width: 6;
+      }
+
+      .idea-9 .ring-wrap .ring-fg {
+        fill: none;
+        stroke: #a78bfa;
+        stroke-width: 6;
+        stroke-linecap: round;
+      }
+
+      .idea-9 .ring-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .idea-9 .ring-center .number {
+        font-size: 26px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .idea-9 .ring-center .unit {
+        font-size: 9px;
+        font-weight: 600;
+      }
+
+      .idea-9 .info {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .idea-9 .info .title {
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .idea-9 .info .meta {
+        font-size: 11px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 1020px) {
+        .matrix {
+          grid-template-columns: repeat(2, 1fr);
+          grid-template-rows: auto;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .matrix {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="matrix">
+
+      <!-- 1. Centered Stack -->
+      <div class="cell idea-1">
+        <span class="cell-label">1 · Centered Stack</span>
+        <span class="title">Gas Cylinder</span>
+        <div>
+          <span class="number accent">6</span>
+          <span class="unit muted">&nbsp;months passed</span>
+        </div>
+        <div class="meta dim">
+          <span>Dec 1, 2025</span>
+          <span>·</span>
+          <span>6:00 AM</span>
+          <span class="badge">Since</span>
+        </div>
+      </div>
+
+      <!-- 2. Horizontal Split -->
+      <div class="cell idea-2">
+        <span class="cell-label">2 · Horizontal Split</span>
+        <div class="left">
+          <span class="number accent">6</span>
+          <span class="unit muted">months</span>
+        </div>
+        <div class="right">
+          <span class="title">Gas Cylinder</span>
+          <div class="meta dim">
+            <span>Dec 1, 2025</span>
+            <span>·</span>
+            <span>6:00 AM</span>
+            <span class="badge">Since</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Number-First Hero -->
+      <div class="cell idea-3">
+        <span class="cell-label">3 · Number-First Hero</span>
+        <span class="number accent">6</span>
+        <span class="unit muted">months passed</span>
+        <span class="title dim">Gas Cylinder</span>
+        <span class="meta dim">Dec 1, 2025 · 6:00 AM</span>
+      </div>
+
+      <!-- 4. Bento Grid -->
+      <div class="cell idea-4">
+        <span class="cell-label">4 · Bento Grid</span>
+        <span class="title-area">Gas Cylinder</span>
+        <div class="num-box">
+          <span class="number accent">6</span>
+          <span class="unit muted">months</span>
+        </div>
+        <div class="info-box dim">
+          <span>Dec 1, 2025</span>
+          <span>6:00 AM</span>
+        </div>
+        <div class="meta-area dim">
+          <span>Since</span>
+        </div>
+      </div>
+
+      <!-- 5. Timeline Dot -->
+      <div class="cell idea-5">
+        <span class="cell-label">5 · Timeline Dot</span>
+        <div class="timeline">
+          <div class="dot"></div>
+          <div class="line"></div>
+        </div>
+        <div class="content">
+          <span class="number accent">6</span>
+          <span class="unit muted">months passed</span>
+          <span class="title">Gas Cylinder</span>
+          <span class="meta dim">Dec 1, 2025 · 6:00 AM</span>
+        </div>
+      </div>
+
+      <!-- 6. Scrolling Marquee Title -->
+      <div class="cell idea-6">
+        <span class="cell-label">6 · Scrolling Marquee</span>
+        <div class="marquee"><span>Gas Cylinder — Since Dec 1, 2025&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;</span></div>
+        <span class="number accent">6</span>
+        <span class="unit muted">months passed</span>
+        <span class="meta dim">Dec 1, 2025 · 6:00 AM</span>
+      </div>
+
+      <!-- 7. Glass Capsule -->
+      <div class="cell idea-7">
+        <span class="cell-label">7 · Glass Capsule</span>
+        <span class="title">Gas Cylinder</span>
+        <div class="capsule">
+          <span class="number accent">6</span>
+          <span class="unit muted">months</span>
+        </div>
+        <span class="meta dim">Dec 1, 2025 · 6:00 AM</span>
+      </div>
+
+      <!-- 8. Typographic Minimal -->
+      <div class="cell idea-8">
+        <span class="cell-label">8 · Typographic Minimal</span>
+        <span class="row-1 dim">Gas Cylinder</span>
+        <span class="row-2 accent">6 months</span>
+        <span class="row-3 muted">have passed since</span>
+        <span class="row-4 dim">Dec 1, 2025 at 6:00 AM</span>
+      </div>
+
+      <!-- 9. Progress Ring -->
+      <div class="cell idea-9">
+        <span class="cell-label">9 · Progress Ring</span>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="39" />
+            <circle class="ring-fg" cx="45" cy="45" r="39" stroke-dasharray="245" stroke-dashoffset="61" />
+          </svg>
+          <div class="ring-center">
+            <span class="number accent">6</span>
+            <span class="unit muted">mo</span>
+          </div>
+        </div>
+        <div class="info">
+          <span class="title">Gas Cylinder</span>
+          <div class="meta dim">
+            <span>Dec 1, 2025</span>
+            <span>·</span>
+            <span>Since</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+
+</html>
