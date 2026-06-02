@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { XLg, HourglassSplit, ArrowRepeat } from 'react-bootstrap-icons';
+import { XLg, HourglassSplit } from 'react-bootstrap-icons';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { Modal } from '../../components/ui/Modal';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
-import { REPEAT_OPTIONS } from './utils';
+import { REPEAT_OPTIONS, MODE_OPTIONS } from './utils';
 import { makeUid } from '../../utilities';
 
 const makeId = () => makeUid('cd');
@@ -14,6 +14,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [repeat, setRepeat] = useState('none');
+  const [mode, setMode] = useState('countdown');
   const titleRef = useRef(null);
 
   useEffect(() => {
@@ -22,10 +23,11 @@ export const AddCountdown = ({ onSave, onClose }) => {
 
   const titleValid = title.trim().length > 0;
   const valid = titleValid && date;
+  const isSince = mode === 'since';
 
   const handleSave = () => {
     if (!valid) return;
-    onSave({ id: makeId(), title: title.trim(), targetDate: date, targetTime: time, repeat });
+    onSave({ id: makeId(), title: title.trim(), targetDate: date, targetTime: time, repeat, mode });
     onClose();
   };
 
@@ -45,7 +47,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
           </div>
           <div>
             <div className="w-heading" style={{ fontSize: '15px' }}>New Countdown</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>What are you counting down to?</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>What are you tracking?</div>
           </div>
         </div>
         <button
@@ -78,39 +80,65 @@ export const AddCountdown = ({ onSave, onClose }) => {
           style={{ fontSize: '14px', fontWeight: 500 }}
         />
 
-        {/* When */}
+        {/* Mode — Countdown or Since */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-            <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>When</span>
-          </div>
-          <SegmentedDateTime mode="datetime" date={date} onDateChange={setDate} time={time} onTimeChange={setTime} />
-        </div>
-
-        {/* Repeat */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-            <ArrowRepeat size={10} style={{ color: 'var(--w-ink-3)' }} />
-            <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Repeat</span>
+          <div style={{ marginBottom: 8 }}>
+            <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Mode</span>
           </div>
           <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-            {REPEAT_OPTIONS.map(r => {
-              const active = repeat === r.value;
+            {MODE_OPTIONS.map(opt => {
+              const active = mode === opt.value;
               return (
                 <button
-                  key={r.value}
+                  key={opt.value}
                   type="button"
-                  onClick={() => setRepeat(r.value)}
+                  onClick={() => setMode(opt.value)}
                   style={{
                     flex: 1, borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
                     padding: '6px 0', cursor: 'pointer', transition: 'all 0.15s', border: 'none',
                     background: active ? 'var(--w-accent)' : 'transparent',
                     color: active ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
                   }}
-                >{r.label}</button>
+                >{opt.label}</button>
               );
             })}
           </div>
         </div>
+
+        {/* When */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+            <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>{isSince ? 'Date' : 'When'}</span>
+          </div>
+          <SegmentedDateTime mode="datetime" date={date} onDateChange={setDate} time={time} onTimeChange={setTime} />
+        </div>
+
+        {/* Repeat — only for countdown mode */}
+        {!isSince && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+              <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Repeat</span>
+            </div>
+            <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
+              {REPEAT_OPTIONS.map(r => {
+                const active = repeat === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setRepeat(r.value)}
+                    style={{
+                      flex: 1, borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
+                      padding: '6px 0', cursor: 'pointer', transition: 'all 0.15s', border: 'none',
+                      background: active ? 'var(--w-accent)' : 'transparent',
+                      color: active ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
+                    }}
+                  >{r.label}</button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
