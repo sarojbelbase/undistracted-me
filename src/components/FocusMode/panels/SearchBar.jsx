@@ -163,11 +163,16 @@ export const SearchBar = ({ centerOnDark = true }) => {
   const focusSearchWeb = useSettingsStore(s => s.focusSearchWeb ?? true);
 
   const [activeSugg, setActiveSugg] = useState(-1);
+  const [hoverIdx, setHoverIdx] = useState(-1);
+  const [arrowed, setArrowed] = useState(false);
   const [focused, setFocused] = useState(false);
   const [bouncing, setBouncing] = useState(false);
   const [topSites, setTopSites] = useState([]);
 
   const { query, setQuery, engineId, engine, handleCycleEngine, suggestions, setSuggestions, tabResults, urlTarget, navigate, search, skipNextFetch } = useSearchCore({ withHistory: true, fetchSuggestions: focusSearchWeb, debounceMs: 220 });
+
+  // Reset navigation state on every query change
+  useEffect(() => { setArrowed(false); setHoverIdx(-1); }, [query]);
 
   const inputRef = useRef(null);
   const wrapRef = useRef(null);
@@ -211,7 +216,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     setTimeout(() => setBouncing(false), 420);
     navigate(url);
     originalQueryRef.current = '';
-    setFocused(false); setActiveSugg(-1);
+    setFocused(false); setActiveSugg(-1); setArrowed(false);
   }, [navigate]);
 
   // ── Submit search ────────────────────────────────────────────────────────────
@@ -223,6 +228,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     originalQueryRef.current = '';
     setFocused(false);
     setActiveSugg(-1);
+    setArrowed(false);
   }, [query, search]);
 
   // ── Keyboard nav ─────────────────────────────────────────────────────────────
@@ -243,6 +249,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
   const handleArrowDown = (e) => {
     e.preventDefault();
+    setArrowed(true);
     const total = suggStart + suggestions.length;
     const next = Math.min(activeSugg + 1, total - 1);
     if (activeSugg === -1) originalQueryRef.current = query;
@@ -256,6 +263,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
   const handleArrowUp = (e) => {
     e.preventDefault();
+    setArrowed(true);
     const next = Math.max(activeSugg - 1, -1);
     setActiveSugg(next);
     if (next >= suggStart) {
@@ -269,6 +277,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
   const handleEnter = (e) => {
     e.preventDefault();
+    if (!arrowed) { submit(); return; }
     if (activeSugg === -1) { submit(); return; }
     if (urlTarget && activeSugg === 0) {
       goToUrl(urlTarget);
@@ -287,6 +296,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     skipNextFetch();
     setQuery(originalQueryRef.current);
     setActiveSugg(-1);
+    setArrowed(false);
     setFocused(false);
     inputRef.current?.blur();
     setSuggestions([]);
@@ -390,12 +400,12 @@ export const SearchBar = ({ centerOnDark = true }) => {
           suggestions={suggestions}
           tabResults={tabResults}
           topSites={matchedTopSites}
-          activeSugg={activeSugg}
+          activeSugg={arrowed ? activeSugg : hoverIdx}
           isHistory={isHistory}
           onSelect={submit}
-          onTabSelect={(tab) => { switchToTab(tab); setFocused(false); setActiveSugg(-1); }}
-          onTopSiteSelect={(site) => { window.open(site.url, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); }}
-          onHover={setActiveSugg}
+          onTabSelect={(tab) => { switchToTab(tab); setFocused(false); setActiveSugg(-1); setArrowed(false); }}
+          onTopSiteSelect={(site) => { window.open(site.url, '_blank', 'noopener'); setFocused(false); setActiveSugg(-1); setArrowed(false); }}
+          onHover={setHoverIdx}
           t={t}
         />
       )}

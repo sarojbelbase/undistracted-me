@@ -10,7 +10,6 @@ const APP_KEY_PREFIXES = [
   "gcal_",
   "spotify_",
   "pomodoro_",
-  "rss_cache_",
   "location_state",
   "auto_theme_coords",
   // Legacy keys

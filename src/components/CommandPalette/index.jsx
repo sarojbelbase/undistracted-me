@@ -53,7 +53,8 @@ const ResultText = ({ isActive, children }) => (
  * Engine: click the icon or press Tab to cycle Google → DDG → YouTube → Perplexity.
  */
 export function CommandPalette({ onClose }) {
-  const [activeIdx, setActiveIdx] = useState(0);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [arrowed, setArrowed] = useState(false);
   const inputRef = useRef(null);
 
   const {
@@ -65,7 +66,7 @@ export function CommandPalette({ onClose }) {
   } = useSearchCore({ debounceMs: 220 });
 
   useEffect(() => { inputRef.current?.focus(); }, []);
-  useEffect(() => { setActiveIdx(0); }, [query]);
+  useEffect(() => { setActiveIdx(-1); setArrowed(false); }, [query]);
 
   // Flat list for keyboard nav: [url?] [tabs] [suggestions]
   const flatItems = useMemo(() => {
@@ -90,17 +91,21 @@ export function CommandPalette({ onClose }) {
     if (e.key === "Tab") { e.preventDefault(); handleCycleEngine(); return; }
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIdx(i => flatItems.length === 0 ? 0 : (i + 1) % flatItems.length);
+      setArrowed(true);
+      setActiveIdx(i => flatItems.length === 0 ? -1 : i < 0 ? 0 : (i + 1) % flatItems.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setActiveIdx(i => flatItems.length === 0 ? 0 : (i - 1 + flatItems.length) % flatItems.length);
+      setArrowed(true);
+      setActiveIdx(i => flatItems.length === 0 ? -1 : i <= 0 ? flatItems.length - 1 : i - 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const item = flatItems[activeIdx];
-      if (item) runItem(item);
-      else if (hasQuery) { search(); onClose(); }
+      if (arrowed && activeIdx >= 0 && flatItems[activeIdx]) {
+        runItem(flatItems[activeIdx]);
+      } else if (hasQuery) {
+        search(); onClose();
+      }
     }
-  }, [flatItems, activeIdx, runItem, hasQuery, search, onClose, handleCycleEngine]);
+  }, [flatItems, activeIdx, arrowed, runItem, hasQuery, search, onClose, handleCycleEngine]);
 
   return (
     <Modal
