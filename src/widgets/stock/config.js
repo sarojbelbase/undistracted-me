@@ -13,7 +13,7 @@ export default {
     web: { supported: true },
     phone: { supported: true },
   },
-  x: 34, y: 22, w: 7, h: 8,
+  x: 26, y: 0, w: 7, h: 8,
   breakpoints: {
     md: { x: 28, y: 28, w: 12, h: 8 },
     sm: { x: 12, y: 44, w: 8, h: 10 },

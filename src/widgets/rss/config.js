@@ -13,7 +13,7 @@ export default {
     web: { supported: true, limitations: ['Background sync unavailable on web'] },
     phone: { supported: true, limitations: ['Background sync unavailable on mobile'] },
   },
-  x: 26, y: 18, w: 8, h: 10,
+  x: 0, y: 8, w: 8, h: 10,
   breakpoints: {
     md: { x: 0, y: 38, w: 12, h: 12 },
     sm: { x: 0, y: 66, w: 12, h: 14 },
