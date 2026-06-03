@@ -1,10 +1,10 @@
 /**
  * Events widget utilities
  */
-import { todayStr } from '../../utilities';
+import { todayStr, toLocalDateStr } from '../../utilities';
 
 // Re-export so existing widget-local imports keep working transparently.
-export { todayStr } from '../../utilities';
+export { todayStr, toLocalDateStr } from '../../utilities';
 
 /** Returns true if an event is in the past */
 export const isPast = (event) => {
@@ -21,11 +21,11 @@ export const isPast = (event) => {
   return false;
 };
 
-/** Date string offset from today (offset=1 → tomorrow) */
+/** Date string offset from today in local time (offset=1 → tomorrow) */
 export const getDateOffset = (offset) => {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d);
 };
 
 /**
@@ -87,7 +87,7 @@ export const applyDuration = (startDate, startTime, mins) => {
   const d = new Date(`${startDate}T${startTime}`);
   d.setMinutes(d.getMinutes() + mins);
   return {
-    endDate: d.toISOString().slice(0, 10),
+    endDate: toLocalDateStr(d),
     endTime: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
   };
 };

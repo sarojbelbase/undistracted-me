@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ICANHAZDADJOKE_API } from '../../constants/urls.js';
+import { todayStr } from '../../utilities';
 
 const CACHE_KEY = 'dailys_joke_cache';
-const todayStr = () => new Date().toISOString().slice(0, 10);
 
 /**
  * Fetches one dad joke from icanhazdadjoke.com per day.
