@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ClockHistory } from 'react-bootstrap-icons';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { PillButton } from '../../components/ui/PillButton';
 import { Toggle } from '../../components/ui/Toggle';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { BREAK_OPTIONS, DEFAULT_SETTINGS } from './constants';

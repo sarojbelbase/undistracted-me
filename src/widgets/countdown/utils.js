@@ -71,3 +71,72 @@ export const formatTargetDate = (date) => {
   if (!date) return '';
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
+
+/**
+ * Formats a countdown value for the widget face phrase.
+ * e.g. "50 min", "2 hours", "3 days", "2 weeks", "5 months", "1 year"
+ */
+function fmtMonths(days) {
+  const m = Math.floor(days / 30);
+  const r = days % 30 >= 15 ? m + 1 : m;
+  return `${r} ${r === 1 ? 'month' : 'months'}`;
+}
+
+function fmtWeeksFromDays(totalDays) {
+  const w = Math.floor(totalDays / 7);
+  const r = totalDays % 7 >= 4 ? w + 1 : w;
+  if (r >= 4) return '1 month';
+  return `${r} ${r === 1 ? 'week' : 'weeks'}`;
+}
+
+function fmtDays(days, hours) {
+  const r = hours >= 12 ? days + 1 : days;
+  if (r >= 30) return '1 month';
+  if (r >= 7) return fmtWeeksFromDays(r);
+  return `${r} ${r === 1 ? 'day' : 'days'}`;
+}
+
+function fmtHours(hours, mins) {
+  const r = mins >= 30 ? hours + 1 : hours;
+  if (r >= 24) return '1 day';
+  return `${r} ${r === 1 ? 'hour' : 'hours'}`;
+}
+
+function fmtMins(mins, secs) {
+  const r = secs >= 30 ? mins + 1 : mins;
+  if (r >= 60) return '1 hour';
+  return `${r} min`;
+}
+
+export function formatCountdownPhrase(days, hours, mins, totalSecs) {
+  const secs = totalSecs % 60;
+  if (days >= 30) return fmtMonths(days);
+  if (days >= 7) return fmtWeeksFromDays(days);
+  if (days > 0) return fmtDays(days, hours);
+  if (hours > 0) return fmtHours(hours, mins);
+  if (mins > 0 || secs >= 30) return fmtMins(mins, secs);
+  return '<1 min';
+}
+
+/**
+ * Formats a "since" value for the widget face phrase.
+ * e.g. "23 min", "2 days", "3 weeks", "8 months", "2 years"
+ */
+export function formatSincePhrase(days) {
+  if (days < 1) return '<1 day';
+  if (days < 7) {
+    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  }
+  if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+  }
+  if (days < 365) {
+    const months = Math.round(days / 30.44);
+    return `${months} ${months === 1 ? 'month' : 'months'}`;
+  }
+  const years = Math.round((days / 365.25) * 10) / 10;
+  const whole = years % 1 === 0;
+  const val = whole ? Math.round(years) : years.toFixed(1);
+  return `${val} ${years === 1 ? 'year' : 'years'}`;
+}
