@@ -557,10 +557,12 @@ export const Widget = ({ id, onRemove }) => {
   const setPin = useCallback(
     (p) => {
       setPinned(p);
-      savePinned(id, p);
     },
-    [id],
+    [],
   );
+
+  // Sync pinned state to localStorage on every change
+  useEffect(() => { savePinned(id, pinned); }, [pinned, id]);
 
   const addCustom = useCallback(
     (cd) => {
@@ -666,20 +668,55 @@ export const Widget = ({ id, onRemove }) => {
     totalSeconds: aTotalSecs = 0,
   } = diffValues;
 
-  const phraseText = useMemo(() => {
+  // ── Split text into three styled parts ────────────────────────────────────
+  const titlePart = activeTarget?.title || '';
+  const connectorPart = isSince ? '' : 'is';
+  const timePart = useMemo(() => {
     if (!activeTarget) return '';
     if (isSince) return `${formatSincePhrase(aDays)} passed since`;
-    return `is in ${formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs)}`;
+    return `in ${formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs)}`;
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
-  // ── Font sizing: DOM binary search with the ACTUAL rendered font ────────────
-  const faceRef = useRef(null);
-  const textRef = useRef(null);
+  // Full text for measurement (space-joined)
+  const measureText = useMemo(() => {
+    return [titlePart, connectorPart, timePart].filter(Boolean).join(' ');
+  }, [titlePart, connectorPart, timePart]);
+
+  // ── Minimal metadata — time + smart day label (no recurrence on face) ──────
+  const now = new Date();
+
+  const metaTime = useMemo(() => {
+    if (!activeTarget?.startTime) return '';
+    return fmt12(activeTarget.startTime);
+  }, [activeTarget?.startTime]);
+
+  const dayLabel = useMemo(() => {
+    if (!activeTarget?.nextDate) return '';
+    const d = activeTarget.nextDate;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const diff = Math.round((targetDay - today) / 86400000);
+
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+    if (diff === -1) return 'Yesterday';
+
+    if (d.getFullYear() === now.getFullYear()) {
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+    return formatTargetDate(d);
+  }, [activeTarget?.nextDate]);
+
+  const showMeta = metaTime || dayLabel;
+
+  // ── Font sizing: DOM binary search ─────────────────────────────────────────
+  const measureRef = useRef(null);
+  const contentRef = useRef(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
-  const [computedFontSize, setComputedFontSize] = useState(16);
+  const [computedFontSize, setComputedFontSize] = useState(17);
 
   useLayoutEffect(() => {
-    const el = faceRef.current;
+    const el = contentRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
@@ -688,36 +725,38 @@ export const Widget = ({ id, onRemove }) => {
     return () => ro.disconnect();
   }, []);
 
-  const combinedText = useMemo(() => {
-    if (!activeTarget?.title || !phraseText) return '';
-    return `${activeTarget.title} ${phraseText}`;
-  }, [activeTarget?.title, phraseText]);
-
-  // Binary search on the real DOM element — guarantees the text fits with
-  // the actual rendered font, not a canvas estimate with a different font.
+  // Binary search: find largest font size that fits in the available height
   useLayoutEffect(() => {
-    const el = textRef.current;
-    if (!el || !combinedText || dims.w <= 0 || dims.h <= 0) return;
+    const el = measureRef.current;
+    if (!el || !measureText || dims.w <= 0 || dims.h <= 0) return;
 
-    // Temporarily remove overflow hidden so scrollHeight is accurate
-    const prevOverflow = el.style.overflow;
-    el.style.overflow = 'visible';
+    // Match the rendered font settings
+    el.style.fontFamily = "'Google Sans', sans-serif";
+    el.style.fontWeight = '500';
+    el.style.letterSpacing = '-0.003em';
+    el.style.lineHeight = '1.25';
 
-    let lo = 10;
-    let hi = Math.min(dims.h * 0.85, dims.w * 0.5);
+    const descentFactor = 0.12; // Google Sans at lh 1.2
+
+    let lo = 10, hi = Math.min(dims.h * 0.6, dims.w * 0.4);
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       el.style.fontSize = mid + 'px';
-      if (el.scrollHeight <= dims.h && el.scrollWidth <= dims.w) {
-        lo = mid;
-      } else {
-        hi = mid;
-      }
+      const h = el.getBoundingClientRect().height;
+      if (h + Math.ceil(mid * descentFactor) <= dims.h) lo = mid;
+      else hi = mid;
     }
 
-    el.style.overflow = prevOverflow;
-    setComputedFontSize(Math.floor(lo));
-  }, [combinedText, dims.w, dims.h]);
+    let fs = Math.floor(lo);
+    el.style.fontSize = fs + 'px';
+    // Width safety: shrink if any word overflows the container
+    while (fs > 10 && el.scrollWidth > Math.ceil(dims.w)) {
+      fs -= 1;
+      el.style.fontSize = fs + 'px';
+    }
+    // Cap at 22px max per design spec
+    setComputedFontSize(Math.min(fs, 22));
+  }, [measureText, dims]);
 
   const settingsContent = (onClose) => (
     <CountdownSettings
@@ -740,20 +779,39 @@ export const Widget = ({ id, onRemove }) => {
       onRemove={onRemove}
     >
       {activeTarget ? (
-        <div ref={faceRef} className="cdn-widget-face">
-          <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
-          {/* Event time line — iOS-style, above the text block */}
-          {activeTarget.startTime && (
-            <div className="cdn-time-line">
-              {fmt12(activeTarget.startTime)}
-              {activeTarget.endTime && activeTarget.endTime !== activeTarget.startTime && (
-                <> to {fmt12(activeTarget.endTime)}</>
+        <div className="cdn-widget-face">
+          <div ref={contentRef} className="cdn-content-wrap">
+            {/* ── Hidden measurement node ── */}
+            <div
+              ref={measureRef}
+              aria-hidden="true"
+              style={{
+                position: 'fixed', top: -9999, left: -9999,
+                width: dims.w, lineHeight: 1.25,
+                whiteSpace: 'normal', pointerEvents: 'none', userSelect: 'none',
+              }}
+            >
+              {measureText}
+            </div>
+
+            {/* ── Visible text block ── */}
+            <div className="cdn-text-block" style={{ fontSize: computedFontSize }}>
+              <span className="cdn-title-text">{titlePart}</span>
+              {connectorPart && timePart && (
+                <span className="cdn-connector">
+                  {' '}{connectorPart}{' '}{timePart}
+                </span>
               )}
             </div>
-          )}
-          <div ref={textRef} className="cdn-text-block" style={{ fontSize: computedFontSize }}>
-            <span className="cdn-title-text">{activeTarget.title} </span>
-            <span className="cdn-phrase-text">{phraseText}</span>
+
+            {/* ── Metadata row ── */}
+            {showMeta && (
+              <div className="cdn-meta-row">
+                {metaTime && <span>{metaTime}</span>}
+                {metaTime && dayLabel && <span className="cdn-meta-dot">·</span>}
+                {dayLabel && <span>{dayLabel}</span>}
+              </div>
+            )}
           </div>
         </div>
       ) : (

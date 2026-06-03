@@ -175,17 +175,18 @@
 //   .cdn-widget-face  — flex column, fills widget, relative for label
 //   .cdn-mode-label   — top-right, absolute, muted chip
 //   .cdn-text-block   — the whole "Title phrase" as one block, uniform size
-//   .cdn-title-text    — inline, normal weight/color
-//   .cdn-phrase-text   — inline, muted, wraps naturally with the title
+//   .cdn-title-text    — bold, dark event name
+//   .cdn-connector     — muted connector + time phrase
 
 .cdn-widget-face {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  gap: 14px;
   position: relative;
   min-height: 0;
-  padding: 18px 4px 4px 4px;
+  padding: 14px 2px;
 }
 
 // ── Source pill (top-right, glass) ────────────────────────────────────────────
@@ -216,6 +217,16 @@
 
 // ── iOS-style text block (title + phrase as one continuous sentence) ─────────
 
+// ── Content wrap (observed for font sizing) ──────────────────────────────────
+
+.cdn-content-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  min-height: 0;
+}
+
 // ── Event time line (above text block, iOS widget style) ──────────────────────
 
 .cdn-time-line {
@@ -227,21 +238,48 @@
   flex-shrink: 0;
 }
 
+// ── Text block wrapper ───────────────────────────────────────────────────────
+
 .cdn-text-block {
+  flex: 0 0 auto;
+  min-height: 0;
   text-align: left;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  overflow: hidden;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  line-height: 1.25;
+  letter-spacing: -0.003em;
+  font-family: 'Google Sans', sans-serif;
 }
 
+// Title: bold, accent — the event name (visual anchor of the card)
 .cdn-title-text {
-  font-weight: 500;
-  color: var(--w-ink-2);
+  font-weight: 600;
+  color: var(--w-accent);
 }
 
-.cdn-phrase-text {
+// Connector: regular weight, muted — linking word + time phrase (supporting text)
+.cdn-connector {
   font-weight: 500;
-  color: var(--w-ink-5);
+  color: var(--w-ink-4);
+  white-space: nowrap;
+}
+
+// ── Metadata row ─────────────────────────────────────────────────────────────
+
+.cdn-meta-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--w-ink-6);
+  line-height: 1.4;
+}
+
+.cdn-meta-dot {
+  color: var(--w-ink-6);
+  user-select: none;
+  padding: 0 4px;
+  font-weight: 600;
 }
