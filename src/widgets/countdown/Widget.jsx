@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useReducer } from "react";
+import React, { useState, useEffect, useCallback, useReducer, useRef, useMemo, useLayoutEffect } from "react";
 import {
   PlusLg,
   Trash3,
@@ -17,7 +17,8 @@ import {
   getNextOccurrence,
   formatCountdown,
   formatSince,
-  formatTargetDate,
+  formatCountdownPhrase,
+  formatSincePhrase,
 } from "./utils";
 import config from "./config";
 import { fmt12, calcDuration } from "../events/utils";
@@ -51,13 +52,12 @@ const savePinned = (id, p) =>
 
 // ─── Notification helpers ────────────────────────────────────────────────────
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
 const wasNotified = (id) => {
   try {
     const map = JSON.parse(
       localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
     );
-    return map[id] === todayKey();
+    return map[id] === todayStr();
   } catch {
     return false;
   }
@@ -68,67 +68,14 @@ const markNotified = (id) => {
       localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
     );
     Object.keys(map).forEach((k) => {
-      if (map[k] !== todayKey()) delete map[k];
+      if (map[k] !== todayStr()) delete map[k];
     });
-    map[id] = todayKey();
+    map[id] = todayStr();
     localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
   } catch { }
 };
 const sendNotification = (title, body) =>
   notifyUser(title, body, "COUNTDOWN_DONE");
-
-// ─── Countdown value tiers (countdown mode) ──────────────────────────────────
-
-function monthsTier(days) {
-  const months = Math.floor(days / 30);
-  const rounded = days % 30 >= 15 ? months + 1 : months;
-  return { main: String(rounded), unit: rounded === 1 ? "mo" : "mos" };
-}
-
-function daysTier(days, hours) {
-  const rounded = hours >= 12 ? days + 1 : days;
-  if (rounded >= 30) return { main: "1", unit: "mo" };
-  return { main: String(rounded), unit: rounded === 1 ? "day" : "days" };
-}
-
-function hoursTier(hours, mins) {
-  const rounded = mins >= 30 ? hours + 1 : hours;
-  if (rounded >= 24) return { main: "1", unit: "day" };
-  return { main: String(rounded), unit: rounded === 1 ? "hr" : "hrs" };
-}
-
-function minsTier(mins, secs) {
-  const rounded = secs >= 30 ? mins + 1 : mins;
-  if (rounded >= 60) return { main: "1", unit: "hr" };
-  return { main: String(rounded), unit: "min" };
-}
-
-function countdownValue(aDays, aHours, aMins, aTotalSecs) {
-  const aSecs = aTotalSecs % 60;
-  if (aDays >= 30) return monthsTier(aDays);
-  if (aDays > 0) return daysTier(aDays, aHours);
-  if (aHours > 0) return hoursTier(aHours, aMins);
-  if (aMins > 0 || aSecs >= 30) return minsTier(aMins, aSecs);
-  return { main: null, unit: null };
-}
-
-// ─── "Since" value tiers — count UP from a past date ────────────────────────
-
-function sinceValue(days) {
-  if (days < 30) {
-    return { main: String(days), unit: days === 1 ? "day" : "days" };
-  }
-  if (days < 365) {
-    const months = Math.round(days / 30.44);
-    return { main: String(months), unit: months === 1 ? "month" : "months" };
-  }
-  const years = Math.round((days / 365.25) * 10) / 10;
-  const whole = years % 1 === 0;
-  return {
-    main: whole ? String(Math.round(years)) : years.toFixed(1),
-    unit: years === 1 ? "year" : "years",
-  };
-}
 
 // ─── Resolve which target to show ────────────────────────────────────────────
 
@@ -718,20 +665,60 @@ export const Widget = ({ id, onRemove }) => {
     totalSeconds: aTotalSecs = 0,
   } = diffValues;
 
-  const cv = isSince
-    ? sinceValue(aDays)
-    : countdownValue(aDays, aHours, aMins, aTotalSecs);
+  const phraseText = useMemo(() => {
+    if (!activeTarget) return '';
+    if (isSince) return `${formatSincePhrase(aDays)} passed since`;
+    return `is in ${formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs)}`;
+  }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
-  const fmtTime = (t) => {
-    if (!t) return null;
-    const [h, m] = t.split(":").map(Number);
-    const ampm = h >= 12 ? "PM" : "AM";
-    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
-  };
+  // ── Font sizing: DOM binary search with the ACTUAL rendered font ────────────
+  const faceRef = useRef(null);
+  const textRef = useRef(null);
+  const [dims, setDims] = useState({ w: 0, h: 0 });
+  const [computedFontSize, setComputedFontSize] = useState(16);
 
-  const startTimeStr = activeTarget?.startTime
-    ? fmtTime(activeTarget.startTime)
-    : null;
+  useLayoutEffect(() => {
+    const el = faceRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setDims({ w: entry.contentRect.width, h: entry.contentRect.height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const combinedText = useMemo(() => {
+    if (!activeTarget?.title || !phraseText) return '';
+    return `${activeTarget.title} ${phraseText}`;
+  }, [activeTarget?.title, phraseText]);
+
+  // Binary search on the real DOM element — guarantees the text fits with
+  // the actual rendered font, not a canvas estimate with a different font.
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el || !combinedText || dims.w <= 0 || dims.h <= 0) return;
+
+    // Temporarily remove overflow hidden so scrollHeight is accurate
+    const prevOverflow = el.style.overflow;
+    el.style.overflow = 'visible';
+
+    let lo = 10;
+    let hi = Math.min(dims.h * 0.85, dims.w * 0.5);
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      if (el.scrollHeight <= dims.h && el.scrollWidth <= dims.w) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+
+    el.style.overflow = prevOverflow;
+    setComputedFontSize(Math.floor(lo));
+  }, [combinedText, dims.w, dims.h]);
+
+  const phraseFontSize = Math.round(computedFontSize * 0.82);
 
   const settingsContent = (onClose) => (
     <CountdownSettings
@@ -747,68 +734,18 @@ export const Widget = ({ id, onRemove }) => {
 
   return (
     <BaseWidget
-      className="p-4 flex flex-col"
+      className="p-4"
       settingsContent={settingsContent}
       settingsTitle={config.title}
       modalWidth="w-[26rem]"
       onRemove={onRemove}
     >
       {activeTarget ? (
-        <div className="cdn-widget-face">
-          {/* ── Title — event name, always visible, multi-line clamp ── */}
-          <p className="cdn-widget-title__text">
-            {activeTarget.title}
-          </p>
-
-          {/* ── Hero Number — large, centered ── */}
-          <div className="cdn-widget-number">
-            {cv.main ? (
-              <>
-                <span className="cdn-widget-number__value">
-                  {cv.main}
-                </span>
-                <span className="cdn-widget-number__unit">
-                  {cv.unit}
-                  {isSince ? " passed" : ""}
-                </span>
-              </>
-            ) : (
-              <span
-                className="cdn-widget-number__value"
-                style={{
-                  fontSize: "clamp(1.6rem, 3.5vw, 2.4rem)",
-                }}
-              >
-                &lt;1m
-              </span>
-            )}
-          </div>
-
-          {/* ── Meta row: date, time, badges ── */}
-          <div className="cdn-widget-meta">
-            <span className="cdn-widget-meta__date">
-              {formatTargetDate(activeTarget.nextDate)}
-            </span>
-            {startTimeStr && (
-              <>
-                <span className="cdn-widget-meta__dot">·</span>
-                <span className="cdn-widget-meta__text">
-                  {startTimeStr}
-                </span>
-              </>
-            )}
-            {isSince && (
-              <span className="cdn-widget-meta__badge">Since</span>
-            )}
-            {!isSince &&
-              activeTarget.repeat &&
-              activeTarget.repeat !== "none" &&
-              !activeTarget.isEvent && (
-                <span className="cdn-widget-meta__badge">
-                  <ArrowRepeat size={9} />
-                  {activeTarget.repeat}
-                </span>
-              )}
+        <div ref={faceRef} className="cdn-widget-face">
+          <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
+          <div ref={textRef} className="cdn-text-block" style={{ fontSize: computedFontSize }}>
+            <span className="cdn-title-text">{activeTarget.title} </span>
+            <span className="cdn-phrase-text" style={{ fontSize: phraseFontSize }}>{phraseText}</span>
           </div>
         </div>
       ) : (

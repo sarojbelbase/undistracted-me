@@ -169,106 +169,58 @@
   margin-bottom: 1rem;
 }
 
-// ── Widget face — vertical layout (title → number → meta) ────────────────────
+// ── Widget face — single text block, left-aligned ────────────────────────────
+//
+// Structure:
+//   .cdn-widget-face  — flex column, fills widget, relative for label
+//   .cdn-mode-label   — top-right, absolute, muted chip
+//   .cdn-text-block   — the whole "Title phrase" as one block, uniform size
+//   .cdn-title-text    — inline, normal weight/color
+//   .cdn-phrase-text   — inline, muted, wraps naturally with the title
 
 .cdn-widget-face {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0;
+  justify-content: center; // vertical centering with margin feel
+  position: relative;
   min-height: 0;
-  overflow: hidden;
+  padding: 12px 4px; // breathing room top & bottom
 }
 
-// Title — always-visible event name, auto-sized, multi-line clamp
-.cdn-widget-title__text {
-  width: 100%;
-  text-align: center;
-  font-size: clamp(0.95rem, 2vw, 1.25rem);
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--w-ink-1);
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  overflow-wrap: break-word;
-  margin: 0 0 0.25rem;
-  padding: 0;
-  flex-shrink: 0;
-}
+// ── Mode label (top-right) ───────────────────────────────────────────────────
 
-// Hero number — the big countdown value, fills remaining space
-.cdn-widget-number {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  min-height: 0;
-  padding: 0.25rem 0 0.5rem;
-}
-
-.cdn-widget-number__value {
-  font-size: clamp(2.8rem, 6vw, 4.4rem);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--w-accent);
-}
-
-.cdn-widget-number__unit {
-  font-size: clamp(0.9rem, 2vw, 1.15rem);
-  font-weight: 700;
-  margin-top: 0.25rem;
-  color: var(--w-ink-2);
-  letter-spacing: -0.01em;
-}
-
-// Meta row — date, time, badges
-.cdn-widget-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  padding-top: 0.25rem;
-  padding-bottom: 0.125rem;
-}
-
-.cdn-widget-meta__date {
-  font-size: 12px;
+.cdn-mode-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 9px;
   font-weight: 500;
-  color: var(--w-ink-3);
-  letter-spacing: -0.01em;
-}
-
-.cdn-widget-meta__dot {
-  font-size: 12px;
-  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--w-ink-5);
+  opacity: 0.55;
+  pointer-events: none;
   user-select: none;
 }
 
-.cdn-widget-meta__text {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--w-ink-3);
+// ── Single text block (title + phrase as one paragraph) ──────────────────────
+
+.cdn-text-block {
+  text-align: left;
+  line-height: 1.2;
   letter-spacing: -0.01em;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-.cdn-widget-meta__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 10px;
+.cdn-title-text {
+  font-weight: 400;
+  color: var(--w-ink-1);
+}
+
+.cdn-phrase-text {
   font-weight: 600;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  background: var(--panel-bg);
-  color: var(--w-ink-4);
-  margin-left: 0.125rem;
+  color: var(--w-ink-5);
 }
