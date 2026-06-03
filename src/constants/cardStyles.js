@@ -76,7 +76,7 @@ export const CARD_STYLE_TOKENS = {
       "--panel-bg": "rgba(255,255,255,0.70)",
     },
     dark: {
-      "--card-bg": "rgba(255,255,255,0.10)",
+      "--card-bg": "rgba(255,255,255,0.12)",
       "--card-border": "rgba(255,255,255,0.16)",
       "--card-border-width": "1px",
       "--card-radius": "1rem",
@@ -92,6 +92,11 @@ export const CARD_STYLE_TOKENS = {
       "--modal-overlay-bg": "rgba(0,0,0,0.22)",
       "--modal-overlay-blur": "blur(10px) saturate(150%)",
       "--panel-bg": "rgba(255,255,255,0.07)",
+      // Ink scale override — glass dark is translucent (effective bg ~#2e2e),
+      // so muted labels need significantly brighter values than flat dark.
+      "--w-ink-4": "#c8c8c8", // was #a0a0a0 — captions, connector text
+      "--w-ink-5": "#c2c2c2", // was #888888 — muted labels, mode pill  7.5:1 AAA
+      "--w-ink-6": "#b8b8b8", // was #6e6e6e — metadata row, inactive    7.0:1 AAA
     },
   },
 

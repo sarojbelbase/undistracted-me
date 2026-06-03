@@ -1,0 +1,91 @@
+// ─── Glass & Flat Card Styles — Font Weight Floor ────────────────────────────
+//
+// Activated via  data-card-style="glass" | "flat"  on :root.
+//
+// Problem: 300/400-weight text on translucent glass or flat surfaces can
+// become nearly invisible — especially in dark mode where the background is
+// less opaque. Comic mode already bumps every tier; glass/flat need the same
+// treatment but with a lighter touch (readability, not personality).
+//
+// Strategy: same as comic — override buttons + typography tiers so NO text
+// ever renders below weight 500. This guarantees text always has enough
+// visual density to read clearly through frosted glass or on flat dark cards.
+
+:root[data-card-style="glass"],
+:root[data-card-style="flat"] {
+
+  // ── 0. Buttons — all interactive text gets a weight floor ──────────────────
+
+  button:not([disabled]) {
+    font-weight: 600;
+  }
+
+  // ── 0.5 Catch-all — plain elements without .w-* classes default to 400  ────
+  // e.g. <p class="text-[10.5px] leading-snug"> — Tailwind ad-hoc text.
+  // Specificity (0,2,1) is lower than any .w-* class (0,3,0), so explicit
+  // typography tiers still win. Spans excluded — they inherit from buttons.
+
+  p,
+  li,
+  label {
+    font-weight: 500;
+  }
+
+  // ── 1. Typography weight floor ────────────────────────────────────────────
+
+  // Display: clock digits, large numbers, big dates
+  .w-display {
+    font-weight: 800;
+  }
+
+  // Heading: widget titles, section names
+  .w-heading {
+    font-weight: 700;
+  }
+
+  // Title pairs
+  .w-title-bold,
+  .w-sub-bold {
+    font-weight: 700;
+  }
+
+  .w-title-soft,
+  .w-sub-soft {
+    font-weight: 600;
+  }
+
+  // Period — AM/PM, secondary units
+  .w-period {
+    font-weight: 600;
+  }
+
+  // Body: standard content — 400 is too thin on glass, floor at 500
+  .w-body {
+    font-weight: 500;
+  }
+
+  // Caption: tiny info — floor at 500
+  .w-caption {
+    font-weight: 500;
+  }
+
+  // Label: settings section headers
+  .w-label {
+    font-weight: 700;
+  }
+
+  // Muted: status / error / empty-state messages — floor at 500
+  .w-muted {
+    font-weight: 500;
+  }
+
+  // ── 2. Countdown widget — ensure connector text is never thin ─────────────
+
+  .cdn-connector {
+    font-weight: 500;
+  }
+
+  .cdn-meta-row {
+    font-weight: 500;
+  }
+}
