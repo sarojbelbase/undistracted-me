@@ -182,33 +182,54 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; // vertical centering with margin feel
+  justify-content: flex-end;
   position: relative;
   min-height: 0;
-  padding: 12px 4px; // breathing room top & bottom
+  padding: 18px 4px 4px 4px;
 }
 
-// ── Mode label (top-right) ───────────────────────────────────────────────────
+// ── Source pill (top-right, glass) ────────────────────────────────────────────
 
 .cdn-mode-label {
   position: absolute;
   top: 0;
   right: 0;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--w-ink-5);
-  opacity: 0.55;
+  color: var(--w-ink-4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--w-ink-1) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w-ink-1) 8%, transparent);
+  padding: 3px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   pointer-events: none;
   user-select: none;
 }
 
-// ── Single text block (title + phrase as one paragraph) ──────────────────────
+// ── iOS-style text block (title + phrase as one continuous sentence) ─────────
+
+// ── Event time line (above text block, iOS widget style) ──────────────────────
+
+.cdn-time-line {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--w-ink-4);
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
 
 .cdn-text-block {
   text-align: left;
-  line-height: 1.2;
+  line-height: 1.1;
   letter-spacing: -0.01em;
   overflow: hidden;
   overflow-wrap: break-word;
@@ -216,11 +237,11 @@
 }
 
 .cdn-title-text {
-  font-weight: 400;
-  color: var(--w-ink-1);
+  font-weight: 500;
+  color: var(--w-ink-2);
 }
 
 .cdn-phrase-text {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--w-ink-5);
 }

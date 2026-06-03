@@ -19,6 +19,7 @@ import {
   formatSince,
   formatCountdownPhrase,
   formatSincePhrase,
+  formatTargetDate,
 } from "./utils";
 import config from "./config";
 import { fmt12, calcDuration } from "../events/utils";
@@ -718,8 +719,6 @@ export const Widget = ({ id, onRemove }) => {
     setComputedFontSize(Math.floor(lo));
   }, [combinedText, dims.w, dims.h]);
 
-  const phraseFontSize = Math.round(computedFontSize * 0.82);
-
   const settingsContent = (onClose) => (
     <CountdownSettings
       custom={custom}
@@ -743,9 +742,18 @@ export const Widget = ({ id, onRemove }) => {
       {activeTarget ? (
         <div ref={faceRef} className="cdn-widget-face">
           <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
+          {/* Event time line — iOS-style, above the text block */}
+          {activeTarget.startTime && (
+            <div className="cdn-time-line">
+              {fmt12(activeTarget.startTime)}
+              {activeTarget.endTime && activeTarget.endTime !== activeTarget.startTime && (
+                <> to {fmt12(activeTarget.endTime)}</>
+              )}
+            </div>
+          )}
           <div ref={textRef} className="cdn-text-block" style={{ fontSize: computedFontSize }}>
             <span className="cdn-title-text">{activeTarget.title} </span>
-            <span className="cdn-phrase-text" style={{ fontSize: phraseFontSize }}>{phraseText}</span>
+            <span className="cdn-phrase-text">{phraseText}</span>
           </div>
         </div>
       ) : (
