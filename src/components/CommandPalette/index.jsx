@@ -92,11 +92,21 @@ export function CommandPalette({ onClose }) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setArrowed(true);
-      setActiveIdx(i => flatItems.length === 0 ? -1 : i < 0 ? 0 : (i + 1) % flatItems.length);
+      setActiveIdx(i => {
+        if (flatItems.length === 0) return -1;
+        if (i < 0) return 0;
+        if (i >= flatItems.length - 1) return -1;
+        return i + 1;
+      });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setArrowed(true);
-      setActiveIdx(i => flatItems.length === 0 ? -1 : i <= 0 ? flatItems.length - 1 : i - 1);
+      setActiveIdx(i => {
+        if (flatItems.length === 0) return -1;
+        if (i < 0) return flatItems.length - 1;
+        if (i === 0) return -1;
+        return i - 1;
+      });
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (arrowed && activeIdx >= 0 && flatItems[activeIdx]) {
