@@ -140,3 +140,47 @@ export function formatSincePhrase(days) {
   const val = whole ? Math.round(years) : years.toFixed(1);
   return `${val} ${years === 1 ? 'year' : 'years'}`;
 }
+
+/**
+ * Compact duration label for list items — tiered from minutes to years.
+ * e.g. "23m" → "5h" → "3d" → "2w" → "6mo" → "3y"
+ */
+
+function durYears(days) {
+  const y = Math.round((days / 365.25) * 10) / 10;
+  return `${y % 1 === 0 ? Math.round(y) : y.toFixed(1)}y`;
+}
+
+function durMonths(days) {
+  const m = Math.floor(days / 30);
+  const r = days % 30 >= 15 ? m + 1 : m;
+  return `${r >= 12 ? 1 : r}${r >= 12 ? 'y' : 'mo'}`;
+}
+
+function durWeeks(days) {
+  const w = Math.floor(days / 7);
+  const r = days % 7 >= 4 ? w + 1 : w;
+  return `${r >= 4 ? 1 : r}${r >= 4 ? 'mo' : 'w'}`;
+}
+
+function durDays(days, hours) {
+  const r = hours >= 12 ? days + 1 : days;
+  if (r >= 30) return '1mo';
+  if (r >= 7) return durWeeks(r);
+  return `${r}d`;
+}
+
+function durHours(hours, mins) {
+  const r = mins >= 30 ? hours + 1 : hours;
+  return r >= 24 ? '1d' : `${r}h`;
+}
+
+export function humanizeDuration(days, hours, mins) {
+  if (days >= 365) return durYears(days);
+  if (days >= 30) return durMonths(days);
+  if (days >= 7) return durWeeks(days);
+  if (days > 0) return durDays(days, hours);
+  if (hours > 0) return durHours(hours, mins);
+  if (mins > 0) return `${mins}m`;
+  return '<1m';
+}

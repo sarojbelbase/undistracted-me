@@ -20,6 +20,7 @@ import {
   formatCountdownPhrase,
   formatSincePhrase,
   formatTargetDate,
+  humanizeDuration,
 } from "./utils";
 import config from "./config";
 import { fmt12, calcDuration } from "../events/utils";
@@ -228,12 +229,9 @@ const CountdownSettings = ({
               const isPast =
                 !isSince && next < new Date() && cd.repeat === "none";
 
-              const cdLabel = (() => {
-                if (isPast) return "Past";
-                if (days > 0) return `${days}d`;
-                if (hours > 0) return `${hours}h`;
-                return `${mins}m`;
-              })();
+              const cdLabel = isPast
+                ? "Past"
+                : humanizeDuration(days, hours, mins);
               const cdDate = formatTargetDate(next);
 
               return (
@@ -355,11 +353,7 @@ const CountdownSettings = ({
                 hours: evHours,
                 minutes: evMins,
               } = formatCountdown(evDate);
-              const evLabel = (() => {
-                if (evDays > 0) return `${evDays}d`;
-                if (evHours > 0) return `${evHours}h`;
-                return `${evMins}m`;
-              })();
+              const evLabel = humanizeDuration(evDays, evHours, evMins);
 
               const evStartLabel = fmt12(ev.startTime);
               const evDuration = calcDuration(
@@ -673,7 +667,7 @@ export const Widget = ({ id, onRemove }) => {
   const connectorPart = isSince ? '' : 'is';
   const timePart = useMemo(() => {
     if (!activeTarget) return '';
-    if (isSince) return `${formatSincePhrase(aDays)} passed since`;
+    if (isSince) return `${formatSincePhrase(aDays)} ago`;
     return `in ${formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs)}`;
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
@@ -780,6 +774,7 @@ export const Widget = ({ id, onRemove }) => {
     >
       {activeTarget ? (
         <div className="cdn-widget-face">
+          <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
           <div ref={contentRef} className="cdn-content-wrap">
             {/* ── Hidden measurement node ── */}
             <div
@@ -797,9 +792,9 @@ export const Widget = ({ id, onRemove }) => {
             {/* ── Visible text block ── */}
             <div className="cdn-text-block" style={{ fontSize: computedFontSize }}>
               <span className="cdn-title-text">{titlePart}</span>
-              {connectorPart && timePart && (
+              {timePart && (
                 <span className="cdn-connector">
-                  {' '}{connectorPart}{' '}{timePart}
+                  {' '}{connectorPart}{connectorPart ? ' ' : ''}{timePart}
                 </span>
               )}
             </div>
