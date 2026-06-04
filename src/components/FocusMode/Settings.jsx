@@ -129,12 +129,13 @@ export const FocusModeSettings = ({
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const accent = useSettingsStore(s => s.accent);
+  const cardStyle = useSettingsStore(s => s.cardStyle);
 
   return (
     <Modal
       onClose={onClose}
       ariaLabel="Focus Mode settings"
-      style={{ width: 480, display: 'flex', flexDirection: 'column', maxHeight: '82vh', ...getDialogStyle(accent) }}
+      style={{ width: 480, display: 'flex', flexDirection: 'column', maxHeight: '82vh', ...getDialogStyle(accent, cardStyle) }}
     >
       {/* ── Header ── */}
       <div style={{

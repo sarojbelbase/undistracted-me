@@ -436,7 +436,7 @@
   // and images so avatar circles stay round.
   button.rounded-full:not(img),
   a.rounded-full:not(img),
-  div.rounded-full:not(img):not([class*="w-1 "]) :not([class*="h-1 "]) :not([class*="w-1.5 "]) :not([class*="h-1.5 "]) {
+  div.rounded-full:not(img):not([class*="w-1 "]):not([class*="h-1 "]):not([class*="w-1.5 "]):not([class*="h-1.5 "]) {
     border-radius: 10px 12px 10px 11px / 11px 10px 12px 10px !important;
   }
 
@@ -535,75 +535,249 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Focus Mode hard reset (.fm-root)
+// Focus Mode comic integration (.fm-root)
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// Focus Mode is a cinematic dark-glass overlay over a photo/orb backdrop.
-// It runs its own --fm-card-* token system (see FocusMode/theme.jsx) and must
-// NEVER receive comic input styling or corner overrides. The .fm-root class is
-// added to FocusMode’s root div in index.jsx — this block resets everything.
+// Focus Mode overlays a dark photo/orb backdrop with its own --fm-card-*
+// token system (see FocusMode/theme.jsx). Card surfaces already receive
+// comic tokens via getFMCardVars("comic") — the bg, border, shadow, and
+// radius are all correct.
 //
-// Higher specificity (:root[...] .fm-root ...) beats the global comic rules.
+// This block fills the remaining gaps the global comic rules can't cover
+// inside .fm-root: FM uses inline border-radius (not Tailwind classes) on
+// many elements, and the global comic input rules reference var(--panel-bg)
+// which reflects the canvas theme — wrong for FM's always-dark backdrop.
 
 :root[data-card-style="comic"] .fm-root {
 
-  // Inputs and textareas: strip comic paper treatment entirely.
-  // FM’s inputs are transparent or glass-styled via inline styles — they
-  // should never show the cream panel-bg or the ink-stroke box-shadow.
-  input,
+  // ── Card grain texture ─────────────────────────────────────────────
+  // FM card surfaces use var(--fm-card-bg) as their background via inline
+  // style. In comic mode this resolves to solid dark paper (#1c1710).
+  // Add grain + hard 2px border + offset shadow so every FM surface
+  // (left cards, toolbar, Canvas button, tasks panel) gets the same
+  // comic paper treatment.
+  [style*="--fm-card-bg"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E") !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    border-width: 2px !important;
+    box-shadow: 4px 4px 0 0 rgba(200, 188, 156, 0.55) !important;
+  }
+
+  // ── Input backgrounds — pin to dark comic paper ───────────────────────
+  // The global comic input rules set background-color: var(--panel-bg) !important.
+  // That CSS var reflects the canvas theme (could be light), but FM is always
+  // dark. Override to the dark comic paper tone so inputs read as ink on
+  // aged paper rather than picking up a rogue light panel-bg.
   input[type="text"],
   input[type="number"],
   input[type="url"],
   input[type="search"],
   input[type="email"],
   input:not([type]),
-  textarea,
-  select {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: initial !important;
-    font-weight: inherit !important;
-
-    &::placeholder {
-      opacity: inherit !important;
-      font-weight: inherit !important;
-    }
-
-    &:focus {
-      box-shadow: none !important;
-    }
+  textarea {
+    background-color: rgba(28, 23, 16, 0.85) !important;
   }
 
-  // Rounded corners: restore Tailwind’s original values so FM pill shapes
-  // (search bar pill, card panels, dropdown menus) remain geometrically
-  // correct for the cinematic glass aesthetic.
-  .rounded-full {
-    border-radius: 9999px !important;
+  // ── Organic corners for inline-styled elements ────────────────────────
+  // Focus Mode components use inline border-radius (not Tailwind classes)
+  // so the global rounded-* overrides don't catch them. These attribute
+  // selectors target the serialized style string in the DOM.
+  //
+  // Full pills (borderRadius: 999) — tasks pill, search bar pill
+  [style*="border-radius: 999px"],
+  [style*="border-radius:999px"] {
+    border-radius: 20px 22px 19px 21px / 21px 19px 22px 20px !important;
   }
 
-  .rounded-2xl {
-    border-radius: 1rem !important;
+  // Circles (borderRadius: 50%) — close buttons, toggle thumbs, status dots
+  [style*="border-radius: 50%"],
+  [style*="border-radius:50%"] {
+    border-radius: 48% 52% 47% 53% / 51% 47% 53% 49% !important;
   }
 
-  .rounded-xl {
-    border-radius: 0.75rem !important;
+  // Suggestion dropdown panel — borderRadius: 16
+  [style*="border-radius: 16px"],
+  [style*="border-radius:16px"] {
+    border-radius: 13px 14px 15px 14px / 14px 13px 14px 15px !important;
   }
 
-  .rounded-lg {
-    border-radius: 0.5rem !important;
+  // ── Search bar pill — solid comic paper ──────────────────────────────
+  // The center search pill uses photo-adaptive glass tokens (getTokens()).
+  // When comic is active, override with solid dark paper + grain so it
+  // matches the card surfaces instead of floating as transparent glass.
+  :has(> #fm-search) {
+    background: #1c1710 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E") !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    border-color: #c8bc9c !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 4px 4px 0 0 rgba(200, 188, 156, 0.55) !important;
   }
 
-  .rounded-md {
-    border-radius: 0.375rem !important;
+  // ── Search bar inner button — comic paper ────────────────────────────
+  // The search submit button (magnifying glass) inside the pill.
+  :has(> #fm-search) button[style*="border-radius: 999"] {
+    background: rgba(200, 188, 156, 0.12) !important;
   }
 
-  // Buttons: undo the font-weight / active-translate overrides
-  button:not([disabled]) {
-    font-weight: inherit !important;
+  // ── Tasks pill (collapsed) — solid comic paper ──────────────────────
+  // Uses hardcoded PILL_BG = rgba(0,0,0,0.38) + blur(20px). Override
+  // with solid dark paper + grain + parchment border.
+  button[aria-label="Toggle tasks panel"] {
+    background: #1c1710 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E") !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 4px 4px 0 0 rgba(200, 188, 156, 0.55) !important;
+  }
 
-    &:active {
-      transform: none !important;
-    }
+  // ── Tasks "N left" badge — comic paper ─────────────────────────────
+  // Uses FM_SURFACE (glassy white). Override with parchment tint.
+  button[aria-label="Toggle tasks panel"]+div [style*="border-radius: 99"] {
+    background: rgba(200, 188, 156, 0.14) !important;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Portaled Focus Mode dialogs (outside .fm-root)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// FM Settings/Tasks dialogs are rendered via React portals so they live
+// outside the .fm-root DOM tree. Their outer surface is already handled by
+// COMIC_DIALOG_STYLE (theme.jsx). These rules handle the inner elements —
+// inputs, buttons, and glassy pills that still reference canvas theme vars
+// or hardcoded glass values.
+
+:root[data-card-style="comic"] {
+
+  // ── URL input wrapper (uses var(--panel-bg) / var(--card-border)) ────
+  // Inside the Background tab of FM Settings.
+  #fm-settings-panel-background [style*="--panel-bg"] {
+    background-color: rgba(28, 23, 16, 0.85) !important;
+    border-color: #c8bc9c !important;
+  }
+
+  // ── "Verify" / "Clear" glassy action buttons ─────────────────────────
+  // The action buttons in the Custom URL panel.
+  #fm-settings-panel-background button[style*="rgba(255, 255, 255, 0.1"] {
+    background: rgba(200, 188, 156, 0.12) !important;
+    border-color: #c8bc9c !important;
+  }
+
+  #fm-settings-panel-background button[style*="rgba(255,255,255,0.1"] {
+    background: rgba(200, 188, 156, 0.12) !important;
+    border-color: #c8bc9c !important;
+  }
+
+  // ── "Set as Background" pill button — solid comic paper ──────────────
+  // MUST come after the rgba rules above so its equal specificity wins.
+  // The button has BOTH backdrop-filter:blur(4px) AND rgba(255,255,255,0.18)
+  // in its inline style — the rgba rule above would otherwise override.
+  #fm-settings-panel-background button[style*="backdrop-filter: blur(4px)"] {
+    background: #1c1710 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E") !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    border-color: #c8bc9c !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  // ── Tab bar / "Clear" buttons inside settings dialog ────────────────
+  // Catches both spaced and unspaced rgba serialization.
+  #fm-settings-panel-background button[style*="rgba(255, 255, 255, 0.08)"] {
+    background: rgba(200, 188, 156, 0.10) !important;
+    border-color: #c8bc9c !important;
+  }
+
+  #fm-settings-panel-background button[style*="rgba(255,255,255,0.0"] {
+    background: rgba(200, 188, 156, 0.10) !important;
+    border-color: #c8bc9c !important;
+  }
+
+  // ── Close button (✕) — comic paper tones ─────────────────────────────
+  // Used in all FM dialogs. Defined in dialog/shared.jsx with glassy
+  // FM_CLOSE_BG / FM_CLOSE_BORDER constants.
+  dialog button[aria-label="Close"] {
+    background: rgba(200, 188, 156, 0.12) !important;
+    border-color: #c8bc9c !important;
+    color: rgba(200, 188, 156, 0.55) !important;
+  }
+
+  // ── Toggle switch (unchecked) — comic paper track ────────────────────
+  // FM dialogs use Toggle from dialog/shared.jsx. When unchecked the
+  // track is FM_TOGGLE_OFF_BG (glassy rgba white). Override with a
+  // parchment-tinted track so it reads as cut-out paper, not glass.
+  dialog button[role="switch"][aria-checked="false"] {
+    background: rgba(200, 188, 156, 0.16) !important;
+  }
+
+  // ── "Default" label on built-in background tile ──────────────────────
+  // Uses hardcoded rgba(0,0,0,0.52) — replace with dark comic paper.
+  #fm-settings-panel-background [style*="rgba(0,0,0,0.52)"] {
+    background: rgba(28, 23, 16, 0.88) !important;
+    color: #d4c9a8 !important;
+  }
+
+  // ── Photo tile hover overlay — comic paper tint ─────────────────────
+  // Uses rgba(0,0,0,0.28) — replace with dark paper overlay.
+  #fm-settings-panel-background [style*="rgba(0, 0, 0, 0.28)"] {
+    background: rgba(28, 23, 16, 0.55) !important;
+  }
+
+  // ── Organic corners for portaled dialog pills ───────────────────────
+  // The .fm-root [style*="border-radius: 999px"] rule doesn't reach
+  // portaled dialogs. Duplicate the rule scoped to dialog content areas.
+  #fm-settings-panel-background [style*="border-radius: 999px"],
+  #fm-settings-panel-background [style*="border-radius:999px"],
+  #fm-settings-panel-panels [style*="border-radius: 999px"],
+  #fm-settings-panel-panels [style*="border-radius:999px"],
+  #fm-settings-panel-search [style*="border-radius: 999px"],
+  #fm-settings-panel-search [style*="border-radius:999px"],
+  #fm-settings-panel-tasks [style*="border-radius: 999px"],
+  #fm-settings-panel-tasks [style*="border-radius:999px"],
+  #fm-settings-panel-general [style*="border-radius: 999px"],
+  #fm-settings-panel-general [style*="border-radius:999px"] {
+    border-radius: 20px 22px 19px 21px / 21px 19px 22px 20px !important;
+  }
+
+  // ── Organic circles for portaled dialog elements ────────────────────
+  #fm-settings-panel-background [style*="border-radius: 50%"],
+  #fm-settings-panel-background [style*="border-radius:50%"],
+  #fm-settings-panel-panels [style*="border-radius: 50%"],
+  #fm-settings-panel-panels [style*="border-radius:50%"],
+  #fm-settings-panel-search [style*="border-radius: 50%"],
+  #fm-settings-panel-search [style*="border-radius:50%"],
+  #fm-settings-panel-tasks [style*="border-radius: 50%"],
+  #fm-settings-panel-tasks [style*="border-radius:50%"],
+  #fm-settings-panel-general [style*="border-radius: 50%"],
+  #fm-settings-panel-general [style*="border-radius:50%"] {
+    border-radius: 48% 52% 47% 53% / 51% 47% 53% 49% !important;
+  }
+
+  // ── Dialog header icon containers — comic paper ─────────────────────
+  // The icon box next to dialog titles uses FM_SURFACE (glassy).
+  dialog [style*="border-radius: 9px"]:not(img) {
+    background: rgba(200, 188, 156, 0.10) !important;
+    border-color: rgba(200, 188, 156, 0.18) !important;
+  }
+
+  // ── Tab bar & toggle rows — comic paper backgrounds ─────────────────
+  // Toggle rows and account pills use glassy FM_SURFACE backgrounds.
+  dialog [style*="rgba(255, 255, 255, 0.06)"],
+  dialog [style*="rgba(255,255,255,0.06)"] {
+    background: rgba(200, 188, 156, 0.06) !important;
+    border-color: rgba(200, 188, 156, 0.10) !important;
+  }
+
+  dialog [style*="rgba(255, 255, 255, 0.08)"],
+  dialog [style*="rgba(255,255,255,0.08)"] {
+    background: rgba(200, 188, 156, 0.08) !important;
+    border-color: rgba(200, 188, 156, 0.12) !important;
   }
 }

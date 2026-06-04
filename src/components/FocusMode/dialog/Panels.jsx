@@ -105,6 +105,7 @@ export const PanelsDialog = ({ onClose }) => {
   const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
   const setFocusPanelEnabled = useSettingsStore(s => s.setFocusPanelEnabled);
   const accent = useSettingsStore(s => s.accent);
+  const cardStyle = useSettingsStore(s => s.cardStyle);
 
   const allOn = PANEL_META.every(p => focusPanels[p.key] ?? true);
 
@@ -114,7 +115,7 @@ export const PanelsDialog = ({ onClose }) => {
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent) }} ariaLabel="Manage panels">
+    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent, cardStyle) }} ariaLabel="Manage panels">
       <DialogHeader
         icon={<IconPanels />}
         title="Manage Panels"
