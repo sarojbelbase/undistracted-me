@@ -16,8 +16,9 @@ export const TasksDialog = ({ onClose }) => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
   const setFocusTasks = useSettingsStore(s => s.setFocusTasks);
   const accent = useSettingsStore(s => s.accent);
+  const cardStyle = useSettingsStore(s => s.cardStyle);
   return (
-    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent) }} ariaLabel="Google Tasks settings">
+    <Modal onClose={onClose} style={{ width: 360, ...getDialogStyle(accent, cardStyle) }} ariaLabel="Google Tasks settings">
       <DialogHeader icon={<IconGoogle />} title="Google Tasks"
         subtitle="Manage tasks directly from Focus Mode"
         onClose={onClose} />

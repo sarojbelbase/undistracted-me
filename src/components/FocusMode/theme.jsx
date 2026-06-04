@@ -34,7 +34,8 @@ export const FLAT_CARD_SHADOW = "0 2px 16px rgba(0,0,0,0.40)";
 // ── Actual card surface values (comic — dark warm paper over photo) ────────────
 // Comic on Focus Mode is always dark-mode: aged paper with a parchment border
 // and a hard offset shadow, layered over the cinematic photo background.
-export const COMIC_CARD_BG = "rgba(28,23,16,0.93)";
+// Fully opaque — grain texture is added via CSS (see _comic.scss .fm-root block).
+export const COMIC_CARD_BG = "#1c1710";
 export const COMIC_CARD_BORDER = "#c8bc9c";
 export const COMIC_CARD_BLUR = "none";
 export const COMIC_CARD_SHADOW = "4px 4px 0 0 rgba(200,188,156,0.55)";
@@ -216,13 +217,49 @@ export const DIALOG_STYLE = {
   "--w-surface-2": FM_SURFACE_2,
 };
 
+// ─── Grain texture SVG (shared) ─────────────────────────────────────────────────
+// Subtle feTurbulence film-grain tile encoded as a data-URI. Used by both
+// the CSS card-grain rule (_comic.scss) and the COMIC_DIALOG_STYLE object
+// so portaled dialogs get the same paper texture as in-root cards.
+
+const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E";
+
+// ─── COMIC_DIALOG_STYLE ─────────────────────────────────────────────────────────
+// Used instead of DIALOG_STYLE when cardStyle === "comic". Portaled dialogs
+// render outside .fm-root so they can't inherit CSS vars from it. This object
+// hardcodes the dark comic paper surface + parchment ink scale so the Settings
+// and Tasks dialogs match the comic left-panel cards.
+
+export const COMIC_DIALOG_STYLE = {
+  background: COMIC_CARD_BG,
+  backgroundImage: `url("${GRAIN_SVG}")`,
+  backgroundRepeat: "repeat",
+  backgroundSize: "200px 200px",
+  border: `${COMIC_CARD_BORDER_WIDTH} solid ${COMIC_CARD_BORDER}`,
+  borderRadius: COMIC_CARD_RADIUS,
+  boxShadow: COMIC_CARD_SHADOW,
+  // CSS var pins — parchment ink on dark paper
+  "--w-ink-1": "#f2e8d5",
+  "--w-ink-2": "#e0d4b8",
+  "--w-ink-3": "#c4b898",
+  "--w-ink-4": "#a09878",
+  "--w-ink-5": "#888068",
+  "--w-border": COMIC_CARD_BORDER,
+  "--w-surface": "rgba(200,188,156,0.08)",
+  "--w-surface-2": "rgba(200,188,156,0.14)",
+};
+
 /**
  * Use this instead of spreading DIALOG_STYLE directly on portalled FM dialogs.
- * Merges the standard dark-glass surface tokens with dark-tone accent CSS vars
+ * Merges the dark-glass (or comic) surface tokens with dark-tone accent CSS vars
  * so var(--w-accent) resolves correctly even when canvas mode is light.
+ *
+ * @param {string} accentName  — accent key (e.g. "blueberry")
+ * @param {string} cardStyle   — "glass" | "flat" | "comic" (defaults to "glass")
  */
-export function getDialogStyle(accentName) {
-  return { ...DIALOG_STYLE, ...getFMAccentVars(accentName) };
+export function getDialogStyle(accentName, cardStyle = "glass") {
+  const base = cardStyle === "comic" ? COMIC_DIALOG_STYLE : DIALOG_STYLE;
+  return { ...base, ...getFMAccentVars(accentName) };
 }
 
 // Section divider & card (sub-panel inside a dialog)

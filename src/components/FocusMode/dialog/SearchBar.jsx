@@ -69,9 +69,10 @@ export const SearchBarDialog = ({
   const focusSearchWeb = useSettingsStore(s => s.focusSearchWeb ?? true);
   const setFocusSearchWeb = useSettingsStore(s => s.setFocusSearchWeb);
   const accent = useSettingsStore(s => s.accent);
+  const cardStyle = useSettingsStore(s => s.cardStyle);
 
   return (
-    <Modal onClose={onClose} style={{ width: 380, ...getDialogStyle(accent) }} ariaLabel="Search bar settings">
+    <Modal onClose={onClose} style={{ width: 380, ...getDialogStyle(accent, cardStyle) }} ariaLabel="Search bar settings">
       <DialogHeader
         icon={<IconSearch />}
         title="Search Bar"
