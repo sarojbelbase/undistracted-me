@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useReducer, useRef, useMemo, useLayoutEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 import {
   PlusLg,
   Trash3,
@@ -513,22 +513,22 @@ function resolveActiveTarget(
 
 // ─── Main Widget ─────────────────────────────────────────────────────────────
 
-function getNotifySeconds(target) {
+function getNotifySeconds(target, nowTs) {
   if (!target) return {};
   if (target.mode === "since") return { totalSeconds: 1 };
-  return formatCountdown(target.nextDate);
+  return formatCountdown(target.nextDate, nowTs);
 }
 
-function getDiffValues(activeTarget) {
+function getDiffValues(activeTarget, nowTs) {
   if (!activeTarget) return {};
-  if (activeTarget.mode === "since") return formatSince(activeTarget.nextDate);
-  return formatCountdown(activeTarget.nextDate);
+  if (activeTarget.mode === "since") return formatSince(activeTarget.nextDate, nowTs);
+  return formatCountdown(activeTarget.nextDate, nowTs);
 }
 
 export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
   const [pinned, setPinned] = useState(() => loadPinned(id));
-  const [, forceUpdate] = useReducer((n) => n + 1, 0);
+  const [now, setNow] = useState(() => Date.now());
 
   const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
@@ -597,7 +597,7 @@ export const Widget = ({ id, onRemove }) => {
     [removeEventFromStore, id],
   );
 
-  useEffect(() => onClockTick(forceUpdate), []);
+  useEffect(() => onClockTick(() => setNow(Date.now())), []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   const { target, shouldClearPin } = resolveTarget(
@@ -615,7 +615,7 @@ export const Widget = ({ id, onRemove }) => {
   }, [shouldClearPin]);
 
   // ── Notifications ──────────────────────────────────────────────────────────
-  const notifSeconds = getNotifySeconds(target);
+  const notifSeconds = getNotifySeconds(target, now);
   const { totalSeconds = 0 } = notifSeconds;
   const notifKey = target ? `${target.id ?? target.title}` : null;
 
@@ -654,7 +654,7 @@ export const Widget = ({ id, onRemove }) => {
   );
   const isSince = activeTarget?.mode === "since";
 
-  const diffValues = getDiffValues(activeTarget);
+  const diffValues = getDiffValues(activeTarget, now);
   const {
     days: aDays = 0,
     hours: aHours = 0,
@@ -677,7 +677,7 @@ export const Widget = ({ id, onRemove }) => {
   }, [titlePart, connectorPart, timePart]);
 
   // ── Minimal metadata — time + smart day label (no recurrence on face) ──────
-  const now = new Date();
+  const todayDate = new Date();
 
   const metaTime = useMemo(() => {
     if (!activeTarget?.startTime) return '';
@@ -687,7 +687,7 @@ export const Widget = ({ id, onRemove }) => {
   const dayLabel = useMemo(() => {
     if (!activeTarget?.nextDate) return '';
     const d = activeTarget.nextDate;
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const today = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
     const targetDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const diff = Math.round((targetDay - today) / 86400000);
 
@@ -695,7 +695,7 @@ export const Widget = ({ id, onRemove }) => {
     if (diff === 1) return 'Tomorrow';
     if (diff === -1) return 'Yesterday';
 
-    if (d.getFullYear() === now.getFullYear()) {
+    if (d.getFullYear() === todayDate.getFullYear()) {
       return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
     return formatTargetDate(d);

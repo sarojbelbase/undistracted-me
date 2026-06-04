@@ -40,8 +40,8 @@ export const getNextOccurrence = ({ targetDate, targetTime, repeat }) => {
  * Returns { days, hours, minutes, totalSeconds } remaining until a target Date (min 0).
  * Uses Math.ceil so "1 second remaining" still shows as 1 minute, not 0.
  */
-export const formatCountdown = (targetDate) => {
-  const now = new Date();
+export const formatCountdown = (targetDate, nowTs) => {
+  const now = nowTs ?? Date.now();
   const diffMs = Math.max(0, targetDate - now);
   const totalSeconds = Math.ceil(diffMs / 1_000);
   const days = Math.floor(totalSeconds / 86400);
@@ -54,8 +54,8 @@ export const formatCountdown = (targetDate) => {
  * Returns time elapsed SINCE a past date.
  * { days, months, years, totalSeconds } — all >= 0.
  */
-export const formatSince = (targetDate) => {
-  const now = new Date();
+export const formatSince = (targetDate, nowTs) => {
+  const now = nowTs ?? Date.now();
   const diffMs = Math.max(0, now - targetDate);
   const totalSeconds = Math.floor(diffMs / 1_000);
   const days = Math.floor(totalSeconds / 86400);
