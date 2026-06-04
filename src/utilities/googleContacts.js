@@ -83,7 +83,7 @@ async function fetchAllConnections(token) {
 
   do {
     const params = new URLSearchParams({
-      personFields: 'names,birthdays,events',
+      personFields: 'names,birthdays,events,photos',
       pageSize: '200',
       sortOrder: 'FIRST_NAME_ASCENDING',
       ...(pageToken ? { pageToken } : {}),
@@ -125,6 +125,9 @@ function parseContacts(connections) {
 
     const resourceName = person.resourceName || `unknown_${Math.random()}`;
 
+    // Profile photo URL (primary photo, or first available)
+    const photoUrl = person.photos?.[0]?.url || null;
+
     // Birthdays
     (person.birthdays || []).forEach((b, i) => {
       const { month, day } = b.date || {};
@@ -135,6 +138,7 @@ function parseContacts(connections) {
           type: 'birthday',
           month: Number(month),
           day: Number(day),
+          photoUrl,
         });
       }
     });
@@ -151,6 +155,7 @@ function parseContacts(connections) {
         type,
         month: Number(month),
         day: Number(day),
+        photoUrl,
       });
     });
   });

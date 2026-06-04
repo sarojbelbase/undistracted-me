@@ -29,11 +29,25 @@ import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Colored circular avatar with a single initial. */
-const Avatar = ({ name, size = 32 }) => {
+/** Colored circular avatar with a single initial. Shows photo if available. */
+const Avatar = ({ name, photoUrl, size = 32 }) => {
   const { bg, fg } = avatarColor(name);
   const letter = avatarLetter(name);
   const fontSize = size >= 40 ? '1.05rem' : '0.75rem';
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (photoUrl && !imgFailed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
+
   return (
     <div
       className="shrink-0 rounded-full flex items-center justify-center font-bold select-none"
@@ -118,7 +132,7 @@ const ListRow = ({ entry, isLast, highlight }) => {
       className={`occ-row${isLast ? '' : ' occ-row--divider'}${highlight ? ' occ-row--highlight' : ''}`}
     >
       {/* Avatar */}
-      <Avatar name={entry.name} size={30} />
+      <Avatar name={entry.name} photoUrl={entry.photoUrl} size={30} />
 
       {/* Name + type */}
       <div className="occ-row__info">

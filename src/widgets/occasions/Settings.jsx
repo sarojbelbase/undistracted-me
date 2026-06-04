@@ -39,9 +39,22 @@ const TYPES = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const SmAvatar = ({ name }) => {
+const SmAvatar = ({ name, photoUrl }) => {
   const { bg, fg } = avatarColor(name);
   const letter = avatarLetter(name);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (photoUrl && !imgFailed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className="w-8 h-8 rounded-full object-cover shrink-0"
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
+
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 text-xs select-none"
@@ -153,7 +166,7 @@ const ManualSection = ({ onManualChange }) => {
                     borderBottom: i < manual.length - 1 ? `1px solid ${CANVAS_DIVIDER}` : 'none',
                   }}
                 >
-                  <SmAvatar name={e.name} />
+                  <SmAvatar name={e.name} photoUrl={e.photoUrl} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
                       {e.name}
