@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
 import { bucketLabel, isPast } from './utils';
 import { AddEvent } from './AddEvent';
-import { EventRow } from '../../components/ui/EventRow';
+import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
 import { Modal } from '../../components/ui/Modal';
+import { fmt12, calcDuration, datePrefixFor, isLiveNow } from './utils';
 
 export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
@@ -70,18 +71,37 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
               style={{ color: 'var(--w-ink-4)', letterSpacing: '0.1em' }}
             >{b}</p>
 
-            <div className="flex flex-col gap-4">
-              {grouped[b].map(event => {
+            <ListPanel
+              items={grouped[b]}
+              renderItem={(event) => {
+                const live = isLiveNow(event);
+                const startLabel = fmt12(event.startTime);
+                const duration = calcDuration(event.startTime, event.endTime, event.startDate, event.endDate);
+
+                const metaParts = [];
+                if (live) {
+                  metaParts.push({ text: 'in progress', accent: true });
+                  const endLabel = fmt12(event.endTime);
+                  if (endLabel) metaParts.push({ text: `ends ${endLabel}` });
+                } else {
+                  const prefix = datePrefixFor(event.startDate);
+                  if (prefix) metaParts.push({ text: prefix, accent: true });
+                  if (startLabel) metaParts.push({ text: startLabel });
+                  if (duration) metaParts.push({ text: duration });
+                }
+
                 return (
-                  <div
+                  <ListPanelRow
                     key={event.id}
+                    title={event.title}
+                    meta={metaParts}
+                    onDelete={event._source !== 'gcal' ? () => onRemove(event.id) : undefined}
+                    deleteLabel={`Remove ${event.title}`}
                     style={{ opacity: isPast(event) ? 0.4 : 1 }}
-                  >
-                    <EventRow event={event} onRemove={onRemove} showPrefix={false} />
-                  </div>
+                  />
                 );
-              })}
-            </div>
+              }}
+            />
           </div>
         ))}
       </div>

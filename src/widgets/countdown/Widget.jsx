@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 import {
   PlusLg,
-  XLg,
   HourglassSplit,
-  ArrowRepeat,
   CalendarEvent,
 } from "react-bootstrap-icons";
-import { ConfirmButton } from "../../components/ui/ConfirmButton";
+import { ListPanel, ListPanelRow } from "../../components/ui/ListPanel";
 import { AddCountdown } from "./AddCountdown";
 import { BaseWidget } from "../BaseWidget";
 import { useEvents, useGoogleCalendar } from "../../hooks/useEvents";
@@ -191,103 +189,58 @@ const CountdownSettings = ({
           </button>
         </div>
 
-        {custom.length === 0 ? (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)' }}>
-              <HourglassSplit size={14} style={{ color: 'var(--w-accent)' }} />
+        <ListPanel
+          items={custom}
+          className="mb-4"
+          emptyState={
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)' }}>
+                <HourglassSplit size={14} style={{ color: 'var(--w-accent)' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--w-ink-2)' }}>Nothing to track yet</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
+                  Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add Countdown</strong> to count down to events or track time since milestones.
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold" style={{ color: 'var(--w-ink-2)' }}>Nothing to track yet</p>
-              <p className="text-[11px] mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
-                Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to count down to events or track time since milestones.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl overflow-hidden mb-4" style={{ border: '1px solid var(--card-border)' }}>
-            {custom.map((cd, i) => {
-              const isSince = cd.mode === "since";
-              const next = isSince
-                ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
-                : getNextOccurrence(cd);
-              const { days, hours, minutes: mins } = isSince
-                ? formatSince(next)
-                : formatCountdown(next);
-              const isPinned =
-                pinned?.type === "custom" && pinned?.id === cd.id;
-              const isPast =
-                !isSince && next < new Date() && cd.repeat === "none";
+          }
+          renderItem={(cd) => {
+            const isSince = cd.mode === "since";
+            const next = isSince
+              ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+              : getNextOccurrence(cd);
+            const { days, hours, minutes: mins } = isSince
+              ? formatSince(next)
+              : formatCountdown(next);
+            const isPinned = pinned?.type === "custom" && pinned?.id === cd.id;
+            const isPast = !isSince && next < new Date() && cd.repeat === "none";
 
-              const cdLabel = (() => {
-                if (isPast) return "Past";
-                return humanizeDuration(days, hours, mins, isSince ? 'past' : 'future');
-              })();
-              const cdDate = formatTargetDate(next);
+            const cdLabel = (() => {
+              if (isPast) return "Past";
+              return humanizeDuration(days, hours, mins, isSince ? 'past' : 'future');
+            })();
 
-              return (
-                <div
-                  key={cd.id}
-                  className="flex items-center gap-3 px-4 py-3"
-                  style={{
-                    background: 'var(--panel-bg)',
-                    borderBottom: i < custom.length - 1 ? '1px solid var(--card-border)' : 'none',
-                    opacity: isPast ? 0.4 : 1,
-                  }}
-                >
-                  <button
-                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2"
-                    onClick={() => {
-                      onPin({ type: "custom", id: cd.id });
-                      onClose?.();
-                    }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
-                        {cd.title}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {isPinned && (
-                          <>
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
-                          </>
-                        )}
-                        <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
-                          {cdDate}
-                        </span>
-                        {isSince && (
-                          <>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>Since</span>
-                          </>
-                        )}
-                        {!isSince && cd.repeat !== "none" && (
-                          <>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
-                            <ArrowRepeat size={9} style={{ color: 'var(--w-ink-5)' }} />
-                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cd.repeat}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: 'var(--w-accent)' }}>
-                      {cdLabel}
-                    </span>
-                  </button>
-                  <ConfirmButton
-                    onConfirm={() => onRemoveCustom(cd.id)}
-                    label={`Remove ${cd.title}`}
-                    className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
-                  >
-                    <XLg size={11} />
-                  </ConfirmButton>
-                </div>
-              );
-            })}
-          </div>
-        )}
+            const metaParts = [];
+            if (isPinned) metaParts.push({ text: 'Pinned', accent: true });
+            metaParts.push({ text: formatTargetDate(next) });
+            if (isSince) metaParts.push({ text: 'Since' });
+            if (!isSince && cd.repeat !== "none") metaParts.push({ text: cd.repeat });
+
+            return (
+              <ListPanelRow
+                key={cd.id}
+                title={cd.title}
+                meta={metaParts}
+                label={cdLabel}
+                onDelete={() => onRemoveCustom(cd.id)}
+                deleteLabel={`Remove ${cd.title}`}
+                onClick={() => { onPin({ type: "custom", id: cd.id }); onClose?.(); }}
+                style={{ opacity: isPast ? 0.4 : 1 }}
+              />
+            );
+          }}
+        />
       </div>
 
       {/* Divider */}
@@ -299,96 +252,44 @@ const CountdownSettings = ({
           From Calendar
         </p>
 
-        {upcomingEvents.length === 0 ? (
-          <div className="cdn-empty-state">
-            <div className="cdn-empty-state__icon-circle cdn-empty-state__icon-circle--small">
-              <CalendarEvent
-                size={18}
-                style={{ color: "var(--w-accent)", opacity: 0.75 }}
-              />
+        <ListPanel
+          items={upcomingEvents}
+          maxItems={8}
+          emptyState={
+            <div className="cdn-empty-state">
+              <div className="cdn-empty-state__icon-circle cdn-empty-state__icon-circle--small">
+                <CalendarEvent size={18} style={{ color: "var(--w-accent)", opacity: 0.75 }} />
+              </div>
+              <p className="w-body font-semibold mb-1">No upcoming events</p>
+              <p className="w-muted leading-relaxed" style={{ maxWidth: "180px" }}>
+                Add events in the Events widget and pin them here as countdowns.
+              </p>
             </div>
-            <p className="w-body font-semibold mb-1">
-              No upcoming events
-            </p>
-            <p
-              className="w-muted leading-relaxed"
-              style={{ maxWidth: "180px" }}
-            >
-              Add events in the Events widget and pin them here as countdowns.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
-            {upcomingEvents.slice(0, 8).map((ev, i) => {
-              const isPinned =
-                pinned?.type === "event" &&
-                pinned?.eventId === ev.id;
-              const evDate = new Date(
-                `${ev.startDate}T${ev.startTime || "00:00"}`,
-              );
-              const {
-                days: evDays,
-                hours: evHours,
-                minutes: evMins,
-              } = formatCountdown(evDate);
-              const evLabel = humanizeDuration(evDays, evHours, evMins, 'future');
+          }
+          renderItem={(ev) => {
+            const isPinned = pinned?.type === "event" && pinned?.eventId === ev.id;
+            const evDate = new Date(`${ev.startDate}T${ev.startTime || "00:00"}`);
+            const { days: evDays, hours: evHours, minutes: evMins } = formatCountdown(evDate);
+            const evLabel = humanizeDuration(evDays, evHours, evMins, 'future');
+            const evStartLabel = fmt12(ev.startTime);
+            const evDuration = calcDuration(ev.startTime, ev.endTime, ev.startDate, ev.endDate);
 
-              const evStartLabel = fmt12(ev.startTime);
-              const evDuration = calcDuration(
-                ev.startTime,
-                ev.endTime,
-                ev.startDate,
-                ev.endDate,
-              );
+            const metaParts = [];
+            if (isPinned) metaParts.push({ text: 'Pinned', accent: true });
+            if (evStartLabel) metaParts.push({ text: evStartLabel });
+            if (evDuration) metaParts.push({ text: evDuration });
 
-              return (
-                <div
-                  key={ev.id}
-                  className="flex items-center gap-3 px-4 py-3"
-                  style={{
-                    background: 'var(--panel-bg)',
-                    borderBottom: i < Math.min(upcomingEvents.length, 8) - 1 ? '1px solid var(--card-border)' : 'none',
-                  }}
-                >
-                  <button
-                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2"
-                    onClick={() => {
-                      onPin({ type: "event", eventId: ev.id });
-                      onClose?.();
-                    }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: "var(--w-ink-1)" }}>
-                        {ev.title}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {isPinned && (
-                          <>
-                            <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-4)" }}>Pinned</span>
-                            <span className="text-[11px] font-semibold select-none" style={{ color: "var(--w-ink-6)" }}>·</span>
-                          </>
-                        )}
-                        {evStartLabel && (
-                          <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-5)" }}>{evStartLabel}</span>
-                        )}
-                        {evStartLabel && evDuration && (
-                          <span className="text-[11px] font-semibold select-none" style={{ color: "var(--w-ink-6)" }}>·</span>
-                        )}
-                        {evDuration && (
-                          <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-5)" }}>{evDuration}</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: "var(--w-accent)" }}>
-                      {evLabel}
-                    </span>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+            return (
+              <ListPanelRow
+                key={ev.id}
+                title={ev.title}
+                meta={metaParts}
+                label={evLabel}
+                onClick={() => { onPin({ type: "event", eventId: ev.id }); onClose?.(); }}
+              />
+            );
+          }}
+        />
       </div>
 
       {showAdd && (
@@ -673,11 +574,11 @@ export const Widget = ({ id, onRemove }) => {
     el.style.fontFamily = "'Google Sans', sans-serif";
     el.style.fontWeight = '500';
     el.style.letterSpacing = '-0.003em';
-    el.style.lineHeight = '1.25';
+    el.style.lineHeight = '1.2';
 
-    const descentFactor = 0.12; // Google Sans at lh 1.2
+    const descentFactor = 0.10; // Google Sans at lh 1.2
 
-    let lo = 10, hi = Math.min(dims.h * 0.6, dims.w * 0.4);
+    let lo = 10, hi = Math.min(dims.h * 0.55, dims.w * 0.35);
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       el.style.fontSize = mid + 'px';
@@ -693,8 +594,8 @@ export const Widget = ({ id, onRemove }) => {
       fs -= 1;
       el.style.fontSize = fs + 'px';
     }
-    // Cap at 22px max per design spec
-    setComputedFontSize(Math.min(fs, 22));
+    // Cap at 18px for compact, refined look
+    setComputedFontSize(Math.min(fs, 18));
   }, [measureText, dims]);
 
   const settingsContent = (onClose) => (
@@ -727,7 +628,7 @@ export const Widget = ({ id, onRemove }) => {
               aria-hidden="true"
               style={{
                 position: 'fixed', top: -9999, left: -9999,
-                width: dims.w, lineHeight: 1.25,
+                width: dims.w, lineHeight: 1.2,
                 whiteSpace: 'normal', pointerEvents: 'none', userSelect: 'none',
               }}
             >

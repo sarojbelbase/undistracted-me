@@ -169,13 +169,13 @@
   margin-bottom: 1rem;
 }
 
-// ── Widget face — single text block, left-aligned ────────────────────────────
+// ── Widget face — compact, single text block, left-aligned ──────────────────
 //
 // Structure:
 //   .cdn-widget-face  — flex column, fills widget, relative for label
-//   .cdn-mode-label   — top-right, absolute, muted chip
+//   .cdn-mode-label   — top-right, absolute, ultra-compact glass pill
 //   .cdn-text-block   — the whole "Title phrase" as one block, uniform size
-//   .cdn-title-text    — bold, dark event name
+//   .cdn-title-text    — bold event name
 //   .cdn-connector     — muted connector + time phrase
 
 .cdn-widget-face {
@@ -183,10 +183,10 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 8px;
   position: relative;
   min-height: 0;
-  padding: 14px 2px;
+  padding: 16px 2px 8px;
 }
 
 // ── Source pill (top-right, glass) ────────────────────────────────────────────
@@ -195,16 +195,16 @@
   position: absolute;
   top: 0;
   right: 0;
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--w-ink-4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  background: color-mix(in srgb, var(--w-ink-1) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--w-ink-1) 8%, transparent);
-  padding: 3px 7px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w-ink-1) 7%, transparent);
+  padding: 2px 6px;
   border-radius: 999px;
   flex-shrink: 0;
   max-width: 100%;
@@ -213,9 +213,8 @@
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
+  line-height: 1.5;
 }
-
-// ── iOS-style text block (title + phrase as one continuous sentence) ─────────
 
 // ── Content wrap (observed for font sizing) ──────────────────────────────────
 
@@ -225,17 +224,7 @@
   justify-content: flex-end;
   flex: 1;
   min-height: 0;
-}
-
-// ── Event time line (above text block, iOS widget style) ──────────────────────
-
-.cdn-time-line {
-  font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--w-ink-4);
-  letter-spacing: -0.01em;
-  margin-bottom: 2px;
-  flex-shrink: 0;
+  gap: 4px;
 }
 
 // ── Text block wrapper ───────────────────────────────────────────────────────
@@ -244,8 +233,8 @@
   flex: 0 0 auto;
   min-height: 0;
   text-align: left;
-  line-height: 1.25;
-  letter-spacing: -0.003em;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
   font-family: 'Google Sans', sans-serif;
 }
 
@@ -257,7 +246,7 @@
 
 // Connector: regular weight, muted — linking word + time phrase (supporting text)
 .cdn-connector {
-  font-weight: 500;
+  font-weight: 400;
   color: var(--w-ink-4);
   white-space: nowrap;
 }
@@ -271,16 +260,16 @@
   flex-wrap: wrap;
   gap: 0;
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--w-ink-6);
-  line-height: 1.4;
-  margin-top: 6px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--w-ink-5);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 
 .cdn-meta-dot {
   color: var(--w-ink-6);
   user-select: none;
-  padding: 0 4px;
-  font-weight: 600;
+  padding: 0 3px;
+  font-weight: 500;
 }
