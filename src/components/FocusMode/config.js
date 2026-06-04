@@ -20,6 +20,7 @@ export const ZONES = {
       weatherTemp: { enable: true, order: 1 },
       date: { enable: true, order: 2 },
       year: { enable: true, order: 3 },
+      screenTime: { enable: true, order: 4 },
     },
   },
   center: {
