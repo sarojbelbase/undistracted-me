@@ -7,6 +7,7 @@ import {
     BS_TABLE_START_YEAR,
     BS_TABLE_END_YEAR,
 } from '../data/bikramSambatCalendar';
+import { humanizeTime } from './humanizeTime';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -137,6 +138,9 @@ export {
     makeUid,
 };
 
+// Re-export unified humanizer
+export { humanizeTime } from './humanizeTime';
+
 /** Returns today's date as a YYYY-MM-DD string (local time). */
 function todayStr() {
     const d = new Date();
@@ -156,14 +160,12 @@ function toLocalDateStr(d) {
  * Format a timestamp (ms) as a human-readable age string.
  * e.g. "just now", "3m ago", "2h ago", "1d ago"
  * Returns null when ts is falsy.
+ * Delegates to humanizeTime — single source of truth.
  */
 function humanizeAge(ts) {
     if (!ts) return null;
-    const diff = Math.floor((Date.now() - ts) / 1_000);
-    if (diff < 60) return 'just now';
-    if (diff < 3_600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86_400) return `${Math.floor(diff / 3_600)}h ago`;
-    return `${Math.floor(diff / 86_400)}d ago`;
+    const { compact } = humanizeTime(new Date(ts), { now: Date.now() });
+    return compact;
 }
 
 /**

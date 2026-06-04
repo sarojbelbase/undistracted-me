@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 import {
   PlusLg,
-  Trash3,
+  XLg,
   HourglassSplit,
   ArrowRepeat,
   CalendarEvent,
 } from "react-bootstrap-icons";
-import { TintedChip } from "../../components/ui/TintedChip";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
 import { AddCountdown } from "./AddCountdown";
 import { BaseWidget } from "../BaseWidget";
@@ -184,39 +183,29 @@ const CountdownSettings = ({
           <button
             type="button"
             onClick={() => setShowAdd(true)}
-            className="cdn-add-btn"
+            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[11px] px-3 py-1.5"
+            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
           >
             <PlusLg size={9} />
-            New
+            Add Countdown
           </button>
         </div>
 
         {custom.length === 0 ? (
-          <div className="cdn-empty-state">
-            <div className="cdn-empty-state__icon-circle">
-              <HourglassSplit
-                size={22}
-                style={{ color: "var(--w-accent)", opacity: 0.75 }}
-              />
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)' }}>
+              <HourglassSplit size={14} style={{ color: 'var(--w-accent)' }} />
             </div>
-            <p className="w-body font-semibold mb-1">
-              Nothing to track yet
-            </p>
-            <p className="w-muted leading-relaxed mb-4 cdn-empty-state__hint">
-              Count down to events or track time since milestones.
-            </p>
-            <TintedChip
-              size="sm"
-              onClick={() => setShowAdd(true)}
-              className="flex items-center gap-1.5"
-            >
-              <PlusLg size={9} />
-              Add your first countdown
-            </TintedChip>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold" style={{ color: 'var(--w-ink-2)' }}>Nothing to track yet</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
+                Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to count down to events or track time since milestones.
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-1">
-            {custom.map((cd) => {
+          <div className="rounded-2xl overflow-hidden mb-4" style={{ border: '1px solid var(--card-border)' }}>
+            {custom.map((cd, i) => {
               const isSince = cd.mode === "since";
               const next = isSince
                 ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
@@ -229,81 +218,70 @@ const CountdownSettings = ({
               const isPast =
                 !isSince && next < new Date() && cd.repeat === "none";
 
-              const cdLabel = isPast
-                ? "Past"
-                : humanizeDuration(days, hours, mins);
+              const cdLabel = (() => {
+                if (isPast) return "Past";
+                return humanizeDuration(days, hours, mins, isSince ? 'past' : 'future');
+              })();
               const cdDate = formatTargetDate(next);
 
               return (
                 <div
                   key={cd.id}
-                  className={`cdn-list-item${isPast ? " cdn-list-item--past" : ""}`}
+                  className="flex items-center gap-3 px-4 py-3"
+                  style={{
+                    background: 'var(--panel-bg)',
+                    borderBottom: i < custom.length - 1 ? '1px solid var(--card-border)' : 'none',
+                    opacity: isPast ? 0.4 : 1,
+                  }}
                 >
-                  <div className="cdn-list-item__bar" />
                   <button
-                    className="cdn-list-item__btn"
+                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2"
                     onClick={() => {
                       onPin({ type: "custom", id: cd.id });
                       onClose?.();
                     }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
-                    <div className="cdn-list-item__info">
-                      <p className="cdn-list-item__title">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: 'var(--w-ink-1)' }}>
                         {cd.title}
                       </p>
-                      <div className="cdn-list-item__meta">
+                      <div className="flex items-center gap-1">
                         {isPinned && (
                           <>
-                            <span className="cdn-list-item__meta-text">
-                              Pinned
-                            </span>
-                            <span className="cdn-list-item__meta-dot">
-                              ·
-                            </span>
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>Pinned</span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
                           </>
                         )}
-                        <span className="cdn-list-item__meta-text">
+                        <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>
                           {cdDate}
                         </span>
                         {isSince && (
                           <>
-                            <span className="cdn-list-item__meta-dot">
-                              ·
-                            </span>
-                            <span className="cdn-list-item__meta-text">
-                              Since
-                            </span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>Since</span>
                           </>
                         )}
-                        {!isSince &&
-                          cd.repeat !== "none" && (
-                            <>
-                              <span className="cdn-list-item__meta-dot">
-                                ·
-                              </span>
-                              <ArrowRepeat
-                                size={9}
-                                style={{ color: "var(--w-ink-5)" }}
-                              />
-                              <span className="cdn-list-item__meta-text">
-                                {cd.repeat}
-                              </span>
-                            </>
-                          )}
+                        {!isSince && cd.repeat !== "none" && (
+                          <>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: 'var(--w-ink-6)' }}>·</span>
+                            <ArrowRepeat size={9} style={{ color: 'var(--w-ink-5)' }} />
+                            <span className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-5)' }}>{cd.repeat}</span>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <span
-                      className={`cdn-label${isPast ? " cdn-label--past" : " cdn-label--active"}`}
-                    >
+                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: 'var(--w-accent)' }}>
                       {cdLabel}
                     </span>
                   </button>
                   <ConfirmButton
                     onConfirm={() => onRemoveCustom(cd.id)}
                     label={`Remove ${cd.title}`}
-                    className="cdn-delete-btn"
+                    className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
+                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
                   >
-                    <Trash3 size={13} />
+                    <XLg size={11} />
                   </ConfirmButton>
                 </div>
               );
@@ -340,8 +318,8 @@ const CountdownSettings = ({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-1">
-            {upcomingEvents.slice(0, 8).map((ev) => {
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
+            {upcomingEvents.slice(0, 8).map((ev, i) => {
               const isPinned =
                 pinned?.type === "event" &&
                 pinned?.eventId === ev.id;
@@ -353,7 +331,7 @@ const CountdownSettings = ({
                 hours: evHours,
                 minutes: evMins,
               } = formatCountdown(evDate);
-              const evLabel = humanizeDuration(evDays, evHours, evMins);
+              const evLabel = humanizeDuration(evDays, evHours, evMins, 'future');
 
               const evStartLabel = fmt12(ev.startTime);
               const evDuration = calcDuration(
@@ -366,76 +344,43 @@ const CountdownSettings = ({
               return (
                 <div
                   key={ev.id}
-                  className="relative flex items-stretch gap-3 group"
+                  className="flex items-center gap-3 px-4 py-3"
+                  style={{
+                    background: 'var(--panel-bg)',
+                    borderBottom: i < Math.min(upcomingEvents.length, 8) - 1 ? '1px solid var(--card-border)' : 'none',
+                  }}
                 >
-                  <div
-                    className="w-1.5 rounded-xs shrink-0 self-stretch"
-                    style={{
-                      backgroundColor: "var(--w-accent)",
-                      minHeight: "38px",
-                    }}
-                  />
                   <button
-                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2 py-2"
+                    className="flex-1 min-w-0 text-left flex items-center justify-between gap-2"
                     onClick={() => {
                       onPin({ type: "event", eventId: ev.id });
                       onClose?.();
                     }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <p
-                        className="text-[13px] font-semibold leading-snug truncate"
-                        style={{ color: "var(--w-ink-1)" }}
-                      >
+                      <p className="text-[13px] font-semibold leading-snug truncate" style={{ color: "var(--w-ink-1)" }}>
                         {ev.title}
                       </p>
                       <div className="flex items-center gap-1">
                         {isPinned && (
                           <>
-                            <span
-                              className="text-[11px] font-semibold"
-                              style={{ color: "var(--w-ink-4)" }}
-                            >
-                              Pinned
-                            </span>
-                            <span
-                              className="text-[11px] font-semibold select-none"
-                              style={{ color: "var(--w-ink-6)" }}
-                            >
-                              ·
-                            </span>
+                            <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-4)" }}>Pinned</span>
+                            <span className="text-[11px] font-semibold select-none" style={{ color: "var(--w-ink-6)" }}>·</span>
                           </>
                         )}
                         {evStartLabel && (
-                          <span
-                            className="text-[11px] font-semibold"
-                            style={{ color: "var(--w-ink-5)" }}
-                          >
-                            {evStartLabel}
-                          </span>
+                          <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-5)" }}>{evStartLabel}</span>
                         )}
                         {evStartLabel && evDuration && (
-                          <span
-                            className="text-[11px] font-semibold select-none"
-                            style={{ color: "var(--w-ink-6)" }}
-                          >
-                            ·
-                          </span>
+                          <span className="text-[11px] font-semibold select-none" style={{ color: "var(--w-ink-6)" }}>·</span>
                         )}
                         {evDuration && (
-                          <span
-                            className="text-[11px] font-semibold"
-                            style={{ color: "var(--w-ink-5)" }}
-                          >
-                            {evDuration}
-                          </span>
+                          <span className="text-[11px] font-semibold" style={{ color: "var(--w-ink-5)" }}>{evDuration}</span>
                         )}
                       </div>
                     </div>
-                    <span
-                      className="text-[13px] font-bold shrink-0 tabular-nums"
-                      style={{ color: "var(--w-accent)" }}
-                    >
+                    <span className="text-[13px] font-bold shrink-0 tabular-nums" style={{ color: "var(--w-accent)" }}>
                       {evLabel}
                     </span>
                   </button>

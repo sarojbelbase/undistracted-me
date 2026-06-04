@@ -2,9 +2,7 @@
  * Events widget utilities
  */
 import { todayStr, toLocalDateStr } from '../../utilities';
-
-// Re-export so existing widget-local imports keep working transparently.
-export { todayStr, toLocalDateStr } from '../../utilities';
+import { humanizeTime } from '../../utilities/humanizeTime';
 
 /** Returns true if an event is in the past */
 export const isPast = (event) => {
@@ -33,12 +31,11 @@ export const getDateOffset = (offset) => {
  * @returns {'Today'|'Tomorrow'|'Later'|'Past'}
  */
 export const bucketLabel = (dateStr) => {
-  const today = todayStr();
-  const tomorrow = getDateOffset(1);
-  if (!dateStr || dateStr === today) return 'Today';
-  if (dateStr === tomorrow) return 'Tomorrow';
-  if (dateStr > today) return 'Later';
-  return 'Past';
+  if (!dateStr) return 'Past';
+  const h = humanizeTime(dateStr);
+  if (h.isToday) return 'Today';
+  if (h.isTomorrow) return 'Tomorrow';
+  return h.direction === 'future' ? 'Later' : 'Past';
 };
 
 /**
@@ -120,46 +117,10 @@ export const calcDuration = (startTime, endTime, startDate, endDate) => {
 /** Today → null; Tomorrow → 'Tomorrow'; else 'Fri, Apr 3' */
 export const datePrefixFor = (dateStr) => {
   if (!dateStr) return null;
-  const bucket = bucketLabel(dateStr);
-  if (bucket === 'Today') return null;
-  if (bucket === 'Tomorrow') return 'Tomorrow';
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr + 'T00:00:00');
-  const diffDays = Math.round((target - today) / 86400000);
-
-  // Start/end of each relative boundary (Monday of next week, 1st of next month, etc.)
-  const startOfNextWeek = new Date(today);
-  startOfNextWeek.setDate(today.getDate() + (7 - today.getDay() || 7));
-  const endOfNextWeek = new Date(startOfNextWeek);
-  endOfNextWeek.setDate(startOfNextWeek.getDate() + 7);
-
-  const startOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-  const endOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 1);
-
-  const startOfNextYear = new Date(today.getFullYear() + 1, 0, 1);
-  const endOfNextYear = new Date(today.getFullYear() + 2, 0, 1);
-
-  if (target >= startOfNextYear) {
-    if (target < endOfNextYear) return 'Next Year';
-    const years = target.getFullYear() - today.getFullYear();
-    return `in ${years} years`;
-  }
-  if (target >= startOfNextMonth) {
-    if (target < endOfNextMonth) return 'Next Month';
-    const months = (target.getFullYear() - today.getFullYear()) * 12 + (target.getMonth() - today.getMonth());
-    return `in ${months} months`;
-  }
-  if (target >= startOfNextWeek) {
-    if (target < endOfNextWeek) return 'Next Week';
-    const weeks = Math.floor(diffDays / 7);
-    return `in ${weeks} weeks`;
-  }
-
-  // Same week but not today/tomorrow — fall back to short date
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const h = humanizeTime(dateStr);
+  if (h.isToday) return null;
+  if (h.isTomorrow) return 'Tomorrow';
+  return h.calendar;
 };
 
 /**
@@ -215,14 +176,9 @@ export const getNextEventToShow = (events) => {
  */
 export const getTimeUntilEvent = (event) => {
   const start = new Date(`${event.startDate}T${event.startTime}`);
-  const diffMs = start - Date.now();
-  if (diffMs <= 0) return 'now';
-  const diffMin = Math.ceil(diffMs / 60000);
-  if (diffMin < 60) return `in ${diffMin}m`;
-  const prefix = datePrefixFor(event.startDate);
-  if (prefix) return prefix;
-  const h = Math.floor(diffMin / 60), m = diffMin % 60;
-  return m > 0 ? `in ${h}h ${m}m` : `in ${h}h`;
+  if (start <= Date.now()) return 'now';
+  const h = humanizeTime(start, { now: Date.now() });
+  return h.compact === '<1m' ? 'now' : h.full;
 };
 
 /**
