@@ -101,6 +101,69 @@ const ITEM_RENDERERS = {
       {dateParts.year}
     </span>
   ),
+  screenTime: () => <ScreenTime key="screenTime" />,
+};
+
+// ── Screen time (digital wellbeing) ────────────────────────────────────────────
+//
+// Reads browser start time from localStorage (set by bg.js via
+// chrome.runtime.onStartup / onInstalled). This is real Chrome browser uptime,
+// not a per-tab or per-component timer.
+
+const BROWSER_START_KEY = 'um_browser_start_time';
+
+const getBrowserStartTime = () => {
+  try {
+    const ts = Number(localStorage.getItem(BROWSER_START_KEY));
+    if (ts && ts > 0) return ts;
+  } catch { /* ignore */ }
+  // Fallback: if the SW hasn't written it yet, use now
+  const now = Date.now();
+  localStorage.setItem(BROWSER_START_KEY, String(now));
+  return now;
+};
+
+const ScreenTime = () => {
+  const [startTime] = useState(getBrowserStartTime);
+  const [elapsed, setElapsed] = useState(() =>
+    Math.floor((Date.now() - startTime) / 1000),
+  );
+
+  const tick = useCallback(() => {
+    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+  }, [startTime]);
+
+  useEffect(() => onClockTick(tick), [tick]);
+
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+
+  if (elapsed < 60) return null;
+
+  const label = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const tooltip = `${label} since you started browsing`;
+
+  return (
+    <TooltipBtn
+      tooltip={tooltip}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'default',
+        pointerEvents: 'auto',
+      }}
+    >
+      <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>·</span>
+      <span
+        style={{ fontSize: 14, fontWeight: 600, color: FM_INK_4, letterSpacing: "-0.01em" }}
+      >
+        {label}
+      </span>
+    </TooltipBtn>
+  );
 };
 
 const InfoStrip = ({ weather, dateParts }) => {

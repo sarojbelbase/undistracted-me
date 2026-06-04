@@ -229,11 +229,15 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_STOCKS, { periodInMinutes: 15 });
   injectMediaScript();
   initSiteBlocker();
+  localStorage.setItem('um_browser_start_time', String(Date.now()));
 });
 
 // Also inject on service worker startup — covers the case where Chrome restarts
 // or the extension is reloaded while tabs are already open.
-chrome.runtime.onStartup.addListener(injectMediaScript);
+chrome.runtime.onStartup.addListener(() => {
+  injectMediaScript();
+  localStorage.setItem('um_browser_start_time', String(Date.now()));
+});
 
 /**
  * Programmatically injects media.js into any already-open tabs that match the
