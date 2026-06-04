@@ -815,10 +815,21 @@ const ExpressiveView = ({
               data-testid="weather-condition-row"
               style={{
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
+                flexDirection: "row",
+                alignItems: "baseline",
+                gap: 4,
               }}
             >
+              <span
+                style={{
+                  fontSize: "0.55rem",
+                  fontWeight: 600,
+                  color: "var(--w-ink-5)",
+                  lineHeight: 1.5,
+                }}
+              >
+                ({getForecastLabel(forecast)})
+              </span>
               <span
                 style={{
                   fontSize: "0.88rem",
@@ -831,16 +842,6 @@ const ExpressiveView = ({
                 {forecast.type === "clearing"
                   ? "clearing up"
                   : forecast.description}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.55rem",
-                  fontWeight: 600,
-                  color: "var(--w-ink-5)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {getForecastLabel(forecast)}
               </span>
             </div>
           )}

@@ -29,6 +29,11 @@ const SELECTED_KEY = 'fm_selected_photo_id';
 const getSelectedPhotoId = () => { try { return localStorage.getItem(SELECTED_KEY) || null; } catch { return null; } };
 export const setSelectedPhotoId = (id) => { try { if (id) localStorage.setItem(SELECTED_KEY, id); else localStorage.removeItem(SELECTED_KEY); } catch { } };
 
+/** Persists the ID of the currently displayed photo (updated on every change, including auto-rotate). */
+const CURRENT_KEY = 'fm_current_photo_id';
+const getCurrentPhotoId = () => { try { return localStorage.getItem(CURRENT_KEY) || null; } catch { return null; } };
+export const setCurrentPhotoId = (id) => { try { if (id) localStorage.setItem(CURRENT_KEY, id); else localStorage.removeItem(CURRENT_KEY); } catch { } };
+
 /**
  * Compute a ~200 px thumbnail URL for a cached photo entry.
  * Uses Vercel Image Optimization served from the production deployment so
@@ -72,10 +77,17 @@ const writeCache = (items) => {
  */
 export const getCurrentPhoto = async () => {
   const cache = readCache();
-  if (cache.length > 0) return cache[0];
-  // Library empty — download the curated set, then read from (reordered) cache.
-  await downloadCuratedPhotos();
-  return readCache()[0] || null;
+  if (cache.length === 0) {
+    await downloadCuratedPhotos();
+    return readCache()[0] || null;
+  }
+  // Restore the previously displayed photo on wake/sleep cycles
+  const currentId = getCurrentPhotoId();
+  if (currentId) {
+    const found = cache.find((c) => c.id === currentId);
+    if (found) return found;
+  }
+  return cache[0];
 };
 
 /**
@@ -92,7 +104,9 @@ export const rotatePhoto = async () => {
   if (cache.length === 1) return cache[0]; // only one photo, stay on it
   // Cycle: head goes to tail
   writeCache([...cache.slice(1), cache[0]]);
-  return readCache()[0];
+  const next = readCache()[0];
+  setCurrentPhotoId(next?.id ?? null);
+  return next;
 };
 
 /** Remove a photo from the library by id. */

@@ -54,10 +54,11 @@ export const Modal = ({
       tabIndex={-1}
       className="fixed inset-0 z-100 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
     >
-      {/* Backdrop overlay — dark scrim in flat mode, blur in glass mode */}
+      {/* Backdrop overlay — click to dismiss */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
+        onClick={onClose}
         style={{
           background: "var(--modal-overlay-bg)",
           backdropFilter: "var(--modal-overlay-blur)",
@@ -72,8 +73,7 @@ export const Modal = ({
           <div
             className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
             style={{
-              borderBottom:
-                "var(--card-border-width, 1px) solid var(--card-border)",
+              borderBottom: "1.5px solid rgba(0,0,0,0.1)",
             }}
           >
             <span

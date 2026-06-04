@@ -1,6 +1,7 @@
 import React from 'react';
 import { XLg } from 'react-bootstrap-icons';
 import { ConfirmButton } from './ConfirmButton';
+import { Divider } from './Divider';
 
 /**
  * ListPanel — a rounded-2xl bordered container listing items with automatic dividers.
@@ -35,20 +36,12 @@ export const ListPanel = ({
     >
       {sliced.map((item, i) => {
         const isLast = i === sliced.length - 1;
-        const row = renderItem(item, i, isLast);
-
-        // Inject divider if row is a plain div without borderBottom
-        if (React.isValidElement(row) && !isLast) {
-          return React.cloneElement(row, {
-            key: row.key ?? i,
-            style: {
-              ...(row.props.style || {}),
-              borderBottom: row.props.style?.borderBottom ?? '1px solid var(--card-border)',
-            },
-          });
-        }
-
-        return row;
+        return (
+          <React.Fragment key={item.id ?? i}>
+            {renderItem(item, i, isLast)}
+            {!isLast && <Divider />}
+          </React.Fragment>
+        );
       })}
     </div>
   );

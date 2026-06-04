@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
-import { PersonHeart, BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
+import { PersonHeart, BalloonFill, HeartFill, StarFill, XLg } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import {
   getContactBirthdays,
@@ -218,10 +218,32 @@ export const Widget = ({ id, onRemove }) => {
   const upcoming = useMemo(() => computeUpcoming(allRaw), [allRaw]);
 
   // ── Settings panel ─────────────────────────────────────────────────────────
-  const settingsContent = (
-    <OccasionsSettings
-      onManualChange={(updated) => setManual(updated)}
-    />
+  const settingsContent = (onClose) => (
+    <>
+      {/* Custom header — matching AllEventsModal style */}
+      <div
+        className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
+        style={{ borderBottom: '1.5px solid rgba(0,0,0,0.1)' }}
+      >
+        <div>
+          <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>{config.title}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-6 h-6 flex items-center justify-center rounded-full transition-colors cursor-pointer"
+          style={{ color: 'var(--w-ink-3)' }}
+          aria-label={`Close ${config.title}`}
+        >
+          <XLg size={12} />
+        </button>
+      </div>
+      {/* Scrollable body */}
+      <div className="overflow-y-auto flex-1 px-4 py-4">
+        <OccasionsSettings
+          onManualChange={(updated) => setManual(updated)}
+        />
+      </div>
+    </>
   );
 
   // ── Inline refresh row (mirrors stock widget) ───────────────────────────────
@@ -278,6 +300,7 @@ export const Widget = ({ id, onRemove }) => {
         onRemove={onRemove}
         settingsContent={settingsContent}
         settingsTitle={config.title}
+        settingsNoHeader
         modalWidth="w-96"
       >
         {/* ── Header ─────────────────────────────────────────────────────────── */}

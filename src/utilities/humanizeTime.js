@@ -107,8 +107,8 @@ export function humanizeTime(date, opts = {}) {
   const isYesterday = days === -1;
 
   let direction;
-  if (days > 0) direction = 'future';
-  else if (days < 0) direction = 'past';
+  if (days > 0 || (days === 0 && target > now)) direction = 'future';
+  else if (days < 0 || (days === 0 && target < now)) direction = 'past';
   else direction = 'present';
 
   if (direction === 'present' || (direction === 'future' && target <= now)) {

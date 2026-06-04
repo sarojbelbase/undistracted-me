@@ -109,16 +109,14 @@ export function detectUserCurrency() {
  */
 export function formatAmount(amount, currencyCode, locale) {
   const currency = CURRENCIES.find((c) => c.code === currencyCode);
-  const loc = locale ?? currency?.locale ?? 'en-US';
   const symbol = currency?.symbol ?? currencyCode;
 
-  // Format the numeric part using the locale's number format
-  const numberPart = new Intl.NumberFormat(loc, {
+  // Always use en-US number formatting — only the symbol changes per currency
+  const numberPart = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
 
-  // Use symbol instead of ISO code for a cleaner widget-facing display
   return `${symbol}\u00A0${numberPart}`;
 }
 

@@ -237,7 +237,7 @@ export const Settings = ({
             )}
 
             {/* ── Divider ─────────────────────────────────────────────── */}
-            <div style={{ height: 1, background: "rgba(0,0,0,0.07)" }} />
+            <div style={{ height: 1, background: "rgba(0,0,0,0.1)" }} />
 
             {/* ── Data section (matching expense tracker pattern) ──────── */}
             <div className="flex flex-col gap-2.5">

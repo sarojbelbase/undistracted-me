@@ -23,6 +23,7 @@ import { Broadcast, Rss } from "react-bootstrap-icons";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
+import { Divider } from '../../components/ui/Divider';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -611,10 +612,7 @@ export const Widget = ({ id, onRemove }) => {
       settingsTitle="News Feed" modalWidth="w-96" onRemove={onRemove}
     >
       {/* Header */}
-      <div
-        className="flex items-center gap-1.5 px-3 pt-2.5 pb-2 shrink-0"
-        style={{ borderBottom: "1px solid var(--card-border)" }}
-      >
+      <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-2 shrink-0">
         <Broadcast size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
         <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
           {digestLabel}
@@ -635,6 +633,7 @@ export const Widget = ({ id, onRemove }) => {
           </button>
         </div>
       </div>
+      <Divider />
 
       {/* Body */}
       <div
