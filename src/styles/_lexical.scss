@@ -186,7 +186,7 @@ dialog[aria-label="Link editor"]::backdrop {
   list-style: none;
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   margin-left: -1.4em;
   padding-left: 0;
@@ -197,7 +197,6 @@ dialog[aria-label="Link editor"]::backdrop {
     flex-shrink: 0;
     width: 14px;
     height: 14px;
-    margin-top: 4px;
     border-radius: 3px;
     border: 1.5px solid var(--w-border);
     background: transparent;

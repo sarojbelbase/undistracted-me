@@ -7,6 +7,7 @@ import {
   jumpToPhotoById,
   getCachedPhotoSync,
   getPhotoLibrary,
+  setCurrentPhotoId,
 } from "../../utilities/unsplash";
 import { useWidgetInstancesStore } from "../../store";
 import { useLocationStore } from "../../store/useLocationStore";
@@ -82,6 +83,7 @@ export const useFocusPhoto = () => {
     const url = p.regular || p.url;
     if (url === prevUrlRef.current) return;
     prevUrlRef.current = url;
+    setCurrentPhotoId(p.id);
     setPhoto(p);
     setActiveSlot((cur) => {
       if (cur === "a") {

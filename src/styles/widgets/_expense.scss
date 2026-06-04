@@ -181,7 +181,7 @@
   align-items: stretch;
   gap: 0;
   flex-shrink: 0;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--w-accent) 8%, transparent);
 }
@@ -652,8 +652,8 @@
 }
 
 .exp-add-modal__divider {
-  height: 1px;
-  background: var(--card-border);
+  height: 1.5px;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .exp-add-modal__cancel-btn {

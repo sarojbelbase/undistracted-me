@@ -29,6 +29,7 @@ export const BaseWidget = forwardRef(
       onRemove = null,
       settingsContent = null,
       settingsTitle = "Settings",
+      settingsNoHeader = false,
       modalWidth = "w-80",
       cardStyle = {},
       menuItems = [],
@@ -251,6 +252,7 @@ export const BaseWidget = forwardRef(
             title={settingsTitle}
             onClose={() => setModalOpen(false)}
             width={modalWidth}
+            noHeader={settingsNoHeader}
           >
             {typeof settingsContent === "function"
               ? settingsContent(() => setModalOpen(false))

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useSettingsStore } from '../../store';
-import { CANVAS_DIVIDER } from '../../theme/canvas';
+import { Divider } from '../ui/Divider';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
 import { BlockedSites } from './BlockedSites';
@@ -84,8 +84,8 @@ export const General = ({ onPreviewLookAway }) => {
         })()}
       </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+      {/* ── Separator ── */}
+      <Divider />
 
       {/* ── Look Away ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -133,7 +133,7 @@ export const General = ({ onPreviewLookAway }) => {
               </div>
             </div>
 
-            <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+            <Divider />
 
             {/* Preview */}
             {onPreviewLookAway && (
@@ -161,8 +161,8 @@ export const General = ({ onPreviewLookAway }) => {
       {/* ── Blocked Sites ── */}
       <BlockedSites />
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+      {/* ── Separator ── */}
+      <Divider />
 
       {/* ── Notifications ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -193,7 +193,7 @@ export const General = ({ onPreviewLookAway }) => {
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px',
                     background: 'var(--panel-bg)',
-                    borderBottom: isLast ? 'none' : '1px solid var(--card-border)',
+                    borderBottom: isLast ? 'none' : '1.5px solid rgba(0,0,0,0.1)',
                     transition: 'background 0.14s',
                   }}
                 >

@@ -3,6 +3,7 @@ import {
   PlusLg,
   HourglassSplit,
   CalendarEvent,
+  XLg,
 } from "react-bootstrap-icons";
 import { ListPanel, ListPanelRow } from "../../components/ui/ListPanel";
 import { AddCountdown } from "./AddCountdown";
@@ -599,15 +600,37 @@ export const Widget = ({ id, onRemove }) => {
   }, [measureText, dims]);
 
   const settingsContent = (onClose) => (
-    <CountdownSettings
-      custom={custom}
-      pinned={pinned}
-      upcomingEvents={upcomingEvents}
-      onAddCustom={addCustom}
-      onRemoveCustom={removeCustom}
-      onPin={setPin}
-      onClose={onClose}
-    />
+    <>
+      {/* Custom header — matching AllEventsModal style */}
+      <div
+        className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
+        style={{ borderBottom: '1.5px solid rgba(0,0,0,0.1)' }}
+      >
+        <div>
+          <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>{config.title}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-6 h-6 flex items-center justify-center rounded-full transition-colors cursor-pointer"
+          style={{ color: 'var(--w-ink-3)' }}
+          aria-label={`Close ${config.title}`}
+        >
+          <XLg size={12} />
+        </button>
+      </div>
+      {/* Scrollable body */}
+      <div className="overflow-y-auto flex-1 px-4 py-4">
+        <CountdownSettings
+          custom={custom}
+          pinned={pinned}
+          upcomingEvents={upcomingEvents}
+          onAddCustom={addCustom}
+          onRemoveCustom={removeCustom}
+          onPin={setPin}
+          onClose={onClose}
+        />
+      </div>
+    </>
   );
 
   return (
@@ -615,6 +638,7 @@ export const Widget = ({ id, onRemove }) => {
       className="p-4"
       settingsContent={settingsContent}
       settingsTitle={config.title}
+      settingsNoHeader
       modalWidth="w-[26rem]"
       onRemove={onRemove}
     >

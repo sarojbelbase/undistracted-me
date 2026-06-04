@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { Upload, Download, ArrowCounterclockwise, InfoCircle } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
-import { CANVAS_DIVIDER } from '../../theme/canvas';
+import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 import { Toggle } from '../../components/ui/Toggle';
@@ -69,8 +69,8 @@ export const Data = () => {
         )}
       </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+      {/* ── Separator ── */}
+      <Divider />
 
       {/* ── Import / Export ──────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -182,8 +182,8 @@ export const Data = () => {
         )}
       </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+      {/* ── Separator ── */}
+      <Divider />
 
       {/* ── Reset ────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
