@@ -106,42 +106,62 @@ const ITEM_RENDERERS = {
 
 // ── Screen time (digital wellbeing) ────────────────────────────────────────────
 //
-// Reads browser start time from localStorage (set by bg.js via
+// Reads browser start time from chrome.storage.local (set by bg.js via
 // chrome.runtime.onStartup / onInstalled). This is real Chrome browser uptime,
 // not a per-tab or per-component timer.
 
 const BROWSER_START_KEY = 'um_browser_start_time';
 
-const getBrowserStartTime = () => {
-  try {
-    const ts = Number(localStorage.getItem(BROWSER_START_KEY));
-    if (ts && ts > 0) return ts;
-  } catch { /* ignore */ }
-  // Fallback: if the SW hasn't written it yet, use now
-  const now = Date.now();
-  localStorage.setItem(BROWSER_START_KEY, String(now));
-  return now;
+/** Reads browser start time — chrome.storage in extension, localStorage in dev. */
+const readStartTime = () => {
+  if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(BROWSER_START_KEY, (result) => {
+        resolve(result?.[BROWSER_START_KEY] || null);
+      });
+    });
+  }
+  // Dev mode fallback — no chrome.* APIs available
+  return Promise.resolve(Number(localStorage.getItem(BROWSER_START_KEY)) || null);
+};
+
+const writeStartTime = (ts) => {
+  if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+    chrome.storage.local.set({ [BROWSER_START_KEY]: ts });
+  } else {
+    localStorage.setItem(BROWSER_START_KEY, String(ts));
+  }
 };
 
 const ScreenTime = () => {
-  const [startTime] = useState(getBrowserStartTime);
-  const [elapsed, setElapsed] = useState(() =>
-    Math.floor((Date.now() - startTime) / 1000),
-  );
+  const [startTime, setStartTime] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    readStartTime().then((ts) => {
+      if (ts) {
+        setStartTime(ts);
+        setElapsed(Math.floor((Date.now() - ts) / 1000));
+      } else {
+        const now = Date.now();
+        writeStartTime(now);
+        setStartTime(now);
+      }
+    });
+  }, []);
 
   const tick = useCallback(() => {
-    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    if (startTime) setElapsed(Math.floor((Date.now() - startTime) / 1000));
   }, [startTime]);
 
   useEffect(() => onClockTick(tick), [tick]);
 
+  if (!startTime || elapsed < 60) return null;
+
   const h = Math.floor(elapsed / 3600);
   const m = Math.floor((elapsed % 3600) / 60);
-
-  if (elapsed < 60) return null;
-
   const label = h > 0 ? `${h}h ${m}m` : `${m}m`;
-  const tooltip = `${label} since you started browsing`;
+  const tooltip = `${label} since browser started`;
 
   return (
     <TooltipBtn
