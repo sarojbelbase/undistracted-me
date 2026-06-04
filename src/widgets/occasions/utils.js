@@ -2,6 +2,8 @@
  * Birthdays widget utilities
  */
 
+import { humanizeTime } from '../../utilities/humanizeTime';
+
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
 /**
@@ -63,11 +65,8 @@ export const computeUpcoming = (raw) => {
  * Human-readable "days away" label.
  */
 export const daysLabel = (n) => {
-  if (n === 0) return 'Today';
-  if (n === 1) return 'Tomorrow';
-  if (n < 7) return `in ${n}d`;
-  if (n < 31) return `in ${Math.round(n / 7)}w`;
-  return `in ${Math.round(n / 30)}mo`;
+  const target = new Date(Date.now() + n * 86400000);
+  return humanizeTime(target).calendar;
 };
 
 export const typeLabel = (type) => {

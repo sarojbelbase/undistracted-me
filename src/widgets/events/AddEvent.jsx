@@ -5,9 +5,10 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { Modal } from '../../components/ui/Modal';
+import { todayStr } from '../../utilities';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
-  getDateOffset, applyDuration, todayStr
+  getDateOffset, applyDuration,
 } from './utils';
 
 export const AddEvent = ({ onSave, onClose, initialDate }) => {

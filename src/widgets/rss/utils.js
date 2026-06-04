@@ -8,6 +8,8 @@
  *   web       → Always Vercel proxy
  */
 
+import { humanizeTime } from '../../utilities/humanizeTime';
+
 import { RSS_FEED_PROXY_URL } from '../../constants/urls.js';
 export { PRESET_FEEDS, PRESET_CATEGORIES, DEFAULT_ACTIVE_IDS, DEFAULT_FEED_ID } from './feeds.js';
 
@@ -72,12 +74,6 @@ export async function fetchFeed(feedId, feedUrl) {
 export function relativeTime(isoDate) {
   if (!isoDate) return '';
   try {
-    const diff = Date.now() - new Date(isoDate).getTime();
-    const mins = Math.floor(diff / 60_000);
-    if (mins < 2) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    return humanizeTime(new Date(isoDate)).compact;
   } catch { return ''; }
 }

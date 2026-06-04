@@ -2,6 +2,8 @@
  * Countdown widget utilities — dual-mode (countdown + since).
  */
 
+import { humanizeTime } from '../../utilities/humanizeTime';
+
 export const REPEAT_OPTIONS = [
   { label: 'Once', value: 'none' },
   { label: 'Weekly', value: 'weekly' },
@@ -59,9 +61,11 @@ export const formatSince = (targetDate, nowTs) => {
   const diffMs = Math.max(0, now - targetDate);
   const totalSeconds = Math.floor(diffMs / 1_000);
   const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const months = Math.floor(days / 30.44); // average month
   const years = Math.floor(days / 365.25); // average year (leap-aware)
-  return { days, months, years, totalSeconds };
+  return { days, hours, minutes, months, years, totalSeconds };
 };
 
 /**
@@ -72,115 +76,20 @@ export const formatTargetDate = (date) => {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-/**
- * Formats a countdown value for the widget face phrase.
- * e.g. "50 min", "2 hours", "3 days", "2 weeks", "5 months", "1 year"
- */
-function fmtMonths(days) {
-  const m = Math.floor(days / 30);
-  const r = days % 30 >= 15 ? m + 1 : m;
-  return `${r} ${r === 1 ? 'month' : 'months'}`;
+// ─── Humanized display (delegates to unified humanizeTime) ────────────────────
+
+export function formatCountdownPhrase(_d, _h, _m, totalSecs) {
+  const targetMs = Date.now() + (totalSecs ?? 0) * 1000;
+  return humanizeTime(new Date(targetMs)).full.replace(/^in /, '');
 }
 
-function fmtWeeksFromDays(totalDays) {
-  const w = Math.floor(totalDays / 7);
-  const r = totalDays % 7 >= 4 ? w + 1 : w;
-  if (r >= 4) return '1 month';
-  return `${r} ${r === 1 ? 'week' : 'weeks'}`;
-}
-
-function fmtDays(days, hours) {
-  const r = hours >= 12 ? days + 1 : days;
-  if (r >= 30) return '1 month';
-  if (r >= 7) return fmtWeeksFromDays(r);
-  return `${r} ${r === 1 ? 'day' : 'days'}`;
-}
-
-function fmtHours(hours, mins) {
-  const r = mins >= 30 ? hours + 1 : hours;
-  if (r >= 24) return '1 day';
-  return `${r} ${r === 1 ? 'hour' : 'hours'}`;
-}
-
-function fmtMins(mins, secs) {
-  const r = secs >= 30 ? mins + 1 : mins;
-  if (r >= 60) return '1 hour';
-  return `${r} min`;
-}
-
-export function formatCountdownPhrase(days, hours, mins, totalSecs) {
-  const secs = totalSecs % 60;
-  if (days >= 30) return fmtMonths(days);
-  if (days >= 7) return fmtWeeksFromDays(days);
-  if (days > 0) return fmtDays(days, hours);
-  if (hours > 0) return fmtHours(hours, mins);
-  if (mins > 0 || secs >= 30) return fmtMins(mins, secs);
-  return '<1 min';
-}
-
-/**
- * Formats a "since" value for the widget face phrase.
- * e.g. "23 min", "2 days", "3 weeks", "8 months", "2 years"
- */
 export function formatSincePhrase(days) {
-  if (days < 1) return '<1 day';
-  if (days < 7) {
-    return `${days} ${days === 1 ? 'day' : 'days'}`;
-  }
-  if (days < 30) {
-    const weeks = Math.floor(days / 7);
-    return `${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
-  }
-  if (days < 365) {
-    const months = Math.round(days / 30.44);
-    return `${months} ${months === 1 ? 'month' : 'months'}`;
-  }
-  const years = Math.round((days / 365.25) * 10) / 10;
-  const whole = years % 1 === 0;
-  const val = whole ? Math.round(years) : years.toFixed(1);
-  return `${val} ${years === 1 ? 'year' : 'years'}`;
+  const targetMs = Date.now() - days * 86400000;
+  return humanizeTime(new Date(targetMs)).full.replace(/ ago$/, '');
 }
 
-/**
- * Compact duration label for list items — tiered from minutes to years.
- * e.g. "23m" → "5h" → "3d" → "2w" → "6mo" → "3y"
- */
-
-function durYears(days) {
-  const y = Math.round((days / 365.25) * 10) / 10;
-  return `${y % 1 === 0 ? Math.round(y) : y.toFixed(1)}y`;
-}
-
-function durMonths(days) {
-  const m = Math.floor(days / 30);
-  const r = days % 30 >= 15 ? m + 1 : m;
-  return `${r >= 12 ? 1 : r}${r >= 12 ? 'y' : 'mo'}`;
-}
-
-function durWeeks(days) {
-  const w = Math.floor(days / 7);
-  const r = days % 7 >= 4 ? w + 1 : w;
-  return `${r >= 4 ? 1 : r}${r >= 4 ? 'mo' : 'w'}`;
-}
-
-function durDays(days, hours) {
-  const r = hours >= 12 ? days + 1 : days;
-  if (r >= 30) return '1mo';
-  if (r >= 7) return durWeeks(r);
-  return `${r}d`;
-}
-
-function durHours(hours, mins) {
-  const r = mins >= 30 ? hours + 1 : hours;
-  return r >= 24 ? '1d' : `${r}h`;
-}
-
-export function humanizeDuration(days, hours, mins) {
-  if (days >= 365) return durYears(days);
-  if (days >= 30) return durMonths(days);
-  if (days >= 7) return durWeeks(days);
-  if (days > 0) return durDays(days, hours);
-  if (hours > 0) return durHours(hours, mins);
-  if (mins > 0) return `${mins}m`;
-  return '<1m';
+export function humanizeDuration(days, hours, mins, direction = 'future') {
+  const sign = direction === 'past' ? -1 : 1;
+  const targetMs = Date.now() + sign * (days * 86400000 + hours * 3600000 + mins * 60000);
+  return humanizeTime(new Date(targetMs)).full;
 }
