@@ -54,7 +54,7 @@ const HeadlineRow = ({ item, isLast = false }) => {
     <button
       type="button"
       onMouseDown={(e) => e.stopPropagation()}
-      onClick={() => { if (item.link) window.open(item.link, "_blank", "noopener"); }}
+      onClick={() => { if (item.link && /^https?:\/\//.test(item.link)) window.open(item.link, "_blank", "noopener"); }}
       className={`rss-headline-row${isLast ? " rss-headline-row--last" : ""}`}
     >
       <div className="rss-headline-row__body">
@@ -212,7 +212,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             areaHeight={area.h}
             marginBottom={total > 1 ? 4 : 0}
             bodyColor="#e4e4e4ff"
-            onClick={(e) => { e.stopPropagation(); if (item.link) window.open(item.link, "_blank", "noopener"); }}
+            onClick={(e) => { e.stopPropagation(); if (item.link && /^https?:\/\//.test(item.link)) window.open(item.link, "_blank", "noopener"); }}
           />
 
           {/* ── Dot nav + arrow buttons row — pinned to bottom via margin-top:auto ── */}

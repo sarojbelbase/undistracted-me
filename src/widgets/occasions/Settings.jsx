@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { XLg, BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
+import { BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import { AddOccasion } from './AddOccasion';
-import { ConfirmButton } from '../../components/ui/ConfirmButton';
-import { CANVAS_DIVIDER, OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
+import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
+import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 import {
   loadManualBirthdays,
   addManualBirthday,
@@ -154,47 +154,33 @@ const ManualSection = ({ onManualChange }) => {
 
         {/* Existing entries */}
         {manual.length > 0 && (
-          <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--card-border)' }}>
-            {manual.map((e, i) => {
+          <ListPanel
+            items={manual}
+            className="mb-4"
+            renderItem={(e) => {
               const monthShort = MONTHS.find(m => m.value === e.month)?.short ?? '';
               return (
-                <div
+                <ListPanelRow
                   key={e.id}
-                  className="flex items-center gap-3 px-4 py-3"
-                  style={{
-                    background: 'var(--panel-bg)',
-                    borderBottom: i < manual.length - 1 ? `1px solid ${CANVAS_DIVIDER}` : 'none',
-                  }}
-                >
-                  <SmAvatar name={e.name} photoUrl={e.photoUrl} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
-                      {e.name}
-                    </div>
-                    <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--w-ink-4)' }}>
-                      <TypeIcon type={e.type} size={11} />
-                      {typeLabel(e.type)} · {monthShort} {e.day}
-                    </div>
-                  </div>
-                  <ConfirmButton
-                    onConfirm={() => handleRemove(e.id)}
-                    label={`Remove ${e.name}`}
-                    className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-                    style={{ color: 'var(--w-ink-4)', background: 'none' }}
-                  >
-                    <XLg size={11} />
-                  </ConfirmButton>
-                </div>
+                  avatar={<SmAvatar name={e.name} photoUrl={e.photoUrl} />}
+                  title={e.name}
+                  meta={[
+                    { text: typeLabel(e.type) },
+                    { text: `${monthShort} ${e.day}` },
+                  ]}
+                  onDelete={() => handleRemove(e.id)}
+                  deleteLabel={`Remove ${e.name}`}
+                />
               );
-            })}
-          </div>
+            }}
+          />
         )}
 
         {/* Empty hint */}
         {manual.length === 0 && (
           <p className="text-xs leading-relaxed" style={{ color: 'var(--w-ink-4)' }}>
             {googleConnected
-              ? <>Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to include people who aren't in your Google Contacts.</>
+              ? <>Tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add Countdown</strong> to include people who aren't in your Google Contacts.</>
               : <>Connect <strong style={{ color: 'var(--w-ink-2)' }}>Google Contacts</strong> above to sync birthdays automatically or tap <strong style={{ color: 'var(--w-ink-2)' }}>+ Add</strong> to add occasions manually.</>
             }
           </p>
@@ -209,7 +195,7 @@ const ManualSection = ({ onManualChange }) => {
 export const OccasionsSettings = ({ onManualChange }) => (
   <div className="flex flex-col gap-6 py-1">
     <ContactsSection />
-    <div style={{ height: 1, background: CANVAS_DIVIDER }} />
+    <div style={{ height: 1, background: 'var(--card-border)' }} />
     <ManualSection onManualChange={onManualChange} />
   </div>
 );

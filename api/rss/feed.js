@@ -107,7 +107,8 @@ export default async function handler(req, res) {
       .slice(0, 50)
       .map(item => ({
         title: decodeEntities(item.title || ''),
-        link: item.link || item.guid || '',
+        // Only use guid as a link if it's an actual URL (podcast GUIDs are often not URLs)
+        link: item.link || ((item.guid && /^https?:\/\//.test(item.guid)) ? item.guid : ''),
         pubDate: item.pubDate || '',
         isoDate: item.isoDate || '',
         source: decodeEntities(item.creator || item.author || source),
