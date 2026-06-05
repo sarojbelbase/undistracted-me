@@ -3,6 +3,9 @@
  */
 
 import { humanizeTime } from '../../utilities/humanizeTime';
+import { STORAGE_KEYS } from '../../constants/storageKeys';
+import { todayStr } from '../../utilities';
+import { notifyUser } from '../../utilities/chrome';
 
 export const REPEAT_OPTIONS = [
   { label: 'Once', value: 'none' },
@@ -92,4 +95,140 @@ export function humanizeDuration(days, hours, mins, direction = 'future') {
   const sign = direction === 'past' ? -1 : 1;
   const targetMs = Date.now() + sign * (days * 86400000 + hours * 3600000 + mins * 60000);
   return humanizeTime(new Date(targetMs)).full;
+}
+
+// ─── localStorage helpers ────────────────────────────────────────────────────
+
+export const loadCustom = () => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_EVENTS) || "[]",
+    );
+  } catch {
+    return [];
+  }
+};
+export const saveCustom = (list) =>
+  localStorage.setItem(STORAGE_KEYS.COUNTDOWN_EVENTS, JSON.stringify(list));
+export const loadPinned = (id) => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.countdownPinned(id)) || "null",
+    );
+  } catch {
+    return null;
+  }
+};
+export const savePinned = (id, p) =>
+  localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
+
+// ─── Notification helpers ────────────────────────────────────────────────────
+
+const _today = todayStr;
+export const wasNotified = (id) => {
+  try {
+    const map = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
+    );
+    return map[id] === _today();
+  } catch {
+    return false;
+  }
+};
+export const markNotified = (id) => {
+  try {
+    const map = JSON.parse(
+      localStorage.getItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED) || "{}",
+    );
+    Object.keys(map).forEach((k) => {
+      if (map[k] !== _today()) delete map[k];
+    });
+    map[id] = _today();
+    localStorage.setItem(STORAGE_KEYS.COUNTDOWN_NOTIFIED, JSON.stringify(map));
+  } catch { }
+};
+export const sendNotification = (title, body) =>
+  notifyUser(title, body, "COUNTDOWN_DONE");
+
+// ─── Target resolution ───────────────────────────────────────────────────────
+
+export function resolveEventTarget(pinned, allEvents) {
+  const ev = allEvents.find((e) => e.id === pinned.eventId);
+  if (!ev) return { target: null, shouldClearPin: false };
+  const nextDate = new Date(`${ev.startDate}T${ev.startTime || "00:00"}`);
+  if (nextDate < new Date(Date.now() - 2 * 60 * 1000)) {
+    return { target: null, shouldClearPin: true };
+  }
+  return {
+    target: {
+      title: ev.title, nextDate, startTime: ev.startTime, endTime: ev.endTime,
+      isEvent: true, isGcal: ev._source === "gcal", id: ev.id, mode: "countdown",
+    },
+    shouldClearPin: false,
+  };
+}
+
+export function resolveCustomTarget(pinned, custom) {
+  const cd = custom.find((c) => c.id === pinned.id);
+  if (!cd) return { target: null, shouldClearPin: false };
+  const isSince = cd.mode === "since";
+  const nextDate = isSince
+    ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+    : getNextOccurrence(cd);
+  return {
+    target: {
+      title: cd.title, nextDate, startTime: cd.targetTime,
+      isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat,
+      mode: cd.mode || "countdown",
+    },
+    shouldClearPin: false,
+  };
+}
+
+export function resolveAutoTarget(upcomingEvents, today, custom) {
+  const now = new Date();
+  // Prefer next upcoming calendar event
+  const nextEv = upcomingEvents.find(
+    (e) => new Date(`${e.startDate || today}T${e.startTime || "00:00"}`) > now,
+  );
+  if (nextEv) {
+    return {
+      target: {
+        title: nextEv.title,
+        nextDate: new Date(`${nextEv.startDate}T${nextEv.startTime || "00:00"}`),
+        startTime: nextEv.startTime, endTime: nextEv.endTime,
+        isEvent: true, isGcal: nextEv._source === "gcal", id: nextEv.id,
+        mode: "countdown",
+      },
+      shouldClearPin: false,
+    };
+  }
+  // Fallback: nearest custom countdown (or "since" countdown)
+  const sorted = custom
+    .map((cd) => ({
+      ...cd,
+      _next: cd.mode === "since"
+        ? new Date(`${cd.targetDate}T${cd.targetTime || "00:00"}`)
+        : getNextOccurrence(cd),
+    }))
+    .filter((cd) => cd._next > now || cd.mode === "since")
+    .sort((a, b) => a._next - b._next);
+  if (sorted[0]) {
+    const cd = sorted[0];
+    return {
+      target: {
+        title: cd.title, nextDate: cd._next, startTime: cd.targetTime,
+        isEvent: false, isGcal: false, id: cd.id, repeat: cd.repeat,
+        mode: cd.mode || "countdown",
+      },
+      shouldClearPin: false,
+    };
+  }
+  return { target: null, shouldClearPin: false };
+}
+
+export function resolveTarget(pinned, allEvents, upcomingEvents, today, custom) {
+  if (pinned?.type === "event") return resolveEventTarget(pinned, allEvents);
+  if (pinned?.type === "custom") return resolveCustomTarget(pinned, custom);
+  return resolveAutoTarget(upcomingEvents, today, custom);
 }

@@ -12,4 +12,5 @@ export {
   extractColorFromUrl,
 } from '../../utilities/favicon';
 
+export const normalizeUrl = (url) => (url.startsWith("http") ? url : `https://${url}`);
 
