@@ -4,17 +4,10 @@ import { useWidgetSettings } from "../useWidgetSettings";
 import { QUOTES } from "../../data/quotes";
 import { FACTS } from "../../data/facts";
 import { useDailyJoke } from "./useDailyJoke";
-import { SegmentedControl } from "../../components/ui/SegmentedControl";
-import { Toggle } from "../../components/ui/Toggle";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
+import { DailysSettings, MODE_OPTIONS } from "./Settings";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
-
-const MODE_OPTIONS = [
-  { label: "Quote", value: "quote" },
-  { label: "Joke", value: "joke" },
-  { label: "Fact", value: "fact" },
-];
 
 const CarouselNav = ({ mode, onSelect }) => {
   const index = Math.max(
@@ -214,30 +207,11 @@ export const Widget = ({ id, onRemove }) => {
   }, [onNext, autoSlide]);
 
   const settingsContent = (
-    <div className="flex flex-col gap-4">
-      <SegmentedControl
-        label="Mode"
-        options={MODE_OPTIONS}
-        value={mode}
-        onChange={(v) => updateSetting("mode", v)}
-      />
-      <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', marginTop: -4, marginBottom: -4 }} />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-        <div>
-          <span className="w-label">Auto-slide</span>
-          <p style={{
-            fontSize: '10.5px', color: 'var(--w-ink-5)',
-            marginTop: -4, lineHeight: 1.4,
-          }}>
-            Cycles through quote, joke, and fact every 30 seconds
-          </p>
-        </div>
-        <Toggle
-          checked={autoSlide}
-          onChange={(v) => updateSetting("autoSlide", v)}
-        />
-      </div>
-    </div>
+    <DailysSettings
+      mode={mode}
+      autoSlide={autoSlide}
+      onChange={(key, val) => updateSetting(key, val)}
+    />
   );
 
   return (

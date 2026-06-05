@@ -5,6 +5,7 @@ import config from "./config";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { Settings } from "./Settings";
 import { GeoAlt, SunriseFill, SunsetFill } from "react-bootstrap-icons";
+import { TooltipBtn } from "../../components/ui/TooltipBtn";
 
 import { getSunTimes } from "../../utilities/sunTime";
 
@@ -31,6 +32,16 @@ function getNextSunEvent(lat, lon) {
   if (!tmr) return null;
   return { time: tmr.sunrise, label: "tmr", isSunrise: true };
 }
+
+/** Formats a human-readable duration until a solar event, e.g. "in 47m", "in 1h 30m". */
+function fmtSunDuration(eventTime) {
+  const diffMin = Math.max(0, Math.round((eventTime - Date.now()) / 60000));
+  const h = Math.floor(diffMin / 60);
+  const m = diffMin % 60;
+  if (h > 0) return `in ${h}h ${m}m`;
+  return `in ${m}m`;
+}
+
 import {
   getWeatherIcon,
   getAQILevel,
@@ -297,10 +308,9 @@ const PrecipBars = ({ popSlots, eventHour }) => (
 // ── Forecast duration label ────────────────────────────────────────────────────
 function getForecastLabel(forecast) {
   const h = forecast.hours;
-  const hourUnit = h === 1 ? "hour" : "hours";
   if (forecast.type === "clearing" || forecast.type === "incoming")
-    return `in ${h} ${hourUnit}`;
-  return `for next ${h} ${hourUnit}`;
+    return `in ${h}hrs`;
+  return `for next ${h}hrs`;
 }
 
 // ── Widget state views (error / empty) ───────────────────────────────────────
@@ -478,7 +488,7 @@ const MinimalView = ({
         )}
       </div>
 
-      {/* Right: next solar event — time on top, label below */}
+      {/* Right: next solar event — time on top, tooltip reveals "sunset in Xm" */}
       {showSunTimes && sunEvent && (
         <div
           style={{
@@ -489,9 +499,12 @@ const MinimalView = ({
             gap: "0.18em",
           }}
         >
-          <div
-            aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
-            style={{ display: "flex", alignItems: "center", gap: "0.22em" }}
+          <TooltipBtn
+            tooltip={`${sunEvent.label} ${fmtSunDuration(sunEvent.time)}`}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.22em",
+              background: "none", border: "none", padding: 0, cursor: "default",
+            }}
           >
             {sunEvent.isSunrise ? (
               <SunriseFill
@@ -514,18 +527,7 @@ const MinimalView = ({
             >
               {fmtSunTime(sunEvent.time)}
             </span>
-          </div>
-          <span
-            aria-hidden
-            style={{
-              fontSize: "0.58rem",
-              fontWeight: 500,
-              color: "var(--w-ink-4)",
-              lineHeight: 1,
-            }}
-          >
-            {sunEvent.label}
-          </span>
+          </TooltipBtn>
         </div>
       )}
     </div>
@@ -767,9 +769,12 @@ const ExpressiveView = ({
               flexShrink: 0,
             }}
           >
-            <div
-              aria-label={`${sunEvent.label} at ${fmtSunTime(sunEvent.time)}`}
-              style={{ display: "flex", alignItems: "center", gap: "0.2em" }}
+            <TooltipBtn
+              tooltip={`${sunEvent.label} ${fmtSunDuration(sunEvent.time)}`}
+              style={{
+                display: "flex", alignItems: "center", gap: "0.2em",
+                background: "none", border: "none", padding: 0, cursor: "default",
+              }}
             >
               {sunEvent.isSunrise ? (
                 <SunriseFill
@@ -792,18 +797,7 @@ const ExpressiveView = ({
               >
                 {fmtSunTime(sunEvent.time)}
               </span>
-            </div>
-            <span
-              aria-hidden
-              style={{
-                fontSize: "0.52rem",
-                fontWeight: 500,
-                color: "var(--w-ink-5)",
-                lineHeight: 1,
-              }}
-            >
-              {sunEvent.label}
-            </span>
+            </TooltipBtn>
           </div>
         )}
         <div

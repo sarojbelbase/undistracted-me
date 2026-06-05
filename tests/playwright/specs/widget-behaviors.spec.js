@@ -22,17 +22,28 @@ async function mountWidget(page, type, extraStorage = {}) {
     localStorage.setItem('showWidgets', 'true');
     localStorage.setItem('app_mode', 'dark');
     localStorage.setItem('language', 'en');
-    // Single instance so .react-grid-item is always the target widget
-    localStorage.setItem('widget_instances', JSON.stringify([{ id: type, type }]));
+    // Zustand persist format: { state: { instances, widgetSettings }, version }
+    localStorage.setItem('widget_instances', JSON.stringify({
+      state: {
+        instances: [{ id: type, type }],
+        widgetSettings: {},
+      },
+      version: 0,
+    }));
+    // Dismiss Quick Tour overlay so it doesn't block interactions
+    localStorage.setItem('undistracted_settings', JSON.stringify({
+      state: { quickTourSeenVersion: '3.0.0' },
+      version: 0,
+    }));
     Object.entries(extra).forEach(([k, v]) =>
       localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)),
     );
   }, { type, extra: extraStorage });
 
   await page.goto('/', { waitUntil: 'networkidle' });
-  await page.waitForSelector('.react-grid-item', { timeout: 8000 });
+  await page.waitForSelector('.react-grid-item', { timeout: 15000 });
   // Small settle time for interval-driven widgets (clock, dayProgress, etc.)
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(800);
 }
 
 /** First (and only) widget card on the page. */
