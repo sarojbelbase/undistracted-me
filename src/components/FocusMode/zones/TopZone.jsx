@@ -112,25 +112,16 @@ const ITEM_RENDERERS = {
 
 const BROWSER_START_KEY = 'um_browser_start_time';
 
-/** Reads browser start time — chrome.storage in extension, localStorage in dev. */
-const readStartTime = () => {
-  if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(BROWSER_START_KEY, (result) => {
-        resolve(result?.[BROWSER_START_KEY] || null);
-      });
-    });
-  }
-  // Dev mode fallback — no chrome.* APIs available
-  return Promise.resolve(Number(localStorage.getItem(BROWSER_START_KEY)) || null);
-};
+const isExtension = typeof chrome !== 'undefined' && chrome?.storage?.local;
 
-const writeStartTime = (ts) => {
-  if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-    chrome.storage.local.set({ [BROWSER_START_KEY]: ts });
-  } else {
-    localStorage.setItem(BROWSER_START_KEY, String(ts));
+/** Reads browser start time — chrome.storage in extension, Date.now() in dev. */
+const getStartTime = async () => {
+  if (isExtension) {
+    const result = await chrome.storage.local.get(BROWSER_START_KEY);
+    return result?.[BROWSER_START_KEY] || Date.now();
   }
+  // Dev mode — always start from page load (no chrome.runtime.onStartup to reset)
+  return Date.now();
 };
 
 const ScreenTime = () => {
@@ -138,15 +129,9 @@ const ScreenTime = () => {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    readStartTime().then((ts) => {
-      if (ts) {
-        setStartTime(ts);
-        setElapsed(Math.floor((Date.now() - ts) / 1000));
-      } else {
-        const now = Date.now();
-        writeStartTime(now);
-        setStartTime(now);
-      }
+    getStartTime().then((ts) => {
+      setStartTime(ts);
+      setElapsed(Math.floor((Date.now() - ts) / 1000));
     });
   }, []);
 
