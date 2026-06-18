@@ -92,7 +92,7 @@ const fromLegacy = () => {
     canvasBg: { type: "solid", orbId: "accent", url: null },
     cardStyle: "glass",
     modePrefs: {
-      light: { cardStyle: "flat" },
+      light: { cardStyle: "paper" },
       dark: { cardStyle: "glass" },
     },
     notificationsEnabled: true,
@@ -216,7 +216,7 @@ export const useSettingsStore = create(
         set({ canvasBg });
       },
 
-      /** Widget surface style — 'flat' | 'glass' */
+      /** Widget surface style — 'paper' | 'glass' */
       setCardStyle: (cardStyle) => {
         const key = resolvedModeKey(get().mode);
         const modePrefs = {

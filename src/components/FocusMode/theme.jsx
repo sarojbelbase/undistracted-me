@@ -3,7 +3,7 @@
 // Focus Mode ALWAYS renders over a dark photo / orb backdrop.
 // Every color value in every FocusMode/* component MUST originate here.
 //
-// Card surface (glass vs flat) follows the user's canvas cardStyle preference,
+// Card surface (glass vs paper) follows the user's canvas cardStyle preference,
 // but BOTH variants are always dark — ink/text is always white-on-dark.
 //
 // Rules:
@@ -72,7 +72,7 @@ export function getFMCardVars(cardStyle) {
       "--fm-card-radius": COMIC_CARD_RADIUS,
     };
   }
-  if (cardStyle === "flat") {
+  if (cardStyle === "paper") {
     return {
       "--fm-card-bg": FLAT_CARD_BG,
       "--fm-card-border": FLAT_CARD_BORDER,
@@ -255,7 +255,7 @@ export const COMIC_DIALOG_STYLE = {
  * so var(--w-accent) resolves correctly even when canvas mode is light.
  *
  * @param {string} accentName  — accent key (e.g. "blueberry")
- * @param {string} cardStyle   — "glass" | "flat" | "comic" (defaults to "glass")
+ * @param {string} cardStyle   — "glass" | "paper" | "comic" (defaults to "glass")
  */
 export function getDialogStyle(accentName, cardStyle = "glass") {
   const base = cardStyle === "comic" ? COMIC_DIALOG_STYLE : DIALOG_STYLE;

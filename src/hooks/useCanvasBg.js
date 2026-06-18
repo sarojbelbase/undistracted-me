@@ -66,7 +66,7 @@ function getSolidGradientBg(isDark, accent, cardStyle = "glass") {
       ? isDark
         ? "#110e09"
         : "#ede0c4"
-      : cardStyle === "flat"
+      : cardStyle === "paper"
         ? isDark
           ? "#111111"
           : "#f0f0f0"
@@ -148,7 +148,7 @@ export function useCanvasBg({
 
   // Only canvasBg?.color is read inside computePageBg — narrowing the
   // dependency avoids recomputing when other canvasBg fields change.
-  // cardStyle IS a dep: switching comic↔glass↔flat changes the page background.
+  // cardStyle IS a dep: switching comic↔glass↔paper changes the page background.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const pageBg = useMemo(
     () => computePageBg(bgType, isDark, accent, canvasBg, cardStyle),

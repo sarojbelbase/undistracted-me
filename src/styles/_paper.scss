@@ -1,0 +1,50 @@
+// ─── Paper Card Style — reMarkable-inspired ─────────────────────────────────
+//
+// Activated via  data-card-style="paper"  on :root.
+//
+// The paper style uses warm off-white tones with a 3-layer paper grain
+// (fine fiber + coarse variation + directional lines). This file handles
+// paper-specific typography, interaction states, and surface treatments.
+
+
+:root[data-card-style="paper"] {
+
+  // ── Typography — warmer, slightly heavier for cream backgrounds ──────────
+
+  // Paper backgrounds reduce effective contrast vs pure white, so body
+  // text gets a weight floor to maintain readability parity.
+  .w-body {
+    font-weight: 500;
+  }
+
+  .w-muted {
+    font-weight: 500;
+    color: var(--w-ink-5);
+  }
+
+  // ── Headings — slightly warmer ink tone on paper ─────────────────────────
+
+  .w-heading {
+    color: var(--w-ink-2);
+  }
+
+  // ── Settings labels — paper-friendly tone ────────────────────────────────
+
+  .w-label {
+    color: var(--w-ink-3);
+  }
+
+  // ── Widget cards — subtle paper edge treatment ───────────────────────────
+
+  // Cards on paper feel like stacked sheets — slightly lifted
+  .react-grid-item {
+    transition: box-shadow 0.2s ease;
+  }
+
+  // ── Buttons — subtle warm hover on paper ─────────────────────────────────
+
+  button:not([disabled]):hover {
+    filter: brightness(0.97);
+  }
+}
+
