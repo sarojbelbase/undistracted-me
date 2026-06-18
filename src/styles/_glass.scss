@@ -1,18 +1,17 @@
-// ─── Glass & Flat Card Styles — Font Weight Floor ────────────────────────────
+// ─── Glass Card Style — Font Weight Floor ──────────────────────────────────
 //
-// Activated via  data-card-style="glass" | "flat"  on :root.
+// Activated via  data-card-style="glass"  on :root.
 //
-// Problem: 300/400-weight text on translucent glass or flat surfaces can
+// Problem: 300/400-weight text on translucent glass surfaces can
 // become nearly invisible — especially in dark mode where the background is
-// less opaque. Comic mode already bumps every tier; glass/flat need the same
+// less opaque. Comic mode already bumps every tier; glass needs the same
 // treatment but with a lighter touch (readability, not personality).
 //
 // Strategy: same as comic — override buttons + typography tiers so NO text
 // ever renders below weight 500. This guarantees text always has enough
-// visual density to read clearly through frosted glass or on flat dark cards.
+// visual density to read clearly through frosted glass.
 
-:root[data-card-style="glass"],
-:root[data-card-style="flat"] {
+:root[data-card-style="glass"] {
 
   // ── 0. Buttons — all interactive text gets a weight floor ──────────────────
 

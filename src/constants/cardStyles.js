@@ -17,43 +17,66 @@
  */
 
 export const CARD_STYLES = [
-  { id: "flat", label: "Flat", hint: "Solid, clean surface" },
+  { id: "paper", label: "Paper", hint: "Warm paper grain" },
   { id: "glass", label: "Glass", hint: "Frosted glass with depth" },
   { id: "comic", label: "Comic", hint: "Pop-art panel style" },
 ];
 
 export const CARD_STYLE_TOKENS = {
-  flat: {
+  // ── Paper ──────────────────────────────────────────────────────────────────
+  // Inspired by reMarkable's paper-like texture: warm off-white tones,
+  // multi-layer grain (fine fiber + coarse variation + directional lines),
+  // and soft shadows. Distraction-free, tactile, calm.
+  paper: {
     light: {
-      "--card-bg": "#ffffff",
-      "--card-border": "rgba(0,0,0,0.07)",
+      "--card-bg": "#f7f2e8",
+      "--card-border": "rgba(0,0,0,0.05)",
       "--card-border-width": "1px",
-      "--card-radius": "1rem",
+      "--card-radius": "12px 11px 13px 12px",
       "--card-blur": "none",
-      "--card-shadow": "0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)",
-      "--card-texture": "none",
-      "--card-texture-size": "auto",
-      "--modal-bg": "#ffffff",
-      "--modal-shadow":
-        "0 8px 40px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)",
-      "--modal-overlay-bg": "rgba(0,0,0,0.38)",
+      // Paper on desk — slightly lifted, soft ambient shadow
+      "--card-shadow": "0 1px 2px rgba(0,0,0,0.03), 0 3px 8px rgba(0,0,0,0.05), 0 6px 20px rgba(0,0,0,0.04)",
+      // 3-layer paper grain stack:
+      //   Layer 1 — fine fiber: high-freq noise at 5.5%, mimics paper fiber weave
+      //   Layer 2 — coarse variation: low-freq noise at 4%, natural paper unevenness
+      //   Layer 3 — horizontal lines: 1px every 4px at 0.8%, paper manufacturing grain
+      "--card-texture": [
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.055'/%3E%3C/svg%3E\")",
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08 0.12' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='0.04'/%3E%3C/svg%3E\")",
+        "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.008) 3px, rgba(0,0,0,0.008) 4px)",
+      ].join(", "),
+      "--card-texture-size": "200px, 400px, auto",
+      "--panel-bg": "#f2ede0",
+      "--modal-bg": "#f7f2e8",
+      "--modal-shadow": "0 2px 8px rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.08)",
+      "--modal-overlay-bg": "rgba(0,0,0,0.28)",
       "--modal-overlay-blur": "none",
-      "--panel-bg": "#f9fafb",
+      "--w-page-bg": "#ede2cc",
+      "--w-ink-5": "#5a5a5a",
+      "--w-ink-6": "#767676",
     },
     dark: {
-      "--card-bg": "#1c1c1c",
+      "--card-bg": "#1c1914",
       "--card-border": "rgba(255,255,255,0.05)",
       "--card-border-width": "1px",
-      "--card-radius": "1rem",
+      "--card-radius": "12px 11px 13px 12px",
       "--card-blur": "none",
-      "--card-shadow": "0 2px 10px rgba(0,0,0,0.45)",
-      "--card-texture": "none",
-      "--card-texture-size": "auto",
-      "--modal-bg": "#1c1c1c",
-      "--modal-shadow": "0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.3)",
-      "--modal-overlay-bg": "rgba(0,0,0,0.55)",
+      "--card-shadow": "0 2px 8px rgba(0,0,0,0.45)",
+      // Dark paper: same 3-layer stack with light fibers (inverted)
+      "--card-texture": [
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.06'/%3E%3C/svg%3E\")",
+        "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08 0.12' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='0.05'/%3E%3C/svg%3E\")",
+        "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
+      ].join(", "),
+      "--card-texture-size": "200px, 400px, auto",
+      "--panel-bg": "#242118",
+      "--modal-bg": "#1c1914",
+      "--modal-shadow": "0 4px 16px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.55)",
+      "--modal-overlay-bg": "rgba(0,0,0,0.5)",
       "--modal-overlay-blur": "none",
-      "--panel-bg": "#252525",
+      "--w-page-bg": "#110f0b",
+      "--w-ink-5": "#a6a6a6",
+      "--w-ink-6": "#8c8c8c",
     },
   },
   glass: {

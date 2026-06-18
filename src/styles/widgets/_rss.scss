@@ -106,43 +106,39 @@
   -webkit-box-orient: vertical;
 }
 
-// ── Marquee / Spotlight card background layers ─────────────────────────────────
-
-.rss-marquee-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-}
-
-.rss-marquee-bg__ink {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(150deg, #0f0f11 0%, #1a1a1f 55%, #0b0b0d 100%);
-}
-
-.rss-marquee-bg__glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 100% 65% at 15% 0%, rgba(255, 255, 255, 0.09) 0%, transparent 60%);
-}
-
-.rss-marquee-bg__accent {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 70% 45% at 85% 100%, color-mix(in srgb, var(--w-accent) 25%, transparent) 0%, transparent 65%);
-}
-
-// ── Marquee card layout ───────────────────────────────────────────────────────
+// ── Marquee card layout — solid accent background ─────────────────────────────
 
 .rss-marquee {
   touch-action: pan-y;
   cursor: default;
+  // Pure accent as the base — no mixing, no darkening.
+  background: var(--w-accent) !important;
+  border-radius: inherit;
+  // Uniform dark scrim across the entire card. At 40% black this ensures
+  // white text has ≥4.5:1 contrast on all accent colors — from light grey
+  // to dark blue — while keeping the accent identity clearly visible.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+}
+
+// Hide the separate bg layer divs — background is now on .rss-marquee directly
+.rss-marquee-bg,
+.rss-marquee-bg__ink,
+.rss-marquee-bg__glow,
+.rss-marquee-bg__accent {
+  display: none;
 }
 
 .rss-marquee__content {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   padding: 10px 12px 14px;
@@ -159,11 +155,11 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 3px 7px;
   border-radius: 999px;
   flex-shrink: 0;
@@ -181,23 +177,23 @@
   height: 22px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.12);
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
   transition: color 0.2s, background 0.2s;
   margin-right: 4px;
 
   &:hover {
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.2);
   }
 }
 
 .rss-marquee__time {
   font-size: 0.6rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.7);
   flex-shrink: 0;
 }
 

@@ -57,7 +57,7 @@ const hexToRgb = (hex) => {
  *
  * @param {string} accent    - accent color name from ACCENT_COLORS
  * @param {string} mode      - 'light' | 'dark' | 'auto'
- * @param {string} cardStyle - 'flat' | 'glass' | 'soft' | 'outlined'
+ * @param {string} cardStyle - 'paper' | 'glass' | 'comic'
  */
 export const applyTheme = (accent, mode, cardStyle = "glass") => {
   const resolved = mode === "auto" ? computeAutoMode() : mode;

@@ -44,7 +44,8 @@
 @use "quick-tour"; // .qt-* Quick Tour onboarding overlay
 @use "dark-overrides"; // [data-mode="dark"] Tailwind utility overrides
 @use "comic"; // [data-card-style="comic"] paper & ink visual system
-@use "glass"; // [data-card-style="glass|flat"] font-weight floor — no thin text
+@use "paper"; // [data-card-style="paper"] reMarkable-inspired paper grain
+@use "glass"; // [data-card-style="glass"] font-weight floor — no thin text
 @use "chips"; // .chip .chip__label .chip__value — shared inline pills
 @use "popup"; // .popup-* extension popup components
 @use "utilities"; // .animate-*, .no-scrollbar, keyboard focus ring
