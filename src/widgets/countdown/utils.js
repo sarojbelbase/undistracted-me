@@ -83,7 +83,7 @@ export const formatTargetDate = (date) => {
 
 export function formatCountdownPhrase(_d, _h, _m, totalSecs) {
   const targetMs = Date.now() + (totalSecs ?? 0) * 1000;
-  return humanizeTime(new Date(targetMs)).full.replace(/^in /, '');
+  return humanizeTime(new Date(targetMs)).full;
 }
 
 export function formatSincePhrase(days) {

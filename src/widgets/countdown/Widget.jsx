@@ -232,7 +232,7 @@ export const Widget = ({ id, onRemove }) => {
   const timePart = useMemo(() => {
     if (!activeTarget) return '';
     if (isSince) return `${formatSincePhrase(aDays)} ago`;
-    return `in ${formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs)}`;
+    return formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs);
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
   // Full text for measurement (space-joined)
