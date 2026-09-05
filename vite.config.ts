@@ -1,8 +1,8 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { crx } from "@crxjs/vite-plugin";
-import manifest from "./public/manifest.json";
-import { obscureEnvKeys } from "./plugins/obscureEnvKeys";
+import manifest from "./public/manifest.json" with { type: "json" };
+import { obscureEnvKeys } from "./plugins/obscureEnvKeys.ts";
 
 /**
  * Dev-only: intercepts GET /api/favicon?domain=...&sz=... and does a
