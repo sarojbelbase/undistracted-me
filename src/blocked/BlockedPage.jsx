@@ -108,6 +108,13 @@ const removeBlockedEntry = (blockedDomain) => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+/** Crypto-secure random integer in [0, max) — replaces Math.random() for picks. */
+const randomInt = (max) => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0] % max;
+};
+
 const BlockedPage = () => {
   const isDark = resolveMode(readSettings().mode) === 'dark';
   const blockedDomain = BLOCKED_DOMAIN;
@@ -115,13 +122,13 @@ const BlockedPage = () => {
 
   // ── Pick a random orb palette for visual variety (matching LookAway) ───
   const orbRgb = useMemo(
-    () => ORB_PALETTES[Math.floor(Math.random() * ORB_PALETTES.length)].rgb,
+    () => ORB_PALETTES[randomInt(ORB_PALETTES.length)].rgb,
     [],
   );
 
   // ── Pick a random message (stable for the session) ─────────────────────
   const msg = useMemo(
-    () => MESSAGES[Math.floor(Math.random() * MESSAGES.length)],
+    () => MESSAGES[randomInt(MESSAGES.length)],
     [],
   );
 

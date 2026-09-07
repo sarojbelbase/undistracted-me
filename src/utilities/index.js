@@ -173,7 +173,9 @@ function humanizeAge(ts) {
  * e.g. makeUid('cd') → "cd_1712345678901_3f2a"
  */
 function makeUid(prefix = '') {
-    const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const suffix = `${Date.now()}_${buf[0].toString(36)}`;
     return prefix ? `${prefix}_${suffix}` : suffix;
 }
 
