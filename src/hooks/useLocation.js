@@ -50,7 +50,12 @@ export const useLocation = () => {
 
     const startTimers = () => {
       stopTimers();
-      geoTimerRef.current = setInterval(refresh, IP_TTL_MS);
+      // Browser GPS coords are stable — refresh every 6 h, not every 30 min.
+      // Read the live source at (re)start so the interval tracks the resolved
+      // source (mount + each visibility resume).
+      const geoInterval =
+        useLocationStore.getState().source === "browser" ? BROWSER_TTL_MS : IP_TTL_MS;
+      geoTimerRef.current = setInterval(refresh, geoInterval);
       sunTimerRef.current = setInterval(refreshSunTimes, SUN_TICK_MS);
     };
 
