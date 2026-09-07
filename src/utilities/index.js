@@ -178,15 +178,34 @@ function makeUid(prefix = '') {
 }
 
 /**
+ * Leading subdomain labels that don't identify the underlying service. When
+ * they precede a real domain + TLD (e.g. `app.rigohr.com`), they are skipped so
+ * the shorthand shows the actual site name ("Rigohr", not "App"). Deliberately
+ * excludes meaningful labels like `mail` (mail.google.com → "Mail") and `docs`
+ * (docs.google.com → "Docs").
+ */
+const GENERIC_SUBDOMAINS = new Set([
+    'www', 'app', 'web', 'm', 'mobile', 'my', 'go', 'login', 'auth', 'api',
+    'dev', 'staging', 'beta', 'secure', 'portal',
+]);
+
+/**
  * Extract a human-readable shorthand from a URL.
  *   https://www.github.com/saroj  →  "Github"
+ *   https://app.rigohr.com/       →  "Rigohr"
  *   https://mail.google.com/      →  "Mail"
  *   not-a-url                     →  "N" (first-letter fallback)
  */
 export function shorthandFromUrl(url) {
     try {
-        const hostname = new URL(url).hostname.replace(/^www\./, '');
-        const part = hostname.split('.')[0];
+        const labels = new URL(url).hostname.toLowerCase().split('.');
+        // Only skip a leading label when a real domain + TLD remain (≥ 3
+        // labels) — for `app.com`, `app` IS the domain, so keep it.
+        let idx = 0;
+        while (labels.length - idx > 2 && GENERIC_SUBDOMAINS.has(labels[idx])) {
+            idx++;
+        }
+        const part = labels[idx] || labels[0];
         return part.charAt(0).toUpperCase() + part.slice(1);
     } catch {
         return (url || '?').charAt(0).toUpperCase();
