@@ -155,7 +155,7 @@ export const blockSite = async (urlOrDomain, durationMinutes = 30) => {
   if (!domain) return readBlockedSites();
 
   const current = readBlockedSites();
-  const existing = current.find(s => s.domain === domain);
+  const existing = current.some(s => s.domain === domain);
   const infinite = durationMinutes === -1;
   const totalDurationMs = infinite ? null : durationMinutes * 60 * 1000;
   const blockedUntil = infinite ? null : Date.now() + totalDurationMs;

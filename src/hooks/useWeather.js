@@ -67,46 +67,63 @@ export function useWeather({ lat, lon, unit = 'metric', cityName = '', full = fa
       } catch { return null; }
     };
 
+    // Applies a parsed payload and clears the loading flag. Kept outside `load`
+    // so the cache tiers share one setter path without nesting complexity.
+    const applyData = (weather, forecast, aqi) => {
+      setWeather(weather);
+      setForecast(forecast);
+      setAqi(aqi);
+      setLoading(false);
+    };
+
     const load = async () => {
-      // Tier 1: SW cache (instant, no network)
+      // Tracks whether a cache tier already produced displayable data this
+      // cycle — prevents the tier-3 fetch from re-arming the spinner after a
+      // cache hit already cleared it (loading flicker).
+      let hasData = false;
+
+      // Tier 1: SW cache (instant, no network). Still falls through to a
+      // background refresh below — SW data is metric, may not match the user's
+      // unit preference, or may be slightly stale.
       const sw = await trySWCache();
       if (sw && !cancelled) {
-        setWeather(parseWeather(sw.data, cityName));
-        if (full) setForecast(parseForecast(sw.data));
-        if (full && sw.aqiData) setAqi(parseAQI(sw.aqiData));
-        setLoading(false);
-        // Still schedule a background refresh — SW data is metric, may not match
-        // user's unit preference, or may be slightly stale. Don't block on it.
+        applyData(
+          parseWeather(sw.data, cityName),
+          parseForecast(sw.data),
+          sw.aqiData && parseAQI(sw.aqiData),
+        );
+        hasData = true;
       }
 
       // Tier 2: localStorage cache (per-city, per-unit)
       const cached = readWeatherCache(locKey, unit);
-      if (cached?.weather && !cancelled) {
-        setWeather(cached.weather);
-        if (full) setForecast(cached.forecast ?? null);
-        if (full) setAqi(cached.aqi ?? null);
-        setLoading(false);
-        if (cached.fresh) return; // still within TTL — skip network
+      const hasCachedWeather = cached?.weather && !cancelled;
+      if (hasCachedWeather) {
+        applyData(cached.weather, cached.forecast ?? null, cached.aqi ?? null);
+        hasData = true;
       }
+      if (hasCachedWeather && cached.fresh) return; // still within TTL — skip network
 
-      // Tier 3: live fetch
-      if (!cancelled && (!cached?.fresh)) setLoading(true);
+      // Tier 3: live fetch — only show the loading spinner if no cache tier
+      // produced data yet (avoids a flicker when background-refreshing).
+      if (!cancelled && !hasData) setLoading(true);
       try {
-        const fetches = [fetchOpenMeteo(lat, lon, unit)];
-        if (full) fetches.push(fetchAQI(lat, lon).catch(() => null));
+        const fetches = full
+          ? [fetchOpenMeteo(lat, lon, unit), fetchAQI(lat, lon).catch(() => null)]
+          : [fetchOpenMeteo(lat, lon, unit)];
         const results = await Promise.all(fetches);
-
         if (cancelled) return;
+
         const data = results[0];
-        const aqiData = full ? results[1] : null;
-
+        // When `full` is false, fetches has length 1 so results[1] is
+        // undefined → coalesces to null (no AQI requested).
+        const aqiData = results[1] ?? null;
         const current = parseWeather(data, cityName);
-        setWeather(current);
-        if (full) setForecast(parseForecast(data));
-        if (full && aqiData) setAqi(parseAQI(aqiData));
+        const forecast = parseForecast(data);
+        const aqi = aqiData && parseAQI(aqiData);
 
-        writeWeatherCache(current, full ? parseForecast(data) : null, full && aqiData ? parseAQI(aqiData) : null, locKey, unit);
-        setLoading(false);
+        applyData(current, forecast, aqi);
+        writeWeatherCache(current, forecast, aqi, locKey, unit);
       } catch {
         if (!cancelled) setLoading(false);
       }

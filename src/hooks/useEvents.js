@@ -30,7 +30,11 @@ const load = () => {
 };
 
 const save = (events) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  } catch { 
+    console.warn("Failed to save events to localStorage");
+   }
   sendToServiceWorker({ type: "EVENTS_UPDATED", events });
 };
 

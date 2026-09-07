@@ -335,10 +335,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     try {
       const existing = await chrome.declarativeNetRequest.getDynamicRules();
       const targetId = existing.find(
-        r => r.id >= 1000 && (
-          r.condition?.urlFilter === `||${domain}/` ||
-          r.condition?.regexFilter?.includes(domain.replaceAll('.', '.'))
-        )
+        r => r.id >= 1000 && r.condition?.urlFilter === `||${domain}/`,
       )?.id;
       if (targetId) {
         await chrome.declarativeNetRequest.updateDynamicRules({
@@ -776,6 +773,18 @@ async function handleBlockSite(msg, sendResponse) {
   }
 }
 
+/** Handles UNBLOCK_SITE message — removes the block and clears any pending unblock alarm. */
+async function handleUnblockSite(msg, sendResponse) {
+  try {
+    const { siteBlocker } = await import('./utilities/siteBlocker.js');
+    await siteBlocker.unblockSite(msg.domain);
+    await scheduleUnblockAlarms();
+    sendResponse?.({ success: true });
+  } catch (err) {
+    sendResponse?.({ success: false, error: err.message });
+  }
+}
+
 /**
  * Validates that each session's tab still exists and its content script is
  * reachable (not a zombie from a previous extension reload).  Cleans up
@@ -845,7 +854,8 @@ const MESSAGE_HANDLERS = {
     return true;
   },
   CHROME_MEDIA_ACTION: (msg) => handleChromeMediaAction(msg),
-  UNBLOCK_SITE: (msg, _sender, sendResponse) => { handleBlockSite(msg, sendResponse); return true; },
+  BLOCK_SITE: (msg, _sender, sendResponse) => { handleBlockSite(msg, sendResponse); return true; },
+  UNBLOCK_SITE: (msg, _sender, sendResponse) => { handleUnblockSite(msg, sendResponse); return true; },
   PREFETCH_SYNC: (msg) => { if (msg.lat && msg.lon) handlePrefetchSync(msg); },
   RSS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.feeds)) { chrome.storage.local.set({ rss_feed_config: msg.feeds }); runRssPrefetch(); } },
   STOCKS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.symbols)) { chrome.storage.local.set({ stocks_config: msg.symbols }); runStocksPrefetch(); } },

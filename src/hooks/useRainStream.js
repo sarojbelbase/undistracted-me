@@ -24,6 +24,9 @@ export function useRainStream(fadeDurationMs = 3000) {
   const [ready, setReady] = useState(false);   // true once src is set on the element
   const audioRef = useRef(null);
   const fadeRafRef = useRef(null);
+  // Tracks the URL already applied to the <audio> element so a fresh URL from
+  // the API revalidation can replace a stale cached URL instead of being ignored.
+  const appliedUrlRef = useRef(null);
 
   // 1. Fetch the secure CDN URL — serve stale from localStorage instantly,
   //    then revalidate from API in background.
@@ -31,11 +34,18 @@ export function useRainStream(fadeDurationMs = 3000) {
     let cancelled = false;
 
     const applyUrl = (url) => {
+      if (!url || appliedUrlRef.current === url) return;
       const audio = audioRef.current;
-      if (audio && !audio.src) {
-        audio.src = url;
-        setReady(true);
+      if (!audio) return;
+      // Don't interrupt active playback with a URL swap — keep the current
+      // stream but remember the fresh URL for the next play session.
+      if (audio.src && !audio.paused) {
+        appliedUrlRef.current = url;
+        return;
       }
+      appliedUrlRef.current = url;
+      audio.src = url;
+      setReady(true);
     };
 
     // Serve cached URL immediately (zero latency)
