@@ -63,8 +63,11 @@ let changeListener = null;
 let onChangeCallbacks = new Set(); // external listeners for UI updates
 
 /** Generate a short random device ID for metadata tracking. */
-const generateDeviceId = () =>
-  'dev_' + Math.random().toString(36).slice(2, 8) + '_' + Date.now().toString(36);
+const generateDeviceId = () => {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return 'dev_' + buf[0].toString(36) + '_' + Date.now().toString(36);
+};
 
 /** Estimate JSON byte size. */
 const byteSize = (val) => new Blob([JSON.stringify(val)]).size;
