@@ -328,6 +328,8 @@ async function syncNotes() {
     writeIndex(index);
     syncEngine.pushKey(STORAGE_KEYS.NOTES_INDEX);
   }
+
+  return { changed };
 }
 
 // ── Module init ──────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@
  * Accounts tab; this tab only surfaces sync status and actions.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, ArrowClockwise, BoxArrowUpRight, CheckCircleFill } from 'react-bootstrap-icons';
 import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
@@ -35,7 +35,12 @@ export const Data = ({ onNavigateToAccounts }) => {
   const [githubConnected, setGithubConnected] = useState(() => isConnected());
   const [syncing, setSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
+  const [alreadySynced, setAlreadySynced] = useState(false);
+  const [syncHint, setSyncHint] = useState(null);
   const [gistUrl, setGistUrl] = useState(null);
+  const feedbackTimerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(feedbackTimerRef.current), []);
 
   useEffect(() => {
     if (githubConnected) {
@@ -49,10 +54,26 @@ export const Data = ({ onNavigateToAccounts }) => {
     if (syncing) return;
     setSyncing(true);
     setJustSynced(false);
+    setAlreadySynced(false);
+    setSyncHint(null);
+    clearTimeout(feedbackTimerRef.current);
     try {
-      await syncEngine.forceSync();
-      setJustSynced(true);
-      setTimeout(() => setJustSynced(false), 2500);
+      const result = await syncEngine.forceSync();
+      if (result?.changed) {
+        setJustSynced(true);
+        feedbackTimerRef.current = setTimeout(() => setJustSynced(false), 2500);
+      } else {
+        setAlreadySynced(true);
+        setSyncHint(
+          result?.reason === 'no-changes'
+            ? 'No changes detected.'
+            : 'Synced less than 5 minutes ago.',
+        );
+        feedbackTimerRef.current = setTimeout(() => {
+          setAlreadySynced(false);
+          setSyncHint(null);
+        }, 2500);
+      }
     } catch {
       /* best-effort — engine logs failures */
     } finally {
@@ -125,14 +146,20 @@ export const Data = ({ onNavigateToAccounts }) => {
             >
               {syncing
                 ? <ArrowRepeat size={12} className="animate-spin shrink-0" />
-                : justSynced
+                : justSynced || alreadySynced
                   ? <CheckCircleFill size={12} className="shrink-0" />
                   : <ArrowClockwise size={12} className="shrink-0" />}
-              {syncing ? 'Syncing…' : justSynced ? 'Synced' : 'Sync now'}
+              {syncing
+                ? 'Syncing…'
+                : justSynced
+                  ? 'Synced'
+                  : alreadySynced
+                    ? 'Already synced'
+                    : 'Sync now'}
             </button>
 
             <p style={{ fontSize: 10, color: 'var(--w-ink-5)', lineHeight: 1.4, margin: 0, textAlign: 'center' }}>
-              Auto-syncs once a day — or tap Sync now.
+              {syncHint || 'Auto-syncs once a day — or tap Sync now.'}
             </p>
           </div>
         ) : (

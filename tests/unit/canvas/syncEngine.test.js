@@ -261,3 +261,61 @@ describe('widget_instances notes handling', () => {
     expect(local.state.widgetSettings.notes.notes[0].text).toBe('local note'); // notes preserved
   });
 });
+
+// ─── change detection + throttle ────────────────────────────────────────────
+
+describe('change detection and throttle', () => {
+  it('pushAll skips the gist write when nothing changed', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
+    await syncEngine.pushKey('widget_events'); // pushes once
+
+    const before = gistContent;
+    const result = await syncEngine.pushAll();
+
+    expect(result.changed).toBe(false);
+    expect(gistContent).toBe(before); // no write happened
+  });
+
+  it('pushAll reports a change when local differs from remote', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
+    await syncEngine.pushKey('widget_events'); // remote now has id:1
+
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }, { id: 2, title: 'e2' }]));
+    const result = await syncEngine.pushAll();
+
+    expect(result.changed).toBe(true);
+  });
+
+  it('forceSync is throttled right after a successful sync', async () => {
+    // enableSync (beforeEach) set lastSyncAt = now()
+    const result = await syncEngine.forceSync();
+    expect(result.changed).toBe(false);
+    expect(result.reason).toBe('recently-synced');
+  });
+
+  it('forceSync reports no-changes when local and remote match', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
+    await syncEngine.pushKey('widget_events'); // sync so remote == local
+
+    // Advance past the 5-minute throttle.
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.now() + 6 * 60 * 1000);
+    const result = await syncEngine.forceSync();
+    vi.useRealTimers();
+
+    expect(result.changed).toBe(false);
+    expect(result.reason).toBe('no-changes');
+  });
+
+  it('forceSync reports a change when local has new data', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.now() + 6 * 60 * 1000);
+
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 9, title: 'new' }]));
+    const result = await syncEngine.forceSync();
+    vi.useRealTimers();
+
+    expect(result.changed).toBe(true);
+    expect(result.reason).toBe('synced');
+  });
+});
