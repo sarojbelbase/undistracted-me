@@ -354,6 +354,16 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    // ── Preact experiment — alias React → preact/compat for a smaller runtime.
+    // Revert by removing this `resolve` block (and `bun remove preact`).
+    resolve: {
+      alias: {
+        react: "preact/compat",
+        "react-dom": "preact/compat",
+        "react-dom/client": "preact/compat/client",
+        "react/jsx-runtime": "preact/jsx-runtime",
+      },
+    },
     plugins: [
       // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
       obscureEnvKeys([
