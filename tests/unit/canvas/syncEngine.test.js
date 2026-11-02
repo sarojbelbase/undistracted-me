@@ -298,6 +298,42 @@ describe('widget_instances per-instance merge', () => {
     // The notes instance itself is still synced (its slot, not its content).
     expect(written.keys.widget_instances.v.instances.items.notes).toBeDefined();
   });
+
+  it('strips a stale notes entry already embedded in the remote gist', async () => {
+    localStorage.setItem('widget_instances', JSON.stringify({
+      state: {
+        instances: [{ id: 'notes', type: 'notes' }, { id: 'clock', type: 'clock' }],
+        widgetSettings: { notes: { notes: [{ id: 'n1', text: 'secret' }], idx: 0 }, clock: { format: '24h' } },
+      },
+      version: 0,
+    }));
+
+    // Simulate a gist that was polluted before the fix — `notes` lives in the
+    // remote widgetSettings element set. A clean device must scrub it on push.
+    setGist({
+      widget_instances: {
+        v: {
+          instances: elementSet({
+            notes: { v: { id: 'notes', type: 'notes' }, t: 10 },
+            clock: { v: { id: 'clock', type: 'clock' }, t: 10 },
+          }),
+          widgetSettings: elementSet({
+            notes: { v: { notes: [{ id: 'n1', text: 'secret' }], idx: 0 }, t: 10 },
+            clock: { v: { format: '24h' }, t: 10 },
+          }),
+          version: 0,
+        },
+        t: 10,
+      },
+    });
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    const ws = written.keys.widget_instances.v.widgetSettings;
+    expect(ws.items.notes).toBeUndefined();
+    expect(ws.items.clock).toBeDefined();
+  });
 });
 
 // ─── schema versioning ──────────────────────────────────────────────────────

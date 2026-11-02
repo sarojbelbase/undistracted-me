@@ -526,6 +526,14 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
   const mergedInstances = mergeElementSets(localInstSet, remoteWire?.instances || { items: {}, deleted: {} });
   const mergedWidgetSettings = mergeElementSets(localWsSet, remoteWire?.widgetSettings || { items: {}, deleted: {} });
 
+  // Notes content must NEVER ride inside the config gist — it syncs through
+  // per-note private gists (notesSync.js). The local side is stripped above, but
+  // a stale `notes` entry from a previously-polluted gist would survive the
+  // union. Drop it unconditionally: the wire/remoteWire diff in pushAll then
+  // detects the difference and writes a cleaned gist. No tombstone is needed —
+  // every device strips `notes` locally, so it can never be re-added via merge.
+  delete mergedWidgetSettings.items.notes;
+
   const newInstances = elementSetToArray(mergedInstances, localInstances);
   const newWs = elementSetToObject(mergedWidgetSettings);
   // Re-inject the local notes widget settings (preserved, never synced here).
