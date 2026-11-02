@@ -44,9 +44,10 @@ import {
   getGistId,
   setGistId,
   isConnected,
+  gistHeaders,
   GIST_FILENAME,
   GIST_DESCRIPTION,
-  GITHUB_USER_AGENT,
+  GIST_SCHEMA_VERSION,
 } from './githubAuth';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -177,19 +178,47 @@ const setLocalTs = (localKey, ts) => {
   }
 };
 
-// ── Gist transport ────────────────────────────────────────────────────────────
+// ── Local sync schema version (version the local side too) ───────────────────
 
-const gistHeaders = (token) => ({
-  Authorization: `Bearer ${token}`,
-  Accept: 'application/vnd.github+json',
-  'X-GitHub-Api-Version': '2022-11-28',
-  'User-Agent': GITHUB_USER_AGENT,
-});
+const SYNC_VERSION_KEY = 'sync_version';
+
+/** Read the local sync schema version (defaults to 0 = never synced). */
+const getLocalSyncVersion = () => {
+  try {
+    const v = parseInt(localStorage.getItem(SYNC_VERSION_KEY) || '0', 10);
+    return Number.isFinite(v) ? v : 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Migrate local sync state from an older schema version to the current one.
+ * Called once on enableSync when the stored version is behind GIST_SCHEMA_VERSION.
+ * Future schema bumps add cases here.
+ */
+const migrateSync = (fromVersion) => {
+  if (fromVersion < 2) {
+    // v2 introduced gist discovery + schema versioning. Nothing to rewrite locally:
+    // `sync_timestamps` / `sync_device_id` are compatible as-is.
+  }
+};
+
+/** Persist the current local sync schema version. */
+const setLocalSyncVersion = () => {
+  try {
+    localStorage.setItem(SYNC_VERSION_KEY, String(GIST_SCHEMA_VERSION));
+  } catch {
+    /* ignore */
+  }
+};
+
+// ── Gist transport ────────────────────────────────────────────────────────────
 
 /**
  * Read the sync gist and return its parsed payload.
  * Returns null when not connected or unreadable, { notFound: true } on a 404,
- * or { keys: {...} } on success.
+ * or { v, keys: {...} } on success.
  */
 const readGist = async () => {
   const [token, gistId] = await Promise.all([getToken(), getGistId()]);
@@ -206,14 +235,15 @@ const readGist = async () => {
 
   const data = await res.json();
   const file = data.files?.[GIST_FILENAME];
-  if (!file || !file.content) return { keys: {} };
+  if (!file || !file.content) return { v: GIST_SCHEMA_VERSION, keys: {} };
   try {
     const parsed = JSON.parse(file.content);
     return {
+      v: typeof parsed.v === 'number' ? parsed.v : 1,
       keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
     };
   } catch {
-    return { keys: {} };
+    return { v: GIST_SCHEMA_VERSION, keys: {} };
   }
 };
 
@@ -225,7 +255,7 @@ const writeGist = async (keys) => {
   const token = await getToken();
   if (!token) throw new Error('Not connected to GitHub');
 
-  const payload = JSON.stringify({ v: 1, deviceId, updatedAt: now(), keys });
+  const payload = JSON.stringify({ v: GIST_SCHEMA_VERSION, deviceId, updatedAt: now(), keys });
   let gistId = await getGistId();
 
   if (!gistId) {
@@ -300,6 +330,15 @@ const pullFromSync = async () => {
     return {};
   }
   if (!remote || remote.notFound) return {};
+
+  // If the remote was written by a newer app version we don't understand, don't
+  // blindly parse/overwrite it (that risks corrupting the shared state).
+  if (typeof remote.v === 'number' && remote.v > GIST_SCHEMA_VERSION) {
+    console.error('[sync] remote gist uses a newer schema (v' + remote.v + ') — skipping pull');
+    reportError('Sync data was written by a newer version of the app. Please update the app.');
+    return {};
+  }
+
   clearError();
 
   const changes = {};
@@ -636,6 +675,10 @@ const enableSync = async () => {
 
   enabled = true;
   writeLocal('sync_enabled', true);
+
+  // Version the local sync state and run any pending migration.
+  migrateSync(getLocalSyncVersion());
+  setLocalSyncVersion();
 
   deviceId = readLocal('sync_device_id') || generateDeviceId();
   writeLocal('sync_device_id', deviceId);
