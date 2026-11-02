@@ -112,6 +112,26 @@ const generateDeviceId = () => {
 /** Get current epoch ms timestamp. */
 const now = () => Date.now();
 
+/**
+ * Deep, key-order-independent equality for JSON-serializable values.
+ * Used to skip redundant gist writes when nothing has changed.
+ */
+const deepEqual = (a, b) => {
+  if (a === b) return true;
+  if (typeof a !== typeof b) return false;
+  if (a === null || b === null) return false;
+  if (typeof a !== 'object') return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a)) {
+    if (a.length !== b.length) return false;
+    return a.every((item, i) => deepEqual(item, b[i]));
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((k) => deepEqual(a[k], b[k]));
+};
+
 /** Read a value from localStorage safely. */
 const readLocal = (key) => {
   try {
@@ -434,17 +454,18 @@ const sanitizeForSync = (localKey, rawValue) => {
 
 /**
  * Push a single key from localStorage to the gist. Does nothing if sync is
- * disabled. Writes are serialized through the shared write queue.
+ * disabled or if the value is unchanged. Writes are serialized through the
+ * shared write queue. Resolves to { changed: boolean }.
  */
 const pushKey = (localKey) => {
-  if (!enabled) return Promise.resolve();
-  if (!SYNC_MAP[localKey]) return Promise.resolve();
+  if (!enabled) return Promise.resolve({ changed: false });
+  if (!SYNC_MAP[localKey]) return Promise.resolve({ changed: false });
 
   const local = readLocal(localKey);
-  if (local === null || local === undefined) return Promise.resolve();
+  if (local === null || local === undefined) return Promise.resolve({ changed: false });
 
   const sanitized = sanitizeForSync(localKey, local);
-  if (sanitized === null) return Promise.resolve();
+  if (sanitized === null) return Promise.resolve({ changed: false });
 
   const ts = now();
 
@@ -459,11 +480,16 @@ const pushKey = (localKey) => {
 
       const keys = { ...(remote?.keys || {}) };
 
-      // Remote is newer/equal — adopt it instead of overwriting.
+      // Remote is newer — adopt it instead of overwriting.
       if (keys[localKey] && keys[localKey].t >= ts) {
         writeLocal(localKey, keys[localKey].v);
         setLocalTs(localKey, keys[localKey].t);
-        return;
+        return { changed: false };
+      }
+
+      // Unchanged — skip the write.
+      if (keys[localKey] && deepEqual(keys[localKey].v, sanitized)) {
+        return { changed: false };
       }
 
       keys[localKey] = { v: sanitized, t: ts };
@@ -471,10 +497,12 @@ const pushKey = (localKey) => {
       setLocalTs(localKey, ts);
       lastSyncAt = ts;
       clearError();
+      return { changed: true };
     })
     .catch((err) => {
       console.error('[sync] push failed:', err.message);
       reportError(err.message);
+      return { changed: false, error: err.message };
     });
 
   return writeQueue;
@@ -488,9 +516,13 @@ const pushKey = (localKey) => {
  */
 const schedulePush = () => {};
 
-/** Push all syncable keys immediately (used on first enable). */
+/**
+ * Push all syncable keys immediately (used on first enable). Skips unchanged
+ * keys and skips the gist write entirely when nothing changed.
+ * Resolves to { changed: boolean }.
+ */
 const pushAll = async () => {
-  if (!enabled) return;
+  if (!enabled) return { changed: false };
 
   writeQueue = writeQueue
     .then(async () => {
@@ -502,6 +534,7 @@ const pushAll = async () => {
       }
 
       const keys = { ...(remote?.keys || {}) };
+      let changed = false;
       for (const localKey of SYNC_KEYS) {
         const local = readLocal(localKey);
         if (local === null || local === undefined) continue;
@@ -509,19 +542,26 @@ const pushAll = async () => {
         const sanitized = sanitizeForSync(localKey, local);
         if (sanitized === null) continue;
 
+        // Skip if the remote already holds this exact value (no change).
+        if (keys[localKey] && deepEqual(keys[localKey].v, sanitized)) continue;
+
         const ts = now();
-        if (keys[localKey] && keys[localKey].t >= ts) continue;
         keys[localKey] = { v: sanitized, t: ts };
         setLocalTs(localKey, ts);
+        changed = true;
       }
+
+      if (!changed) return { changed: false };
 
       await writeGist(keys);
       lastSyncAt = now();
       clearError();
+      return { changed: true };
     })
     .catch((err) => {
       console.error('[sync] pushAll failed:', err.message);
       reportError(err.message);
+      return { changed: false, error: err.message };
     });
 
   return writeQueue;
@@ -536,8 +576,9 @@ const canAutoSync = () => (now() - lastAutoSyncAt) >= SYNC_THROTTLE_MS;
 const runAutoSync = async () => {
   lastAutoSyncAt = now();
   await pullFromSync();
-  await pushAll();
+  const pushed = await pushAll();
   await runSyncHooks();
+  if (pushed.changed) lastSyncAt = now();
 };
 
 const setupPolling = () => {
@@ -667,22 +708,49 @@ const registerSyncHook = (fn) => {
 
 /** Run all registered post-sync hooks (awaiting each in turn). */
 const runSyncHooks = async () => {
+  let changed = false;
   for (const fn of syncHooks) {
     try {
-      await fn();
+      const result = await fn();
+      if (result && result.changed) changed = true;
     } catch (err) {
       console.error('[sync] hook failed:', err.message);
     }
   }
+  return { changed };
 };
 
-/** Force a full sync cycle: pull remote, push local, then notify listeners. */
+/**
+ * Force a full sync cycle: pull remote, push local, then notify listeners.
+ * Throttled — a sync that completed within the last 5 minutes is skipped so the
+ * user can't trigger repetitive syncs. Resolves to:
+ *   { changed, reason: 'synced' | 'no-changes' | 'recently-synced' | 'disabled' }
+ */
 const forceSync = async () => {
-  if (!isExtension() || !enabled) return;
-  await pullFromSync();
-  await pushAll();
-  await runSyncHooks();
+  if (!isExtension() || !enabled) {
+    return { changed: false, reason: 'disabled' };
+  }
+
+  // Once a sync succeeds, hold for 5 minutes before allowing another.
+  if (lastSyncAt && now() - lastSyncAt < SYNC_THROTTLE_MS) {
+    onChangeCallbacks.forEach((cb) => {
+      try {
+        cb('_force', null);
+      } catch {
+        /* ignore */
+      }
+    });
+    return { changed: false, reason: 'recently-synced' };
+  }
+
+  const pulled = await pullFromSync();
+  const pushed = await pushAll();
+  const hooks = await runSyncHooks();
   lastAutoSyncAt = now(); // manual sync resets the throttle clock
+
+  const changed = Object.keys(pulled).length > 0 || !!pushed.changed || !!hooks.changed;
+  if (changed) lastSyncAt = now();
+
   onChangeCallbacks.forEach((cb) => {
     try {
       cb('_force', null);
@@ -690,6 +758,8 @@ const forceSync = async () => {
       /* ignore */
     }
   });
+
+  return { changed, reason: changed ? 'synced' : 'no-changes' };
 };
 
 /**
