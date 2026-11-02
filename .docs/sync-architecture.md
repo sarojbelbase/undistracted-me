@@ -118,24 +118,25 @@ local `sync_version` key, and run a migration hook when they mismatch.
   and a local `sync_version`; `migrateSync(fromVersion)` runs on enable; pull refuses a
   newer-schema gist.
 
-### Phase 2 — Merge granularity (data safety)
+### Phase 2 — Merge granularity (data safety) ✅ done
 - [x] **Task 2.1 — Per-item merge for arrays.** events/bookmarks/countdown are now a
   *LWW element set* (`{ items: { id → { v, t } }, deleted: { id → deletedAt } }`) — union
   by identity, per-item LWW, `id`/`url`/`name` as the stable key. See `syncMerge.js`.
 - [x] **Task 2.3 — Generalize tombstones.** Deletions are tombstones that survive sync
   and beat stale writes (no resurrection).
-- [ ] **Task 2.2 — Field/instance merge for objects.** settings → per-field LWW;
-  widget_instances → per-instance + per-widget-setting LWW (still whole-object today).
+- [x] **Task 2.2 — Field/instance merge for objects.** settings → per-field LWW;
+  widget_instances → per-instance + per-widget-setting LWW (notes settings excluded and
+  preserved locally).
 - [x] **Phantom-key fix.** `widget_bookmarks` → `um_bookmarks`, `countdown_pinned` →
   `countdown_events` (the sync keys pointed at non-existent localStorage keys).
 
-### Phase 3 — Robustness & UX
-- [ ] **Task 3.1 — Conflict surfacing.** Report "merged N changes from other devices"
-  in the sync status (no silent data loss).
-- [ ] **Task 3.2 — Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
+### Phase 3 — Robustness & UX ✅ done
+- [x] **Task 3.1 — Conflict surfacing.** "Sync now" reports "Merged N changes from other
+  devices" (via `forceSync().pullCount`).
+- [x] **Task 3.2 — Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
   limitation; a Lamport clock is a possible later upgrade.
-- [ ] **Task 3.3 — Duplicate-gist cleanup.** Best-effort removal of orphaned duplicate
-  sync gists discovered during Phase 1.
+- [x] **Task 3.3 — Duplicate-gist cleanup.** Discovery deletes duplicate sync gists
+  (best-effort), adopting the oldest.
 
 ---
 

@@ -280,10 +280,22 @@ export async function ensureGist(token) {
 
   // Discover an existing sync gist created by another device.
   try {
-    const found = await findSyncGist(await listGists(token));
-    if (found) {
-      await setGistId(found);
-      return found;
+    const matches = findSyncGists(await listGists(token));
+    if (matches.length > 0) {
+      const adopted = matches[0];
+      await setGistId(adopted.id);
+      // Best-effort cleanup of duplicate sync gists (connect races / reconnects).
+      for (const dup of matches.slice(1)) {
+        try {
+          await fetch(`${GITHUB_GISTS_API}/${dup.id}`, {
+            method: 'DELETE',
+            headers: gistHeaders(token),
+          });
+        } catch {
+          /* ignore */
+        }
+      }
+      return adopted.id;
     }
   } catch (err) {
     console.error('[sync] gist discovery failed:', err.message);
@@ -334,13 +346,17 @@ async function listGists(token) {
   return all;
 }
 
-/** Find the user's sync gist among a list of gists, or null. */
-export function findSyncGist(gists) {
+/** Find all of the user's sync gists (sorted oldest-first), for discovery + dedup. */
+export function findSyncGists(gists) {
   const matches = (Array.isArray(gists) ? gists : []).filter(
     (g) => g.description === GIST_DESCRIPTION && g.files && g.files[GIST_FILENAME],
   );
-  if (matches.length === 0) return null;
-  // Prefer the oldest so every device converges on the same gist.
   matches.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-  return matches[0].id;
+  return matches;
+}
+
+/** Find the user's sync gist among a list of gists, or null. */
+export function findSyncGist(gists) {
+  const matches = findSyncGists(gists);
+  return matches.length > 0 ? matches[0].id : null;
 }

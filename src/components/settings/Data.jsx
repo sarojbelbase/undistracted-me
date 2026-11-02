@@ -61,7 +61,15 @@ export const Data = ({ onNavigateToAccounts }) => {
       const result = await syncEngine.forceSync();
       if (result?.changed) {
         setJustSynced(true);
-        feedbackTimerRef.current = setTimeout(() => setJustSynced(false), 2500);
+        setSyncHint(
+          result.pullCount > 0
+            ? `Merged ${result.pullCount} change${result.pullCount === 1 ? '' : 's'} from other devices.`
+            : null,
+        );
+        feedbackTimerRef.current = setTimeout(() => {
+          setJustSynced(false);
+          setSyncHint(null);
+        }, 2500);
       } else {
         setAlreadySynced(true);
         setSyncHint(

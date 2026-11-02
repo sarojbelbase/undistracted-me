@@ -55,6 +55,8 @@ import {
   arrayToElementSet,
   mergeElementSets,
   elementSetToArray,
+  mapToElementSet,
+  elementSetToObject,
 } from './syncMerge';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -88,8 +90,8 @@ const SYNC_KEYS = Object.keys(SYNC_MAP);
 /** Array keys merge per-item (element set) instead of whole-value replace. */
 const ARRAY_KEYS = new Set(['widget_events', 'widget_bookmarks', 'countdown_events']);
 
-/** localStorage key holding per-array-key element-set metadata (timestamps + tombstones). */
-const ARRAY_META_KEY = 'sync_array_meta';
+/** localStorage key holding per-key merge metadata (element/field sets). */
+const MERGE_META_KEY = 'sync_merge_meta';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -98,6 +100,7 @@ let deviceId = '';
 let lastSyncAt = null;
 let lastError = null;
 let lastAutoSyncAt = 0;
+let lastMergeCount = 0; // number of keys merged from remote on the last pull
 let pollTimer = null;
 let pollCleanup = null;
 let writeQueue = Promise.resolve();
@@ -307,25 +310,25 @@ const notifyHooks = (localKey) => {
   // For other keys, hooks subscribe via Zustand — no custom event needed.
 };
 
-// ── Array-key element-set metadata ────────────────────────────────────────────
+// ── Merge metadata (per-key last-synced element/field sets) ──────────────────
 
-/** Read the local element-set metadata (timestamps + tombstones) for an array key. */
-const readArrayMeta = (localKey) => {
+/** Read the last-synced merge metadata for a key (or null when absent). */
+const readMeta = (localKey) => {
   try {
-    const map = JSON.parse(localStorage.getItem(ARRAY_META_KEY) || '{}');
+    const map = JSON.parse(localStorage.getItem(MERGE_META_KEY) || '{}');
     const meta = map[localKey];
-    return meta && typeof meta === 'object' ? meta : { items: {}, deleted: {} };
+    return meta && typeof meta === 'object' ? meta : null;
   } catch {
-    return { items: {}, deleted: {} };
+    return null;
   }
 };
 
-/** Persist the local element-set metadata for an array key. */
-const writeArrayMeta = (localKey, meta) => {
+/** Persist the last-synced merge metadata for a key. */
+const writeMeta = (localKey, meta) => {
   try {
-    const map = JSON.parse(localStorage.getItem(ARRAY_META_KEY) || '{}');
+    const map = JSON.parse(localStorage.getItem(MERGE_META_KEY) || '{}');
     map[localKey] = meta;
-    localStorage.setItem(ARRAY_META_KEY, JSON.stringify(map));
+    localStorage.setItem(MERGE_META_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
   }
@@ -393,7 +396,7 @@ const preprocessArray = (localKey, array) => {
 const mergeArrayKey = (localKey, remoteSet) => {
   const storageKey = SYNC_MAP[localKey];
   const localArray = preprocessArray(localKey, readLocal(storageKey) || []);
-  const localMeta = readArrayMeta(localKey);
+  const localMeta = readMeta(localKey) || { items: {}, deleted: {} };
   const localSet = arrayToElementSet(localArray, localMeta, now());
   const merged = mergeElementSets(localSet, remoteSet);
   const trimmed = trimElementSet(merged, MAX_SYNC_ENTRIES[localKey]);
@@ -403,9 +406,147 @@ const mergeArrayKey = (localKey, remoteSet) => {
 
   if (changed) {
     writeLocal(storageKey, next);
-    writeArrayMeta(localKey, trimmed);
+    writeMeta(localKey, trimmed);
   }
   return { set: trimmed, array: next, changed };
+};
+
+/**
+ * Normalize a settings wire value into `{ fields, version }`. Handles the new
+ * `{ fields, version }` format and the legacy `{ state, version }` format.
+ */
+const normalizeSettings = (v, outerT) => {
+  if (v && typeof v === 'object' && !Array.isArray(v) && 'fields' in v) {
+    return { fields: v.fields || {}, version: v.version };
+  }
+  if (v && typeof v === 'object' && v.state && typeof v.state === 'object') {
+    const fields = {};
+    for (const [k, val] of Object.entries(v.state)) {
+      fields[k] = { v: val, t: outerT || 0 };
+    }
+    return { fields, version: v.version };
+  }
+  return { fields: {}, version: undefined };
+};
+
+/**
+ * Merge the settings object (field-level LWW). Settings fields are independent;
+ * concurrent edits to different fields union instead of clobbering.
+ * Returns { wire, changed }.
+ */
+const mergeSettingsKey = (localKey, remoteWire) => {
+  const storageKey = SYNC_MAP[localKey];
+  const raw = readLocal(storageKey);
+  const localState = raw && typeof raw === 'object' && raw.state && typeof raw.state === 'object' ? raw.state : {};
+  const version = raw && typeof raw === 'object' ? raw.version : undefined;
+
+  const meta = readMeta(localKey) || { fields: { items: {}, deleted: {} } };
+  const localSet = mapToElementSet(localState, meta.fields, now());
+  const remoteSet = { items: remoteWire?.fields || {}, deleted: {} };
+  const merged = mergeElementSets(localSet, remoteSet);
+  const newState = elementSetToObject(merged);
+
+  const changed = !deepEqual(newState, localState);
+  if (changed) {
+    const nextRaw = { state: newState };
+    if (version !== undefined) nextRaw.version = version;
+    writeLocal(storageKey, nextRaw);
+    writeMeta(localKey, { fields: merged });
+  }
+
+  return { wire: { fields: merged.items, version: version ?? 0 }, changed };
+};
+
+/**
+ * Normalize a widget_instances wire value into
+ * `{ instances, widgetSettings, version }` element sets. Handles legacy
+ * `{ state: { instances, widgetSettings }, version }`.
+ */
+const normalizeWidgetInstances = (v, outerT) => {
+  if (v && typeof v === 'object' && !Array.isArray(v) && ('instances' in v || 'widgetSettings' in v)) {
+    return {
+      instances: normalizeElementSet(v.instances, outerT),
+      widgetSettings: normalizeElementSet(v.widgetSettings, outerT),
+      version: v.version,
+    };
+  }
+  if (v && typeof v === 'object' && v.state && typeof v.state === 'object') {
+    const instances = { items: {}, deleted: {} };
+    for (const inst of v.state.instances || []) {
+      const id = itemKey(inst);
+      if (id) instances.items[id] = { v: inst, t: outerT || 0 };
+    }
+    const ws = { ...(v.state.widgetSettings || {}) };
+    delete ws.notes; // notes synced via per-note gists
+    const widgetSettings = { items: {}, deleted: {} };
+    for (const [id, s] of Object.entries(ws)) {
+      widgetSettings.items[id] = { v: s, t: outerT || 0 };
+    }
+    return { instances, widgetSettings, version: v.version };
+  }
+  return {
+    instances: { items: {}, deleted: {} },
+    widgetSettings: { items: {}, deleted: {} },
+    version: undefined,
+  };
+};
+
+/**
+ * Merge widget_instances (per-instance + per-widget-setting LWW). The notes
+ * widget's settings are excluded — notes sync via per-note gists — and the local
+ * notes settings are preserved on rebuild.
+ * Returns { wire, changed }.
+ */
+const mergeWidgetInstancesKey = (localKey, remoteWire) => {
+  const storageKey = SYNC_MAP[localKey];
+  const raw = readLocal(storageKey);
+  const localState = raw && typeof raw === 'object' && raw.state ? raw.state : {};
+  const version = raw && typeof raw === 'object' ? raw.version : undefined;
+
+  const localInstances = Array.isArray(localState.instances) ? localState.instances : [];
+  const localWidgetSettings =
+    localState.widgetSettings && typeof localState.widgetSettings === 'object'
+      ? localState.widgetSettings
+      : {};
+
+  // Exclude the notes widget's settings from the synced map.
+  const localWsNoNotes = { ...localWidgetSettings };
+  delete localWsNoNotes.notes;
+
+  const meta = readMeta(localKey) || {
+    instances: { items: {}, deleted: {} },
+    widgetSettings: { items: {}, deleted: {} },
+  };
+
+  const localInstSet = arrayToElementSet(localInstances, meta.instances, now());
+  const localWsSet = mapToElementSet(localWsNoNotes, meta.widgetSettings, now());
+
+  const mergedInstances = mergeElementSets(localInstSet, remoteWire?.instances || { items: {}, deleted: {} });
+  const mergedWidgetSettings = mergeElementSets(localWsSet, remoteWire?.widgetSettings || { items: {}, deleted: {} });
+
+  const newInstances = elementSetToArray(mergedInstances, localInstances);
+  const newWs = elementSetToObject(mergedWidgetSettings);
+  // Re-inject the local notes widget settings (preserved, never synced here).
+  if (localWidgetSettings.notes) newWs.notes = localWidgetSettings.notes;
+
+  const changed =
+    !deepEqual(newInstances, localInstances) || !deepEqual(newWs, localWidgetSettings);
+
+  if (changed) {
+    const nextRaw = { state: { instances: newInstances, widgetSettings: newWs } };
+    if (version !== undefined) nextRaw.version = version;
+    writeLocal(storageKey, nextRaw);
+    writeMeta(localKey, { instances: mergedInstances, widgetSettings: mergedWidgetSettings });
+  }
+
+  return {
+    wire: {
+      instances: mergedInstances,
+      widgetSettings: mergedWidgetSettings,
+      version: version ?? 0,
+    },
+    changed,
+  };
 };
 
 // ── Pull: merge remote → local ────────────────────────────────────────────────
@@ -445,88 +586,40 @@ const pullFromSync = async () => {
     const entry = remote.keys?.[localKey];
     if (!entry || typeof entry.t !== 'number') continue;
 
-    // Array keys — always merge (idempotent, per-item). Not gated on the whole-key
-    // `t`, because per-item LWW + tombstones is the correctness unit here.
+    // Each merge is idempotent and self-detects whether anything changed, so
+    // there is no whole-key timestamp gate (which could skip a merge on clock
+    // skew). Last-write-wins happens per-item / per-field.
+    let changed = false;
     if (ARRAY_KEYS.has(localKey)) {
-      const { changed } = mergeArrayKey(localKey, normalizeElementSet(entry.v, entry.t));
-      setLocalTs(localKey, entry.t);
-      notifyHooks(localKey);
-      if (changed) changes[localKey] = true;
-      continue;
+      changed = mergeArrayKey(localKey, normalizeElementSet(entry.v, entry.t)).changed;
+    } else if (localKey === 'undistracted_settings') {
+      changed = mergeSettingsKey(localKey, normalizeSettings(entry.v, entry.t)).changed;
+    } else if (localKey === 'widget_instances') {
+      changed = mergeWidgetInstancesKey(localKey, normalizeWidgetInstances(entry.v, entry.t)).changed;
+    } else if (localKey === 'notes_index') {
+      const storageKey = SYNC_MAP[localKey];
+      const merged = mergeNotesIndex(readLocal(storageKey), entry.v);
+      if (!deepEqual(merged, readLocal(storageKey))) {
+        writeLocal(storageKey, merged);
+        changed = true;
+      }
     }
 
-    const localTs = getLocalTs(localKey);
-    if (entry.t > localTs) {
-      const storageKey = SYNC_MAP[localKey];
-
-      // Notes index merges per-entry (union, newer `updatedAt` wins) instead of
-      // whole-map replace, so concurrent note additions on two devices don't
-      // clobber each other.
-      if (localKey === 'notes_index') {
-        writeLocal(storageKey, mergeNotesIndex(readLocal(storageKey), entry.v));
-        setLocalTs(localKey, entry.t);
-        changes[localKey] = true;
-        continue;
-      }
-
-      // widget_instances is stripped of notes content on push — preserve the
-      // local notes widget settings when adopting a remote snapshot.
-      const value = localKey === 'widget_instances'
-        ? preserveLocalNotes(entry.v)
-        : entry.v;
-
-      writeLocal(storageKey, value);
+    if (changed) {
       setLocalTs(localKey, entry.t);
       notifyHooks(localKey);
       changes[localKey] = true;
     }
   }
 
-  if (Object.keys(changes).length > 0) lastSyncAt = now();
+  if (Object.keys(changes).length > 0) {
+    lastSyncAt = now();
+    lastMergeCount = Object.keys(changes).length;
+  }
   return changes;
 };
 
 // ── Push: merge local → remote ────────────────────────────────────────────────
-
-/**
- * Strip the notes widget's settings (`widgetSettings.notes`) from a
- * widget_instances snapshot. Notes content is synced through per-note private
- * gists (notesSync.js), never through the config gist.
- */
-const stripNotesFromInstances = (value) => {
-  const widgetSettings = value?.state?.widgetSettings;
-  if (!widgetSettings || !widgetSettings.notes) return value;
-  const stripped = { ...widgetSettings };
-  delete stripped.notes;
-  return { ...value, state: { ...value.state, widgetSettings: stripped } };
-};
-
-/**
- * Re-inject the local notes widget settings into a pulled widget_instances
- * snapshot. Because notes are stripped from the synced payload, adopting a
- * remote snapshot would otherwise erase local notes — the local notes object is
- * kept so note content survives the pull and is reconciled by notesSync.
- */
-const preserveLocalNotes = (value) => {
-  let localNotes = null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.widgetSettings('notes'));
-    if (raw) localNotes = JSON.parse(raw);
-  } catch {
-    /* ignore */
-  }
-  if (!localNotes) return value;
-  return {
-    ...value,
-    state: {
-      ...value?.state,
-      widgetSettings: {
-        ...value?.state?.widgetSettings,
-        notes: localNotes,
-      },
-    },
-  };
-};
 
 /**
  * Merge two notes-index maps (note_id → { gistId, label, updatedAt }) keeping
@@ -547,34 +640,22 @@ const mergeNotesIndex = (localIndex, remoteIndex) => {
 };
 
 /**
- * Sanitize a non-array value before syncing. Array keys are handled by the
- * element-set merge path (stripGcalEvents + trimElementSet), not here.
- */
-const sanitizeForSync = (localKey, rawValue) => {
-  if (rawValue === null || rawValue === undefined) return null;
-  if (localKey === 'widget_instances') return stripNotesFromInstances(rawValue);
-  return rawValue;
-};
-
-/**
  * Push a single key from localStorage to the gist. Does nothing if sync is
  * disabled or if the value is unchanged. Writes are serialized through the
  * shared write queue. Resolves to { changed: boolean }.
+ *
+ * Only `notes_index` takes the targeted single-key path; every other key merges
+ * through pushAll (element/field sets).
  */
 const pushKey = (localKey) => {
   if (!enabled) return Promise.resolve({ changed: false });
   if (!SYNC_MAP[localKey]) return Promise.resolve({ changed: false });
 
+  if (localKey !== 'notes_index') return pushAll();
+
   const storageKey = SYNC_MAP[localKey];
-
-  // Array keys go through the element-set merge path in pushAll.
-  if (ARRAY_KEYS.has(localKey)) return pushAll();
-
   const local = readLocal(storageKey);
   if (local === null || local === undefined) return Promise.resolve({ changed: false });
-
-  const sanitized = sanitizeForSync(localKey, local);
-  if (sanitized === null) return Promise.resolve({ changed: false });
 
   const ts = now();
 
@@ -588,20 +669,13 @@ const pushKey = (localKey) => {
       }
 
       const keys = { ...(remote?.keys || {}) };
-
-      // Remote is newer — adopt it instead of overwriting.
-      if (keys[localKey] && keys[localKey].t >= ts) {
-        writeLocal(storageKey, keys[localKey].v);
-        setLocalTs(localKey, keys[localKey].t);
+      // Union with the remote index so we never drop another device's entries.
+      const merged = mergeNotesIndex(local, keys[localKey]?.v);
+      if (keys[localKey] && deepEqual(keys[localKey].v, merged)) {
         return { changed: false };
       }
 
-      // Unchanged — skip the write.
-      if (keys[localKey] && deepEqual(keys[localKey].v, sanitized)) {
-        return { changed: false };
-      }
-
-      keys[localKey] = { v: sanitized, t: ts };
+      keys[localKey] = { v: merged, t: ts };
       await writeGist(keys);
       setLocalTs(localKey, ts);
       lastSyncAt = ts;
@@ -661,17 +735,42 @@ const pushAll = async () => {
           continue;
         }
 
+        // Settings — field-level merge.
+        if (localKey === 'undistracted_settings') {
+          const remoteEntry = keys[localKey];
+          const remoteWire = normalizeSettings(remoteEntry?.v, remoteEntry?.t);
+          const { wire } = mergeSettingsKey(localKey, remoteWire);
+          if (!deepEqual(wire, remoteWire)) {
+            const ts = now();
+            keys[localKey] = { v: wire, t: ts };
+            setLocalTs(localKey, ts);
+            changed = true;
+          }
+          continue;
+        }
+
+        // Widget instances — per-instance + per-widget-setting merge.
+        if (localKey === 'widget_instances') {
+          const remoteEntry = keys[localKey];
+          const remoteWire = normalizeWidgetInstances(remoteEntry?.v, remoteEntry?.t);
+          const { wire } = mergeWidgetInstancesKey(localKey, remoteWire);
+          if (!deepEqual(wire, remoteWire)) {
+            const ts = now();
+            keys[localKey] = { v: wire, t: ts };
+            setLocalTs(localKey, ts);
+            changed = true;
+          }
+          continue;
+        }
+
+        // Notes index — union merge (local wins where newer).
         const local = readLocal(storageKey);
         if (local === null || local === undefined) continue;
-
-        const sanitized = sanitizeForSync(localKey, local);
-        if (sanitized === null) continue;
-
-        // Skip if the remote already holds this exact value (no change).
-        if (keys[localKey] && deepEqual(keys[localKey].v, sanitized)) continue;
+        const mergedIndex = mergeNotesIndex(local, keys[localKey]?.v);
+        if (keys[localKey] && deepEqual(keys[localKey].v, mergedIndex)) continue;
 
         const ts = now();
-        keys[localKey] = { v: sanitized, t: ts };
+        keys[localKey] = { v: mergedIndex, t: ts };
         setLocalTs(localKey, ts);
         changed = true;
       }
@@ -812,6 +911,7 @@ const getSyncStatus = () => ({
   enabled,
   connected: isConnected(),
   lastSyncAt,
+  lastMergeCount,
   deviceId,
   lastError,
 });
@@ -877,7 +977,8 @@ const forceSync = async () => {
   const hooks = await runSyncHooks();
   lastAutoSyncAt = now(); // manual sync resets the throttle clock
 
-  const changed = Object.keys(pulled).length > 0 || !!pushed.changed || !!hooks.changed;
+  const pullCount = Object.keys(pulled).length;
+  const changed = pullCount > 0 || !!pushed.changed || !!hooks.changed;
   if (changed) lastSyncAt = now();
 
   onChangeCallbacks.forEach((cb) => {
@@ -888,7 +989,7 @@ const forceSync = async () => {
     }
   });
 
-  return { changed, reason: changed ? 'synced' : 'no-changes' };
+  return { changed, pullCount, reason: changed ? 'synced' : 'no-changes' };
 };
 
 /**
