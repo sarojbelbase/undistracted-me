@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchFeed, readRssCache, writeRssCache } from './utils';
+import { fetchFeed, readRssCache, writeRssCache, rssItemTime } from './utils';
 
 const POLL_INTERVAL = 15 * 60 * 1000;
 
@@ -18,11 +18,7 @@ const MAX_CACHED_ITEMS = 30;
 const capItems = (items) => {
   if (items.length <= MAX_CACHED_ITEMS) return items;
   return [...items]
-    .sort((a, b) => {
-      const da = a.isoDate ? new Date(a.isoDate).getTime() : 0;
-      const db = b.isoDate ? new Date(b.isoDate).getTime() : 0;
-      return db - da;
-    })
+    .sort((a, b) => rssItemTime(b.isoDate) - rssItemTime(a.isoDate))
     .slice(0, MAX_CACHED_ITEMS);
 };
 
@@ -41,16 +37,18 @@ export function useRssMulti(feeds = []) {
   const feedsRef = useRef(feeds);
   feedsRef.current = feeds;
 
-  const merge = useCallback((allItems) => {
+  const merge = useCallback((allItems, fetchedAt = null) => {
+    // Sort newest-first using a NaN-safe timestamp. Invalid/missing dates fall
+    // to the bottom (0) instead of corrupting the comparison — this is what
+    // keeps a 14-min-old story ahead of a 3-day-old one.
     const sorted = allItems
       .filter(Boolean)
-      .sort((a, b) => {
-        const da = a.isoDate ? new Date(a.isoDate).getTime() : 0;
-        const db = b.isoDate ? new Date(b.isoDate).getTime() : 0;
-        return db - da;
-      });
+      .sort((a, b) => rssItemTime(b.isoDate) - rssItemTime(a.isoDate));
     setItems(sorted);
-    setRefreshedAt(Date.now());
+    // Prefer the server-side fetch timestamp (persisted "date of fetching");
+    // fall back to now when it's missing/invalid.
+    const ts = fetchedAt ? new Date(fetchedAt).getTime() : Date.now();
+    setRefreshedAt(Number.isFinite(ts) ? ts : Date.now());
   }, []);
 
   // Epoch counter — only the most recently initiated load may update state.
@@ -71,26 +69,31 @@ export function useRssMulti(feeds = []) {
         const cacheKey = `custom_${feed.url}`;
         if (!forceNetwork) {
           const cached = readRssCache(cacheKey);
-          if (cached) return cached.items;
+          if (cached) return { items: cached.items, fetchedAt: cached.fetchedAt };
         }
-        const fetched = await fetchFeed(cacheKey, feed.url);
+        const { items: fetchedItems, fetchedAt } = await fetchFeed(cacheKey, feed.url);
         // Inject source label into every item
-        const tagged = fetched.map((item) => ({ ...item, source: feed.label }));
-        writeRssCache(cacheKey, capItems(tagged));
-        return tagged;
+        const tagged = fetchedItems.map((item) => ({ ...item, source: feed.label }));
+        writeRssCache(cacheKey, capItems(tagged), fetchedAt);
+        return { items: tagged, fetchedAt };
       }),
     );
 
     // If a newer load started while we were waiting, discard these results
     if (epochRef.current !== epoch) return;
 
-    const allItems = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+    const allItems = results.flatMap((r) => (r.status === 'fulfilled' ? r.value.items : []));
+    // Use the newest fetch timestamp across feeds as the aggregate fetch time.
+    const fetchTimes = results
+      .filter((r) => r.status === 'fulfilled' && r.value.fetchedAt)
+      .map((r) => new Date(r.value.fetchedAt).getTime())
+      .filter(Number.isFinite);
     const anyError = results.every((r) => r.status === 'rejected');
 
     if (anyError && allItems.length === 0) {
       setError('Could not load any feeds');
     }
-    merge(allItems);
+    merge(allItems, fetchTimes.length ? new Date(Math.max(...fetchTimes)).toISOString() : null);
     setLoading(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -107,7 +110,12 @@ export function useRssMulti(feeds = []) {
       const c = readRssCache(`custom_${feed.url}`);
       return c ? c.items : [];
     });
-    if (cached.length) merge(cached);
+    // Use the most recent cache write time as the aggregate fetch timestamp.
+    const cacheTs = feeds
+      .map((f) => readRssCache(`custom_${f.url}`)?.ts)
+      .filter(Boolean)
+      .sort((a, b) => b - a)[0];
+    if (cached.length) merge(cached, cacheTs ? new Date(cacheTs).toISOString() : null);
     else {
       setItems([]);
       // ── SW rss_queue seed ─────────────────────────────────────────────
@@ -120,7 +128,7 @@ export function useRssMulti(feeds = []) {
         // Only seed if none of the feeds have an active localStorage cache yet
         // (avoids overwriting partial cache with a potentially broader SW queue)
         const stillEmpty = feeds.every((f) => readRssCache(`custom_${f.url}`) === null);
-        if (stillEmpty) merge(q.items);
+        if (stillEmpty) merge(q.items, q.fetchedAt);
       }).catch(() => { });
     }
 

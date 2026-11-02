@@ -456,36 +456,33 @@ export const Widget = ({ id, onRemove }) => {
   const [navDirection, setNavDirection] = useState("next"); // for swipe animation
   const sentinelRef = useRef(null);
 
-  // ── Smart item ordering: new items bubble to front of queue ───────────────
+  // ── Item ordering ────────────────────────────────────────────────────────────
+  // `items` is already sorted newest-first by useRssMulti. We preserve that
+  // order exactly (never re-order) and only jump to index 0 when the newest
+  // headline's link *actually changes* — i.e. genuinely new content arrived.
+  //
+  // The old "seen-links" logic bubbled any previously-unseen link to the front,
+  // so a back-dated or newly-discovered item (e.g. 3 days old) could leapfrog a
+  // genuinely fresh one (14 min old). Keeping the date-sorted order guarantees
+  // the newest story is always first and the display never flips backward.
   const [orderedItems, setOrderedItems] = useState([]);
-  const seenLinksRef = useRef(new Set());
+  const prevNewestLinkRef = useRef(null);
 
   useEffect(() => {
-    if (!items.length) { setOrderedItems([]); return; }
-    const seen = seenLinksRef.current;
-    // Cap the Set to prevent unbounded growth across polling cycles.
-    // 300 entries ~= 15 polls × 20 items — more than enough to detect duplicates.
-    if (seen.size > 300) {
-      const trimmed = [...seen].slice(-200);
-      seenLinksRef.current = new Set(trimmed);
-    }
-    if (seen.size === 0) {
-      // First load — initialise without any reordering.
-      // Cap at 100 items — no user scrolls through more in a tiny widget card.
-      setOrderedItems(items.slice(0, 100));
-      items.forEach(it => { if (it.link) seen.add(it.link); });
+    if (!items.length) {
+      setOrderedItems([]);
+      prevNewestLinkRef.current = null;
       return;
     }
-    const fresh = items.filter(it => it.link && !seen.has(it.link));
-    const existing = items.filter(it => !it.link || seen.has(it.link));
-    if (fresh.length > 0) {
-      setOrderedItems([...fresh, ...existing].slice(0, 100));
+    const newestLink = items[0]?.link;
+    const isNewestNew = !!newestLink && newestLink !== prevNewestLinkRef.current;
+    // Cap at 100 items — no user scrolls through more in a tiny widget card.
+    setOrderedItems(items.slice(0, 100));
+    if (isNewestNew) {
       setCurrentIndex(0); // jump to newest
       setNavDirection("next");
-    } else {
-      setOrderedItems(items.slice(0, 100));
     }
-    items.forEach(it => { if (it.link) seen.add(it.link); });
+    prevNewestLinkRef.current = newestLink;
   }, [items]);
 
   const displayItems = orderedItems.slice(0, visibleCount);
@@ -505,7 +502,7 @@ export const Widget = ({ id, onRemove }) => {
     setCurrentIndex(0);
     setVisibleCount(10);
     setNavDirection("next");
-    seenLinksRef.current = new Set();
+    prevNewestLinkRef.current = null;
     setOrderedItems([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(activeFeedIds), sourceMode]);
