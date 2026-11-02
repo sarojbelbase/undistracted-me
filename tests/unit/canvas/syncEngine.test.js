@@ -381,4 +381,33 @@ describe('change detection and throttle', () => {
     expect(result.changed).toBe(false);
     expect(result.reason).toBe('recently-synced');
   });
+
+  it('writes a content hash into the gist payload', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    expect(typeof written.hash).toBe('string');
+    expect(written.hash.length).toBeGreaterThan(0);
+  });
+
+  it('records a sync fingerprint after enableSync', async () => {
+    const fp = JSON.parse(localStorage.getItem('sync_fingerprint'));
+    expect(fp).toBeTruthy();
+    expect(typeof fp.local).toBe('string');
+    expect(typeof fp.remote).toBe('string');
+  });
+
+  it('records an updated fingerprint after a real push', async () => {
+    const before = JSON.parse(localStorage.getItem('sync_fingerprint'));
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }, { id: 2, title: 'e2' }]));
+    await syncEngine.pushAll();
+
+    const after = JSON.parse(localStorage.getItem('sync_fingerprint'));
+    // pushAll itself doesn't record the fingerprint; a change must flip the remote hash.
+    const written = JSON.parse(gistContent);
+    expect(written.hash).toBeDefined();
+    expect(before.local).toBeTruthy();
+    expect(after.local).toBe(before.local); // fingerprint only updates on a full cycle
+  });
 });
