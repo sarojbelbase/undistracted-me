@@ -110,27 +110,30 @@ local `sync_version` key, and run a migration hook when they mismatch.
 
 ## 4. Phased tasks
 
-### Phase 1 — Multi-device correctness (foundational) ✅ implement now
-- [ ] **Task 1.1 — Gist discovery.** `ensureGist` lists the user's gists and adopts the
+### Phase 1 — Multi-device correctness (foundational) ✅ done
+- [x] **Task 1.1 — Gist discovery.** `ensureGist` lists the user's gists and adopts the
   existing sync gist (match description + filename, prefer oldest); verifies a cached id
-  and redis covers on 404; creates only when nothing is found.
-- [ ] **Task 1.2 — Schema versioning.** Add `GIST_SCHEMA_VERSION`; write it into the gist
-  `v` and a local `sync_version`; read it back; add a `migrateSync(fromVersion)` hook;
-  skip + warn when the remote `v` is newer than we understand.
+  and rediscovers on 404; creates only when nothing is found.
+- [x] **Task 1.2 — Schema versioning.** `GIST_SCHEMA_VERSION` written into the gist `v`
+  and a local `sync_version`; `migrateSync(fromVersion)` runs on enable; pull refuses a
+  newer-schema gist.
 
 ### Phase 2 — Merge granularity (data safety)
-- [ ] **Task 2.1 — Per-item merge for arrays.** events/bookmarks/countdown gain a per-item
-  `updatedAt`; pull/push union by `id` with per-item LWW.
+- [x] **Task 2.1 — Per-item merge for arrays.** events/bookmarks/countdown are now a
+  *LWW element set* (`{ items: { id → { v, t } }, deleted: { id → deletedAt } }`) — union
+  by identity, per-item LWW, `id`/`url`/`name` as the stable key. See `syncMerge.js`.
+- [x] **Task 2.3 — Generalize tombstones.** Deletions are tombstones that survive sync
+  and beat stale writes (no resurrection).
 - [ ] **Task 2.2 — Field/instance merge for objects.** settings → per-field LWW;
-  widget_instances → per-instance + per-widget-setting LWW.
-- [ ] **Task 2.3 — Generalize tombstones.** Reuse the notes deletion model for events,
-  bookmarks, and widget instances.
+  widget_instances → per-instance + per-widget-setting LWW (still whole-object today).
+- [x] **Phantom-key fix.** `widget_bookmarks` → `um_bookmarks`, `countdown_pinned` →
+  `countdown_events` (the sync keys pointed at non-existent localStorage keys).
 
 ### Phase 3 — Robustness & UX
 - [ ] **Task 3.1 — Conflict surfacing.** Report "merged N changes from other devices"
   in the sync status (no silent data loss).
-- [ ] **Task 3.2 — Clock-skew policy.** Either adopt a logical clock or document the
-  limitation explicitly in the privacy/ToS.
+- [ ] **Task 3.2 — Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
+  limitation; a Lamport clock is a possible later upgrade.
 - [ ] **Task 3.3 — Duplicate-gist cleanup.** Best-effort removal of orphaned duplicate
   sync gists discovered during Phase 1.
 

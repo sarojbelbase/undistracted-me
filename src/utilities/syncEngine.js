@@ -49,6 +49,13 @@ import {
   GIST_DESCRIPTION,
   GIST_SCHEMA_VERSION,
 } from './githubAuth';
+import {
+  itemKey,
+  deepEqual,
+  arrayToElementSet,
+  mergeElementSets,
+  elementSetToArray,
+} from './syncMerge';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -59,19 +66,30 @@ const SYNC_THROTTLE_MS = 5 * 60 * 1000; // block continuous sync — min 5 min b
 const MAX_SYNC_ENTRIES = {
   'widget_events': 200,
   'widget_bookmarks': 100,
-  'countdown_pinned': 50,
+  'countdown_events': 50,
 };
 
-/** Keys that are eligible for sync. Map keeps localKey → itself for API compat. */
+/**
+ * syncKey → localStorage key. The sync key names the entry inside the gist's
+ * `keys` map; the storage key is where the value lives locally. Fixes the
+ * phantom-key bug: bookmarks live in `um_bookmarks`, countdowns in
+ * `countdown_events` — not the old `widget_bookmarks`/`countdown_pinned`.
+ */
 const SYNC_MAP = {
   'undistracted_settings': 'undistracted_settings',
   'widget_instances': 'widget_instances',
-  'widget_events': 'widget_events',
-  'widget_bookmarks': 'widget_bookmarks',
-  'countdown_pinned': 'countdown_pinned',
-  'notes_index': 'notes_index',
+  'widget_events': STORAGE_KEYS.EVENTS,
+  'widget_bookmarks': STORAGE_KEYS.BOOKMARKS,
+  'countdown_events': STORAGE_KEYS.COUNTDOWN_EVENTS,
+  'notes_index': STORAGE_KEYS.NOTES_INDEX,
 };
 const SYNC_KEYS = Object.keys(SYNC_MAP);
+
+/** Array keys merge per-item (element set) instead of whole-value replace. */
+const ARRAY_KEYS = new Set(['widget_events', 'widget_bookmarks', 'countdown_events']);
+
+/** localStorage key holding per-array-key element-set metadata (timestamps + tombstones). */
+const ARRAY_META_KEY = 'sync_array_meta';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -112,26 +130,6 @@ const generateDeviceId = () => {
 
 /** Get current epoch ms timestamp. */
 const now = () => Date.now();
-
-/**
- * Deep, key-order-independent equality for JSON-serializable values.
- * Used to skip redundant gist writes when nothing has changed.
- */
-const deepEqual = (a, b) => {
-  if (a === b) return true;
-  if (typeof a !== typeof b) return false;
-  if (a === null || b === null) return false;
-  if (typeof a !== 'object') return false;
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
-  if (Array.isArray(a)) {
-    if (a.length !== b.length) return false;
-    return a.every((item, i) => deepEqual(item, b[i]));
-  }
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-  return keysA.every((k) => deepEqual(a[k], b[k]));
-};
 
 /** Read a value from localStorage safely. */
 const readLocal = (key) => {
@@ -309,6 +307,107 @@ const notifyHooks = (localKey) => {
   // For other keys, hooks subscribe via Zustand — no custom event needed.
 };
 
+// ── Array-key element-set metadata ────────────────────────────────────────────
+
+/** Read the local element-set metadata (timestamps + tombstones) for an array key. */
+const readArrayMeta = (localKey) => {
+  try {
+    const map = JSON.parse(localStorage.getItem(ARRAY_META_KEY) || '{}');
+    const meta = map[localKey];
+    return meta && typeof meta === 'object' ? meta : { items: {}, deleted: {} };
+  } catch {
+    return { items: {}, deleted: {} };
+  }
+};
+
+/** Persist the local element-set metadata for an array key. */
+const writeArrayMeta = (localKey, meta) => {
+  try {
+    const map = JSON.parse(localStorage.getItem(ARRAY_META_KEY) || '{}');
+    map[localKey] = meta;
+    localStorage.setItem(ARRAY_META_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+};
+
+/**
+ * Normalize an on-wire array value into an element set. Handles the legacy
+ * array format (all items share the outer timestamp) and the new
+ * `{ items, deleted }` format.
+ */
+const normalizeElementSet = (v, outerT) => {
+  if (v && typeof v === 'object' && !Array.isArray(v) && ('items' in v || 'deleted' in v)) {
+    return { items: v.items || {}, deleted: v.deleted || {} };
+  }
+  if (Array.isArray(v)) {
+    const items = {};
+    for (const item of v) {
+      const id = itemKey(item);
+      if (id) items[id] = { v: item, t: outerT || 0 };
+    }
+    return { items, deleted: {} };
+  }
+  return { items: {}, deleted: {} };
+};
+
+/** Trim an element set to the newest `maxEntries` items. */
+const trimElementSet = (set, maxEntries) => {
+  if (!maxEntries) return set;
+  const items = set.items || {};
+  const ids = Object.keys(items);
+  if (ids.length <= maxEntries) return set;
+  ids.sort((a, b) => (items[b].t ?? 0) - (items[a].t ?? 0));
+  const keep = new Set(ids.slice(0, maxEntries));
+  const trimmed = {};
+  for (const id of ids) if (keep.has(id)) trimmed[id] = items[id];
+  return { items: trimmed, deleted: set.deleted || {} };
+};
+
+/**
+ * Strip Google Calendar events from an events array.
+ * GCal events have a `calendarId` field or `source === 'gcal'` — they're
+ * auto-populated on sign-in, so syncing them is redundant.
+ */
+const stripGcalEvents = (events) => {
+  if (!Array.isArray(events)) return events;
+  return events.filter(
+    (e) => !e?.calendarId && e?.source !== 'gcal' && !e?.gcalEventId,
+  );
+};
+
+/** Apply per-key preprocessing to a local array before merging. */
+const preprocessArray = (localKey, array) => {
+  if (localKey === 'widget_events') return stripGcalEvents(array);
+  return array;
+};
+
+/**
+ * Merge a remote element set into the local array for an array key. Diffing the
+ * local array against the last-synced metadata captures un-synced local edits
+ * and deletions, then the union+LWW merge reconciles them with the remote side.
+ *
+ * Returns { set, array, changed } where `set` is the merged element set, `array`
+ * the rebuilt local array, and `changed` whether the local array changed.
+ */
+const mergeArrayKey = (localKey, remoteSet) => {
+  const storageKey = SYNC_MAP[localKey];
+  const localArray = preprocessArray(localKey, readLocal(storageKey) || []);
+  const localMeta = readArrayMeta(localKey);
+  const localSet = arrayToElementSet(localArray, localMeta, now());
+  const merged = mergeElementSets(localSet, remoteSet);
+  const trimmed = trimElementSet(merged, MAX_SYNC_ENTRIES[localKey]);
+  const next = elementSetToArray(trimmed, localArray);
+
+  const changed = !deepEqual(next, localArray);
+
+  if (changed) {
+    writeLocal(storageKey, next);
+    writeArrayMeta(localKey, trimmed);
+  }
+  return { set: trimmed, array: next, changed };
+};
+
 // ── Pull: merge remote → local ────────────────────────────────────────────────
 
 /**
@@ -346,13 +445,25 @@ const pullFromSync = async () => {
     const entry = remote.keys?.[localKey];
     if (!entry || typeof entry.t !== 'number') continue;
 
+    // Array keys — always merge (idempotent, per-item). Not gated on the whole-key
+    // `t`, because per-item LWW + tombstones is the correctness unit here.
+    if (ARRAY_KEYS.has(localKey)) {
+      const { changed } = mergeArrayKey(localKey, normalizeElementSet(entry.v, entry.t));
+      setLocalTs(localKey, entry.t);
+      notifyHooks(localKey);
+      if (changed) changes[localKey] = true;
+      continue;
+    }
+
     const localTs = getLocalTs(localKey);
     if (entry.t > localTs) {
+      const storageKey = SYNC_MAP[localKey];
+
       // Notes index merges per-entry (union, newer `updatedAt` wins) instead of
       // whole-map replace, so concurrent note additions on two devices don't
       // clobber each other.
       if (localKey === 'notes_index') {
-        writeLocal(localKey, mergeNotesIndex(readLocal(localKey), entry.v));
+        writeLocal(storageKey, mergeNotesIndex(readLocal(storageKey), entry.v));
         setLocalTs(localKey, entry.t);
         changes[localKey] = true;
         continue;
@@ -364,7 +475,7 @@ const pullFromSync = async () => {
         ? preserveLocalNotes(entry.v)
         : entry.v;
 
-      writeLocal(localKey, value);
+      writeLocal(storageKey, value);
       setLocalTs(localKey, entry.t);
       notifyHooks(localKey);
       changes[localKey] = true;
@@ -376,25 +487,6 @@ const pullFromSync = async () => {
 };
 
 // ── Push: merge local → remote ────────────────────────────────────────────────
-
-/**
- * Strip Google Calendar events from an events array.
- * GCal events have a `calendarId` field or `source === 'gcal'` — they're
- * auto-populated on sign-in, so syncing them is redundant.
- */
-const stripGcalEvents = (events) => {
-  if (!Array.isArray(events)) return events;
-  return events.filter(
-    (e) => !e?.calendarId && e?.source !== 'gcal' && !e?.gcalEventId,
-  );
-};
-
-/** Trim an array to maxEntries, keeping the newest entries. */
-const trimArray = (arr, maxEntries) => {
-  if (!Array.isArray(arr)) return arr;
-  if (arr.length <= maxEntries) return arr;
-  return arr.slice(arr.length - maxEntries);
-};
 
 /**
  * Strip the notes widget's settings (`widgetSettings.notes`) from a
@@ -455,39 +547,12 @@ const mergeNotesIndex = (localIndex, remoteIndex) => {
 };
 
 /**
- * Get the value to sync for a given localKey, with sanitization applied
- * (strip GCal events, trim oversized arrays, drop notes content).
+ * Sanitize a non-array value before syncing. Array keys are handled by the
+ * element-set merge path (stripGcalEvents + trimElementSet), not here.
  */
 const sanitizeForSync = (localKey, rawValue) => {
   if (rawValue === null || rawValue === undefined) return null;
-
-  const maxEntries = MAX_SYNC_ENTRIES[localKey];
-
-  // Zustand-persisted keys — value is { state: {...}, version: N }
-  if (localKey === 'undistracted_settings' || localKey === 'widget_instances') {
-    // Notes content is synced via per-note private gists (notesSync.js), so
-    // strip the notes widget's settings from widget_instances to keep the
-    // config gist free of note content.
-    if (localKey === 'widget_instances') return stripNotesFromInstances(rawValue);
-    return rawValue;
-  }
-
-  // Raw array keys — sanitize and trim
-  if (Array.isArray(rawValue)) {
-    let sanitized = rawValue;
-    if (localKey === 'widget_events') sanitized = stripGcalEvents(sanitized);
-    if (maxEntries) sanitized = trimArray(sanitized, maxEntries);
-    return sanitized;
-  }
-
-  // For Zustand-wrapped array keys or unknown formats, pass through
-  if (rawValue?.state && Array.isArray(rawValue.state)) {
-    const sanitized = { ...rawValue };
-    if (localKey === 'widget_events') sanitized.state = stripGcalEvents(rawValue.state);
-    if (maxEntries) sanitized.state = trimArray(sanitized.state, maxEntries);
-    return sanitized;
-  }
-
+  if (localKey === 'widget_instances') return stripNotesFromInstances(rawValue);
   return rawValue;
 };
 
@@ -500,7 +565,12 @@ const pushKey = (localKey) => {
   if (!enabled) return Promise.resolve({ changed: false });
   if (!SYNC_MAP[localKey]) return Promise.resolve({ changed: false });
 
-  const local = readLocal(localKey);
+  const storageKey = SYNC_MAP[localKey];
+
+  // Array keys go through the element-set merge path in pushAll.
+  if (ARRAY_KEYS.has(localKey)) return pushAll();
+
+  const local = readLocal(storageKey);
   if (local === null || local === undefined) return Promise.resolve({ changed: false });
 
   const sanitized = sanitizeForSync(localKey, local);
@@ -521,7 +591,7 @@ const pushKey = (localKey) => {
 
       // Remote is newer — adopt it instead of overwriting.
       if (keys[localKey] && keys[localKey].t >= ts) {
-        writeLocal(localKey, keys[localKey].v);
+        writeLocal(storageKey, keys[localKey].v);
         setLocalTs(localKey, keys[localKey].t);
         return { changed: false };
       }
@@ -575,7 +645,23 @@ const pushAll = async () => {
       const keys = { ...(remote?.keys || {}) };
       let changed = false;
       for (const localKey of SYNC_KEYS) {
-        const local = readLocal(localKey);
+        const storageKey = SYNC_MAP[localKey];
+
+        // Array keys — element-set merge; write only if the merged set differs.
+        if (ARRAY_KEYS.has(localKey)) {
+          const remoteEntry = keys[localKey];
+          const remoteSet = normalizeElementSet(remoteEntry?.v, remoteEntry?.t);
+          const { set } = mergeArrayKey(localKey, remoteSet);
+          if (!deepEqual(set, remoteSet)) {
+            const ts = now();
+            keys[localKey] = { v: set, t: ts };
+            setLocalTs(localKey, ts);
+            changed = true;
+          }
+          continue;
+        }
+
+        const local = readLocal(storageKey);
         if (local === null || local === undefined) continue;
 
         const sanitized = sanitizeForSync(localKey, local);
