@@ -370,6 +370,7 @@ export default defineConfig(({ mode }) => {
         "VITE_API_KEY",
         "VITE_SPOTIFY_CLIENT_ID",
         "VITE_GOOGLE_DESKTOP_CLIENT_ID",
+        "VITE_GITHUB_CLIENT_ID",
       ]),
       react(),
       // @ts-ignore
