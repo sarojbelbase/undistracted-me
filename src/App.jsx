@@ -50,8 +50,13 @@ const FocusMode = lazy(() =>
 
 // Analytics is only used on the web demo — lazy-import so the module is never
 // parsed in extension builds where `chrome` is defined and it never renders.
+// Uses the framework-agnostic `inject()` (no React dep) so Preact compat isn't
+// pulled into the analytics chunk.
 const Analytics = lazy(() =>
-  import("@vercel/analytics/react").then((m) => ({ default: m.Analytics })),
+  import("@vercel/analytics").then((m) => {
+    m.inject();
+    return { default: () => null };
+  }),
 );
 
 const LookAway = lazy(() =>
