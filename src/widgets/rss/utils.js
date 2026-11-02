@@ -49,17 +49,22 @@ export function readRssCache(feedId) {
   } catch { return null; }
 }
 
-/** Write items + timestamp for a feed to localStorage. */
-export function writeRssCache(feedId, items) {
+/** Write items + timestamps for a feed to localStorage. */
+export function writeRssCache(feedId, items, fetchedAt = null) {
   try {
-    localStorage.setItem(`rss_cache_${feedId}`, JSON.stringify({ items, ts: Date.now() }));
+    localStorage.setItem(
+      `rss_cache_${feedId}`,
+      JSON.stringify({ items, ts: Date.now(), fetchedAt }),
+    );
   } catch { /* quota exceeded — ignore */ }
 }
 
 // ── Fetch helper ──────────────────────────────────────────────────────────────
 
 /**
- * Fetch a feed via the CORS proxy, returning the items array.
+ * Fetch a feed via the CORS proxy.
+ * Returns `{ items, fetchedAt }` — `fetchedAt` is the proxy's server-side fetch
+ * timestamp (the "current date of fetching"), persisted alongside the items.
  * Throws on HTTP error or if the JSON body contains an `error` field.
  */
 export async function fetchFeed(feedId, feedUrl) {
@@ -67,7 +72,24 @@ export async function fetchFeed(feedId, feedUrl) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
-  return json.items ?? [];
+  return {
+    items: json.items ?? [],
+    fetchedAt: json.fetchedAt || new Date().toISOString(),
+  };
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Safe timestamp (ms) for an item's ISO date. Returns 0 for missing or invalid
+ * dates so sorting never produces `NaN` (which makes Array.sort return
+ * implementation-dependent, non-chronological order — e.g. an old item surfacing
+ * ahead of a fresh one).
+ */
+export function rssItemTime(isoDate) {
+  if (!isoDate) return 0;
+  const t = new Date(isoDate).getTime();
+  return Number.isFinite(t) ? t : 0;
 }
 
 // ── Relative-time formatter ───────────────────────────────────────────────────

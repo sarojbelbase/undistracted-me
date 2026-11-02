@@ -33,10 +33,10 @@ export function useRss(feedId = DEFAULT_FEED_ID) {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchFeed(feedId, feedUrl);
-      setItems(data);
+      const { items, fetchedAt } = await fetchFeed(feedId, feedUrl);
+      setItems(items);
       setRefreshedAt(Date.now());
-      writeRssCache(feedId, data);
+      writeRssCache(feedId, items, fetchedAt);
     } catch (e) {
       setError(e.message || 'fetch_failed');
     } finally {
