@@ -3,11 +3,11 @@ import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import config from './config';
-import { LANGUAGES } from '../../constants';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 import { getDateParts } from './utils';
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, { language: LANGUAGES.en });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.dateToday);
   const { language } = settings;
 
   const [parts, setParts] = useState(() => getDateParts(language));

@@ -39,13 +39,9 @@ export const SESSION_TYPE = Object.freeze({
 });
 
 // ── Default per-widget settings (merged with user overrides) ─────────────────
-
-export const DEFAULT_SETTINGS = Object.freeze({
-  soundEnabled: true,
-  autoBreak: false,
-  breakDuration: 5,   // minutes
-  rainSound: false,
-});
+// Defined in constants/defaults.js (WIDGET_SETTINGS_DEFAULTS.pomodoro).
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
+export const DEFAULT_SETTINGS = WIDGET_SETTINGS_DEFAULTS.pomodoro;
 
 // ── History ──────────────────────────────────────────────────────────────────
 

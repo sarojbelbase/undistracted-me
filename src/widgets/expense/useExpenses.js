@@ -16,6 +16,10 @@ import {
   GridFill,
 } from 'react-bootstrap-icons';
 import { startOf, startOfDay, endOfDay } from './dates';
+import {
+  DEFAULT_CATEGORIES as DEFAULT_CATEGORY_DATA,
+  WIDGET_SETTINGS_DEFAULTS,
+} from '../../constants/defaults.js';
 
 const MAX_ENTRIES = 500;
 const PREFIX = 'expense_data_';
@@ -89,32 +93,36 @@ function _stripExpenseEntries(oldKey) {
 
 const mkId = () => `exp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-export const DEFAULT_CATEGORIES = [
-  // Essential living
-  { id: 'bills', Icon: LightningChargeFill, label: 'Bills & Utilities', description: 'Electricity, water, internet, phone, subscriptions' },
-  { id: 'rent', Icon: HouseFill, label: 'Rent', description: 'Monthly rent, housing loan, property tax' },
-  { id: 'groceries', Icon: CartFill, label: 'Groceries', description: 'Supermarket, household supplies, pantry' },
-  { id: 'health', Icon: HeartPulseFill, label: 'Health', description: 'Doctor, pharmacy, gym, wellness' },
-  // Food & lifestyle
-  { id: 'food', Icon: CupFill, label: 'Food & Drinks', description: 'Meals, coffee, snacks, dining out' },
-  // Shopping
-  { id: 'shopping', Icon: BagFill, label: 'Shopping', description: 'Clothes, accessories, retail purchases' },
-  { id: 'tech', Icon: LaptopFill, label: 'Gadgets', description: 'Gadgets, accessories, repairs, software' },
-  { id: 'gifts', Icon: GiftFill, label: 'Gifts', description: 'Presents, donations, celebrations' },
-  // Getting around
-  { id: 'transport', Icon: CarFrontFill, label: 'Transport', description: 'Bus, train, fuel, parking, rideshare' },
-  { id: 'travel', Icon: AirplaneFill, label: 'Travel', description: 'Flights, hotels, tours, holidays' },
-  // Work & protection
-  { id: 'work', Icon: BriefcaseFill, label: 'Work/Study', description: 'Office supplies, printing, freelancing costs' },
-  { id: 'insurance', Icon: ShieldFill, label: 'Insurance', description: 'Health, car, life, home insurance' },
-  // Leisure
-  { id: 'entertainment', Icon: Film, label: 'Entertainment', description: 'Movies, games, concerts, hobbies' },
-  // Catch-all
-  { id: 'other', Icon: GridFill, label: 'Other', description: 'Anything else that doesn\'t fit above' },
-];
+// Category icons (React components) attached to the pure category data defined
+// in constants/defaults.js. Keeping the icons here (not in defaults.js) lets the
+// service worker import defaults.js without pulling in react-bootstrap-icons.
+const CATEGORY_ICONS = {
+  bills: LightningChargeFill,
+  rent: HouseFill,
+  groceries: CartFill,
+  health: HeartPulseFill,
+  food: CupFill,
+  shopping: BagFill,
+  tech: LaptopFill,
+  gifts: GiftFill,
+  transport: CarFrontFill,
+  travel: AirplaneFill,
+  work: BriefcaseFill,
+  insurance: ShieldFill,
+  entertainment: Film,
+  other: GridFill,
+};
+
+export const DEFAULT_CATEGORIES = DEFAULT_CATEGORY_DATA.map((c) => ({
+  ...c,
+  Icon: CATEGORY_ICONS[c.id],
+}));
 
 export function getCategoryInfo(catId) {
-  return DEFAULT_CATEGORIES.find((c) => c.id === catId) ?? DEFAULT_CATEGORIES[13];
+  return (
+    DEFAULT_CATEGORIES.find((c) => c.id === catId) ??
+    DEFAULT_CATEGORIES.find((c) => c.id === 'other')
+  );
 }
 
 // ─── Category colors (keyed by category id, not index) ──────────────────────
@@ -142,14 +150,8 @@ export function getCatColor(catId) {
 
 // ─── Shared settings defaults ───────────────────────────────────────────────
 
-export const DEFAULT_EXPENSE_SETTINGS = {
-  currency: 'USD',
-  weekStartsOn: 'monday',
-  timeRange: 'week',
-  weekBudget: '',
-  monthBudget: '',
-  yearBudget: '',
-};
+// Defined in constants/defaults.js (WIDGET_SETTINGS_DEFAULTS.expense).
+export const DEFAULT_EXPENSE_SETTINGS = WIDGET_SETTINGS_DEFAULTS.expense;
 
 export const RANGE_CONFIG = {
   week: { budgetKey: 'weekBudget', label: 'Weekly', periodLabel: 'This week spending' },

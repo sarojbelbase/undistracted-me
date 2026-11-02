@@ -13,42 +13,13 @@
  * formatting rules and priorities in one place so bg.js stays clean.
  */
 
-export const NOTIFICATION_TYPES = [
-  {
-    id: 'events',
-    label: 'Events',
-    description: 'Reminder 5 min before a calendar event starts',
-  },
-  {
-    id: 'occasion',
-    label: 'Occasions',
-    description: 'Birthday & anniversary reminder at 9 AM on the day',
-  },
-  {
-    id: 'countdown',
-    label: 'Countdown',
-    description: 'Alert when a countdown timer reaches zero',
-  },
-  {
-    id: 'pomodoro',
-    label: 'Pomodoro',
-    description: 'When a focus session ends',
-  },
-  {
-    id: 'lookaway',
-    label: 'Look Away',
-    description: 'Eye-break reminders',
-  },
-];
-
-/** Default enabled state for each notification type on first install. */
-export const DEFAULT_NOTIFICATION_TYPES = {
-  events: true,
-  occasion: true,
-  countdown: true,
-  pomodoro: true,
-  lookaway: true,
-};
+// Notification type registry + default enabled state now live in
+// constants/defaults.js (single source of truth). Re-exported here so existing
+// import paths keep working.
+export {
+  NOTIFICATION_TYPES,
+  DEFAULT_NOTIFICATION_TYPES,
+} from "./defaults";
 
 // ─── Notification content builder ────────────────────────────────────────────
 

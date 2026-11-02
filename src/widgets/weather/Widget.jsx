@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { BaseWidget } from "../BaseWidget";
 import config from "./config";
 import { useWidgetSettings } from "../useWidgetSettings";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { Settings } from "./Settings";
 import { GeoAlt, SunriseFill, SunsetFill } from "react-bootstrap-icons";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
@@ -917,13 +918,7 @@ function getWeatherContent({
 // ── Widget ────────────────────────────────────────────────────────────────────
 
 export const Widget = ({ id = "weather", onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    location: null,
-    unit: "metric",
-    style: "minimal",
-    showAQI: true,
-    showSunTimes: true,
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.weather);
   const { location, unit, showAQI = true, showSunTimes = true } = settings;
   // Normalise legacy 'simple' value to 'minimal'
   const style =

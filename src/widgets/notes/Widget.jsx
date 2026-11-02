@@ -16,6 +16,7 @@ import {
 } from "react-bootstrap-icons";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
 import { Popup } from "../../components/ui/Popup";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
@@ -96,10 +97,7 @@ function resolveSettings(raw) {
 
 // ─── Widget ───────────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    notes: [""],
-    idx: 0,
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.notes);
   const { notes: initNotes, idx: initIdx } = resolveSettings(settings);
   const [localNotes, setLocalNotes] = useState(initNotes);
   const [localIdx, setLocalIdx] = useState(initIdx);

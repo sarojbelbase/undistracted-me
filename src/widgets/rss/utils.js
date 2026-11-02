@@ -11,7 +11,12 @@
 import { humanizeTime } from '../../utilities/humanizeTime';
 
 import { RSS_FEED_PROXY_URL } from '../../constants/urls.js';
-export { PRESET_FEEDS, PRESET_CATEGORIES, DEFAULT_ACTIVE_IDS, DEFAULT_FEED_ID } from './feeds.js';
+export { PRESET_FEEDS, PRESET_CATEGORIES } from './feeds.js';
+// Default feed IDs live in constants/defaults.js (single source of truth).
+export {
+  DEFAULT_RSS_ACTIVE_IDS as DEFAULT_ACTIVE_IDS,
+  DEFAULT_RSS_FEED_ID as DEFAULT_FEED_ID,
+} from '../../constants/defaults.js';
 
 // ── Environment detection ─────────────────────────────────────────────────────
 
