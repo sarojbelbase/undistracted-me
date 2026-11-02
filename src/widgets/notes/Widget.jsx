@@ -13,6 +13,9 @@ import {
   Plus,
   DashLg,
   ArrowLeft,
+  ArrowClockwise,
+  ArrowRepeat,
+  CheckCircleFill,
 } from "react-bootstrap-icons";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
@@ -22,6 +25,8 @@ import { Popup } from "../../components/ui/Popup";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
 import { splitNote, mergeNote, migrateNotes, makeNoteId } from "../../utilities/noteText";
 import notesSync, { NOTES_SYNC_EVENT } from "../../utilities/notesSync";
+import syncEngine from "../../utilities/syncEngine";
+import { isConnected } from "../../utilities/githubAuth";
 
 // Only fetched the first time a user expands a note to full-screen mode.
 const LexicalEditor = lazy(() => import("./LexicalEditor"));
@@ -278,6 +283,35 @@ export const Widget = ({ id, onRemove }) => {
     return () => document.removeEventListener("keydown", onKey);
   }, [mode, close]);
 
+  // ── Sync indicator (full-screen) ──────────────────────────────────────────
+  const [syncConnected, setSyncConnected] = useState(() => isConnected());
+  const [syncing, setSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState(null); // 'synced' | 'already' | null
+  const syncTimerRef = useRef(null);
+
+  useEffect(() => {
+    const refresh = () => setSyncConnected(isConnected());
+    return syncEngine.onSyncChange(refresh);
+  }, []);
+
+  useEffect(() => () => clearTimeout(syncTimerRef.current), []);
+
+  const handleSyncNow = async () => {
+    if (syncing || !syncConnected) return;
+    setSyncing(true);
+    setSyncFeedback(null);
+    clearTimeout(syncTimerRef.current);
+    try {
+      const result = await syncEngine.forceSync();
+      setSyncFeedback(result?.changed ? 'synced' : 'already');
+    } catch {
+      setSyncFeedback('already');
+    } finally {
+      setSyncing(false);
+      syncTimerRef.current = setTimeout(() => setSyncFeedback(null), 2500);
+    }
+  };
+
   const navControls = (
     <div className="notes-seg-track notes-fullscreen-nav">
       <SegBtn onClick={goPrev} disabled={localIdx === 0} label="Previous note">
@@ -313,6 +347,43 @@ export const Widget = ({ id, onRemove }) => {
       >
         <DashLg size={12} />
       </ConfirmButton>
+
+      {syncConnected && (
+        <>
+          <div className="notes-nav-divider" />
+          <TooltipBtn
+            type="button"
+            aria-label={syncing ? 'Syncing' : syncFeedback ? 'Sync status' : 'Sync now'}
+            onClick={handleSyncNow}
+            disabled={syncing}
+            tooltip={
+              syncing
+                ? 'Syncing…'
+                : syncFeedback === 'synced'
+                  ? 'Synced'
+                  : syncFeedback === 'already'
+                    ? 'Already synced — no changes'
+                    : 'Sync notes now'
+            }
+            className="notes-seg-btn"
+          >
+            {syncing
+              ? <ArrowRepeat size={12} className="animate-spin" />
+              : syncFeedback === 'synced'
+                ? <CheckCircleFill size={12} />
+                : syncFeedback === 'already'
+                  ? <CheckCircleFill size={12} style={{ opacity: 0.55 }} />
+                  : <ArrowClockwise size={12} />}
+            {syncing
+              ? 'Syncing…'
+              : syncFeedback === 'synced'
+                ? 'Synced'
+                : syncFeedback === 'already'
+                  ? 'Already synced'
+                  : 'Sync'}
+          </TooltipBtn>
+        </>
+      )}
     </div>
   );
 
