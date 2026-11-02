@@ -186,7 +186,7 @@ export const AddOccasion = ({ onSave, onClose }) => {
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: '1px solid rgba(0,0,0,0.12)', background: 'transparent',
+            border: '1px solid var(--w-divider)', background: 'transparent',
             color: 'var(--w-ink-2)', transition: 'all 0.15s',
           }}
         >Cancel</button>

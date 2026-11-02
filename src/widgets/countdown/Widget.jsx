@@ -321,7 +321,7 @@ export const Widget = ({ id, onRemove }) => {
       {/* Custom header — matching AllEventsModal style */}
       <div
         className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-        style={{ borderBottom: '1.5px solid rgba(0,0,0,0.1)' }}
+        style={{ borderBottom: '1.5px solid var(--w-divider)' }}
       >
         <div>
           <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>{config.title}</p>

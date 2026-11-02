@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getHistory, switchToTab } from '../hooks';
-import { getTokens, FM_CARD_BLUR } from '../theme';
+import { getTokens, FM_CARD_BLUR, FM_BORDER, FM_INK_3 } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 import { EngineIcon } from '../../../utilities/searchEngines';
@@ -41,7 +41,7 @@ function getDisplayTitle(site) {
 const PILL_TINTS = {
   'Switch': { bg: 'rgba(96,165,250,0.18)', border: 'rgba(96,165,250,0.30)', text: 'rgba(147,197,253,0.95)' },
   'Visit': { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.28)', text: 'rgba(253,224,71,0.95)' },
-  'Go to': { bg: 'rgba(255,255,255,0.09)', border: 'rgba(255,255,255,0.16)', text: 'rgba(255,255,255,0.65)' },
+  'Go to': { bg: 'rgba(255,255,255,0.09)', border: FM_BORDER, text: FM_INK_3 },
 };
 
 const Pill = ({ label }) => {

@@ -1,180 +1,117 @@
-// ─── Focus Mode Dark Glass Token System ───────────────────────────────────────
+// ─── Focus Mode Token System ──────────────────────────────────────────────────
 //
 // Focus Mode ALWAYS renders over a dark photo / orb backdrop.
-// Every color value in every FocusMode/* component MUST originate here.
+// All surface tokens originate from THEME_PROFILES[cardStyle].focus
+// (src/theme/profiles.js) — the single source of truth. Paper / glass / comic
+// each have a complete, self-contained Focus Mode profile.
 //
-// Card surface (glass vs paper) follows the user's canvas cardStyle preference,
-// but BOTH variants are always dark — ink/text is always white-on-dark.
+// Two application points:
+//   • getFMCardVars(cardStyle) — spread onto the .fm-root div, sets every
+//     `--fm-*` CSS var so all in-root panels resolve them.
+//   • getDialogStyle(accent, cardStyle) — spread onto portaled dialogs
+//     (rendered outside .fm-root), so their inner elements resolve the same
+//     `--fm-*` vars plus dark-tone accent.
 //
-// Rules:
-//   • Never reference --card-*, --w-ink-*, --w-surface-* CSS vars in FocusMode
-//     components — those track canvas mode state which can be light.
-//   • FM_CARD_* constants are CSS var wrappers — resolved from custom properties
-//     set via getFMCardVars(cardStyle) on the FocusMode root div.
-//   • Elements floating directly on the photo (clock, greeting, world clock)
-//     are luminance-adaptive — use getPhotoTokens(centerOnDark).
-//   • ACCENT: use getDialogStyle(accent) (not DIALOG_STYLE) for portalled dialogs
-//     so --w-accent is pinned to the dark-tone variant regardless of canvas mode.
+// The FM_* constants below are CSS-var references (var(--fm-*)), NOT raw
+// values — components that consume them automatically follow the active theme.
+//
+// Photo-luminance-adaptive tokens (getPhotoTokens / getTokens) are a separate
+// axis: they handle "text floating directly on the photo" (dark vs light photo),
+// which is independent of the card-surface theme.
 import { getFMAccentVars } from "../../constants/accents";
-//   • The search bar pill/dropdown switches palettes on luminance — use getTokens(dark).
-//   • dialog/shared.jsx, panels/Tasks.jsx etc. import FM_* from here.
-
-// ── Actual card surface values (glass) ────────────────────────────────────────
-export const GLASS_CARD_BG = "rgba(0,0,0,0.38)";
-export const GLASS_CARD_BORDER = "rgba(255,255,255,0.18)";
-export const GLASS_CARD_BLUR = "blur(28px) saturate(180%)";
-export const GLASS_CARD_SHADOW = "0 2px 16px rgba(0,0,0,0.28)";
-
-// ── Actual card surface values (flat dark) ─────────────────────────────────────
-export const FLAT_CARD_BG = "rgba(10,10,12,0.82)";
-export const FLAT_CARD_BORDER = "rgba(255,255,255,0.10)";
-export const FLAT_CARD_BLUR = "none";
-export const FLAT_CARD_SHADOW = "0 2px 16px rgba(0,0,0,0.40)";
-
-// ── Actual card surface values (comic — dark warm paper over photo) ────────────
-// Comic on Focus Mode is always dark-mode: aged paper with a parchment border
-// and a hard offset shadow, layered over the cinematic photo background.
-// Fully opaque — grain texture is added via CSS (see _comic.scss .fm-root block).
-export const COMIC_CARD_BG = "#1c1710";
-export const COMIC_CARD_BORDER = "#c8bc9c";
-export const COMIC_CARD_BLUR = "none";
-export const COMIC_CARD_SHADOW = "4px 4px 0 0 rgba(200,188,156,0.55)";
-export const COMIC_CARD_BORDER_WIDTH = "2px";
-export const COMIC_CARD_RADIUS = "14px 13px 15px 14px";
+import { THEME_PROFILES } from "../../theme/profiles";
 
 // ── Card surface token exports — CSS var wrappers ──────────────────────────────
-// These read from custom properties set on the FocusMode root div by
-// getFMCardVars(cardStyle). Using CSS vars lets every component automatically
-// respond to the glass/flat/comic toggle without prop threading or context.
 export const FM_CARD_BG = "var(--fm-card-bg)";
 export const FM_CARD_BORDER = "var(--fm-card-border)";
 export const FM_CARD_BLUR = "var(--fm-card-blur)";
 export const FM_CARD_SHADOW = "var(--fm-card-shadow)";
-// Driven by a CSS var so getFMCardVars can override it for Comic without touching
-// every panel that references FM_CARD_RADIUS or FOCUS_THEME.card.borderRadius.
 export const FM_CARD_RADIUS = "var(--fm-card-radius, 14px)";
-// Same for border-width: panels that use FOCUS_THEME.card.border get Comic's
-// 2px automatically when getFMCardVars sets --fm-card-border-width.
 export const FM_CARD_BORDER_WIDTH = "var(--fm-card-border-width, 1px)";
 
-// ── Returns inline style object to spread onto the FocusMode root div ──────────
-// Call with cardStyle from useSettingsStore (defaults to 'glass').
-// Sets --fm-card-{bg,border,blur,shadow,radius,border-width} so that all panel
-// components pick up the correct values through the CSS var wrappers above.
-export function getFMCardVars(cardStyle) {
-  if (cardStyle === "comic") {
-    return {
-      "--fm-card-bg": COMIC_CARD_BG,
-      "--fm-card-border": COMIC_CARD_BORDER,
-      "--fm-card-blur": COMIC_CARD_BLUR,
-      "--fm-card-shadow": COMIC_CARD_SHADOW,
-      "--fm-card-border-width": COMIC_CARD_BORDER_WIDTH,
-      "--fm-card-radius": COMIC_CARD_RADIUS,
-    };
-  }
-  if (cardStyle === "paper") {
-    return {
-      "--fm-card-bg": FLAT_CARD_BG,
-      "--fm-card-border": FLAT_CARD_BORDER,
-      "--fm-card-blur": FLAT_CARD_BLUR,
-      "--fm-card-shadow": FLAT_CARD_SHADOW,
-      "--fm-card-border-width": "1px",
-      "--fm-card-radius": "14px",
-    };
-  }
-  // glass (default)
-  return {
-    "--fm-card-bg": GLASS_CARD_BG,
-    "--fm-card-border": GLASS_CARD_BORDER,
-    "--fm-card-blur": GLASS_CARD_BLUR,
-    "--fm-card-shadow": GLASS_CARD_SHADOW,
-    "--fm-card-border-width": "1px",
-    "--fm-card-radius": "14px",
-  };
-}
-
 // ── Sub-surfaces (interactive elements inside cards) ───────────────────────────
-// ordered from lightest (most prominent) to most subtle
-export const FM_SURFACE = "rgba(255,255,255,0.08)"; // btn bg, track bg, icon badges
-export const FM_SURFACE_2 = "rgba(255,255,255,0.14)"; // inputs, raised surface, skeleton
-export const FM_BORDER = "rgba(255,255,255,0.12)"; // hairlines and button borders
-export const FM_DIVIDER = "rgba(255,255,255,0.07)"; // inner section dividers
+export const FM_SURFACE = "var(--fm-surface)";
+export const FM_SURFACE_2 = "var(--fm-surface-2)";
+export const FM_BORDER = "var(--fm-border)";
+export const FM_DIVIDER = "var(--fm-divider)";
+export const FM_SECTION_CARD_BG = "var(--fm-section-bg)";
+export const FM_SECTION_CARD_BORDER = "var(--fm-section-border)";
 
-// Sub-panels (sections inside a dialog)
-export const FM_SECTION_CARD_BG = "rgba(255,255,255,0.06)";
-export const FM_SECTION_CARD_BORDER = "rgba(255,255,255,0.09)";
-
-// ── Ink scale (text on glass — always bright, always white-on-dark) ────────────
-export const FM_INK_1 = "rgba(255,255,255,0.96)"; // primary text / display numbers
-export const FM_INK_2 = "rgba(255,255,255,0.82)"; // secondary text / body
-export const FM_INK_3 = "rgba(255,255,255,0.55)"; // labels / muted
-export const FM_INK_4 = "rgba(255,255,255,0.32)"; // very muted / hints / placeholders
+// ── Ink scale (text on cards — always white-on-dark) ───────────────────────────
+export const FM_INK_1 = "var(--fm-ink-1)";
+export const FM_INK_2 = "var(--fm-ink-2)";
+export const FM_INK_3 = "var(--fm-ink-3)";
+export const FM_INK_4 = "var(--fm-ink-4)";
 
 // ── Interactive element tokens ─────────────────────────────────────────────────
-export const FM_TOGGLE_THUMB = "#ffffff";
-export const FM_TOGGLE_SHADOW = "0 1px 3px rgba(0,0,0,0.4)";
-export const FM_TOGGLE_OFF_BG = FM_SURFACE_2; // rgba(255,255,255,0.14)
+export const FM_TOGGLE_THUMB = "var(--fm-toggle-thumb)";
+export const FM_TOGGLE_SHADOW = "var(--fm-toggle-shadow)";
+export const FM_TOGGLE_OFF_BG = "var(--fm-toggle-off-bg)";
 
-export const FM_CLOSE_BG = FM_SURFACE; // rgba(255,255,255,0.08)
-export const FM_CLOSE_BG_HOVER = FM_SURFACE_2; // rgba(255,255,255,0.14)
-export const FM_CLOSE_BORDER = FM_BORDER; // rgba(255,255,255,0.12)
-export const FM_CLOSE_COLOR = "rgba(255,255,255,0.55)";
+export const FM_CLOSE_BG = "var(--fm-close-bg)";
+export const FM_CLOSE_BG_HOVER = "var(--fm-close-bg-hover)";
+export const FM_CLOSE_BORDER = "var(--fm-close-border)";
+export const FM_CLOSE_COLOR = "var(--fm-close-color)";
 
-// Spinner (loading indicator inside cards)
-export const FM_SPINNER_RING = "rgba(255,255,255,0.10)";
-export const FM_SPINNER_ACTIVE = "rgba(255,255,255,0.60)";
+export const FM_SPINNER_RING = "var(--fm-spinner-ring)";
+export const FM_SPINNER_ACTIVE = "var(--fm-spinner-active)";
 
-// ── SVG icon stroke defaults ───────────────────────────────────────────────────
-export const FM_ICON_STROKE = "rgba(255,255,255,0.75)"; // search, nav icons
-export const FM_ICON_STROKE_MUTED = "rgba(255,255,255,0.65)"; // star, globe decorative
+export const FM_ICON_STROKE = "var(--fm-icon-stroke)";
+export const FM_ICON_STROKE_MUTED = "var(--fm-icon-stroke-muted)";
 
 // ── Semantic status colors ─────────────────────────────────────────────────────
-// Success — bright green that reads clearly on dark glass
-export const FM_SUCCESS = "#4ade80";
-export const FM_SUCCESS_BG = "rgba(74,222,128,0.14)";
-export const FM_SUCCESS_BORDER = "rgba(74,222,128,0.30)";
-export const FM_SUCCESS_DOT = "#22c55e";
-export const FM_SYNC_BG = "rgba(34,197,94,0.12)";
-export const FM_SYNC_BORDER = "rgba(34,197,94,0.28)";
+export const FM_SUCCESS = "var(--fm-success)";
+export const FM_SUCCESS_BG = "var(--fm-success-bg)";
+export const FM_SUCCESS_BORDER = "var(--fm-success-border)";
+export const FM_SUCCESS_DOT = "var(--fm-success-dot)";
+export const FM_SYNC_BG = "var(--fm-sync-bg)";
+export const FM_SYNC_BORDER = "var(--fm-sync-border)";
 
-// Danger — muted red that reads on dark glass without alarming
-export const FM_DANGER = "#f87171";
-export const FM_DANGER_BG = "rgba(239,68,68,0.09)";
-export const FM_DANGER_BORDER = "rgba(239,68,68,0.22)";
-export const FM_DANGER_HOVER_BG = "rgba(239,68,68,0.16)";
-// ── Popover / caret-dropdown panel (Settings gear menu, etc.) ───────────────
-export const FM_POPOVER_BG = "rgba(12,12,16,0.86)";
-export const FM_POPOVER_BORDER = "rgba(255,255,255,0.11)";
-export const FM_POPOVER_SHADOW =
-  "0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)";
+export const FM_DANGER = "var(--fm-danger)";
+export const FM_DANGER_BG = "var(--fm-danger-bg)";
+export const FM_DANGER_BORDER = "var(--fm-danger-border)";
+export const FM_DANGER_HOVER_BG = "var(--fm-danger-hover-bg)";
 
-// ── Orb scene ─────────────────────────────────────────────────────────────────
-export const FM_ORB_BG = "#060608"; // near-black base for the orb backdrop
-// ── Stock direction (financial semantic) ───────────────────────────────────────
-export const FM_STOCK_UP = "#4ade80";
-export const FM_STOCK_UP_BG = "rgba(74,222,128,0.12)";
-export const FM_STOCK_DOWN = "#f87171";
-export const FM_STOCK_DOWN_BG = "rgba(248,113,113,0.12)";
+// ── Popover / caret-dropdown panel ─────────────────────────────────────────────
+export const FM_POPOVER_BG = "var(--fm-popover-bg)";
+export const FM_POPOVER_BORDER = "var(--fm-popover-border)";
+export const FM_POPOVER_SHADOW = "var(--fm-popover-shadow)";
+
+// ── Orb scene / stock direction ────────────────────────────────────────────────
+export const FM_ORB_BG = "var(--fm-orb-bg)";
+export const FM_STOCK_UP = "var(--fm-stock-up)";
+export const FM_STOCK_UP_BG = "var(--fm-stock-up-bg)";
+export const FM_STOCK_DOWN = "var(--fm-stock-down)";
+export const FM_STOCK_DOWN_BG = "var(--fm-stock-down-bg)";
+
+// ─── getFMCardVars ─────────────────────────────────────────────────────────────
+// Returns the complete Focus Mode profile for a card style, to spread onto the
+// .fm-root div. Setting every `--fm-*` var here means all in-root panels
+// (left cards, toolbar, tasks pill, search bar) resolve correctly via the
+// FM_* var wrappers above.
+export function getFMCardVars(cardStyle) {
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  return { ...profile.focus };
+}
 
 // ─── FOCUS_THEME ────────────────────────────────────────────────────────────────
 // Legacy-compat object — panels use `const t = FOCUS_THEME`.
-// All values reference the constants above — no duplication.
-
 export const FOCUS_THEME = {
   card: {
     background: FM_CARD_BG,
+    backgroundImage: "var(--fm-card-texture, none)",
+    backgroundRepeat: "repeat",
+    backgroundSize: "200px 200px",
     backdropFilter: FM_CARD_BLUR,
     WebkitBackdropFilter: FM_CARD_BLUR,
-    // Use CSS var for border-width so Comic's 2px propagates without touching
-    // every panel file — FM_CARD_BORDER_WIDTH = 'var(--fm-card-border-width, 1px)'.
     border: `${FM_CARD_BORDER_WIDTH} solid ${FM_CARD_BORDER}`,
     borderRadius: FM_CARD_RADIUS,
     boxShadow: FM_CARD_SHADOW,
   },
-  label: FM_INK_3, // section labels, muted captions
-  text: FM_INK_1, // primary text / numbers
-  sub: FM_INK_2, // secondary text
-  track: FM_SURFACE, // progress track / empty state bg
+  label: FM_INK_3,
+  text: FM_INK_1,
+  sub: FM_INK_2,
+  track: FM_SURFACE,
   btnBg: FM_SURFACE,
   btnBorder: FM_BORDER,
   btnColor: FM_INK_1,
@@ -182,84 +119,57 @@ export const FOCUS_THEME = {
 };
 
 // ─── AnimatedCard ────────────────────────────────────────────────────────────────
-// Plain passthrough — no animation, no wrapper compositing layer.
-// Kept as a named export so callers don't need updating.
-// eslint-disable-next-line no-unused-vars
 export const AnimatedCard = ({ delay, children }) => <>{children}</>;
 
-// ─── DIALOG_STYLE ────────────────────────────────────────────────────────────────
-// Spread onto Modal's `style` prop for all FocusMode portal dialogs.
-// Sets the dark-glass card surface AND pins --w-ink-* CSS vars to their dark
-// values so any var(--w-ink-*) inside the portal resolves correctly regardless
-// of the canvas-level theme.
+// ─── Dialog surface + CSS var pins ──────────────────────────────────────────────
+// Portaled dialogs render outside .fm-root, so they must carry the full
+// `--fm-*` profile + dark ink pins + dark-tone accent with them.
 
-// ─── DIALOG_STYLE ────────────────────────────────────────────────────────────────
-// Spread onto Modal's `style` prop for all FocusMode portal dialogs.
-// Portals render outside the FocusMode root div so var(--fm-card-*) won't cascade.
-// We always use glass for portals — they float over a dark backdrop and always
-// look correct as frosted glass. Flat style applies to the left-panel cards only.
-// Also pins --w-ink-* CSS vars so any var(--w-ink-*) inside the portal resolves correctly.
+/** Full surface + CSS-var style object for a portaled FM dialog. */
+function dialogSurface(focus) {
+  return {
+    ...focus, // sets every --fm-* var on the dialog element
+    background: "var(--fm-card-bg)",
+    backgroundImage: "var(--fm-card-texture, none)",
+    backgroundRepeat: "repeat",
+    backgroundSize: "200px 200px",
+    backdropFilter: "var(--fm-card-blur)",
+    WebkitBackdropFilter: "var(--fm-card-blur)",
+    border: "var(--fm-card-border-width, 1px) solid var(--fm-card-border)",
+    borderRadius: "var(--fm-card-radius, 14px)",
+    boxShadow: "var(--fm-card-shadow)",
+    // Pin --w-* canvas vars to FM dark values so any var(--w-*) inside the
+    // portal resolves correctly regardless of canvas mode.
+    "--w-ink-1": focus["--fm-ink-1"],
+    "--w-ink-2": focus["--fm-ink-2"],
+    "--w-ink-3": focus["--fm-ink-3"],
+    "--w-ink-4": focus["--fm-ink-4"],
+    "--w-ink-5": focus["--fm-ink-4"],
+    "--w-border": focus["--fm-border"],
+    "--w-surface": focus["--fm-surface"],
+    "--w-surface-2": focus["--fm-surface-2"],
+  };
+}
 
-export const DIALOG_STYLE = {
-  background: GLASS_CARD_BG,
-  backdropFilter: GLASS_CARD_BLUR,
-  WebkitBackdropFilter: GLASS_CARD_BLUR,
-  border: `1px solid ${GLASS_CARD_BORDER}`,
-  boxShadow: GLASS_CARD_SHADOW,
-  // CSS var pins (hex values for broadest compatibility)
-  "--w-ink-1": "#f2f2f2",
-  "--w-ink-2": "#e0e0e0",
-  "--w-ink-3": "#c4c4c4",
-  "--w-ink-4": "#a0a0a0",
-  "--w-ink-5": "#888888",
-  "--w-border": FM_BORDER,
-  "--w-surface": FM_SURFACE,
-  "--w-surface-2": FM_SURFACE_2,
-};
+/** Legacy glass dialog style (glass profile). */
+export const DIALOG_STYLE = dialogSurface(THEME_PROFILES.glass.focus);
 
-// ─── Grain texture SVG (shared) ─────────────────────────────────────────────────
-// Subtle feTurbulence film-grain tile encoded as a data-URI. Used by both
-// the CSS card-grain rule (_comic.scss) and the COMIC_DIALOG_STYLE object
-// so portaled dialogs get the same paper texture as in-root cards.
-
-const GRAIN_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E";
-
-// ─── COMIC_DIALOG_STYLE ─────────────────────────────────────────────────────────
-// Used instead of DIALOG_STYLE when cardStyle === "comic". Portaled dialogs
-// render outside .fm-root so they can't inherit CSS vars from it. This object
-// hardcodes the dark comic paper surface + parchment ink scale so the Settings
-// and Tasks dialogs match the comic left-panel cards.
-
-export const COMIC_DIALOG_STYLE = {
-  background: COMIC_CARD_BG,
-  backgroundImage: `url("${GRAIN_SVG}")`,
-  backgroundRepeat: "repeat",
-  backgroundSize: "200px 200px",
-  border: `${COMIC_CARD_BORDER_WIDTH} solid ${COMIC_CARD_BORDER}`,
-  borderRadius: COMIC_CARD_RADIUS,
-  boxShadow: COMIC_CARD_SHADOW,
-  // CSS var pins — parchment ink on dark paper
-  "--w-ink-1": "#f2e8d5",
-  "--w-ink-2": "#e0d4b8",
-  "--w-ink-3": "#c4b898",
-  "--w-ink-4": "#a09878",
-  "--w-ink-5": "#888068",
-  "--w-border": COMIC_CARD_BORDER,
-  "--w-surface": "rgba(200,188,156,0.08)",
-  "--w-surface-2": "rgba(200,188,156,0.14)",
-};
+/** Legacy comic dialog style (comic profile). */
+export const COMIC_DIALOG_STYLE = dialogSurface(THEME_PROFILES.comic.focus);
 
 /**
  * Use this instead of spreading DIALOG_STYLE directly on portalled FM dialogs.
- * Merges the dark-glass (or comic) surface tokens with dark-tone accent CSS vars
- * so var(--w-accent) resolves correctly even when canvas mode is light.
+ * Returns the full focus profile surface + dark ink pins + dark-tone accent.
  *
  * @param {string} accentName  — accent key (e.g. "blueberry")
  * @param {string} cardStyle   — "glass" | "paper" | "comic" (defaults to "glass")
  */
 export function getDialogStyle(accentName, cardStyle = "glass") {
-  const base = cardStyle === "comic" ? COMIC_DIALOG_STYLE : DIALOG_STYLE;
-  return { ...base, ...getFMAccentVars(accentName) };
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  return {
+    ...dialogSurface(profile.focus),
+    ...getFMAccentVars(accentName),
+  };
 }
 
 // Section divider & card (sub-panel inside a dialog)
@@ -270,29 +180,21 @@ export const SECTION_CARD_STYLE = {
   border: `1px solid ${FM_SECTION_CARD_BORDER}`,
 };
 
-// ─── Photo-luminance adaptive tokens ─────────────────────────────────────────────
+// ─── Photo-luminance adaptive tokens ────────────────────────────────────────────
 //
 // Used ONLY for elements floating directly on the photo/orb (not inside a card):
-// clock digits, greeting text, and world clock labels.
-//
-// When the background is dark (centerOnDark = true): bright white text with
-// drop shadows for legibility. When it's light: dark text, no shadows.
-
+// clock digits, greeting text, and world clock labels. Theme-independent.
 export function getPhotoTokens(centerOnDark) {
   if (centerOnDark) {
     return {
-      // Main clock
       clockColor: "rgba(255,255,255,0.97)",
       colonColor: "rgba(255,255,255,0.75)",
       clockShadow: "0 1px 3px rgba(0,0,0,0.50), 0 2px 18px rgba(0,0,0,0.28)",
-      // Period (AM/PM)
       periodColor: "rgba(255,255,255,0.65)",
       periodShadow: "0 1px 4px rgba(0,0,0,0.45)",
-      // Greeting
       greetShadow: "0 1px 4px rgba(0,0,0,0.60), 0 2px 14px rgba(0,0,0,0.28)",
       greetPrefix: "rgba(255,255,255,0.68)",
       greetName: "rgba(255,255,255,0.97)",
-      // World clock
       timeColor: "rgba(255,255,255,0.92)",
       cityColor: "rgba(255,255,255,0.45)",
       periodRightColor: "rgba(255,255,255,0.58)",
@@ -317,15 +219,7 @@ export function getPhotoTokens(centerOnDark) {
   };
 }
 
-// ─── Search bar inline style tokens ───────────────────────────────────────────
-//
-// The search bar switches between dark/light palettes based on image luminance
-// (centerOnDark). These are JS objects used as inline styles — not CSS vars —
-// because the choice is made at runtime, not at theme-load time.
-//
-// Dark: floating on a dark photo — white text, dark glass dropdown.
-// Light: floating on a light photo — dark text, translucent white dropdown.
-
+// ─── Search bar inline style tokens (photo-luminance adaptive) ─────────────────
 const DARK_TOKENS = {
   pillBg: "rgba(0,0,0,0.38)",
   pillBgFocused: "rgba(0,0,0,0.50)",

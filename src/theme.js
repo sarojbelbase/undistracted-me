@@ -1,49 +1,8 @@
 import { computeAutoMode } from "./utilities/sunTime";
-import { CARD_STYLE_TOKENS } from "./constants/cardStyles";
+import { THEME_PROFILES } from "./theme/profiles";
 export { ACCENT_COLORS } from "./constants/accents";
+export { CARD_STYLES } from "./theme/profiles";
 import { ACCENT_COLORS } from "./constants/accents";
-
-const LIGHT_TOKENS = {
-  "--w-ink-1": "#111111" /* neutral near-black — no hue bias, 18.4:1 ✓ AAA */,
-  "--w-ink-2": "#222222" /* 14.5:1 ✓ AAA */,
-  "--w-ink-3": "#3d3d3d" /* 9.4:1  ✓ AAA */,
-  "--w-ink-4": "#4d4d4d" /* 7.7:1  ✓ AA  */,
-  "--w-ink-5":
-    "#666666" /* 5.7:1  ✓ AA  — was #707070 (4.9:1, too close to edge on glass) */,
-  "--w-ink-6":
-    "#8a8a8a" /* 3.4:1  ✓ decorative/inactive — was #a0a0a0 (2.6:1, failed 3.3 target) */,
-  "--w-surface": "#f5f5f5" /* neutral off-white — 18.4:1 vs #111111 ✓ AAA */,
-  "--w-surface-2": "#f0f0f0",
-  "--w-surface-3": "#e8e8e8" /* tertiary surface — icon skeletons    */,
-  "--w-border": "#e0e0e0",
-  "--w-page-bg": "#ebebeb",
-  "--w-danger": "#ef4444" /* semantic error / destructive red      */,
-  "--w-success": "#22c55e" /* semantic success / live green         */,
-  "--w-sunrise": "#f59e0b" /* sunrise icon — warm amber             */,
-  "--w-sunset": "#8b5cf6" /* sunset icon — cool purple             */,
-};
-
-const DARK_TOKENS = {
-  "--w-ink-1": "#f2f2f2" /* near-white — headlines                  */,
-  "--w-ink-2": "#e0e0e0" /* primary labels & display numbers        */,
-  "--w-ink-3": "#c4c4c4" /* bold value text, strong secondary       */,
-  "--w-ink-4":
-    "#a0a0a0" /* medium context, captions      6.5:1 ✓ AA — was #8e8e8e (5.2:1, inverted vs ink-5) */,
-  "--w-ink-5":
-    "#888888" /* muted labels                  4.8:1 ✓ AA — was #909090 (5.3:1, brighter than ink-4 = bug) */,
-  "--w-ink-6": "#6e6e6e" /* inactive / decorative         3.3:1 ✓ min */,
-  "--w-surface": "#1c1c1c" /* mid-point widget card surface            */,
-  "--w-surface-2": "#252525" /* raised surface — inputs, sub-panels   */,
-  "--w-surface-3": "#2a2a2a" /* tertiary surface — icon skeletons    */,
-  "--w-border": "#333333" /* hairline separators                      */,
-  "--w-page-bg": "#141414" /* page canvas behind widget grid           */,
-  "--w-danger":
-    "#f87171" /* semantic error / destructive red (lighter for dark bg) */,
-  "--w-success":
-    "#4ade80" /* semantic success / live green (lighter for dark bg)    */,
-  "--w-sunrise": "#fbbf24" /* sunrise icon — brighter amber for dark bg */,
-  "--w-sunset": "#a78bfa" /* sunset icon — brighter purple for dark bg */,
-};
 
 const hexToRgb = (hex) => {
   const r = Number.parseInt(hex.slice(1, 3), 16);
@@ -53,7 +12,13 @@ const hexToRgb = (hex) => {
 };
 
 /**
- * Apply theme and card-style CSS custom properties to :root.
+ * Apply theme + card-style CSS custom properties to :root.
+ *
+ * Reads the complete per-theme profile from THEME_PROFILES (src/theme/profiles.js)
+ * — the single source of truth for every styling dimension. Each profile's
+ * light/dark map already includes the base ink/surface scale, semantic colors,
+ * and card/panel/modal surface tokens, so applying it wholesale swaps the whole
+ * look at once.
  *
  * @param {string} accent    - accent color name from ACCENT_COLORS
  * @param {string} mode      - 'light' | 'dark' | 'auto'
@@ -63,11 +28,12 @@ export const applyTheme = (accent, mode, cardStyle = "glass") => {
   const resolved = mode === "auto" ? computeAutoMode() : mode;
   const root = document.documentElement;
 
-  // Base design tokens
-  const tokens = resolved === "dark" ? DARK_TOKENS : LIGHT_TOKENS;
+  // Complete theme profile (base ink/surface + semantic + card/panel/modal).
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  const tokens = profile[resolved] ?? profile.light;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
-  // Accent colour — pick the luminous dark-mode tonal variant when in dark mode
+  // Accent colour — pick the luminous dark-mode tonal variant when in dark mode.
   const color =
     ACCENT_COLORS.find((a) => a.name === accent) || ACCENT_COLORS[0];
   const isDark = resolved === "dark";
@@ -78,14 +44,9 @@ export const applyTheme = (accent, mode, cardStyle = "glass") => {
   root.style.setProperty("--w-accent-rgb", hexToRgb(accentHex));
   root.dataset.mode = resolved;
 
-  // Card / surface style tokens
-  const cardTokens = (CARD_STYLE_TOKENS[cardStyle] ?? CARD_STYLE_TOKENS.glass)[
-    resolved
-  ];
-  Object.entries(cardTokens).forEach(([k, v]) => root.style.setProperty(k, v));
-
-  // data-card-style attribute — enables [data-card-style="comic"] CSS selectors
-  // in _comic.scss for typography, button, and input treatments.
+  // data-card-style attribute — enables [data-card-style="…"] CSS selectors
+  // in _paper.scss / _glass.scss / _comic.scss for non-token styling
+  // (typography weight/letter-spacing, border-radius, scrollbars, etc.).
   root.dataset.cardStyle = cardStyle ?? "glass";
 };
 

@@ -23,9 +23,9 @@
 // They work because the alpha blends with the surface to produce consistent
 // contrast on both #fff (flat) and rgba(255,255,255,0.44) (glass).
 
-/** Section hairline / modal inner divider — works on glass and flat */
-export const CANVAS_DIVIDER = "rgba(0,0,0,0.1)";
-export const CANVAS_DIVIDER_DARK = "rgba(255,255,255,0.12)"; // inverted divider for dark canvas
+/** Section hairline / modal inner divider — theme-aware (var resolves per mode+theme) */
+export const CANVAS_DIVIDER = "var(--w-divider)";
+export const CANVAS_DIVIDER_DARK = "var(--w-divider)"; // alias — same token handles dark
 
 /** Hover overlay for interactive cells (calendar days, list rows) */
 export const CANVAS_HOVER_OVERLAY = "rgba(0,0,0,0.06)";
@@ -112,8 +112,8 @@ export const CANVAS_TAB_INACTIVE_DARK = "rgba(255,255,255,0.55)";
 export const CANVAS_TAB_HINT_DARK = "rgba(255,255,255,0.38)";
 
 // ── Clock widget ─────────────────────────────────────────────────────────────
-/** Subtle divider above extra timezone clocks — works on glass and flat */
-export const CLOCK_TIMEZONE_DIVIDER = "rgba(0,0,0,0.1)";
+/** Subtle divider above extra timezone clocks — theme-aware */
+export const CLOCK_TIMEZONE_DIVIDER = "var(--w-divider)";
 
 // ── Notes widget (macOS traffic-light controls) ───────────────────────────────
 /** Inset shadow on the circular traffic-light control buttons */

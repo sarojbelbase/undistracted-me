@@ -3,7 +3,7 @@ import React, { useState, useCallback, Suspense, lazy } from "react";
 import { TasksDialog } from "../dialog/Tasks";
 import { useSettingsStore } from "../../../store";
 import {
-  FM_SURFACE, FM_SURFACE_2, FM_CARD_BORDER,
+  FM_SURFACE, FM_SURFACE_2, FM_CARD_BG, FM_CARD_BORDER,
 } from "../theme";
 
 const TasksPanel = lazy(() =>
@@ -19,7 +19,7 @@ const TasksPillSkeleton = () => (
       gap: 6,
       padding: '7px 13px',
       borderRadius: 999,
-      background: 'rgba(0,0,0,0.45)',
+      background: FM_CARD_BG,
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       border: `1px solid ${FM_CARD_BORDER}`,

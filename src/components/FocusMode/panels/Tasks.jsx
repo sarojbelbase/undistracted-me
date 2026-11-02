@@ -24,7 +24,7 @@ import { Input } from '../../ui/Input';
 // All surface tokens reference FM_* constants — always dark glass, never CSS vars.
 
 const PANEL_BG = FM_CARD_BG;
-const PILL_BG = 'rgba(0,0,0,0.38)';
+const PILL_BG = FM_CARD_BG;
 const INPUT_BG = FM_SURFACE;
 const HOVER_BG = FM_SURFACE;
 const SECTION_BORDER = `1px solid ${FM_DIVIDER}`;

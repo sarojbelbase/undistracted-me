@@ -12,7 +12,7 @@ import { useUIStore } from '../../../store/useUIStore';
 import {
   FOCUS_THEME, DIALOG_STYLE, SECTION_BORDER, SECTION_CARD_STYLE,
   getDialogStyle,
-  FM_SURFACE, FM_BORDER, FM_DIVIDER,
+  FM_SURFACE, FM_SECTION_CARD_BG, FM_BORDER, FM_DIVIDER,
   FM_INK_1, FM_INK_2, FM_INK_3, FM_INK_4,
   FM_TOGGLE_THUMB, FM_TOGGLE_SHADOW, FM_TOGGLE_OFF_BG,
   FM_CLOSE_BG, FM_CLOSE_BG_HOVER, FM_CLOSE_BORDER, FM_CLOSE_COLOR,
@@ -182,7 +182,7 @@ export const AccountSection = ({ icon, label = 'Google', description = null, pri
   const pillStyle = {
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '8px 12px', borderRadius: 9,
-    background: 'rgba(255,255,255,0.06)',
+    background: FM_SECTION_CARD_BG,
     border: `1px solid ${FM_BORDER}`,
   };
 
@@ -257,7 +257,7 @@ export const AccountSection = ({ icon, label = 'Google', description = null, pri
         <button
           type="button"
           onClick={openAccountsDialog}
-          style={{ ...pillStyle, cursor: 'pointer', width: '100%', textAlign: 'left', background: 'rgba(255,255,255,0.04)' }}
+          style={{ ...pillStyle, cursor: 'pointer', width: '100%', textAlign: 'left', background: FM_SURFACE }}
         >
           <GearFillIcon size={12} color={FM_INK_3} />
           <div style={{ flex: 1, minWidth: 0 }}>

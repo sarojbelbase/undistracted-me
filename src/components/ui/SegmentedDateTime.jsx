@@ -90,7 +90,7 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
   let popBg, popBorder, trackBg;
   if (isGlass) {
     popBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)';
-    popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+    popBorder = '1px solid var(--w-divider)';
     trackBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.35)';
   } else {
     popBg = 'var(--modal-bg)';
@@ -173,7 +173,7 @@ const CalendarPopover = ({ anchorEl, navYear, navMonth, selYear, selMonth, selDa
   let popBg, popBorder;
   if (isGlass) {
     popBg = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)';
-    popBorder = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+    popBorder = '1px solid var(--w-divider)';
   } else {
     popBg = 'var(--modal-bg)';
     popBorder = '1px solid var(--card-border)';
@@ -495,7 +495,7 @@ export const SegmentedDateTime = ({
   if (isFocused || showCal || showTimePicker) {
     borderVal = '1px solid color-mix(in srgb, var(--w-accent) 35%, transparent)';
   } else if (isGlass) {
-    borderVal = isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.09)';
+    borderVal = '1px solid var(--w-divider)';
   } else {
     borderVal = '1px solid var(--card-border)';
   }

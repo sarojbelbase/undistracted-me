@@ -400,7 +400,7 @@ const ErrorState = ({ onRetry, absolute = false }) => (
       onClick={onRetry}
       onMouseDown={(e) => e.stopPropagation()}
       className="w-caption font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
-      style={{ background: "var(--w-surface-2)", color: "var(--w-ink-3)", border: "1px solid rgba(0,0,0,0.1)", cursor: "pointer" }}
+      style={{ background: "var(--w-surface-2)", color: "var(--w-ink-3)", border: "1px solid var(--w-divider)", cursor: "pointer" }}
     >
       Retry
     </button>
