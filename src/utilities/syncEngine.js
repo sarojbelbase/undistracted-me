@@ -1,16 +1,20 @@
 /**
- * Cross-device Sync Engine
+ * Cross-device Sync Engine — GitHub gist transport
  *
- * Syncs settings, widget instances, events, and bookmarks across all signed-in
- * Chrome instances via chrome.storage.sync. Last-write-wins with per-key
- * timestamps. Debounced writes (500ms) to respect the ~1 write/sec rate limit.
+ * Syncs settings, widget instances, events, and bookmarks across devices via a
+ * single private GitHub gist. Last-write-wins with per-key timestamps. The gist
+ * holds one JSON file whose shape is:
+ *
+ *   { v: 1, deviceId, updatedAt, keys: { <localKey>: { v, t } } }
  *
  * Architecture:
- *   - Each syncable key is stored as { v: <value>, t: <epochMs> } in
- *     chrome.storage.sync under a namespaced prefix (`sync_v1_`).
- *   - On load: pull all keys, merge with local (higher timestamp wins).
- *   - On change: push to sync after 500ms debounce.
- *   - Listens for chrome.storage.onChanged to react to remote changes.
+ *   - Each syncable local key is stored as { v: <value>, t: <epochMs> } inside
+ *     the gist's `keys` map.
+ *   - On load (enableSync): read the gist, merge into local (newer wins), then
+ *     push local back (local wins where newer).
+ *   - On change: debounced (500ms) push of a single key. Gists have no push
+ *     channel, so remote changes are discovered by polling (30s + on focus).
+ *   - Writes are serialized through a promise queue to avoid races.
  *
  * What syncs:
  *   - Settings (undistracted_settings)
@@ -27,15 +31,20 @@
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { isExtension } from './index';
+import { GITHUB_GISTS_API } from '../constants/urls';
+import {
+  getToken,
+  getGistId,
+  setGistId,
+  isConnected,
+  GIST_FILENAME,
+  GIST_DESCRIPTION,
+} from './githubAuth';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SYNC_PREFIX = 'sync_v1_';
-const META_KEY = SYNC_PREFIX + 'meta';
 const DEBOUNCE_MS = 500;
-const MAX_ITEM_BYTES = 8000; // chrome.storage.sync per-item limit (8KB)
-const MAX_TOTAL_BYTES = 90000; // soft limit (100KB total, leave 10KB headroom)
-const QUOTA_WARNING_KEY = 'sync_quota_warning';
+const POLL_INTERVAL_MS = 30000; // gists have no push — poll for remote changes
 
 /** Max entries per array-type key when syncing (oldest trimmed first). */
 const MAX_SYNC_ENTRIES = {
@@ -44,14 +53,15 @@ const MAX_SYNC_ENTRIES = {
   'countdown_pinned': 50,
 };
 
-/** Keys that are eligible for sync (localStorage key → sync key mapping). */
+/** Keys that are eligible for sync. Map keeps localKey → itself for API compat. */
 const SYNC_MAP = {
-  'undistracted_settings': SYNC_PREFIX + 'settings',
-  'widget_instances': SYNC_PREFIX + 'widget_instances',
-  'widget_events': SYNC_PREFIX + 'events',
-  'widget_bookmarks': SYNC_PREFIX + 'bookmarks',
-  'countdown_pinned': SYNC_PREFIX + 'countdown_pinned',
+  'undistracted_settings': 'undistracted_settings',
+  'widget_instances': 'widget_instances',
+  'widget_events': 'widget_events',
+  'widget_bookmarks': 'widget_bookmarks',
+  'countdown_pinned': 'countdown_pinned',
 };
+const SYNC_KEYS = Object.keys(SYNC_MAP);
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -59,7 +69,9 @@ let enabled = false;
 let deviceId = '';
 let lastSyncAt = null;
 let debounceTimers = {};
-let changeListener = null;
+let pollTimer = null;
+let pollCleanup = null;
+let writeQueue = Promise.resolve();
 let onChangeCallbacks = new Set(); // external listeners for UI updates
 
 /** Generate a short random device ID for metadata tracking. */
@@ -68,9 +80,6 @@ const generateDeviceId = () => {
   crypto.getRandomValues(buf);
   return 'dev_' + buf[0].toString(36) + '_' + Date.now().toString(36);
 };
-
-/** Estimate JSON byte size. */
-const byteSize = (val) => new Blob([JSON.stringify(val)]).size;
 
 /** Get current epoch ms timestamp. */
 const now = () => Date.now();
@@ -115,36 +124,84 @@ const setLocalTs = (localKey, ts) => {
     const map = JSON.parse(localStorage.getItem(TS_KEY) || '{}');
     map[localKey] = ts;
     localStorage.setItem(TS_KEY, JSON.stringify(map));
-  } catch { /* ignore */ }
-};
-
-/** Write a wrapped value to chrome.storage.sync. */
-const writeSync = async (syncKey, wrapped) => {
-  if (!isExtension()) return false;
-  try {
-    await chrome.storage.sync.set({ [syncKey]: wrapped });
-    return true;
-  } catch (err) {
-    // Quota exceeded — mark and stop syncing this key
-    if (err.message?.includes('QUOTA') || err.message?.includes('MAX')) {
-      console.warn('[sync] Quota exceeded for', syncKey);
-      try {
-        localStorage.setItem(QUOTA_WARNING_KEY, '1');
-      } catch { /* ignore */ }
-    }
-    return false;
-  }
-};
-
-/** Read all sync keys from chrome.storage.sync. Returns { [syncKey]: wrapped }. */
-const readAllSync = async () => {
-  if (!isExtension()) return {};
-  try {
-    const allKeys = [META_KEY, ...Object.values(SYNC_MAP)];
-    return await chrome.storage.sync.get(allKeys);
   } catch {
-    return {};
+    /* ignore */
   }
+};
+
+// ── Gist transport ────────────────────────────────────────────────────────────
+
+const gistHeaders = (token) => ({
+  Authorization: `Bearer ${token}`,
+  Accept: 'application/vnd.github+json',
+  'X-GitHub-Api-Version': '2022-11-28',
+});
+
+/**
+ * Read the sync gist and return its parsed payload.
+ * Returns null when not connected or unreadable, { notFound: true } on a 404,
+ * or { keys: {...} } on success.
+ */
+const readGist = async () => {
+  const [token, gistId] = await Promise.all([getToken(), getGistId()]);
+  if (!token || !gistId) return null;
+
+  const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
+    headers: gistHeaders(token),
+  });
+  if (res.status === 404) return { notFound: true };
+  if (!res.ok) throw new Error(`GitHub read failed (${res.status})`);
+
+  const data = await res.json();
+  const file = data.files?.[GIST_FILENAME];
+  if (!file || !file.content) return { keys: {} };
+  try {
+    const parsed = JSON.parse(file.content);
+    return {
+      keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
+    };
+  } catch {
+    return { keys: {} };
+  }
+};
+
+/**
+ * Create-or-update the sync gist with the given `keys` object. Returns the
+ * gist id (creating the gist on first write).
+ */
+const writeGist = async (keys) => {
+  const token = await getToken();
+  if (!token) throw new Error('Not connected to GitHub');
+
+  const payload = JSON.stringify({ v: 1, deviceId, updatedAt: now(), keys });
+  let gistId = await getGistId();
+
+  if (!gistId) {
+    const res = await fetch(GITHUB_GISTS_API, {
+      method: 'POST',
+      headers: { ...gistHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: GIST_DESCRIPTION,
+        public: false,
+        files: { [GIST_FILENAME]: { content: payload } },
+      }),
+    });
+    if (!res.ok) throw new Error(`Failed to create gist (${res.status})`);
+    const created = await res.json();
+    gistId = created.id;
+    await setGistId(gistId);
+    return gistId;
+  }
+
+  const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
+    method: 'PATCH',
+    headers: { ...gistHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      files: { [GIST_FILENAME]: { content: payload } },
+    }),
+  });
+  if (!res.ok) throw new Error(`Failed to update gist (${res.status})`);
+  return gistId;
 };
 
 // ── Event dispatch for hooks ──────────────────────────────────────────────────
@@ -154,62 +211,61 @@ const readAllSync = async () => {
  * that were written to localStorage by the sync engine.
  */
 const notifyHooks = (localKey) => {
-  // Events: the useEvents hook listens for 'widget_events_changed'
   if (localKey === STORAGE_KEYS.EVENTS) {
-    try { globalThis.dispatchEvent(new Event('widget_events_changed')); } catch { /* ignore */ }
+    try {
+      globalThis.dispatchEvent(new Event('widget_events_changed'));
+    } catch {
+      /* ignore */
+    }
   }
   // For other keys, hooks subscribe via Zustand — no custom event needed.
-  // Zustand re-reads from localStorage on next page load.
-  // For in-session sync pulls, the onChangeCallbacks notify SyncStatusBadge.
 };
 
 // ── Pull: merge remote → local ────────────────────────────────────────────────
 
 /**
- * Pull all syncable data from chrome.storage.sync and merge into localStorage
- * using last-write-wins (higher timestamp wins).
+ * Pull all syncable data from the gist and merge into localStorage using
+ * last-write-wins (higher timestamp wins).
  *
- * Returns an object describing what changed: { settings, widgetInstances, events, ... }
+ * Returns an object describing what changed: { settings, widgetInstances, ... }
  * Each entry is true if remote was newer, false if local was kept.
  */
 const pullFromSync = async () => {
-  if (!isExtension() || !enabled) return {};
+  if (!enabled) return {};
 
-  const synced = await readAllSync();
+  let remote;
+  try {
+    remote = await readGist();
+  } catch (err) {
+    console.warn('[sync] pull failed:', err.message);
+    return {};
+  }
+  if (!remote || remote.notFound) return {};
+
   const changes = {};
-
-  for (const [localKey, syncKey] of Object.entries(SYNC_MAP)) {
-    const remote = synced[syncKey];
-    if (!remote || typeof remote.t !== 'number') continue;
+  for (const localKey of SYNC_KEYS) {
+    const entry = remote.keys?.[localKey];
+    if (!entry || typeof entry.t !== 'number') continue;
 
     const localTs = getLocalTs(localKey);
-    const remoteTs = remote.t;
-
-    if (remoteTs > localTs) {
-      // Remote is newer — adopt it
-      writeLocal(localKey, remote.v);
-      setLocalTs(localKey, remoteTs);
+    if (entry.t > localTs) {
+      writeLocal(localKey, entry.v);
+      setLocalTs(localKey, entry.t);
       notifyHooks(localKey);
       changes[localKey] = true;
     }
-    // If local is newer or same, keep local (already in localStorage)
   }
 
-  if (Object.keys(changes).length > 0) {
-    lastSyncAt = now();
-  }
-
+  if (Object.keys(changes).length > 0) lastSyncAt = now();
   return changes;
 };
 
 // ── Push: merge local → remote ────────────────────────────────────────────────
 
-// ── Sanitization ──────────────────────────────────────────────────────────────
-
 /**
  * Strip Google Calendar events from an events array.
  * GCal events have a `calendarId` field or `source === 'gcal'` — they're
- * auto-populated on sign-in, so syncing them wastes quota and is redundant.
+ * auto-populated on sign-in, so syncing them is redundant.
  */
 const stripGcalEvents = (events) => {
   if (!Array.isArray(events)) return events;
@@ -218,11 +274,7 @@ const stripGcalEvents = (events) => {
   );
 };
 
-/**
- * Trim an array to maxEntries, keeping the newest entries.
- * Assumes array is ordered oldest→newest (or trims from the start).
- * Returns a new array (does not mutate original).
- */
+/** Trim an array to maxEntries, keeping the newest entries. */
 const trimArray = (arr, maxEntries) => {
   if (!Array.isArray(arr)) return arr;
   if (arr.length <= maxEntries) return arr;
@@ -230,15 +282,8 @@ const trimArray = (arr, maxEntries) => {
 };
 
 /**
- * Get the value to sync for a given localKey, with sanitization applied:
- *   - `widget_events`: strips GCal events, trims to MAX_SYNC_ENTRIES
- *   - `widget_bookmarks`: trims to MAX_SYNC_ENTRIES
- *   - `countdown_pinned`: trims to MAX_SYNC_ENTRIES
- *   - All others: passed through as-is
- *
- * For Zustand-persisted keys (settings, widget_instances), the value is
- * already wrapped as { state: {...}, version: N } — we sync the whole wrapper.
- * For raw array keys (events, bookmarks), we extract and sanitize the array.
+ * Get the value to sync for a given localKey, with sanitization applied
+ * (strip GCal events, trim oversized arrays).
  */
 const sanitizeForSync = (localKey, rawValue) => {
   if (rawValue === null || rawValue === undefined) return null;
@@ -247,36 +292,22 @@ const sanitizeForSync = (localKey, rawValue) => {
 
   // Zustand-persisted keys — value is { state: {...}, version: N }
   if (localKey === 'undistracted_settings' || localKey === 'widget_instances') {
-    // Pass through as-is (settings/instances are objects, not unbounded arrays)
     return rawValue;
   }
 
   // Raw array keys — sanitize and trim
   if (Array.isArray(rawValue)) {
     let sanitized = rawValue;
-
-    // Strip GCal events (only for the events key)
-    if (localKey === 'widget_events') {
-      sanitized = stripGcalEvents(sanitized);
-    }
-
-    // Trim to max entries
-    if (maxEntries) {
-      sanitized = trimArray(sanitized, maxEntries);
-    }
-
+    if (localKey === 'widget_events') sanitized = stripGcalEvents(sanitized);
+    if (maxEntries) sanitized = trimArray(sanitized, maxEntries);
     return sanitized;
   }
 
   // For Zustand-wrapped array keys or unknown formats, pass through
   if (rawValue?.state && Array.isArray(rawValue.state)) {
     const sanitized = { ...rawValue };
-    if (localKey === 'widget_events') {
-      sanitized.state = stripGcalEvents(rawValue.state);
-    }
-    if (maxEntries) {
-      sanitized.state = trimArray(sanitized.state, maxEntries);
-    }
+    if (localKey === 'widget_events') sanitized.state = stripGcalEvents(rawValue.state);
+    if (maxEntries) sanitized.state = trimArray(sanitized.state, maxEntries);
     return sanitized;
   }
 
@@ -284,197 +315,165 @@ const sanitizeForSync = (localKey, rawValue) => {
 };
 
 /**
- * Estimate total bytes currently used in chrome.storage.sync by this extension.
- * Returns sum of byte sizes of all synced keys + meta.
+ * Push a single key from localStorage to the gist. Does nothing if sync is
+ * disabled. Writes are serialized through the shared write queue.
  */
-const estimateTotalSyncBytes = async () => {
-  if (!isExtension()) return 0;
-  try {
-    const all = await readAllSync();
-    let total = 0;
-    for (const val of Object.values(all)) {
-      total += byteSize(val);
-    }
-    return total;
-  } catch {
-    return 0;
-  }
-};
-
-/**
- * Push a single key from localStorage to chrome.storage.sync.
- * Does NOT push if sync is disabled or the value is too large.
- */
-const pushKey = async (localKey) => {
-  if (!isExtension() || !enabled) return;
-
-  const syncKey = SYNC_MAP[localKey];
-  if (!syncKey) return;
+const pushKey = (localKey) => {
+  if (!enabled) return Promise.resolve();
+  if (!SYNC_MAP[localKey]) return Promise.resolve();
 
   const local = readLocal(localKey);
-  if (local === null || local === undefined) return;
+  if (local === null || local === undefined) return Promise.resolve();
 
-  // Sanitize: strip GCal events, trim oversized arrays
   const sanitized = sanitizeForSync(localKey, local);
-  if (sanitized === null) return;
-
-  // Check per-item size — skip if exceeds 8KB limit
-  const size = byteSize(sanitized);
-  if (size > MAX_ITEM_BYTES) {
-    console.warn('[sync]', localKey, 'exceeds per-item limit (' + size + ' bytes), skipping');
-    return;
-  }
-
-  // Check total quota before writing
-  const totalBytes = await estimateTotalSyncBytes();
-  if (totalBytes + size > MAX_TOTAL_BYTES) {
-    console.warn(
-      '[sync] Quota nearly full (' + totalBytes + ' / ' + MAX_TOTAL_BYTES +
-      ' bytes), skipping ' + localKey,
-    );
-    try { localStorage.setItem(QUOTA_WARNING_KEY, '1'); } catch { /* ignore */ }
-    return;
-  }
+  if (sanitized === null) return Promise.resolve();
 
   const ts = now();
-  const wrapped = { v: sanitized, t: ts };
-  const ok = await writeSync(syncKey, wrapped);
 
-  if (ok) {
-    setLocalTs(localKey, ts);
-    lastSyncAt = ts;
-    // Clear quota warning on successful write
-    try { localStorage.removeItem(QUOTA_WARNING_KEY); } catch { /* ignore */ }
-    updateMeta();
-  }
+  writeQueue = writeQueue
+    .then(async () => {
+      let remote;
+      try {
+        remote = await readGist();
+      } catch {
+        remote = { keys: {} };
+      }
+
+      const keys = { ...(remote?.keys || {}) };
+
+      // Remote is newer/equal — adopt it instead of overwriting.
+      if (keys[localKey] && keys[localKey].t >= ts) {
+        writeLocal(localKey, keys[localKey].v);
+        setLocalTs(localKey, keys[localKey].t);
+        return;
+      }
+
+      keys[localKey] = { v: sanitized, t: ts };
+      await writeGist(keys);
+      setLocalTs(localKey, ts);
+      lastSyncAt = ts;
+    })
+    .catch((err) => {
+      console.warn('[sync] push failed:', err.message);
+    });
+
+  return writeQueue;
 };
 
-/**
- * Debounced push — schedules a push after DEBOUNCE_MS of inactivity.
- * Multiple rapid changes to the same key result in a single push.
- */
+/** Debounced push — multiple rapid changes to a key result in a single push. */
 const schedulePush = (localKey) => {
-  if (debounceTimers[localKey]) {
-    clearTimeout(debounceTimers[localKey]);
-  }
+  if (debounceTimers[localKey]) clearTimeout(debounceTimers[localKey]);
   debounceTimers[localKey] = setTimeout(() => {
     delete debounceTimers[localKey];
     pushKey(localKey);
   }, DEBOUNCE_MS);
 };
 
-/**
- * Push all syncable keys immediately (used on first enable).
- */
+/** Push all syncable keys immediately (used on first enable). */
 const pushAll = async () => {
-  if (!isExtension() || !enabled) return;
-  for (const localKey of Object.keys(SYNC_MAP)) {
-    await pushKey(localKey);
-  }
-};
+  if (!enabled) return;
 
-// ── Metadata ──────────────────────────────────────────────────────────────────
-
-const updateMeta = async () => {
-  if (!isExtension()) return;
-  try {
-    await chrome.storage.sync.set({
-      [META_KEY]: {
-        deviceId,
-        lastSync: now(),
-        version: 1,
-      },
-    });
-  } catch { /* ignore */ }
-};
-
-// ── Remote change listener ────────────────────────────────────────────────────
-
-/**
- * Listen for chrome.storage.onChanged events from other devices.
- * When a synced key changes remotely, pull it into localStorage.
- */
-const setupChangeListener = () => {
-  if (!isExtension()) return;
-  if (changeListener) return;
-
-  changeListener = (changes, areaName) => {
-    if (areaName !== 'sync' || !enabled) return;
-
-    for (const [syncKey, change] of Object.entries(changes)) {
-      if (!syncKey.startsWith(SYNC_PREFIX) || syncKey === META_KEY) continue;
-      if (!change.newValue) continue; // key was deleted
-
-      // Find the local key for this sync key
-      const localKey = Object.entries(SYNC_MAP).find(
-        ([, sk]) => sk === syncKey
-      )?.[0];
-      if (!localKey) continue;
-
-      const remote = change.newValue;
-      if (typeof remote.t !== 'number') continue;
-
-      const localTs = getLocalTs(localKey);
-
-      if (remote.t > localTs) {
-        // Remote is newer — adopt
-        writeLocal(localKey, remote.v);
-        setLocalTs(localKey, remote.t);
-        notifyHooks(localKey);
-        lastSyncAt = now();
-
-        // Notify external listeners (e.g., SyncStatusBadge)
-        onChangeCallbacks.forEach((cb) => {
-          try { cb(localKey, remote.v); } catch { /* ignore */ }
-        });
+  writeQueue = writeQueue
+    .then(async () => {
+      let remote;
+      try {
+        remote = await readGist();
+      } catch {
+        remote = { keys: {} };
       }
-    }
-  };
 
-  chrome.storage.onChanged.addListener(changeListener);
+      const keys = { ...(remote?.keys || {}) };
+      for (const localKey of SYNC_KEYS) {
+        const local = readLocal(localKey);
+        if (local === null || local === undefined) continue;
+
+        const sanitized = sanitizeForSync(localKey, local);
+        if (sanitized === null) continue;
+
+        const ts = now();
+        if (keys[localKey] && keys[localKey].t >= ts) continue;
+        keys[localKey] = { v: sanitized, t: ts };
+        setLocalTs(localKey, ts);
+      }
+
+      await writeGist(keys);
+      lastSyncAt = now();
+    })
+    .catch((err) => {
+      console.warn('[sync] pushAll failed:', err.message);
+    });
+
+  return writeQueue;
 };
 
-const teardownChangeListener = () => {
-  if (changeListener && isExtension()) {
-    chrome.storage.onChanged.removeListener(changeListener);
-    changeListener = null;
+// ── Polling (replaces chrome.storage.onChanged) ───────────────────────────────
+
+const setupPolling = () => {
+  if (pollTimer || !isExtension()) return;
+
+  pollTimer = setInterval(() => {
+    if (enabled) pullFromSync();
+  }, POLL_INTERVAL_MS);
+
+  const onVis = () => {
+    if (enabled && document.visibilityState === 'visible') pullFromSync();
+  };
+  document.addEventListener('visibilitychange', onVis);
+  window.addEventListener('focus', onVis);
+
+  pollCleanup = () => {
+    document.removeEventListener('visibilitychange', onVis);
+    window.removeEventListener('focus', onVis);
+  };
+};
+
+const teardownPolling = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+  if (pollCleanup) {
+    pollCleanup();
+    pollCleanup = null;
   }
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
- * Enable cross-device sync.
- * - Pulls remote data and merges with local (last-write-wins).
- * - Pushes all local data to sync.
- * - Starts listening for remote changes.
+ * Enable cross-device sync (requires a GitHub connection).
+ * - Pulls the gist and merges with local (last-write-wins).
+ * - Pushes all local data to the gist (creates it on first connect).
+ * - Starts polling for remote changes.
  */
 const enableSync = async () => {
   if (!isExtension()) {
     console.log('[sync] Not available — not running as extension');
     return;
   }
+  const token = await getToken();
+  if (!token) {
+    console.log('[sync] Enable skipped — no GitHub token');
+    return;
+  }
 
   enabled = true;
   writeLocal('sync_enabled', true);
 
-  // Load or generate device ID
   deviceId = readLocal('sync_device_id') || generateDeviceId();
   writeLocal('sync_device_id', deviceId);
 
-  // First pull: merge remote into local
   const changes = await pullFromSync();
-
-  // Then push: upload local to remote (our data wins where local is newer)
   await pushAll();
+  setupPolling();
 
-  // Start listening
-  setupChangeListener();
-
-  // Notify listeners of initial pull changes
   if (Object.keys(changes).length > 0) {
     onChangeCallbacks.forEach((cb) => {
-      try { cb('_initial_pull', changes); } catch { /* ignore */ }
+      try {
+        cb('_initial_pull', changes);
+      } catch {
+        /* ignore */
+      }
     });
   }
 
@@ -483,57 +482,34 @@ const enableSync = async () => {
 };
 
 /**
- * Disable cross-device sync.
- * - Stops listening for remote changes.
- * - Clears pending push timers.
- * - Does NOT delete already-synced data from chrome.storage.sync
- *   (user may re-enable later on same device).
+ * Disable cross-device sync — stops polling and clears pending push timers.
+ * Does NOT delete the gist (user may reconnect later).
  */
 const disableSync = () => {
   enabled = false;
   writeLocal('sync_enabled', false);
 
-  // Clear pending timers
   Object.values(debounceTimers).forEach(clearTimeout);
   debounceTimers = {};
 
-  teardownChangeListener();
+  teardownPolling();
   console.log('[sync] Disabled');
 };
 
-/**
- * Check if sync is currently enabled.
- */
+/** Check if sync is currently enabled. */
 const isSyncEnabled = () => enabled;
 
 /**
  * Get sync status info for UI display.
- * Returns { enabled, lastSyncAt, deviceId, quotaWarning, totalBytes }.
- * totalBytes is populated asynchronously — callers should re-check after a tick.
+ * Returns { available, enabled, connected, lastSyncAt, deviceId }.
  */
-const getSyncStatus = () => {
-  let quotaWarning = false;
-  try {
-    quotaWarning = localStorage.getItem(QUOTA_WARNING_KEY) === '1';
-  } catch { /* ignore */ }
-  return {
-    enabled,
-    lastSyncAt,
-    deviceId,
-    quotaWarning,
-    available: isExtension(),
-  };
-};
-
-/**
- * Get quota usage info. Async — fetches from chrome.storage.sync.
- * Returns { totalBytes, percentUsed }.
- */
-const getQuotaInfo = async () => {
-  const totalBytes = await estimateTotalSyncBytes();
-  const percentUsed = Math.round((totalBytes / MAX_TOTAL_BYTES) * 100);
-  return { totalBytes, percentUsed, maxBytes: MAX_TOTAL_BYTES };
-};
+const getSyncStatus = () => ({
+  available: isExtension(),
+  enabled,
+  connected: isConnected(),
+  lastSyncAt,
+  deviceId,
+});
 
 /**
  * Subscribe to sync change events (e.g., for UI status badge updates).
@@ -544,18 +520,23 @@ const onSyncChange = (callback) => {
   return () => onChangeCallbacks.delete(callback);
 };
 
-/**
- * Force a full sync cycle: pull remote, push local.
- */
+/** Force a full sync cycle: pull remote, push local, then notify listeners. */
 const forceSync = async () => {
   if (!isExtension() || !enabled) return;
   await pullFromSync();
   await pushAll();
+  onChangeCallbacks.forEach((cb) => {
+    try {
+      cb('_force', null);
+    } catch {
+      /* ignore */
+    }
+  });
 };
 
 /**
- * Initialize sync on app load. Checks if sync was previously enabled
- * and re-enables it silently.
+ * Initialize sync on app load. Re-enables silently if the user had sync on and
+ * is still connected to GitHub.
  */
 const initSync = async () => {
   if (!isExtension()) return;
@@ -563,10 +544,15 @@ const initSync = async () => {
   let wasEnabled = false;
   try {
     wasEnabled = localStorage.getItem('sync_enabled') === 'true';
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
-  if (wasEnabled) {
+  if (wasEnabled && isConnected()) {
     await enableSync();
+  } else if (wasEnabled && !isConnected()) {
+    // Token was cleared elsewhere — reset the flag so we stop trying.
+    writeLocal('sync_enabled', false);
   }
 };
 
@@ -577,7 +563,6 @@ const syncEngine = {
   disableSync,
   isSyncEnabled,
   getSyncStatus,
-  getQuotaInfo,
   schedulePush,
   pushKey,
   pullFromSync,

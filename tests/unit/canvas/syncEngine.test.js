@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/syncEngine.js
+ * Unit tests for src/utilities/syncEngine.js (GitHub gist transport)
  *
  * Covers:
  *  - pullFromSync last-write-wins merge (remote newer → adopt, local newer →
@@ -8,58 +8,97 @@
  *    Zustand-wrapper passthrough for settings)
  *
  * The `enabled` flag is module-private and only set by enableSync(), so each
- * test enables sync first against a mocked chrome.storage.sync.
+ * test enables sync first against a mocked chrome.storage.local + fetch
+ * (simulating a private GitHub gist).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import syncEngine from '../../../src/utilities/syncEngine';
 
-// ─── Chrome mock state ──────────────────────────────────────────────────────
+const GIST_ID = 'gist-123';
+const FILENAME = 'undistracted-me-sync.json';
+const GISTS_API = 'https://api.github.com/gists';
 
-let syncStore; // simulated chrome.storage.sync
+// ─── Mocks ──────────────────────────────────────────────────────────────────
+
+let localStore; // simulated chrome.storage.local
+let gistContent; // current gist file content (string) — null means "no gist"
+
+function json(data, status = 200) {
+  return { ok: status >= 200 && status < 300, status, json: async () => data };
+}
 
 function stubChrome() {
-  syncStore = {};
+  localStore = { github_gist_token: 'token-abc', github_gist_id: GIST_ID };
   vi.stubGlobal('chrome', {
     runtime: { id: 'test-ext' },
     storage: {
-      sync: {
-        get: vi.fn(async (keys) => {
-          const result = {};
-          const pick = (k) => { if (k in syncStore) result[k] = syncStore[k]; };
-          if (Array.isArray(keys)) keys.forEach(pick);
-          else if (typeof keys === 'string') pick(keys);
-          else if (keys && typeof keys === 'object') Object.keys(keys).forEach(pick);
-          return result;
+      local: {
+        get: vi.fn(async (key) => {
+          const out = {};
+          const pick = (k) => { if (k in localStore) out[k] = localStore[k]; };
+          if (Array.isArray(key)) key.forEach(pick);
+          else if (typeof key === 'string') pick(key);
+          return out;
         }),
-        set: vi.fn(async (obj) => { Object.assign(syncStore, obj); }),
-      },
-      onChanged: {
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
+        set: vi.fn(async (obj) => Object.assign(localStore, obj)),
+        remove: vi.fn(async (keys) => {
+          (Array.isArray(keys) ? keys : [keys]).forEach((k) => { delete localStore[k]; });
+        }),
       },
     },
   });
 }
 
+function stubFetch() {
+  gistContent = null;
+  vi.stubGlobal('fetch', vi.fn(async (url, opts = {}) => {
+    const u = String(url);
+    const method = (opts.method || 'GET').toUpperCase();
+
+    if (u === GISTS_API && method === 'POST') {
+      gistContent = JSON.parse(opts.body).files[FILENAME].content;
+      return json({ id: GIST_ID, files: { [FILENAME]: { content: gistContent } } }, 201);
+    }
+    if (u === `${GISTS_API}/${GIST_ID}` && method === 'PATCH') {
+      gistContent = JSON.parse(opts.body).files[FILENAME].content;
+      return json({ id: GIST_ID }, 200);
+    }
+    if (u === `${GISTS_API}/${GIST_ID}` && method === 'GET') {
+      if (gistContent == null) return json({ message: 'Not Found' }, 404);
+      return json({ id: GIST_ID, files: { [FILENAME]: { content: gistContent } } });
+    }
+    return json({}, 404);
+  }));
+}
+
+/** Seed the gist with the given `keys` map. */
+function setGist(keys) {
+  gistContent = JSON.stringify({ v: 1, deviceId: 'dev_x', updatedAt: 0, keys });
+}
+
+// ─── Lifecycle ───────────────────────────────────────────────────────────────
+
 beforeEach(async () => {
   localStorage.clear();
   stubChrome();
+  stubFetch();
   await syncEngine.enableSync();
 });
 
 afterEach(() => {
+  syncEngine.disableSync();
   localStorage.clear();
   vi.unstubAllGlobals();
 });
 
-// ─── pullFromSync — last-write-wins ────────────────────────────────────────
+// ─── pullFromSync — last-write-wins ─────────────────────────────────────────
 
 describe('pullFromSync last-write-wins merge', () => {
   it('adopts the remote value when its timestamp is newer', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
     localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 1000 }));
-    syncStore['sync_v1_events'] = { v: [{ id: 2, title: 'remote' }], t: 2000 };
+    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
 
     const changes = await syncEngine.pullFromSync();
 
@@ -73,7 +112,7 @@ describe('pullFromSync last-write-wins merge', () => {
   it('keeps the local value when its timestamp is newer', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
     localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 3000 }));
-    syncStore['sync_v1_events'] = { v: [{ id: 2, title: 'remote' }], t: 2000 };
+    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
 
     const changes = await syncEngine.pullFromSync();
 
@@ -86,7 +125,7 @@ describe('pullFromSync last-write-wins merge', () => {
   it('does not adopt on equal timestamps (strictly newer required)', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
     localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 2000 }));
-    syncStore['sync_v1_events'] = { v: [{ id: 2, title: 'remote' }], t: 2000 };
+    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
 
     const changes = await syncEngine.pullFromSync();
 
@@ -99,7 +138,7 @@ describe('pullFromSync last-write-wins merge', () => {
   it('skips remote entries missing a numeric timestamp', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
     localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 0 }));
-    syncStore['sync_v1_events'] = { v: [{ id: 2, title: 'remote' }] }; // no `t`
+    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }] } }); // no `t`
 
     const changes = await syncEngine.pullFromSync();
 
@@ -110,7 +149,7 @@ describe('pullFromSync last-write-wins merge', () => {
   });
 });
 
-// ─── sanitizeForSync (via pushKey) ─────────────────────────────────────────
+// ─── sanitizeForSync (via pushKey) ──────────────────────────────────────────
 
 describe('sanitizeForSync via pushKey', () => {
   it('strips GCal events and trims the events array to the max entry cap', async () => {
@@ -120,7 +159,8 @@ describe('sanitizeForSync via pushKey', () => {
 
     await syncEngine.pushKey('widget_events');
 
-    const pushed = syncStore['sync_v1_events'].v;
+    const written = JSON.parse(gistContent);
+    const pushed = written.keys.widget_events.v;
     expect(Array.isArray(pushed)).toBe(true);
     expect(pushed).toHaveLength(200);
     expect(pushed.some((e) => e.source === 'gcal' || e.gcalEventId)).toBe(false);
@@ -132,7 +172,8 @@ describe('sanitizeForSync via pushKey', () => {
 
     await syncEngine.pushKey('widget_bookmarks');
 
-    expect(syncStore['sync_v1_bookmarks'].v).toHaveLength(100);
+    const written = JSON.parse(gistContent);
+    expect(written.keys.widget_bookmarks.v).toHaveLength(100);
   });
 
   it('passes the Zustand settings wrapper through unchanged', async () => {
@@ -141,6 +182,7 @@ describe('sanitizeForSync via pushKey', () => {
 
     await syncEngine.pushKey('undistracted_settings');
 
-    expect(syncStore['sync_v1_settings'].v).toEqual(wrapper);
+    const written = JSON.parse(gistContent);
+    expect(written.keys.undistracted_settings.v).toEqual(wrapper);
   });
 });
