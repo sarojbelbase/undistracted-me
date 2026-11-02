@@ -14,6 +14,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import syncEngine from '../../../src/utilities/syncEngine';
+import { GIST_SCHEMA_VERSION } from '../../../src/utilities/githubAuth';
 
 const GIST_ID = 'gist-123';
 const FILENAME = 'undistracted-me-sync.json';
@@ -317,5 +318,26 @@ describe('change detection and throttle', () => {
 
     expect(result.changed).toBe(true);
     expect(result.reason).toBe('synced');
+  });
+});
+
+// ─── schema versioning ──────────────────────────────────────────────────────
+
+describe('schema versioning', () => {
+  it('skips the pull when the remote gist is from a newer schema', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 0 }));
+    gistContent = JSON.stringify({
+      v: GIST_SCHEMA_VERSION + 1,
+      deviceId: 'dev',
+      updatedAt: 0,
+      keys: { widget_events: { v: [{ id: 2, title: 'remote' }], t: 9999 } },
+    });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes).toEqual({});
+    // Local data is left untouched — we refuse to parse a newer schema.
+    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([{ id: 1, title: 'local' }]);
   });
 });

@@ -29,10 +29,25 @@ export const GIST_FILENAME = 'undistracted-me-sync.json';
 export const GIST_DESCRIPTION = 'Undistracted Me Sync';
 
 /**
+ * Schema version of the sync gist payload. Bump this when the gist shape changes
+ * and add a corresponding migration in `migrateSync`. Written to the gist's `v`
+ * field and to a local `sync_version` key so both sides are versioned.
+ */
+export const GIST_SCHEMA_VERSION = 2;
+
+/**
  * User-Agent sent on GitHub REST API requests. GitHub rejects requests without
  * one with a 403 ("Request forbidden by administrative rules").
  */
 export const GITHUB_USER_AGENT = 'undistracted-me';
+
+/** Shared GitHub REST headers (token-authenticated). */
+export const gistHeaders = (token) => ({
+  Authorization: `Bearer ${token}`,
+  Accept: 'application/vnd.github+json',
+  'X-GitHub-Api-Version': '2022-11-28',
+  'User-Agent': GITHUB_USER_AGENT,
+});
 
 const TOKEN_KEY = 'github_gist_token';
 const GIST_ID_KEY = 'github_gist_id';
@@ -241,26 +256,48 @@ export async function disconnect() {
 }
 
 /**
- * Ensure the sync gist exists, creating an empty one if needed. Returns its id.
- * Called during connect so the gist is browsable right after sign-in.
+ * Ensure the sync gist exists, discovering an existing one (from a previous
+ * device) before creating a new one. Returns its id.
+ *
+ * Discovery is necessary because the gist id is per-device: a second device
+ * connecting to the same GitHub account must find the *same* gist, not create a
+ * fresh one. We list the user's gists and match on description + filename,
+ * preferring the oldest when duplicates exist.
  */
-async function ensureGist(token) {
-  const existing = await getGistId();
-  if (existing) return existing;
+export async function ensureGist(token) {
+  const cached = await getGistId();
+  if (cached) {
+    // Verify the cached id still points at a real gist.
+    try {
+      const res = await fetch(`${GITHUB_GISTS_API}/${cached}`, { headers: gistHeaders(token) });
+      if (res.ok) return cached;
+      if (res.status !== 404) return cached; // transient error — keep the cached id
+      removeLocal(GIST_ID_KEY); // 404 — stale id, rediscover below
+    } catch {
+      return cached; // network error — keep the cached id
+    }
+  }
 
+  // Discover an existing sync gist created by another device.
+  try {
+    const found = await findSyncGist(await listGists(token));
+    if (found) {
+      await setGistId(found);
+      return found;
+    }
+  } catch (err) {
+    console.error('[sync] gist discovery failed:', err.message);
+    // Fall through to create — a duplicate may result, but a failed sync is worse.
+  }
+
+  // No existing gist — create one.
   const res = await fetch(GITHUB_GISTS_API, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-      'User-Agent': GITHUB_USER_AGENT,
-    },
+    headers: { ...gistHeaders(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({
       description: GIST_DESCRIPTION,
       public: false,
-      files: { [GIST_FILENAME]: { content: JSON.stringify({ v: 1, keys: {} }) } },
+      files: { [GIST_FILENAME]: { content: JSON.stringify({ v: GIST_SCHEMA_VERSION, keys: {} }) } },
     }),
   });
   if (!res.ok) {
@@ -271,4 +308,39 @@ async function ensureGist(token) {
   const created = await res.json();
   await setGistId(created.id);
   return created.id;
+}
+
+/** Extract the `rel="next"` URL from a GitHub `Link` header, if any. */
+function parseNextLink(linkHeader) {
+  if (!linkHeader) return null;
+  const match = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
+  return match ? match[1] : null;
+}
+
+/** List all of the user's gists (paginated). */
+async function listGists(token) {
+  const all = [];
+  let url = `${GITHUB_GISTS_API}?per_page=100`;
+  while (url) {
+    const res = await fetch(url, { headers: gistHeaders(token) });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(`Failed to list gists (${res.status}): ${body.message || res.statusText}`);
+    }
+    const page = await res.json();
+    all.push(...page);
+    url = parseNextLink(res.headers.get('link'));
+  }
+  return all;
+}
+
+/** Find the user's sync gist among a list of gists, or null. */
+export function findSyncGist(gists) {
+  const matches = (Array.isArray(gists) ? gists : []).filter(
+    (g) => g.description === GIST_DESCRIPTION && g.files && g.files[GIST_FILENAME],
+  );
+  if (matches.length === 0) return null;
+  // Prefer the oldest so every device converges on the same gist.
+  matches.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  return matches[0].id;
 }
