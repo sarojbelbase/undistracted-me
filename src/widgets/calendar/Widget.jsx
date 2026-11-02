@@ -193,7 +193,15 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
 
   const goToday = () => {
     setMonthOffset(0);
-    // startWeek will be set by the useEffect above when data reloads
+    // If we're already on the current month, setMonthOffset(0) is a no-op and
+    // the anchoring effect below won't re-run — so set startWeek directly.
+    // Otherwise (cross-month) todayIdx is -1 and the rebuild + anchor effect
+    // will handle it once the current month's data loads.
+    const todayIdx = calendarData.days.findIndex((d) => d.isCurrent);
+    if (todayIdx >= 0) {
+      const todayWeek = Math.floor(todayIdx / 7);
+      setStartWeek(todayWeek < totalWeeks - 1 ? todayWeek : Math.max(0, todayWeek - 1));
+    }
   };
 
   // ── Are we viewing the "current" fortnight? ─────────────────────────────────
@@ -230,9 +238,9 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
               <button
                 onClick={goToday}
                 className="cal-today-btn"
-                aria-label="Go to current fortnight"
+                aria-label="Go to Today"
               >
-                Today
+                Go to Today
               </button>
             )}
             <TooltipBtn
