@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { getProgress, DEFAULT_PERIOD, DEFAULT_CALENDAR } from './utils';
+import { getProgress } from './utils';
 import { Settings } from './Settings';
 import config from './config';
 import { onClockTick } from '../../utilities/sharedClock';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 
-const DEFAULT_SETTINGS = { period: DEFAULT_PERIOD, calendar: DEFAULT_CALENDAR };
+const DEFAULT_SETTINGS = WIDGET_SETTINGS_DEFAULTS.progress;
 
 export const Widget = ({ id = 'progress', onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_SETTINGS);

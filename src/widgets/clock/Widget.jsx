@@ -6,8 +6,9 @@ import config from './config';
 import { getTimeParts, getTimeInZone } from './utils';
 import { onClockTick } from '../../utilities/sharedClock';
 import { CLOCK_TIMEZONE_DIVIDER } from '../../theme/canvas';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 
-const DEFAULT_SETTINGS = { format: '24h', timezones: [] };
+const DEFAULT_SETTINGS = WIDGET_SETTINGS_DEFAULTS.clock;
 
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_SETTINGS);

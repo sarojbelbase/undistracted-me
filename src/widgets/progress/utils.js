@@ -5,6 +5,13 @@
 import { convertEnglishToNepali } from '../../utilities/index.js';
 import { NEPALI_YEARS_AND_DAYS_IN_MONTHS, MONTH_NAMES } from '../../constants/index.js';
 
+// Default period + calendar now live in constants/defaults.js (single source
+// of truth). Re-exported here so existing import paths keep working.
+export {
+  DEFAULT_PROGRESS_PERIOD as DEFAULT_PERIOD,
+  DEFAULT_PROGRESS_CALENDAR as DEFAULT_CALENDAR,
+} from '../../constants/defaults.js';
+
 const DOTS = 24;
 
 const AD_MONTHS = [
@@ -23,9 +30,6 @@ export const CALENDAR_TYPES = [
   { id: 'ad', label: 'AD' },
   { id: 'bs', label: 'BS' },
 ];
-
-export const DEFAULT_PERIOD = 'day';
-export const DEFAULT_CALENDAR = 'ad';
 
 /** Returns the current date/time in Nepal timezone (UTC+5:45). */
 function getNepalNow() {

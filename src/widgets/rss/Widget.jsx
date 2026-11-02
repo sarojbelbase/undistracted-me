@@ -17,6 +17,7 @@ import { useRssMulti } from "./useRssMulti";
 import { Settings } from "./Settings";
 import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 import { Broadcast, Rss } from "react-bootstrap-icons";
@@ -410,14 +411,7 @@ const ErrorState = ({ onRetry, absolute = false }) => (
 // ─── Widget ───────────────────────────────────────────────────────────────────
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    // NEW data model: multi-select preset IDs + custom feeds each with `active` flag.
-    // Legacy single-feedId settings are migrated below.
-    activeFeedIds: DEFAULT_ACTIVE_IDS,
-    customFeeds: [],        // [{ label, url, active: boolean }]
-    sourceMode: "presets",  // "presets" | "custom" — mutually exclusive
-    viewMode: "marquee",
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.rss);
 
   // Migrate legacy single feedId setting → activeFeedIds
   const rawActive = settings.activeFeedIds;

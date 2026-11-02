@@ -3,6 +3,7 @@
  */
 import { getTimeZoneAwareDayJsInstance, convertEnglishToNepali } from '../../utilities';
 import { MONTH_NAMES as NEPALI_MONTH_NAMES, NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../../constants';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 
 export const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 export const BASE_NEPALI_YEAR = 2000;
@@ -10,7 +11,8 @@ export const AD_MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-export const DEFAULTS = { calendarType: 'bs' };
+// Default calendar type now lives in constants/defaults.js (single source of truth).
+export const DEFAULTS = WIDGET_SETTINGS_DEFAULTS.calendar;
 
 /**
  * Builds calendar display data for a given month offset from today.

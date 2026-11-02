@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { QUOTES } from "../../data/quotes";
 import { FACTS } from "../../data/facts";
 import { useDailyJoke } from "./useDailyJoke";
@@ -155,10 +156,7 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
 };
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    mode: "quote",
-    autoSlide: true,
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.dailys);
   const mode = settings.mode ?? "quote";
   const autoSlide = settings.autoSlide ?? true;
 

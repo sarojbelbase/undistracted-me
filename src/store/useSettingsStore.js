@@ -15,7 +15,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { applyTheme } from "../theme";
 import { STORAGE_KEYS } from "../constants/storageKeys";
-import { DEFAULT_NOTIFICATION_TYPES } from "../constants/notifications";
+import {
+  APP_SETTINGS_DEFAULTS,
+  DEFAULT_NOTIFICATION_TYPES,
+} from "../constants/defaults";
 import syncEngine from "../utilities/syncEngine";
 
 /** Sync notification config to chrome.storage.local so bg.js can read it. */
@@ -37,39 +40,38 @@ export const STORE_KEY = STORAGE_KEYS.SETTINGS;
  * Falls back to legacy per-key entries for first-time migration.
  */
 const fromLegacy = () => {
+  const D = APP_SETTINGS_DEFAULTS;
   try {
     const stored = JSON.parse(
       localStorage.getItem(STORAGE_KEYS.SETTINGS) || "null",
     );
     if (stored?.state)
       return {
-        language: stored.state.language ?? "en",
-        accent: stored.state.accent ?? "Matte Black",
-        mode: stored.state.mode ?? "light",
-        defaultView: stored.state.defaultView ?? "canvas",
-        dateFormat: stored.state.dateFormat ?? "gregorian",
-        lookAwayEnabled: stored.state.lookAwayEnabled ?? false,
-        lookAwayInterval: stored.state.lookAwayInterval ?? 20,
+        language: stored.state.language ?? D.language,
+        accent: stored.state.accent ?? D.accent,
+        mode: stored.state.mode ?? D.mode,
+        defaultView: stored.state.defaultView ?? D.defaultView,
+        dateFormat: stored.state.dateFormat ?? D.dateFormat,
+        lookAwayEnabled: stored.state.lookAwayEnabled ?? D.lookAwayEnabled,
+        lookAwayInterval: stored.state.lookAwayInterval ?? D.lookAwayInterval,
         canvasBg: (() => {
-          const cb = stored.state.canvasBg ?? {
-            type: "solid",
-            orbId: "accent",
-            url: null,
-          };
+          const cb = stored.state.canvasBg ?? D.canvasBg;
           return cb.type === "orb" && cb.orbId && cb.orbId !== "accent"
             ? { ...cb, orbId: "accent" }
             : cb;
         })(),
-        cardStyle: stored.state.cardStyle ?? "glass",
+        cardStyle: stored.state.cardStyle ?? D.cardStyle,
         modePrefs: stored.state.modePrefs ?? {
-          light: { cardStyle: stored.state.cardStyle ?? "glass" },
-          dark: { cardStyle: stored.state.cardStyle ?? "glass" },
+          light: { cardStyle: stored.state.cardStyle ?? D.cardStyle },
+          dark: { cardStyle: stored.state.cardStyle ?? D.cardStyle },
         },
-        notificationsEnabled: stored.state.notificationsEnabled ?? true,
+        notificationsEnabled:
+          stored.state.notificationsEnabled ?? D.notificationsEnabled,
         notificationTypes:
           stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
-        quickTourSeenVersion: stored.state.quickTourSeenVersion ?? null,
-        syncEnabled: stored.state.syncEnabled ?? false,
+        quickTourSeenVersion:
+          stored.state.quickTourSeenVersion ?? D.quickTourSeenVersion,
+        syncEnabled: stored.state.syncEnabled ?? D.syncEnabled,
       };
   } catch {
     /* ignore */
@@ -78,27 +80,24 @@ const fromLegacy = () => {
   const _prefersDark =
     globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   return {
-    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || "en",
-    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || "Matte Black",
+    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || D.language,
+    accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || D.accent,
     mode:
       localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) ||
-      (_prefersDark ? "dark" : "light"),
+      (_prefersDark ? "dark" : D.mode),
     defaultView:
-      localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || "canvas",
+      localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || D.defaultView,
     dateFormat:
-      localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || "gregorian",
-    lookAwayEnabled: false,
-    lookAwayInterval: 20,
-    canvasBg: { type: "solid", orbId: "accent", url: null },
-    cardStyle: "glass",
-    modePrefs: {
-      light: { cardStyle: "paper" },
-      dark: { cardStyle: "glass" },
-    },
-    notificationsEnabled: true,
+      localStorage.getItem(STORAGE_KEYS._LEGACY.DATE_FORMAT) || D.dateFormat,
+    lookAwayEnabled: D.lookAwayEnabled,
+    lookAwayInterval: D.lookAwayInterval,
+    canvasBg: D.canvasBg,
+    cardStyle: D.cardStyle,
+    modePrefs: D.modePrefs,
+    notificationsEnabled: D.notificationsEnabled,
     notificationTypes: DEFAULT_NOTIFICATION_TYPES,
-    quickTourSeenVersion: null,
-    syncEnabled: false,
+    quickTourSeenVersion: D.quickTourSeenVersion,
+    syncEnabled: D.syncEnabled,
   };
 };
 
@@ -116,19 +115,13 @@ export const useSettingsStore = create(
       /** Unix-ms timestamp of the very first time this store was initialised. */
       firstInstalledAt: Date.now(),
 
-      clockFormat: "24h",
-      focusSearchBar: true,
-      focusTasks: true,
-      focusSearchTopSites: true,
-      focusSearchWeb: true,
+      clockFormat: APP_SETTINGS_DEFAULTS.clockFormat,
+      focusSearchBar: APP_SETTINGS_DEFAULTS.focusSearchBar,
+      focusTasks: APP_SETTINGS_DEFAULTS.focusTasks,
+      focusSearchTopSites: APP_SETTINGS_DEFAULTS.focusSearchTopSites,
+      focusSearchWeb: APP_SETTINGS_DEFAULTS.focusSearchWeb,
 
-      focusPanels: {
-        pomodoro: true,
-        event: true,
-        occasion: true,
-        stock: true,
-        spotify: true,
-      },
+      focusPanels: APP_SETTINGS_DEFAULTS.focusPanels,
 
       // ── Helpers ────────────────────────────────────────────────────────
 
@@ -243,9 +236,9 @@ export const useSettingsStore = create(
       onRehydrateStorage: () => (state) => {
         if (state) {
           applyTheme(
-            state.accent || "Matte Black",
-            state.mode || "light",
-            state.cardStyle || "glass",
+            state.accent || APP_SETTINGS_DEFAULTS.accent,
+            state.mode || APP_SETTINGS_DEFAULTS.mode,
+            state.cardStyle || APP_SETTINGS_DEFAULTS.cardStyle,
           );
           // Schedule sync push after rehydration (debounced, no-op if sync disabled)
           if (state.syncEnabled) {

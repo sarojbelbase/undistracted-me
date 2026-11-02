@@ -39,8 +39,7 @@ export const PRESET_CATEGORIES = [
   { id: 'nepal', label: 'Nepal' },
 ];
 
-// Default active feed IDs (enabled when widget is first added)
-export const DEFAULT_ACTIVE_IDS = ['hn', 'bbc', 'guardian'];
-
-// Legacy — still used by useRss hook
-export const DEFAULT_FEED_ID = 'hn';
+// Default active feed IDs + legacy default feed ID now live in
+// constants/defaults.js (single source of truth). Re-exported for existing
+// import paths by utils.js (not here) so this file stays pure data, safe to
+// import from Node.js / Vercel edge without pulling in React.

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { BaseSettingsModal } from "../BaseSettingsModal";
 import { useWidgetSettings } from "../useWidgetSettings";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { Popup } from "../../components/ui/Popup";
 import { FaviconIcon } from "../../components/ui/FaviconIcon";
 import { shorthandFromUrl } from "../../utilities/index";
@@ -9,11 +10,7 @@ import { addBookmark as addSharedBookmark } from "../../data/sharedBookmarks";
 import { BookmarkSettings } from "./Settings";
 
 export const Widget = ({ id, onRemove }) => {
-  const [settings, updateSetting] = useWidgetSettings(id, {
-    url: "",
-    name: "",
-    iconMode: "favicon",
-  });
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.bookmark);
   const [showSettings, setShowSettings] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const [bgColor, setBgColor] = useState(null);
