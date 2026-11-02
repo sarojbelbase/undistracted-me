@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume } from './utils';
+import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume, DEFAULT_SYMBOLS } from './utils';
 import config from './config';
 import { useStocks } from './useStocks';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
-const DEFAULT_STOCK_SETTINGS = { symbols: ['NEPSE'] };
+const DEFAULT_STOCK_SETTINGS = { symbols: DEFAULT_SYMBOLS };
 
 // ── Skeleton bone ──────────────────────────────────────────────────────────────
 const Bone = ({ width, height = '0.9rem', className = '' }) => (

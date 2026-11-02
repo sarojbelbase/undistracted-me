@@ -14,7 +14,7 @@
 
 import { useState, useEffect, useReducer, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { fetchChart } from "./utils";
+import { fetchChart, DEFAULT_SYMBOLS } from "./utils";
 import { useWidgetInstancesStore } from "../../store";
 
 const isExtension = typeof chrome !== "undefined" && !!chrome.runtime?.id;
@@ -50,7 +50,7 @@ export const useStocks = () => {
     }),
   );
   const symbols = useWidgetInstancesStore(
-    useShallow((s) => (s.widgetSettings[stockInstId]?.symbols) ?? []),
+    useShallow((s) => (s.widgetSettings[stockInstId]?.symbols) ?? DEFAULT_SYMBOLS),
   );
 
   // Sync symbols to service worker whenever they change so SW can pre-fetch.

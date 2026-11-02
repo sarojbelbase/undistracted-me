@@ -7,6 +7,11 @@ const hostname = typeof location !== 'undefined' ? location.hostname : '';
 const isDev = hostname === 'localhost';
 const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
+// Default watchlist — single source of truth shared by the widget (settings
+// default) and useStocks (store read). Keeping them in sync ensures the default
+// NEPSE symbol actually fetches on first load instead of rendering a dead graph.
+export const DEFAULT_SYMBOLS = ['NEPSE'];
+
 // ── Company list ──────────────────────────────────────────────────────────────
 // dev → Vite proxy (/np-api → nepalipaisa.com)
 // extension → direct (allowed by host_permissions)
