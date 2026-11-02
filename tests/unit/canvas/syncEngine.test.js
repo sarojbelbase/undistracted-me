@@ -95,13 +95,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// ─── whole-key LWW (object keys) ────────────────────────────────────────────
+// ─── field-level LWW (settings) ─────────────────────────────────────────────
 
-describe('pullFromSync — whole-key last-write-wins (settings)', () => {
-  it('adopts the remote value when its timestamp is newer', async () => {
+describe('pullFromSync — settings field-level merge', () => {
+  it('adopts a remote field when remote is newer', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 1000 }));
-    setGist({ undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 2000 } });
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
+      undistracted_settings: { fields: { items: { accent: { v: 'local', t: 100 } }, deleted: {} } },
+    }));
+    setGist({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 200 } }, version: 0 }, t: 200 } });
 
     const changes = await syncEngine.pullFromSync();
 
@@ -109,14 +111,35 @@ describe('pullFromSync — whole-key last-write-wins (settings)', () => {
     expect(JSON.parse(localStorage.getItem('undistracted_settings')).state.accent).toBe('remote');
   });
 
-  it('keeps the local value when its timestamp is newer', async () => {
+  it('keeps a local field when local is newer', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 3000 }));
-    setGist({ undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 2000 } });
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
+      undistracted_settings: { fields: { items: { accent: { v: 'local', t: 300 } }, deleted: {} } },
+    }));
+    setGist({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 200 } }, version: 0 }, t: 200 } });
 
     await syncEngine.pullFromSync();
 
     expect(JSON.parse(localStorage.getItem('undistracted_settings')).state.accent).toBe('local');
+  });
+
+  it('unions fields present on only one side', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
+      undistracted_settings: { fields: { items: { accent: { v: 'local', t: 100 } }, deleted: {} } },
+    }));
+    setGist({
+      undistracted_settings: {
+        v: { fields: { accent: { v: 'local', t: 100 }, language: { v: 'ne', t: 150 } }, version: 0 },
+        t: 150,
+      },
+    });
+
+    await syncEngine.pullFromSync();
+
+    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state.accent).toBe('local');
+    expect(state.language).toBe('ne');
   });
 });
 
@@ -143,7 +166,7 @@ describe('pullFromSync — array element-set merge', () => {
 
   it('adopts the remote item on a same-id conflict when remote is newer', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 'x', title: 'local' }]));
-    localStorage.setItem('sync_array_meta', JSON.stringify({
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
       widget_events: { items: { x: { v: { id: 'x', title: 'local' }, t: 10 } }, deleted: {} },
     }));
     setGist({ widget_events: { v: elementSet({ x: { v: { id: 'x', title: 'remote' }, t: 50 } }), t: 50 } });
@@ -155,7 +178,7 @@ describe('pullFromSync — array element-set merge', () => {
 
   it('does not resurrect a locally-deleted item (tombstone)', async () => {
     localStorage.setItem('widget_events', JSON.stringify([]));
-    localStorage.setItem('sync_array_meta', JSON.stringify({
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
       widget_events: { items: {}, deleted: { x: 100 } }, // deleted at t=100
     }));
     setGist({ widget_events: { v: elementSet({ x: { v: { id: 'x' }, t: 50 } }), t: 50 } });
@@ -225,6 +248,55 @@ describe('phantom-key mapping', () => {
     const written = JSON.parse(gistContent);
     expect(written.keys.countdown_events).toBeDefined();
     expect(written.keys.countdown_events.v.items.c1.v.title).toBe('C');
+  });
+});
+
+// ─── widget_instances per-instance merge ────────────────────────────────────
+
+describe('widget_instances per-instance merge', () => {
+  it('unions instances and per-widget settings across devices', async () => {
+    localStorage.setItem('widget_instances', JSON.stringify({
+      state: {
+        instances: [{ id: 'clock', type: 'clock' }],
+        widgetSettings: { clock: { format: '24h' } },
+      },
+      version: 0,
+    }));
+    setGist({
+      widget_instances: {
+        v: {
+          instances: elementSet({ calendar: { v: { id: 'calendar', type: 'calendar' }, t: 10 } }),
+          widgetSettings: elementSet({ calendar: { v: { calendarType: 'bs' }, t: 10 } }),
+          version: 0,
+        },
+        t: 10,
+      },
+    });
+
+    await syncEngine.pullFromSync();
+
+    const state = JSON.parse(localStorage.getItem('widget_instances')).state;
+    expect(state.instances.map((i) => i.id).sort()).toEqual(['calendar', 'clock']);
+    expect(state.widgetSettings.calendar).toEqual({ calendarType: 'bs' });
+    expect(state.widgetSettings.clock).toEqual({ format: '24h' });
+  });
+
+  it('excludes the notes widget settings from the synced payload', async () => {
+    localStorage.setItem('widget_instances', JSON.stringify({
+      state: {
+        instances: [{ id: 'notes', type: 'notes' }],
+        widgetSettings: { notes: { notes: [{ id: 'n1', text: 'secret' }], idx: 0 } },
+      },
+      version: 0,
+    }));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    const ws = written.keys.widget_instances.v.widgetSettings;
+    expect(ws.items.notes).toBeUndefined();
+    // The notes instance itself is still synced (its slot, not its content).
+    expect(written.keys.widget_instances.v.instances.items.notes).toBeDefined();
   });
 });
 

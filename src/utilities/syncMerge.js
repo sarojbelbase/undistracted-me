@@ -136,3 +136,43 @@ export function elementSetToArray(set, localArray) {
   }
   return result;
 }
+
+/**
+ * Decompose an object (keyed map) into an element set, diffing against the
+ * last-synced metadata. New/changed values get `ts`; removed keys get a
+ * tombstone at `ts`; unchanged values keep their previous timestamp.
+ */
+export function mapToElementSet(obj, meta, ts) {
+  const items = {};
+  const deleted = { ...(meta?.deleted || {}) };
+  const seen = new Set();
+
+  for (const key of Object.keys(obj || {})) {
+    seen.add(key);
+    const value = obj[key];
+    const prev = meta?.items?.[key];
+    if (prev && deepEqual(prev.v, value)) {
+      items[key] = prev;
+    } else {
+      items[key] = { v: value, t: ts };
+    }
+    delete deleted[key];
+  }
+
+  for (const key of Object.keys(meta?.items || {})) {
+    if (!seen.has(key) && deleted[key] == null) {
+      deleted[key] = ts;
+    }
+  }
+
+  return { items, deleted };
+}
+
+/** Rebuild an object (keyed map) from an element set's live items. */
+export function elementSetToObject(set) {
+  const out = {};
+  for (const [key, entry] of Object.entries(set?.items || {})) {
+    out[key] = entry.v;
+  }
+  return out;
+}

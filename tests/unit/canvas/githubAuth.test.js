@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   findSyncGist,
+  findSyncGists,
   ensureGist,
   GIST_DESCRIPTION,
   GIST_FILENAME,
@@ -69,6 +70,15 @@ describe('findSyncGist', () => {
   it('returns null when nothing matches', () => {
     expect(findSyncGist([])).toBeNull();
     expect(findSyncGist([{ id: 'x', description: 'nope', files: {} }])).toBeNull();
+  });
+
+  it('findSyncGists returns all matches sorted oldest-first (for dedup)', () => {
+    const matches = findSyncGists([
+      syncGist('newer', '2025-01-01T00:00:00Z'),
+      { id: 'other', description: 'unrelated', files: {} },
+      syncGist('older', '2023-01-01T00:00:00Z'),
+    ]);
+    expect(matches.map((g) => g.id)).toEqual(['older', 'newer']);
   });
 });
 

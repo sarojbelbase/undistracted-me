@@ -9,6 +9,8 @@ import {
   arrayToElementSet,
   mergeElementSets,
   elementSetToArray,
+  mapToElementSet,
+  elementSetToObject,
 } from '../../../src/utilities/syncMerge';
 
 describe('itemKey', () => {
@@ -119,5 +121,28 @@ describe('elementSetToArray', () => {
     const set = { items: { a: { v: { id: 'a' }, t: 1 } }, deleted: { b: 100 } };
     const arr = elementSetToArray(set, [{ id: 'a' }, { id: 'b' }]);
     expect(arr.map((x) => x.id)).toEqual(['a']);
+  });
+});
+
+describe('mapToElementSet / elementSetToObject', () => {
+  it('round-trips an object into an element set and back', () => {
+    const { items, deleted } = mapToElementSet({ accent: 'red', language: 'en' }, null, 100);
+    expect(items.accent).toEqual({ v: 'red', t: 100 });
+    expect(items.language).toEqual({ v: 'en', t: 100 });
+    expect(Object.keys(deleted)).toHaveLength(0);
+    expect(elementSetToObject({ items, deleted })).toEqual({ accent: 'red', language: 'en' });
+  });
+
+  it('keeps unchanged values at their previous timestamp', () => {
+    const meta = { items: { accent: { v: 'red', t: 40 } }, deleted: {} };
+    const { items } = mapToElementSet({ accent: 'red' }, meta, 100);
+    expect(items.accent.t).toBe(40);
+  });
+
+  it('bumps changed values and tombstones removed keys', () => {
+    const meta = { items: { accent: { v: 'red', t: 40 }, language: { v: 'en', t: 40 } }, deleted: {} };
+    const { items, deleted } = mapToElementSet({ accent: 'blue' }, meta, 100);
+    expect(items.accent.t).toBe(100);
+    expect(deleted.language).toBe(100);
   });
 });
