@@ -13,6 +13,7 @@ import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, Arrow
 import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
+import { SyncConflictDialog } from '../ui/SyncConflictDialog';
 import { isConnected, getGistUrl } from '../../utilities/githubAuth';
 import syncEngine from '../../utilities/syncEngine';
 import { exportSettings, importFromFile, resetSettings } from '../../widgets/settingsIO';
@@ -38,9 +39,21 @@ export const Data = ({ onNavigateToAccounts }) => {
   const [alreadySynced, setAlreadySynced] = useState(false);
   const [syncHint, setSyncHint] = useState(null);
   const [gistUrl, setGistUrl] = useState(null);
+  const [conflict, setConflict] = useState(null);
   const feedbackTimerRef = useRef(null);
 
   useEffect(() => () => clearTimeout(feedbackTimerRef.current), []);
+
+  // Surface a pending divergence (e.g. detected on app load) as soon as it's
+  // known, and again whenever the engine reports a conflict event.
+  useEffect(() => {
+    const check = () => {
+      const pending = syncEngine.getSyncStatus().pendingConflict;
+      if (pending) setConflict(pending);
+    };
+    check();
+    return syncEngine.onSyncChange(check);
+  }, []);
 
   useEffect(() => {
     if (githubConnected) {
@@ -59,12 +72,16 @@ export const Data = ({ onNavigateToAccounts }) => {
     clearTimeout(feedbackTimerRef.current);
     try {
       const result = await syncEngine.forceSync();
-      if (result?.changed) {
+      if (result?.status === 'diverged' || result?.preview?.status === 'diverged') {
+        setConflict(result.preview);
+      } else if (result?.changed) {
         setJustSynced(true);
         setSyncHint(
-          result.pullCount > 0
-            ? `Merged ${result.pullCount} change${result.pullCount === 1 ? '' : 's'} from other devices.`
-            : null,
+          result.status === 'pulled'
+            ? 'Downloaded changes from the cloud.'
+            : result.status === 'pushed'
+              ? 'Uploaded changes to the cloud.'
+              : 'Synced.',
         );
         feedbackTimerRef.current = setTimeout(() => {
           setJustSynced(false);
@@ -72,11 +89,7 @@ export const Data = ({ onNavigateToAccounts }) => {
         }, 2500);
       } else {
         setAlreadySynced(true);
-        setSyncHint(
-          result?.reason === 'no-changes'
-            ? 'No changes detected.'
-            : 'Synced less than 5 minutes ago.',
-        );
+        setSyncHint('No changes detected.');
         feedbackTimerRef.current = setTimeout(() => {
           setAlreadySynced(false);
           setSyncHint(null);
@@ -84,6 +97,37 @@ export const Data = ({ onNavigateToAccounts }) => {
       }
     } catch {
       /* best-effort — engine logs failures */
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleResolve = async (action) => {
+    setConflict(null);
+    setSyncing(true);
+    setJustSynced(false);
+    setAlreadySynced(false);
+    setSyncHint(null);
+    clearTimeout(feedbackTimerRef.current);
+    try {
+      if (action === 'pull') await syncEngine.pullSync();
+      else if (action === 'push') await syncEngine.pushSync();
+      else await syncEngine.mergeSync();
+
+      setJustSynced(true);
+      setSyncHint(
+        action === 'pull'
+          ? 'Downloaded the cloud to this device.'
+          : action === 'push'
+            ? 'Uploaded this device to the cloud.'
+            : 'Merged both devices.',
+      );
+      feedbackTimerRef.current = setTimeout(() => {
+        setJustSynced(false);
+        setSyncHint(null);
+      }, 2500);
+    } catch {
+      setSyncHint('Sync failed. Please try again.');
     } finally {
       setSyncing(false);
     }
@@ -357,6 +401,13 @@ export const Data = ({ onNavigateToAccounts }) => {
           Your data stays in your browser unless you enable cross-device sync, which stores a copy in your private GitHub gist. Exports are saved as a .json file. Use them to transfer settings between devices or keep a safety backup.
         </p>
       </div>
+
+      {/* ── Sync conflict chooser ─────────────────────────────────────── */}
+      <SyncConflictDialog
+        preview={conflict}
+        onClose={() => setConflict(null)}
+        onResolve={handleResolve}
+      />
     </div>
   );
 };

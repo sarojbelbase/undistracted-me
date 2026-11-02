@@ -102,6 +102,7 @@ let lastError = null;
 let lastAutoSyncAt = 0;
 let lastMergeCount = 0; // number of keys merged from remote on the last pull
 let lastRemoteHash = null; // content hash of the last gist payload read/written
+let pendingConflict = null; // divergence preview awaiting a user pull/push/merge choice
 let pollTimer = null;
 let pollCleanup = null;
 let writeQueue = Promise.resolve();
@@ -131,6 +132,60 @@ const generateDeviceId = () => {
   crypto.getRandomValues(buf);
   return 'dev_' + buf[0].toString(36) + '_' + Date.now().toString(36);
 };
+
+// ── Device identity (registry) ────────────────────────────────────────────────
+//
+// Each device persists a stable id + friendly name/os. The gist's `devices` map
+// keys on the id so multiple devices can coexist without one clobbering the
+// other's identity. `lastSeenAt` is the last time that device pushed.
+
+const DEVICE_INFO_KEY = 'sync_device_info';
+
+/** Detect a friendly OS label for the device registry. */
+const detectDeviceInfo = () => {
+  try {
+    const ua = navigator.userAgent || '';
+    const plat = navigator.userAgentData?.platform || navigator.platform || '';
+    const s = `${plat} ${ua}`;
+    if (/Windows|Win32|Win64/i.test(s)) return { os: 'Windows', name: 'Windows' };
+    if (/Mac|Macintosh/i.test(s)) return { os: 'macOS', name: 'Mac' };
+    if (/Android/i.test(s)) return { os: 'Android', name: 'Android' };
+    if (/iPhone|iPad|iOS/i.test(s)) return { os: 'iOS', name: 'iOS' };
+    if (/Linux/i.test(s)) return { os: 'Linux', name: 'Linux' };
+  } catch {
+    /* ignore */
+  }
+  return { os: 'Unknown', name: 'This device' };
+};
+
+/** Get (and cache) this device's registry metadata. */
+const getDeviceInfo = () => {
+  try {
+    const cached = JSON.parse(localStorage.getItem(DEVICE_INFO_KEY) || 'null');
+    if (cached && typeof cached === 'object' && cached.os) return cached;
+  } catch {
+    /* ignore */
+  }
+  const info = detectDeviceInfo();
+  try {
+    localStorage.setItem(DEVICE_INFO_KEY, JSON.stringify(info));
+  } catch {
+    /* ignore */
+  }
+  return info;
+};
+
+/** Build this device's registry entry (stamped now). */
+const myDeviceEntry = () => {
+  const { name, os } = getDeviceInfo();
+  return { name, os, lastSeenAt: now() };
+};
+
+/** Merge this device's entry into a remote registry (preserving other devices). */
+const mergedDevices = (remote) => ({
+  ...(remote?.devices || {}),
+  [deviceId]: myDeviceEntry(),
+});
 
 /** Get current epoch ms timestamp. */
 const now = () => Date.now();
@@ -333,27 +388,37 @@ const readGist = async () => {
       v: typeof parsed.v === 'number' ? parsed.v : 1,
       keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
       hash,
+      deviceId: typeof parsed.deviceId === 'string' ? parsed.deviceId : null,
+      updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : null,
+      devices: parsed.devices && typeof parsed.devices === 'object' ? parsed.devices : {},
     };
   } catch {
     lastRemoteHash = null;
-    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null };
+    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null, deviceId: null, updatedAt: null, devices: {} };
   }
 };
 
 /**
  * Create-or-update the sync gist with the given `keys` object. Returns the
  * gist id (creating the gist on first write).
+ *
+ * @param {object} keys    the sync keys payload
+ * @param {object} [devices] the device registry (defaults to just this device)
  */
-const writeGist = async (keys) => {
+const writeGist = async (keys, devices) => {
   const token = await getToken();
   if (!token) throw new Error('Not connected to GitHub');
 
   const hash = hashValue(keys);
+  const registry = devices && typeof devices === 'object'
+    ? devices
+    : { [deviceId]: myDeviceEntry() };
   const payload = JSON.stringify({
     v: GIST_SCHEMA_VERSION,
     deviceId,
     updatedAt: now(),
     hash,
+    devices: registry,
     keys,
   });
   let gistId = await getGistId();
@@ -791,7 +856,7 @@ const pushKey = (localKey) => {
       }
 
       keys[localKey] = { v: merged, t: ts };
-      await writeGist(keys);
+      await writeGist(keys, mergedDevices(remote));
       setLocalTs(localKey, ts);
       lastSyncAt = ts;
       clearError();
@@ -892,7 +957,7 @@ const pushAll = async () => {
 
       if (!changed) return { changed: false };
 
-      await writeGist(keys);
+      await writeGist(keys, mergedDevices(remote));
       lastSyncAt = now();
       clearError();
       return { changed: true };
@@ -906,22 +971,296 @@ const pushAll = async () => {
   return writeQueue;
 };
 
+// ── Divergence detection + directional sync (pull / push / merge) ────────────
+//
+// The clobber bug: a device that has never synced (no base hash recorded) used
+// to stamp every local field/item with `now()` and push it, beating the other
+// device's older timestamps. We now classify the relationship like git
+// (clean / ahead / behind / diverged) against the last-synced base hash, and
+// only fast-forward when exactly one side changed. A true divergence (or a
+// first-connect where both sides already have data) is surfaced to the UI for
+// an explicit pull / push / merge choice instead of silently clobbering.
+
+/** True when any syncable key holds non-trivial local data. */
+const hasLocalData = () => {
+  for (const localKey of SYNC_KEYS) {
+    const raw = readLocal(SYNC_MAP[localKey]);
+    if (raw == null) continue;
+    if (Array.isArray(raw)) {
+      if (raw.length > 0) return true;
+      continue;
+    }
+    if (typeof raw === 'object') {
+      const inner = raw.state && typeof raw.state === 'object' ? raw.state : raw;
+      if (inner && Object.keys(inner).length > 0) return true;
+      continue;
+    }
+    return true; // scalar non-null
+  }
+  return false;
+};
+
+/** Build the registry entry for the gist's last writer (for UI display). */
+const remoteDeviceInfo = (remote) => {
+  if (!remote || !remote.deviceId) return null;
+  return remote.devices?.[remote.deviceId] || { name: 'Another device', os: 'Unknown', lastSeenAt: remote.updatedAt || null };
+};
+
+/**
+ * Read the gist fresh and classify the local↔remote relationship against the
+ * last-synced base hash. Does NOT mutate anything.
+ *
+ * Returns:
+ *   { status: 'clean' | 'ahead' | 'behind' | 'diverged',
+ *     firstSync?: boolean, remote, remoteDevice, localDevice, remoteUpdatedAt }
+ *
+ *   - 'ahead'   → only local changed since base → safe to push
+ *   - 'behind'  → only remote changed since base → safe to pull
+ *   - 'diverged'→ both changed (or first-connect with data on both sides) → ask
+ */
+const previewSync = async () => {
+  if (!enabled) return { status: 'clean', disabled: true };
+
+  let remote;
+  try {
+    remote = await readGist();
+  } catch (err) {
+    return { status: 'clean', error: err.message };
+  }
+
+  const fp = readFingerprint();
+  const localHash = hashLocalState();
+  const remoteHash = remote && !remote.notFound ? remote.hash : null;
+
+  // Never synced on this device (no base recorded).
+  if (fp.remote == null) {
+    if (remoteHash != null && hasLocalData()) {
+      return {
+        status: 'diverged',
+        firstSync: true,
+        remote,
+        remoteDevice: remoteDeviceInfo(remote),
+        localDevice: myDeviceEntry(),
+        remoteUpdatedAt: remote?.updatedAt || null,
+      };
+    }
+    if (remoteHash != null) return { status: 'behind', remote };
+    if (hasLocalData()) return { status: 'ahead', remote };
+    return { status: 'clean', remote };
+  }
+
+  const localChanged = localHash !== fp.local;
+  const remoteChanged = remoteHash !== fp.remote;
+
+  const info = {
+    remote,
+    remoteDevice: remoteDeviceInfo(remote),
+    localDevice: myDeviceEntry(),
+    remoteUpdatedAt: remote?.updatedAt || null,
+  };
+
+  if (!localChanged && !remoteChanged) return { status: 'clean', ...info };
+  if (!localChanged && remoteChanged) return { status: 'behind', ...info };
+  if (localChanged && !remoteChanged) return { status: 'ahead', ...info };
+  return { status: 'diverged', ...info };
+};
+
+/** Replace a single local key with the remote value (remote wins, verbatim). */
+const adoptRemote = (localKey, entry) => {
+  const storageKey = SYNC_MAP[localKey];
+
+  if (ARRAY_KEYS.has(localKey)) {
+    const set = normalizeElementSet(entry.v, entry.t);
+    writeLocal(storageKey, elementSetToArray(set, []));
+    writeMeta(localKey, set);
+    notifyHooks(localKey);
+    return;
+  }
+
+  if (localKey === 'undistracted_settings') {
+    const { fields, version } = normalizeSettings(entry.v, entry.t);
+    const nextRaw = { state: elementSetToObject({ items: fields, deleted: {} }) };
+    if (version !== undefined) nextRaw.version = version;
+    writeLocal(storageKey, nextRaw);
+    writeMeta(localKey, { fields: { items: fields, deleted: {} } });
+    return;
+  }
+
+  if (localKey === 'widget_instances') {
+    const { instances, widgetSettings, version } = normalizeWidgetInstances(entry.v, entry.t);
+    // Preserve local notes settings — notes are never synced in the config gist.
+    const localRaw = readLocal(storageKey);
+    const localNotes = localRaw?.state?.widgetSettings?.notes;
+    const newWs = elementSetToObject(widgetSettings);
+    if (localNotes) newWs.notes = localNotes;
+    const nextRaw = {
+      state: { instances: elementSetToArray(instances, []), widgetSettings: newWs },
+    };
+    if (version !== undefined) nextRaw.version = version;
+    writeLocal(storageKey, nextRaw);
+    writeMeta(localKey, { instances, widgetSettings });
+    return;
+  }
+
+  if (localKey === 'notes_index') {
+    writeLocal(storageKey, entry.v && typeof entry.v === 'object' ? entry.v : {});
+  }
+};
+
+/**
+ * Pull: overwrite local state with the remote gist (remote wins). Used when the
+ * user explicitly chooses "pull" to resolve a divergence, or on a clean
+ * fast-forward where only the remote changed.
+ */
+const pullSync = async () => {
+  if (!enabled) return { changed: false, reason: 'disabled' };
+
+  let remote;
+  try {
+    remote = await readGist();
+  } catch (err) {
+    reportError(err.message);
+    return { changed: false, reason: 'error', error: err.message };
+  }
+  if (!remote || remote.notFound) return { changed: false, reason: 'no-cloud' };
+  if (typeof remote.v === 'number' && remote.v > GIST_SCHEMA_VERSION) {
+    reportError('Sync data was written by a newer version of the app. Please update the app.');
+    return { changed: false, reason: 'schema' };
+  }
+
+  clearError();
+  let changed = false;
+  for (const localKey of SYNC_KEYS) {
+    const entry = remote.keys?.[localKey];
+    if (!entry) continue;
+    adoptRemote(localKey, entry);
+    changed = true;
+  }
+
+  pendingConflict = null;
+  lastSyncAt = now();
+  lastMergeCount = SYNC_KEYS.length;
+  recordFingerprint();
+  onChangeCallbacks.forEach((cb) => {
+    try { cb('_pull', null); } catch { /* ignore */ }
+  });
+  return { changed, reason: 'synced' };
+};
+
+/**
+ * Push: overwrite the remote gist with local state (local wins). Used when the
+ * user explicitly chooses "push" to resolve a divergence, or on a clean
+ * fast-forward where only the local side changed.
+ */
+const pushSync = async () => {
+  if (!enabled) return { changed: false, reason: 'disabled' };
+
+  let remote;
+  try {
+    remote = await readGist();
+  } catch {
+    remote = null;
+  }
+
+  // Build a fresh element set for every local key, stamping ALL items with now()
+  // so local wins over anything remote (replace semantics, not merge).
+  const keys = {};
+  const metaUpdates = {};
+  const ts = now();
+  for (const localKey of SYNC_KEYS) {
+    const storageKey = SYNC_MAP[localKey];
+    const raw = readLocal(storageKey);
+    if (raw == null) continue;
+
+    if (ARRAY_KEYS.has(localKey)) {
+      const arr = preprocessArray(localKey, raw || []);
+      if (!Array.isArray(arr) || arr.length === 0) continue;
+      const set = arrayToElementSet(arr, { items: {}, deleted: {} }, ts);
+      keys[localKey] = { v: set, t: ts };
+      metaUpdates[localKey] = set;
+    } else if (localKey === 'undistracted_settings') {
+      const state = raw.state && typeof raw.state === 'object' ? raw.state : {};
+      const set = mapToElementSet(state, { items: {}, deleted: {} }, ts);
+      keys[localKey] = { v: { fields: set.items, version: raw.version ?? 0 }, t: ts };
+      metaUpdates[localKey] = { fields: set };
+    } else if (localKey === 'widget_instances') {
+      const state = raw.state || {};
+      const instances = Array.isArray(state.instances) ? state.instances : [];
+      const ws = { ...(state.widgetSettings && typeof state.widgetSettings === 'object' ? state.widgetSettings : {}) };
+      delete ws.notes; // never synced here
+      const instSet = arrayToElementSet(instances, { items: {}, deleted: {} }, ts);
+      const wsSet = mapToElementSet(ws, { items: {}, deleted: {} }, ts);
+      keys[localKey] = { v: { instances: instSet, widgetSettings: wsSet, version: raw.version ?? 0 }, t: ts };
+      metaUpdates[localKey] = { instances: instSet, widgetSettings: wsSet };
+    } else if (localKey === 'notes_index') {
+      keys[localKey] = { v: raw, t: ts };
+    }
+  }
+
+  const devices = mergedDevices(remote);
+
+  try {
+    await writeGist(keys, devices);
+  } catch (err) {
+    reportError(err.message);
+    return { changed: false, reason: 'error', error: err.message };
+  }
+
+  for (const [k, meta] of Object.entries(metaUpdates)) writeMeta(k, meta);
+  for (const localKey of Object.keys(keys)) setLocalTs(localKey, ts);
+
+  pendingConflict = null;
+  lastSyncAt = now();
+  recordFingerprint();
+  clearError();
+  onChangeCallbacks.forEach((cb) => {
+    try { cb('_push', null); } catch { /* ignore */ }
+  });
+  return { changed: true, reason: 'synced' };
+};
+
+/**
+ * Merge: the existing per-field / per-item last-write-wins union (pull then
+ * push). Only offered for a *non-first* divergence, where both devices share a
+ * base and their merge metadata is trustworthy.
+ */
+const mergeSync = async () => {
+  if (!isExtension() || !enabled) return { changed: false, reason: 'disabled' };
+  const pulled = await pullFromSync();
+  const pushed = isSyncClean() ? { changed: false } : await pushAll();
+  await runSyncHooks();
+  const changed = Object.keys(pulled).length > 0 || !!pushed.changed;
+  if (changed) {
+    pendingConflict = null;
+    lastSyncAt = now();
+    recordFingerprint();
+  }
+  return { changed, reason: changed ? 'synced' : 'no-changes' };
+};
+
 // ── Polling (daily auto-sync, throttled to block continuous syncing) ──────────
 
 /** True when enough time has passed since the last automatic sync. */
 const canAutoSync = () => (now() - lastAutoSyncAt) >= SYNC_THROTTLE_MS;
 
-/** Run one automatic sync cycle (pull remote, then push local, then hooks). */
+/** Run one automatic sync cycle (classify, fast-forward, then hooks). */
 const runAutoSync = async () => {
   lastAutoSyncAt = now();
-  const pulled = await pullFromSync();
-  // Skip the push when neither side changed since the last sync (hash match).
-  const pushed = isSyncClean() ? { changed: false } : await pushAll();
-  await runSyncHooks();
-  if (Object.keys(pulled).length > 0 || pushed.changed) {
-    lastSyncAt = now();
-    recordFingerprint();
+  const preview = await previewSync();
+  let changed = false;
+  if (preview.status === 'behind') {
+    changed = (await pullSync()).changed;
+  } else if (preview.status === 'ahead') {
+    changed = (await pushSync()).changed;
+  } else if (preview.status === 'diverged') {
+    // Never auto-resolve a divergence — surface it for a manual choice.
+    pendingConflict = preview;
+    onChangeCallbacks.forEach((cb) => {
+      try { cb('_conflict', preview); } catch { /* ignore */ }
+    });
   }
+  await runSyncHooks();
+  if (changed) lastSyncAt = now();
 };
 
 const setupPolling = () => {
@@ -962,8 +1301,10 @@ const teardownPolling = () => {
 
 /**
  * Enable cross-device sync (requires a GitHub connection).
- * - Pulls the gist and merges with local (last-write-wins).
- * - Pushes all local data to the gist (creates it on first connect).
+ * - Classifies local vs remote against the last-synced base.
+ * - Fast-forwards (pull or push) when only one side changed.
+ * - On a divergence (including first-connect with data on both sides), does NOT
+ *   auto-merge — it surfaces a conflict for an explicit pull/push/merge choice.
  * - Starts daily auto-sync (throttled to block continuous syncing).
  */
 const enableSync = async () => {
@@ -987,24 +1328,26 @@ const enableSync = async () => {
   deviceId = readLocal('sync_device_id') || generateDeviceId();
   writeLocal('sync_device_id', deviceId);
 
-  const changes = await pullFromSync();
-  await pushAll();
   setupPolling();
 
-  recordFingerprint();
-
-  if (Object.keys(changes).length > 0) {
+  const preview = await previewSync();
+  if (preview.status === 'behind') {
+    await pullSync();
+    await runSyncHooks();
+  } else if (preview.status === 'ahead') {
+    await pushSync();
+    await runSyncHooks();
+  } else if (preview.status === 'diverged') {
+    pendingConflict = preview;
     onChangeCallbacks.forEach((cb) => {
-      try {
-        cb('_initial_pull', changes);
-      } catch {
-        /* ignore */
-      }
+      try { cb('_conflict', preview); } catch { /* ignore */ }
     });
+  } else {
+    recordFingerprint();
+    lastSyncAt = now();
   }
 
   lastAutoSyncAt = now(); // start the 5-min throttle from connect
-  lastSyncAt = now();
   console.log('[sync] Enabled — device:', deviceId);
 };
 
@@ -1014,6 +1357,7 @@ const enableSync = async () => {
  */
 const disableSync = () => {
   enabled = false;
+  pendingConflict = null;
   writeLocal('sync_enabled', false);
 
   teardownPolling();
@@ -1025,7 +1369,8 @@ const isSyncEnabled = () => enabled;
 
 /**
  * Get sync status info for UI display.
- * Returns { available, enabled, connected, lastSyncAt, deviceId, lastError }.
+ * Returns { available, enabled, connected, lastSyncAt, deviceId, lastError,
+ *           pendingConflict, deviceInfo }.
  */
 const getSyncStatus = () => ({
   available: isExtension(),
@@ -1035,6 +1380,8 @@ const getSyncStatus = () => ({
   lastMergeCount,
   deviceId,
   lastError,
+  pendingConflict,
+  deviceInfo: getDeviceInfo(),
 });
 
 /**
@@ -1071,50 +1418,53 @@ const runSyncHooks = async () => {
 };
 
 /**
- * Force a full sync cycle: pull remote, push local, then notify listeners.
- * Throttled — a sync that completed within the last 5 minutes is skipped so the
- * user can't trigger repetitive syncs. Resolves to:
- *   { changed, reason: 'synced' | 'no-changes' | 'recently-synced' | 'disabled' }
+ * Force a manual sync cycle: classify the local↔remote relationship against the
+ * base, then fast-forward (pull or push) when only one side changed. A true
+ * divergence is NOT auto-resolved — it's returned so the UI can offer a
+ * pull/push/merge choice. Post-sync hooks (notes sync) run regardless.
+ *
+ * Resolves to:
+ *   { changed, status: 'clean'|'pulled'|'pushed'|'diverged'|'disabled',
+ *     reason: 'synced'|'no-changes'|'disabled', preview }
  */
 const forceSync = async () => {
   if (!isExtension() || !enabled) {
-    return { changed: false, reason: 'disabled' };
+    return { changed: false, status: 'disabled', reason: 'disabled' };
   }
 
-  // Once a sync succeeds, hold for 5 minutes before allowing another.
-  if (lastSyncAt && now() - lastSyncAt < SYNC_THROTTLE_MS) {
-    onChangeCallbacks.forEach((cb) => {
-      try {
-        cb('_force', null);
-      } catch {
-        /* ignore */
-      }
-    });
-    return { changed: false, reason: 'recently-synced' };
+  const preview = await previewSync();
+  let changed = false;
+  let status;
+
+  if (preview.status === 'behind') {
+    changed = (await pullSync()).changed;
+    status = 'pulled';
+  } else if (preview.status === 'ahead') {
+    changed = (await pushSync()).changed;
+    status = 'pushed';
+  } else if (preview.status === 'diverged') {
+    pendingConflict = preview;
+    status = 'diverged';
+  } else {
+    status = 'clean';
   }
 
-  const pulled = await pullFromSync();
-  // Skip the push when neither side changed since the last sync (hash match).
-  const pushed = isSyncClean() ? { changed: false } : await pushAll();
   const hooks = await runSyncHooks();
-  lastAutoSyncAt = now(); // manual sync resets the throttle clock
+  lastAutoSyncAt = now(); // manual sync resets the auto-sync throttle clock
 
-  const pullCount = Object.keys(pulled).length;
-  const changed = pullCount > 0 || !!pushed.changed || !!hooks.changed;
-  if (changed) {
-    lastSyncAt = now();
-    recordFingerprint();
-  }
+  const didChange = changed || !!hooks.changed;
+  if (didChange) lastSyncAt = now();
 
   onChangeCallbacks.forEach((cb) => {
-    try {
-      cb('_force', null);
-    } catch {
-      /* ignore */
-    }
+    try { cb('_force', null); } catch { /* ignore */ }
   });
 
-  return { changed, pullCount, reason: changed ? 'synced' : 'no-changes' };
+  return {
+    changed: didChange,
+    status,
+    reason: didChange ? 'synced' : 'no-changes',
+    preview,
+  };
 };
 
 /**
@@ -1150,6 +1500,10 @@ const syncEngine = {
   pushKey,
   pullFromSync,
   pushAll,
+  previewSync,
+  pullSync,
+  pushSync,
+  mergeSync,
   forceSync,
   initSync,
   onSyncChange,

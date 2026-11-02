@@ -376,10 +376,23 @@ describe('change detection and throttle', () => {
     expect(result.changed).toBe(true);
   });
 
-  it('forceSync is throttled right after a successful sync', async () => {
+  it('forceSync returns a divergence preview instead of auto-resolving', async () => {
+    // Both local and remote changed since a shared base.
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-v2' }, version: 0 }));
+    localStorage.setItem('sync_fingerprint', JSON.stringify({ local: 'localhash-v1', remote: 'remotehash-v1' }));
+    gistContent = JSON.stringify({
+      v: 3,
+      deviceId: 'dev_other',
+      updatedAt: 500,
+      hash: 'remotehash-v2',
+      devices: { dev_other: { name: 'Windows', os: 'Windows', lastSeenAt: 500 } },
+      keys: { undistracted_settings: { v: { fields: { accent: { v: 'remote-v2', t: 500 } }, version: 0 }, t: 500 } },
+    });
+
     const result = await syncEngine.forceSync();
+    expect(result.status).toBe('diverged');
     expect(result.changed).toBe(false);
-    expect(result.reason).toBe('recently-synced');
+    expect(syncEngine.getSyncStatus().pendingConflict).toBeTruthy();
   });
 
   it('writes a content hash into the gist payload', async () => {
@@ -395,7 +408,8 @@ describe('change detection and throttle', () => {
     const fp = JSON.parse(localStorage.getItem('sync_fingerprint'));
     expect(fp).toBeTruthy();
     expect(typeof fp.local).toBe('string');
-    expect(typeof fp.remote).toBe('string');
+    // A clean first sync (no remote data) records no base hash yet.
+    expect(fp.remote).toBe(null);
   });
 
   it('records an updated fingerprint after a real push', async () => {
@@ -409,5 +423,111 @@ describe('change detection and throttle', () => {
     expect(written.hash).toBeDefined();
     expect(before.local).toBeTruthy();
     expect(after.local).toBe(before.local); // fingerprint only updates on a full cycle
+  });
+});
+
+// ─── divergence detection + directional sync (pull / push / merge) ───────────
+
+/** Write a full v3 gist payload (with hash + device registry). */
+function setGistV3(keys, { hash = 'remotehash', deviceId = 'dev_other', updatedAt = 500 } = {}) {
+  gistContent = JSON.stringify({
+    v: 3,
+    deviceId,
+    updatedAt,
+    hash,
+    devices: { [deviceId]: { name: 'Windows', os: 'Windows', lastSeenAt: updatedAt } },
+    keys,
+  });
+}
+
+describe('previewSync — divergence classification', () => {
+  it('classifies a first-connect with data on both sides as diverged', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
+
+    const preview = await syncEngine.previewSync();
+    expect(preview.status).toBe('diverged');
+    expect(preview.firstSync).toBe(true);
+  });
+
+  it('classifies remote-only data as behind (no base yet)', async () => {
+    // local empty, remote has data → pull (behind)
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
+
+    const preview = await syncEngine.previewSync();
+    expect(preview.status).toBe('behind');
+  });
+
+  it('classifies local-only data as ahead (no remote yet)', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-new' }, version: 0 }));
+    gistContent = null; // no gist → 404
+
+    const preview = await syncEngine.previewSync();
+    expect(preview.status).toBe('ahead');
+  });
+
+  it('classifies both-changed as diverged (not first sync)', async () => {
+    // Establish a base by pulling v1 into local.
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'v1' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'v1', t: 100 } }, version: 0 }, t: 100 } }, { hash: 'basehash' });
+    await syncEngine.pullSync();
+
+    // Now both sides move.
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-v2' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote-v2', t: 200 } }, version: 0 }, t: 200 } }, { hash: 'newhash' });
+
+    const preview = await syncEngine.previewSync();
+    expect(preview.status).toBe('diverged');
+    expect(preview.firstSync).toBeUndefined();
+  });
+});
+
+describe('directional sync — pull / push', () => {
+  it('pullSync overwrites local with remote (remote wins)', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 }, language: { v: 'ne', t: 100 } }, version: 0 }, t: 100 } });
+
+    const result = await syncEngine.pullSync();
+    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(result.changed).toBe(true);
+    expect(state.accent).toBe('remote');
+    expect(state.language).toBe('ne');
+  });
+
+  it('pullSync deletes local-only settings (replace, not merge)', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local', onlyLocal: 'x' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
+
+    await syncEngine.pullSync();
+    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state.onlyLocal).toBeUndefined();
+  });
+
+  it('pushSync overwrites remote with local (local wins) + writes the device registry', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local', onlyLocal: 'x' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
+
+    const result = await syncEngine.pushSync();
+    const written = JSON.parse(gistContent);
+    expect(result.changed).toBe(true);
+    expect(written.keys.undistracted_settings.v.fields.accent.v).toBe('local');
+    expect(written.keys.undistracted_settings.v.fields.onlyLocal.v).toBe('local');
+    expect(written.devices).toBeTruthy();
+    const myId = syncEngine.getSyncStatus().deviceId;
+    expect(written.devices[myId]).toBeTruthy();
+    expect(syncEngine.getSyncStatus().pendingConflict).toBe(null);
+  });
+
+  it('a fresh device does not clobber remote on enableSync', async () => {
+    // New device with local data, remote gist with data → diverged, both preserved.
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
+
+    await syncEngine.enableSync();
+
+    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state.accent).toBe('local'); // not clobbered
+    expect(JSON.parse(gistContent).keys.undistracted_settings.v.fields.accent.v).toBe('remote'); // not overwritten
+    expect(syncEngine.getSyncStatus().pendingConflict?.status).toBe('diverged');
   });
 });
