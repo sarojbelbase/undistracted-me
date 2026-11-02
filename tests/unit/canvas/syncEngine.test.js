@@ -29,7 +29,7 @@ function json(data, status = 200) {
 }
 
 function stubChrome() {
-  localStore = { github_gist_token: 'token-abc', github_gist_id: GIST_ID };
+  localStore = { github_gist_token: 'token-abc' };
   vi.stubGlobal('chrome', {
     runtime: { id: 'test-ext' },
     storage: {
@@ -82,6 +82,8 @@ function setGist(keys) {
 beforeEach(async () => {
   localStorage.clear();
   stubChrome();
+  // gist id lives in localStorage (non-secret); the token stays in chrome.storage.local
+  localStorage.setItem('github_gist_id', GIST_ID);
   stubFetch();
   await syncEngine.enableSync();
 });

@@ -167,7 +167,7 @@ export const Settings = ({
         {activeTab === 'appearance' && <Appearance />}
         {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
         {activeTab === 'accounts' && <Accounts />}
-        {activeTab === 'data' && <Data />}
+        {activeTab === 'data' && <Data onNavigateToAccounts={() => setActiveTab('accounts')} />}
       </div>
     </Modal>
   );

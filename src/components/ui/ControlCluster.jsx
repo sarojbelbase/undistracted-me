@@ -2,7 +2,6 @@ import React, { forwardRef, Suspense, lazy } from "react";
 import { Grid3x3GapFill, GearFill, Grid1x2Fill } from "react-bootstrap-icons";
 import { SearchIcon } from "../../assets/svg/SearchIcon";
 import { TooltipBtn } from "./TooltipBtn";
-import { SyncIndicator } from "./SyncIndicator";
 import {
   CANVAS_ICON_COLOR,
   CANVAS_ICON_ACTIVE,
@@ -39,7 +38,6 @@ export const ControlCluster = forwardRef(function ControlCluster(
     onOpenCatalog,
     onPreloadCatalog,
     onPreviewLookAway,
-    openAtTab,
   },
   ref,
 ) {
@@ -103,11 +101,6 @@ export const ControlCluster = forwardRef(function ControlCluster(
         >
           <Grid3x3GapFill size={16} style={{ color: iconColor }} />
         </TooltipBtn>
-
-        <ClusterDivider isDark={isDark} />
-
-        {/* Sync status */}
-        <SyncIndicator isDark={isDark} onClick={() => openAtTab('data')} />
 
         <ClusterDivider isDark={isDark} />
 

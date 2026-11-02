@@ -6,9 +6,9 @@
  * backend. The user is shown a short code to enter at github.com/login/device.
  *
  * Credential storage:
- *   - access token  → chrome.storage.local (sensitive; mirrors Google/Spotify)
- *   - gist id       → chrome.storage.local (paired with the token)
- *   - profile       → chrome.storage.local (cached { login, name, avatar })
+ *   - access token  → chrome.storage.local (the one secret; mirrors Google/Spotify)
+ *   - gist id       → localStorage (non-secret; needed for the gist link)
+ *   - profile       → localStorage (cached { login, name, avatar })
  *   - connected flag → localStorage (synchronous, for isConnected())
  */
 
@@ -16,6 +16,7 @@ import { isExtension } from './index';
 import {
   GITHUB_DEVICE_CODE_API,
   GITHUB_OAUTH_TOKEN_API,
+  GITHUB_GISTS_API,
   GITHUB_USER_API,
   GITHUB_SCOPE,
 } from '../constants/urls';
@@ -26,6 +27,12 @@ const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || '';
 /** Filename + description used for the sync gist. */
 export const GIST_FILENAME = 'undistracted-me-sync.json';
 export const GIST_DESCRIPTION = 'Undistracted Me Sync';
+
+/**
+ * User-Agent sent on GitHub REST API requests. GitHub rejects requests without
+ * one with a 403 ("Request forbidden by administrative rules").
+ */
+export const GITHUB_USER_AGENT = 'undistracted-me';
 
 const TOKEN_KEY = 'github_gist_token';
 const GIST_ID_KEY = 'github_gist_id';
@@ -62,12 +69,28 @@ async function storageRemove(key) {
   }
 }
 
+// ── localStorage helpers (gist id + profile — non-secret, sync) ──────────────
+
+function readLocal(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function writeLocal(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* ignore */ }
+}
+function removeLocal(key) {
+  try { localStorage.removeItem(key); } catch { /* ignore */ }
+}
+
 // ── Token / gist id / profile accessors ──────────────────────────────────────
 
 export const getToken = () => storageGet(TOKEN_KEY);
-export const getGistId = () => storageGet(GIST_ID_KEY);
-export const setGistId = (id) => storageSet(GIST_ID_KEY, id);
-export const getProfile = () => storageGet(PROFILE_KEY);
+export const getGistId = () => readLocal(GIST_ID_KEY);
+export const setGistId = (id) => writeLocal(GIST_ID_KEY, id);
+export const getProfile = async () => {
+  const raw = readLocal(PROFILE_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+};
 
 /**
  * Build the browsable URL for the user's sync gist (or null when not connected).
@@ -161,25 +184,28 @@ export async function connect({ onCode } = {}) {
   if (userCode) verificationUri.searchParams.set('user_code', userCode);
   onCode?.({ userCode, verificationUri: verificationUri.toString() });
 
-  // 2. Open the verification page in a new tab (best-effort).
-  try {
-    await chrome.tabs.create({ url: verificationUri.toString() }); // eslint-disable-line no-undef
-  } catch {
-    /* user can open the URL manually */
-  }
-
-  // 3. Poll for the token
+  // 2. Poll for the token — the UI shows the code and lets the user open the
+  //    device page themselves (no auto-redirect).
   const tokens = await pollForToken(GITHUB_CLIENT_ID, codeData.device_code, codeData.interval);
 
-  // 4. Persist token + connected flag
+  // 3. Persist token + connected flag
   await storageSet(TOKEN_KEY, tokens.access_token);
+  console.log('[sync] GitHub token scope:', tokens.scope || '(none)');
   try {
     localStorage.setItem(CONNECTED_FLAG, '1');
   } catch {
     /* unavailable */
   }
 
-  // 5. Fetch + cache the profile (non-critical)
+  // 3b. Ensure the sync gist exists so the gist link is available immediately.
+  // Non-fatal — the sync engine creates it on first push if this fails.
+  try {
+    await ensureGist(tokens.access_token);
+  } catch {
+    /* non-fatal */
+  }
+
+  // 4. Fetch + cache the profile (non-critical)
   let profile = null;
   try {
     const userRes = await fetch(GITHUB_USER_API, {
@@ -187,12 +213,13 @@ export async function connect({ onCode } = {}) {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': GITHUB_USER_AGENT,
       },
     });
     if (userRes.ok) {
       const u = await userRes.json();
       profile = { login: u.login, name: u.name || u.login, avatar: u.avatar_url };
-      await storageSet(PROFILE_KEY, profile);
+      writeLocal(PROFILE_KEY, JSON.stringify(profile));
     }
   } catch {
     /* profile is non-critical */
@@ -204,11 +231,44 @@ export async function connect({ onCode } = {}) {
 /** Disconnect — clears token, gist id, and profile. Leaves the gist intact. */
 export async function disconnect() {
   await storageRemove(TOKEN_KEY);
-  await storageRemove(GIST_ID_KEY);
-  await storageRemove(PROFILE_KEY);
+  removeLocal(GIST_ID_KEY);
+  removeLocal(PROFILE_KEY);
   try {
     localStorage.removeItem(CONNECTED_FLAG);
   } catch {
     /* unavailable */
   }
+}
+
+/**
+ * Ensure the sync gist exists, creating an empty one if needed. Returns its id.
+ * Called during connect so the gist is browsable right after sign-in.
+ */
+async function ensureGist(token) {
+  const existing = await getGistId();
+  if (existing) return existing;
+
+  const res = await fetch(GITHUB_GISTS_API, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json',
+      'User-Agent': GITHUB_USER_AGENT,
+    },
+    body: JSON.stringify({
+      description: GIST_DESCRIPTION,
+      public: false,
+      files: { [GIST_FILENAME]: { content: JSON.stringify({ v: 1, keys: {} }) } },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`Failed to create gist (${res.status}): ${body.message || res.statusText}`);
+  }
+
+  const created = await res.json();
+  await setGistId(created.id);
+  return created.id;
 }
