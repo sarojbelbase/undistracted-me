@@ -24,8 +24,13 @@
  *   - Events (widget_events) — native only, GCal events are stripped
  *   - Bookmarks (widget_bookmarks)
  *   - Countdown pinned (countdown_pinned)
+ *   - Notes index (notes_index) — note_id → gist metadata; the note *content*
+ *     itself is NOT synced here (it lives in per-note private gists managed by
+ *     `notesSync.js`).
  *
  * What does NOT sync:
+ *   - Notes content (widgetSettings.notes) — stripped from widget_instances and
+ *     synced separately via per-note gists.
  *   - Pomodoro history, per-instance pomodoro timers
  *   - Weather cache, Unsplash photos, RSS items, location state, auth tokens,
  *     Spotify tokens, GCal cache, expense data
@@ -63,6 +68,7 @@ const SYNC_MAP = {
   'widget_events': 'widget_events',
   'widget_bookmarks': 'widget_bookmarks',
   'countdown_pinned': 'countdown_pinned',
+  'notes_index': 'notes_index',
 };
 const SYNC_KEYS = Object.keys(SYNC_MAP);
 
@@ -77,6 +83,7 @@ let pollTimer = null;
 let pollCleanup = null;
 let writeQueue = Promise.resolve();
 let onChangeCallbacks = new Set(); // external listeners for UI updates
+let syncHooks = new Set(); // post-sync hooks (e.g. notesSync.syncNotes)
 
 /** Record the latest sync error and notify listeners (so UI can show guidance). */
 const reportError = (message) => {
@@ -282,7 +289,23 @@ const pullFromSync = async () => {
 
     const localTs = getLocalTs(localKey);
     if (entry.t > localTs) {
-      writeLocal(localKey, entry.v);
+      // Notes index merges per-entry (union, newer `updatedAt` wins) instead of
+      // whole-map replace, so concurrent note additions on two devices don't
+      // clobber each other.
+      if (localKey === 'notes_index') {
+        writeLocal(localKey, mergeNotesIndex(readLocal(localKey), entry.v));
+        setLocalTs(localKey, entry.t);
+        changes[localKey] = true;
+        continue;
+      }
+
+      // widget_instances is stripped of notes content on push — preserve the
+      // local notes widget settings when adopting a remote snapshot.
+      const value = localKey === 'widget_instances'
+        ? preserveLocalNotes(entry.v)
+        : entry.v;
+
+      writeLocal(localKey, value);
       setLocalTs(localKey, entry.t);
       notifyHooks(localKey);
       changes[localKey] = true;
@@ -315,8 +338,66 @@ const trimArray = (arr, maxEntries) => {
 };
 
 /**
+ * Strip the notes widget's settings (`widgetSettings.notes`) from a
+ * widget_instances snapshot. Notes content is synced through per-note private
+ * gists (notesSync.js), never through the config gist.
+ */
+const stripNotesFromInstances = (value) => {
+  const widgetSettings = value?.state?.widgetSettings;
+  if (!widgetSettings || !widgetSettings.notes) return value;
+  const stripped = { ...widgetSettings };
+  delete stripped.notes;
+  return { ...value, state: { ...value.state, widgetSettings: stripped } };
+};
+
+/**
+ * Re-inject the local notes widget settings into a pulled widget_instances
+ * snapshot. Because notes are stripped from the synced payload, adopting a
+ * remote snapshot would otherwise erase local notes — the local notes object is
+ * kept so note content survives the pull and is reconciled by notesSync.
+ */
+const preserveLocalNotes = (value) => {
+  let localNotes = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.widgetSettings('notes'));
+    if (raw) localNotes = JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
+  if (!localNotes) return value;
+  return {
+    ...value,
+    state: {
+      ...value?.state,
+      widgetSettings: {
+        ...value?.state?.widgetSettings,
+        notes: localNotes,
+      },
+    },
+  };
+};
+
+/**
+ * Merge two notes-index maps (note_id → { gistId, label, updatedAt }) keeping
+ * the union of ids and, on conflict, the entry with the higher `updatedAt`.
+ */
+const mergeNotesIndex = (localIndex, remoteIndex) => {
+  const merged = {};
+  const a = localIndex && typeof localIndex === 'object' ? localIndex : {};
+  const b = remoteIndex && typeof remoteIndex === 'object' ? remoteIndex : {};
+  for (const [id, entry] of Object.entries(b)) merged[id] = entry;
+  for (const [id, entry] of Object.entries(a)) {
+    const r = b[id];
+    if (!r || (entry && typeof entry.updatedAt === 'number' && entry.updatedAt > r.updatedAt)) {
+      merged[id] = entry;
+    }
+  }
+  return merged;
+};
+
+/**
  * Get the value to sync for a given localKey, with sanitization applied
- * (strip GCal events, trim oversized arrays).
+ * (strip GCal events, trim oversized arrays, drop notes content).
  */
 const sanitizeForSync = (localKey, rawValue) => {
   if (rawValue === null || rawValue === undefined) return null;
@@ -325,6 +406,10 @@ const sanitizeForSync = (localKey, rawValue) => {
 
   // Zustand-persisted keys — value is { state: {...}, version: N }
   if (localKey === 'undistracted_settings' || localKey === 'widget_instances') {
+    // Notes content is synced via per-note private gists (notesSync.js), so
+    // strip the notes widget's settings from widget_instances to keep the
+    // config gist free of note content.
+    if (localKey === 'widget_instances') return stripNotesFromInstances(rawValue);
     return rawValue;
   }
 
@@ -447,10 +532,12 @@ const pushAll = async () => {
 /** True when enough time has passed since the last automatic sync. */
 const canAutoSync = () => (now() - lastAutoSyncAt) >= SYNC_THROTTLE_MS;
 
-/** Run one automatic sync cycle (pull remote, then push local). */
-const runAutoSync = () => {
+/** Run one automatic sync cycle (pull remote, then push local, then hooks). */
+const runAutoSync = async () => {
   lastAutoSyncAt = now();
-  pullFromSync().then(() => pushAll());
+  await pullFromSync();
+  await pushAll();
+  await runSyncHooks();
 };
 
 const setupPolling = () => {
@@ -568,11 +655,33 @@ const onSyncChange = (callback) => {
   return () => onChangeCallbacks.delete(callback);
 };
 
+/**
+ * Register a post-sync hook that runs after each full sync cycle (auto or
+ * manual). Used by notesSync to reconcile per-note gists with the config index.
+ * Returns an unsubscribe function.
+ */
+const registerSyncHook = (fn) => {
+  syncHooks.add(fn);
+  return () => syncHooks.delete(fn);
+};
+
+/** Run all registered post-sync hooks (awaiting each in turn). */
+const runSyncHooks = async () => {
+  for (const fn of syncHooks) {
+    try {
+      await fn();
+    } catch (err) {
+      console.error('[sync] hook failed:', err.message);
+    }
+  }
+};
+
 /** Force a full sync cycle: pull remote, push local, then notify listeners. */
 const forceSync = async () => {
   if (!isExtension() || !enabled) return;
   await pullFromSync();
   await pushAll();
+  await runSyncHooks();
   lastAutoSyncAt = now(); // manual sync resets the throttle clock
   onChangeCallbacks.forEach((cb) => {
     try {
@@ -619,6 +728,7 @@ const syncEngine = {
   forceSync,
   initSync,
   onSyncChange,
+  registerSyncHook,
   SYNC_MAP, // exposed so stores know which keys to watch
 };
 

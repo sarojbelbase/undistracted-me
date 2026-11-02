@@ -188,3 +188,76 @@ describe('sanitizeForSync via pushKey', () => {
     expect(written.keys.undistracted_settings.v).toEqual(wrapper);
   });
 });
+
+// ─── notes_index merge on pull ──────────────────────────────────────────────
+
+describe('notes_index merge on pull', () => {
+  it('unions local and remote index entries, newer updatedAt wins', async () => {
+    localStorage.setItem('notes_index', JSON.stringify({
+      a: { gistId: 'g-a', label: 'A', updatedAt: 100 },
+      b: { gistId: 'g-b', label: 'B local', updatedAt: 500 },
+    }));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ notes_index: 1000 }));
+    setGist({ notes_index: { v: {
+      a: { gistId: 'g-a', label: 'A remote', updatedAt: 300 },
+      c: { gistId: 'g-c', label: 'C', updatedAt: 400 },
+    }, t: 2000 } });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes.notes_index).toBe(true);
+    const merged = JSON.parse(localStorage.getItem('notes_index'));
+    expect(merged.a.updatedAt).toBe(300); // remote newer for `a`
+    expect(merged.a.label).toBe('A remote');
+    expect(merged.b.updatedAt).toBe(500); // local-only `b` kept
+    expect(merged.c.label).toBe('C'); // remote-only `c` added
+  });
+});
+
+// ─── widget_instances notes stripping / preservation ────────────────────────
+
+describe('widget_instances notes handling', () => {
+  it('strips the notes widget settings when pushing widget_instances', async () => {
+    const instances = {
+      state: {
+        instances: [{ id: 'notes', type: 'notes' }],
+        widgetSettings: {
+          notes: { notes: [{ id: 'n1', text: 'secret note', updatedAt: 1 }], idx: 0 },
+          clock: { format: '24h' },
+        },
+      },
+      version: 0,
+    };
+    localStorage.setItem('widget_instances', JSON.stringify(instances));
+
+    await syncEngine.pushKey('widget_instances');
+
+    const written = JSON.parse(gistContent);
+    const pushed = written.keys.widget_instances.v;
+    expect(pushed.state.widgetSettings.clock).toEqual({ format: '24h' });
+    expect(pushed.state.widgetSettings.notes).toBeUndefined();
+  });
+
+  it('preserves local notes when pulling a stripped remote widget_instances', async () => {
+    // Local note content lives in the legacy widgetSettings_notes key.
+    localStorage.setItem('widgetSettings_notes', JSON.stringify({
+      notes: [{ id: 'n1', text: 'local note', updatedAt: 1 }],
+      idx: 0,
+    }));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_instances: 1000 }));
+    setGist({ widget_instances: { v: {
+      state: {
+        instances: [{ id: 'clock', type: 'clock' }],
+        widgetSettings: { clock: { format: '12h' } }, // no notes — stripped remotely
+      },
+      version: 0,
+    }, t: 2000 } });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes.widget_instances).toBe(true);
+    const local = JSON.parse(localStorage.getItem('widget_instances'));
+    expect(local.state.widgetSettings.clock.format).toBe('12h'); // remote adopted
+    expect(local.state.widgetSettings.notes.notes[0].text).toBe('local note'); // notes preserved
+  });
+});

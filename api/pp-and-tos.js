@@ -901,9 +901,11 @@ const html = /* html */ `<!DOCTYPE html>
     <h3>How it works</h3>
     <p>
       Cross-device sync stores a copy of your settings, widget layout, events, bookmarks,
-      countdown timers, and notes in a single <strong>private</strong> gist under your own
-      GitHub account. The extension reads and writes this gist directly through GitHub&rsquo;s
-      API &mdash; your data never passes through our servers.
+      and countdown timers in a single <strong>private</strong> gist under your own GitHub
+      account. Your notes are stored separately — each note is its own private gist, with
+      only a small index (note id and title) kept in the config gist. The extension reads
+      and writes these gists directly through GitHub&rsquo;s API &mdash; your data never
+      passes through our servers.
     </p>
 
     <h3>Authentication &amp; permissions</h3>

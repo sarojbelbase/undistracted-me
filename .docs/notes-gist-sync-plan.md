@@ -1,10 +1,13 @@
 # Notes Sync via Private Gists — Implementation Plan
 
-> **Status:** Planned (next feature)
+> **Status:** Implemented (see `src/utilities/notesSync.js` + `src/utilities/noteText.js`)
 > **Depends on:** GitHub OAuth device flow + gist transport (shipped in `abe4245`)
 > **Scope:** Sync each Notes-widget note as its own discoverable, private GitHub gist,
 > separate from the settings/config gist. The config gist keeps a `note_id → note_key`
 > index so notes stay discoverable and identifiable across devices.
+
+> **Known limitation:** only the *default* notes instance (`widgetSettings_notes`) is
+> synced; additional notes-widget instances are out of scope for v1.
 
 ---
 

@@ -44,6 +44,12 @@ export const STORAGE_KEYS = Object.freeze({
   UNSPLASH_CACHE: "fm_unsplash_cache",
   FOCUS_TIMEZONES: "fm_world_clocks",
 
+  // ── Notes sync (per-note private gists, discoverable separate from config) ──
+  /** note_id → { gistId, label, updatedAt }. Synced inside the config gist. */
+  NOTES_INDEX: "notes_index",
+  /** note_id → deletedAt tombstone map (local-only; blocks re-pull after delete). */
+  NOTES_DELETED: "notes_deleted",
+
   // ── Integrations ──────────────────────────────────────────────────────
   GCAL_CACHE: "gcal_events_cache",
   GCAL_ACCESS_TOKEN: "gcal_access_token",

@@ -20,6 +20,8 @@ import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
 import { Popup } from "../../components/ui/Popup";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
+import { splitNote, mergeNote, migrateNotes, makeNoteId } from "../../utilities/noteText";
+import notesSync, { NOTES_SYNC_EVENT } from "../../utilities/notesSync";
 
 // Only fetched the first time a user expands a note to full-screen mode.
 const LexicalEditor = lazy(() => import("./LexicalEditor"));
@@ -75,38 +77,55 @@ const NavDot = ({ active, label, onClick, hue }) => {
   );
 };
 
-// ─── Split a note string into title (first line) and body (rest) ──────────────
-function splitNote(text = "") {
-  const t = text;
-  const nl = t.indexOf("\n");
-  if (nl === -1) return { titleLine: t, bodyText: "" };
-  return { titleLine: t.slice(0, nl), bodyText: t.slice(nl + 1) };
-}
-
-// Merge title + body back into a single string (no trailing \n when body is empty)
-function mergeNote(title, body) {
-  if (!body) return title;
-  return `${title}\n${body}`;
-}
-
-// ─── Migrate old { text } → { notes, idx } ────────────────────────────────────
+// ─── Migrate old string[] notes → { id, text, updatedAt }[] ─────────────────
+// (splitNote / mergeNote / migrateNotes / makeNoteId come from noteText.js)
 function resolveSettings(raw) {
-  if (Array.isArray(raw.notes)) return { notes: raw.notes, idx: raw.idx ?? 0 };
-  return { notes: [raw.text ?? ""], idx: 0 };
+  if (Array.isArray(raw.notes)) return { notes: migrateNotes(raw.notes), idx: raw.idx ?? 0 };
+  return { notes: migrateNotes([raw.text ?? ""]), idx: 0 };
 }
 
 // ─── Widget ───────────────────────────────────────────────────────────────────
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.notes);
-  const { notes: initNotes, idx: initIdx } = resolveSettings(settings);
+
+  // Resolve + migrate exactly once (assigning stable ids to legacy string notes).
+  const initialRef = useRef(null);
+  if (initialRef.current === null) {
+    initialRef.current = resolveSettings(settings);
+  }
+  const initNotes = initialRef.current.notes;
+  const initIdx = initialRef.current.idx;
   const [localNotes, setLocalNotes] = useState(initNotes);
   const [localIdx, setLocalIdx] = useState(initIdx);
   const saveTimerRef = useRef(null);
 
+  // Persist the string→object migration once so localStorage holds stable ids,
+  // and seed the notes index with each note's label.
+  useEffect(() => {
+    updateSetting("notes", initNotes);
+    initNotes.forEach((n) => notesSync.onNoteChanged(n.id, n.text));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refresh from a cross-device pull (notesSync wrote localStorage + fired event).
+  useEffect(() => {
+    const onNotesSync = () => {
+      const { notes, idx } = notesSync.readLocalNotes();
+      if (notes.length) {
+        setLocalNotes(notes);
+        setLocalIdx(idx < notes.length ? idx : 0);
+        updateSetting("notes", notes);
+      }
+    };
+    globalThis.addEventListener(NOTES_SYNC_EVENT, onNotesSync);
+    return () => globalThis.removeEventListener(NOTES_SYNC_EVENT, onNotesSync);
+  }, [updateSetting]);
+
   // Clear debounce timer on unmount to prevent stale writes after widget removal.
   useEffect(() => () => clearTimeout(saveTimerRef.current), []);
 
-  const localText = localNotes[localIdx] ?? "";
+  const localNote = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+  const localText = localNote.text;
   const total = localNotes.length;
   const { titleLine, bodyText } = splitNote(localText);
   const wordCount = bodyText.trim() ? bodyText.trim().split(/\s+/).length : 0;
@@ -127,11 +146,13 @@ export const Widget = ({ id, onRemove }) => {
     (e) => {
       const val = e.target.value.replaceAll("\n", "");
       setLocalNotes((prev) => {
-        const { bodyText: prevBody } = splitNote(prev[localIdx] ?? "");
+        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+        const { bodyText: prevBody } = splitNote(cur.text);
         const newText = mergeNote(val, prevBody);
         const next = [...prev];
-        next[localIdx] = newText;
+        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
         persist(next);
+        notesSync.onNoteChanged(cur.id, newText);
         return next;
       });
     },
@@ -142,11 +163,13 @@ export const Widget = ({ id, onRemove }) => {
   const handleBodyChange = useCallback(
     (md) => {
       setLocalNotes((prev) => {
-        const { titleLine: prevTitle } = splitNote(prev[localIdx] ?? "");
+        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+        const { titleLine: prevTitle } = splitNote(cur.text);
         const newText = mergeNote(prevTitle, md);
         const next = [...prev];
-        next[localIdx] = newText;
+        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
         persist(next);
+        notesSync.onNoteChanged(cur.id, newText);
         return next;
       });
     },
@@ -158,11 +181,13 @@ export const Widget = ({ id, onRemove }) => {
     (e) => {
       const val = e.target.value;
       setLocalNotes((prev) => {
-        const { titleLine: prevTitle } = splitNote(prev[localIdx] ?? "");
+        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+        const { titleLine: prevTitle } = splitNote(cur.text);
         const newText = mergeNote(prevTitle, val);
         const next = [...prev];
-        next[localIdx] = newText;
+        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
         persist(next);
+        notesSync.onNoteChanged(cur.id, newText);
         return next;
       });
     },
@@ -186,21 +211,29 @@ export const Widget = ({ id, onRemove }) => {
   }, [localIdx, total, jumpTo]);
 
   const addNote = useCallback(() => {
-    const newNotes = [...localNotes, ""];
+    const note = { id: makeNoteId(), text: "", updatedAt: Date.now() };
+    const newNotes = [...localNotes, note];
     const newIdx = newNotes.length - 1;
     setLocalNotes(newNotes);
     setLocalIdx(newIdx);
     updateSetting("notes", newNotes);
     updateSetting("idx", newIdx);
+    notesSync.onNoteChanged(note.id, "");
   }, [localNotes, updateSetting]);
 
   const deleteNote = useCallback(() => {
+    const removed = localNotes[localIdx];
     if (total <= 1) {
-      const next = [""];
+      // "Clear note" — empty the current note but keep its identity.
+      const cleared = removed
+        ? { ...removed, text: "", updatedAt: Date.now() }
+        : { id: makeNoteId(), text: "", updatedAt: Date.now() };
+      const next = [cleared];
       setLocalNotes(next);
       setLocalIdx(0);
       updateSetting("notes", next);
       updateSetting("idx", 0);
+      notesSync.onNoteChanged(cleared.id, "");
       return;
     }
     const newNotes = localNotes.filter((_, i) => i !== localIdx);
@@ -209,6 +242,7 @@ export const Widget = ({ id, onRemove }) => {
     setLocalIdx(newIdx);
     updateSetting("notes", newNotes);
     updateSetting("idx", newIdx);
+    if (removed) notesSync.onNoteDeleted(removed.id);
   }, [localNotes, localIdx, total, updateSetting]);
 
   // ── Mode ──────────────────────────────────────────────────────────────────────
@@ -305,7 +339,7 @@ export const Widget = ({ id, onRemove }) => {
         <div className="notes-status-dots">
           {localNotes.map((note, i) => (
             <NavDot
-              key={`dot-${i}`}
+              key={note.id || `dot-${i}`}
               active={i === localIdx}
               label={`Note ${i + 1} of ${total}`}
               onClick={() => jumpTo(i)}
