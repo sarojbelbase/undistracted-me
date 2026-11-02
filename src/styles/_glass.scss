@@ -78,10 +78,10 @@
     font-weight: 500;
   }
 
-  // ── 2. Countdown widget — ensure connector text is never thin ─────────────
+  // ── 2. Countdown widget — ensure hero/label text is never thin on glass ────
 
-  .cdn-connector {
-    font-weight: 500;
+  .cdn-title-text {
+    font-weight: 600;
   }
 
   .cdn-meta-row {
