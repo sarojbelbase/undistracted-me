@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
-import { Responsive, useContainerWidth } from "react-grid-layout";
+import { Responsive, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 
 import { WIDGET_REGISTRY } from "./index";
@@ -252,14 +252,16 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           breakpoints={RGL_BREAKPOINTS}
           cols={RGL_COLS}
           rowHeight={8.5}
-          isDraggable={arrangeMode}
-          draggableHandle=".widget-drag-handle"
-          isResizable={false}
-          compactType="vertical"
-          preventCollision={false}
+          // react-grid-layout 2.3.0 moved the flat props into composable config
+          // objects. The old `isDraggable` / `draggableHandle` / `useCSSTransforms`
+          // props are silently ignored — which previously left drag enabled at all
+          // times (widgets rearrangeable without entering arrange mode).
+          dragConfig={{ enabled: arrangeMode, handle: ".widget-drag-handle" }}
+          resizeConfig={{ enabled: false }}
+          compactor={getCompactor("vertical")}
+          positionStrategy={{ type: "absolute" }}
           margin={RGL_MARGIN}
           containerPadding={RGL_PADDING}
-          useCSSTransforms={false}
           onLayoutChange={handleLayoutChange}
           onDragStart={handleDragStart}
           onDragStop={handleDragStop}
