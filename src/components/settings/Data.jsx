@@ -232,7 +232,7 @@ export const Data = ({ onNavigateToAccounts }) => {
                   zIndex: 20,
                 }}
               >
-                Importing will replace all current settings, widgets, and data. Export first to keep a backup.
+                Importing will replace all current settings, widgets, and data. Notes, connected accounts, and sync state are not included in backups. Export first to keep a backup.
               </div>
             )}
           </button>

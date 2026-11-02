@@ -23,23 +23,106 @@ const APP_KEY_PREFIXES = [
 
 const isAppKey = (key) => APP_KEY_PREFIXES.some((p) => key.startsWith(p));
 
-/** Collect only app-owned localStorage entries into a plain object. */
+/**
+ * Keys that must NEVER be exported or imported via the settings backup.
+ *
+ * These are either secrets, regenerable caches, transient runtime state, or —
+ * now that notes sync through their own per-note private gists — note content
+ * and its sync metadata. Keeping them out of the backup also means importing a
+ * backup never clobbers the user's auth state or their separately-synced notes.
+ */
+const EXPORT_EXCLUDED = new Set([
+  // ── Notes (synced via per-note gists, not part of the config backup) ──
+  "widgetSettings_notes",
+  "notes_index",
+  "notes_deleted",
+
+  // ── Sync auth + metadata (device-local, rebuilt on reconnect/sync) ──
+  "github_gist_id",
+  "github_gist_profile",
+  "github_connected",
+  "sync_timestamps",
+  "sync_merge_meta",
+  "sync_fingerprint",
+  "sync_version",
+  "sync_enabled",
+  "sync_device_id",
+
+  // ── Google Calendar / Contacts tokens + caches ──
+  "gcal_access_token",
+  "gcal_events_cache",
+  "gcal_profile_cache",
+  "gcal_disconnected",
+  "gcal_synced_at",
+  "contacts_birthdays_cache",
+  "contacts_birthdays_synced_at",
+  "contacts_disconnected",
+
+  // ── Spotify tokens + profile cache + connection flag ──
+  "spotify_tokens",
+  "spotify_profile",
+  "spotify_connected",
+
+  // ── Focus Mode caches + transient runtime state ──
+  "fm_unsplash_cache",
+  "fm_selected_photo_id",
+  "fm_current_photo_id",
+  "fm_pomodoro",
+  "weather_cache_v1",
+  "dailys_joke_cache",
+]);
+
+/** Prefixes excluded from the backup (per-instance timers, feed caches, …). */
+const EXPORT_EXCLUDED_PREFIXES = [
+  "pomodoro_timer_state_",
+  "rss_cache_",
+  "expense_migrated_",
+];
+
+/** App-owned key that is safe to back up and restore. */
+const isPortableKey = (key) =>
+  isAppKey(key) &&
+  !EXPORT_EXCLUDED.has(key) &&
+  !EXPORT_EXCLUDED_PREFIXES.some((p) => key.startsWith(p));
+
+/**
+ * Strip the notes widget's content from a `widget_instances` snapshot before
+ * export. Notes live in per-note gists, so the config backup must not carry the
+ * note text — but the widget slot itself (its position/type) is preserved.
+ */
+const stripNotesFromInstances = (value) => {
+  if (!value || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value;
+  const state = value.state && typeof value.state === "object" ? value.state : null;
+  if (!state || !state.widgetSettings || typeof state.widgetSettings !== "object") {
+    return value;
+  }
+  const { notes, ...restWidgetSettings } = state.widgetSettings;
+  return {
+    ...value,
+    state: { ...state, widgetSettings: restWidgetSettings },
+  };
+};
+
+/** Collect only portable app-owned entries into a plain object. */
 const collectAppEntries = () => {
   const data = {};
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!isAppKey(key)) continue;
+    if (!isPortableKey(key)) continue;
     const raw = localStorage.getItem(key);
+    let parsed;
     try {
-      data[key] = JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch {
-      data[key] = raw;
+      parsed = raw;
     }
+    data[key] = key === "widget_instances" ? stripNotesFromInstances(parsed) : parsed;
   }
   return data;
 };
 
-/** Download a .json file containing all widget settings and layout. */
+/** Download a .json file containing all portable settings and data. */
 export const exportSettings = () => {
   const payload = {
     undistracted_me: collectAppEntries(),
@@ -70,14 +153,16 @@ export const importSettings = (jsonString) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new Error("Invalid settings file — expected a JSON object.");
   }
-  // Only clear app-owned keys before restoring from the import file
+  // Clear only portable keys before restoring — leave auth tokens, sync
+  // metadata, and separately-synced notes untouched so an import can't wipe them.
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (isAppKey(key)) keysToRemove.push(key);
+    if (isPortableKey(key)) keysToRemove.push(key);
   }
   keysToRemove.forEach((k) => localStorage.removeItem(k));
   for (const [key, val] of Object.entries(data)) {
+    if (!isPortableKey(key)) continue; // ignore excluded keys in an old file
     localStorage.setItem(
       key,
       typeof val === "string" ? val : JSON.stringify(val),
