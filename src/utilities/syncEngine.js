@@ -101,6 +101,7 @@ let lastSyncAt = null;
 let lastError = null;
 let lastAutoSyncAt = 0;
 let lastMergeCount = 0; // number of keys merged from remote on the last pull
+let lastRemoteHash = null; // content hash of the last gist payload read/written
 let pollTimer = null;
 let pollCleanup = null;
 let writeQueue = Promise.resolve();
@@ -214,6 +215,87 @@ const setLocalSyncVersion = () => {
   }
 };
 
+// ── Content hash (change detection) ───────────────────────────────────────────
+
+/**
+ * Stable stringify with sorted object keys. Produces a deterministic string for
+ * any JSON value regardless of key insertion order, so the same logical config
+ * hashes identically across devices and runs.
+ */
+const stableStringify = (value) => {
+  if (Array.isArray(value)) {
+    return '[' + value.map(stableStringify).join(',') + ']';
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    return '{' + keys.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') + '}';
+  }
+  return JSON.stringify(value);
+};
+
+/** djb2 hash → 8-char hex. Fast + deterministic; for change detection only. */
+const hashString = (str) => {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+};
+
+/** Content hash of an arbitrary JSON value (sorted-key canonical). */
+const hashValue = (value) => hashString(stableStringify(value));
+
+/** localStorage key holding the last-synced fingerprint { local, remote }. */
+const FINGERPRINT_KEY = 'sync_fingerprint';
+
+const readFingerprint = () => {
+  try {
+    const f = JSON.parse(localStorage.getItem(FINGERPRINT_KEY) || '{}');
+    return { local: f.local ?? null, remote: f.remote ?? null };
+  } catch {
+    return { local: null, remote: null };
+  }
+};
+
+const writeFingerprint = (local, remote) => {
+  try {
+    localStorage.setItem(FINGERPRINT_KEY, JSON.stringify({ local, remote }));
+  } catch {
+    /* ignore */
+  }
+};
+
+/**
+ * Content hash of the *local* syncable state (all sync keys, raw values). This
+ * is only compared against itself over time — it detects "did anything change
+ * locally since the last sync" without needing the wire format.
+ */
+const hashLocalState = () => {
+  const parts = [];
+  for (const localKey of SYNC_KEYS) {
+    const raw = readLocal(SYNC_MAP[localKey]);
+    parts.push(localKey + ':' + (raw === null || raw === undefined ? '∅' : hashValue(raw)));
+  }
+  return hashString(parts.join('|'));
+};
+
+/** Snapshot the local + remote content hashes after a completed sync cycle. */
+const recordFingerprint = () => {
+  writeFingerprint(hashLocalState(), lastRemoteHash);
+};
+
+/**
+ * True when neither the local state nor the remote gist has changed since the
+ * last sync — i.e. there is nothing to pull or push. Both hashes must be known
+ * (non-null); a null remote hash (gist missing/corrupt) forces a real sync.
+ */
+const isSyncClean = () => {
+  if (lastRemoteHash == null) return false;
+  const fp = readFingerprint();
+  if (fp.remote == null || fp.remote !== lastRemoteHash) return false;
+  return hashLocalState() === fp.local;
+};
+
 // ── Gist transport ────────────────────────────────────────────────────────────
 
 /**
@@ -228,7 +310,10 @@ const readGist = async () => {
   const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
     headers: gistHeaders(token),
   });
-  if (res.status === 404) return { notFound: true };
+  if (res.status === 404) {
+    lastRemoteHash = null;
+    return { notFound: true };
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(`GitHub read failed (${res.status}): ${body.message || res.statusText}`);
@@ -236,15 +321,22 @@ const readGist = async () => {
 
   const data = await res.json();
   const file = data.files?.[GIST_FILENAME];
-  if (!file || !file.content) return { v: GIST_SCHEMA_VERSION, keys: {} };
+  if (!file || !file.content) {
+    lastRemoteHash = null;
+    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null };
+  }
   try {
     const parsed = JSON.parse(file.content);
+    const hash = typeof parsed.hash === 'string' ? parsed.hash : null;
+    lastRemoteHash = hash;
     return {
       v: typeof parsed.v === 'number' ? parsed.v : 1,
       keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
+      hash,
     };
   } catch {
-    return { v: GIST_SCHEMA_VERSION, keys: {} };
+    lastRemoteHash = null;
+    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null };
   }
 };
 
@@ -256,7 +348,14 @@ const writeGist = async (keys) => {
   const token = await getToken();
   if (!token) throw new Error('Not connected to GitHub');
 
-  const payload = JSON.stringify({ v: GIST_SCHEMA_VERSION, deviceId, updatedAt: now(), keys });
+  const hash = hashValue(keys);
+  const payload = JSON.stringify({
+    v: GIST_SCHEMA_VERSION,
+    deviceId,
+    updatedAt: now(),
+    hash,
+    keys,
+  });
   let gistId = await getGistId();
 
   if (!gistId) {
@@ -276,6 +375,7 @@ const writeGist = async (keys) => {
     const created = await res.json();
     gistId = created.id;
     await setGistId(gistId);
+    lastRemoteHash = hash;
     return gistId;
   }
 
@@ -290,6 +390,7 @@ const writeGist = async (keys) => {
     const body = await res.json().catch(() => ({}));
     throw new Error(`Failed to update gist (${res.status}): ${body.message || res.statusText}`);
   }
+  lastRemoteHash = hash;
   return gistId;
 };
 
@@ -577,9 +678,13 @@ const pullFromSync = async () => {
   } catch (err) {
     console.error('[sync] pull failed:', err.message);
     reportError(err.message);
+    lastRemoteHash = null; // don't trust a stale hash to skip the push
     return {};
   }
-  if (!remote || remote.notFound) return {};
+  if (!remote || remote.notFound) {
+    if (!remote) lastRemoteHash = null;
+    return {};
+  }
 
   // If the remote was written by a newer app version we don't understand, don't
   // blindly parse/overwrite it (that risks corrupting the shared state).
@@ -809,10 +914,14 @@ const canAutoSync = () => (now() - lastAutoSyncAt) >= SYNC_THROTTLE_MS;
 /** Run one automatic sync cycle (pull remote, then push local, then hooks). */
 const runAutoSync = async () => {
   lastAutoSyncAt = now();
-  await pullFromSync();
-  const pushed = await pushAll();
+  const pulled = await pullFromSync();
+  // Skip the push when neither side changed since the last sync (hash match).
+  const pushed = isSyncClean() ? { changed: false } : await pushAll();
   await runSyncHooks();
-  if (pushed.changed) lastSyncAt = now();
+  if (Object.keys(pulled).length > 0 || pushed.changed) {
+    lastSyncAt = now();
+    recordFingerprint();
+  }
 };
 
 const setupPolling = () => {
@@ -881,6 +990,8 @@ const enableSync = async () => {
   const changes = await pullFromSync();
   await pushAll();
   setupPolling();
+
+  recordFingerprint();
 
   if (Object.keys(changes).length > 0) {
     onChangeCallbacks.forEach((cb) => {
@@ -983,13 +1094,17 @@ const forceSync = async () => {
   }
 
   const pulled = await pullFromSync();
-  const pushed = await pushAll();
+  // Skip the push when neither side changed since the last sync (hash match).
+  const pushed = isSyncClean() ? { changed: false } : await pushAll();
   const hooks = await runSyncHooks();
   lastAutoSyncAt = now(); // manual sync resets the throttle clock
 
   const pullCount = Object.keys(pulled).length;
   const changed = pullCount > 0 || !!pushed.changed || !!hooks.changed;
-  if (changed) lastSyncAt = now();
+  if (changed) {
+    lastSyncAt = now();
+    recordFingerprint();
+  }
 
   onChangeCallbacks.forEach((cb) => {
     try {
