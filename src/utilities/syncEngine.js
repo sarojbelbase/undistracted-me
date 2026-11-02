@@ -404,9 +404,11 @@ const mergeArrayKey = (localKey, remoteSet) => {
 
   const changed = !deepEqual(next, localArray);
 
+  // Always persist the merged metadata (timestamps + tombstones) — even when the
+  // array content is unchanged, so the next sync doesn't re-stamp every item.
+  writeMeta(localKey, trimmed);
   if (changed) {
     writeLocal(storageKey, next);
-    writeMeta(localKey, trimmed);
   }
   return { set: trimmed, array: next, changed };
 };
@@ -447,11 +449,11 @@ const mergeSettingsKey = (localKey, remoteWire) => {
   const newState = elementSetToObject(merged);
 
   const changed = !deepEqual(newState, localState);
+  writeMeta(localKey, { fields: merged });
   if (changed) {
     const nextRaw = { state: newState };
     if (version !== undefined) nextRaw.version = version;
     writeLocal(storageKey, nextRaw);
-    writeMeta(localKey, { fields: merged });
   }
 
   return { wire: { fields: merged.items, version: version ?? 0 }, changed };
@@ -532,11 +534,11 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
   const changed =
     !deepEqual(newInstances, localInstances) || !deepEqual(newWs, localWidgetSettings);
 
+  writeMeta(localKey, { instances: mergedInstances, widgetSettings: mergedWidgetSettings });
   if (changed) {
     const nextRaw = { state: { instances: newInstances, widgetSettings: newWs } };
     if (version !== undefined) nextRaw.version = version;
     writeLocal(storageKey, nextRaw);
-    writeMeta(localKey, { instances: mergedInstances, widgetSettings: mergedWidgetSettings });
   }
 
   return {
