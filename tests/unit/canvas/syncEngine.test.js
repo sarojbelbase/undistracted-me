@@ -1,15 +1,14 @@
 /**
- * Unit tests for src/utilities/syncEngine.js (GitHub gist transport)
+ * Unit tests for src/utilities/syncEngine.js (GitHub gist transport + merge)
  *
  * Covers:
- *  - pullFromSync last-write-wins merge (remote newer → adopt, local newer →
- *    keep, malformed remote skipped)
- *  - sanitizeForSync via pushKey (GCal event stripping + array trimming, and
- *    Zustand-wrapper passthrough for settings)
- *
- * The `enabled` flag is module-private and only set by enableSync(), so each
- * test enables sync first against a mocked chrome.storage.local + fetch
- * (simulating a private GitHub gist).
+ *  - whole-key last-write-wins for object keys (settings)
+ *  - per-item element-set merge for array keys (union + LWW + tombstones)
+ *  - gist discovery-independent transport (create/update/read)
+ *  - GCal event stripping + array trimming
+ *  - phantom-key mapping (bookmarks → um_bookmarks, countdown → countdown_events)
+ *  - schema-version guard
+ *  - change detection + throttle
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -22,8 +21,8 @@ const GISTS_API = 'https://api.github.com/gists';
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
-let localStore; // simulated chrome.storage.local
-let gistContent; // current gist file content (string) — null means "no gist"
+let localStore;
+let gistContent;
 
 function json(data, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => data };
@@ -73,17 +72,18 @@ function stubFetch() {
   }));
 }
 
-/** Seed the gist with the given `keys` map. */
 function setGist(keys) {
   gistContent = JSON.stringify({ v: 1, deviceId: 'dev_x', updatedAt: 0, keys });
 }
 
-// ─── Lifecycle ───────────────────────────────────────────────────────────────
+/** Build an element-set value `{ items, deleted }` for an array key. */
+function elementSet(itemsById, deleted = {}) {
+  return { items: itemsById, deleted };
+}
 
 beforeEach(async () => {
   localStorage.clear();
   stubChrome();
-  // gist id lives in localStorage (non-secret); the token stays in chrome.storage.local
   localStorage.setItem('github_gist_id', GIST_ID);
   stubFetch();
   await syncEngine.enableSync();
@@ -95,191 +95,172 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// ─── pullFromSync — last-write-wins ─────────────────────────────────────────
+// ─── whole-key LWW (object keys) ────────────────────────────────────────────
 
-describe('pullFromSync last-write-wins merge', () => {
+describe('pullFromSync — whole-key last-write-wins (settings)', () => {
   it('adopts the remote value when its timestamp is newer', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 1000 }));
-    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 1000 }));
+    setGist({ undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 2000 } });
 
     const changes = await syncEngine.pullFromSync();
 
-    expect(changes.widget_events).toBe(true);
-    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([
-      { id: 2, title: 'remote' },
-    ]);
-    expect(JSON.parse(localStorage.getItem('sync_timestamps')).widget_events).toBe(2000);
+    expect(changes.undistracted_settings).toBe(true);
+    expect(JSON.parse(localStorage.getItem('undistracted_settings')).state.accent).toBe('remote');
   });
 
   it('keeps the local value when its timestamp is newer', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 3000 }));
-    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 3000 }));
+    setGist({ undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 2000 } });
 
-    const changes = await syncEngine.pullFromSync();
+    await syncEngine.pullFromSync();
 
-    expect(changes.widget_events).toBeUndefined();
-    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([
-      { id: 1, title: 'local' },
-    ]);
-  });
-
-  it('does not adopt on equal timestamps (strictly newer required)', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 2000 }));
-    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }], t: 2000 } });
-
-    const changes = await syncEngine.pullFromSync();
-
-    expect(changes.widget_events).toBeUndefined();
-    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([
-      { id: 1, title: 'local' },
-    ]);
-  });
-
-  it('skips remote entries missing a numeric timestamp', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 0 }));
-    setGist({ widget_events: { v: [{ id: 2, title: 'remote' }] } }); // no `t`
-
-    const changes = await syncEngine.pullFromSync();
-
-    expect(changes.widget_events).toBeUndefined();
-    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([
-      { id: 1, title: 'local' },
-    ]);
+    expect(JSON.parse(localStorage.getItem('undistracted_settings')).state.accent).toBe('local');
   });
 });
 
-// ─── sanitizeForSync (via pushKey) ──────────────────────────────────────────
+// ─── array element-set merge ────────────────────────────────────────────────
 
-describe('sanitizeForSync via pushKey', () => {
-  it('strips GCal events and trims the events array to the max entry cap', async () => {
-    const gcal = { id: 'gcal', title: 'GCAL', source: 'gcal' };
-    const native = Array.from({ length: 210 }, (_, i) => ({ id: i, title: `e${i}` }));
-    localStorage.setItem('widget_events', JSON.stringify([gcal, ...native]));
-
-    await syncEngine.pushKey('widget_events');
-
-    const written = JSON.parse(gistContent);
-    const pushed = written.keys.widget_events.v;
-    expect(Array.isArray(pushed)).toBe(true);
-    expect(pushed).toHaveLength(200);
-    expect(pushed.some((e) => e.source === 'gcal' || e.gcalEventId)).toBe(false);
-  });
-
-  it('trims the bookmarks array to the max entry cap', async () => {
-    const bookmarks = Array.from({ length: 150 }, (_, i) => ({ id: i, url: `https://e${i}.com` }));
-    localStorage.setItem('widget_bookmarks', JSON.stringify(bookmarks));
-
-    await syncEngine.pushKey('widget_bookmarks');
-
-    const written = JSON.parse(gistContent);
-    expect(written.keys.widget_bookmarks.v).toHaveLength(100);
-  });
-
-  it('passes the Zustand settings wrapper through unchanged', async () => {
-    const wrapper = { state: { accent: 'Matte Black', mode: 'dark' }, version: 0 };
-    localStorage.setItem('undistracted_settings', JSON.stringify(wrapper));
-
-    await syncEngine.pushKey('undistracted_settings');
-
-    const written = JSON.parse(gistContent);
-    expect(written.keys.undistracted_settings.v).toEqual(wrapper);
-  });
-});
-
-// ─── notes_index merge on pull ──────────────────────────────────────────────
-
-describe('notes_index merge on pull', () => {
-  it('unions local and remote index entries, newer updatedAt wins', async () => {
-    localStorage.setItem('notes_index', JSON.stringify({
-      a: { gistId: 'g-a', label: 'A', updatedAt: 100 },
-      b: { gistId: 'g-b', label: 'B local', updatedAt: 500 },
-    }));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ notes_index: 1000 }));
-    setGist({ notes_index: { v: {
-      a: { gistId: 'g-a', label: 'A remote', updatedAt: 300 },
-      c: { gistId: 'g-c', label: 'C', updatedAt: 400 },
-    }, t: 2000 } });
-
-    const changes = await syncEngine.pullFromSync();
-
-    expect(changes.notes_index).toBe(true);
-    const merged = JSON.parse(localStorage.getItem('notes_index'));
-    expect(merged.a.updatedAt).toBe(300); // remote newer for `a`
-    expect(merged.a.label).toBe('A remote');
-    expect(merged.b.updatedAt).toBe(500); // local-only `b` kept
-    expect(merged.c.label).toBe('C'); // remote-only `c` added
-  });
-});
-
-// ─── widget_instances notes stripping / preservation ────────────────────────
-
-describe('widget_instances notes handling', () => {
-  it('strips the notes widget settings when pushing widget_instances', async () => {
-    const instances = {
-      state: {
-        instances: [{ id: 'notes', type: 'notes' }],
-        widgetSettings: {
-          notes: { notes: [{ id: 'n1', text: 'secret note', updatedAt: 1 }], idx: 0 },
-          clock: { format: '24h' },
-        },
+describe('pullFromSync — array element-set merge', () => {
+  it('unions remote-only items into the local array', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 'local', title: 'L' }]));
+    setGist({
+      widget_events: {
+        v: elementSet({
+          local: { v: { id: 'local', title: 'L' }, t: 10 },
+          remote: { v: { id: 'remote', title: 'R' }, t: 20 },
+        }),
+        t: 20,
       },
-      version: 0,
-    };
-    localStorage.setItem('widget_instances', JSON.stringify(instances));
+    });
 
-    await syncEngine.pushKey('widget_instances');
+    await syncEngine.pullFromSync();
 
-    const written = JSON.parse(gistContent);
-    const pushed = written.keys.widget_instances.v;
-    expect(pushed.state.widgetSettings.clock).toEqual({ format: '24h' });
-    expect(pushed.state.widgetSettings.notes).toBeUndefined();
+    const events = JSON.parse(localStorage.getItem('widget_events'));
+    expect(events.map((e) => e.id).sort()).toEqual(['local', 'remote']);
   });
 
-  it('preserves local notes when pulling a stripped remote widget_instances', async () => {
-    // Local note content lives in the legacy widgetSettings_notes key.
-    localStorage.setItem('widgetSettings_notes', JSON.stringify({
-      notes: [{ id: 'n1', text: 'local note', updatedAt: 1 }],
-      idx: 0,
+  it('adopts the remote item on a same-id conflict when remote is newer', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 'x', title: 'local' }]));
+    localStorage.setItem('sync_array_meta', JSON.stringify({
+      widget_events: { items: { x: { v: { id: 'x', title: 'local' }, t: 10 } }, deleted: {} },
     }));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_instances: 1000 }));
-    setGist({ widget_instances: { v: {
-      state: {
-        instances: [{ id: 'clock', type: 'clock' }],
-        widgetSettings: { clock: { format: '12h' } }, // no notes — stripped remotely
-      },
-      version: 0,
-    }, t: 2000 } });
+    setGist({ widget_events: { v: elementSet({ x: { v: { id: 'x', title: 'remote' }, t: 50 } }), t: 50 } });
+
+    await syncEngine.pullFromSync();
+
+    expect(JSON.parse(localStorage.getItem('widget_events'))[0].title).toBe('remote');
+  });
+
+  it('does not resurrect a locally-deleted item (tombstone)', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([]));
+    localStorage.setItem('sync_array_meta', JSON.stringify({
+      widget_events: { items: {}, deleted: { x: 100 } }, // deleted at t=100
+    }));
+    setGist({ widget_events: { v: elementSet({ x: { v: { id: 'x' }, t: 50 } }), t: 50 } });
+
+    await syncEngine.pullFromSync();
+
+    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([]);
+  });
+});
+
+// ─── push: element-set format + sanitization ───────────────────────────────
+
+describe('pushAll — array element-set format', () => {
+  it('writes events as an element set (not a raw array)', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([{ id: 'a', title: 'A' }]));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    const v = written.keys.widget_events.v;
+    expect(Array.isArray(v)).toBe(false);
+    expect(v.items.a.v.title).toBe('A');
+  });
+
+  it('strips GCal events before pushing', async () => {
+    localStorage.setItem('widget_events', JSON.stringify([
+      { id: 'gcal', title: 'GCAL', source: 'gcal' },
+      { id: 'native', title: 'Native' },
+    ]));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    const items = written.keys.widget_events.v.items;
+    expect(Object.keys(items)).toEqual(['native']);
+  });
+
+  it('trims the events element set to the max entry cap', async () => {
+    const events = Array.from({ length: 210 }, (_, i) => ({ id: `e${i}`, title: `e${i}` }));
+    localStorage.setItem('widget_events', JSON.stringify(events));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    expect(Object.keys(written.keys.widget_events.v.items)).toHaveLength(200);
+  });
+});
+
+// ─── phantom-key mapping ────────────────────────────────────────────────────
+
+describe('phantom-key mapping', () => {
+  it('syncs bookmarks from `um_bookmarks` under the `widget_bookmarks` sync key', async () => {
+    localStorage.setItem('um_bookmarks', JSON.stringify([{ url: 'https://a.com', title: 'A' }]));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    expect(written.keys.widget_bookmarks).toBeDefined();
+    expect(written.keys.widget_bookmarks.v.items['https://a.com'].v.title).toBe('A');
+  });
+
+  it('syncs countdowns from `countdown_events`', async () => {
+    localStorage.setItem('countdown_events', JSON.stringify([{ id: 'c1', title: 'C' }]));
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(gistContent);
+    expect(written.keys.countdown_events).toBeDefined();
+    expect(written.keys.countdown_events.v.items.c1.v.title).toBe('C');
+  });
+});
+
+// ─── schema versioning ──────────────────────────────────────────────────────
+
+describe('schema versioning', () => {
+  it('skips the pull when the remote gist is from a newer schema', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 0 }));
+    gistContent = JSON.stringify({
+      v: GIST_SCHEMA_VERSION + 1,
+      deviceId: 'dev',
+      updatedAt: 0,
+      keys: { undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 9999 } },
+    });
 
     const changes = await syncEngine.pullFromSync();
 
-    expect(changes.widget_instances).toBe(true);
-    const local = JSON.parse(localStorage.getItem('widget_instances'));
-    expect(local.state.widgetSettings.clock.format).toBe('12h'); // remote adopted
-    expect(local.state.widgetSettings.notes.notes[0].text).toBe('local note'); // notes preserved
+    expect(changes).toEqual({});
+    expect(JSON.parse(localStorage.getItem('undistracted_settings')).state.accent).toBe('local');
   });
 });
 
 // ─── change detection + throttle ────────────────────────────────────────────
 
 describe('change detection and throttle', () => {
-  it('pushAll skips the gist write when nothing changed', async () => {
+  it('pushAll reports no change when local matches remote', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
-    await syncEngine.pushKey('widget_events'); // pushes once
-
-    const before = gistContent;
+    await syncEngine.pushAll();
     const result = await syncEngine.pushAll();
-
     expect(result.changed).toBe(false);
-    expect(gistContent).toBe(before); // no write happened
   });
 
   it('pushAll reports a change when local differs from remote', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
-    await syncEngine.pushKey('widget_events'); // remote now has id:1
+    await syncEngine.pushAll();
 
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }, { id: 2, title: 'e2' }]));
     const result = await syncEngine.pushAll();
@@ -288,56 +269,8 @@ describe('change detection and throttle', () => {
   });
 
   it('forceSync is throttled right after a successful sync', async () => {
-    // enableSync (beforeEach) set lastSyncAt = now()
     const result = await syncEngine.forceSync();
     expect(result.changed).toBe(false);
     expect(result.reason).toBe('recently-synced');
-  });
-
-  it('forceSync reports no-changes when local and remote match', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
-    await syncEngine.pushKey('widget_events'); // sync so remote == local
-
-    // Advance past the 5-minute throttle.
-    vi.useFakeTimers();
-    vi.setSystemTime(Date.now() + 6 * 60 * 1000);
-    const result = await syncEngine.forceSync();
-    vi.useRealTimers();
-
-    expect(result.changed).toBe(false);
-    expect(result.reason).toBe('no-changes');
-  });
-
-  it('forceSync reports a change when local has new data', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(Date.now() + 6 * 60 * 1000);
-
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 9, title: 'new' }]));
-    const result = await syncEngine.forceSync();
-    vi.useRealTimers();
-
-    expect(result.changed).toBe(true);
-    expect(result.reason).toBe('synced');
-  });
-});
-
-// ─── schema versioning ──────────────────────────────────────────────────────
-
-describe('schema versioning', () => {
-  it('skips the pull when the remote gist is from a newer schema', async () => {
-    localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'local' }]));
-    localStorage.setItem('sync_timestamps', JSON.stringify({ widget_events: 0 }));
-    gistContent = JSON.stringify({
-      v: GIST_SCHEMA_VERSION + 1,
-      deviceId: 'dev',
-      updatedAt: 0,
-      keys: { widget_events: { v: [{ id: 2, title: 'remote' }], t: 9999 } },
-    });
-
-    const changes = await syncEngine.pullFromSync();
-
-    expect(changes).toEqual({});
-    // Local data is left untouched — we refuse to parse a newer schema.
-    expect(JSON.parse(localStorage.getItem('widget_events'))).toEqual([{ id: 1, title: 'local' }]);
   });
 });

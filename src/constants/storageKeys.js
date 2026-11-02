@@ -23,6 +23,7 @@ export const STORAGE_KEYS = Object.freeze({
 
   // ── Widget data ───────────────────────────────────────────────────────
   EVENTS: "widget_events",
+  BOOKMARKS: "um_bookmarks",
   COUNTDOWN_EVENTS: "countdown_events",
   COUNTDOWN_PINNED: "countdown_pinned",
   /** Per-widget-instance key for the countdown "already notified" map. */
