@@ -317,7 +317,6 @@ const App = () => {
           setShowLookAway(true);
           closeSettings();
         }}
-        openAtTab={openAtTab}
       />
 
       {showCatalog && (

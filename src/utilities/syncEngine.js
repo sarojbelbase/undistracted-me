@@ -12,8 +12,10 @@
  *     the gist's `keys` map.
  *   - On load (enableSync): read the gist, merge into local (newer wins), then
  *     push local back (local wins where newer).
- *   - On change: debounced (500ms) push of a single key. Gists have no push
- *     channel, so remote changes are discovered by polling (30s + on focus).
+ *   - Sync is NOT continuous. Auto-sync runs once a day (24h) plus a throttled
+ *     pull on focus, and users can trigger a manual "Sync now". A 5-minute
+ *     throttle blocks rapid/continuous syncing to stay within GitHub's rate
+ *     limits. Changes are accumulated and pushed on the next sync window.
  *   - Writes are serialized through a promise queue to avoid races.
  *
  * What syncs:
@@ -39,12 +41,13 @@ import {
   isConnected,
   GIST_FILENAME,
   GIST_DESCRIPTION,
+  GITHUB_USER_AGENT,
 } from './githubAuth';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DEBOUNCE_MS = 500;
-const POLL_INTERVAL_MS = 30000; // gists have no push — poll for remote changes
+const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000; // auto-sync once a day
+const SYNC_THROTTLE_MS = 5 * 60 * 1000; // block continuous sync — min 5 min between auto-syncs
 
 /** Max entries per array-type key when syncing (oldest trimmed first). */
 const MAX_SYNC_ENTRIES = {
@@ -68,11 +71,29 @@ const SYNC_KEYS = Object.keys(SYNC_MAP);
 let enabled = false;
 let deviceId = '';
 let lastSyncAt = null;
-let debounceTimers = {};
+let lastError = null;
+let lastAutoSyncAt = 0;
 let pollTimer = null;
 let pollCleanup = null;
 let writeQueue = Promise.resolve();
 let onChangeCallbacks = new Set(); // external listeners for UI updates
+
+/** Record the latest sync error and notify listeners (so UI can show guidance). */
+const reportError = (message) => {
+  lastError = message;
+  onChangeCallbacks.forEach((cb) => {
+    try { cb('_error', message); } catch { /* ignore */ }
+  });
+};
+
+/** Clear the last error and notify listeners. */
+const clearError = () => {
+  if (!lastError) return;
+  lastError = null;
+  onChangeCallbacks.forEach((cb) => {
+    try { cb('_error', null); } catch { /* ignore */ }
+  });
+};
 
 /** Generate a short random device ID for metadata tracking. */
 const generateDeviceId = () => {
@@ -135,6 +156,7 @@ const gistHeaders = (token) => ({
   Authorization: `Bearer ${token}`,
   Accept: 'application/vnd.github+json',
   'X-GitHub-Api-Version': '2022-11-28',
+  'User-Agent': GITHUB_USER_AGENT,
 });
 
 /**
@@ -150,7 +172,10 @@ const readGist = async () => {
     headers: gistHeaders(token),
   });
   if (res.status === 404) return { notFound: true };
-  if (!res.ok) throw new Error(`GitHub read failed (${res.status})`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`GitHub read failed (${res.status}): ${body.message || res.statusText}`);
+  }
 
   const data = await res.json();
   const file = data.files?.[GIST_FILENAME];
@@ -186,7 +211,10 @@ const writeGist = async (keys) => {
         files: { [GIST_FILENAME]: { content: payload } },
       }),
     });
-    if (!res.ok) throw new Error(`Failed to create gist (${res.status})`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(`Failed to create gist (${res.status}): ${body.message || res.statusText}`);
+    }
     const created = await res.json();
     gistId = created.id;
     await setGistId(gistId);
@@ -200,7 +228,10 @@ const writeGist = async (keys) => {
       files: { [GIST_FILENAME]: { content: payload } },
     }),
   });
-  if (!res.ok) throw new Error(`Failed to update gist (${res.status})`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`Failed to update gist (${res.status}): ${body.message || res.statusText}`);
+  }
   return gistId;
 };
 
@@ -237,10 +268,12 @@ const pullFromSync = async () => {
   try {
     remote = await readGist();
   } catch (err) {
-    console.warn('[sync] pull failed:', err.message);
+    console.error('[sync] pull failed:', err.message);
+    reportError(err.message);
     return {};
   }
   if (!remote || remote.notFound) return {};
+  clearError();
 
   const changes = {};
   for (const localKey of SYNC_KEYS) {
@@ -352,22 +385,23 @@ const pushKey = (localKey) => {
       await writeGist(keys);
       setLocalTs(localKey, ts);
       lastSyncAt = ts;
+      clearError();
     })
     .catch((err) => {
-      console.warn('[sync] push failed:', err.message);
+      console.error('[sync] push failed:', err.message);
+      reportError(err.message);
     });
 
   return writeQueue;
 };
 
-/** Debounced push — multiple rapid changes to a key result in a single push. */
-const schedulePush = (localKey) => {
-  if (debounceTimers[localKey]) clearTimeout(debounceTimers[localKey]);
-  debounceTimers[localKey] = setTimeout(() => {
-    delete debounceTimers[localKey];
-    pushKey(localKey);
-  }, DEBOUNCE_MS);
-};
+/**
+ * Cross-device sync is intentionally not continuous. Changes to settings,
+ * widgets, events, etc. are pushed on the next automatic (daily) sync or a
+ * manual "Sync now" — never immediately on every edit. Kept as a no-op for API
+ * compatibility with the stores that call it.
+ */
+const schedulePush = () => {};
 
 /** Push all syncable keys immediately (used on first enable). */
 const pushAll = async () => {
@@ -398,25 +432,40 @@ const pushAll = async () => {
 
       await writeGist(keys);
       lastSyncAt = now();
+      clearError();
     })
     .catch((err) => {
-      console.warn('[sync] pushAll failed:', err.message);
+      console.error('[sync] pushAll failed:', err.message);
+      reportError(err.message);
     });
 
   return writeQueue;
 };
 
-// ── Polling (replaces chrome.storage.onChanged) ───────────────────────────────
+// ── Polling (daily auto-sync, throttled to block continuous syncing) ──────────
+
+/** True when enough time has passed since the last automatic sync. */
+const canAutoSync = () => (now() - lastAutoSyncAt) >= SYNC_THROTTLE_MS;
+
+/** Run one automatic sync cycle (pull remote, then push local). */
+const runAutoSync = () => {
+  lastAutoSyncAt = now();
+  pullFromSync().then(() => pushAll());
+};
 
 const setupPolling = () => {
   if (pollTimer || !isExtension()) return;
 
+  // Daily auto-sync. The 5-minute throttle additionally blocks "continuous"
+  // syncing (rapid focus events, multiple tabs) to respect GitHub rate limits.
   pollTimer = setInterval(() => {
-    if (enabled) pullFromSync();
-  }, POLL_INTERVAL_MS);
+    if (enabled && canAutoSync()) runAutoSync();
+  }, DAILY_INTERVAL_MS);
 
   const onVis = () => {
-    if (enabled && document.visibilityState === 'visible') pullFromSync();
+    if (enabled && document.visibilityState === 'visible' && canAutoSync()) {
+      runAutoSync();
+    }
   };
   document.addEventListener('visibilitychange', onVis);
   window.addEventListener('focus', onVis);
@@ -444,7 +493,7 @@ const teardownPolling = () => {
  * Enable cross-device sync (requires a GitHub connection).
  * - Pulls the gist and merges with local (last-write-wins).
  * - Pushes all local data to the gist (creates it on first connect).
- * - Starts polling for remote changes.
+ * - Starts daily auto-sync (throttled to block continuous syncing).
  */
 const enableSync = async () => {
   if (!isExtension()) {
@@ -477,6 +526,7 @@ const enableSync = async () => {
     });
   }
 
+  lastAutoSyncAt = now(); // start the 5-min throttle from connect
   lastSyncAt = now();
   console.log('[sync] Enabled — device:', deviceId);
 };
@@ -489,9 +539,6 @@ const disableSync = () => {
   enabled = false;
   writeLocal('sync_enabled', false);
 
-  Object.values(debounceTimers).forEach(clearTimeout);
-  debounceTimers = {};
-
   teardownPolling();
   console.log('[sync] Disabled');
 };
@@ -501,7 +548,7 @@ const isSyncEnabled = () => enabled;
 
 /**
  * Get sync status info for UI display.
- * Returns { available, enabled, connected, lastSyncAt, deviceId }.
+ * Returns { available, enabled, connected, lastSyncAt, deviceId, lastError }.
  */
 const getSyncStatus = () => ({
   available: isExtension(),
@@ -509,6 +556,7 @@ const getSyncStatus = () => ({
   connected: isConnected(),
   lastSyncAt,
   deviceId,
+  lastError,
 });
 
 /**
@@ -525,6 +573,7 @@ const forceSync = async () => {
   if (!isExtension() || !enabled) return;
   await pullFromSync();
   await pushAll();
+  lastAutoSyncAt = now(); // manual sync resets the throttle clock
   onChangeCallbacks.forEach((cb) => {
     try {
       cb('_force', null);
