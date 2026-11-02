@@ -173,11 +173,16 @@ export const Widget = ({ id, onRemove }) => {
     return { chartMap: map, loading: anyLoading };
   }, [stocks]);
 
-  // Track refresh timestamp for the age label
+  // Track refresh timestamp for the age label. Only set once *real* data has
+  // arrived — never while stocks is still empty/loading. This keeps refreshedAt
+  // null during the first load so the skeleton actually renders (previously the
+  // `!loading` effect set it on the first frame, when stocks was still `[]` and
+  // `loading` was false, which permanently disabled the skeleton).
   const [refreshedAt, setRefreshedAt] = useState(null);
+  const hasData = stocks.some((s) => s.data && s.data !== 'error');
   useEffect(() => {
-    if (!loading) setRefreshedAt(Date.now());
-  }, [loading]);
+    if (hasData) setRefreshedAt(Date.now());
+  }, [hasData]);
 
   const ageLabel = useAgeLabel(refreshedAt);
 
@@ -191,7 +196,10 @@ export const Widget = ({ id, onRemove }) => {
     return () => obs.disconnect();
   }, []);
 
-  const isFirstLoad = loading && !refreshedAt;
+  // Show the skeleton until the first batch of real data has arrived. Covers
+  // both the pre-hook frame (stocks still `[]`) and the in-flight fetch
+  // (stocks entries with `data === null`).
+  const isFirstLoad = symbols.length > 0 && !refreshedAt && (loading || stocks.length === 0);
   const isSingle = symbols.length <= 1;
   const primarySym = symbols[0];
   const chart = isSingle ? (chartMap[primarySym] ?? null) : null;

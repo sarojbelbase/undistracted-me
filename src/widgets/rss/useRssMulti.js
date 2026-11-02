@@ -28,7 +28,9 @@ const capItems = (items) => {
  */
 export function useRssMulti(feeds = []) {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Start in the loading state so the skeleton renders immediately on mount
+  // (instead of flashing the empty state for one frame before the first fetch).
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
 
@@ -102,6 +104,7 @@ export function useRssMulti(feeds = []) {
       setItems([]);
       setError(null);
       setRefreshedAt(null);
+      setLoading(false);
       return;
     }
 
@@ -115,8 +118,10 @@ export function useRssMulti(feeds = []) {
       .map((f) => readRssCache(`custom_${f.url}`)?.ts)
       .filter(Boolean)
       .sort((a, b) => b - a)[0];
-    if (cached.length) merge(cached, cacheTs ? new Date(cacheTs).toISOString() : null);
-    else {
+    if (cached.length) {
+      merge(cached, cacheTs ? new Date(cacheTs).toISOString() : null);
+      setLoading(false); // served from cache — no network wait
+    } else {
       setItems([]);
       // ── SW rss_queue seed ─────────────────────────────────────────────
       // If the service worker pre-fetched the merged feed queue, use it for
@@ -134,7 +139,11 @@ export function useRssMulti(feeds = []) {
 
     // Fetch network (skip if all caches were fresh)
     const allCached = feeds.every((f) => readRssCache(`custom_${f.url}`) !== null);
-    if (!allCached) load(false);
+    if (!allCached) {
+      load(false); // load() manages the loading flag (true → false)
+    } else if (!cached.length) {
+      setLoading(false); // caches exist but hold no items — show empty state
+    }
 
     const timerId = setInterval(() => load(true), POLL_INTERVAL);
     return () => clearInterval(timerId);
