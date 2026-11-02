@@ -132,7 +132,7 @@ export const AccountCard = ({
       <div className="flex items-center gap-2.5">
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
-          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}
+          style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid var(--w-divider)' }}
         >
           {icon}
         </div>

@@ -66,7 +66,7 @@ export const Notifications = () => {
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '9px 12px',
                   background: 'var(--panel-bg)',
-                  borderBottom: isLast ? 'none' : '1.5px solid rgba(0,0,0,0.1)',
+                  borderBottom: isLast ? 'none' : '1.5px solid var(--w-divider)',
                   transition: 'background 0.14s',
                 }}
               >

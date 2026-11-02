@@ -104,7 +104,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
         style={{
           maxHeight: 220,
           background: 'var(--panel-bg)',
-          border: '1px solid rgba(0,0,0,0.09)',
+          border: '1px solid var(--w-divider)',
         }}
       >
         {grouped.length === 0 && (
@@ -124,7 +124,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
                 style={{
                   color: 'var(--w-ink-5)',
                   background: 'var(--panel-bg)',
-                  borderBottom: '1.5px solid rgba(0,0,0,0.1)',
+                  borderBottom: '1.5px solid var(--w-divider)',
                   letterSpacing: '0.08em',
                 }}
               >

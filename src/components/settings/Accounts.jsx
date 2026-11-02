@@ -112,7 +112,7 @@ export const Accounts = () => {
           >
             Google Workspace
           </span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--w-divider)' }} />
         </div>
         <AccountCard
           icon={<GoogleIcon size={18} />}
@@ -138,7 +138,7 @@ export const Accounts = () => {
           >
             Media
           </span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--w-divider)' }} />
         </div>
         <SpotifySection />
       </div>
@@ -146,7 +146,7 @@ export const Accounts = () => {
       {/* ── Footer ── */}
       <div
         className="flex items-center justify-center pt-1"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
+        style={{ borderTop: '1px solid var(--w-divider)' }}
       >
         <a
           href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"

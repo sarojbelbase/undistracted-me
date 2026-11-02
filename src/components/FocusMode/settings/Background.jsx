@@ -18,7 +18,7 @@ import {
   getThumbUrl,
 } from '../../../utilities/unsplash';
 import { extractColorFromImage } from '../../../utilities/favicon';
-import { GLASS_CARD_BG } from '../theme';
+import { FM_SURFACE, FM_SURFACE_2, FM_SECTION_CARD_BG, FM_BORDER, FM_INK_1, FM_INK_2, FM_INK_3 } from '../theme';
 
 // ─── Tab config ─────────────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ const classifyUrl = (raw) => {
 const Spinner = ({ size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
     style={{ animation: 'bpSpin 0.75s linear infinite', flexShrink: 0 }} aria-hidden>
-    <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.18)" strokeWidth="2.2" />
+    <circle cx="8" cy="8" r="6" stroke={FM_BORDER} strokeWidth="2.2" />
     <path d="M8 2 A6 6 0 0 1 14 8" stroke="rgba(255,255,255,0.7)" strokeWidth="2.2" strokeLinecap="round" />
   </svg>
 );
@@ -72,12 +72,12 @@ const UrlVerifySuffix = ({ status }) => {
 
 // ─── Tile action overlay ──────────────────────────────────────────────────────────────────
 
-const PILL = { display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.32)', cursor: 'pointer', background: 'rgba(255,255,255,0.18)' };
+const PILL = { display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, backdropFilter: 'blur(4px)', border: `1px solid ${FM_BORDER}`, cursor: 'pointer', background: FM_BORDER };
 const TileOverlay = ({ isSetting, onSet }) => {
   const pill = isSetting ? (
-    <div style={{ ...PILL, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.20)', cursor: 'default' }}>
+    <div style={{ ...PILL, background: FM_SURFACE_2, border: `1px solid ${FM_BORDER}`, cursor: 'default' }}>
       <Spinner size={11} />
-      <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, fontWeight: 600 }}>Setting…</span>
+      <span style={{ color: FM_INK_1, fontSize: 10, fontWeight: 600 }}>Setting…</span>
     </div>
   ) : (
     <button className="focus:outline-none" onClick={e => { e.stopPropagation(); onSet(); }} style={PILL}>
@@ -214,7 +214,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
   return (
     <div className="flex flex-col gap-2">
       {fetching && (
-        <div style={{ height: 3, borderRadius: 2, overflow: 'hidden', background: 'rgba(255,255,255,0.10)' }}>
+        <div style={{ height: 3, borderRadius: 2, overflow: 'hidden', background: FM_SURFACE_2 }}>
           <div style={{ height: '100%', borderRadius: 2, width: '40%', background: 'var(--w-accent)', animation: 'bpIndeterminate 1.4s cubic-bezier(0.4,0,0.6,1) infinite' }} />
         </div>
       )}
@@ -309,7 +309,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
             <div
               key={`shimmer-slot-${i}`} /* NOSONAR: static placeholder list, order never changes */
               className="relative rounded-lg overflow-hidden"
-              style={{ aspectRatio: '4/3', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+              style={{ aspectRatio: '4/3', background: FM_SECTION_CARD_BG, border: `1px solid ${FM_SURFACE_2}` }}
             >
               <div className="absolute inset-0" style={{
                 background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)',
@@ -320,7 +320,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
           ))}
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none rounded-b-lg"
-          style={{ background: `linear-gradient(to bottom, transparent, ${GLASS_CARD_BG})` }} />
+          style={{ background: `linear-gradient(to bottom, transparent, var(--fm-card-bg))` }} />
       </div>
       {fetchError && (
         <p className="text-[10px] font-medium text-center px-2 py-1.5 rounded-lg"
@@ -367,7 +367,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }} htmlFor="fmUrlInput">
+        <label className="text-xs font-semibold" style={{ color: FM_INK_3 }} htmlFor="fmUrlInput">
           Image URL
         </label>
         <div className="flex gap-2 items-center">
@@ -383,7 +383,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
           </div>
           <button onClick={verify} disabled={!syntaxOk || status === 'checking'}
             className="px-3.5 py-2 rounded-xl text-[11px] font-semibold focus:outline-none disabled:opacity-40 shrink-0 cursor-pointer"
-            style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }}>
+            style={{ background: FM_SURFACE_2, border: `1px solid ${FM_BORDER}`, color: FM_INK_2 }}>
             Verify
           </button>
         </div>
@@ -391,7 +391,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
         {errorMsg && <p className="text-xs font-medium" style={{ color: 'rgba(252,129,129,1)' }}>{errorMsg}</p>}
       </div>
       {previewUrl && (
-        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: 'rgba(255,255,255,0.06)' }}>
+        <div className="w-full rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', background: FM_SECTION_CARD_BG }}>
           <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" style={{ opacity: status === 'ok' ? 1 : 0.5 }} />
         </div>
       )}
@@ -399,7 +399,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
         {initialCustomUrl && (
           <button onClick={handleClear}
             className="flex-1 py-2 rounded-xl text-xs font-semibold cursor-pointer focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', color: 'rgba(255,255,255,0.78)' }}>
+            style={{ background: FM_SURFACE, border: `1px solid ${FM_BORDER}`, color: FM_INK_2 }}>
             Clear
           </button>
         )}

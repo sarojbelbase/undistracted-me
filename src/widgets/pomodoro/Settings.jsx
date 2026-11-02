@@ -83,7 +83,7 @@ export const PomodoroSettings = ({ id }) => {
       </div>
 
       {/* ── Divider ────────────────────────────────────────────────── */}
-      <div style={{ height: 1, background: 'rgba(0,0,0,0.1)' }} />
+      <div style={{ height: 1, background: 'var(--w-divider)' }} />
 
       {/* ── Breaks ─────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2.5">
@@ -123,7 +123,7 @@ export const PomodoroSettings = ({ id }) => {
       </div>
 
       {/* ── Divider ────────────────────────────────────────────────── */}
-      <div style={{ height: 1, background: 'rgba(0,0,0,0.1)' }} />
+      <div style={{ height: 1, background: 'var(--w-divider)' }} />
 
       {/* ── Stats ──────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3">

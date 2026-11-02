@@ -59,7 +59,7 @@ export const SpotifySettings = () => {
       />
 
       {/* ── Playback sources ── */}
-      <div className="flex flex-col gap-2.5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '0.75rem' }}>
+      <div className="flex flex-col gap-2.5" style={{ borderTop: '1px solid var(--w-divider)', paddingTop: '0.75rem' }}>
         <p className="text-[10px] font-semibold m-0" style={{ color: 'var(--w-ink-6)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
           Playback sources
         </p>

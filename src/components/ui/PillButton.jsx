@@ -59,7 +59,7 @@ export const PillButton = ({
       : {
         backgroundColor: "rgba(0,0,0,0.04)",
         color: "var(--w-ink-4)",
-        border: "1px solid rgba(0,0,0,0.08)",
+        border: "1px solid var(--w-divider)",
       };
   }
 

@@ -237,7 +237,7 @@ export const Settings = ({
             )}
 
             {/* ── Divider ─────────────────────────────────────────────── */}
-            <div style={{ height: 1, background: "rgba(0,0,0,0.1)" }} />
+            <div style={{ height: 1, background: "var(--w-divider)" }} />
 
             {/* ── Data section (matching expense tracker pattern) ──────── */}
             <div className="flex flex-col gap-2.5">
@@ -309,7 +309,7 @@ export const Settings = ({
                       {allSelected ? "Deselect all" : "Select all"}
                     </button>
                   </div>
-                  <div className="flex flex-col gap-0.5 max-h-36 overflow-y-auto" style={{ borderRadius: 8, border: "1px solid rgba(0,0,0,0.08)", background: "rgba(0,0,0,0.02)", padding: "0.25rem" }}>
+                  <div className="flex flex-col gap-0.5 max-h-36 overflow-y-auto" style={{ borderRadius: 8, border: "1px solid var(--w-divider)", background: "rgba(0,0,0,0.02)", padding: "0.25rem" }}>
                     {parsed.feeds.map((feed) => {
                       const isExisting = customFeeds.some((cf) => cf.url === feed.url);
                       return (

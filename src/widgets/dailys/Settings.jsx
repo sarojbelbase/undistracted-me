@@ -15,7 +15,7 @@ export const DailysSettings = ({ mode, autoSlide, onChange }) => (
       value={mode}
       onChange={(v) => onChange("mode", v)}
     />
-    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', marginTop: -4, marginBottom: -4 }} />
+    <div style={{ height: 1, background: 'var(--w-divider)', marginTop: -4, marginBottom: -4 }} />
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
       <div>
         <span className="w-label">Auto-slide</span>

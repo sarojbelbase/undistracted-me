@@ -9,24 +9,20 @@
 
 import { computeAutoMode } from './utilities/sunTime';
 import { ACCENT_COLORS } from './constants/accents';
-
-const LIGHT_BG = '#ebebeb';
-const DARK_BG = '#141414';
-const LIGHT_SURFACE = '#f5f5f5';
-const DARK_SURFACE = '#1c1c1c';
-const LIGHT_BORDER = '#e0e0e0';
-const DARK_BORDER = '#333333';
+import { THEME_PROFILES } from './theme/profiles';
 
 try {
   // Prefer the Zustand persist key — this is where settings live after first run.
   // Fall back to legacy per-key entries for first-time users migrating from older builds.
   let mode = 'light';
   let accentName = 'Matte Black';
+  let cardStyle = 'glass';
 
   const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
   if (stored?.state) {
     mode = stored.state.mode || 'light';
     accentName = stored.state.accent || 'Matte Black';
+    cardStyle = stored.state.cardStyle || 'glass';
   } else {
     const storedMode = localStorage.getItem('app_mode');
     // On first install (nothing stored), respect the browser/OS color-scheme preference.
@@ -42,14 +38,19 @@ try {
   const dark = mode === 'dark';
   const r = document.documentElement;
 
+  // Apply the complete per-theme profile so there is no flash regardless of
+  // the active card style (paper / glass / comic).
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  const tokens = profile[dark ? 'dark' : 'light'] ?? profile.light;
+  Object.entries(tokens).forEach(([k, v]) => r.style.setProperty(k, v));
+
   r.setAttribute('data-mode', mode);
-  r.style.setProperty('--w-page-bg', dark ? DARK_BG : LIGHT_BG);
-  r.style.setProperty('--w-surface', dark ? DARK_SURFACE : LIGHT_SURFACE);
-  r.style.setProperty('--w-border', dark ? DARK_BORDER : LIGHT_BORDER);
+  r.setAttribute('data-card-style', cardStyle);
+
   // Use the luminous dark-mode tonal variant when dark, otherwise the standard light-mode hex
   const accentHex = dark ? (accent.darkHex ?? accent.hex) : accent.hex;
   const accentFg  = dark ? (accent.darkFg  ?? accent.fg)  : accent.fg;
   r.style.setProperty('--w-accent',    accentHex);
   r.style.setProperty('--w-accent-fg', accentFg);
-  r.style.backgroundColor = dark ? DARK_BG : LIGHT_BG;
+  r.style.backgroundColor = tokens['--w-page-bg'] ?? '#141414';
 } catch (_) { /* localStorage unavailable */ }

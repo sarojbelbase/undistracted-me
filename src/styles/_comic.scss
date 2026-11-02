@@ -229,17 +229,8 @@
     opacity: 0.65;
   }
 
-  // Inner section separators inside panels/modals.
-  // Many components render a 1px bottom-border on list items.
-  // Reinforce the "printed" separation with a slightly heavier dashed line.
-  [style*="borderBottom"],
-  [style*="border-bottom"] {
-    // Cannot override inline-style border-bottom with a simple CSS rule due to
-    // specificity — instead add a subtle box-shadow underline that layers below
-    // the inline style without interfering with layout.
-    // This gives each row a faint "ruled paper" underline.
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-  }
+  // Inner section separators now use var(--w-divider), which is theme-aware —
+  // no box-shadow underline hack needed anymore.
 
   // ── 5. Scrollbars — ink-stained narrow rails ──────────────────────────────
   //
@@ -357,11 +348,7 @@
     }
   }
 
-  // Section underlines read as glowing ruled lines on dark paper.
-  [style*="borderBottom"],
-  [style*="border-bottom"] {
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
-  }
+  // Section underlines now use var(--w-divider) — theme-aware, no hack needed.
 
   // ── Full-screen Notes dark — dark paper + parchment dot grid ─────────
   .notes-fullscreen {
