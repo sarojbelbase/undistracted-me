@@ -169,14 +169,15 @@
   margin-bottom: 1rem;
 }
 
-// ── Widget face — compact, single text block, left-aligned ──────────────────
+// ── Widget face — Ghost Numeral layout ────────────────────────────────────────
 //
 // Structure:
-//   .cdn-widget-face  — flex column, fills widget, relative for label
-//   .cdn-mode-label   — top-right, absolute, ultra-compact glass pill
-//   .cdn-text-block   — the whole "Title phrase" as one block, uniform size
-//   .cdn-title-text    — bold event name
-//   .cdn-connector     — muted connector + time phrase
+//   .cdn-widget-face  — flex column, fills widget, relative for overlay layers
+//   .cdn-mode-label   — top-right, absolute, ultra-compact pill
+//   .cdn-ghost-num    — oversized faint accent numeral, bottom-right backdrop
+//   .cdn-content-wrap — observed container; text + meta stacked above the ghost
+//   .cdn-title-text   — small secondary label (event name), up to 2 lines
+//   .cdn-time-hero    — the humanized time phrase, bold hero value
 
 .cdn-widget-face {
   flex: 1;
@@ -225,6 +226,8 @@
   justify-content: flex-start;
   min-height: 0;
   gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 // ── Text block wrapper ───────────────────────────────────────────────────────
@@ -236,19 +239,44 @@
   line-height: 1.2;
   letter-spacing: -0.005em;
   font-family: 'Google Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-// Title: bold, accent — the event name (visual anchor of the card)
+// Ghost numeral — oversized faint accent digit peeking from the bottom-right.
+// Decorative only; content sits above it (z-index 1 on .cdn-content-wrap).
+.cdn-ghost-num {
+  position: absolute;
+  right: -8px;
+  bottom: -22px;
+  z-index: 0;
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(var(--w-accent-rgb), 0.13);
+  pointer-events: none;
+  user-select: none;
+}
+
+// Title — small secondary label (the event name), clamped to 2 lines
 .cdn-title-text {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--w-accent);
+  line-height: 1.25;
+  color: var(--w-ink-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-// Connector: regular weight, muted — linking word + time phrase (supporting text)
-.cdn-connector {
-  font-weight: 400;
-  color: var(--w-ink-4);
-  white-space: nowrap;
+// Time phrase — the hero value (bold, near-black)
+.cdn-time-hero {
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--w-ink-1);
 }
 
 // ── Metadata row ─────────────────────────────────────────────────────────────

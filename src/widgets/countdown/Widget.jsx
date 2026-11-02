@@ -226,19 +226,24 @@ export const Widget = ({ id, onRemove }) => {
     totalSeconds: aTotalSecs = 0,
   } = diffValues;
 
-  // ── Split text into three styled parts ────────────────────────────────────
+  // ── Split text: title label + hero time phrase ─────────────────────────────
   const titlePart = activeTarget?.title || '';
-  const connectorPart = isSince ? '' : 'is';
   const timePart = useMemo(() => {
     if (!activeTarget) return '';
     if (isSince) return `${formatSincePhrase(aDays)} ago`;
     return formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs);
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
-  // Full text for measurement (space-joined)
-  const measureText = useMemo(() => {
-    return [titlePart, connectorPart, timePart].filter(Boolean).join(' ');
-  }, [titlePart, connectorPart, timePart]);
+  // Ghost numeral — the leading number of the phrase ("4" in "in 4 years").
+  // Rendered as a faint oversized backdrop digit; hidden for non-numeric
+  // phrases ("next week", "tomorrow", "now", "yesterday", "just now").
+  const ghostNum = useMemo(() => {
+    const m = timePart.match(/\d+/);
+    return m ? m[0] : '';
+  }, [timePart]);
+
+  // Only the hero phrase needs measuring — the title label is a fixed size.
+  const measureText = timePart;
 
   // ── Minimal metadata — time + smart day label (no recurrence on face) ──────
   const todayDate = new Date();
@@ -283,38 +288,49 @@ export const Widget = ({ id, onRemove }) => {
     return () => ro.disconnect();
   }, []);
 
-  // Binary search: find largest font size that fits in the available height
+  // Binary search: find largest hero font size that fits the reserved height.
+  // The title label (up to 2 lines) + meta row occupy a fixed band, so the
+  // hero phrase is sized against the remaining vertical space.
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el || !measureText || dims.w <= 0 || dims.h <= 0) return;
 
-    // Match the rendered font settings
+    const RESERVED = 46; // 2-line title (~30px) + meta row (~14px) + gaps
+    const availH = Math.max(16, dims.h - RESERVED);
+
+    // Match the rendered hero font settings (.cdn-time-hero)
     el.style.fontFamily = "'Google Sans', sans-serif";
-    el.style.fontWeight = '500';
-    el.style.letterSpacing = '-0.003em';
-    el.style.lineHeight = '1.2';
+    el.style.fontWeight = '800';
+    el.style.letterSpacing = '-0.02em';
+    el.style.lineHeight = '1.05';
 
-    const descentFactor = 0.10; // Google Sans at lh 1.2
+    const descentFactor = 0.08;
 
-    let lo = 10, hi = Math.min(dims.h * 0.55, dims.w * 0.35);
+    let lo = 10, hi = Math.min(availH, dims.w * 0.45);
     for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       el.style.fontSize = mid + 'px';
       const h = el.getBoundingClientRect().height;
-      if (h + Math.ceil(mid * descentFactor) <= dims.h) lo = mid;
+      if (h + Math.ceil(mid * descentFactor) <= availH) lo = mid;
       else hi = mid;
     }
 
     let fs = Math.floor(lo);
     el.style.fontSize = fs + 'px';
-    // Width safety: shrink if any word overflows the container
+    // Width safety: shrink if the phrase overflows the container
     while (fs > 10 && el.scrollWidth > Math.ceil(dims.w)) {
       fs -= 1;
       el.style.fontSize = fs + 'px';
     }
-    // Cap at 18px for compact, refined look
-    setComputedFontSize(Math.min(fs, 18));
+    // Cap so the hero stays proportionate beside the oversized ghost numeral
+    setComputedFontSize(Math.min(fs, 26));
   }, [measureText, dims]);
+
+  // Ghost numeral size — scales with the widget height so it "peeks" from the
+  // bottom-right corner regardless of card size (dims.h = content-wrap height).
+  const ghostSize = dims.h > 0
+    ? Math.max(96, Math.min(240, Math.round(dims.h * 0.95)))
+    : 140;
 
   const settingsContent = (onClose) => (
     <>
@@ -362,6 +378,15 @@ export const Widget = ({ id, onRemove }) => {
       {activeTarget ? (
         <div className="cdn-widget-face">
           <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
+          {ghostNum && (
+            <span
+              className="cdn-ghost-num"
+              aria-hidden="true"
+              style={{ fontSize: ghostSize }}
+            >
+              {ghostNum}
+            </span>
+          )}
           <div ref={contentRef} className="cdn-content-wrap">
             {/* ── Hidden measurement node ── */}
             <div
@@ -376,13 +401,13 @@ export const Widget = ({ id, onRemove }) => {
               {measureText}
             </div>
 
-            {/* ── Visible text block ── */}
-            <div className="cdn-text-block" style={{ fontSize: computedFontSize }}>
-              <span className="cdn-title-text">{titlePart}</span>
+            {/* ── Visible text block: title label + hero phrase ── */}
+            <div className="cdn-text-block">
+              {titlePart && <div className="cdn-title-text">{titlePart}</div>}
               {timePart && (
-                <span className="cdn-connector">
-                  {' '}{connectorPart}{connectorPart ? ' ' : ''}{timePart}
-                </span>
+                <div className="cdn-time-hero" style={{ fontSize: computedFontSize }}>
+                  {timePart}
+                </div>
               )}
             </div>
 
