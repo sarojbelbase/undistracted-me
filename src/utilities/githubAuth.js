@@ -32,8 +32,11 @@ export const GIST_DESCRIPTION = 'Undistracted Me Sync';
  * Schema version of the sync gist payload. Bump this when the gist shape changes
  * and add a corresponding migration in `migrateSync`. Written to the gist's `v`
  * field and to a local `sync_version` key so both sides are versioned.
+ *
+ * v3 added the `devices` registry (per-device { name, os, lastSeenAt }). The
+ * `keys` shape is unchanged, so v2 gists read cleanly into v3 clients.
  */
-export const GIST_SCHEMA_VERSION = 2;
+export const GIST_SCHEMA_VERSION = 3;
 
 /**
  * User-Agent sent on GitHub REST API requests. GitHub rejects requests without
