@@ -1,0 +1,40 @@
+name: update_holidays
+
+on:
+  schedule:
+    # Weekly — Mondays at 00:15 UTC (≈ 05:45 NPT).
+    - cron: "15 0 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: holidays
+  cancel-in-progress: true
+
+jobs:
+  update-holidays:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Scrape holidays
+        run: node scripts/scrape-holidays.mjs
+
+      - name: Commit holidays.json if changed
+        run: |
+          git config --global user.email "holidays-bot@users.noreply.github.com"
+          git config --global user.name "holidays-bot"
+
+          if git diff --quiet -- holidays.json; then
+            echo "holidays.json unchanged — nothing to commit"
+            exit 0
+          fi
+
+          git add holidays.json
+          git commit -m "data: update holidays.json"
+          git push origin HEAD:main

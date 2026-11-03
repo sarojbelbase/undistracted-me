@@ -30,9 +30,6 @@
     "api/photos/curated.js": {
       "maxDuration": 10
     },
-    "api/holidays.js": {
-      "maxDuration": 10
-    },
     "api/auth/google/token.js": {
       "maxDuration": 15
     }

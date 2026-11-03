@@ -2,13 +2,14 @@
  * Bikram Sambat → Gregorian (AD) conversion.
  *
  * Pure, dependency-light so it can be imported by both the client and the
- * Vercel API functions (api/holidays.js).  The BS table is the same canonical
- * data used by the AD→BS converter in utilities/index.js, so the two directions
- * stay consistent (verified by round-trip tests).
+ * holidays scraper (scripts/scrape-holidays.mjs → api/_holidays.js).  The BS
+ * table is the same canonical data used by the AD→BS converter in
+ * utilities/index.js, so the two directions stay consistent (verified by
+ * round-trip tests).
  *
  * Anchor: BS 2000 Poush 17 === AD 1944-01-01, matching convertEnglishToNepali.
  */
-import { NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../data/bikramSambatCalendar';
+import { NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../data/bikramSambatCalendar.js';
 
 // Base anchor — the day-count origin shared with the AD→BS converter.
 const BASE_BS_YEAR = 2000;
