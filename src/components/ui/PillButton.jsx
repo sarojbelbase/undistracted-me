@@ -5,6 +5,8 @@
  *  active    – Whether this option is currently selected
  *  variant   – "pill" (default, rounded-full) | "chip" (rounded-md, tinted active style)
  *  tinted    – When true, active state uses accent-tinted bg instead of solid accent
+ *  accent    – When true, accent-tinted in BOTH states (focus-timer style):
+ *              inactive = subtle accent wash, active = solid accent
  *  onClick   – Click handler
  *  children  – Button label text
  */
@@ -14,6 +16,7 @@ export const PillButton = ({
   active,
   variant = "pill",
   tinted = false,
+  accent = false,
   onClick,
   children,
 }) => {
@@ -23,7 +26,20 @@ export const PillButton = ({
   const useTinted = isChip || tinted;
 
   let activeStyle;
-  if (active && useTinted) {
+  if (accent) {
+    activeStyle = active
+      ? {
+        backgroundColor: "var(--w-accent)",
+        color: "var(--w-accent-fg)",
+        border: "1px solid transparent",
+      }
+      : {
+        background: "color-mix(in srgb, var(--w-accent) 14%, transparent)",
+        color: "var(--w-accent)",
+        border:
+          "1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)",
+      };
+  } else if (active && useTinted) {
     activeStyle = isComic
       ? {
         background: "color-mix(in srgb, var(--w-accent) 18%, transparent)",
