@@ -186,6 +186,12 @@ export const Widget = ({ id, onRemove }) => {
 
   const ageLabel = useAgeLabel(refreshedAt);
 
+  // "No data + fetch failed" state: configured symbols exist, nothing loaded,
+  // and the last refresh errored. Show a Retry affordance instead of a stale
+  // age label (refreshedAt is only set once real data arrives and is never
+  // cleared, so a later failure would otherwise keep showing "32m ago").
+  const showRetry = symbols.length > 0 && !loading && !hasData;
+
   const cardRef = useRef(null);
   const [cardWidth, setCardWidth] = useState(200);
 
@@ -225,14 +231,25 @@ export const Widget = ({ id, onRemove }) => {
   // Refresh button + age label — always inline for minimal vertical footprint
   const RefreshBtn = (
     <div className="flex items-center gap-1.5">
-      {ageLabel && (
-        <span className="stk-age-label">{ageLabel}</span>
+      {showRetry ? (
+        <button
+          type="button"
+          className="stk-retry-label"
+          onClick={refresh}
+          aria-label="Retry loading stocks"
+        >
+          Retry
+        </button>
+      ) : (
+        ageLabel && (
+          <span className="stk-age-label">{ageLabel}</span>
+        )
       )}
       <TooltipBtn
-        tooltip={ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
+        tooltip={showRetry ? 'Retry' : ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
         onClick={refresh}
         disabled={loading}
-        aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
+        aria-label={showRetry ? 'Retry' : ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
         className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
         style={{ color: inkMuted }}
       >

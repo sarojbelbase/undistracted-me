@@ -108,6 +108,22 @@
   color: var(--w-ink-5);
 }
 
+// ── Retry affordance (shown when stocks are configured but failed to load) ────
+.stk-retry-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--w-accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
 // ── List view header ─────────────────────────────────────────────────────────
 
 .stk-list-header-label {
