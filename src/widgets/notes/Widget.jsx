@@ -347,43 +347,45 @@ export const Widget = ({ id, onRemove }) => {
       >
         <DashLg size={12} />
       </ConfirmButton>
+    </div>
+  );
 
-      {syncConnected && (
-        <>
-          <div className="notes-nav-divider" />
-          <TooltipBtn
-            type="button"
-            aria-label={syncing ? 'Syncing' : syncFeedback ? 'Sync status' : 'Sync now'}
-            onClick={handleSyncNow}
-            disabled={syncing}
-            tooltip={
-              syncing
-                ? 'Syncing…'
-                : syncFeedback === 'synced'
-                  ? 'Synced'
-                  : syncFeedback === 'already'
-                    ? 'Already synced — no changes'
-                    : 'Sync notes now'
-            }
-            className="notes-seg-btn"
-          >
-            {syncing
-              ? <ArrowRepeat size={12} className="animate-spin" />
-              : syncFeedback === 'synced'
-                ? <CheckCircleFill size={12} />
-                : syncFeedback === 'already'
-                  ? <CheckCircleFill size={12} style={{ opacity: 0.55 }} />
-                  : <ArrowClockwise size={12} />}
-            {syncing
-              ? 'Syncing…'
-              : syncFeedback === 'synced'
-                ? 'Synced'
-                : syncFeedback === 'already'
-                  ? 'Already synced'
-                  : 'Sync'}
-          </TooltipBtn>
-        </>
-      )}
+  // Sync button — separated from the note-nav controls, shown at the far right
+  // of the top bar when GitHub sync is connected.
+  const syncControl = syncConnected && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <div className="notes-nav-divider" />
+      <TooltipBtn
+        type="button"
+        aria-label={syncing ? 'Syncing' : syncFeedback ? 'Sync status' : 'Sync now'}
+        onClick={handleSyncNow}
+        disabled={syncing}
+        tooltip={
+          syncing
+            ? 'Syncing…'
+            : syncFeedback === 'synced'
+              ? 'Synced'
+              : syncFeedback === 'already'
+                ? 'Already synced — no changes'
+                : 'Sync notes now'
+        }
+        className="notes-seg-btn"
+      >
+        {syncing
+          ? <ArrowRepeat size={12} className="animate-spin" />
+          : syncFeedback === 'synced'
+            ? <CheckCircleFill size={12} />
+            : syncFeedback === 'already'
+              ? <CheckCircleFill size={12} style={{ opacity: 0.55 }} />
+              : <ArrowClockwise size={12} />}
+        {syncing
+          ? 'Syncing…'
+          : syncFeedback === 'synced'
+            ? 'Synced'
+            : syncFeedback === 'already'
+              ? 'Already synced'
+              : 'Sync'}
+      </TooltipBtn>
     </div>
   );
 
@@ -450,6 +452,7 @@ export const Widget = ({ id, onRemove }) => {
             <span>Notes</span>
           </button>
           {navControls}
+          {syncControl}
         </div>
 
         <div className="notes-fullscreen-editor-wrap">
