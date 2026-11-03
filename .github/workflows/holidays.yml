@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: feature/vite-migration-redesign
 
       - name: Scrape holidays
         run: node scripts/scrape-holidays.mjs
@@ -37,4 +37,4 @@ jobs:
 
           git add holidays.json
           git commit -m "data: update holidays.json"
-          git push origin HEAD:main
+          git push origin HEAD:feature/vite-migration-redesign

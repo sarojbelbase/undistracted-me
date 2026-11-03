@@ -18,11 +18,11 @@ export const PP_AND_TOS_URL = `${PRODUCTION_BASE_URL}/pp-and-tos`;
 
 /**
  * Committed `holidays.json` (Nepali + international, AD-dated) served via the
- * jsDelivr CDN.  Updated weekly by `.github/workflows/holidays.yml`, which
- * scrapes Wikipedia and commits only when the data actually changes.
+ * jsDelivr CDN.  Refreshed by `.github/workflows/holidays.yml`, which scrapes
+ * Wikipedia and commits only when the data actually changes.
  */
 export const HOLIDAYS_URL =
-  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@main/holidays.json';
+  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@feature/vite-migration-redesign/holidays.json';
 
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 
