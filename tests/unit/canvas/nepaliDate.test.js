@@ -111,4 +111,10 @@ describe('parseHolidaysFromWikitext', () => {
     expect([...dates].sort()).toEqual(dates);
     expect(new Set(holidays.map((h) => `${h.date}|${h.name}`)).size).toBe(holidays.length);
   });
+
+  it('tags every parsed holiday as Nepali', () => {
+    const holidays = parseHolidaysFromWikitext(wikitext, { adYears: [2026] });
+    expect(holidays.length).toBeGreaterThan(0);
+    for (const h of holidays) expect(h.kind).toBe('nepali');
+  });
 });

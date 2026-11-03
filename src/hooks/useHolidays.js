@@ -1,17 +1,22 @@
 /**
- * useHolidays — Nepali public holidays + festivals for the calendar widget.
+ * useHolidays — Nepali + international holidays for the calendar widget.
  *
- * Fetches the server-side /api/holidays endpoint (which scrapes Wikipedia once
- * a day and returns AD-dated holidays), caches the payload in localStorage, and
- * re-fetches only when the cache is older than 24h.  Returns:
- *   { dates: Set<'YYYY-MM-DD'>, names: Map<'YYYY-MM-DD' → 'Name[, Name…]'> }
+ * Fetches the committed `holidays.json` from the jsDelivr CDN (updated weekly
+ * by a GitHub Actions workflow), caches the payload in localStorage, and
+ * re-fetches only when the cache is older than 24h.  Returns two lookups so the
+ * calendar can style Nepali and international holidays differently:
+ *   {
+ *     dates:      Set<'YYYY-MM-DD'>            — Nepali holiday dates
+ *     names:      Map<'YYYY-MM-DD' → string[]> — Nepali names per date
+ *     intlDates:  Set<'YYYY-MM-DD'>            — international holiday dates
+ *     intlNames:  Map<'YYYY-MM-DD' → string[]> — international names per date
+ *   }
  *
- * Falls back to an empty set on any error so the calendar still renders.
+ * Falls back to empty lookups on any error so the calendar still renders.
  */
 import { useState, useEffect } from 'react';
-import { HOLIDAYS_API } from '../constants/urls';
+import { HOLIDAYS_URL } from '../constants/urls';
 
-const API_KEY = import.meta.env.VITE_API_KEY || null;
 const CACHE_KEY = 'holidays_cache';
 const FETCHED_AT_KEY = 'holidays_fetched_at';
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -29,24 +34,32 @@ const readCache = () => {
   }
 };
 
+const empty = () => ({
+  dates: new Set(),
+  names: new Map(),
+  intlDates: new Set(),
+  intlNames: new Map(),
+});
+
 const toLookup = (data) => {
-  const dates = new Set();
-  const names = new Map();
+  const out = empty();
   for (const h of data?.holidays ?? []) {
-    if (!h?.date) continue;
+    if (!h?.date || !h.name) continue;
+    const intl = h.kind === 'international';
+    const dates = intl ? out.intlDates : out.dates;
+    const names = intl ? out.intlNames : out.names;
     dates.add(h.date);
-    if (h.name) {
-      const prev = names.get(h.date);
-      names.set(h.date, prev ? `${prev}, ${h.name}` : h.name);
-    }
+    const prev = names.get(h.date);
+    if (prev) prev.push(h.name);
+    else names.set(h.date, [h.name]);
   }
-  return { dates, names };
+  return out;
 };
 
 export function useHolidays() {
   const [lookup, setLookup] = useState(() => {
     const cached = readCache();
-    return cached ? toLookup(cached.data) : { dates: new Set(), names: new Map() };
+    return cached ? toLookup(cached.data) : empty();
   });
 
   useEffect(() => {
@@ -54,9 +67,7 @@ export function useHolidays() {
     if (cached && Date.now() - cached.at < TTL_MS) return; // fresh — skip network
 
     let cancelled = false;
-    fetch(HOLIDAYS_API, {
-      headers: API_KEY ? { 'X-Api-Key': API_KEY } : {},
-    })
+    fetch(HOLIDAYS_URL)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data) => {
         if (cancelled || !Array.isArray(data?.holidays)) return;

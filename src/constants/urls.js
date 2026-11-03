@@ -16,8 +16,13 @@ export const RSS_FEED_PROXY_URL = `${PRODUCTION_BASE_URL}/api/rss/feed`;
 /** Public privacy policy & terms of service page. */
 export const PP_AND_TOS_URL = `${PRODUCTION_BASE_URL}/pp-and-tos`;
 
-/** Server-scraped Nepali public holidays + festivals (AD-dated JSON). */
-export const HOLIDAYS_API = `${PRODUCTION_BASE_URL}/api/holidays`;
+/**
+ * Committed `holidays.json` (Nepali + international, AD-dated) served via the
+ * jsDelivr CDN.  Updated weekly by `.github/workflows/holidays.yml`, which
+ * scrapes Wikipedia and commits only when the data actually changes.
+ */
+export const HOLIDAYS_URL =
+  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@main/holidays.json';
 
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 

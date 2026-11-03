@@ -16,8 +16,17 @@ import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 
 // ── Tooltips ─────────────────────────────────────────────────────────────────
 
-const DayTooltip = React.memo(({ events, anchor }) => (
+const DayTooltip = React.memo(({ events, holidays, anchor }) => (
   <Popup anchor={anchor} className="p-3 gap-2.5 max-w-65">
+    {holidays.map((h, i) => (
+      <div key={`holiday-${i}`} className="flex items-center gap-2">
+        <span
+          className="w-[3.5px] h-[3.5px] rounded-full shrink-0"
+          style={{ backgroundColor: h.kind === 'international' ? 'var(--w-sunset)' : 'var(--w-danger)' }}
+        />
+        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--w-ink-1)' }}>{h.name}</span>
+      </div>
+    ))}
     {events.map(e => (
       <EventRow key={e.id} event={e} showPrefix={false} showMeet={false} compact />
     ))}
@@ -32,12 +41,13 @@ const AddTooltip = ({ anchor }) => (
 
 // ── Day Cell ─────────────────────────────────────────────────────────────────
 
-const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, isHoliday, onAddEvent }) => {
+const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, holidaysForDay, dateStr, isHoliday, isIntl, onAddEvent }) => {
   const [anchor, setAnchor] = useState(null);
   const [hoverRect, setHoverRect] = useState(null);
   const [hovered, setHovered] = useState(false);
   const ref = useRef(null);
   const hasEvents = !isCurrent && eventsForDay.length > 0;
+  const hasHolidays = holidaysForDay.length > 0;
 
   const handleMouseEnter = () => {
     setHovered(true);
@@ -45,7 +55,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, isHoliday, 
     const r = ref.current.getBoundingClientRect();
     const rect = { left: r.left, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
     setHoverRect(rect);
-    if (hasEvents) setAnchor(rect);
+    if (hasEvents || hasHolidays) setAnchor(rect);
   };
 
   const handleMouseLeave = () => {
@@ -76,7 +86,9 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, isHoliday, 
           className="cal-day-cell__number"
           style={{
             opacity: hovered ? 0 : 1,
-            color: isHoliday && !isWeekend ? 'var(--w-danger)' : undefined,
+            color: !isWeekend
+              ? isHoliday ? 'var(--w-danger)' : isIntl ? 'var(--w-sunset)' : undefined
+              : undefined,
           }}
         >
           {day}
@@ -102,7 +114,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, isHoliday, 
         )}
       </button>
       {hovered && hoverRect && <AddTooltip anchor={hoverRect} />}
-      {anchor && <DayTooltip events={eventsForDay} anchor={anchor} />}
+      {anchor && <DayTooltip events={eventsForDay} holidays={holidaysForDay} anchor={anchor} />}
     </>
   );
 };
@@ -141,8 +153,17 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
-  const { dates: holidayDates } = useHolidays();
+  const { dates: holidayDates, names: holidayNames, intlDates, intlNames } = useHolidays();
   const [createDate, setCreateDate] = useState(null);
+
+  // Holidays for a date as a flat [{ name, kind }] list (Nepali first).
+  const holidaysForDate = useCallback((dateStr) => {
+    if (!dateStr) return [];
+    const out = [];
+    for (const n of holidayNames.get(dateStr) ?? []) out.push({ name: n, kind: 'nepali' });
+    for (const n of intlNames.get(dateStr) ?? []) out.push({ name: n, kind: 'international' });
+    return out;
+  }, [holidayNames, intlNames]);
 
   // ── Rebuild calendar data when month changes ───────────────────────────────
   const rebuild = useCallback(() => {
@@ -290,6 +311,8 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
                 isHoliday={dateStr ? holidayDates.has(dateStr) : false}
+                isIntl={dateStr ? intlDates.has(dateStr) : false}
+                holidaysForDay={holidaysForDate(dateStr)}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
@@ -311,6 +334,8 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
                 isHoliday={dateStr ? holidayDates.has(dateStr) : false}
+                isIntl={dateStr ? intlDates.has(dateStr) : false}
+                holidaysForDay={holidaysForDate(dateStr)}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
