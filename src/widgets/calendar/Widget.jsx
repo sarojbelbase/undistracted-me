@@ -12,7 +12,7 @@ import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 import { CANVAS_HOVER_OVERLAY } from '../../theme/canvas';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
-import { AddEvent } from '../events/AddEvent';
+import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 
 // ── Tooltips ─────────────────────────────────────────────────────────────────
 
@@ -138,7 +138,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [startWeek, setStartWeek] = useState(0);
 
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
-  const [localEvents, addEvent] = useEvents();
+  const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
   const { dates: holidayDates } = useHolidays();
@@ -321,9 +321,9 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
       </BaseWidget>
 
       {createDate && (
-        <AddEvent
+        <UnifiedAddDialog
+          type="event"
           initialDate={createDate}
-          onSave={addEvent}
           onClose={() => setCreateDate(null)}
         />
       )}

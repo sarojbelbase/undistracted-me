@@ -8,7 +8,6 @@ import {
   loadContactsSyncedAt,
   isContactsConnected,
   loadManualBirthdays,
-  addManualBirthday,
 } from '../../utilities/googleContacts';
 import {
   computeUpcoming,
@@ -18,7 +17,7 @@ import {
   avatarLetter,
 } from './utils';
 import { OccasionsSettings } from './Settings';
-import { AddOccasion } from './AddOccasion';
+import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import config from './config';
 import { useUIStore } from '../../store/useUIStore';
 import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
@@ -191,6 +190,13 @@ export const Widget = ({ id, onRemove }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Re-read manual occasions when the unified dialog adds/edits one.
+  useEffect(() => {
+    const handler = () => setManual(loadManualBirthdays());
+    globalThis.addEventListener('manual_birthdays_changed', handler);
+    return () => globalThis.removeEventListener('manual_birthdays_changed', handler);
+  }, []);
+
   const sync = useCallback(async (interactive = true) => {
     setLoading(true);
     setError(null);
@@ -324,13 +330,9 @@ export const Widget = ({ id, onRemove }) => {
         {renderContent()}
       </BaseWidget>
       {showAddModal && (
-        <AddOccasion
+        <UnifiedAddDialog
+          type="occasion"
           onClose={() => setShowAddModal(false)}
-          onSave={({ name, type, month, day }) => {
-            addManualBirthday(name, type, month, day);
-            setManual(loadManualBirthdays());
-            setShowAddModal(false);
-          }}
         />
       )}
     </>

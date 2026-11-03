@@ -94,7 +94,7 @@ export const Widget = ({ id, onRemove }) => {
   const [pinned, setPinned] = useState(() => loadPinned(id));
   const [now, setNow] = useState(() => Date.now());
 
-  const [localEvents, addEventToStore, removeEventFromStore, updateEventFromStore] = useEvents();
+  const [localEvents, , removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const today = todayStr();
   const allEvents = [...localEvents, ...(gcalEvents || [])];
@@ -122,26 +122,6 @@ export const Widget = ({ id, onRemove }) => {
   // Sync pinned state to localStorage on every change
   useEffect(() => { savePinned(id, pinned); }, [pinned, id]);
 
-  const addCustom = useCallback(
-    (cd) => {
-      setCustom((prev) => {
-        const next = [...prev, cd];
-        saveCustom(next);
-        return next;
-      });
-      addEventToStore({
-        id: cd.id,
-        title: cd.title,
-        startDate: cd.targetDate,
-        startTime: cd.targetTime || "",
-        endDate: cd.targetDate,
-        endTime: "",
-        _fromCountdown: true,
-      });
-    },
-    [addEventToStore],
-  );
-
   const removeCustom = useCallback(
     (cdId) => {
       setCustom((prev) => {
@@ -161,26 +141,15 @@ export const Widget = ({ id, onRemove }) => {
     [removeEventFromStore, id],
   );
 
-  const updateCustom = useCallback(
-    (cdId, patch) => {
-      setCustom((prev) => {
-        const next = prev.map((c) => (c.id === cdId ? { ...c, ...patch, id: cdId } : c));
-        saveCustom(next);
-        return next;
-      });
-      // Keep the mirrored event (same id) in sync with the edited countdown.
-      updateEventFromStore(cdId, {
-        title: patch.title,
-        startDate: patch.targetDate,
-        startTime: patch.targetTime || "",
-        endDate: patch.targetDate,
-        endTime: "",
-      });
-    },
-    [updateEventFromStore],
-  );
-
   useEffect(() => onClockTick(() => setNow(Date.now())), []);
+
+  // Re-read countdowns when the unified dialog adds/edits one (it writes to
+  // localStorage directly and broadcasts this event).
+  useEffect(() => {
+    const handler = () => setCustom(loadCustom());
+    globalThis.addEventListener("countdown_events_changed", handler);
+    return () => globalThis.removeEventListener("countdown_events_changed", handler);
+  }, []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   const { target, shouldClearPin } = resolveTarget(
@@ -377,8 +346,6 @@ export const Widget = ({ id, onRemove }) => {
           custom={custom}
           pinned={pinned}
           upcomingEvents={upcomingEvents}
-          onAddCustom={addCustom}
-          onUpdateCustom={updateCustom}
           onRemoveCustom={removeCustom}
           onPin={setPin}
           onClose={onClose}

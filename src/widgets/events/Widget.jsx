@@ -16,7 +16,7 @@ import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
 import { todayStr } from '../../utilities';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { onClockTick } from '../../utilities/sharedClock';
-import { AddEvent } from './AddEvent';
+import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { AllEventsModal } from './AllEventsModal';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
@@ -26,7 +26,7 @@ import { Settings } from './Settings';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 export const Widget = ({ onRemove }) => {
-  const [localEvents, addEvent, removeEvent, updateEvent] = useEvents();
+  const [localEvents, , removeEvent] = useEvents();
   const { gcalEvents, loading, connected, syncedAt, refresh } = useGoogleCalendar();
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -138,8 +138,8 @@ export const Widget = ({ onRemove }) => {
 
       </BaseWidget>
 
-      {showCreate && <AddEvent onSave={addEvent} onClose={() => setShowCreate(false)} />}
-      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} onUpdate={updateEvent} />}
+      {showCreate && <UnifiedAddDialog type="event" onClose={() => setShowCreate(false)} />}
+      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onRemove={removeEvent} />}
     </>
   );
 };

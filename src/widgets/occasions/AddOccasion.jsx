@@ -33,7 +33,7 @@ const selStyle = {
   cursor: 'pointer',
 };
 
-export const AddOccasion = ({ onSave, onClose, initial }) => {
+export const AddOccasion = ({ onSave, onClose, initial, topContent }) => {
   const [name, setName] = useState(initial?.name ?? '');
   const [type, setType] = useState(initial?.type ?? 'birthday');
   const [month, setMonth] = useState(initial ? String(initial.month) : '');
@@ -74,29 +74,35 @@ export const AddOccasion = ({ onSave, onClose, initial }) => {
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Occasion" : "New Occasion"}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={headerIconStyle}>
-            <PersonHeart size={14} style={{ color: 'var(--w-accent-fg)' }} />
-          </div>
-          <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Occasion' : 'New Occasion'}</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update a birthday or anniversary' : 'Add a birthday or anniversary'}</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-          style={{ color: 'var(--w-ink-3)' }}
-        >
-          <XLg size={11} />
-        </button>
-      </div>
+      {topContent}
 
-      <div style={{ height: 1, background: 'var(--card-border)' }} />
+      {!topContent && (
+        <>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={headerIconStyle}>
+                <PersonHeart size={14} style={{ color: 'var(--w-accent-fg)' }} />
+              </div>
+              <div>
+                <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Occasion' : 'New Occasion'}</div>
+                <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update a birthday or anniversary' : 'Add a birthday or anniversary'}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
+              style={{ color: 'var(--w-ink-3)' }}
+            >
+              <XLg size={11} />
+            </button>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--card-border)' }} />
+        </>
+      )}
 
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>

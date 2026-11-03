@@ -11,7 +11,7 @@ import {
   getDateOffset, applyDuration,
 } from './utils';
 
-export const AddEvent = ({ onSave, onClose, initialDate, initial }) => {
+export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) => {
   const startDate = initial?.startDate ?? initialDate ?? todayStr();
   const today = todayStr();
   const tomorrow = getDateOffset(1);
@@ -87,29 +87,35 @@ export const AddEvent = ({ onSave, onClose, initialDate, initial }) => {
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Event" : "New Event"}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={headerIconStyle}>
-            <CalendarEvent size={14} style={{ color: 'var(--w-accent-fg)' }} />
-          </div>
-          <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Event' : 'New Event'}</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update your schedule' : 'Add to your schedule'}</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-          style={{ color: 'var(--w-ink-3)' }}
-        >
-          <XLg size={11} />
-        </button>
-      </div>
+      {topContent}
 
-      <div style={{ height: 1, background: 'var(--card-border)' }} />
+      {!topContent && (
+        <>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={headerIconStyle}>
+                <CalendarEvent size={14} style={{ color: 'var(--w-accent-fg)' }} />
+              </div>
+              <div>
+                <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Event' : 'New Event'}</div>
+                <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update your schedule' : 'Add to your schedule'}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
+              style={{ color: 'var(--w-ink-3)' }}
+            >
+              <XLg size={11} />
+            </button>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--card-border)' }} />
+        </>
+      )}
 
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
