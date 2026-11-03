@@ -59,7 +59,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
 export const WIDGET_SETTINGS_DEFAULTS = {
   clock: { format: "24h", timezones: [] },
   dateToday: { language: "en" },
-  calendar: { calendarType: "bs" },
+  calendar: { calendarType: "bs", showHolidays: true },
   progress: { period: "day", calendar: "ad" },
   stock: { symbols: ["NEPSE"] },
   notes: { notes: [""], idx: 0 },

@@ -5,11 +5,25 @@ const CALENDAR_TYPES = [
   { label: 'Gregorian (A.D.)', value: 'ad' },
 ];
 
-export const Settings = ({ id, calendarType, onChange }) => (
-  <SegmentedControl
-    label="Calendar Format"
-    options={CALENDAR_TYPES}
-    value={calendarType}
-    onChange={(v) => onChange('calendarType', v)}
-  />
+const HOLIDAY_OPTIONS = [
+  { label: 'Show', value: true },
+  { label: 'Hide', value: false },
+];
+
+export const Settings = ({ id, calendarType, showHolidays, onChange }) => (
+  <div className="flex flex-col gap-5">
+    <SegmentedControl
+      label="Calendar Format"
+      options={CALENDAR_TYPES}
+      value={calendarType}
+      onChange={(v) => onChange('calendarType', v)}
+    />
+
+    <SegmentedControl
+      label="Holidays"
+      options={HOLIDAY_OPTIONS}
+      value={showHolidays}
+      onChange={(v) => onChange('showHolidays', v)}
+    />
+  </div>
 );

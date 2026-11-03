@@ -142,7 +142,7 @@ const dayDateStr = (day, calendarData) => {
 
 export const Widget = ({ id = 'calendar', onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULTS);
-  const { calendarType } = settings;
+  const { calendarType, showHolidays } = settings;
 
   // monthOffset: which month relative to today (0 = current)
   const [monthOffset, setMonthOffset] = useState(0);
@@ -251,7 +251,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
       <BaseWidget
         className="p-4 flex flex-col gap-2.5"
         settingsTitle={config.title}
-        settingsContent={<Settings id={id} calendarType={calendarType} onChange={updateSetting} />}
+        settingsContent={<Settings id={id} calendarType={calendarType} showHolidays={showHolidays} onChange={updateSetting} />}
         onRemove={onRemove}
       >
         {/* Header */}
@@ -310,9 +310,9 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
-                isHoliday={dateStr ? holidayDates.has(dateStr) : false}
-                isIntl={dateStr ? intlDates.has(dateStr) : false}
-                holidaysForDay={holidaysForDate(dateStr)}
+                isHoliday={showHolidays && dateStr ? holidayDates.has(dateStr) : false}
+                isIntl={showHolidays && dateStr ? intlDates.has(dateStr) : false}
+                holidaysForDay={showHolidays ? holidaysForDate(dateStr) : []}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
@@ -333,9 +333,9 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
-                isHoliday={dateStr ? holidayDates.has(dateStr) : false}
-                isIntl={dateStr ? intlDates.has(dateStr) : false}
-                holidaysForDay={holidaysForDate(dateStr)}
+                isHoliday={showHolidays && dateStr ? holidayDates.has(dateStr) : false}
+                isIntl={showHolidays && dateStr ? intlDates.has(dateStr) : false}
+                holidaysForDay={showHolidays ? holidaysForDate(dateStr) : []}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
