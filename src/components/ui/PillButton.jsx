@@ -27,17 +27,16 @@ export const PillButton = ({
 
   let activeStyle;
   if (accent) {
+    // Focus-timer presets: borderless pills tinted with the accent color.
+    // Inactive uses the same 12% accent wash as the daily widget's mode badge.
     activeStyle = active
       ? {
         backgroundColor: "var(--w-accent)",
         color: "var(--w-accent-fg)",
-        border: "1px solid transparent",
       }
       : {
-        background: "color-mix(in srgb, var(--w-accent) 14%, transparent)",
+        background: "color-mix(in srgb, var(--w-accent) 12%, transparent)",
         color: "var(--w-accent)",
-        border:
-          "1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)",
       };
   } else if (active && useTinted) {
     activeStyle = isComic
