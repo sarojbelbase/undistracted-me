@@ -353,15 +353,20 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
 // ─── Marquee skeleton ─────────────────────────────────────────────────────────
 
 const MarqueeSkeleton = () => (
-  <div className="absolute inset-0 animate-pulse" style={{ background: "var(--w-surface-2)" }}>
+  <div className="absolute inset-0 rss-marquee-skeleton">
+    {/* Headlight sweep — bright band travelling across the accent, on top of
+        the scrim + bones (mimics a spotlight sweeping over the card). */}
+    <div className="rss-marquee-skeleton__sweep" aria-hidden="true" />
+    {/* Source pill placeholder */}
     <div style={{ position: "absolute", top: 10, left: 11, display: "flex", gap: 4 }}>
-      <div className="rounded" style={{ width: 48, height: 8, background: "rgba(0,0,0,0.09)" }} />
-      <div className="rounded" style={{ width: 28, height: 8, background: "rgba(0,0,0,0.06)" }} />
+      <div className="rounded" style={{ width: 48, height: 8, background: "rgba(255,255,255,0.22)" }} />
+      <div className="rounded" style={{ width: 28, height: 8, background: "rgba(255,255,255,0.14)" }} />
     </div>
+    {/* Title line placeholders */}
     <div style={{ position: "absolute", bottom: 18, left: 11, right: 11 }}>
-      <div className="rounded mb-2" style={{ height: 14, width: "92%", background: "rgba(0,0,0,0.1)" }} />
-      <div className="rounded mb-2" style={{ height: 14, width: "78%", background: "rgba(0,0,0,0.08)" }} />
-      <div className="rounded" style={{ height: 14, width: "40%", background: "rgba(0,0,0,0.05)" }} />
+      <div className="rounded mb-2" style={{ height: 14, width: "92%", background: "rgba(255,255,255,0.2)" }} />
+      <div className="rounded mb-2" style={{ height: 14, width: "78%", background: "rgba(255,255,255,0.14)" }} />
+      <div className="rounded" style={{ height: 14, width: "40%", background: "rgba(255,255,255,0.1)" }} />
     </div>
   </div>
 );

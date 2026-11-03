@@ -135,6 +135,44 @@
   display: none;
 }
 
+// ── Marquee loading skeleton — accent base + headlight sweep ──────────────────
+//
+// Paints the same accent color the loaded Spotlight card uses, then a dark
+// scrim (matching .rss-marquee::after) so the white placeholder bones read
+// against it. A bright "headlight" band sweeps across ON TOP of the accent
+// (not beneath it) while the feed is loading.
+.rss-marquee-skeleton {
+  background: var(--w-accent);
+  border-radius: inherit;
+  overflow: hidden;
+
+  // Dark scrim — same 40% black as the real card, so the placeholder matches
+  // the loaded look and the white sweep/bones stay legible on any accent.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+}
+
+.rss-marquee-skeleton__sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 60%
+  );
+  background-size: 260% 100%;
+  animation: shimmer 1.7s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .rss-marquee__content {
   position: absolute;
   inset: 0;
