@@ -86,7 +86,7 @@ const PickPhase = React.memo(({
           <PillButton
             key={p.label}
             active={showCustom && p.secs === null}
-            tinted
+            accent
             onClick={() => onPresetClick(p)}
           >
             {p.label}
