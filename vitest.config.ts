@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 
 // Separate Vitest config — intentionally excludes @crxjs/vite-plugin and
 // the chrome-extension manifest because they have no relevance in jsdom.
+// No React/Preact plugin is needed: unit tests run on real React, and Vite's
+// esbuild transform handles JSX automatically (automatic runtime → react/jsx-runtime).
 export default defineConfig({
-  plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,

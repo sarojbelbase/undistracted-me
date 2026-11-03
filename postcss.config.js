@@ -1,9 +1,9 @@
 import tailwindcss from '@tailwindcss/postcss';
-import autoprefixer from 'autoprefixer';
 
+// Tailwind v4 (via @tailwindcss/postcss) auto-prefixes through Lightning CSS,
+// so a separate autoprefixer pass is unnecessary.
 export default {
   plugins: [
     tailwindcss,
-    autoprefixer,
   ],
 };
