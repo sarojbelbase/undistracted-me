@@ -4,6 +4,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
 import config from './config';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
+import { useHolidays } from '../../hooks/useHolidays';
 import { WEEK_DAYS, DEFAULTS, buildCalendarData } from './utils';
 import { EventRow } from '../../components/ui/EventRow';
 import { Popup } from '../../components/ui/Popup';
@@ -31,7 +32,7 @@ const AddTooltip = ({ anchor }) => (
 
 // ── Day Cell ─────────────────────────────────────────────────────────────────
 
-const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent }) => {
+const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, isHoliday, onAddEvent }) => {
   const [anchor, setAnchor] = useState(null);
   const [hoverRect, setHoverRect] = useState(null);
   const [hovered, setHovered] = useState(false);
@@ -71,7 +72,13 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, dateStr, onAddEvent 
         style={isCurrent ? undefined : { backgroundColor: hovered ? CANVAS_HOVER_OVERLAY : undefined }}
         aria-label={`Add event on ${dateStr}`}
       >
-        <span className="cal-day-cell__number" style={{ opacity: hovered ? 0 : 1 }}>
+        <span
+          className="cal-day-cell__number"
+          style={{
+            opacity: hovered ? 0 : 1,
+            color: isHoliday && !isWeekend ? 'var(--w-danger)' : undefined,
+          }}
+        >
           {day}
         </span>
         <span
@@ -134,6 +141,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [localEvents, addEvent] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
+  const { dates: holidayDates } = useHolidays();
   const [createDate, setCreateDate] = useState(null);
 
   // ── Rebuild calendar data when month changes ───────────────────────────────
@@ -281,6 +289,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
+                isHoliday={dateStr ? holidayDates.has(dateStr) : false}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
@@ -301,6 +310,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
                 day={day.date}
                 isCurrent={day.isCurrent}
                 isWeekend={isWeekend}
+                isHoliday={dateStr ? holidayDates.has(dateStr) : false}
                 eventsForDay={eventsForDay}
                 dateStr={dateStr}
                 onAddEvent={setCreateDate}
