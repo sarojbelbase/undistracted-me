@@ -70,6 +70,8 @@ const EXPORT_EXCLUDED = new Set([
   "fm_pomodoro",
   "weather_cache_v1",
   "dailys_joke_cache",
+  "holidays_cache",
+  "holidays_fetched_at",
 ]);
 
 /** Prefixes excluded from the backup (per-instance timers, feed caches, …). */

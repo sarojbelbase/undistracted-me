@@ -16,6 +16,9 @@ export const RSS_FEED_PROXY_URL = `${PRODUCTION_BASE_URL}/api/rss/feed`;
 /** Public privacy policy & terms of service page. */
 export const PP_AND_TOS_URL = `${PRODUCTION_BASE_URL}/pp-and-tos`;
 
+/** Server-scraped Nepali public holidays + festivals (AD-dated JSON). */
+export const HOLIDAYS_API = `${PRODUCTION_BASE_URL}/api/holidays`;
+
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 
 export const OPEN_METEO_WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
