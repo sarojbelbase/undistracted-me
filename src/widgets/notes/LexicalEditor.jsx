@@ -269,31 +269,27 @@ function LinkEditorPlugin() {
   );
 }
 
-// ── Sync external value → editor (e.g. when user switches notes) ─────────────
-function ValueSyncPlugin({ value, lastSentRef, onReady }) {
+// ── Load initial content into the editor (mount only) ─────────────────────────
+//
+// Note switching is handled by remounting the whole editor (the parent passes a
+// `key` derived from the note id), so there is no need to re-sync `value` on
+// subsequent renders. Re-syncing here caused a feedback loop: Lexical fires
+// onChange synchronously while React re-renders asynchronously, so under fast
+// typing the incoming `value` lagged behind the just-emitted markdown and the
+// editor kept re-initialising between two states, blocking the main thread.
+function ValueSyncPlugin({ value, onReady }) {
   const [editor] = useLexicalComposerContext();
   const isFirstMount = useRef(true);
 
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      // Load initial content
-      editor.update(() => {
-        $convertFromMarkdownString(value ?? '', MY_TRANSFORMERS);
-      });
-      onReady?.(editor);
-      return;
-    }
-    // Only re-init when the value came from OUTSIDE (note switch),
-    // not from our own typing (lastSentRef tracks what we just emitted).
-    if (value !== lastSentRef.current) {
-      lastSentRef.current = value;
-      editor.update(() => {
-        $convertFromMarkdownString(value ?? '', MY_TRANSFORMERS);
-      });
-    }
+    if (!isFirstMount.current) return;
+    isFirstMount.current = false;
+    editor.update(() => {
+      $convertFromMarkdownString(value ?? '', MY_TRANSFORMERS);
+    });
+    onReady?.(editor);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, []);
 
   return null;
 }
@@ -345,9 +341,6 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   ref,
 ) {
   const editorInstanceRef = useRef(null);
-  // Shared ref: tracks the last markdown value we sent out, so ValueSyncPlugin
-  // can skip re-syncing when it's our own edit (not an external note switch).
-  const lastSentRef = useRef(value);
 
   // Derive mode modifier (e.g. "lex-content--modal") from className so the
   // placeholder inherits the same font-size/line-height as the editor.
@@ -366,13 +359,9 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   const handleChange = useCallback((editorState) => {
     editorState.read(() => {
       const md = $convertToMarkdownString(MY_TRANSFORMERS);
-      // Mark this value as "sent by us" before calling onChange, so
-      // ValueSyncPlugin won't re-init the editor when the prop comes back.
-      lastSentRef.current = md;
       if ($getRoot().getChildrenSize() === 1) {
         const firstChild = $getRoot().getFirstChild();
         if (firstChild?.getTextContent() === '') {
-          lastSentRef.current = '';
           onChange?.('');
           return;
         }
@@ -427,7 +416,7 @@ const LexicalEditor = forwardRef(function LexicalEditor(
         <HistoryPlugin />
         <MarkdownShortcutPlugin transformers={MY_TRANSFORMERS} />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
-        <ValueSyncPlugin value={value} lastSentRef={lastSentRef} onReady={(e) => { editorInstanceRef.current = e; }} />
+        <ValueSyncPlugin value={value} onReady={(e) => { editorInstanceRef.current = e; }} />
       </div>
     </LexicalComposer>
   );
