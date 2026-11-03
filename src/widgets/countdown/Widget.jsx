@@ -94,7 +94,7 @@ export const Widget = ({ id, onRemove }) => {
   const [pinned, setPinned] = useState(() => loadPinned(id));
   const [now, setNow] = useState(() => Date.now());
 
-  const [localEvents, addEventToStore, removeEventFromStore] = useEvents();
+  const [localEvents, addEventToStore, removeEventFromStore, updateEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const today = todayStr();
   const allEvents = [...localEvents, ...(gcalEvents || [])];
@@ -159,6 +159,25 @@ export const Widget = ({ id, onRemove }) => {
       removeEventFromStore(cdId);
     },
     [removeEventFromStore, id],
+  );
+
+  const updateCustom = useCallback(
+    (cdId, patch) => {
+      setCustom((prev) => {
+        const next = prev.map((c) => (c.id === cdId ? { ...c, ...patch, id: cdId } : c));
+        saveCustom(next);
+        return next;
+      });
+      // Keep the mirrored event (same id) in sync with the edited countdown.
+      updateEventFromStore(cdId, {
+        title: patch.title,
+        startDate: patch.targetDate,
+        startTime: patch.targetTime || "",
+        endDate: patch.targetDate,
+        endTime: "",
+      });
+    },
+    [updateEventFromStore],
   );
 
   useEffect(() => onClockTick(() => setNow(Date.now())), []);
@@ -359,6 +378,7 @@ export const Widget = ({ id, onRemove }) => {
           pinned={pinned}
           upcomingEvents={upcomingEvents}
           onAddCustom={addCustom}
+          onUpdateCustom={updateCustom}
           onRemoveCustom={removeCustom}
           onPin={setPin}
           onClose={onClose}

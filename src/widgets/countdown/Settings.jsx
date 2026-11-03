@@ -20,11 +20,13 @@ export const CountdownSettings = ({
   pinned,
   upcomingEvents,
   onAddCustom,
+  onUpdateCustom,
   onRemoveCustom,
   onPin,
   onClose,
 }) => {
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   return (
     <>
@@ -87,6 +89,7 @@ export const CountdownSettings = ({
                 title={cd.title}
                 meta={metaParts}
                 label={cdLabel}
+                onEdit={() => setEditing(cd)}
                 onDelete={() => onRemoveCustom(cd.id)}
                 deleteLabel={`Remove ${cd.title}`}
                 onClick={() => { onPin({ type: "custom", id: cd.id }); onClose?.(); }}
@@ -154,6 +157,13 @@ export const CountdownSettings = ({
             onClose?.();
           }}
           onClose={() => setShowAdd(false)}
+        />
+      )}
+      {editing && (
+        <AddCountdown
+          initial={editing}
+          onSave={(cd) => { onUpdateCustom(editing.id, cd); setEditing(null); }}
+          onClose={() => setEditing(null)}
         />
       )}
     </>

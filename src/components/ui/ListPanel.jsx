@@ -1,5 +1,5 @@
 import React from 'react';
-import { XLg } from 'react-bootstrap-icons';
+import { XLg, PencilFill } from 'react-bootstrap-icons';
 import { ConfirmButton } from './ConfirmButton';
 import { Divider } from './Divider';
 
@@ -60,6 +60,8 @@ export const ListPanelRow = ({
   label,
   onDelete,
   deleteLabel = 'Remove',
+  onEdit,
+  editLabel = 'Edit',
   onClick,
   className = '',
   style = {},
@@ -133,7 +135,24 @@ export const ListPanelRow = ({
           {label}
         </span>
       )}
+    </>
+  );
 
+  // Action buttons (edit / delete) render as siblings of the clickable content
+  // so they're never nested inside the row <button> when `onClick` is set.
+  const actions = (
+    <>
+      {onEdit && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          aria-label={editLabel}
+          className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
+          style={{ color: 'var(--w-ink-4)', background: 'none' }}
+        >
+          <PencilFill size={11} />
+        </button>
+      )}
       {onDelete && (
         <ConfirmButton
           onConfirm={onDelete}
@@ -152,22 +171,23 @@ export const ListPanelRow = ({
     ...style,
   };
 
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`flex items-center gap-3 px-4 py-3 w-full text-left border-none ${className}`}
-        style={{ ...rowStyle, cursor: 'pointer' }}
-      >
-        {content}
-      </button>
-    );
-  }
+  const body = onClick ? (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-3 flex-1 min-w-0 text-left border-none"
+      style={{ background: 'transparent', padding: 0, cursor: 'pointer' }}
+    >
+      {content}
+    </button>
+  ) : (
+    <div className="flex items-center gap-3 flex-1 min-w-0">{content}</div>
+  );
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 ${className}`} style={rowStyle}>
-      {content}
+      {body}
+      {actions}
     </div>
   );
 };

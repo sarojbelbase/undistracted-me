@@ -7,6 +7,7 @@ import {
   loadManualBirthdays,
   addManualBirthday,
   removeManualBirthday,
+  updateManualBirthday,
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
@@ -114,9 +115,14 @@ const ManualSection = ({ onManualChange }) => {
   const googleConnected = useGoogleAccountStore(s => s.connected);
   const [manual, setManual] = useState(() => loadManualBirthdays());
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
 
-  const handleSave = ({ name, type, month, day }) => {
-    addManualBirthday(name, type, month, day);
+  const handleSave = ({ id, name, type, month, day }) => {
+    if (id) {
+      updateManualBirthday(id, { name, type, month, day });
+    } else {
+      addManualBirthday(name, type, month, day);
+    }
     const updated = loadManualBirthdays();
     setManual(updated);
     onManualChange(updated);
@@ -135,6 +141,13 @@ const ManualSection = ({ onManualChange }) => {
         <AddOccasion
           onSave={handleSave}
           onClose={() => setShowModal(false)}
+        />
+      )}
+      {editing && (
+        <AddOccasion
+          initial={editing}
+          onSave={(item) => { handleSave(item); setEditing(null); }}
+          onClose={() => setEditing(null)}
         />
       )}
 
@@ -168,6 +181,7 @@ const ManualSection = ({ onManualChange }) => {
                     { text: typeLabel(e.type) },
                     { text: `${monthShort} ${e.day}` },
                   ]}
+                  onEdit={() => setEditing(e)}
                   onDelete={() => handleRemove(e.id)}
                   deleteLabel={`Remove ${e.name}`}
                 />

@@ -11,17 +11,27 @@ import {
   getDateOffset, applyDuration,
 } from './utils';
 
-export const AddEvent = ({ onSave, onClose, initialDate }) => {
-  const startDate = initialDate ?? todayStr();
+export const AddEvent = ({ onSave, onClose, initialDate, initial }) => {
+  const startDate = initial?.startDate ?? initialDate ?? todayStr();
   const today = todayStr();
   const tomorrow = getDateOffset(1);
   let initialChip = 'custom';
   if (startDate === today) initialChip = 'today';
   else if (startDate === tomorrow) initialChip = 'tomorrow';
 
-  const [form, setForm] = useState({ ...EMPTY_FORM, startDate });
+  const [form, setForm] = useState(
+    initial
+      ? {
+          title: initial.title ?? '',
+          startDate: initial.startDate ?? todayStr(),
+          startTime: initial.startTime ?? '',
+          endDate: initial.endDate ?? '',
+          endTime: initial.endTime ?? '',
+        }
+      : { ...EMPTY_FORM, startDate },
+  );
   const [dateChip, setDateChip] = useState(initialChip);
-  const [durType, setDurType] = useState(null);
+  const [durType, setDurType] = useState(initial && (initial.endDate || initial.endTime) ? 'custom' : null);
   const titleRef = useRef(null);
 
   useEffect(() => {
@@ -59,7 +69,7 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
 
   const handleSave = () => {
     if (!titleValid) return;
-    onSave(form);
+    onSave(initial ? { ...form, id: initial.id } : form);
     onClose();
   };
 
@@ -76,7 +86,7 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel="New Event">
+    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Event" : "New Event"}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -84,8 +94,8 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
             <CalendarEvent size={14} style={{ color: 'var(--w-accent-fg)' }} />
           </div>
           <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>New Event</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>Add to your schedule</div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Event' : 'New Event'}</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update your schedule' : 'Add to your schedule'}</div>
           </div>
         </div>
         <button
@@ -189,7 +199,7 @@ export const AddEvent = ({ onSave, onClose, initialDate }) => {
             opacity: titleValid ? 1 : 0.4, cursor: titleValid ? 'pointer' : 'default',
             transition: 'all 0.15s',
           }}
-        >Save Event</button>
+        >{initial ? 'Save Changes' : 'Save Event'}</button>
       </div>
     </Modal>
   );

@@ -91,7 +91,13 @@ export const useEvents = () => {
     broadcast();
   }, []);
 
-  return [cache, addEvent, removeEvent];
+  const updateEvent = useCallback((id, patch) => {
+    cache = cache.map((e) => (e.id === id ? { ...e, ...patch, id } : e));
+    save(cache);
+    broadcast();
+  }, []);
+
+  return [cache, addEvent, removeEvent, updateEvent];
 };
 
 // event shape: { id, title, startDate, startTime, endDate, endTime }

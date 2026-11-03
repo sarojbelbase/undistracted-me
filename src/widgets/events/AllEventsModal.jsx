@@ -6,8 +6,9 @@ import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
 import { Modal } from '../../components/ui/Modal';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from './utils';
 
-export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
+export const AllEventsModal = ({ events, onClose, onAdd, onRemove, onUpdate }) => {
   const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const buckets = ['Today', 'Tomorrow', 'Later'];
   const grouped = buckets.reduce((acc, b) => { acc[b] = []; return acc; }, {});
@@ -95,6 +96,7 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
                     key={event.id}
                     title={event.title}
                     meta={metaParts}
+                    onEdit={event._source !== 'gcal' ? () => setEditing(event) : undefined}
                     onDelete={event._source !== 'gcal' ? () => onRemove(event.id) : undefined}
                     deleteLabel={`Remove ${event.title}`}
                     style={{ opacity: isPast(event) ? 0.4 : 1 }}
@@ -107,6 +109,13 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove }) => {
       </div>
 
       {showCreate && <AddEvent onSave={onAdd} onClose={() => setShowCreate(false)} />}
+      {editing && (
+        <AddEvent
+          initial={editing}
+          onSave={(item) => { onUpdate(editing.id, item); setEditing(null); }}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </Modal>
   );
 };
