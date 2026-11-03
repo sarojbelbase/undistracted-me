@@ -334,6 +334,7 @@ export const Widget = ({ id, onRemove }) => {
           onConfirm={backToPick}
           label="Back to timer selection"
           className="pom-circle-btn"
+          style={{ color: 'var(--w-accent)' }}
         >
           <ArrowLeft size={12} />
         </ConfirmButton>

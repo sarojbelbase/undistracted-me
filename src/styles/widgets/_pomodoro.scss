@@ -44,14 +44,12 @@
 
 .pom-circle-btn {
   @include circle-btn;
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  background-color: var(--card-bg);
-  color: var(--w-ink-3);
-  border: 1px solid var(--card-border);
+  background-color: color-mix(in srgb, var(--w-accent) 8%, transparent);
+  color: var(--w-accent);
+  border: none;
 
   &:hover {
-    background-color: var(--panel-bg);
+    background-color: color-mix(in srgb, var(--w-accent) 14%, transparent);
   }
 }
 
