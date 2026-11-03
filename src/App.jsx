@@ -171,12 +171,20 @@ function FMFallback() {
     }
     if (url)
       return (
-        <div className={base} style={{ backgroundImage: `url(${url})` }} />
+        <div
+          className={base}
+          style={{ backgroundColor: "#18191b", backgroundImage: `url(${url})` }}
+        />
       );
   }
-  // 'default' — show bg.webp (exact match to FocusMode's default state)
+  // 'default' — show bg.webp (exact match to FocusMode's default state).
+  // Keep an opaque dark base so the canvas never shows through before the image
+  // (or the FocusMode chunk) is ready.
   return (
-    <div className={base} style={{ backgroundImage: `url(${bgImage})` }} />
+    <div
+      className={base}
+      style={{ backgroundColor: "#18191b", backgroundImage: `url(${bgImage})` }}
+    />
   );
 }
 
@@ -232,7 +240,7 @@ const App = () => {
   const isDark = effectiveMode === "dark";
 
   // ── Feature hooks ────────────────────────────────────────────────────────────
-  const { showFocusMode, focusModeEverShown, openFocusMode, closeFocusMode } =
+  const { showFocusMode, openFocusMode, closeFocusMode } =
     useFocusMode(defaultView);
   const {
     showSettings,
@@ -289,68 +297,70 @@ const App = () => {
       className="fixed inset-0 overflow-hidden"
       style={{ background: bg.pageBg }}
     >
-      <CanvasBackground {...bg} isDark={isDark} />
+      {/* Canvas is only mounted while it's the active view — focus mode renders
+          on its own, so opening a new tab with `defaultView: focus` never paints
+          (or fetches) the canvas behind the distraction-free screen. */}
+      {!showFocusMode && (
+        <>
+          <CanvasBackground {...bg} isDark={isDark} />
 
-      {/* Arrange-mode page scrim — dims the canvas background, sits below widgets */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-2"
-        style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
-      />
-
-      <FocusModeButton isDark={isDark} onClick={openFocusMode} />
-
-      <ControlCluster
-        ref={panelRef}
-        isDark={isDark}
-        arrangeMode={arrangeMode}
-        toggleArrangeMode={toggleArrangeMode}
-        showSettings={showSettings}
-        toggleSettings={toggleSettings}
-        closeSettings={closeSettings}
-        settingsInitialTab={settingsInitialTab}
-        onOpenCatalog={() => {
-          setShowCatalog(true);
-          closeSettings();
-        }}
-        onPreloadCatalog={preloadCatalog}
-        onPreviewLookAway={() => {
-          setShowLookAway(true);
-          closeSettings();
-        }}
-      />
-
-      {showCatalog && (
-        <Suspense fallback={null}>
-          <WidgetCatalog
-            instances={instances}
-            onAddInstance={addInstance}
-            onRemoveInstance={removeInstance}
-            onClose={() => setShowCatalog(false)}
+          {/* Arrange-mode page scrim — dims the canvas background, sits below widgets */}
+          <div
+            className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-2"
+            style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
           />
-        </Suspense>
+
+          <FocusModeButton isDark={isDark} onClick={openFocusMode} />
+
+          <ControlCluster
+            ref={panelRef}
+            isDark={isDark}
+            arrangeMode={arrangeMode}
+            toggleArrangeMode={toggleArrangeMode}
+            showSettings={showSettings}
+            toggleSettings={toggleSettings}
+            closeSettings={closeSettings}
+            settingsInitialTab={settingsInitialTab}
+            onOpenCatalog={() => {
+              setShowCatalog(true);
+              closeSettings();
+            }}
+            onPreloadCatalog={preloadCatalog}
+            onPreviewLookAway={() => {
+              setShowLookAway(true);
+              closeSettings();
+            }}
+          />
+
+          {showCatalog && (
+            <Suspense fallback={null}>
+              <WidgetCatalog
+                instances={instances}
+                onAddInstance={addInstance}
+                onRemoveInstance={removeInstance}
+                onClose={() => setShowCatalog(false)}
+              />
+            </Suspense>
+          )}
+
+          <div
+            className="relative z-3 w-full h-full pt-16"
+            style={{ overflowY: "scroll", WebkitOverflowScrolling: "touch" }}
+          >
+            <WidgetGrid
+              instances={instances}
+              onRemoveInstance={removeInstance}
+              arrangeMode={arrangeMode}
+              onExitArrangeMode={exitArrangeMode}
+            />
+          </div>
+        </>
       )}
 
-      <div
-        className="relative z-3 w-full h-full pt-16"
-        style={{ overflowY: "scroll", WebkitOverflowScrolling: "touch" }}
-      >
-        <WidgetGrid
-          instances={instances}
-          onRemoveInstance={removeInstance}
-          arrangeMode={arrangeMode}
-          onExitArrangeMode={exitArrangeMode}
-        />
-      </div>
-
-      {focusModeEverShown && (
-        <div
-          style={{ display: showFocusMode ? "block" : "none" }}
-          inert={!showFocusMode}
-        >
-          <Suspense fallback={showFocusMode ? <FMFallback /> : null}>
-            <FocusMode onExit={closeFocusMode} />
-          </Suspense>
-        </div>
+      {showFocusMode && (
+        <Suspense fallback={<FMFallback />}>
+          <FocusMode onExit={closeFocusMode} />
+        </Suspense>
       )}
 
       {showLookAway && (

@@ -1,17 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { XLg, CalendarEvent, Clock, HourglassSplit } from 'react-bootstrap-icons';
+import { Clock, HourglassSplit } from 'react-bootstrap-icons';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
-import { Modal } from '../../components/ui/Modal';
 import { todayStr } from '../../utilities';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
   getDateOffset, applyDuration,
 } from './utils';
 
-export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) => {
+/**
+ * AddEvent — event form body + footer only (no modal chrome). Rendered inside
+ * UnifiedAddDialog, which supplies the header, type selector, and Modal shell.
+ */
+export const AddEvent = ({ onSave, onCancel, initialDate, initial }) => {
   const startDate = initial?.startDate ?? initialDate ?? todayStr();
   const today = todayStr();
   const tomorrow = getDateOffset(1);
@@ -70,7 +73,6 @@ export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) 
   const handleSave = () => {
     if (!titleValid) return;
     onSave(initial ? { ...form, id: initial.id } : form);
-    onClose();
   };
 
   const dateOptions = DATE_CHIPS.map(c => ({ label: c.label, value: c.key }));
@@ -79,44 +81,8 @@ export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) 
   if (durType === 'custom') durValue = 'custom';
   else if (durType !== null) durValue = String(durType);
 
-  const headerIconStyle = {
-    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-    background: 'var(--w-accent)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  };
-
   return (
-    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Event" : "New Event"}>
-      {topContent}
-
-      {!topContent && (
-        <>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={headerIconStyle}>
-                <CalendarEvent size={14} style={{ color: 'var(--w-accent-fg)' }} />
-              </div>
-              <div>
-                <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Event' : 'New Event'}</div>
-                <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update your schedule' : 'Add to your schedule'}</div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-              style={{ color: 'var(--w-ink-3)' }}
-            >
-              <XLg size={11} />
-            </button>
-          </div>
-
-          <div style={{ height: 1, background: 'var(--card-border)' }} />
-        </>
-      )}
-
+    <>
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Title */}
@@ -186,7 +152,7 @@ export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) 
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
         <button
           type="button"
-          onClick={onClose}
+          onClick={onCancel}
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
@@ -207,6 +173,6 @@ export const AddEvent = ({ onSave, onClose, initialDate, initial, topContent }) 
           }}
         >{initial ? 'Save Changes' : 'Save Event'}</button>
       </div>
-    </Modal>
+    </>
   );
 };

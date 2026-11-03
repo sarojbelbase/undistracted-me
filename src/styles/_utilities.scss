@@ -28,6 +28,28 @@ textarea:focus-visible,
   border-radius: 4px;
 }
 
+// ── Row action buttons (edit/delete) reveal on hover ─────────────────────────
+// Hidden by default for pointer devices, revealed on hover or keyboard focus.
+// On touch screens (no hover) they stay visible so the actions remain reachable.
+.row-actions {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.group:hover .row-actions,
+.group:focus-within .row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .row-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 // ── Arrange mode — suppress widget option buttons ────────────────────────────
 // CSS hover still fires even when pointer-events:none is on a parent, so we
 // must force opacity:0 via a root data attribute rather than a Tailwind class.

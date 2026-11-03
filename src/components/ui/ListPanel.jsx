@@ -140,8 +140,10 @@ export const ListPanelRow = ({
 
   // Action buttons (edit / delete) render as siblings of the clickable content
   // so they're never nested inside the row <button> when `onClick` is set.
+  // `.row-actions` hides them until the row is hovered or keyboard-focused (and
+  // keeps them visible on touch devices that have no hover) — see _utilities.scss.
   const actions = (
-    <>
+    <div className="row-actions flex items-center gap-1.5">
       {onEdit && (
         <button
           type="button"
@@ -163,7 +165,7 @@ export const ListPanelRow = ({
           <XLg size={11} />
         </ConfirmButton>
       )}
-    </>
+    </div>
   );
 
   const rowStyle = {
@@ -185,7 +187,7 @@ export const ListPanelRow = ({
   );
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 ${className}`} style={rowStyle}>
+    <div className={`group flex items-center gap-3 px-4 py-3 ${className}`} style={rowStyle}>
       {body}
       {actions}
     </div>
