@@ -326,7 +326,7 @@ export const Widget = ({ id, onRemove }) => {
       {showAddModal && (
         <AddOccasion
           onClose={() => setShowAddModal(false)}
-          onSave={(name, type, month, day) => {
+          onSave={({ name, type, month, day }) => {
             addManualBirthday(name, type, month, day);
             setManual(loadManualBirthdays());
             setShowAddModal(false);

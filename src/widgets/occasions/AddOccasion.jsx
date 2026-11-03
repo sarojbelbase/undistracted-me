@@ -33,11 +33,11 @@ const selStyle = {
   cursor: 'pointer',
 };
 
-export const AddOccasion = ({ onSave, onClose }) => {
-  const [name, setName] = useState('');
-  const [type, setType] = useState('birthday');
-  const [month, setMonth] = useState('');
-  const [day, setDay] = useState('');
+export const AddOccasion = ({ onSave, onClose, initial }) => {
+  const [name, setName] = useState(initial?.name ?? '');
+  const [type, setType] = useState(initial?.type ?? 'birthday');
+  const [month, setMonth] = useState(initial ? String(initial.month) : '');
+  const [day, setDay] = useState(initial ? String(initial.day) : '');
   const [error, setError] = useState('');
   const nameRef = useRef(null);
 
@@ -52,7 +52,13 @@ export const AddOccasion = ({ onSave, onClose }) => {
     if (!month) { setError('Pick a month'); return; }
     if (!day) { setError('Pick a day'); return; }
     setError('');
-    onSave({ name: name.trim(), type, month: Number(month), day: Number(day) });
+    onSave({
+      name: name.trim(),
+      type,
+      month: Number(month),
+      day: Number(day),
+      ...(initial ? { id: initial.id } : {}),
+    });
     onClose();
   };
 
@@ -67,7 +73,7 @@ export const AddOccasion = ({ onSave, onClose }) => {
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel="New Occasion">
+    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Occasion" : "New Occasion"}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -75,8 +81,8 @@ export const AddOccasion = ({ onSave, onClose }) => {
             <PersonHeart size={14} style={{ color: 'var(--w-accent-fg)' }} />
           </div>
           <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>New Occasion</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>Add a birthday or anniversary</div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Occasion' : 'New Occasion'}</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>{initial ? 'Update a birthday or anniversary' : 'Add a birthday or anniversary'}</div>
           </div>
         </div>
         <button
@@ -199,7 +205,7 @@ export const AddOccasion = ({ onSave, onClose }) => {
             border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
             cursor: 'pointer', transition: 'all 0.15s',
           }}
-        >Save Occasion</button>
+        >{initial ? 'Save Changes' : 'Save Occasion'}</button>
       </div>
     </Modal>
   );

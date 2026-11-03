@@ -263,3 +263,9 @@ export function addManualBirthday(name, type, month, day) {
 export function removeManualBirthday(id) {
   saveManualBirthdays(loadManualBirthdays().filter(e => e.id !== id));
 }
+
+export function updateManualBirthday(id, patch) {
+  saveManualBirthdays(
+    loadManualBirthdays().map(e => (e.id === id ? { ...e, ...patch, id } : e)),
+  );
+}

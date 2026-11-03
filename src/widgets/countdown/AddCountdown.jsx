@@ -9,12 +9,12 @@ import { makeUid } from '../../utilities';
 
 const makeId = () => makeUid('cd');
 
-export const AddCountdown = ({ onSave, onClose }) => {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [repeat, setRepeat] = useState('none');
-  const [mode, setMode] = useState('countdown');
+export const AddCountdown = ({ onSave, onClose, initial }) => {
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [date, setDate] = useState(initial?.targetDate ?? '');
+  const [time, setTime] = useState(initial?.targetTime ?? '');
+  const [repeat, setRepeat] = useState(initial?.repeat ?? 'none');
+  const [mode, setMode] = useState(initial?.mode ?? 'countdown');
   const titleRef = useRef(null);
 
   useEffect(() => {
@@ -27,7 +27,14 @@ export const AddCountdown = ({ onSave, onClose }) => {
 
   const handleSave = () => {
     if (!valid) return;
-    onSave({ id: makeId(), title: title.trim(), targetDate: date, targetTime: time, repeat, mode });
+    onSave({
+      id: initial?.id ?? makeId(),
+      title: title.trim(),
+      targetDate: date,
+      targetTime: time,
+      repeat,
+      mode,
+    });
     onClose();
   };
 
@@ -38,7 +45,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel="New Countdown">
+    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Countdown" : "New Countdown"}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -46,7 +53,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
             <HourglassSplit size={14} style={{ color: 'var(--w-accent-fg)' }} />
           </div>
           <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>New Countdown</div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Countdown' : 'New Countdown'}</div>
             <div className="w-caption" style={{ marginTop: 1 }}>What are you tracking?</div>
           </div>
         </div>
@@ -165,7 +172,7 @@ export const AddCountdown = ({ onSave, onClose }) => {
             opacity: valid ? 1 : 0.4, cursor: valid ? 'pointer' : 'default',
             transition: 'all 0.15s',
           }}
-        >Save Countdown</button>
+        >{initial ? 'Save Changes' : 'Save Countdown'}</button>
       </div>
     </Modal>
   );

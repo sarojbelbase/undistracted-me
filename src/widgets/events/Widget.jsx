@@ -26,7 +26,7 @@ import { Settings } from './Settings';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 export const Widget = ({ onRemove }) => {
-  const [localEvents, addEvent, removeEvent] = useEvents();
+  const [localEvents, addEvent, removeEvent, updateEvent] = useEvents();
   const { gcalEvents, loading, connected, syncedAt, refresh } = useGoogleCalendar();
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -139,7 +139,7 @@ export const Widget = ({ onRemove }) => {
       </BaseWidget>
 
       {showCreate && <AddEvent onSave={addEvent} onClose={() => setShowCreate(false)} />}
-      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} />}
+      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onAdd={addEvent} onRemove={removeEvent} onUpdate={updateEvent} />}
     </>
   );
 };
