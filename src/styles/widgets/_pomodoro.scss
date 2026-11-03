@@ -25,7 +25,7 @@
 
 .pom-preset-row button {
   padding: 0.5rem 1rem; // 8px × 16px — roomier than PillButton's px-2.5 py-0.5
-  border-radius: 0.5rem; // less rounded than the shared rounded-full pill
+  border-radius: 999px; // fully rounded, matching the daily widget's mode badge
 }
 
 // ── Preset label pill (active state badge during timer) ─────────────────────
