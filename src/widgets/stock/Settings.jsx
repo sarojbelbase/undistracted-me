@@ -5,6 +5,32 @@ import { SettingsInput } from '../../components/ui/SettingsInput';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 /**
+ * Skeleton rows that mirror the real company row shape (bold symbol on the
+ * left, truncated company name on the right) shown while `fetchCompanies` is
+ * in flight — replacing the previous plain "Loading…" text.
+ */
+const CompanyListSkeleton = () => (
+  <div aria-hidden="true">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-3 w-full px-4 py-2.5">
+        <span className="w-14 shrink-0">
+          <span
+            className="block h-2.5 w-8 rounded-full animate-pulse"
+            style={{ background: 'color-mix(in srgb, var(--w-ink-1) 14%, transparent)' }}
+          />
+        </span>
+        <span className="flex-1">
+          <span
+            className="block h-2.5 w-3/5 rounded-full animate-pulse"
+            style={{ background: 'color-mix(in srgb, var(--w-ink-1) 10%, transparent)' }}
+          />
+        </span>
+      </div>
+    ))}
+  </div>
+);
+
+/**
  * Stock selector content — rendered inside BaseSettingsModal.
  * Supports selecting up to 3 symbols.
  * onClose is injected by BaseWidget when settingsContent is a function.
@@ -102,9 +128,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
 
       {/* List — bleeds to modal edges so buttons span full width */}
       <div className="pb-1 -mx-4">
-        {loading && (
-          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>Loading…</p>
-        )}
+        {loading && <CompanyListSkeleton />}
         {error && (
           <p className="text-xs px-4 py-2" style={{ color: 'var(--w-danger)' }} aria-live="polite" role="alert">{error}</p>
         )}
