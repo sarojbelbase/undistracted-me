@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
-import react from "@vitejs/plugin-react";
+import preact from "@preact/preset-vite";
 import { crx } from "@crxjs/vite-plugin";
 import manifest from "./public/manifest.json" with { type: "json" };
 import { obscureEnvKeys } from "./plugins/obscureEnvKeys.ts";
@@ -354,8 +354,10 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    // ── Preact experiment — alias React → preact/compat for a smaller runtime.
-    // Revert by removing this `resolve` block (and `bun remove preact`).
+    // ── Preact runtime — alias React → preact/compat so existing React code runs
+    // on the smaller Preact runtime. `react-dom/client` (createRoot) is NOT
+    // covered by @preact/preset-vite's built-in aliases, so we keep these here
+    // and disable the preset's own aliasing (reactAliasesEnabled: false) below.
     resolve: {
       alias: {
         react: "preact/compat",
@@ -372,7 +374,7 @@ export default defineConfig(({ mode }) => {
         "VITE_GOOGLE_DESKTOP_CLIENT_ID",
         "VITE_GITHUB_CLIENT_ID",
       ]),
-      react(),
+      preact({ reactAliasesEnabled: false }),
       // @ts-ignore
       crx({ manifest: dynamicManifest }),
       faviconWaterfall(),
@@ -426,11 +428,6 @@ export default defineConfig(({ mode }) => {
               return "icons";
             if (id.includes("node_modules/dayjs")) return "datetime";
             if (id.includes("node_modules/zustand")) return "store";
-            if (
-              id.includes("node_modules/react-dom") ||
-              id.includes("node_modules/react/")
-            )
-              return "engine";
             if (
               id.includes("node_modules/lexical") ||
               id.includes("node_modules/@lexical")
