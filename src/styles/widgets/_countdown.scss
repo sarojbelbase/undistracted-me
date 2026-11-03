@@ -246,12 +246,13 @@
 
 // Ghost numeral — oversized faint accent digit peeking from the bottom-right.
 // Decorative only; content sits above it (z-index 1 on .cdn-content-wrap).
+// Clipping at the card edge is intentional — the numeral is meant to bleed.
 .cdn-ghost-num {
   position: absolute;
   right: -8px;
   bottom: -22px;
   z-index: 0;
-  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-family: 'Google Sans', sans-serif;
   font-weight: 800;
   line-height: 1;
   color: rgba(var(--w-accent-rgb), 0.13);
