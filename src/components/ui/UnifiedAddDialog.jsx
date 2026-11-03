@@ -3,17 +3,21 @@
  * Occasions, replacing the three separate AddEvent/AddCountdown/AddOccasion
  * dialogs.
  *
- * The top is a type selector (Event | Countdown | Occasion) that is locked to
- * the type it was launched from; double-clicking the selector unlocks switching.
- * A separator sits between the selector and the lower type-specific form body,
- * which reuses the existing Add* components via their `topContent` slot.
+ * The dialog owns the modal shell, a standard header (icon + title + subtitle +
+ * close), and a type selector (Event | Countdown | Occasion) locked to the type
+ * it was launched from — double-clicking the selector unlocks switching. The
+ * lower type-specific form body is reused from the Add* components, which now
+ * render only their form + footer (no modal chrome).
+ *
+ * Switching type slides the form body within the SAME dialog canvas rather than
+ * unmounting one modal and mounting another, so the frame stays put.
  *
  * Saving is self-contained: it writes to the shared stores (events hook,
  * manual-birthday store, countdown store) and broadcasts refresh events so the
  * widgets re-read their data.
  */
 import { useState } from 'react';
-import { XLg } from 'react-bootstrap-icons';
+import { XLg, CalendarEvent, HourglassSplit, PersonHeart } from 'react-bootstrap-icons';
 import { Modal } from './Modal';
 import { useEvents } from '../../hooks/useEvents';
 import { addManualBirthday, updateManualBirthday } from '../../utilities/googleContacts';
@@ -27,6 +31,27 @@ const TYPES = [
   { id: 'countdown', label: 'Countdown' },
   { id: 'occasion', label: 'Occasion' },
 ];
+
+const TYPE_META = {
+  event: {
+    label: 'Event',
+    Icon: CalendarEvent,
+    addSubtitle: 'Add to your schedule',
+    editSubtitle: 'Update your schedule',
+  },
+  countdown: {
+    label: 'Countdown',
+    Icon: HourglassSplit,
+    addSubtitle: 'What are you tracking?',
+    editSubtitle: 'What are you tracking?',
+  },
+  occasion: {
+    label: 'Occasion',
+    Icon: PersonHeart,
+    addSubtitle: 'Add a birthday or anniversary',
+    editSubtitle: 'Update a birthday or anniversary',
+  },
+};
 
 const TypeSelector = ({ active, locked, onChange, onUnlock }) => (
   <div
@@ -63,11 +88,25 @@ const TypeSelector = ({ active, locked, onChange, onUnlock }) => (
 export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved }) => {
   const [active, setActive] = useState(type);
   const [locked, setLocked] = useState(true);
+  // Slide direction for the type-switch animation; null = no animation (initial mount).
+  const [slideDir, setSlideDir] = useState(null);
   const [, addEvent, , updateEvent] = useEvents();
 
   // Only the originally-triggered type receives `initial` (edit mode); after
   // unlocking and switching types the dialog starts a fresh "add" of that type.
   const effectiveInitial = active === type ? initial : undefined;
+  const isEdit = active === type && !!initial;
+  const meta = TYPE_META[active];
+  const title = isEdit ? `Edit ${meta.label}` : `New ${meta.label}`;
+  const subtitle = isEdit ? meta.editSubtitle : meta.addSubtitle;
+
+  const switchType = (id) => {
+    if (id === active) return;
+    const nextIdx = TYPES.findIndex((t) => t.id === id);
+    const curIdx = TYPES.findIndex((t) => t.id === active);
+    setSlideDir(nextIdx > curIdx ? 1 : -1);
+    setActive(id);
+  };
 
   const handleSaveEvent = (item) => {
     if (effectiveInitial) updateEvent(effectiveInitial.id, item);
@@ -106,15 +145,27 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
     onClose();
   };
 
-  const topContent = (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px 12px' }}>
-        <TypeSelector
-          active={active}
-          locked={locked}
-          onChange={setActive}
-          onUnlock={() => setLocked(false)}
-        />
+  const iconStyle = {
+    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+    background: 'var(--w-accent)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  };
+
+  const slideClass = slideDir === null ? '' : (slideDir >= 0 ? 'fm-form-slide-next' : 'fm-form-slide-prev');
+
+  return (
+    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={title}>
+      {/* Header — matches the standard Add* dialogs (icon + title + subtitle) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={iconStyle}>
+            <meta.Icon size={14} style={{ color: 'var(--w-accent-fg)' }} />
+          </div>
+          <div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>{title}</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>{subtitle}</div>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onClose}
@@ -125,39 +176,45 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
           <XLg size={11} />
         </button>
       </div>
+
+      {/* Type selector */}
+      <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center' }}>
+        <TypeSelector
+          active={active}
+          locked={locked}
+          onChange={switchType}
+          onUnlock={() => setLocked(false)}
+        />
+      </div>
+
       <div style={{ height: 1, background: 'var(--card-border)' }} />
-    </div>
-  );
 
-  if (active === 'event') {
-    return (
-      <AddEvent
-        topContent={topContent}
-        initial={effectiveInitial}
-        initialDate={effectiveInitial ? undefined : initialDate}
-        onSave={handleSaveEvent}
-        onClose={onClose}
-      />
-    );
-  }
-
-  if (active === 'countdown') {
-    return (
-      <AddCountdown
-        topContent={topContent}
-        initial={effectiveInitial}
-        onSave={handleSaveCountdown}
-        onClose={onClose}
-      />
-    );
-  }
-
-  return (
-    <AddOccasion
-      topContent={topContent}
-      initial={effectiveInitial}
-      onSave={handleSaveOccasion}
-      onClose={onClose}
-    />
+      {/* Type-specific form body — keyed by active type so switching slides
+          within this same dialog canvas (see _animations.scss) */}
+      <div key={active} className={slideClass}>
+        {active === 'event' && (
+          <AddEvent
+            initial={effectiveInitial}
+            initialDate={effectiveInitial ? undefined : initialDate}
+            onSave={handleSaveEvent}
+            onCancel={onClose}
+          />
+        )}
+        {active === 'countdown' && (
+          <AddCountdown
+            initial={effectiveInitial}
+            onSave={handleSaveCountdown}
+            onCancel={onClose}
+          />
+        )}
+        {active === 'occasion' && (
+          <AddOccasion
+            initial={effectiveInitial}
+            onSave={handleSaveOccasion}
+            onCancel={onClose}
+          />
+        )}
+      </div>
+    </Modal>
   );
 };

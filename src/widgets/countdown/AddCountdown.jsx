@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { XLg, HourglassSplit } from 'react-bootstrap-icons';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
-import { Modal } from '../../components/ui/Modal';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { REPEAT_OPTIONS, MODE_OPTIONS } from './utils';
 import { makeUid } from '../../utilities';
 
 const makeId = () => makeUid('cd');
 
-export const AddCountdown = ({ onSave, onClose, initial, topContent }) => {
+/**
+ * AddCountdown — countdown form body + footer only (no modal chrome). Rendered
+ * inside UnifiedAddDialog, which supplies the header, type selector, and Modal.
+ */
+export const AddCountdown = ({ onSave, onCancel, initial }) => {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [date, setDate] = useState(initial?.targetDate ?? '');
   const [time, setTime] = useState(initial?.targetTime ?? '');
@@ -35,47 +37,10 @@ export const AddCountdown = ({ onSave, onClose, initial, topContent }) => {
       repeat,
       mode,
     });
-    onClose();
-  };
-
-  const headerIconStyle = {
-    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-    background: 'var(--w-accent)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
   };
 
   return (
-    <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Countdown" : "New Countdown"}>
-      {topContent}
-
-      {!topContent && (
-        <>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={headerIconStyle}>
-                <HourglassSplit size={14} style={{ color: 'var(--w-accent-fg)' }} />
-              </div>
-              <div>
-                <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Countdown' : 'New Countdown'}</div>
-                <div className="w-caption" style={{ marginTop: 1 }}>What are you tracking?</div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-              style={{ color: 'var(--w-ink-3)' }}
-            >
-              <XLg size={11} />
-            </button>
-          </div>
-
-          <div style={{ height: 1, background: 'var(--card-border)' }} />
-        </>
-      )}
-
+    <>
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Title */}
@@ -159,7 +124,7 @@ export const AddCountdown = ({ onSave, onClose, initial, topContent }) => {
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
         <button
           type="button"
-          onClick={onClose}
+          onClick={onCancel}
           style={{
             flex: 1, padding: '9px 0', borderRadius: 10,
             fontSize: '13px', fontWeight: 600, cursor: 'pointer',
@@ -180,6 +145,6 @@ export const AddCountdown = ({ onSave, onClose, initial, topContent }) => {
           }}
         >{initial ? 'Save Changes' : 'Save Countdown'}</button>
       </div>
-    </Modal>
+    </>
   );
 };

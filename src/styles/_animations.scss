@@ -98,6 +98,40 @@
   }
 }
 
+// Unified dialog — form body slides in when switching type, within the same
+// dialog canvas. Direction follows the selector order for spatial continuity.
+@keyframes form-slide-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes form-slide-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fm-form-slide-next {
+  animation: form-slide-in-next 0.22s ease-out;
+}
+
+.fm-form-slide-prev {
+  animation: form-slide-in-prev 0.22s ease-out;
+}
+
 // ── Focus Mode clock ──────────────────────────────────────────────────────────
 
 @keyframes focusDigitIn {
@@ -419,6 +453,11 @@
   .orb-animated,
   .orb-animated * {
     animation: none !important;
+  }
+
+  .fm-form-slide-next,
+  .fm-form-slide-prev {
+    animation: none;
   }
 }
 
