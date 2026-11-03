@@ -4,6 +4,7 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SettingsInput } from '../../components/ui/SettingsInput';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { TIMEZONES, TZ_MAP, TZ_REGIONS } from '../../data/timezones';
+import { getUtcOffset } from './utils';
 
 const FORMAT_OPTIONS = [
   { label: '24h', value: '24h' },
@@ -11,7 +12,7 @@ const FORMAT_OPTIONS = [
 ];
 
 // ── Offset badge ─────────────────────────────────────────────────────────────
-const OffsetBadge = ({ offset }) => (
+const OffsetBadge = ({ tz }) => (
   <span
     className="shrink-0 tabular-nums text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
     style={{
@@ -20,7 +21,7 @@ const OffsetBadge = ({ offset }) => (
       letterSpacing: '0.01em',
     }}
   >
-    UTC{offset}
+    {getUtcOffset(tz)}
   </span>
 );
 
@@ -38,7 +39,7 @@ const SelectedTz = ({ tzData, onRemove }) => (
         <span className="text-xs font-semibold truncate" style={{ color: 'var(--w-ink-1)' }}>
           {tzData.name}
         </span>
-        <OffsetBadge offset={tzData.offset} />
+        <OffsetBadge tz={tzData.tz} />
       </div>
       <span
         className="text-[10px] truncate"
@@ -131,7 +132,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
                 {region}
               </div>
             )}
-            {items.map(({ tz, name, offset }) => (
+            {items.map(({ tz, name }) => (
               <button
                 key={tz}
                 type="button"
@@ -141,7 +142,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
                 <span className="text-[11.5px] font-medium truncate" style={{ color: 'var(--w-ink-2)' }}>
                   {name}
                 </span>
-                <OffsetBadge offset={offset} />
+                <OffsetBadge tz={tz} />
               </button>
             ))}
           </div>

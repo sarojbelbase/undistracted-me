@@ -63,3 +63,20 @@ export const getTimeInZone = (tz, format) => {
   const option = TZ_MAP[tz];
   return { time, period, label: option ? option.name : tz };
 };
+
+/**
+ * Returns the live UTC offset for an IANA timezone, e.g. "UTC-07:00" for
+ * America/Los_Angeles during DST (PDT) and "UTC-08:00" otherwise (PST).
+ *
+ * dayjs' timezone plugin applies the zone's current DST rules, so this is the
+ * DST-correct offset at "now" — unlike the static `offset` in TZ_MAP which only
+ * records standard time.
+ */
+export const getUtcOffset = (tz) => {
+  try {
+    return 'UTC' + dayjs().tz(tz).format('Z');
+  } catch {
+    const meta = TZ_MAP[tz];
+    return 'UTC' + (meta ? meta.offset : '+00:00');
+  }
+};
