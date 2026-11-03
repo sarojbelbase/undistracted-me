@@ -190,9 +190,7 @@
   padding: 20px 2px 8px;
 }
 
-// ── Source pill (top-left, accent) ────────────────────────────────────────────
-// Matches the daily widget's mode badge: a borderless, fully-rounded pill with
-// text centered on a subtle tint of the accent color.
+// ── Source pill (top-left, glass) ────────────────────────────────────────────
 
 .cdn-mode-label {
   position: absolute;
@@ -202,10 +200,13 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--w-accent);
-  background: color-mix(in srgb, var(--w-accent) 12%, transparent);
-  padding: 2px 7px;
-  border-radius: 999px;
+  color: var(--w-ink-4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w-ink-1) 7%, transparent);
+  padding: 2px 6px;
+  border-radius: 6px;
   flex-shrink: 0;
   max-width: 100%;
   overflow: hidden;
