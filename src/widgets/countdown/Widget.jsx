@@ -328,9 +328,10 @@ export const Widget = ({ id, onRemove }) => {
 
   // Ghost numeral size — scales with the widget height so it "peeks" from the
   // bottom-right corner regardless of card size (dims.h = content-wrap height).
+  // Oversized + intentionally clipped at the card edge for a decorative bleed.
   const ghostSize = dims.h > 0
-    ? Math.max(96, Math.min(240, Math.round(dims.h * 0.95)))
-    : 140;
+    ? Math.max(128, Math.min(360, Math.round(dims.h * 1.2)))
+    : 160;
 
   const settingsContent = (onClose) => (
     <>
