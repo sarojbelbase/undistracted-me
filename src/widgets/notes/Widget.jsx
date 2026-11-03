@@ -480,6 +480,7 @@ export const Widget = ({ id, onRemove }) => {
               }
             >
               <LexicalEditor
+                key={localNote.id}
                 ref={bodyRef}
                 value={bodyText}
                 onChange={handleBodyChange}
