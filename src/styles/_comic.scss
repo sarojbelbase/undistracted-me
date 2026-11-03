@@ -512,13 +512,6 @@
     background: rgba(0, 0, 0, 0.18) !important;
   }
 
-  // ── Countdown widget — kill glass pill, use solid paper tone ──────────
-  .cdn-mode-label {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: color-mix(in srgb, var(--w-ink-1) 5%, transparent) !important;
-    border-color: color-mix(in srgb, var(--w-ink-1) 10%, transparent) !important;
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
