@@ -112,7 +112,7 @@ export function parseHolidaysFromWikitext(wikitext, opts = {}) {
     const key = `${date}|${name}`;
     if (seen.has(key)) return;
     seen.add(key);
-    holidays.push({ date, name });
+    holidays.push({ date, name, kind: 'nepali' });
   };
 
   for (const cells of rows) {
