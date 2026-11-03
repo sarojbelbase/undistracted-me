@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
-import { AddOccasion } from './AddOccasion';
+import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
 import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 import {
   loadManualBirthdays,
-  addManualBirthday,
   removeManualBirthday,
-  updateManualBirthday,
 } from '../../utilities/googleContacts';
 import { typeLabel, avatarColor, avatarLetter } from './utils';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
@@ -117,16 +115,16 @@ const ManualSection = ({ onManualChange }) => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const handleSave = ({ id, name, type, month, day }) => {
-    if (id) {
-      updateManualBirthday(id, { name, type, month, day });
-    } else {
-      addManualBirthday(name, type, month, day);
-    }
-    const updated = loadManualBirthdays();
-    setManual(updated);
-    onManualChange(updated);
-  };
+  // Re-read when the unified dialog adds/edits a manual occasion.
+  useEffect(() => {
+    const handler = () => {
+      const updated = loadManualBirthdays();
+      setManual(updated);
+      onManualChange(updated);
+    };
+    globalThis.addEventListener('manual_birthdays_changed', handler);
+    return () => globalThis.removeEventListener('manual_birthdays_changed', handler);
+  }, [onManualChange]);
 
   const handleRemove = (id) => {
     removeManualBirthday(id);
@@ -138,15 +136,15 @@ const ManualSection = ({ onManualChange }) => {
   return (
     <>
       {showModal && (
-        <AddOccasion
-          onSave={handleSave}
+        <UnifiedAddDialog
+          type="occasion"
           onClose={() => setShowModal(false)}
         />
       )}
       {editing && (
-        <AddOccasion
+        <UnifiedAddDialog
+          type="occasion"
           initial={editing}
-          onSave={(item) => { handleSave(item); setEditing(null); }}
           onClose={() => setEditing(null)}
         />
       )}

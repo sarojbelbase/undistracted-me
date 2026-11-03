@@ -9,7 +9,7 @@ import { makeUid } from '../../utilities';
 
 const makeId = () => makeUid('cd');
 
-export const AddCountdown = ({ onSave, onClose, initial }) => {
+export const AddCountdown = ({ onSave, onClose, initial, topContent }) => {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [date, setDate] = useState(initial?.targetDate ?? '');
   const [time, setTime] = useState(initial?.targetTime ?? '');
@@ -46,29 +46,35 @@ export const AddCountdown = ({ onSave, onClose, initial }) => {
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={initial ? "Edit Countdown" : "New Countdown"}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={headerIconStyle}>
-            <HourglassSplit size={14} style={{ color: 'var(--w-accent-fg)' }} />
-          </div>
-          <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Countdown' : 'New Countdown'}</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>What are you tracking?</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-          style={{ color: 'var(--w-ink-3)' }}
-        >
-          <XLg size={11} />
-        </button>
-      </div>
+      {topContent}
 
-      <div style={{ height: 1, background: 'var(--card-border)' }} />
+      {!topContent && (
+        <>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={headerIconStyle}>
+                <HourglassSplit size={14} style={{ color: 'var(--w-accent-fg)' }} />
+              </div>
+              <div>
+                <div className="w-heading" style={{ fontSize: '15px' }}>{initial ? 'Edit Countdown' : 'New Countdown'}</div>
+                <div className="w-caption" style={{ marginTop: 1 }}>What are you tracking?</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
+              style={{ color: 'var(--w-ink-3)' }}
+            >
+              <XLg size={11} />
+            </button>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--card-border)' }} />
+        </>
+      )}
 
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>

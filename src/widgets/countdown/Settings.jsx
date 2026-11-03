@@ -5,7 +5,7 @@ import {
   CalendarEvent,
 } from "react-bootstrap-icons";
 import { ListPanel, ListPanelRow } from "../../components/ui/ListPanel";
-import { AddCountdown } from "./AddCountdown";
+import { UnifiedAddDialog } from "../../components/ui/UnifiedAddDialog";
 import {
   getNextOccurrence,
   formatCountdown,
@@ -19,8 +19,6 @@ export const CountdownSettings = ({
   custom,
   pinned,
   upcomingEvents,
-  onAddCustom,
-  onUpdateCustom,
   onRemoveCustom,
   onPin,
   onClose,
@@ -150,19 +148,16 @@ export const CountdownSettings = ({
       </div>
 
       {showAdd && (
-        <AddCountdown
-          onSave={(cd) => {
-            onAddCustom(cd);
-            onPin({ type: "custom", id: cd.id });
-            onClose?.();
-          }}
+        <UnifiedAddDialog
+          type="countdown"
           onClose={() => setShowAdd(false)}
+          onSaved={(t, item) => { if (t === 'countdown') onPin({ type: "custom", id: item.id }); }}
         />
       )}
       {editing && (
-        <AddCountdown
+        <UnifiedAddDialog
+          type="countdown"
           initial={editing}
-          onSave={(cd) => { onUpdateCustom(editing.id, cd); setEditing(null); }}
           onClose={() => setEditing(null)}
         />
       )}

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
 import { bucketLabel, isPast } from './utils';
-import { AddEvent } from './AddEvent';
+import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
 import { Modal } from '../../components/ui/Modal';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from './utils';
 
-export const AllEventsModal = ({ events, onClose, onAdd, onRemove, onUpdate }) => {
+export const AllEventsModal = ({ events, onClose, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -108,11 +108,11 @@ export const AllEventsModal = ({ events, onClose, onAdd, onRemove, onUpdate }) =
         ))}
       </div>
 
-      {showCreate && <AddEvent onSave={onAdd} onClose={() => setShowCreate(false)} />}
+      {showCreate && <UnifiedAddDialog type="event" onClose={() => setShowCreate(false)} />}
       {editing && (
-        <AddEvent
+        <UnifiedAddDialog
+          type="event"
           initial={editing}
-          onSave={(item) => { onUpdate(editing.id, item); setEditing(null); }}
           onClose={() => setEditing(null)}
         />
       )}
