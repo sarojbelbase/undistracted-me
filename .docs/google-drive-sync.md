@@ -1,7 +1,7 @@
 # Google Drive Sync — Migration Feasibility Research
 
-> **Status:** Research (primary sources only)
-> **Applies to:** proposed replacement for `src/utilities/syncEngine.js`, `src/utilities/githubAuth.js`, `src/utilities/notesSync.js`
+> **Status:** Research → **Implemented** (see [`src/utilities/syncTransport.js`](../src/utilities/syncTransport.js) + [`sync-architecture.md`](./sync-architecture.md))
+> **Applies to:** `src/utilities/syncEngine.js`, `src/utilities/syncTransport.js`, `src/utilities/notesSync.js`
 > **Scope:** migrating cross-device config + notes sync from GitHub Gists to Google Drive `appDataFolder`
 
 This document assesses the feasibility of moving the "Undistracted Me" cross-device

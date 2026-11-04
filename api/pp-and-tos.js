@@ -6,7 +6,7 @@
  * via a <link> so it degrades gracefully offline). No JS required.
  */
 
-const LAST_UPDATED = 'November 2, 2026';
+const LAST_UPDATED = 'November 4, 2026';
 const CONTACT_EMAIL = 'hey@sarojbelbase.com.np';
 const WEBSITE = 'https://undistractedme.sarojbelbase.com.np';
 
@@ -529,7 +529,7 @@ const html = /* html */ `<!DOCTYPE html>
       <li><a href="#data-protection"><span class="toc-num">4</span> Data Protection</a></li>
       <li><a href="#data-retention"><span class="toc-num">5</span> Data Retention</a></li>
       <li><a href="#spotify"><span class="toc-num">6</span> Spotify Integration</a></li>
-      <li><a href="#github-sync"><span class="toc-num">7</span> GitHub Sync</a></li>
+      <li><a href="#google-drive-sync"><span class="toc-num">7</span> Google Drive Sync</a></li>
       <li><a href="#storage"><span class="toc-num">8</span> Data Storage</a></li>
       <li><a href="#permissions"><span class="toc-num">9</span> Browser Permissions</a></li>
       <li><a href="#children"><span class="toc-num">10</span> Children &amp; Contact</a></li>
@@ -584,11 +584,12 @@ const html = /* html */ `<!DOCTYPE html>
     <p>
       If you choose to enable cross-device sync, a copy of your settings, widget
       layout, events, bookmarks, countdown timers, and notes is stored in a
-      <strong>private GitHub gist</strong> owned by your GitHub account. This is
-      fully optional and disabled by default. Only you (and anyone you share the
-      gist or your GitHub account with) can read it. No synced data is sent to or
-      stored on our servers &mdash; the extension writes directly to GitHub&rsquo;s
-      API using a token scoped to <code>gist</code> access only.
+      <strong>hidden app-data folder in your Google Drive</strong>, tied to your
+      Google account. This is fully optional and enabled only when you sign in with
+      Google. The folder is invisible in your normal Drive view and accessible only
+      to the extension. No synced data is sent to or stored on our servers &mdash;
+      the extension writes directly to Google Drive&rsquo;s API using a token scoped
+      to <code>drive.appdata</code> access only.
     </p>
 
     <h3>Data passed through our Vercel proxy</h3>
@@ -693,7 +694,12 @@ const html = /* html */ `<!DOCTYPE html>
           </tr>
           <tr>
             <td>www.googleapis.com</td>
-            <td>Google Calendar events (read-only)</td>
+            <td>Google Calendar events (read-only) + Drive app-data folder (cross-device sync)</td>
+            <td><span class="badge-yes">OAuth token</span></td>
+          </tr>
+          <tr>
+            <td>content.googleapis.com</td>
+            <td>Google Drive media upload for the sync config + notes</td>
             <td><span class="badge-yes">OAuth token</span></td>
           </tr>
           <tr>
@@ -712,16 +718,6 @@ const html = /* html */ `<!DOCTYPE html>
             <td><span class="badge-yes">Via server</span></td>
           </tr>
           <tr>
-            <td>github.com</td>
-            <td>GitHub sign-in (OAuth device flow) for cross-device sync</td>
-            <td><span class="badge-no">None</span></td>
-          </tr>
-          <tr>
-            <td>api.github.com</td>
-            <td>Private gist storage for cross-device sync</td>
-            <td><span class="badge-yes">OAuth token</span></td>
-          </tr>
-          <tr>
             <td>undistractedme.sarojbelbase.com.np</td>
             <td>Our Vercel proxy (photos, favicon, FF token exchange)</td>
             <td><span class="badge-yes">API key</span></td>
@@ -736,12 +732,12 @@ const html = /* html */ `<!DOCTYPE html>
         Note on OAuth tokens
       </p>
       <p>
-        When you connect Google, Spotify, or GitHub, an OAuth access token is issued by the
+        When you connect Google or Spotify, an OAuth access token is issued by the
         respective service and stored in your browser's local storage (or session storage in
         website mode). This token is sent with each API call to authenticate you — it is never
         sent to our servers except during the Firefox Google token exchange, where it is forwarded
-        immediately to your browser without being persisted. GitHub tokens are stored in
-        <code>chrome.storage.local</code> and are scoped to <code>gist</code> access only.
+        immediately to your browser without being persisted. The Google token is scoped to
+        Calendar, Contacts, Tasks, and <code>drive.appdata</code> (cross-device sync) access only.
       </p>
     </div>
   </section>
@@ -793,6 +789,11 @@ const html = /* html */ `<!DOCTYPE html>
             <td>tasks</td>
             <td>Tasks panel — view, create, complete, delete tasks</td>
             <td><span class="badge-yes">Read &amp; Write</span></td>
+          </tr>
+          <tr>
+            <td>drive.appdata</td>
+            <td>Cross-device sync — store config &amp; notes in a hidden Drive app-data folder</td>
+            <td><span class="badge-yes">Read &amp; Write (own app data only)</span></td>
           </tr>
         </tbody>
       </table>
@@ -889,30 +890,31 @@ const html = /* html */ `<!DOCTYPE html>
     </p>
   </section>
 
-  <!-- §5 GitHub sync -->
-  <section class="section" id="github-sync">
+  <!-- §5 Google Drive sync -->
+  <section class="section" id="google-drive-sync">
     <span class="section-badge">
       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1a5 5 0 1 0 0 10A5 5 0 0 0 6 1z" stroke="currentColor" stroke-width="1.4"/><path d="M6 4v3l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       Section 5
     </span>
-    <h2 class="section-title">GitHub Sync</h2>
-    <p class="section-desc">Optional cross-device sync through a private GitHub gist. Disabled until you connect.</p>
+    <h2 class="section-title">Google Drive Sync</h2>
+    <p class="section-desc">Optional cross-device sync through your Google Drive. Enabled when you sign in with Google.</p>
 
     <h3>How it works</h3>
     <p>
       Cross-device sync stores a copy of your settings, widget layout, events, bookmarks,
-      and countdown timers in a single <strong>private</strong> gist under your own GitHub
-      account. Your notes are stored separately — each note is its own private gist, with
-      only a small index (note id and title) kept in the config gist. The extension reads
-      and writes these gists directly through GitHub&rsquo;s API &mdash; your data never
-      passes through our servers.
+      and countdown timers in a single <strong>hidden app-data folder</strong> inside your own
+      Google Drive. Your notes are stored separately — each note is its own file in that same
+      hidden folder, with only a small index (note id and title) kept in the config file. This
+      folder is invisible in your normal Drive view and accessible only to the extension. The
+      extension reads and writes these files directly through Google Drive&rsquo;s API &mdash;
+      your data never passes through our servers.
     </p>
 
     <h3>Authentication &amp; permissions</h3>
     <ul class="styled">
-      <li>You sign in with GitHub using the <strong>OAuth device flow</strong> — a short code you enter at <code>github.com/login/device</code>. No client secret is used, and no redirect happens.</li>
-      <li>We request a single scope: <code>gist</code>. This lets us create and update gists, and nothing else — we cannot read your repositories, profile, or any other GitHub data beyond your username and avatar.</li>
-      <li>The access token is stored in <code>chrome.storage.local</code> (the same sandbox used for Google and Spotify tokens). Your gist ID and display name are kept in <code>localStorage</code> so we can show a link to your sync config.</li>
+      <li>You sign in with your <strong>Google account</strong> — the same sign-in used for Calendar, Contacts, and Tasks.</li>
+      <li>We request a single additional scope: <code>drive.appdata</code>. This lets the extension create, read, and update files in its own hidden app-data folder, and nothing else — it cannot see any other files in your Drive.</li>
+      <li>The access token is stored in <code>chrome.storage.local</code> (the same sandbox used for Google and Spotify tokens).</li>
     </ul>
 
     <h3>What is stored</h3>
@@ -921,7 +923,7 @@ const html = /* html */ `<!DOCTYPE html>
         <thead>
           <tr>
             <th>Data</th>
-            <th>Stored in the gist?</th>
+            <th>Stored in Drive?</th>
           </tr>
         </thead>
         <tbody>
@@ -929,7 +931,7 @@ const html = /* html */ `<!DOCTYPE html>
           <tr><td>Widget layout &amp; per-widget settings</td><td><span class="badge-yes">Yes</span></td></tr>
           <tr><td>Events (native), bookmarks, countdown</td><td><span class="badge-yes">Yes</span></td></tr>
           <tr><td>Notes</td><td><span class="badge-yes">Yes</span></td></tr>
-          <tr><td>Google Calendar / Spotify / GitHub tokens</td><td><span class="badge-no">Never</span></td></tr>
+          <tr><td>Google Calendar / Spotify tokens</td><td><span class="badge-no">Never</span></td></tr>
           <tr><td>Weather cache, photos, RSS items, location</td><td><span class="badge-no">Never</span></td></tr>
         </tbody>
       </table>
@@ -939,14 +941,13 @@ const html = /* html */ `<!DOCTYPE html>
     <p>
       Sync is not continuous. The extension syncs automatically <strong>once a day</strong>, and
       you can trigger an immediate sync at any time from Settings &rarr; Data. A 5-minute throttle
-      prevents rapid or repeated syncing to stay within GitHub&rsquo;s rate limits.
+      prevents rapid or repeated syncing.
     </p>
 
     <h3>Retention &amp; deletion</h3>
     <ul class="styled">
-      <li><strong>Disconnect</strong> (Settings &rarr; Accounts) immediately deletes the stored token, gist ID, and profile from your device and stops syncing.</li>
-      <li>The gist itself is <strong>not</strong> deleted automatically — it belongs to your GitHub account. You can delete it at any time from <a href="https://gist.github.com" target="_blank" rel="noopener noreferrer">gist.github.com</a>.</li>
-      <li>You can revoke the extension&rsquo;s access entirely from <a href="https://github.com/settings/applications" target="_blank" rel="noopener noreferrer">github.com/settings/applications</a>.</li>
+      <li><strong>Disconnect</strong> (Settings &rarr; Accounts) immediately deletes the stored token from your device and stops syncing.</li>
+      <li>The synced files live in a hidden app-data folder in your Google Drive, accessible only to the extension. You can revoke the extension&rsquo;s access entirely from <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a>.</li>
     </ul>
   </section>
 
@@ -985,9 +986,9 @@ const html = /* html */ `<!DOCTYPE html>
             <td>Tab close</td>
           </tr>
           <tr>
-            <td>Private GitHub gist (optional)</td>
-            <td>Settings, widget layout, events, bookmarks, countdown, notes — only if you enable cross-device sync</td>
-            <td>Manual deletion on gist.github.com</td>
+            <td>Google Drive app-data folder (optional)</td>
+            <td>Settings, widget layout, events, bookmarks, countdown, notes — only if you sign in with Google</td>
+            <td>Hidden from your Drive; revoke access to stop</td>
           </tr>
         </tbody>
       </table>
@@ -1005,7 +1006,7 @@ const html = /* html */ `<!DOCTYPE html>
     <p>
       No data is synced to the cloud via <code>chrome.storage.sync</code>.
       Data does not leave your device except for the API calls described in Section 2 and,
-      if you enable cross-device sync, the copy stored in your private GitHub gist (Section 5).
+      if you enable cross-device sync, the copy stored in your Google Drive app-data folder (Section 5).
     </p>
   </section>
 
@@ -1127,12 +1128,11 @@ const html = /* html */ `<!DOCTYPE html>
 
     <h3>2. Third-party accounts</h3>
     <p>
-      Features that connect to Google, Spotify, or GitHub are governed by those services' own terms:
+      Features that connect to Google (including Google Drive sync) or Spotify are governed by those services' own terms:
     </p>
     <ul class="styled">
       <li><a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Google Terms of Service</a></li>
       <li><a href="https://www.spotify.com/legal/end-user-agreement/" target="_blank" rel="noopener noreferrer">Spotify Terms of Use</a></li>
-      <li><a href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service" target="_blank" rel="noopener noreferrer">GitHub Terms of Service</a></li>
     </ul>
     <p>
       You are responsible for complying with the terms of any third-party service you
