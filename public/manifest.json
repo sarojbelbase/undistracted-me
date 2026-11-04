@@ -50,6 +50,7 @@
     "favicon",
     "notifications",
     "alarms",
+    "idle",
     "tabs",
     "scripting",
     "declarativeNetRequest"

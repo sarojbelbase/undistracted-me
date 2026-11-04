@@ -112,7 +112,7 @@ export const General = ({ onPreviewLookAway }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--w-ink-3)' }}>Remind every</span>
               <div style={{ display: 'flex', gap: 6 }}>
-                {[20, 30, 60].map((mins) => {
+                {[1, 5, 20, 30, 60].map((mins) => {
                   const selected = lookAwayInterval === mins;
                   return (
                     <button

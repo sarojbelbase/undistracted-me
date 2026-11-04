@@ -28,7 +28,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   defaultView: "canvas",
   dateFormat: "gregorian",
   lookAwayEnabled: false,
-  lookAwayInterval: 20, // minutes
+  lookAwayInterval: 1, // minutes — screen-timeout default
   canvasBg: { type: "solid", orbId: "accent", url: null },
   cardStyle: "glass",
   modePrefs: {
