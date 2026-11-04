@@ -128,7 +128,6 @@ export function humanizeTime(date, opts = {}) {
 function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   const absDays = Math.abs(days);
   const calMonths = Math.abs(diffCalMonths(target, now));
-  const calYears = Math.abs(diffCalYears(target, now));
 
   if (isToday) return _futureToday(target, now);
   if (isTomorrow) return { compact: 'Tomorrow', full: 'tomorrow', calendar: 'Tomorrow' };
@@ -141,7 +140,9 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   if (_isNextYear(target, now) && calMonths >= 6) return { compact: 'Next Year', full: 'next year', calendar: 'Next Year' };
   if (absDays < 30) return _futureWeeks(absDays);
   if (calMonths < 12) return _futureMonths(calMonths);
-  return _futureYears(calYears);
+  // Years derived from month count, not calendar-year difference — a date 3.3
+  // years out (e.g. Nov 2026 → Mar 2030) is 3 years, not 4.
+  return _futureYears(Math.floor(calMonths / 12));
 }
 
 function _futureToday(target, now) {

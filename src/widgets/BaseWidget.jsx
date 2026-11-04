@@ -137,7 +137,6 @@ export const BaseWidget = forwardRef(
                 setDropStyle(null);
                 setMenuOpen((s) => !s);
               }}
-              onMouseDown={(e) => e.stopPropagation()}
               className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200"
               style={{
                 backgroundColor: "var(--card-bg)",

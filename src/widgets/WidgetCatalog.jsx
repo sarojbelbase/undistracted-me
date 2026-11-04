@@ -153,6 +153,20 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
 export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onClose }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [phase, setPhase] = useState('entering'); // entering → open → leaving
+  const prevFocusRef = useRef(null);
+  const closeBtnRef = useRef(null);
+
+  // Move focus into the drawer on open and restore it to the trigger on close,
+  // so keyboard users aren't dumped to <body> after closing the catalog.
+  useEffect(() => {
+    prevFocusRef.current = document.activeElement;
+    closeBtnRef.current?.focus();
+    return () => {
+      if (prevFocusRef.current && typeof prevFocusRef.current.focus === 'function') {
+        prevFocusRef.current.focus();
+      }
+    };
+  }, []);
 
   // Double-RAF: first frame mounts the DOM at initial state (translateX 100%),
   // second frame flips to open so the browser has a real "from" state to transition from.
@@ -202,7 +216,6 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         open
         className={`wc-panel${phase === 'leaving' ? ' wc-panel--leaving' : ''}`}
         style={{ transform: phase === 'open' ? 'translateX(0)' : 'translateX(100%)' }}
-        aria-modal="true"
         aria-label="Widget catalog"
       >
         {/* ── Header ── */}
@@ -212,7 +225,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
           </div>
 
           <div className="wc-header-right">
-            <button className="wc-close-btn" onClick={handleClose} aria-label="Close (Esc)">
+            <button ref={closeBtnRef} className="wc-close-btn" onClick={handleClose} aria-label="Close (Esc)">
               <XLg size={11} />
             </button>
           </div>

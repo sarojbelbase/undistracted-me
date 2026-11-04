@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { XLg } from "react-bootstrap-icons";
 
@@ -26,6 +26,13 @@ export const Modal = ({
   maxHeight = "70vh",
   ariaLabel,
 }) => {
+  // Capture the previously-focused element during the first render (before any
+  // child effect moves focus into the dialog) and restore it on unmount so
+  // keyboard users aren't dumped back to <body> after Escape/close.
+  const prevFocusRef = useRef(
+    typeof document !== "undefined" ? document.activeElement : null,
+  );
+
   useEffect(() => {
     const handler = (e) => {
       if (e.key === "Escape") onClose();
@@ -33,6 +40,13 @@ export const Modal = ({
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  useEffect(() => {
+    return () => {
+      const el = prevFocusRef.current;
+      if (el && typeof el.focus === "function") el.focus();
+    };
+  }, []);
 
   const panelStyle = {
     backgroundColor: "var(--card-bg)",

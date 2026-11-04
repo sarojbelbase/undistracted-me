@@ -29,6 +29,7 @@ export const DailysSettings = ({ mode, autoSlide, onChange }) => (
       <Toggle
         checked={autoSlide}
         onChange={(v) => onChange("autoSlide", v)}
+        ariaLabel="Auto-slide"
       />
     </div>
   </div>

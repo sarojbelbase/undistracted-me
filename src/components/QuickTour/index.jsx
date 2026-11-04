@@ -216,17 +216,21 @@ export function QuickTour() {
   // Mount after a short delay so the app renders first (smooth experience)
   useEffect(() => {
     if (!shouldShow) return;
-    const t = setTimeout(() => setVisible(true), 600);
+    const t = setTimeout(() => { setVisible(true); setExiting(false); }, 600);
     return () => clearTimeout(t);
   }, [shouldShow]);
 
-  // ESC to dismiss
+  // ESC to dismiss, arrow keys to navigate between the two steps
   useEffect(() => {
     if (!visible) return;
-    const handler = (e) => { if (e.key === 'Escape') dismiss(); };
+    const handler = (e) => {
+      if (e.key === 'Escape') { dismiss(); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { if (step === 0) goToStep(1); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { if (step === 1) goToStep(0); return; }
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visible, step, dismiss, goToStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dismiss = useCallback(() => {
     setExiting(true);
@@ -267,6 +271,7 @@ export function QuickTour() {
     <dialog
       open
       aria-label="Quick Tour"
+      onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
       className="fixed inset-0 m-0 max-w-none max-h-none border-0 flex items-center justify-center p-0 z-9999 qt-overlay"
     >
       {/* Card */}

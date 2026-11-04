@@ -108,7 +108,16 @@ export const Settings = ({
                 haversineKm(userLat, userLon, b.latitude, b.longitude),
             );
           }
-          setSuggestions(results);
+          // Open-Meteo returns several entries with identical name/admin1/country
+          // (differing only by lower admin levels) — de-dupe by display label.
+          const seen = new Set();
+          const deduped = results.filter((r) => {
+            const key = [r.name, r.admin1, r.country].filter(Boolean).join(", ");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setSuggestions(deduped);
         })
         .catch(() => setSuggestions([]));
     }, 350);
