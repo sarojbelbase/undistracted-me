@@ -34,11 +34,17 @@ export const applyTheme = (accent, mode, cardStyle = "glass") => {
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
   // Accent colour — pick the luminous dark-mode tonal variant when in dark mode.
+  // Null-safe: if the accent list is empty / the name doesn't resolve, fall back
+  // to neutral monochrome tones (matching the "Matte Black" pair) so this never throws.
   const color =
     ACCENT_COLORS.find((a) => a.name === accent) || ACCENT_COLORS[0];
   const isDark = resolved === "dark";
-  const accentHex = isDark ? (color.darkHex ?? color.hex) : color.hex;
-  const accentFg = isDark ? (color.darkFg ?? color.fg) : color.fg;
+  const accentHex = isDark
+    ? (color?.darkHex ?? color?.hex ?? "#d4d4d4")
+    : (color?.hex ?? "#111111");
+  const accentFg = isDark
+    ? (color?.darkFg ?? color?.fg ?? "#000000")
+    : (color?.fg ?? "#ffffff");
   root.style.setProperty("--w-accent", accentHex);
   root.style.setProperty("--w-accent-fg", accentFg);
   root.style.setProperty("--w-accent-rgb", hexToRgb(accentHex));
