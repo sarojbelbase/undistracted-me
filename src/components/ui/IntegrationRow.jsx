@@ -154,15 +154,6 @@ export const IntegrationRow = ({
         <div className="flex items-center gap-1.5">
           <LockFill size={8} style={{ color: 'var(--w-ink-6)', flexShrink: 0 }} />
           <span className="text-[10px] flex-1" style={{ color: 'var(--w-ink-5)' }}>{privacyLabel}</span>
-          <a
-            href="https://app.undistracted.me/pp-and-tos"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[10px] shrink-0 transition-opacity hover:opacity-75"
-            style={{ color: 'var(--w-ink-4)', textDecoration: 'none' }}
-          >
-            Privacy Policy
-          </a>
         </div>
       )}
     </div>

@@ -815,6 +815,109 @@ h4 {
   color: var(--color-text-faint);
 }
 
+/* ---------- Web app (no-install try) ---------- */
+.webapp {
+  position: relative;
+  overflow: clip;
+}
+
+.webapp::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(55% 45% at 88% 18%, rgba(234, 88, 12, 0.07), transparent 60%),
+    radial-gradient(50% 45% at 8% 85%, rgba(20, 184, 166, 0.10), transparent 60%);
+  pointer-events: none;
+}
+
+.webapp-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 44px;
+  align-items: center;
+}
+
+.webapp-copy .section-title {
+  max-width: 20ch;
+}
+
+.webapp-frame {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.webapp-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-muted);
+  background: var(--color-surface-2);
+}
+
+.webapp-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.webapp-dot--red { background: #F87171; }
+.webapp-dot--amber { background: #FBBF24; }
+.webapp-dot--green { background: #34D399; }
+
+.webapp-url {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.webapp-url::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.webapp-frame img {
+  display: block;
+  width: 100%;
+}
+
+.webapp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  margin-top: 30px;
+}
+
+.webapp-actions .text-link {
+  font-size: 0.95rem;
+}
+
 /* ---------- Privacy ---------- */
 .privacy-inner {
   display: grid;
@@ -1114,6 +1217,11 @@ h4 {
   }
 
   .spotlight-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+  }
+
+  .webapp-inner {
     grid-template-columns: 1fr 1fr;
     gap: 56px;
   }

@@ -26,6 +26,9 @@
 /** The canonical production base URL. */
 export const PRODUCTION_BASE_URL = 'https://app.undistracted.me';
 
+/** The marketing / landing site base URL. */
+export const LANDING_BASE_URL = 'https://undistracted.me';
+
 export const PLATFORMS = {
   EXTENSION: 'extension',
   PHONE: 'phone',
