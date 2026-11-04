@@ -34,7 +34,7 @@ const resetStore = (overrides = {}) =>
     defaultView: 'canvas',
     dateFormat: 'gregorian',
     lookAwayEnabled: false,
-    lookAwayInterval: 20,
+    lookAwayInterval: 1,
     clockFormat: '24h',
     ...overrides,
   });
@@ -76,8 +76,8 @@ describe('initial state defaults', () => {
     expect(useSettingsStore.getState().lookAwayEnabled).toBe(false);
   });
 
-  it('lookAwayInterval defaults to 20 minutes', () => {
-    expect(useSettingsStore.getState().lookAwayInterval).toBe(20);
+  it('lookAwayInterval defaults to 1 minute', () => {
+    expect(useSettingsStore.getState().lookAwayInterval).toBe(1);
   });
 
   it('clockFormat defaults to "24h"', () => {
