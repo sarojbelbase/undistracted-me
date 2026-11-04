@@ -70,30 +70,14 @@ export const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/tasks',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/drive.appdata',
 ].join(' ');
+
+/** Google Drive REST API base (appDataFolder sync). */
+export const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
 /** Nepali Paisa — company / ticker listing for NEPSE. */
 export const NEPALI_PAISA_COMPANIES_API = 'https://nepalipaisa.com/api/GetCompanies';
-
-// ── GitHub (cross-device sync via private gist) ──────────────────────────────
-
-/** OAuth 2.0 Device Authorization Grant — request a device + user code. */
-export const GITHUB_DEVICE_CODE_API = 'https://github.com/login/device/code';
-
-/** OAuth 2.0 token endpoint (device-code exchange). */
-export const GITHUB_OAUTH_TOKEN_API = 'https://github.com/login/oauth/access_token';
-
-/** GitHub REST API base. */
-export const GITHUB_API_BASE = 'https://api.github.com';
-
-/** GitHub gists collection endpoint. */
-export const GITHUB_GISTS_API = `${GITHUB_API_BASE}/gists`;
-
-/** GitHub signed-in user profile. */
-export const GITHUB_USER_API = `${GITHUB_API_BASE}/user`;
-
-/** OAuth scope requested for sync — gist access only. */
-export const GITHUB_SCOPE = 'gist';
 
 // ── Daily content ─────────────────────────────────────────────────────────────
 

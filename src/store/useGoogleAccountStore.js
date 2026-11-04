@@ -20,6 +20,8 @@ import {
 import { disconnectCalendar } from '../utilities/googleCalendar';
 import { disconnectContacts } from '../utilities/googleContacts';
 import { friendlyError } from '../utilities/index';
+import syncTransport from '../utilities/syncTransport';
+import { useSettingsStore } from './useSettingsStore';
 
 /** Custom event dispatched on connect/disconnect so hooks can react without prop-drilling. */
 export const GOOGLE_ACCOUNT_CHANGED = 'google_account_changed';
@@ -69,6 +71,9 @@ export const useGoogleAccountStore = create((set, get) => ({
       await getGoogleAuthToken(true);
       const profile = await getGoogleUserProfile();
       set({ connected: true, profile, connecting: false });
+      // Google sign-in now also grants the Drive scope — enable cross-device sync.
+      syncTransport.setConnected(true);
+      useSettingsStore.getState().setSyncEnabled(true);
       globalThis.dispatchEvent(
         new CustomEvent(GOOGLE_ACCOUNT_CHANGED, { detail: { connected: true, profile } }),
       );
@@ -84,6 +89,9 @@ export const useGoogleAccountStore = create((set, get) => ({
     // Update state immediately so UI responds — don't block on async token/cache cleanup.
     // (Mirroring the earlier approach: set state first, then clean up in the background.)
     set({ connected: false, profile: null, error: null, disconnecting: false });
+    // Google sign-out disables cross-device sync (Drive scope is gone).
+    syncTransport.setConnected(false);
+    useSettingsStore.getState().setSyncEnabled(false);
     globalThis.dispatchEvent(
       new CustomEvent(GOOGLE_ACCOUNT_CHANGED, { detail: { connected: false, profile: null } }),
     );

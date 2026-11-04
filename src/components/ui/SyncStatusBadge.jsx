@@ -13,7 +13,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowRepeat, CheckCircleFill } from 'react-bootstrap-icons';
 import syncEngine from '../../utilities/syncEngine';
-import { isConnected } from '../../utilities/githubAuth';
+import syncTransport from '../../utilities/syncTransport';
 import { useSettingsStore } from '../../store';
 
 /** Human-readable relative time string (e.g. "just now", "2m ago"). */
@@ -34,11 +34,11 @@ const timeAgo = (timestamp) => {
 export const SyncStatusBadge = ({ compact = false }) => {
   const syncEnabled = useSettingsStore((s) => s.syncEnabled);
   const [status, setStatus] = useState(() => syncEngine.getSyncStatus());
-  const [connected, setConnected] = useState(() => isConnected());
+  const [connected, setConnected] = useState(() => syncTransport.isConnected());
 
   const refresh = useCallback(() => {
     setStatus(syncEngine.getSyncStatus());
-    setConnected(isConnected());
+    setConnected(syncTransport.isConnected());
   }, []);
 
   useEffect(() => {

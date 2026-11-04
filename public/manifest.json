@@ -68,6 +68,7 @@
     "https://www.googleapis.com/*",
     "https://tasks.googleapis.com/*",
     "https://oauth2.googleapis.com/*",
+    "https://content.googleapis.com/*",
     "https://suggestqueries.google.com/*",
     "https://ac.duckduckgo.com/*",
     "https://api.open-meteo.com/*",
@@ -109,7 +110,8 @@
       "https://www.googleapis.com/auth/contacts.readonly",
       "https://www.googleapis.com/auth/tasks",
       "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email"
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/drive.appdata"
     ]
   }
 }
