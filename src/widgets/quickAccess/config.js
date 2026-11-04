@@ -1,4 +1,4 @@
-import { Widget } from './Widget';
+import { lazy } from 'react';
 import { Grid3x3GapFill } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +20,5 @@ export default {
     xs: { x: 0, y: 22, w: 16, h: 6 },
     xxs: { x: 0, y: 56, w: 8, h: 8 },
   },
-  Component: Widget,
+  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };
