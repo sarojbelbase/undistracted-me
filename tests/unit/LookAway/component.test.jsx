@@ -88,9 +88,9 @@ describe('LookAway component', () => {
 
   // ── Initial countdown display ──────────────────────────────────────────────
 
-  it('shows "00:20" for default duration', () => {
+  it('shows "01:00" for default duration', () => {
     render(<LookAway onDismiss={onDismiss} />);
-    expect(screen.getByText('00:20')).toBeInTheDocument();
+    expect(screen.getByText('01:00')).toBeInTheDocument();
   });
 
   it('shows "00:05" for duration=5', () => {
@@ -286,7 +286,7 @@ describe('LookAway component', () => {
 
   it('orbRgb is one of the 7 known ORB_PALETTES values', () => {
     render(<LookAway onDismiss={onDismiss} />);
-    const timerEl = screen.getByLabelText('20 seconds remaining');
+    const timerEl = screen.getByLabelText('60 seconds remaining');
     // Inline style: rgba(R,G,B,0.7) — jsdom preserves the raw string
     const colorStyle = timerEl.style.color;
     const match = colorStyle.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -299,7 +299,7 @@ describe('LookAway component', () => {
     // Render 10 times to confirm all results are valid palette entries
     for (let i = 0; i < 10; i++) {
       const { unmount } = render(<LookAway onDismiss={vi.fn()} />);
-      const timerEl = screen.getByLabelText('20 seconds remaining');
+      const timerEl = screen.getByLabelText('60 seconds remaining');
       const match = timerEl.style.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       expect(match).not.toBeNull();
       const rgb = `${match[1]},${match[2]},${match[3]}`;

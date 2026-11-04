@@ -19,7 +19,7 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 
 ### `useSettingsStore` (`src/store/useSettingsStore.js`)
 Persistence key: `undistracted_settings`
-Fields: `language`, `accent`, `mode` (`'light'|'dark'|'auto'`), `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 1 min), `lookAwayNotify`, `canvasBg` (`{ type: 'solid'|'orb'|'curated'|'custom', orbId?, url? }`), `cardStyle` (`'flat'|'glass'`), `modePrefs` (`{ light: { cardStyle }, dark: { cardStyle } }`), `focusSearchBar` (bool, default true), `focusTasks` (bool, default true), `focusSearchTopSites`, `focusSearchWeb`
+Fields: `language`, `accent`, `mode` (`'light'|'dark'|'auto'`), `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`, `canvasBg` (`{ type: 'solid'|'orb'|'curated'|'custom', orbId?, url? }`), `cardStyle` (`'flat'|'glass'`), `modePrefs` (`{ light: { cardStyle }, dark: { cardStyle } }`), `focusSearchBar` (bool, default true), `focusTasks` (bool, default true), `focusSearchTopSites`, `focusSearchWeb`
 Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`, `setCanvasBg`, `setCardStyle`, `setFocusSearchBar`, `setFocusTasks`, `setFocusSearchTopSites`, `setFocusSearchWeb`
 - `setAccent` / `setMode` call `applyTheme()` immediately (skipped when `mode='auto'` — `useAutoTheme` applies theme after mount)
 - `onRehydrateStorage` re-applies theme CSS vars after hydration (prevents FOUC)
@@ -231,7 +231,7 @@ Fullscreen overlay that interrupts work for 20-second eye breaks (20-20-20 rule 
 - **Dev (no extension)**: falls back to plain `setInterval`.
 - **Stale-break detection**: skips firing if the alarm fired while laptop was asleep (page was hidden for most of the interval).
 - SW writes `lookaway_due` timestamp to `chrome.storage.local` when alarm fires. New tab reacts via `chrome.storage.onChanged`.
-- Settings: `lookAwayEnabled`, `lookAwayInterval` (min, default 1), `lookAwayNotify` — all in `useSettingsStore`.
+- Settings: `lookAwayEnabled`, `lookAwayInterval` (min, default 20), `lookAwayNotify` — all in `useSettingsStore`.
 
 ### Overlay (`index.jsx`)
 - Full-page portal over everything, dark or light depending on app mode
