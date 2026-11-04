@@ -18,11 +18,6 @@ import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
 import { BrowserTabIcon as TabIcon } from '../../../assets/svg/BrowserTabIcon';
 import { ClockIcon } from '../../../assets/svg/ClockIcon';
 
-// ── Local-storage history ──────────────────────────────────────────────────────
-
-export const HISTORY_KEY = 'fm_search_history';
-export const MAX_HISTORY = 12;
-
 /** Gets hostname safely (never throws). */
 function siteHostname(url) {
   try { return new URL(url).hostname; } catch { return ''; }

@@ -22,7 +22,7 @@ import { Tasks } from './settings/Tasks';
 import { Panels } from './settings/Panels';
 import { Background } from './settings/Background';
 import {
-  DIALOG_STYLE, getDialogStyle,
+  getDialogStyle,
   FM_INK_1, FM_INK_3,
   FM_DIVIDER, FM_SURFACE_2, FM_BORDER,
   FM_ICON_STROKE, FM_ICON_STROKE_MUTED,
