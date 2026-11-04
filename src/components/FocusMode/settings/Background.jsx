@@ -360,6 +360,9 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   const handleApply = () => {
     const url = value.trim();
     if (!url) return;
+    // Reject invalid URLs (same gate as Verify) instead of silently applying a
+    // broken background that persists as a 404 image.
+    if (!classifyUrl(url).ok) return;
     onApply({ url });
   };
   const handleClear = () => { setValue(''); setPreviewUrl(null); setStatus('idle'); onApply({ url: null }); };
@@ -403,9 +406,9 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
             Clear
           </button>
         )}
-        <button onClick={handleApply} disabled={!value.trim()}
+        <button onClick={handleApply} disabled={!value.trim() || !syntaxOk}
           className="flex-1 py-2 rounded-xl text-xs font-semibold focus:outline-none disabled:opacity-40 cursor-pointer"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', cursor: value.trim() ? 'pointer' : 'not-allowed' }}>
+          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', cursor: value.trim() && syntaxOk ? 'pointer' : 'not-allowed' }}>
           {isActive ? 'Update URL' : 'Use This URL'}
         </button>
       </div>

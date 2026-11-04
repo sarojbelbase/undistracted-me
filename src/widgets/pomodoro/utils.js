@@ -22,8 +22,15 @@ export const readPomodoro = () => {
     const raw = localStorage.getItem('fm_pomodoro');
     if (!raw) return null;
     const s = JSON.parse(raw);
-    if (!s.running || s.remaining <= 0) return null;
-    return s;
+    if (!s.running) return null;
+    // Compute live remaining from the wall-clock endTime (when present) so the
+    // Focus Mode panel keeps ticking even though the canvas widget is unmounted
+    // and no longer writing updates.
+    const remaining = s.endTime != null
+      ? Math.round((s.endTime - Date.now()) / 1000)
+      : s.remaining;
+    if (remaining <= 0) return null;
+    return { ...s, remaining };
   } catch {
     return null;
   }

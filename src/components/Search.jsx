@@ -51,14 +51,44 @@ const pushHistory = (query) => {
   } catch {}
 };
 
+const IS_DEV = typeof location !== "undefined" && location.hostname === "localhost";
+
+// In dev the browser CORS-blocks direct suggest endpoints (suggestqueries.google.com /
+// ac.duckduckgo.com). Route through the Vite `/api/suggest` proxy instead; in the
+// packaged extension, host_permissions allow the direct URL.
+function suggestUrl(engine) {
+  if (!engine.suggest) return null;
+  if (!IS_DEV) return engine.suggest;
+  const u = new URL(engine.suggest);
+  const client = u.searchParams.get("client") || "chrome";
+  const ds = u.searchParams.get("ds") || "";
+  if (ds) return `/api/suggest?client=${client}&ds=${ds}&q=`;
+  if (client === "ddg") return "/api/suggest?client=ddg&q=";
+  return `/api/suggest?client=${client}&q=`;
+}
+
 async function fetchSuggestionsFor(engine, query, signal) {
   if (!engine.suggest || !query.trim()) return [];
   try {
-    const url = `${engine.suggest}${encodeURIComponent(query)}`;
-    const res = await fetch(url, { signal });
-    const json = await res.json();
-    // Google/DDG/YouTube: [query, [suggestions]]
-    return Array.isArray(json[1]) ? json[1].slice(0, 6) : [];
+    const base = suggestUrl(engine);
+    if (!base) return [];
+    const res = await fetch(`${base}${encodeURIComponent(query)}`, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    let raw = [];
+    if (Array.isArray(data) && Array.isArray(data[1])) {
+      // Google/YouTube flat: ["query", ["s1","s2"]], or nested: ["query", [["s1",0,[...]], ...]]
+      // DDG type=list: ["query", ["s1","s2"]]
+      raw = data[1].map((item) => (typeof item === "string" ? item : item?.[0]));
+    } else if (
+      Array.isArray(data) &&
+      data.length > 0 &&
+      typeof data[0] === "object" &&
+      data[0]?.phrase
+    ) {
+      raw = data.map((d) => d.phrase); // DDG legacy: [{ phrase: "..." }, ...]
+    }
+    return raw.filter((s) => typeof s === "string").slice(0, 6);
   } catch {
     return [];
   }

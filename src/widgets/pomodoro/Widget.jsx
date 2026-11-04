@@ -275,6 +275,9 @@ export const Widget = ({ id, onRemove }) => {
       localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
         running: true,
         remaining,
+        // Persist the wall-clock end time so Focus Mode can keep the countdown
+        // ticking even though this widget is unmounted while FM is active.
+        endTime: Date.now() + remaining * 1000,
         total: duration,
         preset,
         sessionType,
