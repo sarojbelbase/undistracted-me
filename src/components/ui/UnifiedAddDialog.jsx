@@ -25,6 +25,7 @@ import { loadCustom, saveCustom } from '../../widgets/countdown/utils';
 import { AddEvent } from '../../widgets/events/AddEvent';
 import { AddCountdown } from '../../widgets/countdown/AddCountdown';
 import { AddOccasion } from '../../widgets/occasions/AddOccasion';
+import { triggerSupportNudge } from '../../store/useSupportStore';
 
 const TYPES = [
   { id: 'event', label: 'Event' },
@@ -110,14 +111,20 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
 
   const handleSaveEvent = (item) => {
     if (effectiveInitial) updateEvent(effectiveInitial.id, item);
-    else addEvent(item);
+    else {
+      addEvent(item);
+      triggerSupportNudge('event');
+    }
     onSaved?.('event', item);
     onClose();
   };
 
   const handleSaveOccasion = ({ id, name, type: occType, month, day }) => {
     if (id) updateManualBirthday(id, { name, type: occType, month, day });
-    else addManualBirthday(name, occType, month, day);
+    else {
+      addManualBirthday(name, occType, month, day);
+      triggerSupportNudge('occasion');
+    }
     window.dispatchEvent(new Event('manual_birthdays_changed'));
     onSaved?.('occasion', { id, name, type: occType, month, day });
     onClose();
@@ -138,7 +145,10 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
       endTime: '',
     };
     if (exists) updateEvent(cd.id, mirror);
-    else addEvent({ id: cd.id, ...mirror, _fromCountdown: true });
+    else {
+      addEvent({ id: cd.id, ...mirror, _fromCountdown: true });
+      triggerSupportNudge('countdown');
+    }
 
     window.dispatchEvent(new Event('countdown_events_changed'));
     onSaved?.('countdown', cd);
