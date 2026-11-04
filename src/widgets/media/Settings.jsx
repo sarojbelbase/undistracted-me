@@ -4,6 +4,7 @@ import { isSpotifyConnected, getSpotifyProfile, fetchAndCacheProfile } from './u
 import { SPOTIFY_ACCOUNT_CHANGED } from './hooks/useSpotifyPlayback';
 import { IntegrationRow } from '../../components/ui/IntegrationRow';
 import { TintedChip } from '../../components/ui/TintedChip';
+import { useUIStore } from '../../store/useUIStore';
 
 const spotifyTierLabel = (profile) => {
   if (!profile) return null;
@@ -12,9 +13,16 @@ const spotifyTierLabel = (profile) => {
   return null;
 };
 
-export const SpotifySettings = () => {
+export const SpotifySettings = ({ onClose = null }) => {
   const [connected, setConnected] = useState(() => isSpotifyConnected());
   const [profile, setProfile] = useState(null);
+
+  // Close this widget's settings modal before opening the Accounts dialog so
+  // the two dialogs never stack on top of each other.
+  const handleConnect = () => {
+    onClose?.();
+    useUIStore.getState().openAccountsDialog();
+  };
 
   useEffect(() => {
     // fetchAndCacheProfile hits the Spotify API and returns avatar; fall back to
@@ -56,6 +64,7 @@ export const SpotifySettings = () => {
         connected={connected}
         profile={profile ? { ...profile, picture: profile.avatar ?? null } : null}
         profileSubtitle={spotifyTierLabel(profile)}
+        onConnect={handleConnect}
       />
 
       {/* ── Playback sources ── */}

@@ -252,12 +252,14 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
   const addExpense = useCallback(
     ({ amount, category, note = '' }) => {
       if (!amount || amount <= 0 || !category) return;
+      const trimmedNote = String(note).trim().slice(0, 100);
       const entry = {
         id: mkId(),
         amount: Number.parseFloat(amount.toFixed(2)),
         currency,
         category,
-        note: (note || '').slice(0, 100),
+        // Omit empty notes entirely (no `note: ""` in storage)
+        ...(trimmedNote ? { note: trimmedNote } : {}),
         createdAt: Date.now(),
       };
       setExpenses((prev) => {
@@ -272,6 +274,36 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
     (expId) => {
       setExpenses((prev) => {
         const next = prev.filter((e) => e.id !== expId);
+        return save(widgetId, next);
+      });
+    },
+    [widgetId],
+  );
+
+  // Update an existing expense in place, preserving its id + createdAt timestamp.
+  const updateExpense = useCallback(
+    (expId, fields = {}) => {
+      setExpenses((prev) => {
+        const idx = prev.findIndex((e) => e.id === expId);
+        if (idx === -1) return prev;
+        const existing = prev[idx];
+        const nextEntry = { ...existing };
+
+        if (fields.amount != null) {
+          const nextAmount = Number.parseFloat(Number(fields.amount).toFixed(2));
+          // Reject non-positive amounts (mirrors the modal's disabled button).
+          if (!Number.isFinite(nextAmount) || nextAmount <= 0) return prev;
+          nextEntry.amount = nextAmount;
+        }
+        if (fields.category) nextEntry.category = fields.category;
+        if (fields.note !== undefined) {
+          const trimmedNote = String(fields.note).trim().slice(0, 100);
+          if (trimmedNote) nextEntry.note = trimmedNote;
+          else delete nextEntry.note; // clearing a note removes the key
+        }
+
+        const next = prev.slice();
+        next[idx] = nextEntry;
         return save(widgetId, next);
       });
     },
@@ -295,7 +327,7 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
   }, [widgetId]);
 
   return {
-    expenses, addExpense, deleteExpense, clearAll,
+    expenses, addExpense, deleteExpense, updateExpense, clearAll,
     summary, dayComparison, isEmpty,
   };
 }

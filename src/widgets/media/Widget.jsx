@@ -6,6 +6,7 @@ import { useChromeMedia } from './hooks/useChromeMedia';
 import { useChromeSessionManager } from './hooks/useChromeSessionManager';
 import { useSpotifyPlayback } from './hooks/useSpotifyPlayback';
 import { resolveColors } from './hooks/mediaHelpers';
+import { useUIStore } from '../../store/useUIStore';
 import { ChromeMediaPlayer } from './ChromeMediaPlayer';
 import { SpotifyPlayer } from './SpotifyPlayer';
 import { SpotifySettings } from './Settings';
@@ -65,7 +66,9 @@ export const Widget = ({ onRemove }) => {
   const hasBg = !!track?.albumArt;
   const { bgStyle, ink: inkColor, mute: muteColor, btnBg, btnBorder } = resolveColors(albumColor, hasBg);
 
-  const settingsPanel = <SpotifySettings />;
+  // Function form so the settings content receives `onClose` — lets the connect
+  // CTA close the Media modal before opening the Accounts dialog (no stacked dialogs).
+  const settingsPanel = (onClose) => <SpotifySettings onClose={onClose} />;
 
   // Not set up
   if (!SPOTIFY_CLIENT_ID && !chromeMediaSessions.length) {
@@ -85,7 +88,14 @@ export const Widget = ({ onRemove }) => {
         <div className="flex flex-col items-center gap-1.5 text-center">
           <p className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Nothing playing</p>
           <p className="text-[10.5px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>Open YouTube or SoundCloud in any tab</p>
-          <p className="text-[10px]" style={{ color: 'var(--w-ink-6)' }}>Settings&nbsp;›&nbsp;Accounts to connect Spotify</p>
+          <button
+            type="button"
+            onClick={() => useUIStore.getState().openAccountsDialog()}
+            className="text-[10.5px] font-semibold rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
+            style={{ padding: '5px 12px', border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+          >
+            Connect Spotify
+          </button>
         </div>
       </BaseWidget>
     );
