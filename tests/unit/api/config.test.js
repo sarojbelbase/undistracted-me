@@ -5,8 +5,8 @@ import { makeReq, makeRes, ORIGINS } from './helpers.js';
 // _config.js reads manifest.json via createRequire at module load time.
 // We mock it before importing so the module resolves cleanly in Node/Vitest.
 vi.mock('../../../public/manifest.json', () => ({
-  default: { homepage_url: 'https://undistractedme.sarojbelbase.com.np' },
-  homepage_url: 'https://undistractedme.sarojbelbase.com.np',
+  default: { homepage_url: 'https://undistracted.me' },
+  homepage_url: 'https://undistracted.me',
 }));
 
 describe('ALLOWED_ORIGINS regex', () => {
@@ -18,7 +18,7 @@ describe('ALLOWED_ORIGINS regex', () => {
     ['localhost no port', 'http://localhost', true],
     ['unknown domain', ORIGINS.bad, false],
     ['empty origin (same-origin)', ORIGINS.none, false],
-    ['subdomain of production', 'https://sub.undistractedme.sarojbelbase.com.np', false],
+    ['subdomain of production', 'https://sub.undistracted.me', false],
   ])('%s → %s', (_, origin, expected) => {
     expect(ALLOWED_ORIGINS.test(origin)).toBe(expected);
   });

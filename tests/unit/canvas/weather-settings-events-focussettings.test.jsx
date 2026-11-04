@@ -24,6 +24,19 @@ vi.mock('react-bootstrap-icons', () => ({
   CheckLg: () => <span>✓</span>,
   XLg: () => <span>X</span>,
   ClockFill: () => <span>⏰</span>,
+  Clock: () => <span>🕐</span>,
+  HourglassSplit: () => <span>⏳</span>,
+  CalendarEventFill: () => <span>📆</span>,
+  CalendarDateFill: () => <span>📅</span>,
+  BarChartFill: () => <span>📊</span>,
+  Calendar3: () => <span>🗓</span>,
+  StopwatchFill: () => <span>⏱</span>,
+  StickyFill: () => <span>📝</span>,
+  CloudSunFill: () => <span>⛅</span>,
+  LightbulbFill: () => <span>💡</span>,
+  MusicNoteBeamed: () => <span>🎵</span>,
+  ChatLeftQuoteFill: () => <span>💬</span>,
+  BookmarkStarFill: () => <span>⭐</span>,
   GeoAlt: () => <span data-testid="geo-alt">📍</span>,
   XCircleFill: () => <span>✕</span>,
   BalloonFill: () => <span>🎈</span>,
@@ -67,7 +80,7 @@ vi.mock('../../../src/utilities/googleCalendar', () => ({
 // Mock useEvents to return controllable state
 const mockAddEvent = vi.fn();
 const mockRemoveEvent = vi.fn();
-vi.mock('../../../src/widgets/useEvents', () => ({
+vi.mock('../../../src/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], mockAddEvent, mockRemoveEvent]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], loading: false, connected: false, syncedAt: null, refresh: vi.fn() })),
   useGoogleProfile: vi.fn(() => null),
@@ -142,7 +155,7 @@ vi.mock('../../../src/constants/settings', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
 }));
 
-import { useEvents, useGoogleCalendar } from '../../../src/widgets/useEvents';
+import { useEvents, useGoogleCalendar } from '../../../src/hooks/useEvents';
 import { Widget as EventsWidget } from '../../../src/widgets/events/Widget';
 import { Settings as WeatherSettings } from '../../../src/widgets/weather/Settings';
 import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';

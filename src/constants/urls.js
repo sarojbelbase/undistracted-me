@@ -22,7 +22,7 @@ export const PP_AND_TOS_URL = `${PRODUCTION_BASE_URL}/pp-and-tos`;
  * Wikipedia and commits only when the data actually changes.
  */
 export const HOLIDAYS_URL =
-  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@feature/vite-migration-redesign/holidays.json';
+  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@main/holidays.json';
 
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 

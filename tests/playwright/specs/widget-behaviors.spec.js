@@ -32,7 +32,7 @@ async function mountWidget(page, type, extraStorage = {}) {
     }));
     // Dismiss Quick Tour overlay so it doesn't block interactions
     localStorage.setItem('undistracted_settings', JSON.stringify({
-      state: { quickTourSeenVersion: '3.0.0' },
+      state: { quickTourSeenVersion: '4.0.0' },
       version: 0,
     }));
     Object.entries(extra).forEach(([k, v]) =>

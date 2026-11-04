@@ -54,18 +54,30 @@ vi.mock('../../../src/utilities/unsplash', () => ({
 vi.mock('react-grid-layout', () => ({
   Responsive: ({ children }) => <>{children}</>,
   useContainerWidth: () => ({ width: 1024, containerRef: { current: null } }),
+  getCompactor: () => undefined,
 }));
 
 // The real WIDGET_REGISTRY imports heavy Widget components. Stub them with
 // lightweight synchronous components so WidgetGrid tests stay fast and isolated.
 vi.mock('../../../src/widgets/index', () => ({
   WIDGET_REGISTRY: [
-    { type: 'facts', id: 'facts', x: 0, y: 0, w: 3, h: 2, Component: () => <div>A fact about the world</div> },
-    { type: 'notes', id: 'notes', x: 0, y: 0, w: 2, h: 2, Component: () => <textarea defaultValue="note" /> },
-    { type: 'clock', id: 'clock', x: 0, y: 0, w: 2, h: 2, Component: () => <div>12:00</div> },
-    { type: 'dayProgress', id: 'dayProgress', x: 0, y: 0, w: 2, h: 2, Component: () => <div>Day Progress</div> },
+    { type: 'facts', x: 0, y: 0, w: 3, h: 2 },
+    { type: 'notes', x: 0, y: 0, w: 2, h: 2 },
+    { type: 'clock', x: 0, y: 0, w: 2, h: 2 },
+    { type: 'dayProgress', x: 0, y: 0, w: 2, h: 2 },
   ],
   WIDGET_TYPES: {},
+}));
+
+// WidgetGrid renders via WIDGET_COMPONENTS (src/widgets/components.js), not the
+// registry `Component` field. Stub the component map directly.
+vi.mock('../../../src/widgets/components', () => ({
+  WIDGET_COMPONENTS: {
+    facts: () => <div>A fact about the world</div>,
+    notes: () => <textarea defaultValue="note" />,
+    clock: () => <div>12:00</div>,
+    dayProgress: () => <div>Day Progress</div>,
+  },
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────

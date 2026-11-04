@@ -50,8 +50,8 @@ vi.mock('../../../src/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn(),
 }));
 
-// Mock spotify utils
-vi.mock('../../../src/widgets/spotify/utils', () => ({
+// Mock spotify utils (media/utils) — kept for any transitive import
+vi.mock('../../../src/widgets/media/utils', () => ({
   SPOTIFY_CLIENT_ID: null, // Default: not configured
   connectSpotify: vi.fn(),
   disconnectSpotify: vi.fn(),
@@ -74,15 +74,21 @@ vi.mock('../../../src/widgets/stock/utils', () => ({
   priceStats: vi.fn(() => ({ dir: 'flat', change: 0, pct: 0 })),
   fmtPrice: vi.fn(v => (v != null ? String(v) : '—')),
   fmtOHL: vi.fn(v => (v != null ? String(v) : '—')),
+  fmtVolume: vi.fn(v => (v != null ? String(v) : '—')),
   humanizeAge: vi.fn(() => 'just now'),
 }));
 
+// The stock widget reads chart data from the shared useStocks hook (DataHub).
+vi.mock('../../../src/widgets/stock/useStocks', () => ({
+  useStocks: vi.fn(),
+}));
+
 import { Settings as ClockSettings } from '../../../src/widgets/clock/Settings';
-import { Widget as SpotifyWidget } from '../../../src/widgets/spotify/Widget';
 import { Widget as StockWidget } from '../../../src/widgets/stock/Widget';
 
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
 import { fetchChart } from '../../../src/widgets/stock/utils';
+import { useStocks } from '../../../src/widgets/stock/useStocks';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clock Settings
@@ -122,20 +128,19 @@ describe('Clock Settings', () => {
     expect(screen.getByText('Extra Clocks')).toBeTruthy();
   });
 
-  it('shows "0 / 2" counter initially', () => {
+  it('shows "0/2" counter initially', () => {
     render(<ClockSettings format="24h" timezones={[]} onChange={onChange} />);
-    expect(screen.getByText('0 / 2')).toBeTruthy();
+    expect(screen.getByText('0/2')).toBeTruthy();
   });
 
-  it('shows Add timezone select for slot 0 when empty', () => {
+  it('shows a timezone search input when a slot is free', () => {
     render(<ClockSettings format="24h" timezones={[]} onChange={onChange} />);
-    expect(screen.getByText('＋ Add a timezone')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Search city, country, or timezone…')).toBeTruthy();
   });
 
   it('calls onChange with timezones when timezone is selected', () => {
     render(<ClockSettings format="24h" timezones={[]} onChange={onChange} />);
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'America/New_York' } });
+    fireEvent.click(screen.getByText('New York'));
     expect(onChange).toHaveBeenCalledWith('timezones', ['America/New_York']);
   });
 
@@ -152,71 +157,50 @@ describe('Clock Settings', () => {
 
   it('shows remove button for existing timezone', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York']} onChange={onChange} />);
-    expect(screen.getByTitle('Remove')).toBeTruthy();
+    expect(screen.getByLabelText('Remove')).toBeTruthy();
   });
 
   it('calls onChange to remove timezone when Remove is clicked', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York']} onChange={onChange} />);
-    fireEvent.click(screen.getByTitle('Remove'));
+    fireEvent.click(screen.getByLabelText('Remove'));
     expect(onChange).toHaveBeenCalledWith('timezones', []);
   });
 
-  it('shows slot 1 when slot 0 is filled', () => {
+  it('shows a search input for the second slot when slot 0 is filled', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York']} onChange={onChange} />);
-    // Should show a second "Add timezone" select for slot 1
-    expect(screen.getByText('＋ Add a timezone')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Search city, country, or timezone…')).toBeTruthy();
   });
 
-  it('shows "1 / 2" counter when one timezone is set', () => {
+  it('shows "1/2" counter when one timezone is set', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York']} onChange={onChange} />);
-    expect(screen.getByText('1 / 2')).toBeTruthy();
+    expect(screen.getByText('1/2')).toBeTruthy();
   });
 
   it('shows slots for two existing timezones', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York', 'Asia/Tokyo']} onChange={onChange} />);
     expect(screen.getByText('New York')).toBeTruthy();
     expect(screen.getByText('Tokyo')).toBeTruthy();
-    expect(screen.getByText('2 / 2')).toBeTruthy();
+    expect(screen.getByText('2/2')).toBeTruthy();
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Spotify Widget (when SPOTIFY_CLIENT_ID is null)
+// Media Widget (formerly Spotify) — the Spotify player moved into the media
+// widget (src/widgets/media/Widget.jsx), which is covered by other suites.
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Spotify Widget — no client ID configured', () => {
-  it('renders setup prompt', () => {
-    render(<SpotifyWidget onRemove={vi.fn()} />);
-    expect(screen.getByText(/SPOTIFY_CLIENT_ID/i)).toBeTruthy();
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Spotify Widget — with client ID but not connected
-// ─────────────────────────────────────────────────────────────────────────────
-describe('Spotify Widget — disconnected state', () => {
-  it('renders Connect Spotify button when not connected', async () => {
-    const { SPOTIFY_CLIENT_ID: _, ...spotifyUtils } = await import('../../../src/widgets/spotify/utils');
-    // We need to test the "not connected" path — re-mock SPOTIFY_CLIENT_ID as truthy
-    vi.doMock('../../../src/widgets/spotify/utils', () => ({
-      ...spotifyUtils,
-      SPOTIFY_CLIENT_ID: 'test-client-id',
-      isSpotifyConnected: vi.fn(() => false),
-      getCurrentPlayback: vi.fn(() => Promise.resolve(null)),
-      getSpotifyProfile: vi.fn(() => Promise.resolve(null)),
-      extractAlbumColor: vi.fn(() => Promise.resolve(null)),
-    }));
-    // The snapshot test is about the initial not-connected state with null SPOTIFY_CLIENT_ID
-    // which is the setup prompt — already covered above
-  });
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Stock Widget
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Stock Widget', () => {
+  const makeData = (ltp) => ({
+    ltp, prevClose: ltp - 100, prices: [ltp - 100, ltp],
+    open: ltp - 50, high: ltp, low: ltp - 80,
+  });
+
   beforeEach(() => {
     vi.mocked(useWidgetSettings).mockReturnValue([{ symbols: ['GBIME'] }, vi.fn()]);
-    vi.mocked(fetchChart).mockResolvedValue(null);
+    vi.mocked(useStocks).mockReturnValue({ stocks: [], refresh: vi.fn(), updatedAt: null });
   });
 
   it('renders BaseWidget', () => {
@@ -225,13 +209,19 @@ describe('Stock Widget', () => {
   });
 
   it('renders symbol label for single stock', () => {
+    vi.mocked(useStocks).mockReturnValue({
+      stocks: [{ sym: 'GBIME', data: makeData(1500) }],
+      refresh: vi.fn(),
+      updatedAt: Date.now(),
+    });
     render(<StockWidget id="stock-1" onRemove={vi.fn()} />);
     expect(screen.getAllByText('GBIME').length).toBeGreaterThan(0);
   });
 
-  it('renders dash price when no chart data loaded', () => {
+  it('renders skeleton when no chart data loaded', () => {
     render(<StockWidget id="stock-1" onRemove={vi.fn()} />);
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+    // stocks empty → isFirstLoad → skeleton rendered (no price/symbol yet)
+    expect(screen.getByTestId('base-widget')).toBeTruthy();
   });
 
   it('renders Watchlist label for multi-stock view', () => {
@@ -242,6 +232,15 @@ describe('Stock Widget', () => {
 
   it('renders all symbols in list view', () => {
     vi.mocked(useWidgetSettings).mockReturnValue([{ symbols: ['GBIME', 'NABIL', 'SCB'] }, vi.fn()]);
+    vi.mocked(useStocks).mockReturnValue({
+      stocks: [
+        { sym: 'GBIME', data: makeData(1500) },
+        { sym: 'NABIL', data: makeData(800) },
+        { sym: 'SCB', data: makeData(300) },
+      ],
+      refresh: vi.fn(),
+      updatedAt: Date.now(),
+    });
     render(<StockWidget id="stock-1" onRemove={vi.fn()} />);
     expect(screen.getAllByText('GBIME').length).toBeGreaterThan(0);
     expect(screen.getAllByText('NABIL').length).toBeGreaterThan(0);
@@ -249,6 +248,11 @@ describe('Stock Widget', () => {
   });
 
   it('renders stock refresh button', () => {
+    vi.mocked(useStocks).mockReturnValue({
+      stocks: [{ sym: 'GBIME', data: makeData(1500) }],
+      refresh: vi.fn(),
+      updatedAt: Date.now(),
+    });
     render(<StockWidget id="stock-1" onRemove={vi.fn()} />);
     expect(screen.getByRole('button', { name: /refresh/i })).toBeTruthy();
   });

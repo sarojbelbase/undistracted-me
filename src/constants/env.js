@@ -24,7 +24,7 @@
  */
 
 /** The canonical production base URL. */
-export const PRODUCTION_BASE_URL = 'https://undistractedme.sarojbelbase.com.np';
+export const PRODUCTION_BASE_URL = 'https://app.undistracted.me';
 
 export const PLATFORMS = {
   EXTENSION: 'extension',

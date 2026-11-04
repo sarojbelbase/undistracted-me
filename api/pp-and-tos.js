@@ -7,8 +7,8 @@
  */
 
 const LAST_UPDATED = 'November 4, 2026';
-const CONTACT_EMAIL = 'hey@sarojbelbase.com.np';
-const WEBSITE = 'https://undistractedme.sarojbelbase.com.np';
+const CONTACT_EMAIL = 'hello@undistracted.me';
+const WEBSITE = 'https://undistracted.me';
 
 const html = /* html */ `<!DOCTYPE html>
 <html lang="en">
@@ -595,7 +595,7 @@ const html = /* html */ `<!DOCTYPE html>
     <h3>Data passed through our Vercel proxy</h3>
     <p>
       Some API calls are routed through our backend at
-      <code>undistractedme.sarojbelbase.com.np</code>
+      <code>app.undistracted.me</code>
       so that secret API keys are never embedded in the extension bundle. These calls are:
     </p>
     <ul class="styled">
@@ -718,7 +718,7 @@ const html = /* html */ `<!DOCTYPE html>
             <td><span class="badge-yes">Via server</span></td>
           </tr>
           <tr>
-            <td>undistractedme.sarojbelbase.com.np</td>
+            <td>app.undistracted.me</td>
             <td>Our Vercel proxy (photos, favicon, FF token exchange)</td>
             <td><span class="badge-yes">API key</span></td>
           </tr>

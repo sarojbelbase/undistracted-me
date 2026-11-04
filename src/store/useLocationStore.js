@@ -62,7 +62,7 @@ const reverseGeocodeCity = async (lat, lon) => {
         signal: AbortSignal.timeout(5000),
         headers: {
           'Accept-Language': 'en',
-          'User-Agent': 'UndistractedMe/3.0 (https://undistractedme.sarojbelbase.com.np)',
+          'User-Agent': 'UndistractedMe/4.0 (https://undistracted.me)',
         },
       },
     );

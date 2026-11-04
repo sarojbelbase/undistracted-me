@@ -155,7 +155,7 @@ export const IntegrationRow = ({
           <LockFill size={8} style={{ color: 'var(--w-ink-6)', flexShrink: 0 }} />
           <span className="text-[10px] flex-1" style={{ color: 'var(--w-ink-5)' }}>{privacyLabel}</span>
           <a
-            href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
+            href="https://app.undistracted.me/pp-and-tos"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] shrink-0 transition-opacity hover:opacity-75"

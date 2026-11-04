@@ -8,7 +8,7 @@
  * Extension ID locking is intentionally omitted — the API key is the auth layer.
  */
 export const ALLOWED_ORIGINS =
-  /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/undistractedme\.sarojbelbase\.com\.np|^http:\/\/localhost(:\d+)?$/;
+  /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/(app\.|www\.)?undistracted\.me$|^http:\/\/localhost(:\d+)?$/;
 
 /**
  * Apply CORS headers and validate Origin.

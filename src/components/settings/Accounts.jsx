@@ -149,7 +149,7 @@ export const Accounts = () => {
         style={{ borderTop: '1px solid var(--w-divider)' }}
       >
         <a
-          href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
+          href="https://app.undistracted.me/pp-and-tos"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[11px] transition-opacity hover:opacity-75"

@@ -9,7 +9,7 @@
  *  - getPhotoLibrary()  → returns the full cached library.
  *
  * Photo source: Vercel curated proxy — VITE_PHOTOS_API_URL or the
- *   hardcoded fallback undistractedme.vercel.app/api/photos/curated.
+ *   hardcoded fallback app.undistracted.me/api/photos/curated.
  *
  * Attribution: per Unsplash ToS every photo carries author + link.
  */

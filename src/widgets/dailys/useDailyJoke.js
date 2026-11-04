@@ -29,7 +29,7 @@ export const useDailyJoke = () => {
     fetch(ICANHAZDADJOKE_API, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "Undistracted Me (https://undistractedme.sarojbelbase.com.np)",
+        "User-Agent": "Undistracted Me (https://undistracted.me)",
       },
       signal: AbortSignal.timeout(6000),
     })

@@ -34,11 +34,34 @@ vi.mock('react-bootstrap-icons', () => ({
   DashLg: () => <span data-testid="dash-icon">-</span>,
   XLg: () => <span>X</span>,
   BookmarkFill: () => <span data-testid="bookmark-icon">🔖</span>,
+  BookmarkStarFill: () => <span>⭐</span>,
+  StickyFill: () => <span>📝</span>,
+  Calendar3: () => <span>🗓</span>,
+  GraphUpArrow: () => <span>📈</span>,
+  CloudSunFill: () => <span>⛅</span>,
+  ClockFill: () => <span>🕐</span>,
+  BarChartFill: () => <span>📊</span>,
+  CalendarEventFill: () => <span>📆</span>,
+  StopwatchFill: () => <span>⏱</span>,
+  ChatLeftQuoteFill: () => <span>💬</span>,
+  CalendarDateFill: () => <span>📅</span>,
   Trash3: () => <span data-testid="trash-icon">🗑</span>,
   HourglassSplit: () => <span>⏳</span>,
   ArrowRepeat: () => <span>🔄</span>,
   CalendarEvent: () => <span>📅</span>,
   CheckLg: () => <span data-testid="check-icon">✓</span>,
+  BalloonFill: () => <span>🎈</span>,
+  PersonHeart: () => <span>🫶</span>,
+  HeartFill: () => <span>♥</span>,
+  StarFill: () => <span>⭐</span>,
+  GeoAlt: () => <span>📍</span>,
+  XCircleFill: () => <span>✕</span>,
+  Search: () => <span>🔍</span>,
+  InfoCircleFill: () => <span>ℹ</span>,
+  Grid3x3GapFill: () => <span>▦</span>,
+  CalendarCheck: () => <span>✅</span>,
+  MusicNoteBeamed: () => <span>🎵</span>,
+  ChatLeftQuoteFill: () => <span>💬</span>,
 }));
 
 // Mock BaseWidget
@@ -61,27 +84,24 @@ vi.mock('../../../src/widgets/useWidgetSettings', () => ({
 }));
 
 // Mock useEvents for countdown
-vi.mock('../../../src/widgets/useEvents', () => ({
+vi.mock('../../../src/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], vi.fn(), vi.fn()]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
-// Mock countdown/utils
-vi.mock('../../../src/widgets/countdown/utils', () => ({
-  REPEAT_OPTIONS: [
-    { value: 'none', label: 'None' },
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'monthly', label: 'Monthly' },
-    { value: 'yearly', label: 'Yearly' },
-  ],
-  getNextOccurrence: vi.fn((cd) => {
-    const d = new Date(`${cd.targetDate}T${cd.targetTime || '00:00'}`);
-    return d;
-  }),
-  formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
-  formatTargetDate: vi.fn(() => 'Aug 15, 2025'),
-}));
+// Mock countdown/utils — keep the real loaders/resolvers, override formatters
+vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    getNextOccurrence: vi.fn((cd) => {
+      const d = new Date(`${cd.targetDate}T${cd.targetTime || '00:00'}`);
+      return d;
+    }),
+    formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
+    formatTargetDate: vi.fn(() => 'Aug 15, 2025'),
+  };
+});
 
 // Mock events/utils for countdown
 vi.mock('../../../src/widgets/events/utils', () => ({
@@ -195,13 +215,13 @@ vi.mock('../../../src/components/FocusMode/hooks', () => ({
 }));
 
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { useEvents } from '../../../src/widgets/useEvents';
+import { useEvents } from '../../../src/hooks/useEvents';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bookmarks Widget
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as BookmarksWidget } from '../../../src/widgets/bookmarks/Widget';
-import bookmarksConfig from '../../../src/widgets/bookmarks/config';
+import { Widget as BookmarksWidget } from '../../../src/widgets/bookmark/Widget';
+import bookmarksConfig from '../../../src/widgets/bookmark/config';
 import notesConfig from '../../../src/widgets/notes/config';
 import countdownConfig from '../../../src/widgets/countdown/config';
 import calendarConfig from '../../../src/widgets/calendar/config';
@@ -211,28 +231,25 @@ import clockConfig from '../../../src/widgets/clock/config';
 import dayProgressConfig from '../../../src/widgets/progress/config';
 import eventsConfig from '../../../src/widgets/events/config';
 import pomodoroConfig from '../../../src/widgets/pomodoro/config';
-import factsConfig from '../../../src/widgets/facts/config';
+import dailysConfig from '../../../src/widgets/dailys/config';
 import dateTodayConfig from '../../../src/widgets/dateToday/config';
 
 describe('Config files', () => {
-  it('bookmarks config has correct id', () => {
-    expect(bookmarksConfig.id).toBe('bookmark');
+  it('bookmark config has correct type', () => {
     expect(bookmarksConfig.type).toBe('bookmark');
   });
-  it('countdown config has correct id', () => {
-    expect(countdownConfig.id).toBe('countdown');
+  it('countdown config has correct type', () => {
     expect(countdownConfig.type).toBe('countdown');
   });
-  it('notes config has correct id', () => {
-    expect(notesConfig.id).toBe('notes');
+  it('notes config has correct type', () => {
     expect(notesConfig.type).toBe('notes');
   });
   it('all configs have w and h properties', () => {
-    const configs = [bookmarksConfig, notesConfig, countdownConfig, calendarConfig, stockConfig, weatherConfig, clockConfig, dayProgressConfig, eventsConfig, pomodoroConfig, factsConfig, dateTodayConfig];
+    const configs = [bookmarksConfig, notesConfig, countdownConfig, calendarConfig, stockConfig, weatherConfig, clockConfig, dayProgressConfig, eventsConfig, pomodoroConfig, dailysConfig, dateTodayConfig];
     configs.forEach(cfg => {
       expect(cfg).toHaveProperty('w');
       expect(cfg).toHaveProperty('h');
-      expect(cfg).toHaveProperty('id');
+      expect(cfg).toHaveProperty('type');
     });
   });
 });
@@ -566,90 +583,79 @@ describe('Countdown Widget — additional coverage', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // FocusMode/Settings.jsx — more interaction coverage
 // ─────────────────────────────────────────────────────────────────────────────
+vi.mock('../../../src/components/ui/Modal', () => ({
+  Modal: ({ children }) => <div data-testid="fm-modal">{children}</div>,
+}));
+vi.mock('../../../src/components/FocusMode/settings/Background', () => ({
+  Background: () => <div data-testid="fm-background-tab" />,
+}));
+
 import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
 import { useSettingsStore } from '../../../src/store';
 
 describe('FocusModeSettings — interactions', () => {
-  let mockSetDateFormat, mockSetClockFormat, mockOpenBgModal;
+  let mockSetDateFormat, mockSetClockFormat;
 
   beforeEach(() => {
     mockSetDateFormat = vi.fn();
     mockSetClockFormat = vi.fn();
-    mockOpenBgModal = vi.fn();
 
     vi.mocked(useSettingsStore).mockImplementation((selector) => {
       const state = {
         dateFormat: 'gregorian', setDateFormat: mockSetDateFormat,
         clockFormat: '24h', setClockFormat: mockSetClockFormat,
-        cardStyle: 'flat',
+        cardStyle: 'flat', accent: 'indigo',
       };
       return selector ? selector(state) : state;
     });
   });
 
   it('renders Date Calendar section', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     expect(screen.getByText('Date Calendar')).toBeTruthy();
   });
 
   it('renders CE and BS buttons', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     expect(screen.getByText('CE')).toBeTruthy();
     expect(screen.getByText('BS')).toBeTruthy();
   });
 
   it('calls setDateFormat(bikramSambat) when BS is clicked', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     fireEvent.click(screen.getByText('BS'));
     expect(mockSetDateFormat).toHaveBeenCalledWith('bikramSambat');
   });
 
   it('calls setDateFormat(gregorian) when CE is clicked', () => {
     vi.mocked(useSettingsStore).mockImplementation((selector) => {
-      const state = { dateFormat: 'bikramSambat', setDateFormat: mockSetDateFormat, clockFormat: '24h', setClockFormat: mockSetClockFormat, cardStyle: 'flat' };
+      const state = { dateFormat: 'bikramSambat', setDateFormat: mockSetDateFormat, clockFormat: '24h', setClockFormat: mockSetClockFormat, cardStyle: 'flat', accent: 'indigo' };
       return selector ? selector(state) : state;
     });
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     fireEvent.click(screen.getByText('CE'));
     expect(mockSetDateFormat).toHaveBeenCalledWith('gregorian');
   });
 
   it('renders Clock Format section', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     expect(screen.getByText('Clock Format')).toBeTruthy();
   });
 
   it('renders 24h and 12h buttons', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     expect(screen.getByText('24h')).toBeTruthy();
     expect(screen.getByText('12h')).toBeTruthy();
   });
 
   it('calls setClockFormat(12h) when 12h is clicked', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
+    render(<FocusModeSettings onClose={vi.fn()} />);
     fireEvent.click(screen.getByText('12h'));
     expect(mockSetClockFormat).toHaveBeenCalledWith('12h');
   });
 
-  it('renders Background button', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
-    expect(screen.getByText('Background')).toBeTruthy();
-  });
-
-  it('renders Change background button', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
-    expect(screen.getByText('Change background')).toBeTruthy();
-  });
-
-  it('calls onOpenBgModal when Change background is clicked', () => {
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
-    fireEvent.click(screen.getByText('Change background'));
-    expect(mockOpenBgModal).toHaveBeenCalledOnce();
-  });
-
-  it('shows Photo Library section when unsplash key exists', async () => {
-    // FocusModeSettings just shows "Change background" button - no photo library in this component
-    render(<FocusModeSettings onOpenBgModal={mockOpenBgModal} />);
-    expect(screen.getByText('Change background')).toBeTruthy();
+  it('renders a Background tab', () => {
+    render(<FocusModeSettings onClose={vi.fn()} />);
+    expect(screen.getByRole('tab', { name: 'Background' })).toBeTruthy();
   });
 });

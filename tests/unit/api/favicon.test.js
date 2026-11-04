@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { makeReq, makeRes, ORIGINS } from './helpers.js';
 
 vi.mock('../../../public/manifest.json', () => ({
-  default: { homepage_url: 'https://undistractedme.sarojbelbase.com.np' },
-  homepage_url: 'https://undistractedme.sarojbelbase.com.np',
+  default: { homepage_url: 'https://undistracted.me' },
+  homepage_url: 'https://undistracted.me',
 }));
 
 // Import handler after mock is set up

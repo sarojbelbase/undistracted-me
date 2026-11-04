@@ -134,7 +134,7 @@ export const useSettingsStore = create(
 
       /**
        * Call once the user finishes or dismisses the quick tour.
-       * Pass the current app version string, e.g. '3.0.0'.
+       * Pass the current app version string, e.g. '4.0.0'.
        */
       markQuickTourSeen: (version) => set({ quickTourSeenVersion: version }),
 

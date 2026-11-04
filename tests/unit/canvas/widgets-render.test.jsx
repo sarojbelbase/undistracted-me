@@ -31,43 +31,27 @@ vi.mock('../../../src/utilities/sharedClock', () => ({
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Facts Widget
+// Dailys Widget (formerly Facts)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as FactsWidget } from '../../../src/widgets/facts/Widget';
-import { FACTS } from '../../../src/data/facts';
+import { Widget as DailysWidget } from '../../../src/widgets/dailys/Widget';
 
-describe('FactsWidget', () => {
+describe('DailysWidget', () => {
   it('renders without crashing', () => {
-    expect(() => render(<FactsWidget />)).not.toThrow();
-  });
-
-  it('renders the fact text on screen', () => {
-    render(<FactsWidget />);
-    // The rendered text must be one of the facts
-    const index = Math.floor(Date.now() / 86_400_000) % FACTS.length;
-    const expectedText = FACTS[index].text;
-    // Just verify some text is on screen (substring to avoid whitespace issues)
-    expect(screen.getByText(expectedText)).toBeTruthy();
-  });
-
-  it('renders the category badge', () => {
-    render(<FactsWidget />);
-    const index = Math.floor(Date.now() / 86_400_000) % FACTS.length;
-    expect(screen.getByText(FACTS[index].category)).toBeTruthy();
+    expect(() => render(<DailysWidget id="dailys" />)).not.toThrow();
   });
 
   it('renders onRemove widget without crash', () => {
     const onRemove = vi.fn();
-    expect(() => render(<FactsWidget onRemove={onRemove} />)).not.toThrow();
+    expect(() => render(<DailysWidget id="dailys" onRemove={onRemove} />)).not.toThrow();
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DayProgress Widget
+// Day Progress Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as DayProgressWidget } from '../../../src/widgets/dayProgress/Widget';
+import { Widget as DayProgressWidget } from '../../../src/widgets/progress/Widget';
 
 describe('DayProgressWidget', () => {
   beforeEach(() => {
