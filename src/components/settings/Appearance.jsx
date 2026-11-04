@@ -3,12 +3,21 @@
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
 
-import React from 'react';
-import { SunFill, MoonFill, CircleHalf, CheckLg } from 'react-bootstrap-icons';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { SunFill, MoonFill, CircleHalf, CheckLg, Link45deg, ArrowClockwise } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { ACCENT_COLORS } from '../../theme';
 import { CARD_STYLES } from '../../constants/cardStyles';
 import { TooltipBtn } from '../ui/TooltipBtn';
+import { useAutoTheme } from '../../hooks/useAutoTheme';
+import {
+  getPhotoLibrary,
+  getThumbUrl,
+  rotatePhoto,
+  downloadCuratedPhotos,
+  updatePhotoColor,
+} from '../../utilities/unsplash';
+import { extractColorFromImage } from '../../utilities/favicon';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -31,8 +40,216 @@ const Segment = ({ children, style = {} }) => (
   </div>
 );
 
+// Shared small action-button look (used by the Curated / Custom sub-panels).
+const smallBtn = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+  padding: '7px 10px', borderRadius: 8, border: '1px solid var(--card-border)',
+  background: 'var(--panel-bg)', color: 'var(--w-ink-2)', cursor: 'pointer',
+  fontSize: 12, fontWeight: 600, transition: 'all 0.15s ease',
+};
+
+// ── URL classification ────────────────────────────────────────────────────────
+// Non-empty; prepends https:// when a scheme is missing; rejects non-http(s)
+// and whitespace (a URL/hostname cannot contain spaces).
+const classifyUrl = (raw) => {
+  const s = (raw || '').trim();
+  if (!s) return { ok: false, hint: null };
+  if (/\s/.test(s)) return { ok: false, hint: 'URL cannot contain spaces.' };
+  const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(s) ? s : `https://${s}`;
+  try {
+    const u = new URL(withScheme);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return { ok: false, hint: 'Only http(s) URLs are allowed.' };
+    }
+    if (!u.hostname) return { ok: false, hint: 'Enter a valid image URL (e.g. example.com/photo.jpg).' };
+    return { ok: true, url: withScheme, hint: null };
+  } catch {
+    return { ok: false, hint: 'Enter a valid image URL (e.g. example.com/photo.jpg).' };
+  }
+};
+
+// ── Curated panel ─────────────────────────────────────────────────────────────
+const CuratedPanel = ({ activeUrl, onApply }) => {
+  const [photos, setPhotos] = useState(() => getPhotoLibrary());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const refresh = useCallback(async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await downloadCuratedPhotos();
+      const lib = getPhotoLibrary();
+      setPhotos(lib);
+      if (!lib.length) setError('Could not reach the photo server. Check your connection.');
+    } catch {
+      if (!getPhotoLibrary().length) setError('Could not reach the photo server. Check your connection.');
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!getPhotoLibrary().length) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Prefer the photo matching the active URL (a user-selected one), else the
+  // library head (which `rotatePhoto` cycles and `useCanvasBg` falls back to).
+  const current = useMemo(() => {
+    if (activeUrl) {
+      const match = photos.find((p) => p.regular === activeUrl || p.url === activeUrl || p.small === activeUrl);
+      if (match) return match;
+    }
+    return photos[0] ?? null;
+  }, [photos, activeUrl]);
+
+  const thumbSrc = current ? (getThumbUrl(current) || current.regular || current.url) : null;
+
+  const cycle = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const next = await rotatePhoto();
+      setPhotos(getPhotoLibrary());
+      if (next) onApply({ url: next.regular || next.url || null, color: next.color || null });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleThumbLoad = (e) => {
+    if (!current) return;
+    extractColorFromImage(e.currentTarget, (color) => {
+      updatePhotoColor(current.id, color);
+    });
+  };
+
+  if (!thumbSrc) {
+    return (
+      <div style={{
+        marginTop: 8, padding: 10, borderRadius: 8,
+        background: 'var(--panel-bg)', border: '1px solid var(--card-border)',
+        display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start',
+      }}>
+        <span style={{ fontSize: 11, color: 'var(--w-ink-3)' }}>
+          {error || 'No curated photos yet.'}
+        </span>
+        <button onClick={refresh} disabled={busy} style={{ ...smallBtn, opacity: busy ? 0.6 : 1 }}>
+          <ArrowClockwise size={12} /> {busy ? 'Loading…' : 'Load photos'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{
+        position: 'relative', borderRadius: 8, overflow: 'hidden',
+        aspectRatio: '16 / 9', background: current?.color || 'var(--panel-bg)',
+      }}>
+        <img
+          src={thumbSrc}
+          alt=""
+          aria-hidden
+          crossOrigin="anonymous"
+          decoding="async"
+          onLoad={handleThumbLoad}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button onClick={cycle} disabled={busy} style={{ ...smallBtn, flex: 1, opacity: busy ? 0.6 : 1 }}>
+          <ArrowClockwise size={12} /> Next photo
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ── Custom URL panel ──────────────────────────────────────────────────────────
+const CustomPanel = ({ initialUrl, onApply }) => {
+  const [value, setValue] = useState(initialUrl || '');
+  const [hint, setHint] = useState(null);
+
+  const result = classifyUrl(value);
+
+  const apply = () => {
+    if (!result.ok) {
+      setHint(result.hint || 'Enter a valid URL to apply.');
+      return;
+    }
+    setHint(null);
+    onApply({ url: result.url });
+  };
+
+  const onChange = (e) => { setValue(e.target.value); setHint(null); };
+
+  const shownHint = value.trim() && !result.ok ? (hint || result.hint) : hint;
+
+  return (
+    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{
+          flex: 1, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px',
+          height: 34, borderRadius: 8, background: 'var(--panel-bg)', border: '1px solid var(--card-border)',
+        }}>
+          <Link45deg size={13} style={{ color: 'var(--w-ink-3)', flexShrink: 0 }} />
+          <input
+            type="text"
+            value={value}
+            onChange={onChange}
+            onKeyDown={(e) => { if (e.key === 'Enter') apply(); }}
+            placeholder="example.com/photo.jpg"
+            autoComplete="off"
+            spellCheck={false}
+            style={{
+              flex: 1, border: 'none', outline: 'none', background: 'transparent',
+              color: 'var(--w-ink-2)', fontSize: 12, fontFamily: 'inherit',
+            }}
+          />
+        </div>
+        <button onClick={apply} disabled={!value.trim()}
+          style={{ ...smallBtn, flexShrink: 0, opacity: value.trim() ? 1 : 0.5, cursor: value.trim() ? 'pointer' : 'default' }}>
+          Apply
+        </button>
+      </div>
+      {shownHint && <span style={{ fontSize: 10, color: 'rgb(252,129,129)' }}>{shownHint}</span>}
+    </div>
+  );
+};
+
 export const Appearance = () => {
   const { mode, setMode, accent, setAccent, cardStyle, setCardStyle, canvasBg, setCanvasBg } = useSettingsStore();
+
+  // Canonical auto-mode resolution — resolves 'auto' to the effective light/dark
+  // so the accent swatches use the correct tone even during the day.
+  const effectiveMode = useAutoTheme(mode, accent, cardStyle);
+
+  const bgType = canvasBg?.type ?? 'solid';
+
+  const selectSolid = () => setCanvasBg({ type: 'solid', orbId: canvasBg?.orbId ?? 'blueberry', url: null, color: null });
+  const selectOrb = () => setCanvasBg({ type: 'orb', orbId: canvasBg?.orbId ?? 'blueberry', url: null, color: null });
+  const selectDefault = () => setCanvasBg({ type: 'default', orbId: null, url: null, color: null });
+  const selectCurated = () => setCanvasBg({ type: 'curated', orbId: null, url: null, color: null });
+  const selectCustom = () => setCanvasBg({ type: 'custom', orbId: null, url: null, color: null });
+
+  const applyCurated = useCallback(
+    ({ url, color }) => setCanvasBg({ type: 'curated', orbId: null, url: url ?? null, color: color ?? null }),
+    [setCanvasBg],
+  );
+  const applyCustom = useCallback(
+    ({ url }) => setCanvasBg({ type: 'custom', orbId: null, url: url ?? null, color: null }),
+    [setCanvasBg],
+  );
+
+  const backgroundOptions = [
+    { id: 'solid', label: 'Solid', hint: 'Accent tint', onClick: selectSolid },
+    { id: 'orb', label: 'Motion', hint: 'Animated orb', onClick: selectOrb },
+    { id: 'default', label: 'Photo', hint: 'Bundled', onClick: selectDefault },
+    { id: 'curated', label: 'Curated', hint: 'Unsplash', onClick: selectCurated },
+    { id: 'custom', label: 'Custom', hint: 'URL', onClick: selectCustom },
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -75,15 +292,12 @@ export const Appearance = () => {
       <div>
         <SectionLabel>Background</SectionLabel>
         <Segment>
-          {[
-            { id: 'solid', label: 'Solid', hint: 'Accent tint, no motion' },
-            { id: 'orb', label: 'Motion', hint: 'Animated color orb' },
-          ].map(({ id, label, hint }) => {
-            const selected = (canvasBg?.type ?? 'solid') === id;
+          {backgroundOptions.map(({ id, label, hint, onClick }) => {
+            const selected = bgType === id;
             return (
               <button
                 key={id}
-                onClick={() => setCanvasBg({ type: id, orbId: canvasBg?.orbId ?? 'blueberry', url: null, color: null })}
+                onClick={onClick}
                 style={{
                   flex: 1,
                   display: 'flex', flexDirection: 'column', gap: 2,
@@ -105,6 +319,16 @@ export const Appearance = () => {
             );
           })}
         </Segment>
+
+        {bgType === 'curated' && (
+          <CuratedPanel activeUrl={canvasBg?.url ?? null} onApply={applyCurated} />
+        )}
+        {bgType === 'custom' && (
+          <CustomPanel
+            initialUrl={canvasBg?.type === 'custom' ? (canvasBg?.url ?? '') : ''}
+            onApply={applyCustom}
+          />
+        )}
       </div>
 
       {/* ── Theme ── */}
@@ -147,7 +371,7 @@ export const Appearance = () => {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {ACCENT_COLORS.map(color => {
-            const isDarkMode = mode === 'dark' || mode === 'auto';
+            const isDarkMode = effectiveMode === 'dark';
             const swatchHex = isDarkMode ? (color.darkHex ?? color.hex) : color.hex;
             const selected = accent === color.name;
             return (
