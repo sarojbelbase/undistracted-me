@@ -53,7 +53,12 @@ const fromLegacy = () => {
         defaultView: stored.state.defaultView ?? D.defaultView,
         dateFormat: stored.state.dateFormat ?? D.dateFormat,
         lookAwayEnabled: stored.state.lookAwayEnabled ?? D.lookAwayEnabled,
-        lookAwayInterval: stored.state.lookAwayInterval ?? D.lookAwayInterval,
+        lookAwayInterval: (() => {
+          const v = stored.state.lookAwayInterval ?? D.lookAwayInterval;
+          // v3.0 shipped a bad 1-minute "screen-timeout" default. Treat any
+          // persisted 1 as that bad default and restore the 20-minute cadence.
+          return v === 1 ? D.lookAwayInterval : v;
+        })(),
         canvasBg: (() => {
           const cb = stored.state.canvasBg ?? D.canvasBg;
           return cb.type === "orb" && cb.orbId && cb.orbId !== "accent"
@@ -235,6 +240,19 @@ export const useSettingsStore = create(
     }),
     {
       name: STORE_KEY,
+      version: 1,
+      // Migrate the v3.0 bad 1-minute lookaway interval back to a 20-minute
+      // cadence. States persisted before this migration carry version 0; a
+      // value of 1 is the bad default, not a real user choice.
+      migrate: (persistedState) => {
+        if (persistedState?.lookAwayInterval === 1) {
+          return {
+            ...persistedState,
+            lookAwayInterval: APP_SETTINGS_DEFAULTS.lookAwayInterval,
+          };
+        }
+        return persistedState;
+      },
       // Re-apply theme CSS vars after Zustand rehydrates from localStorage
       onRehydrateStorage: () => (state) => {
         if (state) {
