@@ -217,7 +217,13 @@ const App = () => {
   const instances = useWidgetInstancesStore((s) => s.instances);
   const addInstance = useWidgetInstancesStore((s) => s.addInstance);
   const removeInstance = useWidgetInstancesStore((s) => s.removeInstance);
-  const { settingsOpenAt, clearSettingsOpenAt } = useUIStore();
+  const {
+    settingsOpenAt,
+    clearSettingsOpenAt,
+    catalogOpenRequest,
+    arrangeToggleRequest,
+    focusModeRequest,
+  } = useUIStore();
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
@@ -261,6 +267,24 @@ const App = () => {
     }
   }, [settingsOpenAt, openAtTab, clearSettingsOpenAt]);
   const { arrangeMode, toggleArrangeMode, exitArrangeMode } = useArrangeMode();
+
+  // Command intents from the palette (dispatched via useUIStore request counters).
+  useEffect(() => {
+    if (!catalogOpenRequest) return;
+    setShowCatalog(true);
+    closeSettings();
+  }, [catalogOpenRequest, closeSettings]);
+
+  useEffect(() => {
+    if (!arrangeToggleRequest) return;
+    toggleArrangeMode();
+  }, [arrangeToggleRequest, toggleArrangeMode]);
+
+  useEffect(() => {
+    if (!focusModeRequest) return;
+    openFocusMode();
+  }, [focusModeRequest, openFocusMode]);
+
   const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent, cardStyle });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
   // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
