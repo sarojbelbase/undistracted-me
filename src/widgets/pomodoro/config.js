@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { PomodoroSettings } from './Settings';
 import { StopwatchFill } from 'react-bootstrap-icons';
 
@@ -21,6 +20,5 @@ export default {
     xs: { x: 0, y: 83, w: 8, h: 14 },
     xxs: { x: 0, y: 166, w: 8, h: 18 },
   },
-  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
   settingsComponent: PomodoroSettings,
 };
