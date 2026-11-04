@@ -1,10 +1,8 @@
 # Notes Sync via Private Gists — Implementation Plan
 
-> **Status:** Implemented (see `src/utilities/notesSync.js` + `src/utilities/noteText.js`)
-> **Depends on:** GitHub OAuth device flow + gist transport (shipped in `abe4245`)
-> **Scope:** Sync each Notes-widget note as its own discoverable, private GitHub gist,
-> separate from the settings/config gist. The config gist keeps a `note_id → note_key`
-> index so notes stay discoverable and identifiable across devices.
+> **Status:** Superseded — notes now sync as per-note files in Google Drive `appDataFolder` (via `src/utilities/syncTransport.js`), not private gists. This plan is kept for historical reference; the merge/reconcile design was carried over to `src/utilities/notesSync.js`.
+> **Depends on:** ~~GitHub OAuth device flow + gist transport~~ → Google OAuth `drive.appdata` (shipped with the Drive migration)
+> **Scope:** Sync each Notes-widget note as its own file in the hidden Drive app-data folder, separate from the settings/config file. The config file keeps a `note_id → fileId` index so notes stay discoverable and identifiable across devices.
 
 > **Known limitation:** only the *default* notes instance (`widgetSettings_notes`) is
 > synced; additional notes-widget instances are out of scope for v1.

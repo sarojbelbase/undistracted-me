@@ -1,7 +1,7 @@
 # Cross-Device Sync — Architecture & Edge-Case Handling
 
-> **Status:** In progress
-> **Applies to:** `src/utilities/syncEngine.js`, `src/utilities/githubAuth.js`, `src/utilities/notesSync.js`
+> **Status:** Superseded (transport) — cross-device sync now uses **Google Drive `appDataFolder`**, not GitHub gists. See [`google-drive-sync.md`](./google-drive-sync.md) and [`src/utilities/syncTransport.js`](../src/utilities/syncTransport.js). The **merge logic** (LWW element sets, tombstones, schema versioning) described below is unchanged and still accurate — only the transport (gist vs Drive file) differs.
+> **Applies to:** `src/utilities/syncEngine.js`, `src/utilities/syncTransport.js`, `src/utilities/notesSync.js`
 
 This document explains how the current sync works, the edge cases it does and does
 not handle, and the target architecture. It answers, concretely, the four questions:
