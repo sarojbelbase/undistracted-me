@@ -213,6 +213,27 @@ export function QuickTour() {
 
   const shouldShow = quickTourSeenVersion !== TOUR_VERSION;
 
+  // Declared BEFORE the effects below — the keyboard listener's dependency array
+  // references these, and referencing a `const` before its declaration throws a
+  // temporal-dead-zone ReferenceError ("Cannot access 'dismiss' before
+  // initialization").
+  const dismiss = useCallback(() => {
+    setExiting(true);
+    setTimeout(() => {
+      markQuickTourSeen(TOUR_VERSION);
+      setVisible(false);
+    }, 280);
+  }, [markQuickTourSeen]);
+
+  const goToStep = useCallback((next) => {
+    setStepAnim('out');
+    setTimeout(() => {
+      setStep(next);
+      setStepAnim('in');
+      setTimeout(() => setStepAnim('idle'), 220);
+    }, 180);
+  }, []);
+
   // Mount after a short delay so the app renders first (smooth experience)
   useEffect(() => {
     if (!shouldShow) return;
@@ -231,23 +252,6 @@ export function QuickTour() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [visible, step, dismiss, goToStep]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const dismiss = useCallback(() => {
-    setExiting(true);
-    setTimeout(() => {
-      markQuickTourSeen(TOUR_VERSION);
-      setVisible(false);
-    }, 280);
-  }, [markQuickTourSeen]);
-
-  const goToStep = useCallback((next) => {
-    setStepAnim('out');
-    setTimeout(() => {
-      setStep(next);
-      setStepAnim('in');
-      setTimeout(() => setStepAnim('idle'), 220);
-    }, 180);
-  }, []);
 
   if (!shouldShow || !visible) return null;
 
