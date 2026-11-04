@@ -83,13 +83,15 @@ describe('SupportDialog', () => {
     render(<SupportDialog open onClose={() => {}} />);
     expect(screen.getByText('Help Undistracted Me keep growing')).toBeInTheDocument();
     expect(screen.getByText('Support on Buy Me a Momo')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Continue to Undistracted Me' }),
+    ).toBeInTheDocument();
   });
 
-  it('calls onClose when Done is clicked', () => {
+  it('calls onClose when Continue is clicked', () => {
     const onClose = vi.fn();
     render(<SupportDialog open onClose={onClose} />);
-    screen.getByRole('button', { name: 'Done' }).click();
+    screen.getByRole('button', { name: 'Continue to Undistracted Me' }).click();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
