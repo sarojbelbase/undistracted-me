@@ -302,9 +302,9 @@ const SkeletonPanel = () => (
 
 // ─── Pill label ───────────────────────────────────────────────────────────────
 
-function pillLabel(remaining, loading) {
+function pillLabel(remaining, loading, total) {
   if (loading) return '…';
-  if (remaining === 0) return 'All done';
+  if (remaining === 0) return total > 0 ? 'All done' : '0 tasks';
   return `${remaining} task${remaining === 1 ? '' : 's'}`;
 }
 
@@ -516,7 +516,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, conn
             return <span style={{ display: 'inline-block', width: 52, height: 10, borderRadius: 5, background: FM_TOGGLE_OFF_BG, verticalAlign: 'middle' }} />;
           }
           const pillColor = allDone ? FM_SUCCESS : MED;
-          return <span style={{ color: pillColor }}>{pillLabel(remaining, false)}</span>;
+          return <span style={{ color: pillColor }}>{pillLabel(remaining, false, tasks.length)}</span>;
         })()}
 
         <svg

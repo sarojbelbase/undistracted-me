@@ -118,11 +118,12 @@ export const SectionLabel = ({ children }) => (
 
 // ─── Toggle switch ────────────────────────────────────────────────────────────
 
-export const Toggle = ({ checked, onChange }) => (
+export const Toggle = ({ checked, onChange, ariaLabel }) => (
   <button
     type="button"
     role="switch"
     aria-checked={checked}
+    aria-label={ariaLabel}
     onClick={() => onChange(!checked)}
     style={{
       flexShrink: 0,
@@ -160,7 +161,7 @@ export const ToggleRow = ({ label, description, checked, onChange, borderTop = f
         </div>
       )}
     </div>
-    <Toggle checked={checked} onChange={onChange} />
+    <Toggle checked={checked} onChange={onChange} ariaLabel={label} />
   </div>
 );
 

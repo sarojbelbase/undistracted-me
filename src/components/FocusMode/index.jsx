@@ -296,6 +296,7 @@ export const FocusMode = ({ onExit }) => {
           toggleFullscreen={toggleFullscreen}
           uiVisible={uiVisible}
           onOpenSettings={(tab) => setSettingsTab(tab ?? "search")}
+          settingsOpen={settingsTab !== null}
         />
       )}
 

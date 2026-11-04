@@ -332,7 +332,13 @@ export const SearchBar = ({ centerOnDark = true }) => {
     if (e.key === 'ArrowDown') { handleArrowDown(e); return; }
     if (e.key === 'ArrowUp') { handleArrowUp(e); return; }
     if (e.key === 'Enter') { handleEnter(e); return; }
-    if (e.key === 'Escape') handleEscape();
+    if (e.key === 'Escape') {
+      // Stop propagation so this keypress doesn't bubble to the document-level
+      // FocusMode listener, which would otherwise exit Focus Mode entirely.
+      e.preventDefault();
+      e.stopPropagation();
+      handleEscape();
+    }
   };
 
   const showDropdown = focused && (
@@ -402,6 +408,8 @@ export const SearchBar = ({ centerOnDark = true }) => {
 
         {/* Search submit button */}
         <button
+          type="button"
+          aria-label="Search"
           onClick={() => submit()}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',

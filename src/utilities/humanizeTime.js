@@ -135,7 +135,10 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   if (absDays < 7) return _futureDays(absDays, target);
   if (absDays < 14 && _isNextWeek(target, now)) return { compact: 'Next Week', full: 'next week', calendar: 'Next Week' };
   if (_isNextMonth(target, now)) return { compact: 'Next Month', full: 'next month', calendar: 'Next Month' };
-  if (_isNextYear(target, now)) return { compact: 'Next Year', full: 'next year', calendar: 'Next Year' };
+  // "Next Year" is only meaningful when the date is actually far out (>= 6
+  // months). A date 2 months away that merely falls in the next calendar year
+  // (e.g. November → January) is better described as "in 2 months".
+  if (_isNextYear(target, now) && calMonths >= 6) return { compact: 'Next Year', full: 'next year', calendar: 'Next Year' };
   if (absDays < 30) return _futureWeeks(absDays);
   if (calMonths < 12) return _futureMonths(calMonths);
   return _futureYears(calYears);

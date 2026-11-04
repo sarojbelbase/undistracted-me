@@ -207,8 +207,11 @@ const NavBar = ({
   toggleFullscreen,
   uiVisible,
   onOpenSettings,
+  settingsOpen,
 }) => {
-  const [settingsActive, setSettingsActive] = useState(false);
+  // Derived from the parent's settings-dialog state so it always resets when the
+  // dialog closes (previously a local flag that was only ever set to true).
+  const settingsActive = settingsOpen;
 
   const [rainHovered, setRainHovered] = useState(false);
   const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef } = useRainStream(FADE_DURATION_MS);
@@ -306,7 +309,6 @@ const NavBar = ({
 
         <TooltipBtn
           onClick={() => {
-            setSettingsActive(true);
             onOpenSettings?.('general');
           }}
           className="group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
@@ -331,6 +333,7 @@ export const TopZone = ({
   toggleFullscreen,
   uiVisible,
   onOpenSettings,
+  settingsOpen,
 }) => {
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const weather = useFocusWeather();
@@ -356,6 +359,7 @@ export const TopZone = ({
         toggleFullscreen={toggleFullscreen}
         uiVisible={uiVisible}
         onOpenSettings={onOpenSettings}
+        settingsOpen={settingsOpen}
       />
       <InfoStrip weather={weather} dateParts={dateParts} />
     </>
