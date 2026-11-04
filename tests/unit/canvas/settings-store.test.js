@@ -211,6 +211,15 @@ describe('lookAway settings', () => {
     useSettingsStore.getState().setLookAwayInterval(1);
     expect(useSettingsStore.getState().lookAwayInterval).toBe(1);
   });
+
+  it('migrates a persisted v0 1-minute interval to 20 minutes on rehydrate', async () => {
+    localStorage.setItem(
+      'undistracted_settings',
+      JSON.stringify({ state: { lookAwayInterval: 1 }, version: 0 }),
+    );
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().lookAwayInterval).toBe(20);
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
