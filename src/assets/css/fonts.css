@@ -5,3 +5,6 @@
    Hind: humanist sans with full Devanagari coverage, bold weights.
    League Gothic has no Devanagari so Hind steps in automatically.          */
 @import url("https://fonts.googleapis.com/css2?family=League+Gothic&family=Hind:wght@600;700&display=swap");
+
+/* ── Bricolage Grotesque (support dialog display type) ─────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&display=swap");
