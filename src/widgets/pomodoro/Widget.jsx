@@ -171,27 +171,31 @@ export const Widget = ({ id, onRemove }) => {
   const lastSaveRef = useRef(0);
   const completedRef = useRef(false);
   const pendingSessionRef = useRef(null);
+  // Stable ref mirroring `note` so startBreak can read the latest note without
+  // changing its own dependency list (which would cancel the auto-break timer).
+  const noteRef = useRef('');
 
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
 
   // ── Start a timer (focus or break) ────────────────────────────────────
-  const startTimer = useCallback((secs, label, type = SESSION_TYPE.FOCUS) => {
+  const startTimer = useCallback((secs, label, type = SESSION_TYPE.FOCUS, running = false) => {
     const next = {
       phase: type === SESSION_TYPE.BREAK ? PHASE.BREAK : PHASE.TIMER,
       preset: label,
       duration: secs,
       remaining: secs,
-      running: false,
+      running,
       sessionType: type,
     };
     saveTimer(id, next);
     setPreset(label);
     setDuration(secs);
     setRemaining(secs);
-    setRunning(false);
+    setRunning(running);
     setShowCustom(false);
     setNote('');
+    noteRef.current = '';
     setSessionType(type);
     setPhase(next.phase);
     completedRef.current = false;
@@ -232,8 +236,22 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Start break (after focus session completes) ───────────────────────
   const startBreak = useCallback(() => {
+    // Persist the just-completed focus session before the break replaces it, so
+    // an auto-start (or a manual "Start break") never silently drops it from
+    // history. Captures the note typed during the "Session Complete" state.
+    const pending = pendingSessionRef.current;
+    if (pending && pending.type === SESSION_TYPE.FOCUS) {
+      saveSession({
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        ...pending,
+        note: noteRef.current.trim() || '',
+      });
+      pendingSessionRef.current = null;
+    }
     const breakSecs = (breakDuration || 5) * 60;
-    startTimer(breakSecs, `${breakDuration || 5}m break`, SESSION_TYPE.BREAK);
+    // Run immediately — "auto-start" should actually start the countdown, not
+    // stage a paused break the user must manually resume.
+    startTimer(breakSecs, `${breakDuration || 5}m break`, SESSION_TYPE.BREAK, true);
   }, [breakDuration, startTimer]);
 
   // ── Timer tick effect ─────────────────────────────────────────────────
@@ -322,7 +340,7 @@ export const Widget = ({ id, onRemove }) => {
   }, []);
 
   // ── Callbacks for DoneState ───────────────────────────────────────────
-  const handleNoteChange = useCallback((val) => setNote(val), []);
+  const handleNoteChange = useCallback((val) => { setNote(val); noteRef.current = val; }, []);
   const handleDone = useCallback(() => {
     // Write the completed session to history now, capturing the note the user
     // typed after the timer finished (see completion effect above).

@@ -30,8 +30,15 @@ export function useSpotifyPlayback(connected, setConnected) {
       const t = parseTrack(data);
       setTrack(t);
       if (!t) { setAlbumColor(null); lastArtRef.current = null; }
-    } catch (e) { if (e.message === 'not_authenticated') setTrack(null); }
-  }, []);
+    } catch (e) {
+      if (e.message === 'not_authenticated') {
+        setTrack(null);
+        // Token is gone/invalid — flip to disconnected so the widget shows the
+        // connect CTA again instead of a phantom "connected, nothing playing".
+        setConnected(false);
+      }
+    }
+  }, [setConnected]);
 
   useEffect(() => {
     if (!track?.albumArt || track.albumArt === lastArtRef.current) return;

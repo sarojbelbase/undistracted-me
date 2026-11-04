@@ -67,7 +67,7 @@ export const PomodoroSettings = ({ id }) => {
               Plays a notification sound when the timer completes
             </p>
           </div>
-          <Toggle checked={soundEnabled} onChange={toggleSound} />
+          <Toggle checked={soundEnabled} onChange={toggleSound} ariaLabel="End-of-session chime" />
         </div>
 
         {/* Rain sounds */}
@@ -78,7 +78,7 @@ export const PomodoroSettings = ({ id }) => {
               Looping rain audio to help you focus
             </p>
           </div>
-          <Toggle checked={rainSound} onChange={toggleRain} />
+          <Toggle checked={rainSound} onChange={toggleRain} ariaLabel="Ambient rain" />
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export const PomodoroSettings = ({ id }) => {
               Automatically begins a break timer when focus ends
             </p>
           </div>
-          <Toggle checked={autoBreak} onChange={toggleAutoBreak} />
+          <Toggle checked={autoBreak} onChange={toggleAutoBreak} ariaLabel="Auto-start break after session" />
         </div>
 
         {/* Break duration */}

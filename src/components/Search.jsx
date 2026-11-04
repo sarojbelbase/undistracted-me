@@ -60,10 +60,12 @@ function suggestUrl(engine) {
   if (!engine.suggest) return null;
   if (!IS_DEV) return engine.suggest;
   const u = new URL(engine.suggest);
+  // DuckDuckGo's suggest URL has no `client` query param, so detect it by
+  // hostname rather than relying on a `client=ddg` marker that never appears.
+  if (/duckduckgo\.com/i.test(u.hostname)) return "/api/suggest?client=ddg&q=";
   const client = u.searchParams.get("client") || "chrome";
   const ds = u.searchParams.get("ds") || "";
   if (ds) return `/api/suggest?client=${client}&ds=${ds}&q=`;
-  if (client === "ddg") return "/api/suggest?client=ddg&q=";
   return `/api/suggest?client=${client}&q=`;
 }
 

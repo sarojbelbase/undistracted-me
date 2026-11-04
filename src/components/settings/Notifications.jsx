@@ -45,7 +45,7 @@ export const Notifications = () => {
             Browser alerts from the extension
           </p>
         </div>
-        <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} />
+        <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} ariaLabel="Notifications" />
       </div>
 
       {/* ── Per-type rows ── */}
@@ -101,6 +101,7 @@ export const Notifications = () => {
                 <Toggle
                   checked={active}
                   onChange={(v) => setNotificationType(id, v)}
+                  ariaLabel={label}
                 />
               </div>
             );

@@ -72,7 +72,9 @@ function resolveActiveTarget(
       repeat: sorted[0].repeat,
       mode: "countdown",
     };
-  return null;
+  // No next event/countdown to roll over to — keep showing the current target
+  // through its final minute rather than flipping to the empty state.
+  return target;
 }
 
 // ─── Main Widget ─────────────────────────────────────────────────────────────

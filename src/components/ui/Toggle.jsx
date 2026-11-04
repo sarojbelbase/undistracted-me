@@ -2,17 +2,19 @@
  * Toggle — iOS-style on/off switch used across settings panels.
  *
  * Props:
- *   checked  – boolean, whether the toggle is on
- *   onChange – (next: boolean) => void
+ *   checked   – boolean, whether the toggle is on
+ *   onChange  – (next: boolean) => void
+ *   ariaLabel – accessible name for the switch (required for a11y)
  */
 
 import React from 'react';
 
-export const Toggle = ({ checked, onChange }) => (
+export const Toggle = ({ checked, onChange, ariaLabel }) => (
   <button
     type="button"
     role="switch"
     aria-checked={checked}
+    aria-label={ariaLabel}
     onClick={() => onChange(!checked)}
     style={{
       flexShrink: 0,

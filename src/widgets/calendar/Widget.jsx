@@ -148,6 +148,9 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [monthOffset, setMonthOffset] = useState(0);
   // startWeek: which week index within calendarData.days is the top row
   const [startWeek, setStartWeek] = useState(0);
+  // Set when "Previous week" crosses into the previous month, so we can land on
+  // its *last* two weeks once the new month's data (and totalWeeks) has loaded.
+  const pendingPrevCross = useRef(false);
 
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
   const [localEvents] = useEvents();
@@ -201,13 +204,23 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
     }
   }, [totalWeeks, startWeek]);
 
+  // Land on the *last* two weeks of the previous month after a backward cross
+  // (the previous month's week count isn't known until its data loads).
+  useEffect(() => {
+    if (!pendingPrevCross.current) return;
+    pendingPrevCross.current = false;
+    const tw = Math.ceil(calendarData.days.length / 7);
+    setStartWeek(Math.max(0, tw - 2));
+  }, [calendarData]);
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   const goPrev = () => {
     setStartWeek(prev => {
       if (prev > 0) return prev - 1;
-      // Cross into previous month
+      // Cross into previous month — flag so we land at its last weeks on load.
+      pendingPrevCross.current = true;
       setMonthOffset(m => m - 1);
-      return 0; // temporary — will be clamped when new data loads
+      return 0;
     });
   };
 

@@ -111,11 +111,14 @@ export function CommandPalette({ onClose }) {
       e.preventDefault();
       if (arrowed && activeIdx >= 0 && flatItems[activeIdx]) {
         runItem(flatItems[activeIdx]);
+      } else if (urlTarget) {
+        // A URL-looking query should navigate on a bare Enter (omnibox convention).
+        navigate(urlTarget); onClose();
       } else if (hasQuery) {
         search(); onClose();
       }
     }
-  }, [flatItems, activeIdx, arrowed, runItem, hasQuery, search, onClose, handleCycleEngine]);
+  }, [flatItems, activeIdx, arrowed, runItem, hasQuery, urlTarget, navigate, search, onClose, handleCycleEngine]);
 
   return (
     <Modal

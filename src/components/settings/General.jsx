@@ -97,7 +97,7 @@ export const General = ({ onPreviewLookAway }) => {
               Reminds you to rest your eyes regularly
             </p>
           </div>
-          <Toggle checked={lookAwayEnabled} onChange={setLookAwayEnabled} />
+          <Toggle checked={lookAwayEnabled} onChange={setLookAwayEnabled} ariaLabel="Look Away" />
         </div>
 
         {/* Expanded controls */}
@@ -173,7 +173,7 @@ export const General = ({ onPreviewLookAway }) => {
               Browser alerts from the extension
             </p>
           </div>
-          <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} />
+          <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} ariaLabel="Notifications" />
         </div>
 
         {notificationsEnabled && (
@@ -225,6 +225,7 @@ export const General = ({ onPreviewLookAway }) => {
                   <Toggle
                     checked={active}
                     onChange={(v) => setNotificationType(id, v)}
+                    ariaLabel={label}
                   />
                 </div>
               );

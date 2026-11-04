@@ -121,6 +121,7 @@ export const Appearance = () => {
               <TooltipBtn
                 key={id}
                 tooltip={id === 'auto' ? 'Follows sunrise & sunset at your location' : undefined}
+                aria-label={label}
                 onClick={() => setMode(id)}
                 style={{
                   flex: 1,

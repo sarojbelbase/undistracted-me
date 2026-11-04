@@ -64,6 +64,22 @@ const renderWidget = (id, type, onRemove) => {
   return <reg.Component id={id} onRemove={onRemove} />;
 };
 
+/** Shown when there are no renderable widgets (all removed, or unknown types). */
+const EmptyCanvas = () => (
+  <div
+    className="w-full h-full flex flex-col items-center justify-center gap-2.5 select-none"
+    style={{ minHeight: 280, textAlign: "center" }}
+  >
+    <span style={{ fontSize: 40, lineHeight: 1 }} aria-hidden="true">🖼️</span>
+    <p style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>
+      Your canvas is empty
+    </p>
+    <p style={{ fontSize: 12, color: "var(--w-ink-4)", maxWidth: 300, lineHeight: 1.5 }}>
+      Add widgets from the <strong style={{ color: "var(--w-ink-3)" }}>Widgets</strong> button in the top-right corner.
+    </p>
+  </div>
+);
+
 export const WidgetGrid = React.memo(function WidgetGrid({
   instances,
   onRemoveInstance,
@@ -197,6 +213,18 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   const isDragging = draggingId !== null;
   const showOverlay = isDragging || arrangeMode;
+
+  // Zero renderable widgets → show an empty-state hint instead of a blank page.
+  const renderableCount = (instances || []).filter(
+    ({ type }) => REG_MAP[type]?.Component,
+  ).length;
+  if (renderableCount === 0) {
+    return (
+      <div className="w-full h-full" ref={containerRef}>
+        <EmptyCanvas />
+      </div>
+    );
+  }
 
   // ── Mobile stack (< 480px, not in arrange mode) ────────────────────────────
   // react-grid-layout wraps every item in DraggableCore which registers a

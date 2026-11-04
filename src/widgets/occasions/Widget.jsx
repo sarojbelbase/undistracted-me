@@ -112,6 +112,31 @@ const ConnectPrompt = ({ onConnect, onAdd }) => (
         Connect Google Contacts to sync birthdays or add them manually.
       </p>
     </div>
+    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+      <button
+        type="button"
+        onClick={onConnect}
+        style={{
+          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+          fontSize: 11.5, fontWeight: 600, border: 'none',
+          background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
+        }}
+      >
+        Connect Contacts
+      </button>
+      <button
+        type="button"
+        onClick={onAdd}
+        style={{
+          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+          fontSize: 11.5, fontWeight: 600,
+          background: 'transparent', color: 'var(--w-ink-3)',
+          border: '1px solid var(--card-border)',
+        }}
+      >
+        Add manually
+      </button>
+    </div>
   </div>
 );
 

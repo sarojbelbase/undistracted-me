@@ -239,8 +239,17 @@ export const disconnectSpotify = () => {
   localStorage.removeItem(CONNECTED_FLAG);
 };
 
-// Synchronous — reads only the non-sensitive boolean flag, not the token itself.
-export const isSpotifyConnected = () => !!localStorage.getItem(CONNECTED_FLAG);
+// Synchronous — in web mode validates that a token actually exists (it lives in
+// sessionStorage, which is wiped on restart) so the "connected" flag can't go
+// stale and report a phantom connected state with no token.
+export const isSpotifyConnected = () => {
+  if (isWebMode()) {
+    const raw = sessionStorage.getItem(TOKEN_KEY);
+    if (!raw) return false;
+    try { return !!JSON.parse(raw)?.access_token; } catch { return false; }
+  }
+  return !!localStorage.getItem(CONNECTED_FLAG);
+};
 
 export const getSpotifyProfile = async () => {
   if (isWebMode()) {
