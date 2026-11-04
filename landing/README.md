@@ -13,9 +13,9 @@ landing/
 ├── index.html        Semantic, accessible single page
 ├── pp-and-tos.html   Privacy Policy & Terms of Service (self-contained, no JS)
 ├── styles.css        Design system (light + dark mode, CSS variables, responsive)
-├── app.js            Mobile nav, theme toggle, scroll reveal, FAQ accordion
+├── app.js            Mobile nav, theme toggle, scroll reveal, scrollspy, FAQ accordion
 ├── vercel.json       Standalone Vercel config (static site, security headers)
-├── assets/           Logo, favicon, and product screenshots
+├── assets/           Logo, favicon, hero photography, and product screenshots
 ├── .gitignore        Ignores the local `.vercel/` project link
 └── README.md         This file
 ```
@@ -101,7 +101,11 @@ two links in `index.html` accordingly.
 
 ## Design system (summary)
 
-- **Style:** minimal, calm, generous whitespace, micro-interactions, mobile-first.
-- **Colors:** teal primary `#0D9488`, orange action `#EA580C`, light teal background.
-- **Type:** `Lora` (headings) + `Raleway` (body), via Google Fonts.
+The full system is documented in [`../DESIGN.md`](../DESIGN.md) — the single source of truth.
+
+- **Style:** "Himal" — Himalayan editorial. Rules-and-columns replace the card grid; an asymmetric hero; one saffron accent used sparingly.
+- **Signature move:** a thin Himalayan ridgeline (inline SVG) dividing sections, underlining the active nav link, and capping the footer, plus a Devanagari Bikram Sambat year (`वि.सं. २०८३`) in the hero.
+- **Colors:** parchment `#f6efe3` / pine ink `#1d2b26` / Himalayan pine `#2f5a4b` / saffron `#bd6f1e` (authored in OKLCH).
+- **Type:** `Fraunces` (display serif) + `Schibsted Grotesk` (body), via Google Fonts.
 - **Modes:** light/dark via `prefers-color-scheme` + a manual toggle (persisted).
+- **Hero photography:** misty Himalayan range, warm-graded and served as responsive WebP (`hero-960/1600/2560.webp`).
