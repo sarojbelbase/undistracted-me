@@ -42,6 +42,8 @@ export const extractDomain = (urlOrDomain) => {
   // Already a bare domain (no protocol)
   if (!urlOrDomain.includes('://') && !urlOrDomain.startsWith('//')) {
     const cleaned = urlOrDomain.replace(/^www\./, '').split('/')[0].split(':')[0].trim().toLowerCase();
+    // Never block localhost / the extension's own domain — same guard as the URL path.
+    if (NEVER_BLOCK_DOMAINS.has(cleaned)) return null;
     return cleaned || null;
   }
 

@@ -31,7 +31,7 @@ export const getDateOffset = (offset) => {
  * @returns {'Today'|'Tomorrow'|'Later'|'Past'}
  */
 export const bucketLabel = (dateStr) => {
-  if (!dateStr) return 'Past';
+  if (!dateStr) return 'Today';
   const h = humanizeTime(dateStr);
   if (h.isToday) return 'Today';
   if (h.isTomorrow) return 'Tomorrow';

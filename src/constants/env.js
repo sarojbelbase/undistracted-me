@@ -34,7 +34,7 @@ export const PLATFORMS = {
 
 /** Auto-detect current runtime platform */
 export const getPlatform = () => {
-  if (globalThis.window == 'undefined') return PLATFORMS.WEB; // SSR fallback
+  if (typeof globalThis.window === 'undefined') return PLATFORMS.WEB; // SSR fallback
   
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if (isMobile) return PLATFORMS.PHONE;

@@ -77,15 +77,17 @@ describe('importSettings — happy path', () => {
     expect(() => importSettings(payload)).not.toThrow();
   });
 
-  it('clears prior localStorage before restoring', () => {
-    localStorage.setItem('stale_key', 'stale_value');
+  it('clears prior portable app keys before restoring (preserves non-app keys)', () => {
+    localStorage.setItem('widget_events', '["old"]');
+    localStorage.setItem('stale_key', 'stale_value'); // non-app key — must survive
     const payload = JSON.stringify({
       undistracted_me: {
         undistracted_settings: '{}',
       },
     });
     importSettings(payload);
-    expect(localStorage.getItem('stale_key')).toBeNull();
+    expect(localStorage.getItem('widget_events')).toBeNull(); // portable app key cleared
+    expect(localStorage.getItem('stale_key')).toBe('stale_value'); // non-app key preserved
   });
 
   it('calls window.location.reload() after import', () => {
@@ -211,11 +213,15 @@ describe('exportSettings', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('resetSettings', () => {
-  it('clears localStorage', () => {
+  it('clears app-owned keys but preserves non-app keys', () => {
     localStorage.setItem('undistracted_settings', '{"state":{}}');
     localStorage.setItem('widget_instances', '[]');
+    localStorage.setItem('some_third_party_key', 'keep');
     resetSettings();
-    expect(localStorage.length).toBe(0);
+    expect(localStorage.getItem('undistracted_settings')).toBeNull();
+    expect(localStorage.getItem('widget_instances')).toBeNull();
+    // Non-app keys must survive a reset (reset only touches app-owned keys).
+    expect(localStorage.getItem('some_third_party_key')).toBe('keep');
   });
 
   it('calls window.location.reload()', () => {
@@ -277,8 +283,7 @@ describe('export/import filtering', () => {
     localStorage.setItem('gcal_access_token', 'gcal-token');
     localStorage.setItem('spotify_tokens', JSON.stringify({ access_token: 'x' }));
     localStorage.setItem('spotify_connected', '1');
-    localStorage.setItem('github_gist_id', 'gist-1');
-    localStorage.setItem('github_connected', '1');
+    localStorage.setItem('drive_sync_connected', '1');
     localStorage.setItem('sync_timestamps', JSON.stringify({ key: 123 }));
     localStorage.setItem('sync_fingerprint', JSON.stringify({ local: 'a', remote: 'b' }));
 
@@ -287,8 +292,7 @@ describe('export/import filtering', () => {
     expect(payload.undistracted_me.gcal_access_token).toBeUndefined();
     expect(payload.undistracted_me.spotify_tokens).toBeUndefined();
     expect(payload.undistracted_me.spotify_connected).toBeUndefined();
-    expect(payload.undistracted_me.github_gist_id).toBeUndefined();
-    expect(payload.undistracted_me.github_connected).toBeUndefined();
+    expect(payload.undistracted_me.drive_sync_connected).toBeUndefined();
     expect(payload.undistracted_me.sync_timestamps).toBeUndefined();
     expect(payload.undistracted_me.sync_fingerprint).toBeUndefined();
   });
@@ -319,6 +323,18 @@ describe('export/import filtering', () => {
     expect(payload.undistracted_me.undistracted_settings).toBeTruthy();
     expect(payload.undistracted_me.widget_events).toBeTruthy();
     expect(payload.undistracted_me.countdown_events).toBeTruthy();
+  });
+
+  it('exports manual occasions, expenses, and blocked sites (user data)', async () => {
+    localStorage.setItem('birthdays_manual', JSON.stringify([{ id: 'm1', name: 'Mom', type: 'birthday', month: 4, day: 8 }]));
+    localStorage.setItem('expense_data_expense', JSON.stringify([{ id: 'e1', amount: 10 }]));
+    localStorage.setItem('blocked_sites', JSON.stringify([{ domain: 'x.com', blockedUntil: 123 }]));
+
+    const payload = await readExported();
+
+    expect(payload.undistracted_me.birthdays_manual).toBeTruthy();
+    expect(payload.undistracted_me.expense_data_expense).toBeTruthy();
+    expect(payload.undistracted_me.blocked_sites).toBeTruthy();
   });
 
   it('import skips excluded keys so it cannot clobber local secrets or notes', () => {

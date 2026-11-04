@@ -12,6 +12,10 @@ const APP_KEY_PREFIXES = [
   "pomodoro_",
   "location_state",
   "auto_theme_coords",
+  "blocked_sites",
+  // User data that lives outside the settings/widget stores
+  "birthdays_manual", // manual occasions
+  "expense_data_", // expenses (excludes expense_migrated_ via EXPORT_EXCLUDED_PREFIXES)
   // Legacy keys
   "language",
   "app_accent",

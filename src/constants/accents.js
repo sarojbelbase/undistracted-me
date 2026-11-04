@@ -49,7 +49,7 @@ function _hexToRgb(hex) {
  * div, portalled FM dialogs).
  */
 export function getFMAccentVars(accentName) {
-  const a = ACCENT_COLORS.find(c => c.name === accentName) || ACCENT_COLORS[1];
+  const a = ACCENT_COLORS.find(c => c.name === accentName) || ACCENT_COLORS[0];
   const hex = a.darkHex ?? a.hex;
   const fg  = a.darkFg  ?? a.fg;
   return {
