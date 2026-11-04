@@ -1,5 +1,5 @@
 import React from 'react';
-import { XLg, PencilFill } from 'react-bootstrap-icons';
+import { XLg, Pencil } from 'react-bootstrap-icons';
 import { ConfirmButton } from './ConfirmButton';
 import { Divider } from './Divider';
 
@@ -152,7 +152,7 @@ export const ListPanelRow = ({
           className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
           style={{ color: 'var(--w-ink-4)', background: 'none' }}
         >
-          <PencilFill size={11} />
+          <Pencil size={11} />
         </button>
       )}
       {onDelete && (
