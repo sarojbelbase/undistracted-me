@@ -157,9 +157,9 @@ export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_STOCK_SETTINGS);
   const { symbols = [] } = settings;
 
-  // Shared stocks hook — reads SW cache first, falls back to direct fetch.
+  // Shared stocks hook — serves chart data from the shared DataHub.
   // Same hook used by Focus Mode, so data is shared across contexts.
-  const { stocks, refresh } = useStocks();
+  const { stocks, refresh, updatedAt } = useStocks();
 
   // Derive chartMap + loading from the shared hook output
   const { chartMap, loading } = useMemo(() => {
@@ -173,16 +173,11 @@ export const Widget = ({ id, onRemove }) => {
     return { chartMap: map, loading: anyLoading };
   }, [stocks]);
 
-  // Track refresh timestamp for the age label. Only set once *real* data has
-  // arrived — never while stocks is still empty/loading. This keeps refreshedAt
-  // null during the first load so the skeleton actually renders (previously the
-  // `!loading` effect set it on the first frame, when stocks was still `[]` and
-  // `loading` was false, which permanently disabled the skeleton).
-  const [refreshedAt, setRefreshedAt] = useState(null);
+  // Refresh timestamp comes straight from the DataHub (stamped when the data
+  // was actually fetched), not "when this component first painted it". This
+  // keeps the age label honest ("15m ago" for SW-prefetched data, not "just now").
   const hasData = stocks.some((s) => s.data && s.data !== 'error');
-  useEffect(() => {
-    if (hasData) setRefreshedAt(Date.now());
-  }, [hasData]);
+  const refreshedAt = hasData ? updatedAt : null;
 
   const ageLabel = useAgeLabel(refreshedAt);
 

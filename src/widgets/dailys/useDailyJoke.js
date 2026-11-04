@@ -1,49 +1,46 @@
-import { useEffect, useState } from 'react';
-import { ICANHAZDADJOKE_API } from '../../constants/urls.js';
-import { todayStr } from '../../utilities';
-
-const CACHE_KEY = 'dailys_joke_cache';
+import { useEffect, useState } from "react";
+import { ICANHAZDADJOKE_API } from "../../constants/urls.js";
+import { todayStr } from "../../utilities";
+import { useDataHub } from "../../hooks/useDataHub";
 
 /**
  * Fetches one dad joke from icanhazdadjoke.com per day.
- * Caches in localStorage so subsequent page opens are instant.
+ * Caches in the shared DataHub (stamped with `updatedAt`) so subsequent page
+ * opens are instant. No polling interval — it only fetches when today's joke
+ * isn't already in the hub.
  */
 export const useDailyJoke = () => {
-  const [joke, setJoke] = useState(null);
+  const { data, hydrated, write } = useDataHub("joke");
+  const today = todayStr();
+  const hasTodayJoke = data?.date === today && !!data?.joke;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    try {
-      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-      if (cached?.date === todayStr() && cached?.joke) {
-        setJoke(cached.joke);
-        return;
-      }
-    } catch {
-      // ignore malformed cache
+    if (!hydrated) return;
+    if (hasTodayJoke) {
+      setError(false);
+      return;
     }
 
     setLoading(true);
+    setError(false);
     fetch(ICANHAZDADJOKE_API, {
       headers: {
-        Accept: 'application/json',
-        'User-Agent': 'Undistracted Me (https://undistractedme.sarojbelbase.com.np)',
+        Accept: "application/json",
+        "User-Agent": "Undistracted Me (https://undistractedme.sarojbelbase.com.np)",
       },
       signal: AbortSignal.timeout(6000),
     })
       .then((r) => r.json())
-      .then((data) => {
-        if (data?.joke) {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ date: todayStr(), joke: data.joke }));
-          setJoke(data.joke);
-        } else {
-          setError(true);
-        }
+      .then((json) => {
+        if (json?.joke) write({ date: today, joke: json.joke });
+        else setError(true);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [hydrated, hasTodayJoke, today, write]);
 
-  return { joke, loading, error };
+  return { joke: hasTodayJoke ? data.joke : null, loading, error };
 };

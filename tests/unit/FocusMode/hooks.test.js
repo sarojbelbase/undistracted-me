@@ -152,19 +152,11 @@ describe('useFocusWeather', () => {
     expect(result.current).toBeNull();
   });
 
-  it('sets up a 30-minute refresh interval', () => {
+  it('does NOT set up a page-side polling interval (refresh is SW-driven)', () => {
     const spy = vi.spyOn(global, 'setInterval');
     const { unmount } = renderHook(() => useFocusWeather());
-    expect(spy.mock.calls.some((c) => c[1] === 30 * 60_000)).toBe(true);
+    expect(spy.mock.calls.some((c) => c[1] === 30 * 60_000)).toBe(false);
     unmount();
-    spy.mockRestore();
-  });
-
-  it('clears the interval on unmount', () => {
-    const spy = vi.spyOn(global, 'clearInterval');
-    const { unmount } = renderHook(() => useFocusWeather());
-    unmount();
-    expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 });
@@ -237,7 +229,7 @@ describe('useFocusStocks', () => {
     expect(result.current[1]).toEqual({ sym: 'OK', data: { close: 200 } });
   });
 
-  it('sets up a 5-minute refresh interval', () => {
+  it('does NOT set up a polling interval when symbols are configured (SW-driven)', () => {
     mockStore(
       [{ type: 'stock', id: 'stock' }],
       { stock: { symbols: ['AAPL'] } }
@@ -245,7 +237,7 @@ describe('useFocusStocks', () => {
     const setIntervalSpy = vi.spyOn(global, 'setInterval');
     const { unmount } = renderHook(() => useFocusStocks());
     const call = setIntervalSpy.mock.calls.find((c) => c[1] === 5 * 60_000);
-    expect(call).toBeTruthy();
+    expect(call).toBeUndefined();
     unmount();
   });
 
@@ -256,17 +248,6 @@ describe('useFocusStocks', () => {
     const call = setIntervalSpy.mock.calls.find((c) => c[1] === 5 * 60_000);
     expect(call).toBeUndefined();
     unmount();
-  });
-
-  it('clears the interval on unmount', () => {
-    mockStore(
-      [{ type: 'stock', id: 'stock' }],
-      { stock: { symbols: ['AAPL'] } }
-    );
-    const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
-    const { unmount } = renderHook(() => useFocusStocks());
-    unmount();
-    expect(clearIntervalSpy).toHaveBeenCalled();
   });
 });
 

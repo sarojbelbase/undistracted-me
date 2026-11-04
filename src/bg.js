@@ -16,6 +16,7 @@ import {
 } from './constants/urls.js';
 import { buildNotification } from './constants/notifications.js';
 import { initSiteBlocker } from './utilities/siteBlocker.js';
+import { writeEntry } from './data/dataHub.js';
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
@@ -265,6 +266,85 @@ function injectMediaScript() {
   });
 }
 
+// ─── LookAway: sleep / idle detection ─────────────────────────────────────────
+// `chrome.alarms` is a wall-clock timer: it keeps counting while the laptop is
+// asleep or the browser is closed, then fires a "catch-up" alarm on wake with
+// the ORIGINAL scheduledTime. Left alone, that means time the machine was off
+// would count toward the next break. We reset the countdown whenever we detect
+// the machine was not in active use, so a break only ever fires after a full
+// interval of real, awake, in-browser time.
+
+// Safely above normal alarm jitter — Chrome may delay alarms by up to ~1 min,
+// but a gap this large means the browser/OS was genuinely not running.
+const LOOKAWAY_LATE_RESET_MS = 2 * 60_000;
+
+/** Restart the LookAway countdown from now — a full interval of active use. */
+function resetLookAwayCountdown(periodInMinutes) {
+  const period = Math.max(1, periodInMinutes ?? 1);
+  chrome.alarms.clear(ALARM_LOOKAWAY, () => {
+    chrome.alarms.create(ALARM_LOOKAWAY, { periodInMinutes: period });
+  });
+  chrome.storage.local.remove("lookaway_due");
+}
+
+/** Signal open tabs that a break is due (plus an OS notification if applicable). */
+function fireLookAway(now) {
+  chrome.storage.local.get("lookaway_enabled", ({ lookaway_enabled }) => {
+    if (lookaway_enabled === false) return;
+    chrome.storage.local.set({ lookaway_due: now });
+    // Only show OS notification if no new tab page is visible AND user wants
+    // notifications. If the user already has a new tab open, the in-page overlay
+    // fires via storage.onChanged — a system notification on top is redundant.
+    chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
+      if (lookaway_notify === false) return; // user opted out
+      if (!notifAllowed('lookaway')) return; // master/type toggle off
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs[0];
+        const isNewTab =
+          activeTab?.url === "chrome://newtab/" ||
+          activeTab?.pendingUrl === "chrome://newtab/" ||
+          activeTab?.url?.startsWith("chrome-extension://") ||
+          activeTab?.url?.startsWith("moz-extension://");
+        if (!isNewTab) {
+          chrome.notifications.create(
+            'lookaway_' + Date.now(),
+            buildNotification('lookaway'),
+          );
+        }
+      });
+    });
+  });
+}
+
+function handleLookAwayAlarm(alarm) {
+  const now = Date.now();
+  const lateMs = now - alarm.scheduledTime;
+
+  // Fired late → the browser was closed or the OS was suspended. Reset the
+  // countdown rather than ambush the user the moment they sit back down.
+  if (lateMs > LOOKAWAY_LATE_RESET_MS) {
+    resetLookAwayCountdown(alarm.periodInMinutes);
+    return;
+  }
+
+  // Cross-check the OS idle/locked state (chrome.idle / browser.idle). If the
+  // user is away or the screen is locked, don't nag — reset the countdown.
+  const idleApi = globalThis.chrome?.idle ?? globalThis.browser?.idle;
+  if (idleApi?.queryState) {
+    // 60s detection window — a brief pause isn't mistaken for being away.
+    idleApi.queryState(60, (state) => {
+      if (state === 'idle' || state === 'locked') {
+        resetLookAwayCountdown(alarm.periodInMinutes);
+        return;
+      }
+      fireLookAway(now);
+    });
+    return;
+  }
+
+  fireLookAway(now);
+}
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_TICK) {
     syncEventsFromStorage();
@@ -279,52 +359,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
   // ── LookAway break alarm ─────────────────────────────────────────────────
   if (alarm.name === ALARM_LOOKAWAY) {
-    const now = Date.now();
-    const lateMs = now - alarm.scheduledTime;
-    const periodMs = (alarm.periodInMinutes ?? 10) * 60_000;
-
-    if (lateMs > periodMs * 0.5) {
-      // This alarm fired late — machine was asleep or Chrome was closed.
-      // Chrome fires catch-up alarms with the *original* scheduledTime, so
-      // lateMs will be hours/days for a sleep-wake scenario.
-      // Don't nag the user the moment they sit down. Reset the countdown
-      // from now so the first real break fires after a full interval of active use.
-      chrome.alarms.clear(ALARM_LOOKAWAY, () => {
-        chrome.alarms.create(ALARM_LOOKAWAY, {
-          periodInMinutes: alarm.periodInMinutes ?? 10,
-        });
-      });
-      chrome.storage.local.remove("lookaway_due");
-      return;
-    }
-
-    // Normal firing during an active session — signal open tabs.
-    // Check if lookaway is actually enabled before doing anything.
-    chrome.storage.local.get("lookaway_enabled", ({ lookaway_enabled }) => {
-      if (lookaway_enabled === false) return;
-      chrome.storage.local.set({ lookaway_due: now });
-      // Only show OS notification if no new tab page is visible AND user wants notifications.
-      // If the user already has a new tab open, the in-page overlay fires
-      // via storage.onChanged — a system notification on top would be redundant.
-      chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
-        if (lookaway_notify === false) return; // user opted out
-        if (!notifAllowed('lookaway')) return; // master/type toggle off
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const activeTab = tabs[0];
-          const isNewTab =
-            activeTab?.url === "chrome://newtab/" ||
-            activeTab?.pendingUrl === "chrome://newtab/" ||
-            activeTab?.url?.startsWith("chrome-extension://") ||
-            activeTab?.url?.startsWith("moz-extension://");
-          if (!isNewTab) {
-            chrome.notifications.create(
-              'lookaway_' + Date.now(),
-              buildNotification('lookaway'),
-            );
-          }
-        });
-      });
-    });
+    handleLookAwayAlarm(alarm);
   }
 
   // ── Site blocker auto-unblock alarm ──────────────────────────────────────
@@ -386,15 +421,8 @@ async function runWeatherPrefetch() {
     const data = weatherResult.value;
     const aqiData = aqiResult.status === 'fulfilled' ? aqiResult.value : null;
 
-    await chrome.storage.local.set({
-      weather_sw_cache: {
-        data,
-        aqiData,
-        lat,
-        lon,
-        fetchedAt: Date.now(),
-      },
-    });
+    // Write to the shared DataHub — both canvas and Focus Mode read this.
+    await writeEntry('weather', data, { aqiData, lat, lon });
   } catch {
     // Network unavailable — skip silently
   }
@@ -503,7 +531,7 @@ async function runGcalPrefetch() {
 
 /**
  * Fetches chart data for all configured stock symbols from merolagani.com
- * and caches results in chrome.storage.local['stocks_sw_cache'].
+ * and writes results to the shared DataHub (`stocks` namespace, timestamped).
  * The service worker runs in extension context so direct fetch is allowed.
  */
 async function runStocksPrefetch() {
@@ -548,9 +576,8 @@ async function runStocksPrefetch() {
       r.status === 'fulfilled' ? r.value : { sym: symbols[i], data: 'error' },
     );
 
-    await chrome.storage.local.set({
-      stocks_sw_cache: { data, fetchedAt: Date.now() },
-    });
+    // Write to the shared DataHub — both canvas and Focus Mode read this.
+    await writeEntry('stocks', data, { symbolsKey: JSON.stringify(symbols) });
   } catch {
     // Network unavailable — skip silently
   }
@@ -640,9 +667,7 @@ async function runRssPrefetch() {
       })
       .slice(0, RSS_QUEUE_MAX);
 
-    await chrome.storage.local.set({
-      rss_queue: { items: sorted, fetchedAt: Date.now() },
-    });
+    await writeEntry('rss', sorted, { feedsKey: config.map((c) => c.url).join('|') });
   } catch {
     // Network unavailable or malformed — skip silently
   }
