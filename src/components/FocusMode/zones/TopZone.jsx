@@ -214,9 +214,6 @@ const NavBar = ({
   const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef } = useRainStream(FADE_DURATION_MS);
 
   // ── Settings click-outside ───────────────────────────────────────────────────
-  const fadeIn = (e) => { e.currentTarget.style.opacity = "0.88"; };
-  const fadeOut = (e) => { e.currentTarget.style.opacity = "0.38"; };
-
   return (
     <div
       role="toolbar"
@@ -233,17 +230,13 @@ const NavBar = ({
       {/* Back button */}
       <TooltipBtn
         onClick={onExit}
-        onMouseEnter={fadeIn}
-        onMouseLeave={fadeOut}
-        className="flex items-center gap-1.5 rounded-full focus:outline-none"
+        className="flex items-center gap-1.5 rounded-full focus:outline-none fm-topbar-ctrl"
         style={{
           padding: "9px 12px 9px 11px",
           background: FM_CARD_BG,
           border: `1px solid ${FM_CARD_BORDER}`,
           backdropFilter: FM_CARD_BLUR,
           WebkitBackdropFilter: FM_CARD_BLUR,
-          opacity: 0.52,
-          transition: "opacity 0.2s",
         }}
         tooltip={settingsActive ? null : "Back to Canvas"}
       >
@@ -261,7 +254,7 @@ const NavBar = ({
 
       {/* Right pill: rain toggle · fullscreen · settings */}
       <div
-        className="flex items-center rounded-full opacity-50"
+        className="flex items-center rounded-full fm-topbar-ctrl"
         style={{
           background: FM_CARD_BG,
           border: `1px solid ${FM_CARD_BORDER}`,
