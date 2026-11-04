@@ -34,11 +34,14 @@
       "maxDuration": 15
     }
   },
-  "rewrites": [
+  "redirects": [
     {
       "source": "/pp-and-tos",
-      "destination": "/api/pp-and-tos"
-    },
+      "destination": "https://undistracted.me/pp-and-tos",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"

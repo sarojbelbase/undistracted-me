@@ -144,14 +144,6 @@ export const Widget = ({ id, onRemove }) => {
     ready: rainReady,
   } = useRainStream(3000);
 
-  // Sync the `rainSound` setting to actual playback (start/stop the ambient
-  // rain when the setting flips, and re-apply once the audio URL is ready).
-  useEffect(() => {
-    if (!rainReady || rainSound === rainPlaying) return;
-    toggleRain();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rainSound, rainReady]);
-
   // ── Init from localStorage (once) ─────────────────────────────────────
   const initRef = useRef(undefined);
   if (initRef.current === undefined) initRef.current = loadTimer(id);
@@ -177,6 +169,17 @@ export const Widget = ({ id, onRemove }) => {
 
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
+
+  // Sync the `rainSound` setting to actual playback — but only while a session
+  // is actually in progress (TIMER/BREAK phase). Rain must not auto-play just
+  // from opening the new tab (PICK phase) — it should follow the timer state,
+  // continuing through both running and paused.
+  const rainActive = rainSound && (phase === PHASE.TIMER || phase === PHASE.BREAK);
+  useEffect(() => {
+    if (!rainReady || rainActive === rainPlaying) return;
+    toggleRain();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rainActive, rainReady]);
 
   // ── Start a timer (focus or break) ────────────────────────────────────
   const startTimer = useCallback((secs, label, type = SESSION_TYPE.FOCUS, running = false) => {

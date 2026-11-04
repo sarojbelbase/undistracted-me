@@ -4,19 +4,20 @@ A self-contained static marketing site for the **Undistracted Me** browser exten
 
 - **Marketing site:** `https://undistracted.me` and `https://www.undistracted.me`
 - **Web app / API:** `https://app.undistracted.me`
-- **Privacy & Terms:** `https://app.undistracted.me/pp-and-tos`
+- **Privacy & Terms:** `https://undistracted.me/pp-and-tos`
 
 ## Files
 
 ```
 landing/
-├── index.html      Semantic, accessible single page
-├── styles.css      Design system (light + dark mode, CSS variables, responsive)
-├── app.js          Mobile nav, theme toggle, scroll reveal, FAQ accordion
-├── vercel.json     Standalone Vercel config (static site, security headers)
-├── assets/         Logo, favicon, and product screenshots
-├── .gitignore      Ignores the local `.vercel/` project link
-└── README.md       This file
+├── index.html        Semantic, accessible single page
+├── pp-and-tos.html   Privacy Policy & Terms of Service (self-contained, no JS)
+├── styles.css        Design system (light + dark mode, CSS variables, responsive)
+├── app.js            Mobile nav, theme toggle, scroll reveal, FAQ accordion
+├── vercel.json       Standalone Vercel config (static site, security headers)
+├── assets/           Logo, favicon, and product screenshots
+├── .gitignore        Ignores the local `.vercel/` project link
+└── README.md         This file
 ```
 
 ## Run locally
@@ -77,7 +78,7 @@ After the DNS records propagate, Vercel auto-issues the SSL certs and the aliase
 | Chrome Web Store | `https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef` |
 | Firefox Add-ons | `https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/` |
 | GitHub | `https://github.com/sarojbelbase/undistracted-me` |
-| Privacy & Terms | `https://app.undistracted.me/pp-and-tos` |
+| Privacy & Terms | `https://undistracted.me/pp-and-tos` |
 
 ## Feedback form
 

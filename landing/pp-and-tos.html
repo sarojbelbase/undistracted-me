@@ -1,22 +1,11 @@
-/**
- * GET /pp-and-tos
- *
- * Serves the Privacy Policy and Terms of Service for Undistracted Me as a
- * self-contained HTML page. No external assets except Google Fonts (loaded
- * via a <link> so it degrades gracefully offline). No JS required.
- */
-
-const LAST_UPDATED = 'November 4, 2026';
-const CONTACT_EMAIL = 'hello@undistracted.me';
-const WEBSITE = 'https://undistracted.me';
-
-const html = /* html */ `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Privacy Policy and Terms of Service for Undistracted Me — a focus-oriented new tab extension." />
   <title>Privacy Policy &amp; Terms of Service — Undistracted Me</title>
+  <link rel="canonical" href="https://undistracted.me/pp-and-tos" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -497,7 +486,7 @@ const html = /* html */ `<!DOCTYPE html>
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header class="site-header">
     <div class="logo-row">
-      <img src="/favicon/lotus128.png" alt="Undistracted Me Logo" class="logo-icon" style="background:none; box-shadow:none; border-radius:0; padding:4px;" aria-hidden="true" />
+      <img src="/assets/favicon.png" alt="Undistracted Me Logo" class="logo-icon" style="background:none; box-shadow:none; border-radius:0; padding:4px;" aria-hidden="true" />
       <span class="logo-name">Undistracted Me</span>
     </div>
     <p class="page-eyebrow">Legal</p>
@@ -510,7 +499,7 @@ const html = /* html */ `<!DOCTYPE html>
     <div class="meta-row">
       <span class="meta-pill">
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="1" y="2" width="10" height="9" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 1v2M8 1v2M1 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        Last updated: ${LAST_UPDATED}
+        Last updated: November 4, 2026
       </span>
       <span class="meta-pill">
         <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1a5 5 0 1 0 0 10A5 5 0 0 0 6 1z" stroke="currentColor" stroke-width="1.2"/><path d="M6 4v3l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
@@ -1092,8 +1081,8 @@ const html = /* html */ `<!DOCTYPE html>
 
     <h3>Contact</h3>
     <p>
-      Questions, concerns, or data requests: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a><br>
-      Website: <a href="${WEBSITE}" target="_blank" rel="noopener noreferrer">${WEBSITE}</a>
+      Questions, concerns, or data requests: <a href="mailto:hello@undistracted.me">hello@undistracted.me</a><br>
+      Website: <a href="https://undistracted.me" target="_blank" rel="noopener noreferrer">https://undistracted.me</a>
     </p>
   </section>
 
@@ -1188,7 +1177,7 @@ const html = /* html */ `<!DOCTYPE html>
       </p>
       <p>
         If you have questions about these terms or the privacy policy, reach out at
-        <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>. We aim to respond within 3 business days.
+        <a href="mailto:hello@undistracted.me">hello@undistracted.me</a>. We aim to respond within 3 business days.
       </p>
     </div>
   </section>
@@ -1196,28 +1185,15 @@ const html = /* html */ `<!DOCTYPE html>
   <!-- ── Footer ─────────────────────────────────────────────────────── -->
   <footer class="site-footer">
     <p class="footer-copy">
-      &copy; ${new Date().getFullYear()} Undistracted Me &mdash; Saroj Belbase
+      &copy; 2026 Undistracted Me &mdash; Saroj Belbase
     </p>
     <nav class="footer-links" aria-label="Footer links">
-      <a href="${WEBSITE}" target="_blank" rel="noopener noreferrer">Website</a>
-      <a href="mailto:${CONTACT_EMAIL}">Contact</a>
+      <a href="https://undistracted.me" target="_blank" rel="noopener noreferrer">Website</a>
+      <a href="mailto:hello@undistracted.me">Contact</a>
       <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Revoke Google access</a>
     </nav>
   </footer>
 
 </div>
 </body>
-</html>`;
-
-export default function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    return res.status(405).end();
-  }
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600');
-  res.setHeader('X-Frame-Options', 'DENY');
-
-  if (req.method === 'HEAD') return res.status(200).end();
-  return res.status(200).send(html);
-}
+</html>

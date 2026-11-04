@@ -240,7 +240,7 @@ needed if migration is lazy).
 - **No data on our servers** — note gists are written directly to GitHub's API.
 - **Rate-limit hygiene** — reuse the 5-min throttle + write queue; do not fetch every
   note gist on every focus (only on daily/manual sync or when a note is opened).
-- Update `api/pp-and-tos.js` §5 (GitHub Sync) to list notes as stored-in-gist data
+- Update `landing/pp-and-tos.html` §5 (GitHub Sync) to list notes as stored-in-gist data
   (already listed) and note the "one gist per note" layout.
 
 ---
@@ -277,5 +277,5 @@ tests/unit/canvas/syncEngine.test.js# notes_index round-trip
 3. **Config index integration** — add `notes_index` to the config gist sync.
 4. **Wire the widget** — onNoteChanged/delete hooks.
 5. **UI polish** — note gist links / discoverability.
-6. **Docs + legal** — update CONTEXT.md and `api/pp-and-tos.js`.
+6. **Docs + legal** — update CONTEXT.md and `landing/pp-and-tos.html`.
 7. **Build, test, commit.**

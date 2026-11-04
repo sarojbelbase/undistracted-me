@@ -6,15 +6,15 @@
  * one canonical place to update an endpoint if it ever changes.
  */
 
-import { PRODUCTION_BASE_URL } from './env.js';
+import { PRODUCTION_BASE_URL, LANDING_BASE_URL } from './env.js';
 
 // ── Own APIs ──────────────────────────────────────────────────────────────────
 
 /** Vercel-hosted RSS feed proxy (CORS-safe for extension origins). */
 export const RSS_FEED_PROXY_URL = `${PRODUCTION_BASE_URL}/api/rss/feed`;
 
-/** Public privacy policy & terms of service page. */
-export const PP_AND_TOS_URL = `${PRODUCTION_BASE_URL}/pp-and-tos`;
+/** Public privacy policy & terms of service page (hosted on the landing site). */
+export const PP_AND_TOS_URL = `${LANDING_BASE_URL}/pp-and-tos`;
 
 /**
  * Committed `holidays.json` (Nepali + international, AD-dated) served via the

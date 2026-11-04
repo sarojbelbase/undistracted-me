@@ -430,31 +430,6 @@ const App = () => {
 
       {/* Dev-only breakpoint badge — bottom-left */}
       {import.meta.env.DEV && <BreakpointBadge />}
-
-      {/* Bottom-right footer — app name + privacy link visible on homepage for Google OAuth review */}
-      <div
-        className="fixed bottom-3 right-4 z-40 flex items-center gap-2"
-        style={{ color: isDark ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.3)" }}
-      >
-        <span className="text-[11px] font-medium select-none">
-          Undistracted Me
-        </span>
-        <span className="text-[9px]" style={{ opacity: 0.5 }}>
-          ·
-        </span>
-        <a
-          href="https://app.undistracted.me/pp-and-tos"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] transition-opacity duration-200 hover:opacity-80"
-          style={{
-            color: "inherit",
-            textDecoration: "none",
-          }}
-        >
-          Privacy Policy &amp; Terms
-        </a>
-      </div>
     </div>
   );
 };

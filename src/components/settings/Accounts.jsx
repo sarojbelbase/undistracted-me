@@ -143,22 +143,6 @@ export const Accounts = () => {
         <SpotifySection />
       </div>
 
-      {/* ── Footer ── */}
-      <div
-        className="flex items-center justify-center pt-1"
-        style={{ borderTop: '1px solid var(--w-divider)' }}
-      >
-        <a
-          href="https://app.undistracted.me/pp-and-tos"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] transition-opacity hover:opacity-75"
-          style={{ color: 'var(--w-ink-4)', textDecoration: 'none' }}
-        >
-          Privacy Policy &amp; Terms of Service
-        </a>
-      </div>
-
     </div>
   );
 };
