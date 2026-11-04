@@ -16,6 +16,30 @@ const RANGE_OPTIONS = [
   { label: 'Year', value: 'year' },
 ];
 
+/** Parse a single CSV line into columns, honoring double-quoted fields. */
+function parseCSVLine(line) {
+  const cols = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; } // escaped quote
+        else inQuotes = false;
+      } else cur += ch;
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      cols.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  cols.push(cur);
+  return cols;
+}
+
 export const ExpenseSettings = ({ id, onClose }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_EXPENSE_SETTINGS);
 
@@ -72,13 +96,13 @@ export const ExpenseSettings = ({ id, onClose }) => {
         }
         const newEntries = [];
         for (let i = 1; i < lines.length; i++) {
-          const cols = lines[i].split(',');
+          const cols = parseCSVLine(lines[i]);
           if (cols.length < 4) continue;
           const dateStr = cols[0]?.trim();
           const amount = Number.parseFloat(cols[1]?.trim());
           const currencyCode = cols[2]?.trim() || currency;
           const category = cols[3]?.trim() || 'other';
-          const note = (cols[4] || '').trim().replace(/^"|"$/g, '');
+          const note = (cols[4] || '').trim();
           if (!dateStr || Number.isNaN(amount) || amount <= 0) continue;
           const createdAt = new Date(dateStr).getTime();
           if (Number.isNaN(createdAt)) continue;

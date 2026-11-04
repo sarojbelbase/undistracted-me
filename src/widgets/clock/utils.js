@@ -58,7 +58,14 @@ export const getTimeParts = (format) => {
  * @param {'24h'|'12h'} format
  */
 export const getTimeInZone = (tz, format) => {
-  const now = dayjs().tz(tz);
+  let now;
+  try {
+    now = dayjs().tz(tz);
+  } catch {
+    // Unknown/legacy IANA zone — degrade gracefully instead of throwing and
+    // aborting the shared clock tick loop (see sharedClock.js).
+    now = dayjs();
+  }
   const { time, period } = formatTime(now, format);
   const option = TZ_MAP[tz];
   return { time, period, label: option ? option.name : tz };

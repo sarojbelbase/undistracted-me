@@ -157,7 +157,10 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
 
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.dailys);
-  const mode = settings.mode ?? "quote";
+  // Sanitize the mode: fall back to "quote" for anything other than the three
+  // known modes (corrupted/legacy settings could hold an arbitrary string).
+  const rawMode = settings.mode ?? "quote";
+  const mode = ["quote", "joke", "fact"].includes(rawMode) ? rawMode : "quote";
   const autoSlide = settings.autoSlide ?? true;
 
   const { joke, loading } = useDailyJoke();

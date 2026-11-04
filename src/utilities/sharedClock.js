@@ -53,7 +53,16 @@ let lastTs = 0;
 /** Call all listeners. Called by leader (directly) and followers (via BroadcastChannel). */
 function _notify() {
   lastTs = Date.now();
-  listeners.forEach(fn => fn());
+  // Per-listener isolation: a single throwing listener must not abort the loop
+  // and starve every other tick-driven widget (clock, countdown, progress, …).
+  listeners.forEach((fn) => {
+    try {
+      fn();
+    } catch (err) {
+      // Log once per distinct message to avoid spamming the console each second.
+      console.error("[sharedClock] listener error:", err);
+    }
+  });
 }
 
 /**

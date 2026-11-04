@@ -391,7 +391,7 @@ const EmptyState = ({ sourceMode, absolute = false }) => (
       </p>
       <p style={{ fontSize: "0.6875rem", color: "var(--w-ink-5)", lineHeight: 1.5, maxWidth: 180 }}>
         {sourceMode === "custom"
-          ? "Upload a JSON file with your feed URLs to get started"
+          ? "Import an OPML file with your feed URLs to get started"
           : "Select at least one source from Settings"}
       </p>
     </div>
