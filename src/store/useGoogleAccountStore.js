@@ -52,6 +52,11 @@ export const useGoogleAccountStore = create((set, get) => ({
       if (token) {
         const profile = await getGoogleUserProfile();
         set({ connected: true, profile });
+        // Mirror connect(): a valid token means the Drive scope is granted, so
+        // mark the transport connected and enable cross-device sync — otherwise
+        // an already-signed-in user shows "not connected" until they re-connect.
+        syncTransport.setConnected(true);
+        useSettingsStore.getState().setSyncEnabled(true);
       }
     } catch {
       set({ connected: false });
