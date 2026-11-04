@@ -7,6 +7,7 @@ import { useSearchCore } from "../Search";
 import { Search } from "react-bootstrap-icons";
 import { GlobeIcon } from "../../assets/svg/GlobeIcon";
 import { BrowserTabIcon as TabIcon } from "../../assets/svg/BrowserTabIcon";
+import { filterCommands } from "./commands";
 
 // ── Style helpers ────────────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,10 @@ const pillStyle = {
 const sectionLabelStyle = {
   padding: "8px 14px 3px", fontSize: 10, fontWeight: 700,
   letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--w-ink-5)",
+};
+const cmdDescStyle = {
+  fontSize: 11, color: "var(--w-ink-4)", flexShrink: 0, maxWidth: 170,
+  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
 };
 const rowBase = (isActive) => ({
   display: "flex", alignItems: "center", gap: 10,
@@ -68,21 +73,27 @@ export function CommandPalette({ onClose }) {
   useEffect(() => { inputRef.current?.focus(); }, []);
   useEffect(() => { setActiveIdx(-1); setArrowed(false); }, [query]);
 
-  // Flat list for keyboard nav: [url?] [tabs] [suggestions]
+  // Commands first (default list on empty query), then web results.
+  const commandItems = useMemo(() => filterCommands(query), [query]);
+
+  // Flat list for keyboard nav: [commands] [url?] [tabs] [suggestions]
   const flatItems = useMemo(() => {
     const items = [];
+    commandItems.forEach(c => items.push({ type: "command", value: c }));
     if (urlTarget) items.push({ type: "url", value: urlTarget });
     tabResults.forEach(t => items.push({ type: "tab", value: t }));
     suggestions.forEach(s => items.push({ type: "sugg", value: s }));
     return items;
-  }, [urlTarget, tabResults, suggestions]);
+  }, [commandItems, urlTarget, tabResults, suggestions]);
 
-  const tabStart = urlTarget ? 1 : 0;
+  const commandCount = commandItems.length;
+  const tabStart = commandCount + (urlTarget ? 1 : 0);
   const suggStart = tabStart + tabResults.length;
 
   const runItem = useCallback((item) => {
     if (!item) return;
-    if (item.type === "url") { navigate(item.value); onClose(); }
+    if (item.type === "command") { item.value.run(); onClose(); }
+    else if (item.type === "url") { navigate(item.value); onClose(); }
     else if (item.type === "tab") { switchToTab(item.value); onClose(); }
     else if (item.type === "sugg") { search(item.value); onClose(); }
   }, [navigate, search, onClose]);
@@ -120,6 +131,9 @@ export function CommandPalette({ onClose }) {
     }
   }, [flatItems, activeIdx, arrowed, runItem, hasQuery, urlTarget, navigate, search, onClose, handleCycleEngine]);
 
+  // Show the results menu when there's a query, or the default command list on empty.
+  const showMenu = hasQuery || commandItems.length > 0;
+
   return (
     <Modal
       onClose={onClose}
@@ -135,7 +149,7 @@ export function CommandPalette({ onClose }) {
       <div style={{
         display: "flex", alignItems: "center", gap: 8,
         padding: "8px 12px",
-        borderBottom: hasQuery ? "1px solid var(--card-border)" : "none",
+        borderBottom: showMenu ? "1px solid var(--card-border)" : "none",
         minHeight: 44,
       }}>
         <button
@@ -169,13 +183,30 @@ export function CommandPalette({ onClose }) {
         <kbd aria-hidden="true" style={kbdStyle}>esc</kbd>
       </div>
 
-      {/* ── Results (only shown when there is a query) ── */}
-      {hasQuery && (
+      {/* ── Results (command list on empty query, then web results) ── */}
+      {showMenu && (
         <div role="menu" aria-label="Results" style={{ maxHeight: 340, overflowY: "auto", padding: "3px 0 6px" }}>
+          {commandItems.length > 0 && (
+            <>
+              <div aria-hidden="true" style={sectionLabelStyle}>Commands</div>
+              {commandItems.map((cmd, k) => {
+                const Icon = cmd.icon;
+                const label = cmd.getLabel ? cmd.getLabel() : cmd.label;
+                return (
+                  <ResultRow key={cmd.id} isActive={activeIdx === k} onRun={() => runItem(flatItems[k])} onHover={() => setActiveIdx(k)}>
+                    <span style={{ color: activeIdx === k ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><Icon size={13} /></span>
+                    <ResultText isActive={activeIdx === k}>{label}</ResultText>
+                    {cmd.description && <span style={cmdDescStyle}>{cmd.description}</span>}
+                  </ResultRow>
+                );
+              })}
+            </>
+          )}
+
           {urlTarget && (
-            <ResultRow isActive={activeIdx === 0} onRun={() => runItem(flatItems[0])} onHover={() => setActiveIdx(0)}>
-              <span style={{ color: activeIdx === 0 ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><GlobeIcon size={13} /></span>
-              <ResultText isActive={activeIdx === 0}>{urlTarget}</ResultText>
+            <ResultRow isActive={activeIdx === commandCount} onRun={() => runItem(flatItems[commandCount])} onHover={() => setActiveIdx(commandCount)}>
+              <span style={{ color: activeIdx === commandCount ? "var(--w-accent)" : "var(--w-ink-4)", flexShrink: 0, display: "flex" }}><GlobeIcon size={13} /></span>
+              <ResultText isActive={activeIdx === commandCount}>{urlTarget}</ResultText>
               <span style={pillStyle}>Go to</span>
             </ResultRow>
           )}
@@ -208,7 +239,7 @@ export function CommandPalette({ onClose }) {
             </>
           )}
 
-          {!urlTarget && tabResults.length === 0 && suggestions.length === 0 && (
+          {hasQuery && !urlTarget && tabResults.length === 0 && suggestions.length === 0 && (
             <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "var(--w-ink-4)" }}>
               Press Enter to search “{query}”
             </div>

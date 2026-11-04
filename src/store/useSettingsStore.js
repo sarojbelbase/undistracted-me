@@ -133,6 +133,9 @@ export const useSettingsStore = create(
        */
       markQuickTourSeen: (version) => set({ quickTourSeenVersion: version }),
 
+      /** Re-show the quick tour on next mount by resetting the seen version. */
+      resetQuickTourSeen: () => set({ quickTourSeenVersion: null }),
+
       setLanguage: (language) => {
         set({ language });
         // Mirror to legacy key — Playwright tests assert localStorage.getItem('language').
