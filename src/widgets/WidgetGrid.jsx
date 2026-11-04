@@ -3,6 +3,7 @@ import { Responsive, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 
 import { WIDGET_REGISTRY } from "./index";
+import { WIDGET_COMPONENTS } from "./components";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 import { WidgetActionsContext } from "./WidgetActionsContext";
@@ -59,11 +60,11 @@ const loadLayouts = () => {
   return {};
 };
 
-// Self-registering render — new widgets just need a Component in their config.
+// Self-registering render — new widgets just need an entry in WIDGET_COMPONENTS.
 const renderWidget = (id, type, onRemove) => {
-  const reg = REG_MAP[type];
-  if (!reg?.Component) return null;
-  return <reg.Component id={id} onRemove={onRemove} />;
+  const Component = WIDGET_COMPONENTS[type];
+  if (!Component) return null;
+  return <Component id={id} onRemove={onRemove} />;
 };
 
 /** Shown when there are no renderable widgets (all removed, or unknown types). */
@@ -261,7 +262,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   // Zero renderable widgets → show an empty-state hint instead of a blank page.
   const renderableCount = (instances || []).filter(
-    ({ type }) => REG_MAP[type]?.Component,
+    ({ type }) => WIDGET_COMPONENTS[type],
   ).length;
   if (renderableCount === 0) {
     return (

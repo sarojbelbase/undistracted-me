@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { Calendar3 } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +19,4 @@ export default {
     xs: { x: 0, y: 42, w: 20, h: 12 },
     xxs: { x: 0, y: 82, w: 8, h: 12 },
   },
-  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };

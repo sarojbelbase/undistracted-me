@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { GraphUpArrow } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +19,4 @@ export default {
     xs: { x: 8, y: 88, w: 8, h: 14 },
     xxs: { x: 0, y: 200, w: 8, h: 18 },
   },
-  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };

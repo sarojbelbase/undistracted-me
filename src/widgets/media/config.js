@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { MusicNoteBeamed } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +19,4 @@ export default {
     xs: { x: 8, y: 121, w: 8, h: 14 },
     xxs: { x: 0, y: 184, w: 8, h: 18 },
   },
-  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };

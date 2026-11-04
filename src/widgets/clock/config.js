@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { ClockFill } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +19,4 @@ export default {
     xs: { x: 0, y: 0, w: 8, h: 11 },
     xxs: { x: 0, y: 0, w: 8, h: 14 },
   },
-  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };
