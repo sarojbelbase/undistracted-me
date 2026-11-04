@@ -1,4 +1,4 @@
-import { Widget } from './Widget';
+import { lazy } from 'react';
 import { ExpenseSettings } from './Settings';
 import { WalletFill } from 'react-bootstrap-icons';
 
@@ -21,6 +21,6 @@ export default {
     xs: { x: 0, y: 88, w: 8, h: 14 },
     xxs: { x: 0, y: 200, w: 8, h: 15 },
   },
-  Component: Widget,
+  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
   settingsComponent: ExpenseSettings,
 };

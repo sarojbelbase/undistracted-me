@@ -1,4 +1,4 @@
-import { Widget } from './Widget';
+import { lazy } from 'react';
 import { Rss } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +20,5 @@ export default {
     xs: { x: 0, y: 72, w: 8, h: 16 },
     xxs: { x: 0, y: 152, w: 8, h: 16 },
   },
-  Component: Widget,
+  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };

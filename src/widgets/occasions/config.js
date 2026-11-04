@@ -1,4 +1,4 @@
-import { Widget } from './Widget';
+import { lazy } from 'react';
 import { BalloonFill } from 'react-bootstrap-icons';
 
 export default {
@@ -20,5 +20,5 @@ export default {
     xs: { x: 0, y: 97, w: 8, h: 14 },
     xxs: { x: 0, y: 134, w: 8, h: 18 },
   },
-  Component: Widget,
+  Component: lazy(() => import('./Widget').then((m) => ({ default: m.Widget }))),
 };
