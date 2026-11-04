@@ -224,7 +224,7 @@ export const THEME_PROFILES = {
       "--card-blur": "none",
       "--card-shadow": "0 2px 8px rgba(0,0,0,0.45)",
       "--card-texture":
-        'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.7 0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.02\'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'c\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.08 0.12\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23c)\' opacity=\'0.01\'/%3E%3C/svg%3E"), repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(255,255,255,0.004) 3px, rgba(255,255,255,0.004) 4px)',
+        'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.7 0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.03\'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'c\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.08 0.12\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23c)\' opacity=\'0.02\'/%3E%3C/svg%3E"), repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(255,255,255,0.005) 3px, rgba(255,255,255,0.005) 4px)',
       "--card-texture-size": "200px, 400px, auto",
       "--panel-bg": "#242118",
       "--modal-bg": "#1c1914",
@@ -244,7 +244,7 @@ export const THEME_PROFILES = {
       "--fm-card-border-width": "1px",
       "--fm-card-radius": "12px 11px 13px 12px",
       "--fm-card-texture":
-        'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.7 0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.02\'/%3E%3C/svg%3E")',
+        'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.7 0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.03\'/%3E%3C/svg%3E")',
       "--fm-surface": "rgba(245,239,228,0.07)",
       "--fm-surface-2": "rgba(245,239,228,0.12)",
       "--fm-border": "rgba(245,239,228,0.14)",
