@@ -4,8 +4,6 @@
  * States:
  *   • Collapsed pill — shows remaining count, springs open on click.
  *   • Expanded panel — task list (connected) or connect CTA (not connected).
- *
- * The ⓘ button in the header opens TasksDialog for account info + settings.
  */
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -310,7 +308,7 @@ function pillLabel(remaining, loading, total) {
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, connecting, add, toggle, edit, remove, reload, onOpenDialog, centerOnDark = true }) => {
+export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add, toggle, edit, remove, reload, centerOnDark = true }) => {
   const [open, setOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const panelRef = useRef(null);

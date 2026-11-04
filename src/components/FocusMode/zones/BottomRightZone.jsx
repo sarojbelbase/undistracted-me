@@ -1,6 +1,5 @@
 // --- Bottom-right zone ---
-import React, { useState, useCallback, Suspense, lazy } from "react";
-import { TasksDialog } from "../dialog/Tasks";
+import { Suspense, lazy } from "react";
 import { useSettingsStore } from "../../../store";
 import {
   FM_SURFACE, FM_SURFACE_2, FM_CARD_BG, FM_CARD_BORDER,
@@ -39,30 +38,18 @@ const TasksPillSkeleton = () => (
 export const BottomRightZone = ({
   taskState,
   centerOnDark = true,
-  externalDialogOpen,
-  onCloseExternalDialog,
 }) => {
   const focusTasks = useSettingsStore(s => s.focusTasks ?? true);
   const { tasks, loading, gtasksConnected, hasAttempted, add, toggle, edit, remove, reload } = taskState;
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  const isDialogOpen = dialogOpen || !!externalDialogOpen;
-  const closeDialog = useCallback(() => {
-    setDialogOpen(false);
-    onCloseExternalDialog?.();
-  }, [onCloseExternalDialog]);
 
   return (
     <>
       {focusTasks && (
         <div className="pointer-events-auto" style={{ position: "absolute", bottom: 24, right: 24, zIndex: 22 }} onClick={e => e.stopPropagation()} role="none">
           <Suspense fallback={<TasksPillSkeleton />}>
-            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} onOpenDialog={() => setDialogOpen(true)} centerOnDark={centerOnDark} />
+            <TasksPanel tasks={tasks} loading={loading} gtasksConnected={gtasksConnected} hasAttempted={hasAttempted} add={add} toggle={toggle} edit={edit} remove={remove} reload={reload} centerOnDark={centerOnDark} />
           </Suspense>
         </div>
-      )}
-      {isDialogOpen && (
-        <TasksDialog onClose={closeDialog} />
       )}
     </>
   );
