@@ -11,11 +11,13 @@ import { WidgetGrid } from "./widgets/WidgetGrid";
 import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
 import { FocusModeButton } from "./components/ui/FocusModeButton";
+import { SupportNudge } from "./components/SupportDialog";
 import { useSettingsStore, useWidgetInstancesStore } from "./store";
 import { STORE_KEY } from "./store/useSettingsStore";
 import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
 import { useGoogleAccountStore } from "./store/useGoogleAccountStore";
 import { useUIStore } from "./store/useUIStore";
+import { triggerSupportNudge } from "./store/useSupportStore";
 import { useShallow } from "zustand/react/shallow";
 import { useAutoTheme } from "./hooks/useAutoTheme";
 import { useLocation } from "./hooks/useLocation";
@@ -369,6 +371,7 @@ const App = () => {
             onDismiss={() => {
               setShowLookAway(false);
               clearLookAwayDue();
+              triggerSupportNudge('lookaway');
             }}
             onSnooze={(mins) => {
               setShowLookAway(false);
@@ -397,6 +400,9 @@ const App = () => {
       <Suspense fallback={null}>
         <QuickTour />
       </Suspense>
+
+      {/* Support dialog — dependency-injected; opens on a completion trigger */}
+      <SupportNudge />
 
       {/* Dev-only breakpoint badge — bottom-left */}
       {import.meta.env.DEV && <BreakpointBadge />}
