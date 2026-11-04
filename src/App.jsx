@@ -377,7 +377,7 @@ const App = () => {
               setShowLookAway(false);
               snoozeLookAway(mins);
             }}
-            duration={20}
+            duration={60}
             isDark={isDark}
           />
         </Suspense>

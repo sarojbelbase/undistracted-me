@@ -58,7 +58,7 @@ const GhostBtn = ({ onClick, children, isDark }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const LookAway = ({ onDismiss, onSnooze, duration = 20, isDark = true }) => {
+export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) => {
   const [remaining, setRemaining] = useState(duration);
   const [timeLabel, setTimeLabel] = useState(getTimeLabel);
   const [isExiting, setIsExiting] = useState(false);

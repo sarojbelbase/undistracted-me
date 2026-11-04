@@ -42,7 +42,7 @@ async function loadCanvas(page, { state = {}, local = {} } = {}) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Look Away — 1-minute screen-timeout default
+// 1. Look Away — reminder interval settings
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Look Away settings', () => {
@@ -54,25 +54,25 @@ test.describe('Look Away settings', () => {
     await expect(lookAwaySwitch).toBeVisible();
     await lookAwaySwitch.click();
 
-    // The "Remind every" presets should include 1m / 5m / 20m / 30m / 1 hr.
-    for (const label of ['1m', '5m', '20m', '30m', '1 hr']) {
+    // The "Remind every" presets should include 20m / 30m / 1 hr.
+    for (const label of ['20m', '30m', '1 hr']) {
       await expect(page.getByRole('button', { name: label, exact: true })).toBeVisible();
     }
   });
 
-  test('defaults to a 1-minute interval', async ({ page }) => {
+  test('defaults to a 20-minute interval', async ({ page }) => {
     await loadCanvas(page);
 
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.locator('[role="switch"]').first().click();
 
     // Toggling persists the store (Zustand persist), which now includes the
-    // in-memory default interval of 1 minute.
+    // in-memory default interval of 20 minutes.
     const interval = await page.evaluate(() => {
       const raw = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
       return raw.state?.lookAwayInterval;
     });
-    expect(interval).toBe(1);
+    expect(interval).toBe(20);
   });
 
   test('selecting a different interval persists to the store', async ({ page }) => {
