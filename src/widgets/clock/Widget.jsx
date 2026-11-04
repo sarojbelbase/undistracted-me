@@ -19,7 +19,9 @@ export const Widget = ({ id, onRemove }) => {
 
   const update = useCallback(() => {
     setParts(getTimeParts(format));
-    setExtraTimes(timezones.map(tz => getTimeInZone(tz, format)));
+    // Clamp to the first 2 timezones — out-of-band data (import/legacy) can
+    // exceed the settings limit, and the widget must not render 3+ clocks.
+    setExtraTimes(timezones.slice(0, 2).map(tz => getTimeInZone(tz, format)));
   }, [format, timezones]);
 
   useEffect(() => onClockTick(update), [update]);

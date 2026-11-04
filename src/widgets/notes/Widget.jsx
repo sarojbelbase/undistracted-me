@@ -239,6 +239,7 @@ export const Widget = ({ id, onRemove }) => {
       updateSetting("notes", next);
       updateSetting("idx", 0);
       notesSync.onNoteChanged(cleared.id, "");
+      setClearNonce((n) => n + 1); // force editor remount so it re-syncs to empty
       return;
     }
     const newNotes = localNotes.filter((_, i) => i !== localIdx);
@@ -255,6 +256,9 @@ export const Widget = ({ id, onRemove }) => {
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
   const hasAutoFocusedRef = useRef(false);
+  // Bumped on "Clear note" so the LexicalEditor (keyed by note id) remounts and
+  // re-syncs to empty — its ValueSyncPlugin only imports markdown on first mount.
+  const [clearNonce, setClearNonce] = useState(0);
 
   const openPage = useCallback(() => {
     hasAutoFocusedRef.current = false;
@@ -483,7 +487,7 @@ export const Widget = ({ id, onRemove }) => {
               }
             >
               <LexicalEditor
-                key={localNote.id}
+                key={`${localNote.id}:${clearNonce}`}
                 ref={bodyRef}
                 value={bodyText}
                 onChange={handleBodyChange}

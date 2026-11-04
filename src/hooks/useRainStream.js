@@ -141,5 +141,5 @@ export function useRainStream(fadeDurationMs = 3000) {
     }
   }, [isPlaying, ready, fadeVolume]);
 
-  return { toggle, isPlaying, audioRef };
+  return { toggle, isPlaying, audioRef, ready };
 }

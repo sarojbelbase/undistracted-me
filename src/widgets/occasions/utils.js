@@ -11,11 +11,24 @@ import { humanizeTime } from '../../utilities/humanizeTime';
  * If the date has already passed this year, returns next year's date.
  */
 export const nextOccurrence = (month, day) => {
+  // Clamp month/day to valid ranges so JS Date auto-normalization (Feb 30 → Mar 2,
+  // month 13 → next Jan, day 0 → last day of prev month) can't silently corrupt
+  // the date.
+  const m = Math.max(1, Math.min(12, Math.trunc(month) || 1));
+  const d = Math.max(1, Math.min(31, Math.trunc(day) || 1));
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const candidate = new Date(now.getFullYear(), month - 1, day);
-  if (candidate >= today) return candidate;
-  return new Date(now.getFullYear() + 1, month - 1, day);
+
+  const build = (year) => {
+    const candidate = new Date(year, m - 1, d);
+    // If the day overflowed the month (e.g. Feb 30 → Mar 2, or Feb 29 in a
+    // non-leap year → Mar 1), snap to the last valid day of the intended month.
+    return candidate.getMonth() !== m - 1 ? new Date(year, m, 0) : candidate;
+  };
+
+  const thisYear = build(now.getFullYear());
+  if (thisYear >= today) return thisYear;
+  return build(now.getFullYear() + 1);
 };
 
 /**
@@ -51,7 +64,7 @@ export const computeUpcoming = (raw) => {
     .filter(e => e.daysAway >= 0)
     .sort((a, b) => a.daysAway - b.daysAway)
     .filter(e => {
-      const key = `${e.name.toLowerCase()}|${e.type}|${e.month}|${e.day}`;
+      const key = `${(e.name || '').toLowerCase()}|${e.type}|${e.month}|${e.day}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -101,9 +114,10 @@ const AVATAR_PALETTE = [
 ];
 
 export const avatarColor = (name) => {
+  const s = String(name || '');
   let h = 0;
-  for (let i = 0; i < name.length; i++) {
-    h = (Math.imul(31, h) + name.charCodeAt(i)) | 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
   }
   return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length];
 };

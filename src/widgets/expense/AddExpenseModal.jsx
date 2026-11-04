@@ -87,7 +87,7 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setCat(cat === c.id ? 'other' : c.id)}
+                onClick={() => setCat(c.id)}
                 onMouseEnter={(e) => handleCatEnter(c, e.currentTarget)}
                 onMouseLeave={handleCatLeave}
                 className={`exp-cat-grid__item${cat === c.id ? ' exp-cat-grid__item--active' : ''}`}

@@ -116,7 +116,9 @@ export const fetchOpenMeteo = (lat, lon, units = "metric") => {
     wind_speed_unit: units === "imperial" ? "mph" : "kmh",
     timezone: "auto",
   });
-  return fetch(`${OPEN_METEO_WEATHER_API}?${params}`).then((r) =>
+  return fetch(`${OPEN_METEO_WEATHER_API}?${params}`, {
+    signal: AbortSignal.timeout(8000),
+  }).then((r) =>
     r.ok ? r.json() : Promise.reject(new Error(`Open-Meteo ${r.status}`)),
   );
 };
@@ -334,7 +336,7 @@ export const fetchAQI = (lat, lon) => {
 export const parseAQI = (data) => ({
   value: data?.current?.us_aqi ?? null,
   pm25:
-    data?.current?.pm2_5 == null
+    data?.current?.pm2_5 != null
       ? Math.round(data.current.pm2_5 * 10) / 10
       : null,
 });

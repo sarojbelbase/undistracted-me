@@ -31,12 +31,28 @@ export const getNextOccurrence = ({ targetDate, targetTime, repeat }) => {
   const now = new Date();
   if (base > now) return base;
 
+  // Anchor the original day-of-month so monthly/yearly repeats don't drift
+  // (Jan 31 → Feb must become Feb 28/29, not Mar 3; Feb 29 yearly must clamp
+  // to Feb 28 in non-leap years).
+  const anchorDay = base.getDate();
+  const anchorMonth = base.getMonth();
+
   let next = new Date(base);
   while (next <= now) {
-    if (repeat === 'weekly') next.setDate(next.getDate() + 7);
-    else if (repeat === 'monthly') next.setMonth(next.getMonth() + 1);
-    else if (repeat === 'yearly') next.setFullYear(next.getFullYear() + 1);
-    else break;
+    if (repeat === 'weekly') {
+      next.setDate(next.getDate() + 7);
+    } else if (repeat === 'monthly') {
+      const y = next.getMonth() === 11 ? next.getFullYear() + 1 : next.getFullYear();
+      const m = next.getMonth() === 11 ? 0 : next.getMonth() + 1;
+      const lastDay = new Date(y, m + 1, 0).getDate();
+      next = new Date(y, m, Math.min(anchorDay, lastDay), next.getHours(), next.getMinutes());
+    } else if (repeat === 'yearly') {
+      const y = next.getFullYear() + 1;
+      const lastDay = new Date(y, anchorMonth + 1, 0).getDate();
+      next = new Date(y, anchorMonth, Math.min(anchorDay, lastDay), next.getHours(), next.getMinutes());
+    } else {
+      break;
+    }
   }
   return next;
 };
@@ -76,6 +92,9 @@ export const formatSince = (targetDate, nowTs) => {
  */
 export const formatTargetDate = (date) => {
   if (!date) return '';
+  // Guard against Invalid Date (e.g. a countdown saved with an empty targetDate
+  // produces `new Date('T00:00')`), which would otherwise render "Invalid Date".
+  if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
@@ -84,11 +103,6 @@ export const formatTargetDate = (date) => {
 export function formatCountdownPhrase(_d, _h, _m, totalSecs) {
   const targetMs = Date.now() + (totalSecs ?? 0) * 1000;
   return humanizeTime(new Date(targetMs)).full;
-}
-
-export function formatSincePhrase(days) {
-  const targetMs = Date.now() - days * 86400000;
-  return humanizeTime(new Date(targetMs)).full.replace(/ ago$/, '');
 }
 
 export function humanizeDuration(days, hours, mins, direction = 'future') {

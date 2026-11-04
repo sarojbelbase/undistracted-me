@@ -136,7 +136,21 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   // ── Rain stream (hidden — toggled from settings, not widget face) ─────
-  const { audioRef: rainAudioRef } = useRainStream(3000);
+  const rainSound = settings.rainSound ?? DEFAULT_SETTINGS.rainSound;
+  const {
+    toggle: toggleRain,
+    isPlaying: rainPlaying,
+    audioRef: rainAudioRef,
+    ready: rainReady,
+  } = useRainStream(3000);
+
+  // Sync the `rainSound` setting to actual playback (start/stop the ambient
+  // rain when the setting flips, and re-apply once the audio URL is ready).
+  useEffect(() => {
+    if (!rainReady || rainSound === rainPlaying) return;
+    toggleRain();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rainSound, rainReady]);
 
   // ── Init from localStorage (once) ─────────────────────────────────────
   const initRef = useRef(undefined);
@@ -156,6 +170,7 @@ export const Widget = ({ id, onRemove }) => {
   const intervalRef = useRef(null);
   const lastSaveRef = useRef(0);
   const completedRef = useRef(false);
+  const pendingSessionRef = useRef(null);
 
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
@@ -191,7 +206,7 @@ export const Widget = ({ id, onRemove }) => {
   // ── Custom timer start ────────────────────────────────────────────────
   const handleCustomStart = useCallback(() => {
     const mins = Number.parseFloat(customInput);
-    if (!mins) return;
+    if (!mins || mins <= 0) return;
     startTimer(Math.round(mins * 60), `${mins}m`);
     setCustomInput('');
   }, [customInput, startTimer]);
@@ -275,14 +290,14 @@ export const Widget = ({ id, onRemove }) => {
     completedRef.current = true;
 
     const isFocus = sessionType === SESSION_TYPE.FOCUS;
-    saveSession({
-      id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    // Defer the history write to when the user clicks "Done" so the session
+    // note (typed *after* completion) is captured instead of always being "".
+    pendingSessionRef.current = {
       preset: preset || 'Custom',
       duration,
       completedAt: Date.now(),
-      note: note.trim() || '',
       type: sessionType,
-    });
+    };
 
     if (soundEnabled) {
       if (isFocus) playChime();
@@ -291,7 +306,12 @@ export const Widget = ({ id, onRemove }) => {
     if (isFocus) {
       sendToServiceWorker({ type: 'POMODORO_DONE', preset });
     }
-  }, [done, sessionType, preset, duration, note, soundEnabled]);
+    // Auto-start the break timer when enabled (focus sessions only).
+    if (isFocus && autoBreak) {
+      const t = setTimeout(() => startBreak(), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [done, sessionType, preset, duration, soundEnabled, autoBreak, startBreak]);
 
   // ── Cleanup on unmount ────────────────────────────────────────────────
   useEffect(() => {
@@ -300,22 +320,39 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Callbacks for DoneState ───────────────────────────────────────────
   const handleNoteChange = useCallback((val) => setNote(val), []);
-  const handleDone = useCallback(() => backToPick(), [backToPick]);
+  const handleDone = useCallback(() => {
+    // Write the completed session to history now, capturing the note the user
+    // typed after the timer finished (see completion effect above).
+    if (pendingSessionRef.current) {
+      saveSession({
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        ...pendingSessionRef.current,
+        note: note.trim() || '',
+      });
+      pendingSessionRef.current = null;
+    }
+    backToPick();
+  }, [backToPick, note]);
 
   // ═══════════════════════════════════════════════════════════════════════
   // PICK PHASE
   // ═══════════════════════════════════════════════════════════════════════
   if (phase === PHASE.PICK) {
     return (
-      <PickPhase
-        showCustom={showCustom}
-        customInput={customInput}
-        onCustomInputChange={setCustomInput}
-        onCustomStart={handleCustomStart}
-        onPresetClick={handlePresetClick}
-        onRemove={onRemove}
-        settingsContent={settingsContent}
-      />
+      <>
+        {/* NOSONAR: ambient rain audio has no speech/dialogue content */}
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <audio ref={rainAudioRef} loop preload="none" />
+        <PickPhase
+          showCustom={showCustom}
+          customInput={customInput}
+          onCustomInputChange={setCustomInput}
+          onCustomStart={handleCustomStart}
+          onPresetClick={handlePresetClick}
+          onRemove={onRemove}
+          settingsContent={settingsContent}
+        />
+      </>
     );
   }
 

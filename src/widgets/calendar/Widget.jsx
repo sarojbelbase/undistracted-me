@@ -46,7 +46,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, holidaysForDay, date
   const [hoverRect, setHoverRect] = useState(null);
   const [hovered, setHovered] = useState(false);
   const ref = useRef(null);
-  const hasEvents = !isCurrent && eventsForDay.length > 0;
+  const hasEvents = eventsForDay.length > 0;
   const hasHolidays = holidaysForDay.length > 0;
 
   const handleMouseEnter = () => {
@@ -256,13 +256,13 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="w-heading">{calendarData.label}</span>
+          <div className="flex items-baseline gap-2 min-w-0">
+            <span className="w-heading truncate">{calendarData.label}</span>
             {calendarData.sublabel && (
-              <span className="w-caption font-medium">{calendarData.sublabel}</span>
+              <span className="w-caption font-medium shrink-0">{calendarData.sublabel}</span>
             )}
           </div>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 shrink-0">
             {!viewingToday && (
               <button
                 onClick={goToday}

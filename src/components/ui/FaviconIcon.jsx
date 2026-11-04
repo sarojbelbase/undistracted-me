@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   buildFaviconSources,
   extractColorFromUrl,
@@ -25,6 +25,7 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
   const [loaded, setLoaded] = useState(false);
   const sources = useMemo(() => buildFaviconSources(url, size), [url, size]);
   const letter = getDefaultName(url).charAt(0).toUpperCase();
+  const imgRef = useRef(null);
 
   useEffect(() => { setIdx(0); setLoaded(false); }, [url]);
 
@@ -53,6 +54,23 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
     return <LetterFallback hostname={hostname} letter={letter} size={size} onSettled={onSettled} />;
   }
 
+  const handleLoaded = useCallback((imgEl) => {
+    setLoaded(true);
+    cacheFavicon(hostname, src);
+    onSettled?.();
+    if (onColor) extractColorFromUrl(imgEl.src, onColor);
+  }, [hostname, src, onSettled, onColor]);
+
+  // Images served from the HTTP cache can fire their native `load` event before
+  // React/Preact attaches `onLoad`, so `onLoad` never runs and the icon stays a
+  // shimmer forever. Re-check `img.complete` on mount / src change and reveal.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && !loaded && img.complete && img.naturalWidth > 0) {
+      handleLoaded(img);
+    }
+  }, [src, loaded, handleLoaded]);
+
   return (
     <div className="relative" style={{ width: size, height: size }}>
       {!loaded && (
@@ -62,17 +80,13 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
         />
       )}
       <img
+        ref={imgRef}
         key={src}
         src={src}
         alt=""
         style={{ width: size, height: size, opacity: loaded ? 1 : 0, transition: 'opacity 0.15s' }}
         className="rounded-lg object-contain"
-        onLoad={(e) => {
-          setLoaded(true);
-          cacheFavicon(hostname, src);
-          onSettled?.();
-          if (onColor) extractColorFromUrl(e.currentTarget.src, onColor);
-        }}
+        onLoad={(e) => handleLoaded(e.currentTarget)}
         onError={() => setIdx((i) => i + 1)}
       />
     </div>

@@ -218,7 +218,7 @@ export const Widget = ({ id, onRemove }) => {
   const titlePart = activeTarget?.title || '';
   const timePart = useMemo(() => {
     if (!activeTarget) return '';
-    if (isSince) return humanizeDuration(aDays, aHours, aMins, 'past');
+    if (isSince) return humanizeDuration(aDays, aHours, aMins, 'past').replace(/ ago$/, '');
     return formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs);
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 

@@ -47,6 +47,7 @@ export async function fetchCompanies() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: '[]',
+    signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -72,7 +73,10 @@ export async function fetchCompanies() {
  * Returns { prices, ltp, prevClose, open, high, low } or null.
  */
 export async function fetchChart(symbol) {
-  const res = await fetch(chartUrl(symbol), { method: 'GET' });
+  const res = await fetch(chartUrl(symbol), {
+    method: 'GET',
+    signal: AbortSignal.timeout(8000),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
 
