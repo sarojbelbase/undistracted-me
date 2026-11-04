@@ -13,9 +13,8 @@
  */
 
 import React from 'react';
-import { ArrowRepeat, Download, Upload, XLg, ExclamationTriangleFill } from 'react-bootstrap-icons';
+import { ArrowRepeat, Download, Upload, XLg, ExclamationTriangleFill, Laptop } from 'react-bootstrap-icons';
 import { Modal } from './Modal';
-import { GitHubIcon } from '../../assets/brand/icons';
 
 const fmtTime = (ts) => {
   if (!ts) return null;
@@ -46,7 +45,7 @@ const DeviceRow = ({ label, name, os, detail }) => (
         color: 'var(--w-accent)',
       }}
     >
-      <GitHubIcon size={16} />
+      <Laptop size={16} />
     </div>
     <div className="flex-1 min-w-0">
       <span className="block text-[12.5px] font-semibold leading-tight" style={{ color: 'var(--w-ink-1)' }}>

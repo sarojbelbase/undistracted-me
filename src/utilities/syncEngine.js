@@ -1,22 +1,24 @@
 /**
- * Cross-device Sync Engine — GitHub gist transport
+ * Cross-device Sync Engine — transport-agnostic (Google Drive backend)
  *
  * Syncs settings, widget instances, events, and bookmarks across devices via a
- * single private GitHub gist. Last-write-wins with per-key timestamps. The gist
- * holds one JSON file whose shape is:
+ * single config file in the transport (Google Drive appDataFolder). Last-write-wins
+ * with per-key timestamps. The config file holds one JSON payload whose shape is:
  *
  *   { v: 1, deviceId, updatedAt, keys: { <localKey>: { v, t } } }
  *
  * Architecture:
  *   - Each syncable local key is stored as { v: <value>, t: <epochMs> } inside
- *     the gist's `keys` map.
- *   - On load (enableSync): read the gist, merge into local (newer wins), then
+ *     the config's `keys` map.
+ *   - On load (enableSync): read the config, merge into local (newer wins), then
  *     push local back (local wins where newer).
  *   - Sync is NOT continuous. Auto-sync runs once a day (24h) plus a throttled
  *     pull on focus, and users can trigger a manual "Sync now". A 5-minute
- *     throttle blocks rapid/continuous syncing to stay within GitHub's rate
- *     limits. Changes are accumulated and pushed on the next sync window.
+ *     throttle blocks rapid/continuous syncing. Changes are accumulated and
+ *     pushed on the next sync window.
  *   - Writes are serialized through a promise queue to avoid races.
+ *   - The transport is injected via `syncTransport` (dependency-injection seam) —
+ *     this engine never talks to a concrete service directly.
  *
  * What syncs:
  *   - Settings (undistracted_settings)
@@ -24,13 +26,13 @@
  *   - Events (widget_events) — native only, GCal events are stripped
  *   - Bookmarks (widget_bookmarks)
  *   - Countdown pinned (countdown_pinned)
- *   - Notes index (notes_index) — note_id → gist metadata; the note *content*
- *     itself is NOT synced here (it lives in per-note private gists managed by
+ *   - Notes index (notes_index) — note_id → file metadata; the note *content*
+ *     itself is NOT synced here (it lives in per-note files managed by
  *     `notesSync.js`).
  *
  * What does NOT sync:
  *   - Notes content (widgetSettings.notes) — stripped from widget_instances and
- *     synced separately via per-note gists.
+ *     synced separately via per-note files.
  *   - Pomodoro history, per-instance pomodoro timers
  *   - Weather cache, Unsplash photos, RSS items, location state, auth tokens,
  *     Spotify tokens, GCal cache, expense data
@@ -38,17 +40,7 @@
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { isExtension } from './index';
-import { GITHUB_GISTS_API } from '../constants/urls';
-import {
-  getToken,
-  getGistId,
-  setGistId,
-  isConnected,
-  gistHeaders,
-  GIST_FILENAME,
-  GIST_DESCRIPTION,
-  GIST_SCHEMA_VERSION,
-} from './githubAuth';
+import { syncTransport, SYNC_SCHEMA_VERSION } from './syncTransport';
 import {
   itemKey,
   deepEqual,
@@ -251,7 +243,7 @@ const getLocalSyncVersion = () => {
 
 /**
  * Migrate local sync state from an older schema version to the current one.
- * Called once on enableSync when the stored version is behind GIST_SCHEMA_VERSION.
+ * Called once on enableSync when the stored version is behind SYNC_SCHEMA_VERSION.
  * Future schema bumps add cases here.
  */
 const migrateSync = (fromVersion) => {
@@ -264,7 +256,7 @@ const migrateSync = (fromVersion) => {
 /** Persist the current local sync schema version. */
 const setLocalSyncVersion = () => {
   try {
-    localStorage.setItem(SYNC_VERSION_KEY, String(GIST_SCHEMA_VERSION));
+    localStorage.setItem(SYNC_VERSION_KEY, String(SYNC_SCHEMA_VERSION));
   } catch {
     /* ignore */
   }
@@ -354,109 +346,56 @@ const isSyncClean = () => {
 // ── Gist transport ────────────────────────────────────────────────────────────
 
 /**
- * Read the sync gist and return its parsed payload.
- * Returns null when not connected or unreadable, { notFound: true } on a 404,
- * or { v, keys: {...} } on success.
+ * Read the remote config payload via the transport.
+ * Returns null when not connected or unreadable, { notFound: true } when no
+ * remote file exists, or { v, keys, hash, deviceId, updatedAt, devices } on success.
  */
-const readGist = async () => {
-  const [token, gistId] = await Promise.all([getToken(), getGistId()]);
-  if (!token || !gistId) return null;
-
-  const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
-    headers: gistHeaders(token),
-  });
-  if (res.status === 404) {
+const readRemote = async () => {
+  const remote = await syncTransport.readConfig();
+  if (remote == null) {
+    lastRemoteHash = null;
+    return null;
+  }
+  if (remote.notFound) {
     lastRemoteHash = null;
     return { notFound: true };
   }
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(`GitHub read failed (${res.status}): ${body.message || res.statusText}`);
-  }
-
-  const data = await res.json();
-  const file = data.files?.[GIST_FILENAME];
-  if (!file || !file.content) {
-    lastRemoteHash = null;
-    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null };
-  }
-  try {
-    const parsed = JSON.parse(file.content);
-    const hash = typeof parsed.hash === 'string' ? parsed.hash : null;
-    lastRemoteHash = hash;
-    return {
-      v: typeof parsed.v === 'number' ? parsed.v : 1,
-      keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
-      hash,
-      deviceId: typeof parsed.deviceId === 'string' ? parsed.deviceId : null,
-      updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : null,
-      devices: parsed.devices && typeof parsed.devices === 'object' ? parsed.devices : {},
-    };
-  } catch {
-    lastRemoteHash = null;
-    return { v: GIST_SCHEMA_VERSION, keys: {}, hash: null, deviceId: null, updatedAt: null, devices: {} };
-  }
+  const parsed = remote || {};
+  const hash = typeof parsed.hash === 'string' ? parsed.hash : null;
+  lastRemoteHash = hash;
+  return {
+    v: typeof parsed.v === 'number' ? parsed.v : 1,
+    keys: parsed.keys && typeof parsed.keys === 'object' ? parsed.keys : {},
+    hash,
+    deviceId: typeof parsed.deviceId === 'string' ? parsed.deviceId : null,
+    updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : null,
+    devices: parsed.devices && typeof parsed.devices === 'object' ? parsed.devices : {},
+  };
 };
 
 /**
- * Create-or-update the sync gist with the given `keys` object. Returns the
- * gist id (creating the gist on first write).
+ * Create-or-update the remote config with the given `keys` object.
  *
  * @param {object} keys    the sync keys payload
  * @param {object} [devices] the device registry (defaults to just this device)
  */
-const writeGist = async (keys, devices) => {
-  const token = await getToken();
-  if (!token) throw new Error('Not connected to GitHub');
+const writeRemote = async (keys, devices) => {
+  if (!syncTransport.isConnected()) throw new Error('Not connected to Google Drive');
 
   const hash = hashValue(keys);
   const registry = devices && typeof devices === 'object'
     ? devices
     : { [deviceId]: myDeviceEntry() };
-  const payload = JSON.stringify({
-    v: GIST_SCHEMA_VERSION,
+  const payload = {
+    v: SYNC_SCHEMA_VERSION,
     deviceId,
     updatedAt: now(),
     hash,
     devices: registry,
     keys,
-  });
-  let gistId = await getGistId();
-
-  if (!gistId) {
-    const res = await fetch(GITHUB_GISTS_API, {
-      method: 'POST',
-      headers: { ...gistHeaders(token), 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        description: GIST_DESCRIPTION,
-        public: false,
-        files: { [GIST_FILENAME]: { content: payload } },
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(`Failed to create gist (${res.status}): ${body.message || res.statusText}`);
-    }
-    const created = await res.json();
-    gistId = created.id;
-    await setGistId(gistId);
-    lastRemoteHash = hash;
-    return gistId;
-  }
-
-  const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
-    method: 'PATCH',
-    headers: { ...gistHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      files: { [GIST_FILENAME]: { content: payload } },
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(`Failed to update gist (${res.status}): ${body.message || res.statusText}`);
-  }
+  };
+  await syncTransport.writeConfig(payload);
   lastRemoteHash = hash;
-  return gistId;
 };
 
 // ── Event dispatch for hooks ──────────────────────────────────────────────────
@@ -739,7 +678,7 @@ const pullFromSync = async () => {
 
   let remote;
   try {
-    remote = await readGist();
+    remote = await readRemote();
   } catch (err) {
     console.error('[sync] pull failed:', err.message);
     reportError(err.message);
@@ -753,7 +692,7 @@ const pullFromSync = async () => {
 
   // If the remote was written by a newer app version we don't understand, don't
   // blindly parse/overwrite it (that risks corrupting the shared state).
-  if (typeof remote.v === 'number' && remote.v > GIST_SCHEMA_VERSION) {
+  if (typeof remote.v === 'number' && remote.v > SYNC_SCHEMA_VERSION) {
     console.error('[sync] remote gist uses a newer schema (v' + remote.v + ') — skipping pull');
     reportError('Sync data was written by a newer version of the app. Please update the app.');
     return {};
@@ -802,7 +741,7 @@ const pullFromSync = async () => {
 // ── Push: merge local → remote ────────────────────────────────────────────────
 
 /**
- * Merge two notes-index maps (note_id → { gistId, label, updatedAt }) keeping
+ * Merge two notes-index maps (note_id → { fileId, label, updatedAt }) keeping
  * the union of ids and, on conflict, the entry with the higher `updatedAt`.
  */
 const mergeNotesIndex = (localIndex, remoteIndex) => {
@@ -843,7 +782,7 @@ const pushKey = (localKey) => {
     .then(async () => {
       let remote;
       try {
-        remote = await readGist();
+        remote = await readRemote();
       } catch {
         remote = { keys: {} };
       }
@@ -856,7 +795,7 @@ const pushKey = (localKey) => {
       }
 
       keys[localKey] = { v: merged, t: ts };
-      await writeGist(keys, mergedDevices(remote));
+      await writeRemote(keys, mergedDevices(remote));
       setLocalTs(localKey, ts);
       lastSyncAt = ts;
       clearError();
@@ -891,7 +830,7 @@ const pushAll = async () => {
     .then(async () => {
       let remote;
       try {
-        remote = await readGist();
+        remote = await readRemote();
       } catch {
         remote = { keys: {} };
       }
@@ -957,7 +896,7 @@ const pushAll = async () => {
 
       if (!changed) return { changed: false };
 
-      await writeGist(keys, mergedDevices(remote));
+      await writeRemote(keys, mergedDevices(remote));
       lastSyncAt = now();
       clearError();
       return { changed: true };
@@ -1023,7 +962,7 @@ const previewSync = async () => {
 
   let remote;
   try {
-    remote = await readGist();
+    remote = await readRemote();
   } catch (err) {
     return { status: 'clean', error: err.message };
   }
@@ -1117,13 +1056,13 @@ const pullSync = async () => {
 
   let remote;
   try {
-    remote = await readGist();
+    remote = await readRemote();
   } catch (err) {
     reportError(err.message);
     return { changed: false, reason: 'error', error: err.message };
   }
   if (!remote || remote.notFound) return { changed: false, reason: 'no-cloud' };
-  if (typeof remote.v === 'number' && remote.v > GIST_SCHEMA_VERSION) {
+  if (typeof remote.v === 'number' && remote.v > SYNC_SCHEMA_VERSION) {
     reportError('Sync data was written by a newer version of the app. Please update the app.');
     return { changed: false, reason: 'schema' };
   }
@@ -1157,7 +1096,7 @@ const pushSync = async () => {
 
   let remote;
   try {
-    remote = await readGist();
+    remote = await readRemote();
   } catch {
     remote = null;
   }
@@ -1200,7 +1139,7 @@ const pushSync = async () => {
   const devices = mergedDevices(remote);
 
   try {
-    await writeGist(keys, devices);
+    await writeRemote(keys, devices);
   } catch (err) {
     reportError(err.message);
     return { changed: false, reason: 'error', error: err.message };
@@ -1312,9 +1251,8 @@ const enableSync = async () => {
     console.log('[sync] Not available — not running as extension');
     return;
   }
-  const token = await getToken();
-  if (!token) {
-    console.log('[sync] Enable skipped — no GitHub token');
+  if (!syncTransport.isConnected()) {
+    console.log('[sync] Enable skipped — Google Drive not connected');
     return;
   }
 
@@ -1375,7 +1313,7 @@ const isSyncEnabled = () => enabled;
 const getSyncStatus = () => ({
   available: isExtension(),
   enabled,
-  connected: isConnected(),
+  connected: syncTransport.isConnected(),
   lastSyncAt,
   lastMergeCount,
   deviceId,
@@ -1481,9 +1419,9 @@ const initSync = async () => {
     /* ignore */
   }
 
-  if (wasEnabled && isConnected()) {
+  if (wasEnabled && syncTransport.isConnected()) {
     await enableSync();
-  } else if (wasEnabled && !isConnected()) {
+  } else if (wasEnabled && !syncTransport.isConnected()) {
     // Token was cleared elsewhere — reset the flag so we stop trying.
     writeLocal('sync_enabled', false);
   }

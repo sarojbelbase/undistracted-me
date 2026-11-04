@@ -14,7 +14,7 @@ import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 import { SyncConflictDialog } from '../ui/SyncConflictDialog';
-import { isConnected, getGistUrl } from '../../utilities/githubAuth';
+import syncTransport from '../../utilities/syncTransport';
 import syncEngine from '../../utilities/syncEngine';
 import { exportSettings, importFromFile, resetSettings } from '../../widgets/settingsIO';
 
@@ -33,7 +33,7 @@ export const Data = ({ onNavigateToAccounts }) => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   // ── Sync state ─────────────────────────────────────────────────────
-  const [githubConnected, setGithubConnected] = useState(() => isConnected());
+  const [githubConnected, setGithubConnected] = useState(() => syncTransport.isConnected());
   const [syncing, setSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const [alreadySynced, setAlreadySynced] = useState(false);
@@ -57,7 +57,7 @@ export const Data = ({ onNavigateToAccounts }) => {
 
   useEffect(() => {
     if (githubConnected) {
-      getGistUrl().then((u) => setGistUrl(u));
+      syncTransport.getUrl().then((u) => setGistUrl(u));
     } else {
       setGistUrl(null);
     }
@@ -223,7 +223,7 @@ export const Data = ({ onNavigateToAccounts }) => {
           }}>
             <InfoCircle size={13} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
             <p style={{ fontSize: 10.5, color: 'var(--w-ink-4)', lineHeight: 1.45, margin: 0, flex: 1 }}>
-              Sign in with GitHub in the Accounts tab to sync across devices.
+              Sign in with Google in the Accounts tab to sync across devices.
             </p>
             <button
               type="button"
@@ -398,7 +398,7 @@ export const Data = ({ onNavigateToAccounts }) => {
       }}>
         <InfoCircle size={13} style={{ color: 'var(--w-ink-4)', flexShrink: 0, marginTop: 1 }} />
         <p style={{ fontSize: 10, fontWeight: 500, color: 'var(--w-ink-4)', lineHeight: 1.45 }}>
-          Your data stays in your browser unless you enable cross-device sync, which stores a copy in your private GitHub gist. Exports are saved as a .json file. Use them to transfer settings between devices or keep a safety backup.
+          Your data stays in your browser unless you enable cross-device sync, which stores a copy in your private Google Drive app-data folder. Exports are saved as a .json file. Use them to transfer settings between devices or keep a safety backup.
         </p>
       </div>
 

@@ -26,7 +26,7 @@ import { TooltipBtn } from "../../components/ui/TooltipBtn";
 import { splitNote, mergeNote, migrateNotes, makeNoteId } from "../../utilities/noteText";
 import notesSync, { NOTES_SYNC_EVENT } from "../../utilities/notesSync";
 import syncEngine from "../../utilities/syncEngine";
-import { isConnected } from "../../utilities/githubAuth";
+import syncTransport from "../../utilities/syncTransport";
 
 // Only fetched the first time a user expands a note to full-screen mode.
 const LexicalEditor = lazy(() => import("./LexicalEditor"));
@@ -284,13 +284,13 @@ export const Widget = ({ id, onRemove }) => {
   }, [mode, close]);
 
   // ── Sync indicator (full-screen) ──────────────────────────────────────────
-  const [syncConnected, setSyncConnected] = useState(() => isConnected());
+  const [syncConnected, setSyncConnected] = useState(() => syncTransport.isConnected());
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState(null); // 'synced' | 'already' | null
   const syncTimerRef = useRef(null);
 
   useEffect(() => {
-    const refresh = () => setSyncConnected(isConnected());
+    const refresh = () => setSyncConnected(syncTransport.isConnected());
     return syncEngine.onSyncChange(refresh);
   }, []);
 

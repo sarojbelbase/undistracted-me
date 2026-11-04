@@ -1,34 +1,34 @@
 /**
- * Notes sync engine — per-note private GitHub gists.
+ * Notes sync engine — per-note files in the transport (Google Drive appDataFolder).
  *
- * Each note is synced as its own private gist, discoverable separately from the
- * config/settings gist. The config gist only holds a lightweight index
- * (`notes_index`) mapping note_id → { gistId, label, updatedAt }.
+ * Each note is synced as its own file, discoverable separately from the
+ * config file. The config file only holds a lightweight index (`notes_index`)
+ * mapping note_id → { fileId, label, updatedAt }.
  *
- * Note gist shape (`undistracted-me-note.json`):
+ * Note payload shape:
  *   { v: 1, id, title, body, updatedAt }
  *
  * Index shape (`notes_index`, synced via syncEngine):
- *   { "<note_id>": { gistId, label, updatedAt } }
+ *   { "<note_id>": { fileId, label, updatedAt } }
  *
  * Last-write-wins:
  *   - A note object carries `updatedAt` (its last local edit time).
  *   - The index entry carries `updatedAt` (the last known modified time).
  *   - Pull when `index.updatedAt > note.updatedAt`; push when the opposite.
  *
- * Sync is NOT continuous — note gists are written during the daily auto-sync or
+ * Sync is NOT continuous — note files are written during the daily auto-sync or
  * a manual "Sync now" (via the post-sync hook registered below), never on every
  * keystroke. Editing a note only updates the local index label.
+ *
+ * The transport is injected via `syncTransport` (dependency-injection seam) —
+ * this module never talks to a concrete service directly.
  */
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { GITHUB_GISTS_API } from '../constants/urls';
-import { getToken, GITHUB_USER_AGENT } from './githubAuth';
+import syncTransport from './syncTransport';
 import syncEngine from './syncEngine';
 import { splitNote, mergeNote, noteLabel } from './noteText';
 
-export const NOTE_GIST_FILENAME = 'undistracted-me-note.json';
-export const NOTE_GIST_DESC_PREFIX = 'Undistracted Me — ';
 export const NOTES_SYNC_EVENT = 'notes_sync_changed';
 
 // ── Storage helpers ──────────────────────────────────────────────────────────
@@ -83,13 +83,13 @@ function writeLocalNotes(notes, idx) {
   }
 }
 
-/** Read the synced notes index (note_id → { gistId, label, updatedAt }). */
+/** Read the synced notes index (note_id → { fileId, label, updatedAt }). */
 function readIndex() {
   const v = readLocal(STORAGE_KEYS.NOTES_INDEX);
   return v && typeof v === 'object' ? v : {};
 }
 
-/** Write the notes index to localStorage (pushed to the config gist by syncEngine). */
+/** Write the notes index to localStorage (pushed to the config by syncEngine). */
 function writeIndex(index) {
   writeLocal(STORAGE_KEYS.NOTES_INDEX, index);
 }
@@ -106,90 +106,36 @@ function addTombstone(noteId) {
   writeLocal(STORAGE_KEYS.NOTES_DELETED, tombstones);
 }
 
-// ── Gist transport ──────────────────────────────────────────────────────────
-
-const noteGistHeaders = (token) => ({
-  Authorization: `Bearer ${token}`,
-  Accept: 'application/vnd.github+json',
-  'X-GitHub-Api-Version': '2022-11-28',
-  'User-Agent': GITHUB_USER_AGENT,
-});
+// ── Transport (per-note files) ──────────────────────────────────────────────
 
 /**
- * Read a note gist and return { id, title, body, updatedAt } — or null when the
- * gist is missing or malformed.
+ * Read a note file and return { id, title, body, updatedAt } — or null when the
+ * file is missing or malformed.
  */
-async function readNoteGist(gistId, token) {
-  if (!gistId) return null;
-  const res = await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
-    headers: noteGistHeaders(token),
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`Failed to read note gist (${res.status})`);
-  }
-  const data = await res.json();
-  const file = data.files?.[NOTE_GIST_FILENAME];
-  if (!file?.content) return null;
-  try {
-    const parsed = JSON.parse(file.content);
-    return {
-      id: parsed.id,
-      title: parsed.title ?? '',
-      body: parsed.body ?? '',
-      updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : 0,
-    };
-  } catch {
-    return null;
-  }
+async function readNoteFile(fileId) {
+  if (!fileId) return null;
+  const p = await syncTransport.readNote(fileId);
+  if (!p) return null;
+  return {
+    id: p.id,
+    title: p.title ?? '',
+    body: p.body ?? '',
+    updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : 0,
+  };
 }
 
-/**
- * Create-or-update a note gist. Returns the gist id.
- * @param {{ id: string, text: string, updatedAt: number }} note
- */
-async function writeNoteGist(note, existingGistId, token) {
+/** Create-or-update a note file. Returns the file id. */
+async function writeNoteFile(note, existingFileId) {
   const { titleLine, bodyText } = splitNote(note.text);
   const updatedAt = note.updatedAt ?? Date.now();
-  const payload = JSON.stringify({ v: 1, id: note.id, title: titleLine, body: bodyText, updatedAt });
-  const headers = { ...noteGistHeaders(token), 'Content-Type': 'application/json' };
-
-  if (existingGistId) {
-    const res = await fetch(`${GITHUB_GISTS_API}/${existingGistId}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({ files: { [NOTE_GIST_FILENAME]: { content: payload } } }),
-    });
-    if (!res.ok) {
-      throw new Error(`Failed to update note gist (${res.status})`);
-    }
-    return existingGistId;
-  }
-
-  const res = await fetch(GITHUB_GISTS_API, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      description: `${NOTE_GIST_DESC_PREFIX}${noteLabel(note.text)}`,
-      public: false,
-      files: { [NOTE_GIST_FILENAME]: { content: payload } },
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(`Failed to create note gist (${res.status}): ${body.message || res.statusText}`);
-  }
-  const created = await res.json();
-  return created.id;
+  const payload = { v: 1, id: note.id, title: titleLine, body: bodyText, updatedAt };
+  return syncTransport.writeNote(payload, existingFileId);
 }
 
-/** Best-effort delete of a note gist. */
-async function deleteNoteGist(gistId, token) {
-  if (!gistId) return;
-  await fetch(`${GITHUB_GISTS_API}/${gistId}`, {
-    method: 'DELETE',
-    headers: noteGistHeaders(token),
-  });
+/** Best-effort delete of a note file. */
+function deleteNoteFile(fileId) {
+  if (!fileId) return;
+  syncTransport.deleteNote(fileId).catch(() => {});
 }
 
 // ── Local edit hooks (no network — sync happens on the sync window) ──────────
@@ -207,9 +153,9 @@ function onNoteChanged(noteId, text) {
   const trimmed = (text ?? "").trim();
   // Empty and never synced — nothing to index (avoids polluting the config
   // index with "Untitled note" placeholders).
-  if (!trimmed && !entry?.gistId) return;
+  if (!trimmed && !entry?.fileId) return;
   index[noteId] = {
-    gistId: entry?.gistId ?? null,
+    fileId: entry?.fileId ?? null,
     label: noteLabel(text),
     updatedAt: entry && typeof entry.updatedAt === 'number' ? entry.updatedAt : 0,
   };
@@ -218,31 +164,27 @@ function onNoteChanged(noteId, text) {
 
 /**
  * Called by the Notes widget after a note is deleted. Removes the index entry,
- * records a tombstone, and best-effort deletes the gist immediately (a delete
+ * records a tombstone, and best-effort deletes the file immediately (a delete
  * is a discrete user action, not continuous sync).
  */
 function onNoteDeleted(noteId) {
   if (!noteId) return;
   const index = readIndex();
-  const gistId = index[noteId]?.gistId;
+  const fileId = index[noteId]?.fileId;
   delete index[noteId];
   writeIndex(index);
   addTombstone(noteId);
   syncEngine.pushKey(STORAGE_KEYS.NOTES_INDEX);
-  if (gistId) {
-    getToken()
-      .then((token) => (token ? deleteNoteGist(gistId, token) : null))
-      .catch(() => {});
-  }
+  if (fileId) deleteNoteFile(fileId);
 }
 
 // ── Full reconcile (runs on the daily / manual sync window) ─────────────────
 
 /** Pull one remote note and merge into the local list. */
-async function pullRemoteNote(entry, token, nextNotes) {
-  const remote = await readNoteGist(entry.gistId, token);
+async function pullRemoteNote(entry, nextNotes) {
+  const remote = await readNoteFile(entry.fileId);
   if (!remote) return false; // 404 or malformed — treat as absent
-  const idx = nextNotes.findIndex((n) => n.id === (remote.id || entry.gistId));
+  const idx = nextNotes.findIndex((n) => n.id === (remote.id || entry.fileId));
   const note = {
     id: remote.id,
     text: remote.title ? mergeNote(remote.title, remote.body) : remote.body || '',
@@ -254,13 +196,12 @@ async function pullRemoteNote(entry, token, nextNotes) {
 }
 
 /**
- * Reconcile local notes with the per-note gists and the synced index.
+ * Reconcile local notes with the per-note files and the synced index.
  * Pulls newer remote notes, pushes newer local notes, and prunes stale entries.
  */
 async function syncNotes() {
   if (!syncEngine.isSyncEnabled()) return;
-  const token = await getToken();
-  if (!token) return;
+  if (!syncTransport.isConnected()) return;
 
   const { notes, idx } = readLocalNotes();
   const index = readIndex();
@@ -274,10 +215,10 @@ async function syncNotes() {
     const entry = index[note.id];
     const noteTs = note.updatedAt ?? 0;
 
-    // Empty note → never synced; drop any stale gist.
+    // Empty note → never synced; drop any stale file.
     if (!note.text || !note.text.trim()) {
-      if (entry?.gistId) {
-        deleteNoteGist(entry.gistId, token).catch(() => {});
+      if (entry?.fileId) {
+        deleteNoteFile(entry.fileId);
         delete index[note.id];
         changed = true;
       }
@@ -287,7 +228,7 @@ async function syncNotes() {
     if (entry && typeof entry.updatedAt === 'number' && entry.updatedAt > noteTs) {
       // Remote is newer → pull.
       try {
-        const remote = await readNoteGist(entry.gistId, token);
+        const remote = await readNoteFile(entry.fileId);
         if (remote) {
           note.text = remote.title ? mergeNote(remote.title, remote.body) : remote.body || '';
           note.updatedAt = remote.updatedAt;
@@ -296,11 +237,11 @@ async function syncNotes() {
       } catch (err) {
         console.error('[notes-sync] pull failed:', err.message);
       }
-    } else if (!entry?.gistId || noteTs > (entry?.updatedAt ?? 0)) {
+    } else if (!entry?.fileId || noteTs > (entry?.updatedAt ?? 0)) {
       // Local is newer (or never synced) → push.
       try {
-        const gistId = await writeNoteGist(note, entry?.gistId, token);
-        index[note.id] = { gistId, label: noteLabel(note.text), updatedAt: noteTs };
+        const fileId = await writeNoteFile(note, entry?.fileId);
+        index[note.id] = { fileId, label: noteLabel(note.text), updatedAt: noteTs };
         changed = true;
       } catch (err) {
         console.error('[notes-sync] push failed:', err.message);
@@ -311,11 +252,11 @@ async function syncNotes() {
   // 2. Remote-only notes (in the index but not local) → pull, unless tombstoned.
   const localIds = new Set(nextNotes.map((n) => n.id));
   for (const [id, entry] of Object.entries(index)) {
-    if (localIds.has(id) || !entry?.gistId) continue;
+    if (localIds.has(id) || !entry?.fileId) continue;
     const tomb = tombstones[id];
     if (tomb && entry.updatedAt <= tomb) continue; // locally deleted — don't re-pull
     try {
-      const pulled = await pullRemoteNote(entry, token, nextNotes);
+      const pulled = await pullRemoteNote(entry, nextNotes);
       if (pulled) changed = true;
     } catch (err) {
       console.error('[notes-sync] remote pull failed:', err.message);

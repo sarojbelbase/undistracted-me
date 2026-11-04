@@ -1,79 +1,58 @@
 /**
- * Unit tests for src/utilities/syncEngine.js (GitHub gist transport + merge)
+ * Unit tests for src/utilities/syncEngine.js (transport-agnostic merge)
  *
  * Covers:
  *  - whole-key last-write-wins for object keys (settings)
  *  - per-item element-set merge for array keys (union + LWW + tombstones)
- *  - gist discovery-independent transport (create/update/read)
  *  - GCal event stripping + array trimming
  *  - phantom-key mapping (bookmarks → um_bookmarks, countdown → countdown_events)
  *  - schema-version guard
  *  - change detection + throttle
+ *
+ * The transport is mocked (in-memory) via the `syncTransport` dependency-injection
+ * seam, so these tests exercise the merge/change logic without a network.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import syncEngine from '../../../src/utilities/syncEngine';
-import { GIST_SCHEMA_VERSION } from '../../../src/utilities/githubAuth';
 
-const GIST_ID = 'gist-123';
-const FILENAME = 'undistracted-me-sync.json';
-const GISTS_API = 'https://api.github.com/gists';
+const SCHEMA_VERSION = 3;
 
-// ─── Mocks ──────────────────────────────────────────────────────────────────
+// ─── Transport mock (in-memory config) ──────────────────────────────────────
 
-let localStore;
-let gistContent;
+const state = vi.hoisted(() => ({ gistContent: null }));
 
-function json(data, status = 200) {
-  return { ok: status >= 200 && status < 300, status, json: async () => data };
-}
+vi.mock('../../../src/utilities/syncTransport', () => ({
+  SYNC_SCHEMA_VERSION: 3,
+  syncTransport: {
+    isConnected: () => true,
+    readConfig: async () => {
+      if (state.gistContent == null) return { notFound: true };
+      return JSON.parse(state.gistContent);
+    },
+    writeConfig: async (payload) => {
+      state.gistContent = JSON.stringify(payload);
+    },
+  },
+}));
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function stubChrome() {
-  localStore = { github_gist_token: 'token-abc' };
   vi.stubGlobal('chrome', {
     runtime: { id: 'test-ext' },
     storage: {
       local: {
-        get: vi.fn(async (key) => {
-          const out = {};
-          const pick = (k) => { if (k in localStore) out[k] = localStore[k]; };
-          if (Array.isArray(key)) key.forEach(pick);
-          else if (typeof key === 'string') pick(key);
-          return out;
-        }),
-        set: vi.fn(async (obj) => Object.assign(localStore, obj)),
-        remove: vi.fn(async (keys) => {
-          (Array.isArray(keys) ? keys : [keys]).forEach((k) => { delete localStore[k]; });
-        }),
+        get: vi.fn(async () => ({})),
+        set: vi.fn(async () => {}),
+        remove: vi.fn(async () => {}),
       },
     },
   });
 }
 
-function stubFetch() {
-  gistContent = null;
-  vi.stubGlobal('fetch', vi.fn(async (url, opts = {}) => {
-    const u = String(url);
-    const method = (opts.method || 'GET').toUpperCase();
-
-    if (u === GISTS_API && method === 'POST') {
-      gistContent = JSON.parse(opts.body).files[FILENAME].content;
-      return json({ id: GIST_ID, files: { [FILENAME]: { content: gistContent } } }, 201);
-    }
-    if (u === `${GISTS_API}/${GIST_ID}` && method === 'PATCH') {
-      gistContent = JSON.parse(opts.body).files[FILENAME].content;
-      return json({ id: GIST_ID }, 200);
-    }
-    if (u === `${GISTS_API}/${GIST_ID}` && method === 'GET') {
-      if (gistContent == null) return json({ message: 'Not Found' }, 404);
-      return json({ id: GIST_ID, files: { [FILENAME]: { content: gistContent } } });
-    }
-    return json({}, 404);
-  }));
-}
-
 function setGist(keys) {
-  gistContent = JSON.stringify({ v: 1, deviceId: 'dev_x', updatedAt: 0, keys });
+  state.gistContent = JSON.stringify({ v: 1, deviceId: 'dev_x', updatedAt: 0, keys });
 }
 
 /** Build an element-set value `{ items, deleted }` for an array key. */
@@ -81,11 +60,22 @@ function elementSet(itemsById, deleted = {}) {
   return { items: itemsById, deleted };
 }
 
+/** Write a full v3 payload (with hash + device registry). */
+function setGistV3(keys, { hash = 'remotehash', deviceId = 'dev_other', updatedAt = 500 } = {}) {
+  state.gistContent = JSON.stringify({
+    v: 3,
+    deviceId,
+    updatedAt,
+    hash,
+    devices: { [deviceId]: { name: 'Windows', os: 'Windows', lastSeenAt: updatedAt } },
+    keys,
+  });
+}
+
 beforeEach(async () => {
   localStorage.clear();
+  state.gistContent = null;
   stubChrome();
-  localStorage.setItem('github_gist_id', GIST_ID);
-  stubFetch();
   await syncEngine.enableSync();
 });
 
@@ -137,9 +127,9 @@ describe('pullFromSync — settings field-level merge', () => {
 
     await syncEngine.pullFromSync();
 
-    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
-    expect(state.accent).toBe('local');
-    expect(state.language).toBe('ne');
+    const state_ = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state_.accent).toBe('local');
+    expect(state_.language).toBe('ne');
   });
 });
 
@@ -197,7 +187,7 @@ describe('pushAll — array element-set format', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     const v = written.keys.widget_events.v;
     expect(Array.isArray(v)).toBe(false);
     expect(v.items.a.v.title).toBe('A');
@@ -211,7 +201,7 @@ describe('pushAll — array element-set format', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     const items = written.keys.widget_events.v.items;
     expect(Object.keys(items)).toEqual(['native']);
   });
@@ -222,7 +212,7 @@ describe('pushAll — array element-set format', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(Object.keys(written.keys.widget_events.v.items)).toHaveLength(200);
   });
 });
@@ -235,7 +225,7 @@ describe('phantom-key mapping', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(written.keys.widget_bookmarks).toBeDefined();
     expect(written.keys.widget_bookmarks.v.items['https://a.com'].v.title).toBe('A');
   });
@@ -245,7 +235,7 @@ describe('phantom-key mapping', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(written.keys.countdown_events).toBeDefined();
     expect(written.keys.countdown_events.v.items.c1.v.title).toBe('C');
   });
@@ -275,10 +265,10 @@ describe('widget_instances per-instance merge', () => {
 
     await syncEngine.pullFromSync();
 
-    const state = JSON.parse(localStorage.getItem('widget_instances')).state;
-    expect(state.instances.map((i) => i.id).sort()).toEqual(['calendar', 'clock']);
-    expect(state.widgetSettings.calendar).toEqual({ calendarType: 'bs' });
-    expect(state.widgetSettings.clock).toEqual({ format: '24h' });
+    const state_ = JSON.parse(localStorage.getItem('widget_instances')).state;
+    expect(state_.instances.map((i) => i.id).sort()).toEqual(['calendar', 'clock']);
+    expect(state_.widgetSettings.calendar).toEqual({ calendarType: 'bs' });
+    expect(state_.widgetSettings.clock).toEqual({ format: '24h' });
   });
 
   it('excludes the notes widget settings from the synced payload', async () => {
@@ -292,14 +282,14 @@ describe('widget_instances per-instance merge', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     const ws = written.keys.widget_instances.v.widgetSettings;
     expect(ws.items.notes).toBeUndefined();
     // The notes instance itself is still synced (its slot, not its content).
     expect(written.keys.widget_instances.v.instances.items.notes).toBeDefined();
   });
 
-  it('strips a stale notes entry already embedded in the remote gist', async () => {
+  it('strips a stale notes entry already embedded in the remote payload', async () => {
     localStorage.setItem('widget_instances', JSON.stringify({
       state: {
         instances: [{ id: 'notes', type: 'notes' }, { id: 'clock', type: 'clock' }],
@@ -308,7 +298,7 @@ describe('widget_instances per-instance merge', () => {
       version: 0,
     }));
 
-    // Simulate a gist that was polluted before the fix — `notes` lives in the
+    // Simulate a config that was polluted before the fix — `notes` lives in the
     // remote widgetSettings element set. A clean device must scrub it on push.
     setGist({
       widget_instances: {
@@ -329,7 +319,7 @@ describe('widget_instances per-instance merge', () => {
 
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     const ws = written.keys.widget_instances.v.widgetSettings;
     expect(ws.items.notes).toBeUndefined();
     expect(ws.items.clock).toBeDefined();
@@ -339,11 +329,11 @@ describe('widget_instances per-instance merge', () => {
 // ─── schema versioning ──────────────────────────────────────────────────────
 
 describe('schema versioning', () => {
-  it('skips the pull when the remote gist is from a newer schema', async () => {
+  it('skips the pull when the remote config is from a newer schema', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
     localStorage.setItem('sync_timestamps', JSON.stringify({ undistracted_settings: 0 }));
-    gistContent = JSON.stringify({
-      v: GIST_SCHEMA_VERSION + 1,
+    state.gistContent = JSON.stringify({
+      v: SCHEMA_VERSION + 1,
       deviceId: 'dev',
       updatedAt: 0,
       keys: { undistracted_settings: { v: { state: { accent: 'remote' }, version: 0 }, t: 9999 } },
@@ -380,7 +370,7 @@ describe('change detection and throttle', () => {
     // Both local and remote changed since a shared base.
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-v2' }, version: 0 }));
     localStorage.setItem('sync_fingerprint', JSON.stringify({ local: 'localhash-v1', remote: 'remotehash-v1' }));
-    gistContent = JSON.stringify({
+    state.gistContent = JSON.stringify({
       v: 3,
       deviceId: 'dev_other',
       updatedAt: 500,
@@ -395,11 +385,11 @@ describe('change detection and throttle', () => {
     expect(syncEngine.getSyncStatus().pendingConflict).toBeTruthy();
   });
 
-  it('writes a content hash into the gist payload', async () => {
+  it('writes a content hash into the config payload', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 1, title: 'e' }]));
     await syncEngine.pushAll();
 
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(typeof written.hash).toBe('string');
     expect(written.hash.length).toBeGreaterThan(0);
   });
@@ -419,7 +409,7 @@ describe('change detection and throttle', () => {
 
     const after = JSON.parse(localStorage.getItem('sync_fingerprint'));
     // pushAll itself doesn't record the fingerprint; a change must flip the remote hash.
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(written.hash).toBeDefined();
     expect(before.local).toBeTruthy();
     expect(after.local).toBe(before.local); // fingerprint only updates on a full cycle
@@ -427,18 +417,6 @@ describe('change detection and throttle', () => {
 });
 
 // ─── divergence detection + directional sync (pull / push / merge) ───────────
-
-/** Write a full v3 gist payload (with hash + device registry). */
-function setGistV3(keys, { hash = 'remotehash', deviceId = 'dev_other', updatedAt = 500 } = {}) {
-  gistContent = JSON.stringify({
-    v: 3,
-    deviceId,
-    updatedAt,
-    hash,
-    devices: { [deviceId]: { name: 'Windows', os: 'Windows', lastSeenAt: updatedAt } },
-    keys,
-  });
-}
 
 describe('previewSync — divergence classification', () => {
   it('classifies a first-connect with data on both sides as diverged', async () => {
@@ -460,7 +438,7 @@ describe('previewSync — divergence classification', () => {
 
   it('classifies local-only data as ahead (no remote yet)', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-new' }, version: 0 }));
-    gistContent = null; // no gist → 404
+    state.gistContent = null; // no config → notFound
 
     const preview = await syncEngine.previewSync();
     expect(preview.status).toBe('ahead');
@@ -488,10 +466,10 @@ describe('directional sync — pull / push', () => {
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 }, language: { v: 'ne', t: 100 } }, version: 0 }, t: 100 } });
 
     const result = await syncEngine.pullSync();
-    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    const state_ = JSON.parse(localStorage.getItem('undistracted_settings')).state;
     expect(result.changed).toBe(true);
-    expect(state.accent).toBe('remote');
-    expect(state.language).toBe('ne');
+    expect(state_.accent).toBe('remote');
+    expect(state_.language).toBe('ne');
   });
 
   it('pullSync deletes local-only settings (replace, not merge)', async () => {
@@ -499,8 +477,8 @@ describe('directional sync — pull / push', () => {
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
 
     await syncEngine.pullSync();
-    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
-    expect(state.onlyLocal).toBeUndefined();
+    const state_ = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state_.onlyLocal).toBeUndefined();
   });
 
   it('pushSync overwrites remote with local (local wins) + writes the device registry', async () => {
@@ -508,10 +486,10 @@ describe('directional sync — pull / push', () => {
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
 
     const result = await syncEngine.pushSync();
-    const written = JSON.parse(gistContent);
+    const written = JSON.parse(state.gistContent);
     expect(result.changed).toBe(true);
     expect(written.keys.undistracted_settings.v.fields.accent.v).toBe('local');
-    expect(written.keys.undistracted_settings.v.fields.onlyLocal.v).toBe('local');
+    expect(written.keys.undistracted_settings.v.fields.onlyLocal.v).toBe('x');
     expect(written.devices).toBeTruthy();
     const myId = syncEngine.getSyncStatus().deviceId;
     expect(written.devices[myId]).toBeTruthy();
@@ -519,15 +497,15 @@ describe('directional sync — pull / push', () => {
   });
 
   it('a fresh device does not clobber remote on enableSync', async () => {
-    // New device with local data, remote gist with data → diverged, both preserved.
+    // New device with local data, remote config with data → diverged, both preserved.
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
 
     await syncEngine.enableSync();
 
-    const state = JSON.parse(localStorage.getItem('undistracted_settings')).state;
-    expect(state.accent).toBe('local'); // not clobbered
-    expect(JSON.parse(gistContent).keys.undistracted_settings.v.fields.accent.v).toBe('remote'); // not overwritten
+    const state_ = JSON.parse(localStorage.getItem('undistracted_settings')).state;
+    expect(state_.accent).toBe('local'); // not clobbered
+    expect(JSON.parse(state.gistContent).keys.undistracted_settings.v.fields.accent.v).toBe('remote'); // not overwritten
     expect(syncEngine.getSyncStatus().pendingConflict?.status).toBe('diverged');
   });
 });
