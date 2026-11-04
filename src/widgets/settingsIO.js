@@ -31,20 +31,18 @@ const isAppKey = (key) => APP_KEY_PREFIXES.some((p) => key.startsWith(p));
  * Keys that must NEVER be exported or imported via the settings backup.
  *
  * These are either secrets, regenerable caches, transient runtime state, or —
- * now that notes sync through their own per-note private gists — note content
- * and its sync metadata. Keeping them out of the backup also means importing a
- * backup never clobbers the user's auth state or their separately-synced notes.
+ * now that notes sync through their own per-note files — note content and its
+ * sync metadata. Keeping them out of the backup also means importing a backup
+ * never clobbers the user's auth state or their separately-synced notes.
  */
 const EXPORT_EXCLUDED = new Set([
-  // ── Notes (synced via per-note gists, not part of the config backup) ──
+  // ── Notes (synced via per-note files, not part of the config backup) ──
   "widgetSettings_notes",
   "notes_index",
   "notes_deleted",
 
   // ── Sync auth + metadata (device-local, rebuilt on reconnect/sync) ──
-  "github_gist_id",
-  "github_gist_profile",
-  "github_connected",
+  "drive_sync_connected",
   "sync_timestamps",
   "sync_merge_meta",
   "sync_fingerprint",
@@ -93,7 +91,7 @@ const isPortableKey = (key) =>
 
 /**
  * Strip the notes widget's content from a `widget_instances` snapshot before
- * export. Notes live in per-note gists, so the config backup must not carry the
+ * export. Notes live in per-note files, so the config backup must not carry the
  * note text — but the widget slot itself (its position/type) is preserved.
  */
 const stripNotesFromInstances = (value) => {
