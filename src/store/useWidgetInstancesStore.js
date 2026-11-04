@@ -100,6 +100,48 @@ export const useWidgetInstancesStore = create(
         });
       },
 
+      /**
+       * Clone an existing instance: same type, fresh id, and a deep copy of
+       * the source's per-instance settings. No-op if the source id is unknown.
+       */
+      duplicateInstance: (sourceId) => {
+        set((state) => {
+          const src = state.instances.find((i) => i.id === sourceId);
+          if (!src) return {};
+          const id = mkId(src.type);
+          const srcSettings = state.widgetSettings[sourceId];
+          return {
+            instances: [...state.instances, { id, type: src.type }],
+            widgetSettings: srcSettings
+              ? {
+                  ...state.widgetSettings,
+                  [id]: JSON.parse(JSON.stringify(srcSettings)),
+                }
+              : state.widgetSettings,
+          };
+        });
+      },
+
+      /**
+       * "Pin to top" — move the instance to the FRONT of the instances array.
+       * No-op if already at index 0 (or unknown). The visual top position is
+       * persisted separately (layout write) by WidgetGrid, which owns REG_MAP.
+       */
+      pinInstance: (id) => {
+        set((state) => {
+          const idx = state.instances.findIndex((i) => i.id === id);
+          if (idx <= 0) return {};
+          const item = state.instances[idx];
+          return {
+            instances: [
+              item,
+              ...state.instances.slice(0, idx),
+              ...state.instances.slice(idx + 1),
+            ],
+          };
+        });
+      },
+
       removeInstance: (id) => {
         set((state) => ({
           instances: state.instances.filter((i) => i.id !== id),

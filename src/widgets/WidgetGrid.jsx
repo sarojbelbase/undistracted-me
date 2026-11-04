@@ -4,6 +4,8 @@ import "react-grid-layout/css/styles.css";
 
 import { WIDGET_REGISTRY } from "./index";
 import { STORAGE_KEYS } from "../constants/storageKeys";
+import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
+import { WidgetActionsContext } from "./WidgetActionsContext";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
@@ -104,6 +106,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
+  // Widget-instance actions for the "⋯" menu (Duplicate / Pin to top).
+  const duplicateInstance = useWidgetInstancesStore((s) => s.duplicateInstance);
+  const pinInstance = useWidgetInstancesStore((s) => s.pinInstance);
+
   // Build layout items for all breakpoints.
   // lg uses positions from each widget's config.js.
   // Other breakpoints use saved layouts (returning users) or config breakpoints (fresh install).
@@ -192,6 +198,45 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const layoutsRef = useRef(layouts);
   layoutsRef.current = layouts;
 
+  // Keep a ref to the latest effective layout (per breakpoint) for the pin handler.
+  const layoutItemsRef = useRef(layoutItems);
+  layoutItemsRef.current = layoutItems;
+
+  /**
+   * "Pin to top" — reorder the instance in the store (front of the array) and
+   * persist the widget at the top of every breakpoint's saved layout. Lives
+   * here (not the store) so it can read REG_MAP without a store→widgets cycle.
+   */
+  const pinWidgetToTop = useCallback(
+    (id) => {
+      pinInstance(id);
+      const type = (instances || []).find((i) => i.id === id)?.type;
+      const reg = REG_MAP[type];
+      if (!reg) return;
+
+      const bps = ["lg", "md", "sm", "xs", "xxs"];
+      const next = {};
+      for (const bp of bps) {
+        const cols = RGL_COLS[bp];
+        const pos = reg.breakpoints?.[bp];
+        const w = Math.min(pos?.w ?? reg.w, cols);
+        const h = pos?.h ?? reg.h;
+        const pinned = { i: id, x: 0, y: 0, w, h };
+        // Keep every other widget where it is; push items overlapping the
+        // pinned top slot down one row so nothing sits under the pinned widget.
+        const others = (layoutItemsRef.current[bp] || [])
+          .filter((item) => item.i !== id)
+          .map((item) =>
+            item.y < h && item.x < w ? { ...item, y: h } : item,
+          );
+        next[bp] = [pinned, ...others];
+      }
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(next));
+      setLayouts(next);
+    },
+    [pinInstance, instances, REG_MAP],
+  );
+
   const handleDragStart = useCallback((_layout, oldItem) => {
     setDraggingId(oldItem.i);
   }, []);
@@ -237,10 +282,13 @@ export const WidgetGrid = React.memo(function WidgetGrid({
     const PAD = WIDGETGRID_X_MARGIN;
     const GAP = 6;
     const ROW_H = 8.5;
-    // Sort by xxs y position so visual order matches what RGL would show
+    // Sort by xxs y position so visual order matches what RGL would show.
+    // Prefer a saved xxs layout y (which includes pin-to-top) over the config
+    // default so pinning is reflected in the mobile vertical stack too.
+    const savedXxsY = (id) => (layouts.xxs || []).find((l) => l.i === id)?.y;
     const sorted = [...(instances || [])].sort((a, b) => {
-      const ay = REG_MAP[a.type]?.breakpoints?.xxs?.y ?? REG_MAP[a.type]?.y ?? 0;
-      const by = REG_MAP[b.type]?.breakpoints?.xxs?.y ?? REG_MAP[b.type]?.y ?? 0;
+      const ay = savedXxsY(a.id) ?? REG_MAP[a.type]?.breakpoints?.xxs?.y ?? REG_MAP[a.type]?.y ?? 0;
+      const by = savedXxsY(b.id) ?? REG_MAP[b.type]?.breakpoints?.xxs?.y ?? REG_MAP[b.type]?.y ?? 0;
       return ay - by;
     });
     return (
@@ -254,7 +302,15 @@ export const WidgetGrid = React.memo(function WidgetGrid({
             const height = h * ROW_H + (h - 1) * GAP;
             return (
               <div key={id} data-widget-type={type} style={{ height }}>
-                <Suspense fallback={null}>{widget}</Suspense>
+                <WidgetActionsContext.Provider
+                  value={{
+                    id,
+                    duplicate: () => duplicateInstance(id),
+                    pin: () => pinWidgetToTop(id),
+                  }}
+                >
+                  <Suspense fallback={null}>{widget}</Suspense>
+                </WidgetActionsContext.Provider>
               </div>
             );
           })}
@@ -342,7 +398,15 @@ export const WidgetGrid = React.memo(function WidgetGrid({
                   style={{ pointerEvents: arrangeMode ? "none" : undefined }}
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <Suspense fallback={null}>{widget}</Suspense>
+                  <WidgetActionsContext.Provider
+                    value={{
+                      id,
+                      duplicate: () => duplicateInstance(id),
+                      pin: () => pinWidgetToTop(id),
+                    }}
+                  >
+                    <Suspense fallback={null}>{widget}</Suspense>
+                  </WidgetActionsContext.Provider>
                 </div>
               </div>
             );
