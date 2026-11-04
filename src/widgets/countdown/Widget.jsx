@@ -8,7 +8,7 @@ import {
   formatCountdown,
   formatSince,
   formatCountdownPhrase,
-  formatSincePhrase,
+  humanizeDuration,
   formatTargetDate,
   loadCustom,
   saveCustom,
@@ -218,7 +218,7 @@ export const Widget = ({ id, onRemove }) => {
   const titlePart = activeTarget?.title || '';
   const timePart = useMemo(() => {
     if (!activeTarget) return '';
-    if (isSince) return `${formatSincePhrase(aDays)} ago`;
+    if (isSince) return humanizeDuration(aDays, aHours, aMins, 'past');
     return formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs);
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 

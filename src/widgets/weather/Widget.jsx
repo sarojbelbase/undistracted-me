@@ -926,11 +926,9 @@ export const Widget = ({ id = "weather", onRemove }) => {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [aqi, setAqi] = useState(null);
-  const [error, setError] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
   // Read auto-location from the centralized location store.
   // When the store updates (e.g. VPN switch), geoLat/geoLon change and
   // the effect below re-runs, fetching fresh weather for the new position.
@@ -955,13 +953,14 @@ export const Widget = ({ id = "weather", onRemove }) => {
     weather: hookWeather,
     forecast: hookForecast,
     aqi: hookAqi,
-    loading: hookLoading,
+    error: hookError,
   } = useWeather({
     lat: resolvedLat,
     lon: resolvedLon,
     unit,
     cityName: resolvedCity,
     full: true,
+    refreshKey,
   });
 
   // Sync hook output to widget state (allows the rest of the widget to read from
@@ -981,11 +980,6 @@ export const Widget = ({ id = "weather", onRemove }) => {
       setLocationDenied(false);
     }
   }, [location, geoLat, geoSource]);
-
-  // Map loading state
-  useEffect(() => {
-    if (!hookLoading) setError(null);
-  }, [hookLoading]);
 
   const settingsContent = (
     <Settings
@@ -1021,9 +1015,8 @@ export const Widget = ({ id = "weather", onRemove }) => {
   const content = getWeatherContent({
     locationDenied,
     location,
-    error,
+    error: hookError,
     onRetry: () => {
-      setError(null);
       setRefreshKey((k) => k + 1);
     },
     weather,

@@ -16,8 +16,8 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { todayStr } from '../../../src/utilities';
 import {
-  todayStr,
   isPast,
   getDateOffset,
   bucketLabel,

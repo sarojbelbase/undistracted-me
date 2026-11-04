@@ -39,11 +39,12 @@ import { useDataHub } from "./useDataHub";
  * @param {string}  [opts.cityName]   Pre-resolved city name
  * @param {boolean} [opts.full]       Fetch forecast + AQI too? (default false)
  */
-export function useWeather({ lat, lon, unit = "metric", cityName = "", full = false }) {
+export function useWeather({ lat, lon, unit = "metric", cityName = "", full = false, refreshKey = 0 }) {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [aqi, setAqi] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // SW-prefetched raw Open-Meteo data (metric) from the DataHub.
   const {
@@ -54,7 +55,10 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
   } = useDataHub("weather");
 
   useEffect(() => {
-    if (lat == null || lon == null) return;
+    if (lat == null || lon == null) {
+      setLoading(false);
+      return;
+    }
 
     let cancelled = false;
     const locKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
@@ -66,6 +70,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
       setForecast(f);
       setAqi(a);
       setLoading(false);
+      setError(null);
     };
 
     // ── Tier 1: localStorage cache (per-city, per-unit) ──────────────────
@@ -117,14 +122,17 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
         // Feed metric results back into the hub so the SW and other tabs reuse them.
         if (unit === "metric") writeHub(raw, { aqiData: aqiRaw, lat, lon });
       } catch {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setError(true);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [lat, lon, unit, cityName, full, hydrated, hubRaw, hubMeta, writeHub]);
+  }, [lat, lon, unit, cityName, full, hydrated, hubRaw, hubMeta, writeHub, refreshKey]);
 
-  return { weather, forecast, aqi, loading };
+  return { weather, forecast, aqi, loading, error };
 }
