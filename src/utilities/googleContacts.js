@@ -19,6 +19,12 @@ const HAS_CACHE_FLAG = 'contacts_has_cache';
 // Updated synchronously on every write/clear so subsequent reads are instant.
 let _contactsMemCache = null; // null = not yet loaded
 
+/** Force the next loadCachedContacts() call to re-read chrome.storage.local
+ *  (used by reactive consumers that listen for cross-tab cache changes). */
+export function invalidateContactsCache() {
+  _contactsMemCache = null;
+}
+
 export async function loadCachedContacts() {
   if (_contactsMemCache !== null) return _contactsMemCache;
 
