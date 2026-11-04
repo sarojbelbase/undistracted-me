@@ -48,3 +48,48 @@
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Focus Mode paper integration (.fm-root)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Card surfaces (left panels, toolbar, tasks panel) already receive paper
+// tokens via getFMCardVars("paper") — solid warm dark #1c1914 + grain.
+// This block fills the remaining gap the global paper rules can't cover:
+// the center search pill and the tasks pill use photo-adaptive glass tokens
+// (getTokens()) that aren't theme-aware, so they stay transparent in paper
+// mode. Override them to solid paper so paper reaches every FM surface.
+
+:root[data-card-style="paper"] .fm-root {
+
+  // ── Search bar pill — solid paper instead of photo-adaptive glass ──────
+  // Uses getTokens() (rgba(0,0,0,0.38) + blur) — not theme-aware. Paper =
+  // opaque warm dark + subtle grain + warm parchment border, matching cards.
+  :has(> #fm-search) {
+    background: var(--fm-card-bg) !important;
+    background-image: var(--fm-card-texture, none) !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    border-color: rgba(245, 239, 228, 0.16) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.40) !important;
+  }
+
+  // ── Search submit button — parchment tint ─────────────────────────────
+  :has(> #fm-search) button[style*="border-radius: 999"] {
+    background: rgba(245, 239, 228, 0.10) !important;
+  }
+
+  // ── Tasks pill (collapsed) — solid paper ──────────────────────────────
+  button[aria-label="Toggle tasks panel"] {
+    background: var(--fm-card-bg) !important;
+    background-image: var(--fm-card-texture, none) !important;
+    background-repeat: repeat !important;
+    background-size: 200px 200px !important;
+    border-color: rgba(245, 239, 228, 0.16) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.40) !important;
+  }
+}
+
