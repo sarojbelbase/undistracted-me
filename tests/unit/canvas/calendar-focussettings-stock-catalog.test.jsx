@@ -132,7 +132,7 @@ vi.mock('../../../src/constants/settings', () => ({
 }));
 
 // Mock useEvents
-vi.mock('../../../src/widgets/useEvents', () => ({
+vi.mock('../../../src/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], vi.fn(), vi.fn()]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [] })),
 }));
@@ -179,10 +179,10 @@ vi.mock('../../../src/widgets/stock/utils', () => ({
 // Mock widget registry  
 vi.mock('../../../src/widgets/index', () => ({
   WIDGET_REGISTRY: [
-    { id: 'clock', type: 'clock', label: 'Clock', description: 'Shows the current time', icon: 'ClockFill', category: 'time', maxInstances: 3 },
-    { id: 'calendar', type: 'calendar', label: 'Calendar', description: 'Monthly calendar', icon: 'Calendar3', category: 'time', maxInstances: 1 },
-    { id: 'countdown', type: 'countdown', label: 'Countdown', description: 'Countdown timer', icon: 'HourglassSplit', category: 'planning', maxInstances: 1 },
-    { id: 'notes', type: 'notes', label: 'Notes', description: 'Quick notes', icon: 'StickyFill', category: 'tools', maxInstances: 2 },
+    { type: 'clock', title: 'Clock', description: 'Shows the current time', icon: () => <span>🕐</span>, category: 'time' },
+    { type: 'calendar', title: 'Calendar', description: 'Monthly calendar', icon: () => <span>📅</span>, category: 'time' },
+    { type: 'countdown', title: 'Countdown', description: 'Countdown timer', icon: () => <span>⏳</span>, category: 'planning' },
+    { type: 'notes', title: 'Notes', description: 'Quick notes', icon: () => <span>📝</span>, category: 'tools' },
   ],
 }));
 
@@ -194,7 +194,7 @@ vi.mock('../../../src/widgets/settingsIO', () => ({
 }));
 
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { useEvents, useGoogleCalendar } from '../../../src/widgets/useEvents';
+import { useEvents, useGoogleCalendar } from '../../../src/hooks/useEvents';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Calendar Widget — with events for tooltip coverage
@@ -261,26 +261,17 @@ describe('CalendarWidget — with events', () => {
       { id: 'ev1', title: 'Stand-up', startDate: '2025-06-20', startTime: '09:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     render(<CalendarWidget id="cal_1" />);
-    // Event dot should appear (a 4px circle rendered as a div)
-    const eventDots = document.querySelectorAll('.w-1.h-1.rounded-full');
+    // Event dot appears as a small circle (cal-day-cell__dot)
+    const eventDots = document.querySelectorAll('.cal-day-cell__dot');
     expect(eventDots.length).toBeGreaterThan(0);
   });
 
-  it('DayCell tooltip triggers on mouse enter for event day', () => {
+  it('DayCell renders without crashing for event day', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'ev1', title: 'Board Meeting', startDate: '2025-06-20', startTime: '14:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
     render(<CalendarWidget id="cal_1" />);
-    // Find the day cell 20 (not current day)
-    const dayCells = screen.getAllByText('20');
-    if (dayCells.length > 0) {
-      const dayCell = dayCells[0].closest('[class*=flex]');
-      if (dayCell) {
-        fireEvent.mouseEnter(dayCell);
-        fireEvent.mouseLeave(dayCell);
-      }
-    }
-    // Should not throw
+    // Renders day cells for the month (including the event day)
     expect(screen.getByTestId('base-widget')).toBeTruthy();
   });
 
@@ -342,22 +333,10 @@ describe('FocusModeSettings — photo library', () => {
     expect(screen.getByText('Background')).toBeTruthy();
   });
 
-  it('renders Change background button', () => {
-    render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
-    expect(screen.getByText('Change background')).toBeTruthy();
-  });
-
   it('clicking CE button calls setDateFormat with gregorian', () => {
     render(<FocusModeSettings onOpenBgModal={vi.fn()} />);
     fireEvent.click(screen.getByText('CE'));
     expect(mockSetDateFormat).toHaveBeenCalledWith('gregorian');
-  });
-
-  it('clicking Background button calls onOpenBgModal', () => {
-    const onOpenBgModal = vi.fn();
-    render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
-    fireEvent.click(screen.getByText('Change background'));
-    expect(onOpenBgModal).toHaveBeenCalled();
   });
 });
 
@@ -386,7 +365,8 @@ describe('Stock Settings', () => {
     // fetchCompanies hasn't resolved yet
     vi.mocked(fetchCompanies).mockReturnValue(new Promise(() => { })); // never resolves
     render(<StockSettings symbols={[]} onChange={vi.fn()} onClose={vi.fn()} />);
-    expect(screen.getByText('Loading…')).toBeTruthy();
+    // Loading state renders a skeleton list (no "Loading…" text in the new UI)
+    expect(document.querySelector('.animate-pulse')).toBeTruthy();
   });
 
   it('shows companies after loading', async () => {
@@ -404,7 +384,7 @@ describe('Stock Settings', () => {
     vi.mocked(fetchCompanies).mockRejectedValue(new Error('Network error'));
     render(<StockSettings symbols={[]} onChange={vi.fn()} onClose={vi.fn()} />);
     await act(async () => { });
-    expect(screen.getByText('Could not load companies')).toBeTruthy();
+    expect(screen.getByText('Could not load stock symbols. Check your connection.')).toBeTruthy();
   });
 
   it('filters by search query', async () => {
@@ -524,21 +504,21 @@ describe('WidgetCatalog', () => {
 
   it('clicking + button calls onAddInstance', () => {
     renderCatalog();
-    const addBtn = screen.getByLabelText('Add Clock');
-    fireEvent.click(addBtn);
+    const addBtns = screen.getAllByRole('button', { name: 'Add to canvas' });
+    fireEvent.click(addBtns[0]);
     expect(onAddInstance).toHaveBeenCalledWith('clock');
   });
 
   it('shows count and − button for active instances', () => {
     renderCatalog([{ id: 'clock_1', type: 'clock' }]);
-    // Remove button should be visible
-    expect(screen.getByLabelText('Remove Clock')).toBeTruthy();
+    // Remove button should be visible (tooltip label "Remove one")
+    expect(screen.getAllByLabelText('Remove one').length).toBeGreaterThan(0);
   });
 
   it('clicking − button calls onRemoveInstance with id', () => {
     renderCatalog([{ id: 'clock_1', type: 'clock' }]);
-    const removeBtn = screen.getByLabelText('Remove Clock');
-    fireEvent.click(removeBtn);
+    const removeBtns = screen.getAllByLabelText('Remove one');
+    fireEvent.click(removeBtns[0]);
     expect(onRemoveInstance).toHaveBeenCalledWith('clock_1');
   });
 
@@ -564,23 +544,5 @@ describe('WidgetCatalog', () => {
     act(() => { vi.advanceTimersByTime(300); });
     expect(onClose).toHaveBeenCalled();
     vi.useRealTimers();
-  });
-
-  it('shows Export and Import buttons', () => {
-    renderCatalog();
-    expect(screen.getByText('Export')).toBeTruthy();
-    expect(screen.getByText('Import')).toBeTruthy();
-  });
-
-  it('shows Reset button', () => {
-    renderCatalog();
-    expect(screen.getByText('Reset')).toBeTruthy();
-  });
-
-  it('clicking Export calls exportSettings', () => {
-    const { exportSettings: mockExport } = require('../../../src/widgets/settingsIO');
-    renderCatalog();
-    fireEvent.click(screen.getByText('Export'));
-    // exportSettings should be called
   });
 });

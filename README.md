@@ -5,23 +5,31 @@ A chrome/firefox extension that replaces your new tab with a beautiful, distract
 </strong><br>
 
 <span>
-<a href="http://hits.dwyl.com/sarojbelbase/undistracted-me"><img src="http://hits.dwyl.com/sidbelbase/undistracted-me.svg" alt="Total Hits"></a>
+<a href="http://hits.dwyl.com/sarojbelbase/undistracted-me"><img src="http://hits.dwyl.com/sarojbelbase/undistracted-me.svg" alt="Total Hits"></a>
 <a href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef"><img src="https://img.shields.io/chrome-web-store/users/dfgbijakkhepoonhaelocdmcleeehmef?logo=google-chrome&logoColor=white&style=flat-square" alt="Chrome Users"></a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/"><img src="https://img.shields.io/amo/users/{1071d037-0f17-4c92-b06c-704050d2e2c3}?logo=firefox&logoColor=white&style=flat-square" alt="Firefox Users"></a>
- <a href="https://github.com/sidbelbase/undistracted-me/releases"><img src="https://img.shields.io/github/v/release/sidbelbase/undistracted-me?style=flat-square" alt="Releases"></a>
+ <a href="https://github.com/sarojbelbase/undistracted-me/releases"><img src="https://img.shields.io/github/v/release/sarojbelbase/undistracted-me?style=flat-square" alt="Releases"></a>
 <a href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef">
 <img alt="Rating On Chrome Web Store" src="https://img.shields.io/chrome-web-store/rating/dfgbijakkhepoonhaelocdmcleeehmef?style=flat-square"></a>
 </span>
 
 </p>
 
-<img src="src/assets/img/hero.png" width="100%" height="auto">
+<!-- Hero image: pending — the owner will provide a new hero.png later. -->
 
 ## Deployments
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef)
-- [Firefox Addons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
-- [Official Website](https://undistractedme.sarojbelbase.com.np/)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
+- [Marketing website](https://undistracted.me)
+- [Web app](https://app.undistracted.me)
+
+## Feedback
+
+- 🐛 [Report a bug](https://forms.gle/7vf4VGrB9Loz8hB76)
+- 💡 [Suggest a feature](https://forms.gle/7vf4VGrB9Loz8hB76)
+
+Both forms are the owner's Google Forms and are reviewed periodically.
 
 ## Tech Stack
 

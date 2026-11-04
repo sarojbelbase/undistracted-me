@@ -65,7 +65,7 @@ describe('EventsWidget — with events', () => {
 // Bookmarks Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as BookmarksWidget } from '../../../src/widgets/bookmarks/Widget';
+import { Widget as BookmarksWidget } from '../../../src/widgets/bookmark/Widget';
 
 describe('BookmarksWidget', () => {
   beforeEach(() => {

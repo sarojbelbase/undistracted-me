@@ -72,7 +72,7 @@ test('01 · Dashboard light mode', async ({ page }) => {
     cardStyle: 'flat',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -89,7 +89,7 @@ test('02 · Dashboard dark mode', async ({ page }) => {
     cardStyle: 'glass',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -105,7 +105,7 @@ test('03 · Focus Mode', async ({ page }) => {
     accent: 'Mint',
     cardStyle: 'glass',
     defaultView: 'focus',
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -181,7 +181,7 @@ test('06 · Clock widget', async ({ page }) => {
     cardStyle: 'glass',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -198,7 +198,7 @@ test('07 · Notes widget', async ({ page }) => {
     cardStyle: 'flat',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   // Seed the notes widget with sample content via legacy localStorage key
@@ -228,7 +228,7 @@ test('08 · Pomodoro widget', async ({ page }) => {
     cardStyle: 'glass',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -245,7 +245,7 @@ test('09 · Progress widget', async ({ page }) => {
     cardStyle: 'flat',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -262,7 +262,7 @@ test('10 · Date Today widget', async ({ page }) => {
     cardStyle: 'glass',
     defaultView: 'canvas',
     canvasBg: { type: 'solid' },
-    quickTourSeenVersion: '3.0.0',
+    quickTourSeenVersion: '4.0.0',
   });
   await page.addInitScript(initFn, settings);
   await page.goto('/', { waitUntil: 'networkidle' });

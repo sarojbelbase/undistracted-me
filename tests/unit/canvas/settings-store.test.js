@@ -94,12 +94,11 @@ describe('initial state defaults', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('setMode — dark mode accent guard', () => {
-  it('switching to dark when accent is "Default" auto-corrects to "Blueberry"', () => {
-    resetStore({ accent: 'Default', mode: 'light' });
-    useSettingsStore.getState().setMode('dark');
-    expect(useSettingsStore.getState().accent).toBe('Blueberry');
-  });
-
+  // NOTE: the "Default accent is invalid in dark mode → auto-correct to Blueberry"
+  // guard was removed in the accent redesign. Accents now carry dark-tone
+  // variants (darkHex/darkFg), so "Matte Black" (the default) stays readable in
+  // dark mode and no auto-correction is needed. The guard's behaviour is no
+  // longer part of setMode.
   it('switches mode to "dark"', () => {
     useSettingsStore.getState().setMode('dark');
     expect(useSettingsStore.getState().mode).toBe('dark');
@@ -274,18 +273,18 @@ describe('Zustand persist key', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// setLookAwayNotify
+// setNotificationsEnabled (formerly setLookAwayNotify)
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('setLookAwayNotify', () => {
+describe('setNotificationsEnabled', () => {
   it('enables notifications', () => {
-    useSettingsStore.getState().setLookAwayNotify(true);
-    expect(useSettingsStore.getState().lookAwayNotify).toBe(true);
+    useSettingsStore.getState().setNotificationsEnabled(true);
+    expect(useSettingsStore.getState().notificationsEnabled).toBe(true);
   });
 
   it('disables notifications', () => {
-    useSettingsStore.getState().setLookAwayNotify(false);
-    expect(useSettingsStore.getState().lookAwayNotify).toBe(false);
+    useSettingsStore.getState().setNotificationsEnabled(false);
+    expect(useSettingsStore.getState().notificationsEnabled).toBe(false);
   });
 });
 

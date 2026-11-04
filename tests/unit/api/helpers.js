@@ -27,7 +27,7 @@ export const makeRes = () => {
 
 /** Valid allowed origins for convenience */
 export const ORIGINS = {
-  production: 'https://undistractedme.sarojbelbase.com.np',
+  production: 'https://app.undistracted.me',
   chrome: 'chrome-extension://abcdefghijklmnoabcdefghijklmno12',
   firefox: 'moz-extension://1071d037-0f17-4c92-b06c-704050d2e2c3',
   localhost: 'http://localhost:3000',

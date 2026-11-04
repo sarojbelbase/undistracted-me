@@ -23,25 +23,30 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      # EXTENSION_CLIENT_ID must be configured as a repo secret (Settings → Secrets and variables → Actions).
       - name: Build for Firefox
         if: matrix.browser == 'firefox'
+        env:
+          EXTENSION_CLIENT_ID: ${{ secrets.EXTENSION_CLIENT_ID }}
         run: bun run build && bun run build:firefox
 
       - name: Build for Chrome
         if: matrix.browser == 'chrome'
+        env:
+          EXTENSION_CLIENT_ID: ${{ secrets.EXTENSION_CLIENT_ID }}
         run: bun run build && bun run build:chrome
 
       - name: Rename Firefox zip
         if: matrix.browser == 'firefox'
         run: |
           version=$(jq -r .version package.json)
-          mv web-ext-artifacts/*.zip undistracted_me_firefox_v${version}.zip
+          mv builds/*.zip undistracted_me_firefox_v${version}.zip
 
       - name: Rename Chrome zip
         if: matrix.browser == 'chrome'
         run: |
           version=$(jq -r .version package.json)
-          mv dist.zip undistracted_me_chrome_v${version}.zip
+          mv builds/chrome.zip undistracted_me_chrome_v${version}.zip
 
       - name: Upload Firefox Release Asset
         if: matrix.browser == 'firefox'

@@ -4,8 +4,8 @@ import { makeReq, makeRes, ORIGINS } from './helpers.js';
 const KEY = 'test-api-key-xyz';
 
 vi.mock('../../../public/manifest.json', () => ({
-  default: { homepage_url: 'https://undistractedme.sarojbelbase.com.np' },
-  homepage_url: 'https://undistractedme.sarojbelbase.com.np',
+  default: { homepage_url: 'https://undistracted.me' },
+  homepage_url: 'https://undistracted.me',
 }));
 
 vi.mock('@vercel/blob', () => ({

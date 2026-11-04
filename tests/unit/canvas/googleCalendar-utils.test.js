@@ -36,7 +36,7 @@ function setupChromeMock() {
 
 vi.stubGlobal("fetch", vi.fn());
 
-let loadCachedGcalEvents, clearGcalCache, loadCachedProfile, clearProfileCache,
+let loadCachedGcalEvents, clearGcalCache, loadCachedProfile,
   getGoogleProfile, getCalendarEvents, isCalendarConnected, disconnectCalendar;
 
 beforeEach(async () => {
@@ -47,7 +47,7 @@ beforeEach(async () => {
   vi.resetModules();
   const mod = await import("../../../src/utilities/googleCalendar.js");
   ({
-    loadCachedGcalEvents, clearGcalCache, loadCachedProfile, clearProfileCache,
+    loadCachedGcalEvents, clearGcalCache, loadCachedProfile,
     getGoogleProfile, getCalendarEvents, isCalendarConnected, disconnectCalendar
   } = mod);
   global.chrome.runtime.lastError = null;
@@ -123,13 +123,8 @@ describe("loadCachedProfile", () => {
   });
 });
 
-describe("clearProfileCache", () => {
-  it("removes the profile cache key from chrome.storage.local", async () => {
-    chromeMockStorage[PROFILE_KEY] = { name: "John" };
-    await clearProfileCache();
-    expect(chromeMockStorage[PROFILE_KEY]).toBeUndefined();
-  });
-});
+// NOTE: clearProfileCache was made private (module-internal) — profile cache
+// clearing is now only reachable via disconnectCalendar(), which is covered below.
 
 describe("getGoogleProfile", () => {
   it("returns null when getAuthToken fails", async () => {

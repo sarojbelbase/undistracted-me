@@ -25,7 +25,7 @@ import { useSettingsStore } from '../../store/useSettingsStore';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOUR_VERSION = '3.0.0';
+const TOUR_VERSION = '4.0.0';
 
 // ─── Feature grid data ────────────────────────────────────────────────────────
 

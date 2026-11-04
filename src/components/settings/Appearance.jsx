@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { SunFill, MoonFill, CircleHalf, CheckLg, Link45deg, ArrowClockwise } from 'react-bootstrap-icons';
+import { SunFill, MoonFill, CircleHalf, CheckLg, ArrowClockwise } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { ACCENT_COLORS } from '../../theme';
 import { CARD_STYLES } from '../../constants/cardStyles';
@@ -40,32 +40,12 @@ const Segment = ({ children, style = {} }) => (
   </div>
 );
 
-// Shared small action-button look (used by the Curated / Custom sub-panels).
+// Shared small action-button look (used by the Curated sub-panel).
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
   padding: '7px 10px', borderRadius: 8, border: '1px solid var(--card-border)',
   background: 'var(--panel-bg)', color: 'var(--w-ink-2)', cursor: 'pointer',
   fontSize: 12, fontWeight: 600, transition: 'all 0.15s ease',
-};
-
-// ── URL classification ────────────────────────────────────────────────────────
-// Non-empty; prepends https:// when a scheme is missing; rejects non-http(s)
-// and whitespace (a URL/hostname cannot contain spaces).
-const classifyUrl = (raw) => {
-  const s = (raw || '').trim();
-  if (!s) return { ok: false, hint: null };
-  if (/\s/.test(s)) return { ok: false, hint: 'URL cannot contain spaces.' };
-  const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(s) ? s : `https://${s}`;
-  try {
-    const u = new URL(withScheme);
-    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
-      return { ok: false, hint: 'Only http(s) URLs are allowed.' };
-    }
-    if (!u.hostname) return { ok: false, hint: 'Enter a valid image URL (e.g. example.com/photo.jpg).' };
-    return { ok: true, url: withScheme, hint: null };
-  } catch {
-    return { ok: false, hint: 'Enter a valid image URL (e.g. example.com/photo.jpg).' };
-  }
 };
 
 // ── Curated panel ─────────────────────────────────────────────────────────────
@@ -167,58 +147,6 @@ const CuratedPanel = ({ activeUrl, onApply }) => {
   );
 };
 
-// ── Custom URL panel ──────────────────────────────────────────────────────────
-const CustomPanel = ({ initialUrl, onApply }) => {
-  const [value, setValue] = useState(initialUrl || '');
-  const [hint, setHint] = useState(null);
-
-  const result = classifyUrl(value);
-
-  const apply = () => {
-    if (!result.ok) {
-      setHint(result.hint || 'Enter a valid URL to apply.');
-      return;
-    }
-    setHint(null);
-    onApply({ url: result.url });
-  };
-
-  const onChange = (e) => { setValue(e.target.value); setHint(null); };
-
-  const shownHint = value.trim() && !result.ok ? (hint || result.hint) : hint;
-
-  return (
-    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px',
-          height: 34, borderRadius: 8, background: 'var(--panel-bg)', border: '1px solid var(--card-border)',
-        }}>
-          <Link45deg size={13} style={{ color: 'var(--w-ink-3)', flexShrink: 0 }} />
-          <input
-            type="text"
-            value={value}
-            onChange={onChange}
-            onKeyDown={(e) => { if (e.key === 'Enter') apply(); }}
-            placeholder="example.com/photo.jpg"
-            autoComplete="off"
-            spellCheck={false}
-            style={{
-              flex: 1, border: 'none', outline: 'none', background: 'transparent',
-              color: 'var(--w-ink-2)', fontSize: 12, fontFamily: 'inherit',
-            }}
-          />
-        </div>
-        <button onClick={apply} disabled={!value.trim()}
-          style={{ ...smallBtn, flexShrink: 0, opacity: value.trim() ? 1 : 0.5, cursor: value.trim() ? 'pointer' : 'default' }}>
-          Apply
-        </button>
-      </div>
-      {shownHint && <span style={{ fontSize: 10, color: 'rgb(252,129,129)' }}>{shownHint}</span>}
-    </div>
-  );
-};
-
 export const Appearance = () => {
   const { mode, setMode, accent, setAccent, cardStyle, setCardStyle, canvasBg, setCanvasBg } = useSettingsStore();
 
@@ -232,14 +160,9 @@ export const Appearance = () => {
   const selectOrb = () => setCanvasBg({ type: 'orb', orbId: canvasBg?.orbId ?? 'blueberry', url: null, color: null });
   const selectDefault = () => setCanvasBg({ type: 'default', orbId: null, url: null, color: null });
   const selectCurated = () => setCanvasBg({ type: 'curated', orbId: null, url: null, color: null });
-  const selectCustom = () => setCanvasBg({ type: 'custom', orbId: null, url: null, color: null });
 
   const applyCurated = useCallback(
     ({ url, color }) => setCanvasBg({ type: 'curated', orbId: null, url: url ?? null, color: color ?? null }),
-    [setCanvasBg],
-  );
-  const applyCustom = useCallback(
-    ({ url }) => setCanvasBg({ type: 'custom', orbId: null, url: url ?? null, color: null }),
     [setCanvasBg],
   );
 
@@ -248,7 +171,6 @@ export const Appearance = () => {
     { id: 'orb', label: 'Motion', hint: 'Animated orb', onClick: selectOrb },
     { id: 'default', label: 'Photo', hint: 'Bundled', onClick: selectDefault },
     { id: 'curated', label: 'Curated', hint: 'Unsplash', onClick: selectCurated },
-    { id: 'custom', label: 'Custom', hint: 'URL', onClick: selectCustom },
   ];
 
   return (
@@ -322,12 +244,6 @@ export const Appearance = () => {
 
         {bgType === 'curated' && (
           <CuratedPanel activeUrl={canvasBg?.url ?? null} onApply={applyCurated} />
-        )}
-        {bgType === 'custom' && (
-          <CustomPanel
-            initialUrl={canvasBg?.type === 'custom' ? (canvasBg?.url ?? '') : ''}
-            onApply={applyCustom}
-          />
         )}
       </div>
 

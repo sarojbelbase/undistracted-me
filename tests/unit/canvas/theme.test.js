@@ -67,7 +67,7 @@ describe('ACCENT_COLORS catalogue', () => {
 
   it('every fg value is the near-white foreground', () => {
     ACCENT_COLORS.forEach((a) => {
-      expect(a.fg).toBe('#f3f3f3');
+      expect(a.fg).toBe('#ffffff');
     });
   });
 
@@ -84,7 +84,7 @@ describe('ACCENT_COLORS catalogue', () => {
     const accents = ['Banana', 'Latte'];
     accents.forEach((name) => {
       const a = ACCENT_COLORS.find((x) => x.name === name);
-      if (a) expect(a.fg).toBe('#f3f3f3');
+      if (a) expect(a.fg).toBe('#ffffff');
     });
   });
 
@@ -179,10 +179,10 @@ describe('applyTheme — accent variables', () => {
     expect(rgb).toMatch(/^\d+,\d+,\d+$/);
   });
 
-  it('--w-accent-rgb is numerically correct for Blueberry (#1565C0)', () => {
+  it('--w-accent-rgb is numerically correct for Blueberry (#1868CF)', () => {
     applyTheme('Blueberry', 'light');
-    // #15=21, #65=101, #C0=192
-    expect(cssVar('--w-accent-rgb')).toBe('21,101,192');
+    // #18=24, #68=104, #CF=207
+    expect(cssVar('--w-accent-rgb')).toBe('24,104,207');
   });
 
   it('--w-accent-rgb is correct for Banana (#8B6500)', () => {

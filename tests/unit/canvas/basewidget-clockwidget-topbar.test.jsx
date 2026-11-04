@@ -15,6 +15,7 @@ vi.mock('react-bootstrap-icons', () => ({
   GearFill: ({ size, ...props }) => <span data-testid="gear-icon" {...props}>⚙</span>,
   ArrowsFullscreen: () => <span>⛶</span>,
   FullscreenExit: () => <span>⛶</span>,
+  CalendarDateFill: () => <span data-testid="calendar-date-icon">📅</span>,
 }));
 
 // Mock weather utils for TopBar (it imports weather/utils.jsx)
@@ -125,7 +126,6 @@ vi.mock('../../../src/theme', () => ({
 
 import { BaseWidget } from '../../../src/widgets/BaseWidget';
 import { Widget as ClockWidget } from '../../../src/widgets/dateToday/Widget';
-import { TopBar } from '../../../src/components/FocusMode/TopBar';
 import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
 
 const dateParts = { dow: 'Monday', month: 'June', day: 15, year: 2025 };
@@ -170,7 +170,7 @@ describe('BaseWidget', () => {
   it('shows Remove option in menu when onRemove provided', () => {
     render(<BaseWidget onRemove={vi.fn()}><div>Widget</div></BaseWidget>);
     fireEvent.click(screen.getByLabelText('Widget options'));
-    expect(screen.getByRole('menuitem', { name: 'Remove' })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: 'Remove widget' })).toBeTruthy();
   });
 
   it('opens settings modal when Settings menuitem is clicked', () => {
@@ -193,7 +193,9 @@ describe('BaseWidget', () => {
     const onRemove = vi.fn();
     render(<BaseWidget onRemove={onRemove}><div>Widget</div></BaseWidget>);
     fireEvent.click(screen.getByLabelText('Widget options'));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Remove' }));
+    // Remove is a two-step ConfirmButton — first click arms, second confirms.
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Remove widget' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Confirm — click again to proceed' }));
     expect(onRemove).toHaveBeenCalledOnce();
   });
 
@@ -226,7 +228,7 @@ describe('BaseWidget', () => {
     const { container } = render(
       <BaseWidget cardStyle={{ backgroundColor: 'red' }}><div>Widget</div></BaseWidget>
     );
-    const card = container.querySelector('.rounded-2xl');
+    const card = container.querySelector('.flex.flex-col.overflow-hidden');
     expect(card.style.backgroundColor).toBe('red');
   });
 });
@@ -263,109 +265,6 @@ describe('ClockWidget (dateToday)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TopBar
+// TopBar was removed in the Focus Mode redesign — its back/fullscreen/settings
+// controls now live in src/components/FocusMode/zones/TopZone.jsx.
 // ─────────────────────────────────────────────────────────────────────────────
-describe('TopBar', () => {
-  let onExit, toggleFullscreen, onRotatePhoto;
-
-  beforeEach(() => {
-    onExit = vi.fn();
-    toggleFullscreen = vi.fn();
-    onRotatePhoto = vi.fn();
-  });
-
-  it('renders without crashing', () => {
-    expect(() => render(
-      <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible />
-    )).not.toThrow();
-  });
-
-  it('renders Canvas back button', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    expect(screen.getByTitle('Back to Canvas')).toBeTruthy();
-  });
-
-  it('calls onExit when back button is clicked', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    fireEvent.click(screen.getByTitle('Back to Canvas'));
-    expect(onExit).toHaveBeenCalledOnce();
-  });
-
-  it('shows date in center area', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    // TopBar no longer renders dateParts directly — just verify it renders without crash
-    expect(screen.getByTitle('Back to Canvas')).toBeTruthy();
-  });
-
-  it('renders fullscreen button', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    expect(screen.getByTitle('Fullscreen — keeps screen awake')).toBeTruthy();
-  });
-
-  it('calls toggleFullscreen when fullscreen button is clicked', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    fireEvent.click(screen.getByTitle('Fullscreen — keeps screen awake'));
-    expect(toggleFullscreen).toHaveBeenCalledOnce();
-  });
-
-  it('shows exit fullscreen button when isFullscreen is true', () => {
-    render(<TopBar onExit={onExit} isFullscreen={true} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    expect(screen.getByTitle('Exit fullscreen')).toBeTruthy();
-  });
-
-  it('renders settings gear button', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    expect(screen.getByTitle('Settings')).toBeTruthy();
-  });
-
-  it('opens settings panel when gear is clicked', async () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible onOpenBgModal={onRotatePhoto} />);
-    await act(async () => {
-      fireEvent.click(screen.getByTitle('Settings'));
-    });
-    // FocusModeSettings is lazy-loaded — may be a Suspense fallback initially
-    // Just check the gear was clicked without error
-    expect(true).toBeTruthy();
-  });
-
-  it('is transparent (opacity 0) when uiVisible is false', () => {
-    const { container } = render(
-      <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible={false} />
-    );
-    const topBar = container.firstChild;
-    expect(topBar.style.opacity).toBe('0');
-  });
-
-  it('is visible (opacity 1) when uiVisible is true', () => {
-    const { container } = render(
-      <TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-        uiVisible={true} />
-    );
-    const topBar = container.firstChild;
-    expect(topBar.style.opacity).toBe('1');
-  });
-
-  it('renders fullscreen and settings buttons', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    expect(screen.getByTitle('Fullscreen — keeps screen awake')).toBeTruthy();
-    expect(screen.getByTitle('Settings')).toBeTruthy();
-  });
-
-  it('does not render weather when no weather prop provided', () => {
-    render(<TopBar onExit={onExit} isFullscreen={false} toggleFullscreen={toggleFullscreen}
-      uiVisible />);
-    // TopBar no longer renders weather inline
-    expect(screen.queryByText(/°C|°F/)).toBeNull();
-  });
-});

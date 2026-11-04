@@ -15,6 +15,8 @@ vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403, json:
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
+  // Reset the module-level cache so seedCache() writes are re-read on next call.
+  clearPhotoCache();
   // Ensure fetch stays mocked as failing after clearAllMocks
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403, json: () => Promise.resolve({}) }));
 });
@@ -26,8 +28,8 @@ afterEach(() => {
 import {
   rotatePhoto, deletePhoto, jumpToPhotoById,
   getCachedPhotoSync, getPhotoLibrary,
-  clearPhotoCache, hasUnsplashKey, LIBRARY_MAX,
-  downloadNewPhoto,
+  clearPhotoCache, LIBRARY_MAX,
+  downloadCuratedPhotos,
 } from '../../../src/utilities/unsplash';
 
 const CACHE_KEY = 'fm_unsplash_cache';
@@ -88,12 +90,8 @@ describe('clearPhotoCache', () => {
   });
 });
 
-describe('hasUnsplashKey', () => {
-  it('returns a boolean', () => {
-    // ACCESS_KEY may or may not be set in .env — just verify type
-    expect(typeof hasUnsplashKey()).toBe('boolean');
-  });
-});
+// NOTE: hasUnsplashKey() was removed — the photo source moved to a Vercel
+// curated proxy (see downloadCuratedPhotos) and no longer checks a client key.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LIBRARY_MAX
@@ -104,8 +102,8 @@ describe('LIBRARY_MAX', () => {
     expect(LIBRARY_MAX).toBeGreaterThan(0);
   });
 
-  it('equals 10', () => {
-    expect(LIBRARY_MAX).toBe(10);
+  it('equals 20', () => {
+    expect(LIBRARY_MAX).toBe(20);
   });
 });
 
@@ -208,13 +206,13 @@ describe('rotatePhoto', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// downloadNewPhoto — no API key
+// downloadCuratedPhotos — no API key
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('downloadNewPhoto', () => {
+describe('downloadCuratedPhotos', () => {
   it('returns null when fetch fails (access key invalid or network error)', async () => {
     // fetch is mocked to return 403
-    const result = await downloadNewPhoto();
+    const result = await downloadCuratedPhotos();
     expect(result).toBeNull();
   });
 });

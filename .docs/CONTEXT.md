@@ -435,12 +435,12 @@ Key shared components:
 - BaseSettingsModal: `role="dialog"`, `aria-modal`, `aria-label` on close
 - Global `button:focus-visible` ring using `var(--w-accent)`
 
-## Manifest v3 (`public/manifest.json`) — version 3.0.0
+## Manifest v3 (`public/manifest.json`) — version 4.0.0
 ```json
 "permissions": ["identity", "storage", "geolocation", "topSites", "favicon",
                  "notifications", "alarms", "tabs", "scripting"]
 "host_permissions": [
-  "https://undistractedme.sarojbelbase.com.np/*",  // Vercel backend
+  "https://app.undistracted.me/*",  // Vercel backend
   "https://api.spotify.com/*",
   "https://accounts.spotify.com/*",
   "https://nepalipaisa.com/*",                     // NEPSE company list

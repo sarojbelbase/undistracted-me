@@ -12,13 +12,13 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 
 vi.mock('../../../src/widgets/weather/utils.jsx', () => ({
   API_KEY: 'test-key',
-  getCoords: vi.fn(),
   fetchOpenMeteo: vi.fn(),
   parseWeather: vi.fn(),
 }));
 
 vi.mock('../../../src/widgets/stock/utils', () => ({
   fetchChart: vi.fn(),
+  DEFAULT_SYMBOLS: [],
 }));
 
 vi.mock('../../../src/utilities/unsplash', () => ({
@@ -26,10 +26,26 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   getCurrentPhoto: vi.fn(),
   rotatePhoto: vi.fn(),
   jumpToPhotoById: vi.fn(),
+  getPhotoLibrary: vi.fn(() => []),
+  setCurrentPhotoId: vi.fn(),
 }));
 
 vi.mock('../../../src/store', () => ({
   useWidgetInstancesStore: vi.fn(),
+}));
+
+vi.mock('../../../src/store/useLocationStore', () => ({
+  useLocationStore: vi.fn(),
+}));
+
+// useFocusWeather delegates to the shared useWeather hook.
+vi.mock('../../../src/hooks/useWeather', () => ({
+  useWeather: vi.fn(),
+}));
+
+// useFocusStocks re-exports useStocks, which depends on the shared DataHub.
+vi.mock('../../../src/hooks/useDataHub', () => ({
+  useDataHub: vi.fn(),
 }));
 
 // Prevent heavy spotify utils import chain from loading
@@ -44,8 +60,6 @@ vi.mock('../../../src/widgets/spotify/utils', () => ({
 // ─── Import mocked modules so we can configure their behaviour per-test ───────
 
 import {
-  API_KEY as _,        // used only to confirm the mock was applied
-  getCoords,
   fetchOpenMeteo,
   parseWeather,
 } from '../../../src/widgets/weather/utils.jsx';
@@ -57,9 +71,14 @@ import {
   getCurrentPhoto,
   rotatePhoto,
   jumpToPhotoById,
+  getPhotoLibrary,
+  setCurrentPhotoId,
 } from '../../../src/utilities/unsplash';
 
 import { useWidgetInstancesStore } from '../../../src/store';
+import { useLocationStore } from '../../../src/store/useLocationStore';
+import { useWeather } from '../../../src/hooks/useWeather';
+import { useDataHub } from '../../../src/hooks/useDataHub';
 
 // ─── Import hooks under test ──────────────────────────────────────────────────
 
@@ -94,70 +113,68 @@ function mockStore(instances = [], widgetSettings = {}) {
 // NOTE: no vi.useFakeTimers() in useFocusWeather/useFocusStocks — fake timers
 // break waitFor()'s internal setTimeout polling. We test setInterval via spy.
 describe('useFocusWeather', () => {
+  const mockLocation = (lat, lon, source) => {
+    useLocationStore.mockImplementation((selector) =>
+      selector({ lat, lon, source })
+    );
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Default store state: no instances, no settings → weatherSettings = null
     mockStore([], {});
-    // Default: location lookup succeeds
-    getCoords.mockResolvedValue({ lat: 40.7128, lon: -74.006 });
-    fetchOpenMeteo.mockResolvedValue({});
-    parseWeather.mockReturnValue(FAKE_WEATHER);
+    // Default: no geolocation yet, default source
+    mockLocation(null, null, 'default');
+    useWeather.mockReturnValue({ weather: null });
   });
 
-  it('returns null initially (before async fetch resolves)', () => {
-    // Don't resolve the fetch yet
-    fetchOpenMeteo.mockReturnValue(new Promise(() => { }));
+  it('returns null when useWeather has no weather', () => {
     const { result } = renderHook(() => useFocusWeather());
     expect(result.current).toBeNull();
   });
 
-  it('sets weather state after successful fetch without saved location', async () => {
+  it('returns weather (with unit) when useWeather resolves weather', () => {
+    useWeather.mockReturnValue({ weather: FAKE_WEATHER });
     const { result } = renderHook(() => useFocusWeather());
-    await waitFor(() => expect(result.current).not.toBeNull(), { timeout: 3000 });
-    expect(result.current).toMatchObject({ ...FAKE_WEATHER, unit: 'metric' });
+    expect(result.current).toEqual({ ...FAKE_WEATHER, unit: 'metric' });
   });
 
-  it('uses location from Zustand widgetSettings (weather widget)', async () => {
-    // Seed the store with a weather instance and its settings
+  it('passes location from Zustand widgetSettings (weather widget) to useWeather', () => {
     mockStore(
       [{ type: 'weather', id: 'weather' }],
       { weather: { location: { lat: 27.7, lon: 85.3 }, unit: 'imperial' } }
     );
     renderHook(() => useFocusWeather());
-    await waitFor(() => expect(fetchOpenMeteo).toHaveBeenCalled(), { timeout: 3000 });
-    expect(fetchOpenMeteo).toHaveBeenCalledWith(27.7, 85.3, 'imperial');
-    expect(getCoords).not.toHaveBeenCalled();
+    expect(useWeather).toHaveBeenCalledWith({
+      lat: 27.7, lon: 85.3, unit: 'imperial', cityName: '',
+    });
   });
 
-  it('uses location from instance-id-scoped widgetSettings when instance id differs', async () => {
+  it('passes instance-id-scoped widgetSettings location when instance id differs', () => {
     const instanceId = 'wid-uuid-001';
     mockStore(
       [{ type: 'weather', id: instanceId }],
       { [instanceId]: { location: { lat: 51.5, lon: -0.1 }, unit: 'metric' } }
     );
     renderHook(() => useFocusWeather());
-    await waitFor(() => expect(fetchOpenMeteo).toHaveBeenCalled(), { timeout: 3000 });
-    expect(fetchOpenMeteo).toHaveBeenCalledWith(51.5, -0.1, 'metric');
+    expect(useWeather).toHaveBeenCalledWith({
+      lat: 51.5, lon: -0.1, unit: 'metric', cityName: '',
+    });
   });
 
-  it('calls getCoords when no saved location is found', async () => {
+  it('falls back to location-store coords when no manual location and source is not default', () => {
+    mockLocation(40.7128, -74.006, 'browser');
     renderHook(() => useFocusWeather());
-    await waitFor(() => expect(getCoords).toHaveBeenCalled(), { timeout: 3000 });
+    expect(useWeather).toHaveBeenCalledWith({
+      lat: 40.7128, lon: -74.006, unit: 'metric', cityName: '',
+    });
   });
 
-  it('stays null if getCoords rejects and no saved location', async () => {
-    getCoords.mockRejectedValue(new Error('Permission denied'));
-    const { result } = renderHook(() => useFocusWeather());
-    await act(async () => { await new Promise((r) => setTimeout(r, 100)); });
-    expect(result.current).toBeNull();
-  });
-
-  it('does NOT set up a page-side polling interval (refresh is SW-driven)', () => {
-    const spy = vi.spyOn(global, 'setInterval');
-    const { unmount } = renderHook(() => useFocusWeather());
-    expect(spy.mock.calls.some((c) => c[1] === 30 * 60_000)).toBe(false);
-    unmount();
-    spy.mockRestore();
+  it('passes null coords when no manual location and default geo source', () => {
+    renderHook(() => useFocusWeather());
+    expect(useWeather).toHaveBeenCalledWith({
+      lat: null, lon: null, unit: 'metric', cityName: '',
+    });
   });
 });
 
@@ -170,84 +187,58 @@ describe('useFocusStocks', () => {
     vi.clearAllMocks();
     // Default: no stock instances in store → symbols = []
     mockStore([], {});
+    useDataHub.mockReturnValue({ data: [], updatedAt: null, meta: {}, hydrated: true, write: vi.fn() });
     fetchChart.mockResolvedValue({ close: 150 });
   });
 
-  it('returns [] initially', () => {
+  it('returns [] when no stock symbols are configured', () => {
     const { result } = renderHook(() => useFocusStocks());
-    expect(result.current).toEqual([]);
-  });
-
-  it('stays [] when no stock symbols are configured', () => {
-    const { result } = renderHook(() => useFocusStocks());
-    expect(result.current).toEqual([]);
+    expect(result.current.stocks).toEqual([]);
     expect(fetchChart).not.toHaveBeenCalled();
   });
 
-  it('loads stocks from Zustand widgetSettings (stock widget)', async () => {
+  it('returns placeholder entries (data: null) for configured symbols', () => {
     mockStore(
       [{ type: 'stock', id: 'stock' }],
       { stock: { symbols: ['AAPL', 'GOOGL'] } }
     );
-
     const { result } = renderHook(() => useFocusStocks());
-
-    await waitFor(() => expect(result.current.length).toBeGreaterThan(0), { timeout: 3000 });
-    expect(fetchChart).toHaveBeenCalledWith('AAPL');
-    expect(fetchChart).toHaveBeenCalledWith('GOOGL');
-    expect(result.current).toHaveLength(2);
-    expect(result.current[0].sym).toBe('AAPL');
-    expect(result.current[1].sym).toBe('GOOGL');
+    expect(result.current.stocks).toEqual([
+      { sym: 'AAPL', data: null },
+      { sym: 'GOOGL', data: null },
+    ]);
   });
 
-  it('reads symbols from instance-id-scoped widgetSettings when instance id differs', async () => {
+  it('fetches each configured symbol via fetchChart', async () => {
+    mockStore(
+      [{ type: 'stock', id: 'stock' }],
+      { stock: { symbols: ['AAPL', 'GOOGL'] } }
+    );
+    renderHook(() => useFocusStocks());
+    await waitFor(() => expect(fetchChart).toHaveBeenCalledWith('AAPL'), { timeout: 3000 });
+    expect(fetchChart).toHaveBeenCalledWith('GOOGL');
+  });
+
+  it('reads symbols from instance-id-scoped widgetSettings when instance id differs', () => {
     const instanceId = 'stock-uuid-001';
     mockStore(
       [{ type: 'stock', id: instanceId }],
       { [instanceId]: { symbols: ['TSLA'] } }
     );
-
     const { result } = renderHook(() => useFocusStocks());
-
-    await waitFor(() => expect(result.current.length).toBeGreaterThan(0), { timeout: 3000 });
-    expect(fetchChart).toHaveBeenCalledWith('TSLA');
+    expect(result.current.stocks).toEqual([{ sym: 'TSLA', data: null }]);
   });
 
-  it('includes null data for symbols whose fetch failed', async () => {
-    mockStore(
-      [{ type: 'stock', id: 'stock' }],
-      { stock: { symbols: ['FAIL', 'OK'] } }
-    );
-    fetchChart
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce({ close: 200 });
-
-    const { result } = renderHook(() => useFocusStocks());
-
-    await waitFor(() => expect(result.current.length).toBe(2), { timeout: 3000 });
-    expect(result.current[0]).toEqual({ sym: 'FAIL', data: null });
-    expect(result.current[1]).toEqual({ sym: 'OK', data: { close: 200 } });
-  });
-
-  it('does NOT set up a polling interval when symbols are configured (SW-driven)', () => {
+  it('does NOT set up a polling interval (refresh is SW-driven)', () => {
     mockStore(
       [{ type: 'stock', id: 'stock' }],
       { stock: { symbols: ['AAPL'] } }
     );
-    const setIntervalSpy = vi.spyOn(global, 'setInterval');
+    const spy = vi.spyOn(global, 'setInterval');
     const { unmount } = renderHook(() => useFocusStocks());
-    const call = setIntervalSpy.mock.calls.find((c) => c[1] === 5 * 60_000);
-    expect(call).toBeUndefined();
+    expect(spy.mock.calls.find((c) => c[1] === 5 * 60_000)).toBeUndefined();
     unmount();
-  });
-
-  it('does NOT set up an interval when no symbols are configured', () => {
-    const setIntervalSpy = vi.spyOn(global, 'setInterval');
-    const { unmount } = renderHook(() => useFocusStocks());
-    // No 5-minute interval should have been registered
-    const call = setIntervalSpy.mock.calls.find((c) => c[1] === 5 * 60_000);
-    expect(call).toBeUndefined();
-    unmount();
+    spy.mockRestore();
   });
 });
 

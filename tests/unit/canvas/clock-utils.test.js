@@ -10,12 +10,12 @@
  *    `{period && <span>}` and undefined behaves differently to null.
  *  – Minutes must always be two digits (06 not 6) — a display regression.
  *  – getTimeInZone with an unknown timezone must not crash the app.
- *  – TZ_OPTIONS must include Kathmandu (the app's home timezone).
+ *  – TIMEZONES must include Kathmandu (the app's home timezone).
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  TZ_OPTIONS,
+  TIMEZONES,
   GREETINGS,
   getGreeting,
   getTimeParts,
@@ -25,28 +25,28 @@ import {
 afterEach(() => vi.useRealTimers());
 
 // ────────────────────────────────────────────────────────────────────────────
-// TZ_OPTIONS
+// TIMEZONES
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('TZ_OPTIONS', () => {
+describe('TIMEZONES', () => {
   it('is a non-empty array', () => {
-    expect(Array.isArray(TZ_OPTIONS)).toBe(true);
-    expect(TZ_OPTIONS.length).toBeGreaterThan(0);
+    expect(Array.isArray(TIMEZONES)).toBe(true);
+    expect(TIMEZONES.length).toBeGreaterThan(0);
   });
 
-  it('every entry has tz and label string properties', () => {
-    TZ_OPTIONS.forEach((o) => {
+  it('every entry has tz and name string properties', () => {
+    TIMEZONES.forEach((o) => {
       expect(typeof o.tz).toBe('string');
-      expect(typeof o.label).toBe('string');
+      expect(typeof o.name).toBe('string');
     });
   });
 
   it('contains Kathmandu timezone', () => {
-    expect(TZ_OPTIONS.some((o) => o.tz === 'Asia/Kathmandu')).toBe(true);
+    expect(TIMEZONES.some((o) => o.tz === 'Asia/Kathmandu')).toBe(true);
   });
 
   it('no duplicate tz values', () => {
-    const tzs = TZ_OPTIONS.map((o) => o.tz);
+    const tzs = TIMEZONES.map((o) => o.tz);
     expect(new Set(tzs).size).toBe(tzs.length);
   });
 });
@@ -240,21 +240,21 @@ describe('getTimeInZone', () => {
     expect(result).toHaveProperty('label');
   });
 
-  it('label is the friendly name from TZ_OPTIONS for known tz', () => {
+  it('label is the friendly name from TIMEZONES for known tz', () => {
     const result = getTimeInZone('Asia/Kathmandu', '24h');
-    const option = TZ_OPTIONS.find((o) => o.tz === 'Asia/Kathmandu');
-    expect(result.label).toBe(option.label);
+    const option = TIMEZONES.find((o) => o.tz === 'Asia/Kathmandu');
+    expect(result.label).toBe(option.name);
   });
 
-  it('falls back to the raw IANA string as label for a valid tz not in TZ_OPTIONS', () => {
-    // America/Noronha is a real IANA timezone that is not in TZ_OPTIONS
-    const result = getTimeInZone('America/Noronha', '24h');
-    expect(result.label).toBe('America/Noronha');
+  it('falls back to the raw IANA string as label for a valid tz not in TIMEZONES', () => {
+    // America/Nome is a real IANA timezone that is not in TIMEZONES
+    const result = getTimeInZone('America/Nome', '24h');
+    expect(result.label).toBe('America/Nome');
   });
 
-  it('does not throw for any timezone in TZ_OPTIONS list', () => {
+  it('does not throw for any timezone in TIMEZONES list', () => {
     expect(() => {
-      TZ_OPTIONS.forEach((o) => getTimeInZone(o.tz, '24h'));
+      TIMEZONES.forEach((o) => getTimeInZone(o.tz, '24h'));
     }).not.toThrow();
   });
 

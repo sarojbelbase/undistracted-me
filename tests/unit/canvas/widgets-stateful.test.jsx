@@ -136,8 +136,12 @@ describe('NotesWidget', () => {
     expect(ta.value).toBe('');
   });
 
-  it('textarea shows saved text from localStorage', () => {
-    useWidgetInstancesStore.setState({ widgetSettings: { notes: { text: 'hello world' } } });
+  it('textarea shows saved text from the store (notes array)', () => {
+    useWidgetInstancesStore.setState({
+      widgetSettings: {
+        notes: { notes: [{ id: 'n1', text: 'Title\nhello world', updatedAt: Date.now() }], idx: 0 },
+      },
+    });
     render(<NotesWidget id="notes" />);
     const ta = screen.getByRole('textbox');
     expect(ta.value).toBe('hello world');
@@ -162,7 +166,8 @@ describe('NotesWidget', () => {
     });
     vi.useRealTimers();
     const widgetSettings = useWidgetInstancesStore.getState().widgetSettings;
-    expect(widgetSettings.notes?.text).toBe('saved!');
+    const savedNotes = widgetSettings.notes?.notes;
+    expect(savedNotes.some((n) => n.text.includes('saved!'))).toBe(true);
   });
 });
 

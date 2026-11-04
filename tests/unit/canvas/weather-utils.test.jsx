@@ -10,7 +10,6 @@ import { render } from "@testing-library/react";
 import {
   getWeatherIcon,
   parseWeather,
-  getCoords,
   fetchOpenMeteo,
   parseForecast,
   wmoDescription,
@@ -262,32 +261,9 @@ describe("fetchOpenMeteo", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// getCoords — wraps navigator.geolocation
+// getCoords was removed — geolocation moved to src/store/useLocationStore.js.
+// See useLocationStore.refresh() for the current browser geolocation pipeline.
 // ─────────────────────────────────────────────────────────────────────────────
-
-describe("getCoords", () => {
-  it("resolves with { lat, lon } when geolocation succeeds", async () => {
-    const mockGeolocation = {
-      getCurrentPosition: vi.fn((success) =>
-        success({ coords: { latitude: 27.7172, longitude: 85.324 } }),
-      ),
-    };
-    vi.stubGlobal("navigator", { geolocation: mockGeolocation });
-
-    const result = await getCoords();
-    expect(result.lat).toBeCloseTo(27.7172);
-    expect(result.lon).toBeCloseTo(85.324);
-  });
-
-  it("rejects when geolocation fails", async () => {
-    const mockGeolocation = {
-      getCurrentPosition: vi.fn((_, reject) => reject(new Error("denied"))),
-    };
-    vi.stubGlobal("navigator", { geolocation: mockGeolocation });
-
-    await expect(getCoords()).rejects.toThrow("denied");
-  });
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // wmoDescription

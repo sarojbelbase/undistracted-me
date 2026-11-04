@@ -71,25 +71,25 @@ describe('WIDGET_REGISTRY structure', () => {
     expect(WIDGET_REGISTRY.length).toBeGreaterThanOrEqual(10);
   });
 
-  it('every entry has an id field', () => {
+  it('every entry has a type field', () => {
     WIDGET_REGISTRY.forEach((w) => {
-      expect(w).toHaveProperty('id');
-      expect(typeof w.id).toBe('string');
-      expect(w.id.length).toBeGreaterThan(0);
+      expect(w).toHaveProperty('type');
+      expect(typeof w.type).toBe('string');
+      expect(w.type.length).toBeGreaterThan(0);
     });
   });
 
-  it('every entry has a type field', () => {
+  it('every entry has a type field (string)', () => {
     WIDGET_REGISTRY.forEach((w) => {
       expect(w).toHaveProperty('type');
       expect(typeof w.type).toBe('string');
     });
   });
 
-  it('every entry has a label field', () => {
+  it('every entry has a title field', () => {
     WIDGET_REGISTRY.forEach((w) => {
-      expect(w).toHaveProperty('label');
-      expect(w.label.length).toBeGreaterThan(0);
+      expect(w).toHaveProperty('title');
+      expect(w.title.length).toBeGreaterThan(0);
     });
   });
 
@@ -126,10 +126,12 @@ describe('WIDGET_REGISTRY structure', () => {
     });
   });
 
-  it('every entry has an icon string', () => {
+  it('every entry has an icon component', () => {
     WIDGET_REGISTRY.forEach((w) => {
-      expect(typeof w.icon).toBe('string');
-      expect(w.icon.length).toBeGreaterThan(0);
+      expect(w).toHaveProperty('icon');
+      // Icons are react-bootstrap-icons components (forwardRef objects) — just
+      // verify a truthy component is present.
+      expect(w.icon).toBeTruthy();
     });
   });
 });
@@ -139,14 +141,14 @@ describe('WIDGET_REGISTRY structure', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('WIDGET_REGISTRY uniqueness', () => {
-  it('no duplicate ids', () => {
-    const ids = WIDGET_REGISTRY.map((w) => w.id);
-    expect(new Set(ids).size).toBe(ids.length);
+  it('no duplicate types', () => {
+    const types = WIDGET_REGISTRY.map((w) => w.type);
+    expect(new Set(types).size).toBe(types.length);
   });
 
-  it('no duplicate labels', () => {
-    const labels = WIDGET_REGISTRY.map((w) => w.label);
-    expect(new Set(labels).size).toBe(labels.length);
+  it('no duplicate titles', () => {
+    const titles = WIDGET_REGISTRY.map((w) => w.title);
+    expect(new Set(titles).size).toBe(titles.length);
   });
 });
 
@@ -169,17 +171,16 @@ describe('WIDGET_REGISTRY ↔ WIDGET_TYPES consistency', () => {
     });
   });
 
-  it('registry id matches type for single-instance widgets (layout key compat)', () => {
-    // For widgets that appear only once, their id should equal type
-    // so that old saved layout keys (which equal the type) resolve correctly.
+  it('registry type is unique per entry (single-instance layout key compat)', () => {
+    // Config entries no longer carry a separate `id` — the `type` IS the
+    // layout key. Every type must appear exactly once so saved layout keys
+    // (which equal the type) resolve unambiguously.
     const typeCount = {};
     WIDGET_REGISTRY.forEach((w) => {
       typeCount[w.type] = (typeCount[w.type] || 0) + 1;
     });
     WIDGET_REGISTRY.forEach((w) => {
-      if (typeCount[w.type] === 1) {
-        expect(w.id).toBe(w.type);
-      }
+      expect(typeCount[w.type]).toBe(1);
     });
   });
 });
@@ -189,9 +190,12 @@ describe('WIDGET_REGISTRY ↔ WIDGET_TYPES consistency', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('WIDGET_REGISTRY grid dimensions sanity', () => {
-  it('no widget is wider than 12 columns (react-grid-layout default)', () => {
+  it('no widget base width exceeds the grid column count', () => {
+    // The canvas now uses responsive breakpoints with up to 48 columns (lg) and
+    // per-widget breakpoint overrides (some md/xs layouts span 16–20 cols).
+    // Base config widths range up to 14 (events) — keep a generous upper bound.
     WIDGET_REGISTRY.forEach((w) => {
-      expect(w.w).toBeLessThanOrEqual(12);
+      expect(w.w).toBeLessThanOrEqual(48);
     });
   });
 

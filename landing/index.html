@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Undistracted Me — Your new tab, minus the noise</title>
+  <meta name="description" content="Undistracted Me replaces your new tab with a calm, distraction-free dashboard: Nepali calendar, focus mode, to-dos, pomodoro, weather, and more. Free, open source, made in Nepal." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Undistracted Me" />
+  <meta property="og:title" content="Undistracted Me — Your new tab, minus the noise" />
+  <meta property="og:description" content="A beautiful, distraction-free new tab dashboard with a Nepali calendar, Focus Mode, and mindful widgets. Free &amp; open source." />
+  <meta property="og:image" content="https://undistracted.me/assets/dashboard-light.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/favicon.png" />
+  <meta name="theme-color" content="#0D9488" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="Undistracted Me — home">
+        <span class="brand-logo" aria-hidden="true">
+          <!-- Inline wordmark (lotus + type) -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 654 90" role="img" aria-label="Undistracted Me">
+            <g fill="currentColor"><path d="M0.67 12.47C0.67 14.63 1.54 15.57 3.18 15.57C4.07 15.57 4.73 15.33 5.19 14.80L5.33 15.40L7.69 15.40L7.69 6.85L4.97 6.85L4.97 12.14C4.97 12.92 4.72 13.19 4.17 13.19C3.60 13.19 3.39 12.91 3.39 12.17L3.39 6.85L0.67 6.85ZM16.16 9.77C16.16 7.62 15.26 6.68 13.62 6.68C12.73 6.68 12.04 6.92 11.58 7.45L11.44 6.85L9.09 6.85L9.09 15.40L11.80 15.40L11.80 10.11C11.80 9.32 12.08 9.06 12.63 9.06C13.20 9.06 13.44 9.34 13.44 10.08L13.44 15.40L16.16 15.40ZM20.10 15.57C20.97 15.57 21.62 15.33 22.08 14.81L22.22 15.40L24.58 15.40L24.58 4.59L21.87 4.59L21.87 7.11C21.49 6.83 20.99 6.68 20.30 6.68C18.72 6.68 17.39 7.80 17.39 9.98L17.39 12.12C17.39 14.39 18.40 15.57 20.10 15.57ZM21.85 12.17C21.85 12.95 21.60 13.19 20.99 13.19C20.37 13.19 20.12 12.95 20.12 12.17L20.12 10.08C20.12 9.34 20.41 9.06 20.99 9.06C21.53 9.06 21.85 9.32 21.85 10.07ZM28.70 6.85L25.98 6.85L25.98 15.40L28.70 15.40ZM28.70 3.61L25.98 3.61L25.98 6.02L28.70 6.02ZM33.80 10.02C32.73 9.88 32.63 9.62 32.63 9.28C32.63 8.90 32.90 8.67 33.38 8.67C33.99 8.67 34.26 9.03 34.26 9.59L36.75 9.59C36.75 7.71 35.69 6.68 33.46 6.68C31.49 6.68 30.04 7.56 30.04 9.39C30.04 11.20 31.11 11.89 33.18 12.12C34.16 12.24 34.22 12.52 34.22 12.92C34.22 13.31 33.94 13.58 33.46 13.58C32.82 13.58 32.49 13.30 32.45 12.66L29.86 12.66C29.86 14.38 30.93 15.57 33.28 15.57C35.43 15.57 36.88 14.63 36.88 12.74C36.88 10.88 35.43 10.23 33.80 10.02ZM41.62 13.10C40.95 13.10 40.74 12.82 40.74 12.00L40.74 9.77L42.14 9.77L42.14 7.41L40.74 7.41L40.74 5.47L37.95 5.47L37.95 11.90C37.95 14.36 38.67 15.57 40.94 15.57C41.44 15.57 41.94 15.51 42.13 15.47L42.13 13.06C42.00 13.09 41.79 13.10 41.62 13.10ZM43.47 6.85L43.47 15.40L46.19 15.40L46.19 11.17C46.19 9.83 46.91 9.49 47.66 9.49C47.88 9.49 48.10 9.52 48.31 9.56L48.31 6.75C48.19 6.73 48.06 6.72 47.94 6.72C47.15 6.72 46.40 7.08 46.00 7.66L45.82 6.85ZM53.58 15.40L55.97 15.40L55.97 9.77C55.97 7.42 54.61 6.68 52.65 6.68C50.40 6.68 49.18 7.48 49.18 9.80L51.63 9.80C51.63 9.09 51.90 8.78 52.53 8.78C53.07 8.78 53.38 9.07 53.38 9.81L53.38 10.47C53.02 10.44 52.70 10.42 52.36 10.42C49.94 10.42 48.94 11.31 48.94 13.09C48.94 14.64 50.01 15.57 51.48 15.57C52.40 15.57 53.06 15.27 53.44 14.76ZM53.38 12.54C53.38 13.20 52.91 13.52 52.40 13.52C51.90 13.52 51.62 13.30 51.62 12.80C51.62 12.28 51.91 12.01 52.65 12.01C52.84 12.01 53.20 12.03 53.38 12.05ZM61.81 12.01L61.81 12.21C61.81 12.99 61.46 13.19 60.84 13.19C60.23 13.19 59.89 12.95 59.89 12.17L59.89 10.08C59.89 9.30 60.23 9.06 60.84 9.06C61.46 9.06 61.81 9.25 61.81 10.04L61.81 10.25L64.44 10.25L64.44 10.01C64.44 7.74 63.24 6.68 60.80 6.68C58.37 6.68 57.16 7.85 57.16 10.12L57.16 12.12C57.16 14.39 58.35 15.57 60.79 15.57C63.29 15.57 64.44 14.43 64.44 12.17L64.44 12.01ZM69.23 13.10C68.56 13.10 68.35 12.82 68.35 12.00L68.35 9.77L69.75 9.77L69.75 7.41L68.35 7.41L68.35 5.47L65.56 5.47L65.56 11.90C65.56 14.36 66.28 15.57 68.54 15.57C69.05 15.57 69.55 15.51 69.73 15.47L69.73 13.06C69.61 13.09 69.40 13.10 69.23 13.10ZM75.52 12.60C75.45 13.15 75.25 13.52 74.51 13.52C73.89 13.52 73.58 13.12 73.58 12.42L73.58 11.82L78.08 11.82L78.08 10.02C78.08 7.71 76.87 6.68 74.52 6.68C72.09 6.68 70.91 8.02 70.91 9.98L70.91 12.08C70.91 14.49 72.09 15.57 74.52 15.57C77.01 15.57 77.92 14.50 78.01 12.60ZM74.55 8.68C75.17 8.68 75.52 8.97 75.52 9.74L75.52 10.11L73.58 10.11L73.58 9.79C73.58 8.99 73.89 8.68 74.55 8.68ZM81.84 15.57C82.71 15.57 83.36 15.33 83.82 14.81L83.96 15.40L86.32 15.40L86.32 4.59L83.61 4.59L83.61 7.11C83.23 6.83 82.73 6.68 82.04 6.68C80.46 6.68 79.13 7.80 79.13 9.98L79.13 12.12C79.13 14.39 80.14 15.57 81.84 15.57ZM83.59 12.17C83.59 12.95 83.34 13.19 82.73 13.19C82.11 13.19 81.86 12.95 81.86 12.17L81.86 10.08C81.86 9.34 82.15 9.06 82.73 9.06C83.27 9.06 83.59 9.32 83.59 10.07ZM92.30 6.68C91.43 6.68 90.71 6.89 90.22 7.45L90.08 6.85L87.72 6.85L87.72 15.40L90.44 15.40L90.44 10.07C90.44 9.32 90.72 9.06 91.27 9.06C91.84 9.06 92.08 9.34 92.08 10.08L92.08 15.40L94.79 15.40L94.79 10.07C94.79 9.32 95.07 9.06 95.62 9.06C96.19 9.06 96.43 9.34 96.43 10.08L96.43 15.40L99.15 15.40L99.15 9.77C99.15 7.52 98.27 6.68 96.39 6.68C95.38 6.68 94.61 7.01 94.14 7.59C93.72 6.94 93.06 6.68 92.30 6.68ZM104.94 12.60C104.87 13.15 104.68 13.52 103.94 13.52C103.32 13.52 103.01 13.12 103.01 12.42L103.01 11.82L107.51 11.82L107.51 10.02C107.51 7.71 106.30 6.68 103.95 6.68C101.51 6.68 100.34 8.02 100.34 9.98L100.34 12.08C100.34 14.49 101.51 15.57 103.95 15.57C106.44 15.57 107.35 14.50 107.44 12.60ZM103.98 8.68C104.59 8.68 104.94 8.97 104.94 9.74L104.94 10.11L103.01 10.11L103.01 9.79C103.01 8.99 103.32 8.68 103.98 8.68Z" transform="matrix(5.016722792052415,0,0,5.016722792052415,114.22407308646558,-3.110370425951132)"/></g><g fill="currentColor" stroke="none"><path d="M90.693 27.262c-3.917-5.184-9.89-8.158-16.388-8.158h-4.312c-.164-2.075-.357-4.15-.609-6.22-.3-2.458-2.374-4.317-4.851-4.317h-36.43v20.765l4.838 3.757a2.814 2.814 0 0 1 1.088 2.222v11.875A2.814 2.814 0 0 1 31.215 50H20.621a2.814 2.814 0 0 1-2.814-2.814V35.312c0-.869.401-1.689 1.088-2.222l4.837-3.757V8.567H10.936c-2.477 0-4.551 1.858-4.851 4.317a145.963 145.963 0 0 0 7.022 65.648l3.063 8.795a6.118 6.118 0 0 0 5.777 4.106H53.52a6.117 6.117 0 0 0 5.777-4.106l3.063-8.795a144.947 144.947 0 0 0 3.083-10.057c13.052-.216 24.594-9.04 28.168-21.631l.451-1.588c1.776-6.251.547-12.81-3.369-17.994zm-7.136 15.009l-.451 1.589c-2.013 7.088-8.012 12.297-15.125 13.463a146.094 146.094 0 0 0 2.471-27.297h3.853a9.542 9.542 0 0 1 7.674 3.82 9.546 9.546 0 0 1 1.578 8.425z" transform="matrix(1.0860907323936582,0,0,1.0860907323936582,-5.223750161956168,-8.7375393379143)"/></g>
+          </svg>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="#features">Features</a></li>
+          <li><a class="nav-link" href="#focus">Focus Mode</a></li>
+          <li><a class="nav-link" href="#privacy">Privacy</a></li>
+          <li><a class="nav-link" href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Toggle light and dark mode" title="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+        </button>
+        <a class="btn btn-accent btn-sm header-cta" href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">
+          Install free
+        </a>
+        <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <nav class="mobile-nav" id="mobile-nav" data-mobile-nav aria-label="Mobile">
+      <ul class="mobile-nav-list">
+        <li><a class="nav-link" href="#features">Features</a></li>
+        <li><a class="nav-link" href="#focus">Focus Mode</a></li>
+        <li><a class="nav-link" href="#privacy">Privacy</a></li>
+        <li><a class="nav-link" href="#faq">FAQ</a></li>
+        <li><a class="btn btn-accent btn-block" href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">Install free — Chrome</a></li>
+        <li><a class="btn btn-outline btn-block" href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/" rel="noopener">Get it for Firefox</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Free · Open source · Made in Nepal
+          </p>
+          <h1 class="hero-title">Your new tab,<br /><span class="hero-title-accent">minus the noise.</span></h1>
+          <p class="hero-sub">
+            Undistracted Me replaces the blank new-tab page with a calm, beautiful dashboard — Nepali calendar, to-dos, focus tools, and everything you need to begin with intention.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-accent" href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 9l6 6 6-6"/><path d="M4 19h16"/></svg>
+              Add to Chrome
+            </a>
+            <a class="btn btn-outline" href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/" rel="noopener">
+              Get it for Firefox
+            </a>
+          </div>
+          <ul class="hero-notes">
+            <li>No account required</li>
+            <li>Works offline</li>
+            <li>MIT licensed</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-frame">
+            <img
+              src="assets/dashboard-light.png"
+              alt="Screenshot of the Undistracted Me new-tab dashboard showing a Nepali date, a clock, notes, and a tidy grid of widgets."
+              width="1280" height="800"
+              loading="eager" decoding="async"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature grid -->
+    <section class="section features" id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Everything in one quiet place</p>
+          <h2 class="section-title">A dashboard that works <em>with</em> your focus, not against it.</h2>
+          <p class="section-lede">Every widget is optional, rearrangeable, and tuned to be glanced at — never to pull you in.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/><path d="M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01"/></svg></span>
+            <h3 class="card-title">Nepali date &amp; calendar</h3>
+            <p class="card-text">Today's date in both the Bikram Sambat and Gregorian calendars, with festivals and occasions woven in.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+            <h3 class="card-title">Widget dashboard</h3>
+            <p class="card-text">A flexible grid of at-a-glance widgets: clock, notes, events, weather, stocks, Spotify, and more.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg></span>
+            <h3 class="card-title">Focus Mode</h3>
+            <p class="card-text">One keystroke to a fullscreen zen view. Just you and the task in front of you.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <h3 class="card-title">LookAway breaks</h3>
+            <p class="card-text">Gentle eye-break reminders that nudge you to blink, stretch, and reset — on your schedule.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+            <h3 class="card-title">Google integrations</h3>
+            <p class="card-text">Calendar, Tasks, and Contacts. Birthdays, anniversaries, and events, synced quietly.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/><path d="M12 8v4l3 2"/></svg></span>
+            <h3 class="card-title">Cross-device sync</h3>
+            <p class="card-text">Your dashboard follows you across browsers and machines, so home and work always match.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></span>
+            <h3 class="card-title">Website blocker</h3>
+            <p class="card-text">Quiet the sites that pull you away the moment you need depth.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+            <h3 class="card-title">Privacy-first</h3>
+            <p class="card-text">No account required. Tokens live on your device, and permissions are kept to a minimum.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Focus Mode spotlight -->
+    <section class="section spotlight" id="focus">
+      <div class="container spotlight-inner">
+        <div class="spotlight-copy reveal">
+          <p class="section-kicker">Deep work, on demand</p>
+          <h2 class="section-title">Enter Focus Mode.<br />Leave the noise behind.</h2>
+          <p class="section-lede">
+            Hit the toggle and your whole screen becomes a single, calm surface — the clock, a place for your notes, and your tasks. No tabs, no feeds, no badges.
+          </p>
+          <ul class="checklist">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              Fullscreen, distraction-free zen view
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              Pomodoro timer built in
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              Tasks from Google Tasks, kept front and center
+            </li>
+          </ul>
+          <a class="text-link" href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">
+            Try Focus Mode
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+        <div class="spotlight-visual reveal">
+          <div class="spotlight-frame">
+            <img
+              src="assets/focus-mode.png"
+              alt="Screenshot of Undistracted Me's fullscreen Focus Mode: a minimalist view with a clock and task list on a dark background."
+              width="1280" height="800"
+              loading="lazy" decoding="async"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Widget showcase -->
+    <section class="section widgets" id="widgets">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Widgets you'll actually use</p>
+          <h2 class="section-title">A small library of little helpers.</h2>
+          <p class="section-lede">Pin the ones you want, ignore the rest. Each one is a quiet glance, not a rabbit hole.</p>
+        </div>
+
+        <div class="widget-gallery">
+          <figure class="widget-tile reveal">
+            <img src="assets/widget-clock.png" alt="Clock widget" width="234" height="206" loading="lazy" decoding="async" />
+            <figcaption>Clock</figcaption>
+          </figure>
+          <figure class="widget-tile reveal">
+            <img src="assets/widget-notes.png" alt="Notes widget" width="234" height="251" loading="lazy" decoding="async" />
+            <figcaption>Notes</figcaption>
+          </figure>
+          <figure class="widget-tile reveal">
+            <img src="assets/widget-pomodoro.png" alt="Pomodoro timer widget" width="234" height="251" loading="lazy" decoding="async" />
+            <figcaption>Pomodoro</figcaption>
+          </figure>
+          <figure class="widget-tile reveal">
+            <img src="assets/widget-progress.png" alt="Day progress widget" width="234" height="206" loading="lazy" decoding="async" />
+            <figcaption>Day progress</figcaption>
+          </figure>
+          <figure class="widget-tile reveal">
+            <img src="assets/widget-datetoday.png" alt="Nepali date widget" width="234" height="206" loading="lazy" decoding="async" />
+            <figcaption>Nepali date</figcaption>
+          </figure>
+        </div>
+
+        <p class="widget-more reveal">
+          …plus weather, stocks, Spotify, bookmarks, quick access, occasions &amp; birthdays, RSS, and facts &amp; jokes.
+        </p>
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="section privacy" id="privacy">
+      <div class="container privacy-inner">
+        <div class="privacy-copy reveal">
+          <span class="card-icon privacy-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <p class="section-kicker">Private by design</p>
+          <h2 class="section-title">Your new tab is nobody's business.</h2>
+          <p class="section-lede">
+            Undistracted Me is built to be quiet about your data. There's no account to create, no tracking to opt out of, and no analytics watching over your shoulder.
+          </p>
+        </div>
+
+        <ul class="privacy-points reveal">
+          <li>
+            <h3>No account required</h3>
+            <p>Install and go. Everything works without ever signing in.</p>
+          </li>
+          <li>
+            <h3>Tokens stored locally</h3>
+            <p>Google integrations store your tokens on your device — not on a server.</p>
+          </li>
+          <li>
+            <h3>Minimal permissions</h3>
+            <p>We only ask for what each feature genuinely needs, and nothing more.</p>
+          </li>
+          <li>
+            <h3>Open source</h3>
+            <p>Read every line on GitHub. There are no surprises because there's nothing hidden.</p>
+          </li>
+        </ul>
+
+        <p class="privacy-cta reveal">
+          <a class="text-link" href="https://app.undistracted.me/pp-and-tos" rel="noopener">
+            Read the privacy policy &amp; terms
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq" id="faq">
+      <div class="container faq-inner">
+        <div class="section-head reveal">
+          <p class="section-kicker">Good questions</p>
+          <h2 class="section-title">Frequently asked.</h2>
+        </div>
+
+        <div class="faq-list reveal" data-faq>
+          <details class="faq-item" open>
+            <summary>
+              Is Undistracted Me free?
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes — completely free, with no paid tiers, no premium unlock, and no ads. It's also open source under the MIT license, so the whole thing is yours to inspect, fork, and improve.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Does it work offline?
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes. The dashboard, notes, to-dos, timer, and Nepali calendar all work without a connection. Only live features like weather, stocks, and Google sync need to be online.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              What data does it collect?
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>Nothing by default. If you connect Google Calendar, Tasks, or Contacts, that data is read only to display it on your dashboard and stays on your device. We don't run analytics or sell anything. Full details live in the <a href="https://app.undistracted.me/pp-and-tos" rel="noopener">privacy policy</a>.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Does it support Firefox?
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes. Undistracted Me ships for both Chrome and Firefox with the same features, and the same respect for your privacy. Grab it from the <a href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/" rel="noopener">Firefox Add-ons store</a>.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              How do I report a bug or suggest a feature?
+              <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>The easiest way is to <a href="https://forms.gle/7vf4VGrB9Loz8hB76" rel="noopener">report a bug</a> or <a href="https://forms.gle/7vf4VGrB9Loz8hB76" rel="noopener">suggest a feature</a> through the forms, or open an issue on <a href="https://github.com/sarojbelbase/undistracted-me" rel="noopener">GitHub</a>. We read everything.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download / CTA band -->
+    <section class="section cta-band" id="download">
+      <div class="container cta-band-inner reveal">
+        <span class="cta-lotus" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.8 2.2 2.7 4.6 2.7 7 0 2.8-1.2 5-2.7 6.6-1.5-1.6-2.7-3.8-2.7-6.6C9.3 7.6 10.2 5.2 12 3Z"/><path d="M12 6.5c-2.2 1.5-3.6 3.5-3.6 5.7 0 2.2 1.2 4.1 3.6 5.3 2.4-1.2 3.6-3.1 3.6-5.3 0-2.2-1.4-4.2-3.6-5.7Z"/></svg></span>
+        <h2 class="section-title">Ready for a calmer new tab?</h2>
+        <p class="section-lede">Install in seconds. Keep your focus for hours.</p>
+        <div class="cta-actions">
+          <a class="btn btn-accent" href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 9l6 6 6-6"/><path d="M4 19h16"/></svg>
+            Add to Chrome
+          </a>
+          <a class="btn btn-outline btn-outline-invert" href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/" rel="noopener">
+            Get it for Firefox
+          </a>
+        </div>
+        <p class="cta-meta">Free forever · MIT license · Works offline</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-logo brand-logo-footer" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 654 90" role="img" aria-label="Undistracted Me">
+            <g fill="currentColor"><path d="M0.67 12.47C0.67 14.63 1.54 15.57 3.18 15.57C4.07 15.57 4.73 15.33 5.19 14.80L5.33 15.40L7.69 15.40L7.69 6.85L4.97 6.85L4.97 12.14C4.97 12.92 4.72 13.19 4.17 13.19C3.60 13.19 3.39 12.91 3.39 12.17L3.39 6.85L0.67 6.85ZM16.16 9.77C16.16 7.62 15.26 6.68 13.62 6.68C12.73 6.68 12.04 6.92 11.58 7.45L11.44 6.85L9.09 6.85L9.09 15.40L11.80 15.40L11.80 10.11C11.80 9.32 12.08 9.06 12.63 9.06C13.20 9.06 13.44 9.34 13.44 10.08L13.44 15.40L16.16 15.40ZM20.10 15.57C20.97 15.57 21.62 15.33 22.08 14.81L22.22 15.40L24.58 15.40L24.58 4.59L21.87 4.59L21.87 7.11C21.49 6.83 20.99 6.68 20.30 6.68C18.72 6.68 17.39 7.80 17.39 9.98L17.39 12.12C17.39 14.39 18.40 15.57 20.10 15.57ZM21.85 12.17C21.85 12.95 21.60 13.19 20.99 13.19C20.37 13.19 20.12 12.95 20.12 12.17L20.12 10.08C20.12 9.34 20.41 9.06 20.99 9.06C21.53 9.06 21.85 9.32 21.85 10.07ZM28.70 6.85L25.98 6.85L25.98 15.40L28.70 15.40ZM28.70 3.61L25.98 3.61L25.98 6.02L28.70 6.02ZM33.80 10.02C32.73 9.88 32.63 9.62 32.63 9.28C32.63 8.90 32.90 8.67 33.38 8.67C33.99 8.67 34.26 9.03 34.26 9.59L36.75 9.59C36.75 7.71 35.69 6.68 33.46 6.68C31.49 6.68 30.04 7.56 30.04 9.39C30.04 11.20 31.11 11.89 33.18 12.12C34.16 12.24 34.22 12.52 34.22 12.92C34.22 13.31 33.94 13.58 33.46 13.58C32.82 13.58 32.49 13.30 32.45 12.66L29.86 12.66C29.86 14.38 30.93 15.57 33.28 15.57C35.43 15.57 36.88 14.63 36.88 12.74C36.88 10.88 35.43 10.23 33.80 10.02ZM41.62 13.10C40.95 13.10 40.74 12.82 40.74 12.00L40.74 9.77L42.14 9.77L42.14 7.41L40.74 7.41L40.74 5.47L37.95 5.47L37.95 11.90C37.95 14.36 38.67 15.57 40.94 15.57C41.44 15.57 41.94 15.51 42.13 15.47L42.13 13.06C42.00 13.09 41.79 13.10 41.62 13.10ZM43.47 6.85L43.47 15.40L46.19 15.40L46.19 11.17C46.19 9.83 46.91 9.49 47.66 9.49C47.88 9.49 48.10 9.52 48.31 9.56L48.31 6.75C48.19 6.73 48.06 6.72 47.94 6.72C47.15 6.72 46.40 7.08 46.00 7.66L45.82 6.85ZM53.58 15.40L55.97 15.40L55.97 9.77C55.97 7.42 54.61 6.68 52.65 6.68C50.40 6.68 49.18 7.48 49.18 9.80L51.63 9.80C51.63 9.09 51.90 8.78 52.53 8.78C53.07 8.78 53.38 9.07 53.38 9.81L53.38 10.47C53.02 10.44 52.70 10.42 52.36 10.42C49.94 10.42 48.94 11.31 48.94 13.09C48.94 14.64 50.01 15.57 51.48 15.57C52.40 15.57 53.06 15.27 53.44 14.76ZM53.38 12.54C53.38 13.20 52.91 13.52 52.40 13.52C51.90 13.52 51.62 13.30 51.62 12.80C51.62 12.28 51.91 12.01 52.65 12.01C52.84 12.01 53.20 12.03 53.38 12.05ZM61.81 12.01L61.81 12.21C61.81 12.99 61.46 13.19 60.84 13.19C60.23 13.19 59.89 12.95 59.89 12.17L59.89 10.08C59.89 9.30 60.23 9.06 60.84 9.06C61.46 9.06 61.81 9.25 61.81 10.04L61.81 10.25L64.44 10.25L64.44 10.01C64.44 7.74 63.24 6.68 60.80 6.68C58.37 6.68 57.16 7.85 57.16 10.12L57.16 12.12C57.16 14.39 58.35 15.57 60.79 15.57C63.29 15.57 64.44 14.43 64.44 12.17L64.44 12.01ZM69.23 13.10C68.56 13.10 68.35 12.82 68.35 12.00L68.35 9.77L69.75 9.77L69.75 7.41L68.35 7.41L68.35 5.47L65.56 5.47L65.56 11.90C65.56 14.36 66.28 15.57 68.54 15.57C69.05 15.57 69.55 15.51 69.73 15.47L69.73 13.06C69.61 13.09 69.40 13.10 69.23 13.10ZM75.52 12.60C75.45 13.15 75.25 13.52 74.51 13.52C73.89 13.52 73.58 13.12 73.58 12.42L73.58 11.82L78.08 11.82L78.08 10.02C78.08 7.71 76.87 6.68 74.52 6.68C72.09 6.68 70.91 8.02 70.91 9.98L70.91 12.08C70.91 14.49 72.09 15.57 74.52 15.57C77.01 15.57 77.92 14.50 78.01 12.60ZM74.55 8.68C75.17 8.68 75.52 8.97 75.52 9.74L75.52 10.11L73.58 10.11L73.58 9.79C73.58 8.99 73.89 8.68 74.55 8.68ZM81.84 15.57C82.71 15.57 83.36 15.33 83.82 14.81L83.96 15.40L86.32 15.40L86.32 4.59L83.61 4.59L83.61 7.11C83.23 6.83 82.73 6.68 82.04 6.68C80.46 6.68 79.13 7.80 79.13 9.98L79.13 12.12C79.13 14.39 80.14 15.57 81.84 15.57ZM83.59 12.17C83.59 12.95 83.34 13.19 82.73 13.19C82.11 13.19 81.86 12.95 81.86 12.17L81.86 10.08C81.86 9.34 82.15 9.06 82.73 9.06C83.27 9.06 83.59 9.32 83.59 10.07ZM92.30 6.68C91.43 6.68 90.71 6.89 90.22 7.45L90.08 6.85L87.72 6.85L87.72 15.40L90.44 15.40L90.44 10.07C90.44 9.32 90.72 9.06 91.27 9.06C91.84 9.06 92.08 9.34 92.08 10.08L92.08 15.40L94.79 15.40L94.79 10.07C94.79 9.32 95.07 9.06 95.62 9.06C96.19 9.06 96.43 9.34 96.43 10.08L96.43 15.40L99.15 15.40L99.15 9.77C99.15 7.52 98.27 6.68 96.39 6.68C95.38 6.68 94.61 7.01 94.14 7.59C93.72 6.94 93.06 6.68 92.30 6.68ZM104.94 12.60C104.87 13.15 104.68 13.52 103.94 13.52C103.32 13.52 103.01 13.12 103.01 12.42L103.01 11.82L107.51 11.82L107.51 10.02C107.51 7.71 106.30 6.68 103.95 6.68C101.51 6.68 100.34 8.02 100.34 9.98L100.34 12.08C100.34 14.49 101.51 15.57 103.95 15.57C106.44 15.57 107.35 14.50 107.44 12.60ZM103.98 8.68C104.59 8.68 104.94 8.97 104.94 9.74L104.94 10.11L103.01 10.11L103.01 9.79C103.01 8.99 103.32 8.68 103.98 8.68Z" transform="matrix(5.016722792052415,0,0,5.016722792052415,114.22407308646558,-3.110370425951132)"/></g><g fill="currentColor" stroke="none"><path d="M90.693 27.262c-3.917-5.184-9.89-8.158-16.388-8.158h-4.312c-.164-2.075-.357-4.15-.609-6.22-.3-2.458-2.374-4.317-4.851-4.317h-36.43v20.765l4.838 3.757a2.814 2.814 0 0 1 1.088 2.222v11.875A2.814 2.814 0 0 1 31.215 50H20.621a2.814 2.814 0 0 1-2.814-2.814V35.312c0-.869.401-1.689 1.088-2.222l4.837-3.757V8.567H10.936c-2.477 0-4.551 1.858-4.851 4.317a145.963 145.963 0 0 0 7.022 65.648l3.063 8.795a6.118 6.118 0 0 0 5.777 4.106H53.52a6.117 6.117 0 0 0 5.777-4.106l3.063-8.795a144.947 144.947 0 0 0 3.083-10.057c13.052-.216 24.594-9.04 28.168-21.631l.451-1.588c1.776-6.251.547-12.81-3.369-17.994zm-7.136 15.009l-.451 1.589c-2.013 7.088-8.012 12.297-15.125 13.463a146.094 146.094 0 0 0 2.471-27.297h3.853a9.542 9.542 0 0 1 7.674 3.82 9.546 9.546 0 0 1 1.578 8.425z" transform="matrix(1.0860907323936582,0,0,1.0860907323936582,-5.223750161956168,-8.7375393379143)"/></g>
+          </svg>
+        </span>
+        <p class="footer-tagline">Your new tab, minus the noise. A calm dashboard with a Nepali calendar, Focus Mode, and mindful widgets.</p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer">
+        <div class="footer-col">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#focus">Focus Mode</a></li>
+            <li><a href="#privacy">Privacy</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Install</h3>
+          <ul>
+            <li><a href="https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef" rel="noopener">Chrome Web Store</a></li>
+            <li><a href="https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/" rel="noopener">Firefox Add-ons</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Links</h3>
+          <ul>
+            <li><a href="https://github.com/sarojbelbase/undistracted-me" rel="noopener">GitHub</a></li>
+            <li><a href="https://app.undistracted.me/pp-and-tos" rel="noopener">Privacy &amp; Terms</a></li>
+            <!-- Feedback form placeholders — replace with final URLs before launch -->
+            <li><a href="https://forms.gle/7vf4VGrB9Loz8hB76" rel="noopener">Report a bug</a></li>
+            <li><a href="https://forms.gle/7vf4VGrB9Loz8hB76" rel="noopener">Suggest a feature</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="footer-bottom">
+        <p>Made with <span class="heart" aria-label="love">❤</span> in Nepal · © 2026 Undistracted Me · MIT license</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

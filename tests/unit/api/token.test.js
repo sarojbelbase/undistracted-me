@@ -4,8 +4,8 @@ import { makeReq, makeRes, ORIGINS } from './helpers.js';
 const KEY = 'test-api-key-xyz';
 
 vi.mock('../../../public/manifest.json', () => ({
-  default: { homepage_url: 'https://undistractedme.sarojbelbase.com.np' },
-  homepage_url: 'https://undistractedme.sarojbelbase.com.np',
+  default: { homepage_url: 'https://undistracted.me' },
+  homepage_url: 'https://undistracted.me',
 }));
 
 const { default: handler } = await import('../../../api/auth/google/token.js');
@@ -109,7 +109,7 @@ describe('POST /api/auth/google/token', () => {
       method: 'POST',
       origin: allowedOrigin,
       headers: validHeaders,
-      body: { grant_type: 'authorization_code', code: 'auth-code', code_verifier: 'verifier', redirect_uri: 'https://example.com/callback' },
+      body: { grant_type: 'authorization_code', code: 'auth-code', code_verifier: 'verifier', redirect_uri: 'https://app.undistracted.me/callbacks/auth.html' },
     });
     const res = makeRes();
     await handler(req, res);
@@ -206,7 +206,7 @@ describe('POST /api/auth/google/token', () => {
       method: 'POST',
       origin: allowedOrigin,
       headers: validHeaders,
-      body: { grant_type: 'authorization_code', code: 'c', code_verifier: 'v', redirect_uri: 'https://example.com/cb' },
+      body: { grant_type: 'authorization_code', code: 'c', code_verifier: 'v', redirect_uri: 'https://app.undistracted.me/callbacks/auth.html' },
     });
     const res = makeRes();
     await handler(req, res);

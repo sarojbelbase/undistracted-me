@@ -105,9 +105,9 @@ describe('WIDGET_TYPES dispatch exhaustiveness', () => {
   // The switch in renderWidget must cover all WIDGET_TYPES; this test
   // simply documents which types exist so a missing case is visible.
   const KNOWN_TYPES = [
-    'clock', 'dateToday', 'dayProgress', 'events', 'weather',
-    'calendar', 'countdown', 'notes', 'bookmark', 'pomodoro',
-    'spotify', 'facts', 'stock', 'birthdays',
+    'clock', 'dateToday', 'progress', 'events', 'weather',
+    'calendar', 'countdown', 'notes', 'bookmark', 'quickAccess',
+    'pomodoro', 'media', 'stock', 'occasions', 'dailys', 'rss', 'expense',
   ];
 
   it('all known types are present in WIDGET_TYPES', () => {

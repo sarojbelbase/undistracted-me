@@ -1,7 +1,7 @@
 Undistracted Me — Extension Reviewer Notes
 ==========================================
 Extension ID (Firefox): {1071d037-0f17-4c92-b06c-704050d2e2c3}
-Version: 3.0.0
+Version: 4.0.0
 
 
 BUILD
@@ -40,7 +40,7 @@ OAUTH FLOWS
    ----------------
    PKCE via chrome.identity.launchWebAuthFlow. Authorization code exchanged
    server-side through Vercel endpoint:
-     https://undistractedme.sarojbelbase.com.np/api/auth/google/token
+     https://app.undistracted.me/api/auth/google/token
 
    Bundle contains: VITE_GOOGLE_DESKTOP_CLIENT_ID (XOR-encoded, public)
    Server holds: GOOGLE_CLIENT_SECRET (environment variable only)
@@ -71,12 +71,12 @@ CONTENT SCRIPTS
 THIRD-PARTY SERVICES
 --------------------
   Weather:      api.open-meteo.com, geocoding-api.open-meteo.com (no auth)
-  Geolocation:  nominatim.openstreetmap.org (IP only, User-Agent: UndistractedMe/3.0)
+  Geolocation:  nominatim.openstreetmap.org (IP only, User-Agent: UndistractedMe/4.0)
                 freeipapi.com (IP fallback)
   Stocks:       nepalipaisa.com, www.merolagani.com (no auth)
   Spotify:      api.spotify.com, accounts.spotify.com (OAuth token)
   Google APIs:  www.googleapis.com, tasks.googleapis.com, people.googleapis.com (OAuth token)
-  Backend:      undistractedme.sarojbelbase.com.np (Vercel proxy for FF token exchange)
+  Backend:      app.undistracted.me (Vercel proxy for FF token exchange)
 
   No PII except OAuth tokens when user explicitly connects Google/Spotify.
 

@@ -23,7 +23,7 @@ async function loadCanvas(page, { state = {}, local = {} } = {}) {
       localStorage.setItem(
         'undistracted_settings',
         JSON.stringify({
-          state: { quickTourSeenVersion: '3.0.0', ...existing.state, ...state },
+          state: { quickTourSeenVersion: '4.0.0', ...existing.state, ...state },
           version: existing.version ?? 0,
         }),
       );

@@ -443,7 +443,7 @@ const App = () => {
           ·
         </span>
         <a
-          href="https://undistractedme.sarojbelbase.com.np/pp-and-tos"
+          href="https://app.undistracted.me/pp-and-tos"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[11px] transition-opacity duration-200 hover:opacity-80"

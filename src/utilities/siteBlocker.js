@@ -27,7 +27,9 @@ const NEVER_BLOCK_PROTOCOLS = [
 /** Domains that should never be blocked. */
 const NEVER_BLOCK_DOMAINS = new Set([
   'localhost', '127.0.0.1', '[::1]',
-  'undistractedme.sarojbelbase.com.np',
+  'app.undistracted.me',
+  'undistracted.me',
+  'www.undistracted.me',
 ]);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

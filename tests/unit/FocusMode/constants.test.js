@@ -360,23 +360,23 @@ describe('getTimeUntilEvent', () => {
     const s = inFuture(30);
     const event = { startDate: s.date, startTime: s.time };
     const result = getTimeUntilEvent(event);
-    expect(result).toMatch(/^in \d+m$/);
+    expect(result).toMatch(/^in \d+ min$/);
   });
 
   it('returns hours notation for 2+ hours away', () => {
     // Use 120 minutes; due to ms elapsed since inFuture() ran, diffMin may be
-    // 119 or 120 — both produce a "hours" result with optional minutes component.
+    // 119 or 120 — both produce an "in N hours" result.
     const s = inFuture(120);
     const event = { startDate: s.date, startTime: s.time };
     const result = getTimeUntilEvent(event);
-    expect(result).toMatch(/^in \d+h( \d+m)?$/); // "in 2h" OR "in 1h 59m"
+    expect(result).toMatch(/^in \d+ hours?$/);
   });
 
-  it('returns hours and minutes notation for 90 minutes away', () => {
+  it('returns a whole-hour notation for 90 minutes away (rounds down to hours)', () => {
     const s = inFuture(90);
     const event = { startDate: s.date, startTime: s.time };
     const result = getTimeUntilEvent(event);
-    expect(result).toMatch(/^in \d+h \d+m$/);
+    expect(result).toMatch(/^in 1 hour$/);
   });
 });
 

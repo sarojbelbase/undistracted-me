@@ -18,10 +18,15 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useEvents, formatEventTime } from '../../../src/widgets/useEvents';
+import { useEvents, formatEventTime } from '../../../src/hooks/useEvents';
 
 // Silence Chrome API warnings in test output
 vi.stubGlobal('chrome', undefined);
+
+// useEvents batches subscriber re-renders through requestAnimationFrame. Run it
+// synchronously in tests so act() observes the updated module-level cache.
+vi.stubGlobal('requestAnimationFrame', (cb) => { cb(); return 0; });
+vi.stubGlobal('cancelAnimationFrame', () => {});
 
 beforeEach(() => {
   localStorage.clear();
@@ -151,24 +156,19 @@ describe('useEvents — addEvent', () => {
 });
 
 describe('useEvents — removeEvent', () => {
-  it('removeEvent uses id to remove the correct event', async () => {
+  it('removeEvent uses id to remove the correct event', () => {
     const { result } = renderHook(() => useEvents());
 
-    // Add events in separate acts with a gap so Date.now() is different
-    vi.useFakeTimers();
+    // Pass explicit ids so the test is deterministic without fake timers.
     act(() => {
-      vi.advanceTimersByTime(1);
-      result.current[1]({ title: 'ToRemove', startDate: '2025-07-01' });
+      result.current[1]({ id: 1, title: 'ToRemove', startDate: '2025-07-01' });
     });
     act(() => {
-      vi.advanceTimersByTime(1);
-      result.current[1]({ title: 'ToKeep', startDate: '2025-07-02' });
+      result.current[1]({ id: 2, title: 'ToKeep', startDate: '2025-07-02' });
     });
-    vi.useRealTimers();
 
-    const idToRemove = result.current[0].find((e) => e.title === 'ToRemove')?.id;
     act(() => {
-      result.current[2](idToRemove);
+      result.current[2](1);
     });
 
     const remaining = result.current[0];
