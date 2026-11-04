@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, ArrowClockwise, BoxArrowUpRight, CheckCircleFill } from 'react-bootstrap-icons';
+import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, ArrowClockwise, CheckCircleFill } from 'react-bootstrap-icons';
 import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
@@ -38,7 +38,6 @@ export const Data = ({ onNavigateToAccounts }) => {
   const [justSynced, setJustSynced] = useState(false);
   const [alreadySynced, setAlreadySynced] = useState(false);
   const [syncHint, setSyncHint] = useState(null);
-  const [gistUrl, setGistUrl] = useState(null);
   const [conflict, setConflict] = useState(null);
   const feedbackTimerRef = useRef(null);
 
@@ -54,14 +53,6 @@ export const Data = ({ onNavigateToAccounts }) => {
     check();
     return syncEngine.onSyncChange(check);
   }, []);
-
-  useEffect(() => {
-    if (githubConnected) {
-      syncTransport.getUrl().then((u) => setGistUrl(u));
-    } else {
-      setGistUrl(null);
-    }
-  }, [githubConnected]);
 
   const handleSyncNow = async () => {
     if (syncing) return;
@@ -166,23 +157,11 @@ export const Data = ({ onNavigateToAccounts }) => {
             background: 'var(--panel-bg)',
             border: '1px solid var(--card-border)',
           }}>
-            {/* Status + config link */}
+            {/* Status */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div role="status" aria-live="polite">
                 <SyncStatusBadge />
               </div>
-              {gistUrl && (
-                <a
-                  href={gistUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[10.5px] font-semibold transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--w-ink-4)', textDecoration: 'none', flexShrink: 0 }}
-                >
-                  Go to config
-                  <BoxArrowUpRight size={10} className="shrink-0" />
-                </a>
-              )}
             </div>
 
             {/* Sync now — primary action */}

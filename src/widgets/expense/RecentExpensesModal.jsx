@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { XLg, WalletFill, Trash3Fill, ChevronDown, ChevronRight, ChevronLeft } from 'react-bootstrap-icons';
+import { XLg, WalletFill, Trash3Fill, PencilFill, ChevronDown, ChevronRight, ChevronLeft } from 'react-bootstrap-icons';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { formatAmount } from '../../data/currencies';
@@ -200,7 +200,7 @@ function Sparkline({ data, width = 280, height = 80, accent = 'var(--w-accent)' 
 
 // ─── Main Modal ──────────────────────────────────────────────────────────────
 
-export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onClose, onDelete }) => {
+export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onClose, onDelete, onEdit }) => {
   const [periodOffset, setPeriodOffset] = useState(0);
   const [expandedMonths, setExpandedMonths] = useState(() => {
     const now = new Date();
@@ -389,6 +389,15 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
                           <span className="exp-modal__row-amount">
                             {formatAmount(exp.amount, exp.currency)}
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => onEdit(exp)}
+                            aria-label="Edit expense"
+                            className="exp-modal__row-delete"
+                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', border: 'none', background: 'transparent', color: 'var(--w-ink-3)', transition: 'all 0.18s ease' }}
+                          >
+                            <PencilFill size={11} />
+                          </button>
                           <ConfirmButton
                             onConfirm={() => onDelete(exp.id)}
                             label="Delete expense"
@@ -435,6 +444,15 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
                   <span className="exp-modal__row-amount">
                     {formatAmount(exp.amount, exp.currency)}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(exp)}
+                    aria-label="Edit expense"
+                    className="exp-modal__row-delete"
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', border: 'none', background: 'transparent', color: 'var(--w-ink-3)', transition: 'all 0.18s ease' }}
+                  >
+                    <PencilFill size={11} />
+                  </button>
                   <ConfirmButton
                     onConfirm={() => onDelete(exp.id)}
                     label="Delete expense"

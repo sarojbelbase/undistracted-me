@@ -16,6 +16,9 @@ const getPlatformSupport = (widget) => {
   if (!p) return 'full'; // no platforms key = fully supported everywhere
   if (p.supported === false) return 'none';
   if (p.supported === 'partial') return 'partial';
+  // `supported: true` with limitations (e.g. RSS "background sync unavailable")
+  // is still partial — the caveat should be surfaced, not silently dropped.
+  if (p.supported === true && p.limitations?.length) return 'partial';
   return 'full';
 };
 
@@ -72,6 +75,9 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
 
         if (p.supported === true) {
           tooltipContent.push(`✅ ${name}: Supported`);
+          if (p.limitations?.length) {
+            p.limitations.forEach(l => tooltipContent.push(`    • ${l}`));
+          }
         } else if (p.supported === false) {
           tooltipContent.push(`❌ ${name}: Not supported`);
         } else if (p.supported === 'partial') {

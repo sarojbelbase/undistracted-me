@@ -5,10 +5,11 @@ import { SettingsInput } from '../../components/ui/SettingsInput';
 import { Popup } from '../../components/ui/Popup';
 import { DEFAULT_CATEGORIES } from './useExpenses';
 
-export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
-  const [amount, setAmount] = useState('');
-  const [cat, setCat] = useState('food');
-  const [note, setNote] = useState('');
+export function AddExpenseModal({ currencySymbol, onClose, onAdd, editing }) {
+  const isEditing = Boolean(editing);
+  const [amount, setAmount] = useState(editing ? String(editing.amount) : '');
+  const [cat, setCat] = useState(editing?.category ?? 'food');
+  const [note, setNote] = useState(editing?.note ?? '');
   const [hoveredCat, setHoveredCat] = useState(null);
   const [hoverAnchor, setHoverAnchor] = useState(null);
   const inputRef = useRef(null);
@@ -19,7 +20,12 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
     const val = Number.parseFloat(amount);
     if (!val || val <= 0) return;
     const trimmedNote = note.trim();
-    onAdd({ amount: val, category: cat, note: trimmedNote || undefined });
+    onAdd({
+      amount: val,
+      category: cat,
+      note: trimmedNote, // empty string signals "no note"; addExpense/updateExpense omit it
+      ...(isEditing ? { id: editing.id } : {}),
+    });
     onClose();
   };
 
@@ -34,7 +40,7 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
   }, []);
 
   return (
-    <Modal onClose={onClose} style={{ width: 380 }} ariaLabel="Add Expense">
+    <Modal onClose={onClose} style={{ width: 380 }} ariaLabel={isEditing ? 'Edit Expense' : 'Add Expense'}>
       {/* Header */}
       <div className="exp-add-modal__header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -42,8 +48,8 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
             <CashStack size={14} />
           </div>
           <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>Add Expense</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>Log a new expense</div>
+            <div className="w-heading" style={{ fontSize: '15px' }}>{isEditing ? 'Edit Expense' : 'Add Expense'}</div>
+            <div className="w-caption" style={{ marginTop: 1 }}>{isEditing ? 'Update this expense' : 'Log a new expense'}</div>
           </div>
         </div>
         <button
@@ -131,7 +137,7 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd }) {
           disabled={!canAdd}
           className="exp-add-modal__add-btn"
         >
-          Add Expense
+          {isEditing ? 'Save Changes' : 'Add Expense'}
         </button>
       </div>
     </Modal>

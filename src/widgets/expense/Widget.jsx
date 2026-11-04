@@ -46,7 +46,7 @@ export const Widget = ({ id, onRemove }) => {
   const budget = budgetValue ? Number.parseFloat(budgetValue) : null;
 
   const {
-    expenses, addExpense, deleteExpense,
+    expenses, addExpense, deleteExpense, updateExpense,
     summary, isEmpty,
   } = useExpenses(id, currency, weekStartsOn, timeRange);
 
@@ -54,6 +54,7 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── State ────────────────────────────────────────────────────────────────
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
   const [recentModalOpen, setRecentModalOpen] = useState(false);
   const [tooltip, setTooltip] = useState({ anchor: null, label: '' });
 
@@ -69,8 +70,19 @@ export const Widget = ({ id, onRemove }) => {
   );
 
   const handleAdd = useCallback((exp) => {
-    addExpense(exp);
-  }, [addExpense]);
+    if (exp.id != null) updateExpense(exp.id, exp);
+    else addExpense(exp);
+  }, [addExpense, updateExpense]);
+
+  const handleEdit = useCallback((exp) => {
+    setEditingExpense(exp);
+    setAddModalOpen(true);
+  }, []);
+
+  const closeAddModal = useCallback(() => {
+    setAddModalOpen(false);
+    setEditingExpense(null);
+  }, []);
 
   // ── Dynamic amount font sizing ──────────────────────────────────────────
   const heroRef = useRef(null);
@@ -142,7 +154,7 @@ export const Widget = ({ id, onRemove }) => {
               </button>
               <button
                 type="button"
-                onClick={() => setAddModalOpen(true)}
+                onClick={() => { setEditingExpense(null); setAddModalOpen(true); }}
                 onMouseEnter={(e) => setTooltip({ anchor: e.currentTarget.getBoundingClientRect(), label: 'Add expense' })}
                 onMouseLeave={() => setTooltip({ anchor: null, label: '' })}
                 className="exp-card__action-btn exp-card__action-btn--add"
@@ -240,8 +252,9 @@ export const Widget = ({ id, onRemove }) => {
         <AddExpenseModal
           currency={currency}
           currencySymbol={currencySymbol}
-          onClose={() => setAddModalOpen(false)}
+          onClose={closeAddModal}
           onAdd={handleAdd}
+          editing={editingExpense}
         />
       )}
 
@@ -254,6 +267,7 @@ export const Widget = ({ id, onRemove }) => {
           timeRange={timeRange}
           onClose={() => setRecentModalOpen(false)}
           onDelete={deleteExpense}
+          onEdit={handleEdit}
         />
       )}
     </>
