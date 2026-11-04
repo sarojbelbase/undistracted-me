@@ -2,44 +2,28 @@
 //
 // Used by both Focus Mode (LeftPanel → Stock.jsx) and the canvas stock widget.
 // Reads configured symbols from the first stock widget instance's settings via
-// Zustand and polls merolagani.com for chart data.  Reads from the SW background
-// cache (stocks_sw_cache) first for instant display on new-tab open.
+// Zustand, and serves chart data from the shared DataHub (stamped with
+// `updatedAt`).  There is NO page-side polling interval — background refreshes
+// come from the service worker's UM_STOCKS prefetch alarm, which writes to the
+// hub and propagates via chrome.storage.onChanged.
 //
 // Returns:
-//   stocks  – [{ sym: string, data: ChartData | null | 'error' }]
-//   refresh – () => void  force an immediate network re-fetch
+//   stocks    – [{ sym: string, data: ChartData | null | 'error' }]
+//   refresh   – () => void  force an immediate network re-fetch (writes hub)
+//   updatedAt – ms timestamp of the hub entry (null until first data arrives)
 //
 //   data === null    → loading
 //   data === 'error' → fetch failed / no data
 
-import { useState, useEffect, useReducer, useRef } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { fetchChart, DEFAULT_SYMBOLS } from "./utils";
 import { useWidgetInstancesStore } from "../../store";
+import { useDataHub } from "../../hooks/useDataHub";
 
 const isExtension = typeof chrome !== "undefined" && !!chrome.runtime?.id;
-const SW_CACHE_KEY = "stocks_sw_cache";
-const CACHE_TTL_MS = 10 * 60_000; // use SW cache if < 10 min old
 
 export const useStocks = () => {
-  const [stocks, setStocks] = useState([]);
-  // Increment this to force an immediate network re-fetch (bypasses SW cache)
-  const [refreshKey, bumpRefresh] = useReducer((c) => c + 1, 0);
-  // Track previous LTPs to skip re-renders when data hasn't changed
-  const prevLtpRef = useRef(null);
-
-  /**
-   * Only update state if the data actually changed — prevents re-renders
-   * when the 5-min interval fires but prices are identical (market closed,
-   * stale cache re-read, etc.).
-   */
-  const stableSetStocks = (next) => {
-    const nextKey = next.map((s) => (s.data && s.data !== 'error' ? s.data.ltp : null)).join(',');
-    if (nextKey === prevLtpRef.current) return; // no change — skip re-render
-    prevLtpRef.current = nextKey;
-    setStocks(next);
-  };
-
   // Two-step selector: first find the stock instance id (stable),
   // then read only that instance's symbols — avoids re-rendering on
   // unrelated widget setting changes (e.g. notes keystrokes, RSS refresh).
@@ -50,87 +34,57 @@ export const useStocks = () => {
     }),
   );
   const symbols = useWidgetInstancesStore(
-    useShallow((s) => (s.widgetSettings[stockInstId]?.symbols) ?? DEFAULT_SYMBOLS),
+    useShallow((s) => s.widgetSettings[stockInstId]?.symbols ?? DEFAULT_SYMBOLS),
   );
 
-  // Sync symbols to service worker whenever they change so SW can pre-fetch.
-  // Use JSON-stringified key to avoid spurious sends when symbols is a new array
-  // with the same contents (e.g. inline defaults from useWidgetSettings).
   const symbolsKey = JSON.stringify(symbols);
+  const { data, updatedAt, meta, hydrated, write } = useDataHub("stocks");
+
+  // The hub entry is only valid for the exact symbol set that produced it.
+  const hasMatching =
+    Array.isArray(data) &&
+    meta?.symbolsKey === symbolsKey &&
+    data.length === symbols.length;
+
+  // Sync symbols to the service worker so it can pre-fetch in the background.
   useEffect(() => {
     if (!isExtension || !symbols.length) return;
     chrome.runtime
       .sendMessage({ type: "STOCKS_CONFIG_SYNC", symbols })
-      .catch(() => { });
+      .catch(() => {});
   }, [symbolsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fetch only when the hub is hydrated and has no matching data (first ever
+  // load for this symbol set). Never re-fetch on a timer.
   useEffect(() => {
-    if (!symbols.length) {
-      prevLtpRef.current = null; // reset on symbol change
-      setStocks([]);
-      return;
-    }
-
+    if (!hydrated || !symbols.length || hasMatching) return;
     let cancelled = false;
-    // Reset comparison key when symbols change — always render new symbol set
-    prevLtpRef.current = null;
-
-    const writeCache = (data) => {
-      if (!isExtension) return;
-      chrome.storage.local
-        .set({ [SW_CACHE_KEY]: { data, fetchedAt: Date.now() } })
-        .catch(() => { });
-    };
-
-    const loadSymbol = (sym) => fetchChart(sym).catch(() => 'error');
-
-    const loadFromNetwork = async () => {
-      const results = await Promise.all(symbols.map(loadSymbol));
-      const data = symbols.map((sym, i) => ({
-        sym,
-        data: results[i] ?? 'error',
-      }));
-      if (!cancelled) {
-        stableSetStocks(data);
-        writeCache(data);
-      }
-    };
-
-    const init = async () => {
-      // Try SW cache first — avoids loading flash on new tab open
-      if (isExtension) {
-        try {
-          const stored = await chrome.storage.local.get(SW_CACHE_KEY);
-          const cached = stored[SW_CACHE_KEY];
-          if (
-            cached &&
-            Date.now() - cached.fetchedAt < CACHE_TTL_MS &&
-            Array.isArray(cached.data) &&
-            cached.data.length === symbols.length &&
-            cached.data.every((row, i) => row.sym === symbols[i])
-          ) {
-            if (!cancelled) stableSetStocks(cached.data);
-            return; // fresh enough — SW alarm will refresh in background
-          }
-        } catch {
-          /* storage unavailable */
-        }
-      }
-
-      // No fresh cache — show skeleton then fetch
-      if (!cancelled) stableSetStocks(symbols.map((sym) => ({ sym, data: null })));
-      await loadFromNetwork();
-    };
-
-    init();
-
-    // Regular in-session refresh every 5 min
-    const timerId = setInterval(loadFromNetwork, 5 * 60_000);
+    (async () => {
+      const results = await Promise.all(
+        symbols.map((s) => fetchChart(s).catch(() => "error")),
+      );
+      if (cancelled) return;
+      const next = symbols.map((sym, i) => ({ sym, data: results[i] ?? "error" }));
+      write(next, { symbolsKey });
+    })();
     return () => {
       cancelled = true;
-      clearInterval(timerId);
     };
-  }, [symbols, refreshKey]);
+  }, [hydrated, symbolsKey, hasMatching, symbols, write]);
 
-  return { stocks, refresh: bumpRefresh };
+  const refresh = useCallback(async () => {
+    if (!symbols.length) return;
+    const results = await Promise.all(
+      symbols.map((s) => fetchChart(s).catch(() => "error")),
+    );
+    const next = symbols.map((sym, i) => ({ sym, data: results[i] ?? "error" }));
+    await write(next, { symbolsKey });
+  }, [symbolsKey, symbols, write]);
+
+  const stocks = useMemo(() => {
+    if (hasMatching) return data;
+    return symbols.map((sym) => ({ sym, data: null }));
+  }, [hasMatching, data, symbols]);
+
+  return { stocks, refresh, updatedAt };
 };

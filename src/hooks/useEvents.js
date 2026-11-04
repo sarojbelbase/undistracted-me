@@ -237,15 +237,22 @@ export const useGoogleCalendar = () => {
     });
   }, [refresh]);
 
+  // No page-side polling interval. Calendar updates are SW-driven: the
+  // background service worker pre-fetches `gcal_events_cache` every 30 min and
+  // we pick it up live via chrome.storage.onChanged. This mirrors the DataHub
+  // pattern used by stocks/weather/rss (GCal keeps its own PII cache key).
   useEffect(() => {
-    const tid = setInterval(
-      () => {
-        if (connected) refresh();
-      },
-      60 * 60 * 1000,
-    );
-    return () => clearInterval(tid);
-  }, [connected, refresh]);
+    if (typeof chrome === "undefined" || !chrome.storage?.onChanged) return;
+    const listener = (changes, area) => {
+      if (area !== "local") return;
+      const change = changes[STORAGE_KEYS.GCAL_CACHE];
+      if (!change || !Array.isArray(change.newValue)) return;
+      setGcalEvents(change.newValue);
+      setConnected(true);
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
+  }, []);
 
   // React to global auth events so the widget resets immediately on disconnect
   // without needing a page reload.

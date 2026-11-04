@@ -1,156 +1,97 @@
 /**
  * useRssMulti — fetches multiple RSS feeds in parallel, merges and sorts
- * all items by date descending. Used when custom feeds are loaded from JSON.
+ * all items by date descending. Used for both preset and custom feeds.
  *
- * Each item gets a `source` field injected from the feed label.
- * Results are cached individually per URL, same TTL as useRss (10 min).
+ * Data is served from the shared DataHub (`rss` namespace) written by the
+ * background service worker's UM_RSS prefetch alarm. There is NO page-side
+ * polling interval — the SW stamps `updatedAt` on each write and the hub
+ * propagates changes live via chrome.storage.onChanged.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchFeed, readRssCache, writeRssCache, rssItemTime } from './utils';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { fetchFeed, rssItemTime } from "./utils";
+import { useDataHub } from "../../hooks/useDataHub";
 
-const POLL_INTERVAL = 15 * 60 * 1000;
-
-/** Maximum items stored per feed to prevent localStorage bloat from verbose feeds. */
-const MAX_CACHED_ITEMS = 30;
-
-/** Cap items to MAX_CACHED_ITEMS newest (by isoDate descending) before caching. */
-const capItems = (items) => {
-  if (items.length <= MAX_CACHED_ITEMS) return items;
-  return [...items]
-    .sort((a, b) => rssItemTime(b.isoDate) - rssItemTime(a.isoDate))
-    .slice(0, MAX_CACHED_ITEMS);
-};
+const sortNewest = (items) =>
+  [...items].sort((a, b) => rssItemTime(b.isoDate) - rssItemTime(a.isoDate));
 
 /**
  * @param {Array<{label: string, url: string}>} feeds
  * @returns {{ items, loading, error, refreshedAt, refresh }}
  */
 export function useRssMulti(feeds = []) {
-  const [items, setItems] = useState([]);
-  // Start in the loading state so the skeleton renders immediately on mount
-  // (instead of flashing the empty state for one frame before the first fetch).
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [refreshedAt, setRefreshedAt] = useState(null);
-
-  // Stable key to detect when the feeds array actually changed
-  const feedsKey = feeds.map((f) => f.url).join('|');
+  const feedsKey = feeds.map((f) => f.url).join("|");
   const feedsRef = useRef(feeds);
   feedsRef.current = feeds;
 
-  const merge = useCallback((allItems, fetchedAt = null) => {
-    // Sort newest-first using a NaN-safe timestamp. Invalid/missing dates fall
-    // to the bottom (0) instead of corrupting the comparison — this is what
-    // keeps a 14-min-old story ahead of a 3-day-old one.
-    const sorted = allItems
-      .filter(Boolean)
-      .sort((a, b) => rssItemTime(b.isoDate) - rssItemTime(a.isoDate));
-    setItems(sorted);
-    // Prefer the server-side fetch timestamp (persisted "date of fetching");
-    // fall back to now when it's missing/invalid.
-    const ts = fetchedAt ? new Date(fetchedAt).getTime() : Date.now();
-    setRefreshedAt(Number.isFinite(ts) ? ts : Date.now());
-  }, []);
+  // SW-prefetched merged queue from the DataHub.
+  const { data, updatedAt, meta, hydrated, write } = useDataHub("rss");
 
-  // Epoch counter — only the most recently initiated load may update state.
-  // Prevents a slow initial load(false) from overwriting fresh results
-  // delivered by a faster manual load(true) triggered by the refresh button.
+  // Only trust the hub entry if it was produced for the exact feed set.
+  const hasMatching = Array.isArray(data) && meta?.feedsKey === feedsKey;
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const epochRef = useRef(0);
 
-  const load = useCallback(async (forceNetwork = false) => {
+  // Once the hub hydrates with matching data, stop loading.
+  useEffect(() => {
+    if (hasMatching) setLoading(false);
+  }, [hasMatching]);
+
+  const fetchAll = useCallback(async () => {
     const current = feedsRef.current;
-    if (!current.length) return;
+    if (!current.length) return null;
 
     const epoch = ++epochRef.current;
-    setLoading(true);
-    setError(null);
-
     const results = await Promise.allSettled(
       current.map(async (feed) => {
-        const cacheKey = `custom_${feed.url}`;
-        if (!forceNetwork) {
-          const cached = readRssCache(cacheKey);
-          if (cached) return { items: cached.items, fetchedAt: cached.fetchedAt };
-        }
-        const { items: fetchedItems, fetchedAt } = await fetchFeed(cacheKey, feed.url);
-        // Inject source label into every item
-        const tagged = fetchedItems.map((item) => ({ ...item, source: feed.label }));
-        writeRssCache(cacheKey, capItems(tagged), fetchedAt);
-        return { items: tagged, fetchedAt };
+        const { items } = await fetchFeed(feed.url, feed.url);
+        return items.map((item) => ({ ...item, source: feed.label }));
       }),
     );
+    if (epochRef.current !== epoch) return null;
 
-    // If a newer load started while we were waiting, discard these results
-    if (epochRef.current !== epoch) return;
+    const allItems = results.flatMap((r) =>
+      r.status === "fulfilled" ? r.value : [],
+    );
+    const anyError = results.every((r) => r.status === "rejected");
+    if (anyError && allItems.length === 0) setError("Could not load any feeds");
+    return sortNewest(allItems.filter(Boolean));
+  }, []);
 
-    const allItems = results.flatMap((r) => (r.status === 'fulfilled' ? r.value.items : []));
-    // Use the newest fetch timestamp across feeds as the aggregate fetch time.
-    const fetchTimes = results
-      .filter((r) => r.status === 'fulfilled' && r.value.fetchedAt)
-      .map((r) => new Date(r.value.fetchedAt).getTime())
-      .filter(Number.isFinite);
-    const anyError = results.every((r) => r.status === 'rejected');
-
-    if (anyError && allItems.length === 0) {
-      setError('Could not load any feeds');
-    }
-    merge(allItems, fetchTimes.length ? new Date(Math.max(...fetchTimes)).toISOString() : null);
-    setLoading(false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Fetch only when hydrated + feeds present + no matching hub data (first
+  // load for this feed set). Never re-fetch on a timer.
   useEffect(() => {
+    if (!hydrated) return;
     if (!feeds.length) {
-      setItems([]);
-      setError(null);
-      setRefreshedAt(null);
       setLoading(false);
       return;
     }
+    if (hasMatching) return;
 
-    // Populate instantly from localStorage cache
-    const cached = feeds.flatMap((feed) => {
-      const c = readRssCache(`custom_${feed.url}`);
-      return c ? c.items : [];
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchAll().then((sorted) => {
+      if (cancelled) return;
+      if (sorted && sorted.length) write(sorted, { feedsKey });
+      setLoading(false);
     });
-    // Use the most recent cache write time as the aggregate fetch timestamp.
-    const cacheTs = feeds
-      .map((f) => readRssCache(`custom_${f.url}`)?.ts)
-      .filter(Boolean)
-      .sort((a, b) => b - a)[0];
-    if (cached.length) {
-      merge(cached, cacheTs ? new Date(cacheTs).toISOString() : null);
-      setLoading(false); // served from cache — no network wait
-    } else {
-      setItems([]);
-      // ── SW rss_queue seed ─────────────────────────────────────────────
-      // If the service worker pre-fetched the merged feed queue, use it for
-      // instant display before the network fetch completes.
-      chrome?.storage?.local?.get?.('rss_queue').then((result) => {
-        const q = result?.rss_queue;
-        if (!q?.items?.length) return;
-        if (Date.now() - q.fetchedAt > 30 * 60_000) return; // older than 30 min
-        // Only seed if none of the feeds have an active localStorage cache yet
-        // (avoids overwriting partial cache with a potentially broader SW queue)
-        const stillEmpty = feeds.every((f) => readRssCache(`custom_${f.url}`) === null);
-        if (stillEmpty) merge(q.items, q.fetchedAt);
-      }).catch(() => { });
-    }
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, feedsKey, hasMatching, feeds.length, fetchAll, write]);
 
-    // Fetch network (skip if all caches were fresh)
-    const allCached = feeds.every((f) => readRssCache(`custom_${f.url}`) !== null);
-    if (!allCached) {
-      load(false); // load() manages the loading flag (true → false)
-    } else if (!cached.length) {
-      setLoading(false); // caches exist but hold no items — show empty state
-    }
+  const refresh = useCallback(async () => {
+    if (!feedsRef.current.length) return;
+    setError(null);
+    const sorted = await fetchAll();
+    if (sorted && sorted.length) await write(sorted, { feedsKey });
+  }, [fetchAll, feedsKey, write]);
 
-    const timerId = setInterval(() => load(true), POLL_INTERVAL);
-    return () => clearInterval(timerId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [feedsKey]);
-
-  const refresh = useCallback(() => load(true), [load]);
+  const items = hasMatching ? data : [];
+  const refreshedAt = hasMatching ? updatedAt : null;
 
   return { items, loading, error, refreshedAt, refresh };
 }
