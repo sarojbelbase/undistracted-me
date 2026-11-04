@@ -1,6 +1,7 @@
 import React, {
   useState,
   useRef,
+  useContext,
   useEffect,
   useLayoutEffect,
   forwardRef,
@@ -8,6 +9,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { BaseSettingsModal } from "./BaseSettingsModal";
 import { ConfirmButton } from "../components/ui/ConfirmButton";
+import { WidgetActionsContext } from "./WidgetActionsContext";
 
 /**
  * Base card wrapper for all widgets.
@@ -43,6 +45,11 @@ export const BaseWidget = forwardRef(
     const dropRef = useRef(null);
     // Computed drop position — null until measured
     const [dropStyle, setDropStyle] = useState(null);
+
+    // Per-widget-instance actions (duplicate / pin) provided by WidgetGrid.
+    // Absent (null defaults) when BaseWidget renders outside a grid context.
+    const actions = useContext(WidgetActionsContext);
+    const hasWidgetActions = !!(actions && actions.duplicate && actions.pin);
 
     // Close context menu on outside click or Escape
     useEffect(() => {
@@ -222,6 +229,34 @@ export const BaseWidget = forwardRef(
                   {item.label}
                 </button>
               ))}
+              {hasWidgetActions && (
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    actions.duplicate();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+                  style={{ color: "var(--w-ink-1)" }}
+                >
+                  Duplicate
+                </button>
+              )}
+              {hasWidgetActions && (
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    actions.pin();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"
+                  style={{ color: "var(--w-ink-1)" }}
+                >
+                  Pin to top
+                </button>
+              )}
               {onRemove && (
                 <ConfirmButton
                   role="menuitem"
