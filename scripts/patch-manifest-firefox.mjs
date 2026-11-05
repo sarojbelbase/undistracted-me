@@ -68,6 +68,7 @@ if (manifest.permissions) {
 
 // 4. Remove Chrome-only top-level keys
 delete manifest.oauth2;
+delete manifest.key; // Chrome-only extension ID pin; Firefox derives its ID from gecko.id
 
 // 5. Remove Chrome-only web_accessible_resources fields
 if (manifest.web_accessible_resources) {

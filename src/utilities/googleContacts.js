@@ -196,7 +196,7 @@ export async function getContactBirthdays(interactive = true) {
   } catch (err) {
     if (err.message === 'SERVICE_DISABLED') throw err;
     if ((err.message === 'TOKEN_EXPIRED' || err.message === 'SCOPE_INSUFFICIENT') && token) {
-      await removeGoogleAuthToken(token);
+      await removeGoogleAuthToken();
       try {
         const freshToken = await getGoogleAuthToken(interactive);
         const connections = await fetchAllConnections(freshToken);

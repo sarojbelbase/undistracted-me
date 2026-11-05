@@ -32,9 +32,9 @@ async function apiFetch(path, options = {}, retried = false) {
   });
 
   // 401 = expired token; 403 = stale token missing tasks scope.
-  // Remove it and retry once so Chrome fetches a fresh token.
+  // Remove it and retry once so a fresh token is fetched.
   if ((res.status === 401 || res.status === 403) && !retried) {
-    await removeGoogleAuthToken(token);
+    await removeGoogleAuthToken();
     return apiFetch(path, options, true);
   }
 

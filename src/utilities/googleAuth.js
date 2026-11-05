@@ -1,137 +1,220 @@
 /**
- * Unified Google OAuth2 auth helper — works on Chrome and Firefox.
+ * Unified Google OAuth2 auth helper — ONE "Web application" OAuth client, ONE
+ * PKCE authorization-code flow, works everywhere: Chrome, Brave, Edge, Opera,
+ * Vivaldi, Firefox (extension) and the hosted website.
  *
- * Chrome  → chrome.identity.getAuthToken()
- *           Seamless: uses the signed-in Chrome/Google account, no extra user
- *           setup required.  Tokens are managed entirely by the browser.
+ * Extension (any browser) → chrome.identity.launchWebAuthFlow() + PKCE
+ *                          redirect URI = chrome.identity.getRedirectURL()
+ *                          (https://<id>.chromiumapp.org/ on Chrome/Chromium,
+ *                           https://<id>.extensions.allizom.org/ on Firefox)
+ * Website                → popup + PKCE
+ *                          redirect URI = <origin>/callbacks/auth.html
  *
- * Firefox → PKCE authorization-code flow via chrome.identity.launchWebAuthFlow()
- *           + server-side token exchange via /api/auth/google/token (Vercel).
- *           Requires a "Desktop app" OAuth client set up once in Google Cloud
- *           Console.  The client_secret lives only in the Vercel environment;
- *           the bundle contains only the client_id (XOR-encoded at build time).
+ * Both exchange the authorization code via POST /api/auth/google/token, so the
+ * client_secret never leaves the server. The bundle carries only the public
+ * client_id (VITE_GOOGLE_CLIENT_ID, XOR-encoded at build time).
  */
 import { PRODUCTION_BASE_URL } from '../constants/env.js';
 import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
 // Obfuscated by obscureEnvKeys Vite plugin at build time.
-const FF_CLIENT_ID = import.meta.env.VITE_GOOGLE_DESKTOP_CLIENT_ID || '';
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 const API_KEY = import.meta.env.VITE_API_KEY || '';
 
-// Absolute URL — works from moz-extension:// and chrome-extension:// origins.
-// During dev: use localhost:3000 (when running `vercel dev`)
-// Production: use PRODUCTION_BASE_URL
+// Server-side token-exchange endpoint. Absolute URL so it works from
+// chrome-extension://, moz-extension://, and https:// origins alike.
+// Dev: localhost:3000 (when running `vercel dev` / a local API); prod: app.undistracted.me.
 const isDev = import.meta.env.DEV || false;
-const FF_BACKEND_TOKEN_URL = isDev ? 'http://localhost:3000/api/auth/google/token' : `${PRODUCTION_BASE_URL}/api/auth/google/token`;
+const TOKEN_ENDPOINT = isDev
+  ? 'http://localhost:3000/api/auth/google/token'
+  : `${PRODUCTION_BASE_URL}/api/auth/google/token`;
 
-const FF_TOKEN_KEY = 'google_ff_tokens';
+// One logical key. Extension paths persist it in chrome.storage.local; website
+// mode persists it in sessionStorage (never exposed across tabs).
+const TOKEN_KEY = 'google_tokens';
 
 // ─── Platform detection ───────────────────────────────────────────────────────
 
 /**
  * Returns true when running as a plain website (no chrome.identity available).
- * This covers both the hosted Vercel site and local `npm run dev` in web mode.
+ * The only browser distinction left in the whole auth flow: extension vs web.
  */
 function isWebPath() {
   return typeof chrome === 'undefined' || typeof chrome.identity?.launchWebAuthFlow !== 'function'; // eslint-disable-line no-undef
 }
 
 /**
- * Returns true when running as a Chrome/Chromium extension.
- */
-function isChromePath() {
-  return typeof chrome !== 'undefined' && typeof chrome.identity?.getAuthToken === 'function'; // eslint-disable-line no-undef
-}
-
-/**
- * Returns true when Google sign-in is possible in the current browser.
- * Chrome: always (uses built-in account).
- * Firefox: only when VITE_GOOGLE_DESKTOP_CLIENT_ID is configured.
+ * Returns true when Google sign-in is possible. A single client ID covers every
+ * environment, so this is true whenever VITE_GOOGLE_CLIENT_ID is set at build
+ * time (extension) or bundle time (website).
  */
 export function isGoogleAuthAvailable() {
-  if (isChromePath()) return true;
-  if (typeof chrome !== 'undefined' && chrome.identity?.launchWebAuthFlow && FF_CLIENT_ID) return true; // eslint-disable-line no-undef
-  // Web (Vercel / website) mode: popup PKCE flow works as long as the client ID is set.
-  return isWebPath() && !!FF_CLIENT_ID;
+  return !!CLIENT_ID;
 }
 
 /**
- * Returns the redirect URL used by this extension for the Firefox OAuth flow.
- * Useful to display in Settings so the developer can register it in Google
- * Cloud Console without having to compute the hash manually.
+ * Returns the extension's OAuth redirect URL (chrome.identity.getRedirectURL()).
+ * Useful to display in Settings so the developer can register it in Google Cloud
+ * Console without computing the hash manually. Null in website mode.
  */
 export function getGoogleRedirectUrl() {
   if (typeof chrome === 'undefined' || !chrome.identity?.getRedirectURL) return null; // eslint-disable-line no-undef
   return chrome.identity.getRedirectURL(); // eslint-disable-line no-undef
 }
 
-// ─── Web (website mode) — popup + PKCE + server-side token exchange ─────────
+// ─── Token storage (chrome.storage.local ↔ sessionStorage) ────────────────────
 
-// sessionStorage keeps web-mode OAuth tokens scoped to the browser session only.
-// This prevents cross-tab token leakage and reduces XSS exposure window compared
-// to localStorage. Extension paths use chrome.storage.local instead (never this key).
-const WEB_TOKEN_KEY = 'google_web_tokens';
+async function readStoredToken() {
+  if (isWebPath()) {
+    try {
+      const raw = sessionStorage.getItem(TOKEN_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+  const result = await chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
+  return result[TOKEN_KEY] ?? null;
+}
+
+async function writeStoredToken(tokens) {
+  if (isWebPath()) {
+    try { sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens)); } catch { /* ignore */ }
+    return;
+  }
+  await chrome?.storage?.local?.set({ [TOKEN_KEY]: tokens }); // eslint-disable-line no-undef
+}
+
+async function clearStoredToken() {
+  if (isWebPath()) {
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
+    return;
+  }
+  await chrome?.storage?.local?.remove(TOKEN_KEY); // eslint-disable-line no-undef
+}
+
+// ─── Server-side token exchange ───────────────────────────────────────────────
 
 /**
- * Returns a valid stored access token for website mode, or null.
- * Silently refreshes via /api/auth/google/token when the token is near expiry.
+ * Exchange an authorization code for tokens via /api/auth/google/token.
+ * The client_secret stays server-side; the client sends only the public
+ * client_id, the code, and the PKCE verifier.
  */
-async function getValidStoredWebToken() {
-  try {
-    const raw = sessionStorage.getItem(WEB_TOKEN_KEY);
-    if (!raw) return null;
-    const stored = JSON.parse(raw);
-    // Still valid with 30-second buffer
-    if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
-    if (!stored.refresh_token) return null;
-
-    const res = await fetch('/api/auth/google/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-      body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: stored.refresh_token }),
-    });
-    if (!res.ok) return null;
-
-    const tokens = await res.json();
-    const updated = {
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || stored.refresh_token,
-      expires_at: Date.now() + tokens.expires_in * 1000,
-    };
-    sessionStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(updated));
-    return updated.access_token;
-  } catch { return null; }
+async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ code, code_verifier: codeVerifier, redirect_uri: redirectUri }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const errCode = body.error || res.status;
+    if (String(errCode).includes('invalid_grant')) throw new Error('Your session expired. Please sign in again.');
+    throw new Error(`Google token exchange failed: ${errCode}`);
+  }
+  return {
+    access_token: body.access_token,
+    refresh_token: body.refresh_token,
+    expires_at: Date.now() + body.expires_in * 1000,
+  };
 }
 
 /**
- * Opens a Google OAuth popup, completes the PKCE dance, exchanges the code
- * via /api/auth/google/token (client_secret stays server-side), and stores
- * the resulting tokens in localStorage.
+ * Refresh an expired access token using its refresh_token. Returns null on any
+ * failure so the caller can fall back to a fresh interactive sign-in.
  */
-async function getTokenWeb(interactive) {
-  const stored = await getValidStoredWebToken();
-  if (stored) return stored;
-  if (!interactive) throw new Error('Not authenticated');
+async function refreshStoredToken(refreshToken) {
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken }),
+  });
+  if (!res.ok) return null;
+  const tokens = await res.json();
+  return {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token || refreshToken,
+    expires_at: Date.now() + tokens.expires_in * 1000,
+  };
+}
 
-  const clientId = FF_CLIENT_ID; // same Desktop-app client, redirect URI just differs
-  if (!clientId) throw new Error('Google sign-in not configured — set VITE_GOOGLE_DESKTOP_CLIENT_ID');
+/**
+ * Returns a valid stored access token, or null. Silently refreshes via the
+ * server when the token is near expiry.
+ */
+async function getValidStoredToken() {
+  const stored = await readStoredToken();
+  if (!stored) return null;
 
+  // Still valid with a 30-second buffer.
+  if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
+  if (!stored.refresh_token) return null;
+
+  const refreshed = await refreshStoredToken(stored.refresh_token);
+  if (!refreshed) return null;
+  await writeStoredToken(refreshed);
+  return refreshed.access_token;
+}
+
+// ─── PKCE helpers ─────────────────────────────────────────────────────────────
+
+function generateCodeVerifier() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCodePoint(...arr))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCodePoint(...new Uint8Array(digest)))
+    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+
+function buildAuthUrl(redirectUri, challenge) {
+  const url = new URL(GOOGLE_AUTH_ENDPOINT);
+  url.searchParams.set('client_id', CLIENT_ID);
+  url.searchParams.set('redirect_uri', redirectUri);
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('scope', GOOGLE_SCOPES);
+  url.searchParams.set('code_challenge', challenge);
+  url.searchParams.set('code_challenge_method', 'S256');
+  url.searchParams.set('access_type', 'offline');
+  url.searchParams.set('prompt', 'consent'); // ensures refresh_token is issued
+  return url;
+}
+
+// ─── Authorization-code acquisition (extension vs web) ────────────────────────
+
+/** Extension: chrome.identity.launchWebAuthFlow (Chrome, Brave, Edge, Firefox…). */
+async function getAuthorizationCodeExtension() {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  const redirectUri = chrome.identity.getRedirectURL(); // eslint-disable-line no-undef
+  if (!redirectUri) throw new Error('chrome.identity not available');
+
+  const authUrl = buildAuthUrl(redirectUri, challenge);
+  const responseUrl = await new Promise((resolve, reject) => {
+    chrome.identity.launchWebAuthFlow({ url: authUrl.toString(), interactive: true }, (url) => { // eslint-disable-line no-undef
+      const err = chrome.runtime?.lastError; // eslint-disable-line no-undef
+      if (err) reject(new Error(err.message));
+      else if (url) resolve(url);
+      else reject(new Error('Sign-in cancelled'));
+    });
+  });
+
+  const code = new URL(responseUrl).searchParams.get('code');
+  if (!code) throw new Error('Sign-in was interrupted. Please try again.');
+  return { code, verifier, redirectUri };
+}
+
+/** Website: centred popup + postMessage callback. */
+async function getAuthorizationCodeWeb() {
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
   const redirectUri = `${globalThis.location.origin}/callbacks/auth.html`;
+  const authUrl = buildAuthUrl(redirectUri, challenge);
 
-  const authUrl = new URL(GOOGLE_AUTH_ENDPOINT);
-  authUrl.searchParams.set('client_id', clientId);
-  authUrl.searchParams.set('redirect_uri', redirectUri);
-  authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('scope', GOOGLE_SCOPES);
-  authUrl.searchParams.set('code_challenge', challenge);
-  authUrl.searchParams.set('code_challenge_method', 'S256');
-  authUrl.searchParams.set('access_type', 'offline');
-  authUrl.searchParams.set('prompt', 'consent');
-
-  // Open a centred popup and wait for the callback postMessage
   const code = await new Promise((resolve, reject) => {
     const w = 500, h = 620;
     const left = Math.round(globalThis.screen.width / 2 - w / 2);
@@ -163,229 +246,49 @@ async function getTokenWeb(interactive) {
     }, 500);
   });
 
-  // Exchange code via server-side endpoint — client_secret never touches the client
-  const res = await fetch('/api/auth/google/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-    body: JSON.stringify({ code, code_verifier: verifier, redirect_uri: redirectUri }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const errCode = body.error || res.status;
-    if (String(errCode).includes('invalid_grant')) throw new Error('Your session expired. Please sign in again.');
-    throw new Error(`Google token exchange failed: ${errCode}`);
-  }
-
-  const tokens = await res.json();
-  const newStored = {
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
-    expires_at: Date.now() + tokens.expires_in * 1000,
-  };
-  sessionStorage.setItem(WEB_TOKEN_KEY, JSON.stringify(newStored));
-  return newStored.access_token;
-}
-
-// ─── Chrome path ──────────────────────────────────────────────────────────────
-
-function getTokenChrome(interactive) {
-  return new Promise((resolve, reject) => {
-    try {
-      // eslint-disable-next-line no-undef
-      chrome.identity.getAuthToken({ interactive }, (token) => {
-        try {
-          // eslint-disable-next-line no-undef
-          if (chrome.runtime.lastError) {
-            // eslint-disable-next-line no-undef
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve(token);
-          }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    } catch (e) {
-      reject(new Error('chrome.identity.getAuthToken is not available'));
-    }
-  });
-}
-
-function removeCachedTokenChrome(token) {
-  return new Promise((resolve) => {
-    try {
-      // eslint-disable-next-line no-undef
-      chrome.identity.removeCachedAuthToken({ token }, resolve);
-    } catch (e) {
-      // Silently ignore on Firefox where this API doesn't exist
-      resolve();
-    }
-  });
-}
-
-// ─── Firefox PKCE helpers ─────────────────────────────────────────────────────
-
-function generateCodeVerifier() {
-  const arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  return btoa(String.fromCodePoint(...arr))
-    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
-}
-
-async function generateCodeChallenge(verifier) {
-  const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCodePoint(...new Uint8Array(digest)))
-    .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
-}
-
-// ─── Firefox token storage ────────────────────────────────────────────────────
-
-async function getValidStoredFFToken() {
-  const result = await chrome?.storage?.local?.get(FF_TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
-  const stored = result[FF_TOKEN_KEY] ?? null;
-  if (!stored) return null;
-
-  // Still valid with 30-second buffer
-  if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
-
-  // Try to refresh
-  if (!stored.refresh_token) return null;
-
-  const res = await fetch(FF_BACKEND_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: stored.refresh_token }),
-  });
-
-  if (!res.ok) return null; // let caller decide whether to re-auth
-
-  const tokens = await res.json();
-  const updated = {
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token || stored.refresh_token,
-    expires_at: Date.now() + tokens.expires_in * 1000,
-  };
-  await chrome?.storage?.local?.set({ [FF_TOKEN_KEY]: updated }); // eslint-disable-line no-undef
-  return updated.access_token;
-}
-
-// ─── Firefox interactive PKCE flow ────────────────────────────────────────────
-
-async function getTokenFirefox(interactive) {
-  // Try stored / auto-refresh first (no UI interaction)
-  const stored = await getValidStoredFFToken();
-  if (stored) return stored;
-
-  if (!interactive) throw new Error('Not authenticated');
-  if (!FF_CLIENT_ID) {
-    throw new Error(
-      'Google sign-in is not configured for Firefox. ' +
-      'See the extension settings for setup instructions.'
-    );
-  }
-
-  const verifier = generateCodeVerifier();
-  const challenge = await generateCodeChallenge(verifier);
-  // getRedirectURL() is available in both Chrome and Firefox MV3
-  const redirectUri = chrome?.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
-  if (!redirectUri) throw new Error('chrome.identity not available');
-
-  const authUrl = new URL(GOOGLE_AUTH_ENDPOINT);
-  authUrl.searchParams.set('client_id', FF_CLIENT_ID);
-  authUrl.searchParams.set('redirect_uri', redirectUri);
-  authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('scope', GOOGLE_SCOPES);
-  authUrl.searchParams.set('code_challenge', challenge);
-  authUrl.searchParams.set('code_challenge_method', 'S256');
-  authUrl.searchParams.set('access_type', 'offline');
-  authUrl.searchParams.set('prompt', 'consent'); // ensures refresh_token is issued
-
-  const responseUrl = await new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow({ url: authUrl.toString(), interactive: true }, (url) => { // eslint-disable-line no-undef
-      const err = chrome.runtime?.lastError; // eslint-disable-line no-undef
-      if (err) reject(new Error(err.message));
-      else if (url) resolve(url);
-      else reject(new Error('Auth cancelled'));
-    });
-  });
-
-  const code = new URL(responseUrl).searchParams.get('code');
-  if (!code) throw new Error('Sign-in was interrupted. Please try again.');
-
-  const res = await fetch(FF_BACKEND_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
-    body: JSON.stringify({ code, code_verifier: verifier, redirect_uri: redirectUri }),
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const errCode = body.error || res.status;
-    if (String(errCode).includes('invalid_grant')) throw new Error('Your session expired. Please sign in again.');
-    throw new Error(`Google token exchange failed: ${errCode}`);
-  }
-
-  const tokens = await res.json();
-  const newStored = {
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
-    expires_at: Date.now() + tokens.expires_in * 1000,
-  };
-  await chrome?.storage?.local?.set({ [FF_TOKEN_KEY]: newStored }); // eslint-disable-line no-undef
-  return newStored.access_token;
+  return { code, verifier, redirectUri };
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Get a valid Google API access token.
- * Works on both Chrome (getAuthToken) and Firefox (PKCE launchWebAuthFlow).
  *
  * @param {boolean} interactive - Prompt the user if no token is available.
- *   Pass false for silent background checks; the call will throw if not
- *   already authenticated.
+ *   Pass false for silent background checks; the call throws "Not authenticated"
+ *   if no valid token is already stored.
  */
 export async function getGoogleAuthToken(interactive = true) {
-  if (isWebPath()) return getTokenWeb(interactive);
-  if (isChromePath()) return getTokenChrome(interactive);
-  return getTokenFirefox(interactive);
+  const stored = await getValidStoredToken();
+  if (stored) return stored;
+  if (!interactive) throw new Error('Not authenticated');
+  if (!CLIENT_ID) throw new Error('Google sign-in not configured — set VITE_GOOGLE_CLIENT_ID');
+
+  const { code, verifier, redirectUri } = isWebPath()
+    ? await getAuthorizationCodeWeb()
+    : await getAuthorizationCodeExtension();
+
+  const tokens = await exchangeCodeForTokens({ code, codeVerifier: verifier, redirectUri });
+  await writeStoredToken(tokens);
+  return tokens.access_token;
 }
 
 /**
- * Invalidate a specific access token so the next call fetches a fresh one.
- * Handles both Chrome (removeCachedAuthToken) and Firefox (clear storage).
- *
- * @param {string|null} token - The token to remove (used on Chrome path only).
+ * Discard the stored token so the next call re-authenticates. The optional
+ * `token` argument is accepted for backward compatibility only — it is unused
+ * (it was only ever needed by chrome.identity.removeCachedAuthToken, which the
+ * unified launchWebAuthFlow flow no longer uses).
  */
-export async function removeGoogleAuthToken(token) {
-  if (isWebPath()) {
-    sessionStorage.removeItem(WEB_TOKEN_KEY);
-    return;
-  }
-  if (isChromePath()) {
-    if (token) await removeCachedTokenChrome(token);
-    return;
-  }
-  // Firefox: clear our stored token — next call will trigger a full re-auth.
-  await chrome?.storage?.local?.remove(FF_TOKEN_KEY); // eslint-disable-line no-undef
+export async function removeGoogleAuthToken() {
+  await clearStoredToken();
 }
 
 /**
- * Sign the user out of Google (clears all stored credentials).
- * On Chrome, also clears ALL cached auth tokens for this extension so
- * the browser doesn't silently re-issue them on the next getAuthToken call.
+ * Sign the user out of Google (clears the stored token). Accepts an optional
+ * ignored argument for backward compatibility with the old Chrome-only flow.
  */
-export async function signOutGoogle(token) {
-  await removeGoogleAuthToken(token);
-  if (isChromePath() && typeof chrome !== 'undefined' && chrome.identity?.clearAllCachedAuthTokens) { // eslint-disable-line no-undef
-    try {
-      // eslint-disable-next-line no-undef
-      await new Promise(resolve => chrome.identity.clearAllCachedAuthTokens(resolve));
-    } catch (e) {
-      // Silently ignore on Firefox where this API doesn't exist
-    }
-  }
+export async function signOutGoogle() {
+  await clearStoredToken();
 }
 
 /**

@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, type Plugin } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import preact from "@preact/preset-vite";
 import { crx } from "@crxjs/vite-plugin";
 import manifest from "./public/manifest.json" with { type: "json" };
@@ -336,22 +336,11 @@ const rssProxy = (): Plugin => ({
 });
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-
-  // When building locally for distribution: set EXTENSION_CLIENT_ID to inject your real OAuth client ID.
-  // Vercel deployments (website mode) use the manifest placeholder and skip this warning.
-  const isLocalExtensionBuild = process.env.npm_config_local_prefix && mode === "production";
-  if (isLocalExtensionBuild && !env.EXTENSION_CLIENT_ID) {
-    console.warn(
-      "[build] EXTENSION_CLIENT_ID not set — using placeholder from manifest. " +
-      "For distribution, set EXTENSION_CLIENT_ID in .env.local or CI environment."
-    );
-  }
-
+  // Cloned so the crx plugin can mutate it without touching the source file.
+  // OAuth now uses a single "Web application" client (VITE_GOOGLE_CLIENT_ID) via
+  // launchWebAuthFlow + PKCE, so there is no per-browser manifest oauth2 block
+  // to inject (that block was only ever used by chrome.identity.getAuthToken).
   const dynamicManifest = structuredClone(manifest);
-  if (env.EXTENSION_CLIENT_ID && dynamicManifest.oauth2) {
-    dynamicManifest.oauth2.client_id = env.EXTENSION_CLIENT_ID;
-  }
 
   return {
     // ── Preact runtime — alias React → preact/compat so existing React code runs
@@ -371,7 +360,7 @@ export default defineConfig(({ mode }) => {
       obscureEnvKeys([
         "VITE_API_KEY",
         "VITE_SPOTIFY_CLIENT_ID",
-        "VITE_GOOGLE_DESKTOP_CLIENT_ID",
+        "VITE_GOOGLE_CLIENT_ID",
         "VITE_GITHUB_CLIENT_ID",
       ]),
       preact({ reactAliasesEnabled: false }),

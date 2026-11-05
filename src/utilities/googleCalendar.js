@@ -1,9 +1,8 @@
 /**
  * Google Calendar API utilities.
  *
- * Auth is handled by googleAuth.js which works on both Chrome and Firefox.
- * Chrome  → chrome.identity.getAuthToken() (seamless, no user setup needed)
- * Firefox → PKCE flow via launchWebAuthFlow() (requires Desktop App client in GCP)
+ * Auth is handled by googleAuth.js, which uses a single "Web application" OAuth
+ * client + PKCE via chrome.identity.launchWebAuthFlow() on every browser.
  */
 import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
 export { isGoogleAuthAvailable } from './googleAuth';
@@ -209,7 +208,7 @@ export async function getCalendarEvents(interactive = false) {
     return { events: fresh, changed };
   } catch (err) {
     if (err.message === 'TOKEN_EXPIRED' && token) {
-      await removeGoogleAuthToken(token);
+      await removeGoogleAuthToken();
       try {
         const freshToken = await getGoogleAuthToken(interactive);
         const fresh = await fetchEventsWithToken(freshToken);
@@ -259,7 +258,7 @@ export async function isCalendarConnected() {
  */
 export async function disconnectCalendar() {
   const token = await getGoogleAuthToken(false).catch(() => null);
-  if (token) await removeGoogleAuthToken(token);
+  if (token) await removeGoogleAuthToken();
   clearGcalCache();
   clearProfileCache();
   setDisconnectedFlag();
