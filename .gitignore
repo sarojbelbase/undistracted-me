@@ -10,6 +10,7 @@ tests/playwright/report
 coverage
 examples/new_ones
 .vercel
+.wrangler
 .env*.local
 src/assets/backgrounds/
 builds
