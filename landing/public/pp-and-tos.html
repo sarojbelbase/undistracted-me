@@ -589,7 +589,6 @@
     </p>
     <ul class="styled">
       <li><strong>Unsplash photos</strong> — a random background photo is fetched. No personal data is sent. The response is a photo URL.</li>
-      <li><strong>Google token exchange (Firefox only)</strong> — the OAuth authorisation code is exchanged for tokens server-side so the <code>client_secret</code> never leaves our server. The token is returned to your browser immediately and not stored by us.</li>
       <li><strong>Favicon proxy</strong> — a website domain name is sent to fetch its icon. No session or identity data is included.</li>
     </ul>
     <p>
@@ -834,11 +833,9 @@
     <p>
       Google sign-in uses a single OAuth 2.0 "Web application" client with the PKCE
       authorization-code flow on every browser (Chrome, Brave, Edge, Opera, Vivaldi,
-      and Firefox). The authorization code is exchanged for tokens via our backend
-      endpoint, which injects the
-      <code>client_secret</code>
-      server-side. The secret is never present in the extension bundle — only the
-      public <code>client_id</code> is.
+      and Firefox). The authorization code is exchanged for tokens directly with
+      Google as a public PKCE client — no client secret is involved. Only the
+      public <code>client_id</code> is present in the extension bundle.
     </p>
   </section>
 

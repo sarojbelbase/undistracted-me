@@ -353,9 +353,10 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 ## Google Auth (`src/utilities/googleAuth.js`)
 Single "Web application" OAuth client + PKCE, works in every environment:
 - **Extension (Chrome, Brave, Edge, Opera, Vivaldi, Firefox)**: PKCE authorization-code
-  flow via `chrome.identity.launchWebAuthFlow()`, then server-side token exchange against
-  `/api/auth/google/token`. Client ID XOR-encoded at build time by `obscureEnvKeys`.
-- **Web (website mode)**: popup + PKCE + `/api/auth/google/token` server-side exchange.
+  flow via `chrome.identity.launchWebAuthFlow()`, then client-side token exchange directly
+  with Google's token endpoint (public PKCE client, no client secret). Client ID
+  XOR-encoded at build time by `obscureEnvKeys`.
+- **Web (website mode)**: popup + PKCE + client-side token exchange.
 
 Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
 
@@ -533,11 +534,9 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 | Variable | Used by |
 |---|---|
 | `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production URL) |
-| `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to the token + curated-photos endpoints |
+| `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to the curated-photos endpoint |
 | `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website (XOR-encoded at build by `obscureEnvKeys` plugin) |
 | `VITE_WEBSITE_MODE` | Set to `'true'` for the hosted website (disables extension-only features) |
-| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
-| `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Cloudflare env var, never in bundle) |
 | `API_KEY` | Server-side key for `functions/_config.js` `assertApiKey()` (same value as VITE_API_KEY) |
 
 > Weather uses **Open-Meteo** (free, no API key required).
