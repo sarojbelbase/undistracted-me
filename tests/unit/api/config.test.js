@@ -1,13 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { assertOrigin, assertApiKey, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../api/_config.js';
-import { makeReq, makeRes, ORIGINS } from './helpers.js';
-
-// _config.js reads manifest.json via createRequire at module load time.
-// We mock it before importing so the module resolves cleanly in Node/Vitest.
-vi.mock('../../../public/manifest.json', () => ({
-  default: { homepage_url: 'https://undistracted.me' },
-  homepage_url: 'https://undistracted.me',
-}));
+import { describe, it, expect } from 'vitest';
+import { assertOrigin, assertApiKey, corsHeaders, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../functions/_config.js';
+import { makeReq, ORIGINS } from './helpers.js';
 
 describe('ALLOWED_ORIGINS regex', () => {
   it.each([
@@ -25,79 +18,66 @@ describe('ALLOWED_ORIGINS regex', () => {
 });
 
 describe('assertOrigin', () => {
-  it('allows a valid origin and sets CORS headers', () => {
+  it('allows a valid origin (returns null)', () => {
     const req = makeReq({ origin: ORIGINS.production });
-    const res = makeRes();
-    expect(assertOrigin(req, res)).toBe(true);
-    expect(res.getHeader('access-control-allow-origin')).toBe(ORIGINS.production);
-    expect(res.getHeader('vary')).toBe('Origin');
-    expect(res._status).toBeNull(); // no rejection
+    expect(assertOrigin(req)).toBeNull();
   });
 
-  it('rejects an unknown origin with 403', () => {
+  it('rejects an unknown origin with a 403 Response', async () => {
     const req = makeReq({ origin: ORIGINS.bad });
-    const res = makeRes();
-    expect(assertOrigin(req, res)).toBe(false);
-    expect(res._status).toBe(403);
-    expect(res._body).toMatchObject({ error: 'Forbidden' });
+    const res = assertOrigin(req);
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toMatchObject({ error: 'Forbidden' });
   });
 
   it('allows same-origin request (empty origin header)', () => {
     const req = makeReq({ origin: '' });
-    const res = makeRes();
-    expect(assertOrigin(req, res)).toBe(true);
-    expect(res._status).toBeNull();
+    expect(assertOrigin(req)).toBeNull();
+  });
+});
+
+describe('corsHeaders', () => {
+  it('returns CORS headers for an allowed origin', () => {
+    const req = makeReq({ origin: ORIGINS.production });
+    expect(corsHeaders(req)['Access-Control-Allow-Origin']).toBe(ORIGINS.production);
+    expect(corsHeaders(req)['Vary']).toBe('Origin');
   });
 
-  it('sets custom methods when provided', () => {
+  it('returns an empty object when no Origin header is present', () => {
+    const req = makeReq({});
+    expect(corsHeaders(req)).toEqual({});
+  });
+
+  it('honors a custom methods argument', () => {
     const req = makeReq({ origin: ORIGINS.chrome });
-    const res = makeRes();
-    assertOrigin(req, res, 'POST, OPTIONS');
-    expect(res.getHeader('access-control-allow-methods')).toBe('POST, OPTIONS');
+    expect(corsHeaders(req, 'POST, OPTIONS')['Access-Control-Allow-Methods']).toBe('POST, OPTIONS');
   });
-
-  it.each(Object.entries(ORIGINS).filter(([k]) => k !== 'bad' && k !== 'none'))(
-    'allows %s origin', (_, origin) => {
-      const req = makeReq({ origin });
-      const res = makeRes();
-      expect(assertOrigin(req, res)).toBe(true);
-    }
-  );
 });
 
 describe('assertApiKey', () => {
   const KEY = 'test-secret-key-abc123';
-
-  beforeEach(() => { process.env.API_KEY = KEY; });
-  afterEach(() => { delete process.env.API_KEY; });
+  const env = { API_KEY: KEY };
 
   it('passes when correct key provided', () => {
     const req = makeReq({ headers: { 'x-api-key': KEY } });
-    const res = makeRes();
-    expect(assertApiKey(req, res)).toBe(true);
-    expect(res._status).toBeNull();
+    expect(assertApiKey(req, env)).toBeNull();
   });
 
   it('rejects missing key with 401', () => {
     const req = makeReq();
-    const res = makeRes();
-    expect(assertApiKey(req, res)).toBe(false);
-    expect(res._status).toBe(401);
-    expect(res._body).toMatchObject({ error: 'Unauthorized' });
+    const res = assertApiKey(req, env);
+    expect(res.status).toBe(401);
   });
 
   it('rejects wrong key with 401', () => {
     const req = makeReq({ headers: { 'x-api-key': 'wrong-key' } });
-    const res = makeRes();
-    expect(assertApiKey(req, res)).toBe(false);
-    expect(res._status).toBe(401);
+    const res = assertApiKey(req, env);
+    expect(res.status).toBe(401);
   });
 
   it('allows any request when API_KEY is not configured (dev mode)', () => {
-    delete process.env.API_KEY;
     const req = makeReq(); // no key header
-    const res = makeRes();
-    expect(assertApiKey(req, res)).toBe(true);
+    expect(assertApiKey(req, {})).toBeNull();
   });
 });
 
