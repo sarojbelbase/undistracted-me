@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { bsToAd } from '../../../src/utilities/nepaliDate';
 import { convertEnglishToNepali } from '../../../src/utilities/index';
-import { parseHolidaysFromWikitext } from '../../../api/_holidays';
+import { parseHolidaysFromWikitext } from '../../../functions/_holidays.js';
 
 describe('bsToAd', () => {
   it('matches the anchor (BS 2000 Poush 17 = 1944-01-01)', () => {

@@ -13,7 +13,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: [
-        'api/**',
+        'functions/**',
         'src/components/LookAway/**',
         'src/components/FocusMode/**',
         'src/widgets/**',
