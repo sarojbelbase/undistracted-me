@@ -1,0 +1,5 @@
+# Cloudflare Pages configuration for the "Undistracted Me" web app + functions.
+name = "undistracted-me-app"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
