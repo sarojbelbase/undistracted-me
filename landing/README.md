@@ -19,12 +19,11 @@ static output, zero client-side JS beyond a tiny theme/nav script.
 landing/
 ├── astro.config.mjs       site config + sitemap + SEO integration
 ├── package.json           astro, @astrojs/sitemap, @jdevalk/astro-seo-graph
-├── vercel.json            framework: astro + security/CSP/agent-discovery headers
 ├── src/
 │   ├── pages/
 │   │   ├── index.astro        the landing page
 │   │   └── robots.txt.ts      robots.txt + Content-Signals + sitemap ref
-│   ├── layouts/BaseLayout.astro   <head> (Seo component, fonts, analytics)
+│   ├── layouts/BaseLayout.astro   <head> (Seo component, fonts)
 │   ├── components/           Header, Hero, Features, Themes, TimeCalendar,
 │   │                         FocusSound, Privacy, Faq, Cta, Footer, Wordmark,
 │   │                         BrowserIcon
@@ -58,36 +57,21 @@ The build ships and validates, via `@jdevalk/astro-seo-graph`, at every build:
 - `llms.txt` for LLM/agent discovery
 - H1 / image-alt / metadata-length / duplicate-metadata / internal-link validation
 
-## Deploy to Vercel
+## Deploy
 
-The landing is a **separate** Vercel project from the web app (`app.undistracted.me`).
+The build outputs plain static files to `dist/` — deploy them to any static host
+(Cloudflare Pages, Netlify, GitHub Pages, S3 + CDN, …). There are no server functions
+or runtime dependencies.
 
-| Piece | Value |
-|---|---|
-| Vercel project | `undistracted-me-landing` (org: `saroj-belbases-projects`) |
-| Root directory | `landing` |
-| Framework preset | `Astro` |
-| Build command | `npm run build` |
-| Output directory | `dist` |
-| Production URL | `https://undistracted-me-landing.vercel.app` |
-| Domains | `undistracted.me` + `www.undistracted.me` |
-
-Deploy from this folder:
-
-```bash
-cd landing
-vercel deploy --prod
-```
-
-Pushes to `main` auto-deploy (git connected).
-
-### DNS records required (at Cloudflare)
+### DNS records (at Cloudflare)
 
 | Type | Name | Value |
 |---|---|---|
 | A | `@` (apex) | `76.76.21.21` |
 | CNAME | `www` | `cname.vercel-dns.com` |
 | CNAME | `app` | `cname.vercel-dns.com` |
+
+> Update the `www` / apex records to point at your chosen host once Vercel is removed.
 
 ## Links
 
