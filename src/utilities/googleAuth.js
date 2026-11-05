@@ -10,21 +10,25 @@
  * Website                → popup + PKCE
  *                          redirect URI = <origin>/callbacks/auth.html
  *
- * Both exchange the authorization code directly with Google's token endpoint
- * (oauth2.googleapis.com/token) as a public PKCE client — no client_secret and
- * no backend dependency. The bundle carries only the public client_id
- * (VITE_GOOGLE_CLIENT_ID, XOR-encoded at build time).
+ * Both exchange the authorization code via POST /api/auth/google/token, so the
+ * client_secret never leaves the server. The bundle carries only the public
+ * client_id (VITE_GOOGLE_CLIENT_ID, XOR-encoded at build time).
  */
+import { PRODUCTION_BASE_URL } from '../constants/env.js';
 import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
 // Obfuscated by obscureEnvKeys Vite plugin at build time.
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-// Google's token endpoint. The extension/website exchange the authorization code
-// (and later the refresh token) here directly as a public PKCE client — no
-// client_secret, no backend round-trip. Requires host_permission
-// https://oauth2.googleapis.com/* in manifest.json.
-const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+const API_KEY = import.meta.env.VITE_API_KEY || '';
+
+// Server-side token-exchange endpoint. Absolute URL so it works from
+// chrome-extension://, moz-extension://, and https:// origins alike.
+// Dev: localhost:3000 (when running `vercel dev` / a local API); prod: app.undistracted.me.
+const isDev = import.meta.env.DEV || false;
+const TOKEN_ENDPOINT = isDev
+  ? 'http://localhost:3000/api/auth/google/token'
+  : `${PRODUCTION_BASE_URL}/api/auth/google/token`;
 
 // One logical key. Extension paths persist it in chrome.storage.local; website
 // mode persists it in sessionStorage (never exposed across tabs).
@@ -88,24 +92,18 @@ async function clearStoredToken() {
   await chrome?.storage?.local?.remove(TOKEN_KEY); // eslint-disable-line no-undef
 }
 
-// ─── Client-side token exchange (public PKCE client) ──────────────────────────
+// ─── Server-side token exchange ───────────────────────────────────────────────
 
 /**
- * Exchange an authorization code for tokens directly with Google's token
- * endpoint. Public PKCE client — sends only the client_id, code, and verifier
- * (no client_secret).
+ * Exchange an authorization code for tokens via /api/auth/google/token.
+ * The client_secret stays server-side; the client sends only the public
+ * client_id, the code, and the PKCE verifier.
  */
 async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
-  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+  const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      code,
-      code_verifier: codeVerifier,
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ code, code_verifier: codeVerifier, redirect_uri: redirectUri }),
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -121,19 +119,14 @@ async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
 }
 
 /**
- * Refresh an expired access token using its refresh_token, directly with Google.
- * Returns null on any failure so the caller can fall back to a fresh interactive
- * sign-in.
+ * Refresh an expired access token using its refresh_token. Returns null on any
+ * failure so the caller can fall back to a fresh interactive sign-in.
  */
 async function refreshStoredToken(refreshToken) {
-  const res = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+  const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken }),
   });
   if (!res.ok) return null;
   const tokens = await res.json();
@@ -145,8 +138,8 @@ async function refreshStoredToken(refreshToken) {
 }
 
 /**
- * Returns a valid stored access token, or null. Silently refreshes directly with
- * Google when the token is near expiry.
+ * Returns a valid stored access token, or null. Silently refreshes via the
+ * server when the token is near expiry.
  */
 async function getValidStoredToken() {
   const stored = await readStoredToken();

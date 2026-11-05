@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import preact from "@preact/preset-vite";
 import { crx } from "@crxjs/vite-plugin";
 import manifest from "./public/manifest.json" with { type: "json" };
@@ -128,8 +128,12 @@ const googleTokenProxy = (): Plugin => ({
       }
       if (req.method !== "POST") return next();
 
-      const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
-      const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+      // Vite exposes only VITE_* vars to the client; non-prefixed vars from .env
+      // (e.g. GOOGLE_CLIENT_SECRET) are loaded here via loadEnv so the local
+      // proxy can inject the secret without it ever entering the bundle.
+      const env = loadEnv(server.config.mode, server.config.root, "");
+      const clientId = process.env.GOOGLE_CLIENT_ID ?? env.GOOGLE_CLIENT_ID ?? "";
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? env.GOOGLE_CLIENT_SECRET ?? "";
       if (!clientId || !clientSecret) {
         res.statusCode = 503;
         res.end(
