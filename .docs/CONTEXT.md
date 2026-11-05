@@ -341,8 +341,8 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 - `useFocusTimezones()` — reads clock widget timezones from Zustand `useWidgetInstancesStore`
 
 ## Unsplash Photo Library (`src/utilities/unsplash.js`)
-- **Source**: Vercel Blob proxy — `/api/photos/curated` (no direct Unsplash key needed in extension)
-- **Auth**: `X-API-Key: VITE_PHOTOS_API_KEY` header to the curated endpoint
+- **Source**: Curated proxy — `/api/photos/curated` (no direct Unsplash key needed in extension)
+- **Auth**: `X-API-Key: VITE_API_KEY` header to the curated endpoint
 - localStorage key: `fm_unsplash_cache` — stores up to `LIBRARY_MAX=10` photo objects
 - Each item: `{ id, url, regular, color, author, authorUrl, photoUrl, cachedAt }`
 - Library model: `library[0]` = current photo. `rotatePhoto()` cycles head→tail (never discards). `downloadNewPhoto()` force-fetches and prepends. `deletePhoto(id)` removes. `jumpToPhotoById(id)` promotes to head.
@@ -532,17 +532,15 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 ## ENV Variables
 | Variable | Used by |
 |---|---|
-| `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production Vercel URL) |
-| `VITE_PHOTOS_API_KEY` | Shared secret for curated photos Vercel endpoint |
-| `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to Vercel API endpoints |
+| `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production URL) |
+| `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to the token + curated-photos endpoints |
 | `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website (XOR-encoded at build by `obscureEnvKeys` plugin) |
-| `VITE_WEBSITE_MODE` | Set to `'true'` for Vercel web deployment (disables extension-only features) |
-| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Vercel/Cloudflare env var, not bundled) |
-| `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Vercel/Cloudflare env var, never in bundle) |
-| `API_KEY` | Server-side key for `api/_config.js` `assertApiKey()` (same value as VITE_API_KEY) |
-| `PHOTOS_API_KEY` | Server-side key for `api/photos/curated.js` |
+| `VITE_WEBSITE_MODE` | Set to `'true'` for the hosted website (disables extension-only features) |
+| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
+| `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Cloudflare env var, never in bundle) |
+| `API_KEY` | Server-side key for `functions/_config.js` `assertApiKey()` (same value as VITE_API_KEY) |
 
-> Weather uses **Open-Meteo** (free, no API key required). `VITE_OWM_API_KEY` is no longer used.
+> Weather uses **Open-Meteo** (free, no API key required).
 
 ## Key Patterns & Gotchas
 - **Events double-add bug**: NEVER mutate state inside `setX(prev => ...)` when calling `dispatchEvent` — StrictMode calls updaters twice. Use module-level cache + direct mutation.
