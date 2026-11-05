@@ -433,8 +433,6 @@ export default defineConfig(({ mode }) => {
               id.includes("node_modules/@lexical")
             )
               return "editor";
-            if (id.includes("node_modules/@vercel/analytics"))
-              return "analytics";
           },
         },
       },
