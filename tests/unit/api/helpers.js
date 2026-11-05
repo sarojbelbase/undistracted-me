@@ -1,29 +1,38 @@
 /**
- * Minimal req/res mock factory for Vercel/Next-style API handler tests.
- * Avoids any network dependency — pure unit testing.
+ * Minimal helpers for Cloudflare Pages Functions unit tests.
+ *
+ * Handlers follow the signature `onRequest({ request, env }) => Response`.
+ * These helpers build real `Request` objects (Node's undici globals) so the
+ * functions' `request.headers.get()`, `request.json()`, `request.method` and
+ * `new URL(request.url)` calls work exactly as they do in production.
  */
 
-export const makeReq = ({ method = 'GET', origin = '', headers = {}, query = {}, body = {} } = {}) => ({
-  method,
-  headers: { origin, ...headers },
-  query,
-  body,
-});
+export const makeReq = ({
+  method = 'GET',
+  origin = '',
+  headers = {},
+  query = {},
+  body = undefined,
+  url = 'https://app.undistracted.me/api/test',
+} = {}) => {
+  const u = new URL(url);
+  for (const [k, v] of Object.entries(query)) u.searchParams.set(k, v);
 
-export const makeRes = () => {
-  const res = {
-    _status: null,
-    _body: null,
-    _headers: {},
-    status(code) { this._status = code; return this; },
-    end(body = '') { this._body = body ?? ''; return this; },
-    json(obj) { this._body = obj; return this; },
-    send(buf) { this._body = buf; return this; },
-    setHeader(k, v) { this._headers[k.toLowerCase()] = v; },
-    getHeader(k) { return this._headers[k.toLowerCase()]; },
-  };
-  return res;
+  const h = new Headers();
+  if (origin) h.set('origin', origin);
+  for (const [k, v] of Object.entries(headers)) h.set(k, v);
+
+  const init = { method, headers: h };
+  if (body !== undefined && method !== 'GET' && method !== 'HEAD') {
+    init.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (!h.has('content-type')) h.set('content-type', 'application/json');
+  }
+
+  return new Request(u.toString(), init);
 };
+
+/** Build the `context` object passed to `onRequest` ({ request, env }). */
+export const makeContext = (request, env = {}) => ({ request, env });
 
 /** Valid allowed origins for convenience */
 export const ORIGINS = {
