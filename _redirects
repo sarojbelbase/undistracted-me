@@ -1,0 +1,10 @@
+# Privacy policy / terms redirect (permanent)
+/pp-and-tos https://undistracted.me/pp-and-tos 301
+
+# Extension entry pages (served from dist/entries/)
+/popup.html /entries/popup 200
+/blocked.html /entries/blocked 200
+
+# SPA fallback - serve the dashboard HTML for any unmatched route
+/ /entries/ 200
+/* /entries/ 200
