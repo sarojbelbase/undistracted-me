@@ -830,17 +830,15 @@
       our application's ability to read or interact with your Google data.
     </p>
 
-    <h3>Chrome vs. Firefox auth path</h3>
+    <h3>Google authentication flow</h3>
     <p>
-      On <strong>Chrome</strong>, authentication uses
-      <code>chrome.identity.getAuthToken()</code>
-      — token management is handled entirely by the browser. No client secret is needed.
-    </p>
-    <p>
-      On <strong>Firefox</strong>, a PKCE OAuth flow is used.
-      The authorisation code is exchanged for tokens via our Vercel endpoint, which injects
-      the <code>client_secret</code>
-      server-side. The secret is never present in the extension bundle.
+      Google sign-in uses a single OAuth 2.0 "Web application" client with the PKCE
+      authorization-code flow on every browser (Chrome, Brave, Edge, Opera, Vivaldi,
+      and Firefox). The authorization code is exchanged for tokens via our backend
+      endpoint, which injects the
+      <code>client_secret</code>
+      server-side. The secret is never present in the extension bundle — only the
+      public <code>client_id</code> is.
     </p>
   </section>
 
@@ -1021,7 +1019,7 @@
         <tbody>
           <tr>
             <td>identity</td>
-            <td>Google OAuth (<code>getAuthToken</code>) and Spotify PKCE (<code>launchWebAuthFlow</code>)</td>
+            <td>Google OAuth and Spotify PKCE (<code>launchWebAuthFlow</code>)</td>
           </tr>
           <tr>
             <td>storage</td>

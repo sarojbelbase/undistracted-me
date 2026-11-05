@@ -12,15 +12,22 @@ The web app (`app.undistracted.me`) signs in via a popup + PKCE that redirects t
 `https://app.undistracted.me/callbacks/auth.html`. Both Google and Spotify must
 have this exact URI registered, or the popup errors out.
 
-### 1. Google Cloud Console
-- [ ] Open the **"Desktop app"** OAuth client (the one whose client ID is
-      `VITE_GOOGLE_DESKTOP_CLIENT_ID`).
-- [ ] Under **Authorized redirect URIs**, add:
+### 1. Google Cloud Console — ONE "Web application" client
+- [ ] Create a **"Web application"** OAuth client (Application type = Web
+      application). This single client handles the extension (Chrome, Brave,
+      Edge, Opera, Vivaldi, Firefox) AND the website.
+- [ ] Set `VITE_GOOGLE_CLIENT_ID` (client) and `GOOGLE_CLIENT_ID` (server) to its
+      client ID, and `GOOGLE_CLIENT_SECRET` to its client secret.
+- [ ] Under **Authorized redirect URIs**, add ALL of:
       ```
-      https://app.undistracted.me/callbacks/auth.html
+      https://app.undistracted.me/callbacks/auth.html                                     ← website
+      http://localhost:3000/callbacks/auth.html                                           ← web dev
+      http://localhost:5173/callbacks/auth.html                                           ← web dev
+      https://dbmaaolpghdcdcpjmjafjedomcclmbmn.chromiumapp.org/                           ← Chrome/Brave/Edge/Opera/Vivaldi
+      https://{1071d037-0f17-4c92-b06c-704050d2e2c3}.extensions.allizom.org/              ← Firefox
       ```
-      (Also confirm the Firefox extension URI is still there:
-      `https://{1071d037-0f17-4c92-b06c-704050d2e2c3}.extensions.allizom.org/`)
+      (The Chrome/Chromium ID `dbmaaolpghdcdcpjmjafjedomcclmbmn` is pinned via the
+      `"key"` field in `public/manifest.json`, so it is stable across machines.)
 
 ### 2. Spotify Developer Dashboard
 - [ ] Open the Spotify app whose client ID is `VITE_SPOTIFY_CLIENT_ID`
@@ -28,7 +35,7 @@ have this exact URI registered, or the popup errors out.
 - [ ] Under **Redirect URIs**, add all three:
       ```
       https://app.undistracted.me/callbacks/auth.html                       ← web mode
-      https://dfgbijakkhepoonhaelocdmcleeehmef.chromiumapp.org/            ← Chrome extension
+      https://dbmaaolpghdcdcpjmjafjedomcclmbmn.chromiumapp.org/            ← Chrome extension (pinned via manifest "key")
       https://{1071d037-0f17-4c92-b06c-704050d2e2c3}.extensions.allizom.org/ ← Firefox extension
       ```
 - [ ] **Note (Spotify Web):** `user-modify-playback-state` (play/pause/skip) is
@@ -50,13 +57,11 @@ Vercel (available from the Vercel env export).
 - [ ] `VITE_API_KEY`
 - [ ] `VITE_PHOTOS_API_KEY`
 - [ ] `VITE_SPOTIFY_CLIENT_ID`
-- [ ] `VITE_GOOGLE_DESKTOP_CLIENT_ID`
-- [ ] `VITE_GOOGLE_DESKTOP_CLIENT_SECRET`
+- [ ] `VITE_GOOGLE_CLIENT_ID` (used by `build-extension.yml` + `deploy-app.yml`)
 - [ ] `VITE_GITHUB_CLIENT_ID`
 - [ ] `VITE_OWM_API_KEY`
 - [ ] `VITE_UNSPLASH_ACCESS_KEY`
 - [ ] `VITE_DEBUG_MODE`
-- [ ] `EXTENSION_CLIENT_ID` (used by `build-extension.yml`)
 
 Runtime secrets already set on Cloudflare Pages (`undistracted-me-app`):
 `API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` ✅ — no action needed.
