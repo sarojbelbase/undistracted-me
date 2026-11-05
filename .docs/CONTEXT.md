@@ -102,8 +102,8 @@ src/
   utilities/
     index.js           — convertEnglishToNepali, getTimeZoneAwareDayJsInstance
     unsplash.js        — Unsplash photo library (see Unsplash section below)
-    googleAuth.js      — Unified Google OAuth2: Chrome (getAuthToken), Firefox (PKCE
-                         launchWebAuthFlow), Web (popup+PKCE+server exchange)
+    googleAuth.js      — Unified Google OAuth2: single "Web application" client + PKCE
+                         via launchWebAuthFlow (all browsers) or popup (web), server-side exchange
     googleCalendar.js  — Google Calendar OAuth integration + event cache
     googleContacts.js  — Google People API: contacts birthdays/anniversaries, pagination,
                          chrome.storage.local cache, manual birthdays localStorage
@@ -351,16 +351,17 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 - Attribution: `photo.author + " · Unsplash"` rendered bottom-right of Focus Mode
 
 ## Google Auth (`src/utilities/googleAuth.js`)
-Unified OAuth2 — works in all three environments:
-- **Chrome**: `chrome.identity.getAuthToken()` — seamless, uses the signed-in Chrome account
-- **Firefox**: PKCE authorization-code flow via `chrome.identity.launchWebAuthFlow()` + manual token exchange against Google. Client ID/secret XOR-encoded at build time by `obscureEnvKeys` Vite plugin.
+Single "Web application" OAuth client + PKCE, works in every environment:
+- **Extension (Chrome, Brave, Edge, Opera, Vivaldi, Firefox)**: PKCE authorization-code
+  flow via `chrome.identity.launchWebAuthFlow()`, then server-side token exchange against
+  `/api/auth/google/token`. Client ID XOR-encoded at build time by `obscureEnvKeys`.
 - **Web (website mode)**: popup + PKCE + `/api/auth/google/token` server-side exchange.
 
-Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
+Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
 
 Token storage:
-- Firefox extension: `chrome.storage.local` under key `google_ff_tokens`
-- Web mode: `sessionStorage` under key `google_web_tokens` (session-scoped; cleared on tab close)
+- Extension (all browsers): `chrome.storage.local` under key `google_tokens`
+- Web mode: `sessionStorage` under key `google_tokens` (session-scoped; cleared on tab close)
 
 High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT call `getGoogleAuthToken` directly from UI components; go through the store.
 
@@ -404,8 +405,8 @@ High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT cal
 - `document.addEventListener('mouseup', clearDragging)` safety net prevents grid freeze
 
 ## Google Calendar / Profile Integration
-- OAuth via unified `googleAuth.js` (Chrome: getAuthToken; Firefox/Web: PKCE)
-- Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
+- OAuth via unified `googleAuth.js` (single client + PKCE, every browser)
+- Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
 - Calendar events (PII) stored in **`chrome.storage.local`** under `gcal_events_cache`; one-time migration from legacy localStorage on first load
 - `gcal_has_cache` — localStorage boolean flag for synchronous cache-existence checks
 - `gcal_synced_at` — localStorage timestamp of last sync
@@ -511,14 +512,14 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 | `GCAL_CACHE` | `gcal_events_cache` | Cached Google Calendar events (PII; migrated from localStorage) |
 | `GCAL_PROFILE_CACHE` | `gcal_profile_cache` | Cached Google user profile (migrated from localStorage) |
 | — | `contacts_birthdays_cache` | `[{ id, name, type, month, day }]` from Google People API |
-| — | `google_ff_tokens` | Firefox Google OAuth tokens |
+| — | `google_tokens` | Google OAuth tokens (unified PKCE — extension + web) |
 | — | `lookaway_due` | Timestamp when LookAway break is due (written by SW) |
 | — | `lookaway_notify` | Boolean — whether to fire OS notification on break |
 
 ### sessionStorage
 | Key | Contents |
 |---|---|
-| `google_web_tokens` | Web-mode Google OAuth tokens `{ access_token, refresh_token, expires_at }` — session-scoped, JS-accessible |
+| `google_tokens` | Google OAuth tokens `{ access_token, refresh_token, expires_at }` — `chrome.storage.local` (extension) or `sessionStorage` (web) |
 
 ### Other localStorage keys (not in STORAGE_KEYS constants)
 | Key | Contents |
@@ -534,14 +535,12 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 | `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production Vercel URL) |
 | `VITE_PHOTOS_API_KEY` | Shared secret for curated photos Vercel endpoint |
 | `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to Vercel API endpoints |
-| `VITE_GOOGLE_DESKTOP_CLIENT_ID` | Firefox/web Google OAuth client ID (XOR-encoded at build by `obscureEnvKeys` plugin) |
-| `VITE_GOOGLE_DESKTOP_CLIENT_SECRET` | Firefox/web Google OAuth client secret (XOR-encoded at build) |
+| `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website (XOR-encoded at build by `obscureEnvKeys` plugin) |
 | `VITE_WEBSITE_MODE` | Set to `'true'` for Vercel web deployment (disables extension-only features) |
-| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID (Vercel env var, not bundled) |
-| `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Vercel env var, never in bundle) |
+| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Vercel/Cloudflare env var, not bundled) |
+| `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Vercel/Cloudflare env var, never in bundle) |
 | `API_KEY` | Server-side key for `api/_config.js` `assertApiKey()` (same value as VITE_API_KEY) |
 | `PHOTOS_API_KEY` | Server-side key for `api/photos/curated.js` |
-| `BLOB_READ_WRITE_TOKEN` | Auto-injected by Vercel for Blob store access |
 
 > Weather uses **Open-Meteo** (free, no API key required). `VITE_OWM_API_KEY` is no longer used.
 
@@ -555,7 +554,7 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 - **Focus Mode zone z-index**: CenterZone z25 sits ABOVE the foreground photo overlay at z15. Clock is not behind the image anymore.
 - **LookAway stale break**: skip if page was hidden (laptop asleep) for most of the interval — `lastHiddenAt` tracked via `document.visibilitychange`
 - **Token security**: Spotify tokens + Google Calendar/Contacts cache stored in `chrome.storage.local`, not `localStorage` — prevents other extensions from reading them
-- **Key obfuscation**: `obscureEnvKeys` Vite plugin XOR-encodes `VITE_GOOGLE_DESKTOP_CLIENT_ID` / `SECRET` so they never appear as plain text in the JS bundle
+- **Key obfuscation**: `obscureEnvKeys` Vite plugin XOR-encodes `VITE_GOOGLE_CLIENT_ID` so it never appears as plain text in the JS bundle
 - **Widget settings**: `useWidgetSettings` is backed by Zustand `useWidgetInstancesStore.widgetSettings` — do NOT read `widgetSettings_${id}` from localStorage directly in new code; call `useWidgetSettings(id)` instead
 - **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)` — only one tab runs the real timer
 - **`useGoogleAccountStore.connect()`**: call this to trigger interactive Google OAuth — do NOT call `getGoogleAuthToken(true)` from UI components directly
