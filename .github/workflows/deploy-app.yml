@@ -36,6 +36,17 @@ jobs:
 
       - name: Build
         run: bun run build
+        env:
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+          VITE_PHOTOS_API_KEY: ${{ secrets.VITE_PHOTOS_API_KEY }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_GOOGLE_DESKTOP_CLIENT_ID: ${{ secrets.VITE_GOOGLE_DESKTOP_CLIENT_ID }}
+          VITE_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_DESKTOP_CLIENT_SECRET }}
+          VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
+          VITE_OWM_API_KEY: ${{ secrets.VITE_OWM_API_KEY }}
+          VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.VITE_UNSPLASH_ACCESS_KEY }}
+          VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE }}
+          EXTENSION_CLIENT_ID: ${{ secrets.EXTENSION_CLIENT_ID }}
 
       - name: Copy headers and redirects into dist
         run: |
