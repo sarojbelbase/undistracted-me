@@ -1,0 +1,49 @@
+---
+import { Image } from "astro:assets";
+import { site } from "../data/site.js";
+import focusMode from "../assets/showcase/focus-mode.webp";
+import focusRain from "../assets/showcase/focus-rain.webp";
+---
+
+<section class="section spotlight" id="focus">
+  <div class="container spotlight-inner">
+    <div class="spotlight-copy">
+      <p class="kicker">Deep work, on demand</p>
+      <h2 class="section-title">Enter Focus Mode.<br />Leave it all behind.</h2>
+      <p class="section-lede">
+        Hit the toggle and your whole screen becomes a single, calm surface — the clock, a place for your notes, and your tasks. No tabs, no feeds, no badges.
+      </p>
+      <ul class="checklist">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Fullscreen, distraction-free zen view</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Pomodoro timer built in</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Ambient rain &amp; white noise, one tap</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Tasks from Google Tasks, kept front and center</span>
+        </li>
+      </ul>
+      <a class="text-link text-link--light" href={site.chromeUrl} rel="noopener">
+        Try Focus Mode
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div class="spotlight-visual">
+      <figure class="spotlight-frame">
+        <Image src={focusMode} alt="Undistracted Me's fullscreen Focus Mode: a minimalist view with a large clock, upcoming tasks, occasions, and stock panel on a dark background." width={1440} height={900} loading="lazy" />
+      </figure>
+      <figure class="spotlight-frame" style="margin-top:16px">
+        <Image src={focusRain} alt="Focus Mode with the ambient rain and white-noise toggle active, fades audio in for deep work." width={1440} height={900} loading="lazy" />
+      </figure>
+    </div>
+  </div>
+</section>

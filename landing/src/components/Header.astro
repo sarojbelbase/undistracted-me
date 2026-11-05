@@ -1,0 +1,55 @@
+---
+import Wordmark from "./Wordmark.astro";
+import BrowserIcon from "./BrowserIcon.astro";
+import { site } from "../data/site.js";
+
+const nav = [
+  { href: "#features", label: "Features" },
+  { href: "#themes", label: "Themes" },
+  { href: "#focus", label: "Focus" },
+  { href: "#privacy", label: "Privacy" },
+  { href: "#faq", label: "FAQ" },
+];
+---
+
+<header class="site-header" data-header>
+  <div class="masthead">
+    <a class="brand" href="#top" aria-label="Undistracted Me — home">
+      <span class="brand-logo" aria-hidden="true"><Wordmark /></span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul class="nav-list">
+        {nav.map((item) => (
+          <li><a class="nav-link" href={item.href}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Toggle light and dark mode" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+      </button>
+      <a class="btn btn-primary header-cta" href={site.chromeUrl} rel="noopener">
+        Install free
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
+        <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <nav class="mobile-nav" id="mobile-nav" data-mobile-nav aria-label="Mobile">
+    <ul class="mobile-nav-list">
+      {nav.map((item) => (
+        <li><a class="nav-link" href={item.href}>{item.label}</a></li>
+      ))}
+      <li><a class="btn btn-primary btn-block" href={site.chromeUrl} rel="noopener"><BrowserIcon name="chrome" />Install free — Chrome</a></li>
+      <li><a class="btn btn-outline btn-block" href={site.firefoxUrl} rel="noopener"><BrowserIcon name="firefox" />Get it for Firefox</a></li>
+      <li><a class="btn btn-outline btn-block" href={site.webAppUrl} rel="noopener">Try the web app</a></li>
+    </ul>
+  </nav>
+</header>

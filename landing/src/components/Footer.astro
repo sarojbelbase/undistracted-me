@@ -1,0 +1,67 @@
+---
+import Wordmark from "./Wordmark.astro";
+import { site } from "../data/site.js";
+
+const cols = [
+  {
+    h: "Product",
+    links: [
+      { href: "#features", label: "Features" },
+      { href: "#themes", label: "Themes" },
+      { href: "#focus", label: "Focus Mode" },
+      { href: "#privacy", label: "Privacy" },
+      { href: "#faq", label: "FAQ" },
+    ],
+  },
+  {
+    h: "Install",
+    links: [
+      { href: site.chromeUrl, label: "Chrome Web Store", external: true },
+      { href: site.firefoxUrl, label: "Firefox Add-ons", external: true },
+      { href: site.webAppUrl, label: "Try the web app", external: true },
+    ],
+  },
+  {
+    h: "Links",
+    links: [
+      { href: site.githubUrl, label: "GitHub", external: true },
+      { href: site.privacyUrl, label: "Privacy & Terms" },
+      { href: site.formsUrl, label: "Report a bug", external: true },
+      { href: site.formsUrl, label: "Suggest a feature", external: true },
+    ],
+  },
+];
+---
+
+<footer class="site-footer">
+  <div class="ridgeline ridgeline--footer" aria-hidden="true">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" fill="none"><path d="M0 34 L120 30 L210 44 L330 26 L470 40 L610 20 L720 36 L860 24 L1000 42 L1140 28 L1270 40 L1440 30" stroke="currentColor" stroke-width="1.25"/></svg>
+  </div>
+
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-logo brand-logo-footer" aria-hidden="true"><Wordmark /></span>
+      <p class="footer-tagline">Your new tab, minus the noise. A calm dashboard with a Nepali calendar, Focus Mode, and mindful widgets.</p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Footer">
+      {cols.map((col) => (
+        <div class="footer-col">
+          <h3>{col.h}</h3>
+          <ul>
+            {col.links.map((l) => (
+              <li>
+                <a href={l.href} rel={l.external ? "noopener" : undefined}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+
+    <div class="footer-bottom">
+      <p>Made with <span class="heart" aria-label="love">❤</span> in Nepal · © 2026 Undistracted Me · MIT license</p>
+      <p class="footer-credit">Landscape photo via <a href="https://unsplash.com" rel="noopener">Unsplash</a></p>
+    </div>
+  </div>
+</footer>

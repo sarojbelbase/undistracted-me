@@ -1,0 +1,16 @@
+{
+  "name": "undistracted-me-landing",
+  "type": "module",
+  "version": "4.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@jdevalk/astro-seo-graph": "^2.2.0",
+    "astro": "^7.4.5"
+  }
+}
