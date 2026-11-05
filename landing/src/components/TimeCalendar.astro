@@ -1,0 +1,28 @@
+---
+import { Image } from "astro:assets";
+import clockDual from "../assets/showcase/clock-dual.webp";
+import nepaliDate from "../assets/showcase/nepali-date.webp";
+---
+
+<section class="section time" id="time">
+  <div class="container">
+    <header class="section-head">
+      <p class="kicker">Time, in every timezone</p>
+      <h2 class="section-title">One glance. <em>Two calendars.</em></h2>
+      <p class="section-lede">
+        The clock tracks up to two extra timezones, and the date speaks both — Gregorian and Bikram Sambat, with Nepal's festivals built right in.
+      </p>
+    </header>
+
+    <div class="time-gallery">
+      <figure class="time-frame">
+        <Image src={clockDual} alt="The clock widget showing local time plus Kathmandu and New York timezones side by side." width={1440} height={900} loading="lazy" />
+        <figcaption>Dual timezone clock — Kathmandu &amp; New York</figcaption>
+      </figure>
+      <figure class="time-frame">
+        <Image src={nepaliDate} alt="The date widget showing the Bikram Sambat date (Kartik) alongside the Gregorian date." width={1440} height={900} loading="lazy" />
+        <figcaption>Nepali date — Kartik, Bikram Sambat 2083</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,82 @@
+---
+import Seo from "@jdevalk/astro-seo-graph/Seo.astro";
+import { site } from "../data/site.js";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  graph?: Record<string, unknown> | null;
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  graph = null,
+} = Astro.props;
+
+const fontsUrl =
+  "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Work+Sans:ital,wght@0,400..700;1,400..700&display=swap";
+---
+
+<!doctype html>
+<html lang="en" data-theme="auto">
+  <head>
+    <Seo
+      title={title}
+      description={description}
+      canonical={site.url}
+      ogType="website"
+      ogImage={site.ogImage}
+      ogImageAlt="Undistracted Me — a calm new tab dashboard with a Nepali date, clock, and widgets."
+      ogImageWidth={1200}
+      ogImageHeight={630}
+      siteName={site.name}
+      locale="en_US"
+      twitter={{ card: "summary_large_image" }}
+      graph={graph}
+      extraLinks={[
+        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
+        { rel: "privacy-policy", href: site.privacyUrl },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
+        { rel: "stylesheet", href: fontsUrl },
+      ]}
+      extraMeta={[
+        { name: "theme-color", content: "#f6efe3" },
+        { name: "color-scheme", content: "light dark" },
+      ]}
+    />
+
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-1600.webp"
+      imagesrcset="/hero-960.webp 960w, /hero-1600.webp 1600w, /hero-2560.webp 2560w"
+      imagesizes="(max-width: 960px) 100vw, 46vw"
+      fetchpriority="high"
+    />
+
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("um-theme");
+          var d = document.documentElement;
+          d.setAttribute(
+            "data-theme",
+            t === "light" || t === "dark"
+              ? t
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+          );
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

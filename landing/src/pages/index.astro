@@ -1,0 +1,136 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
+import Themes from "../components/Themes.astro";
+import TimeCalendar from "../components/TimeCalendar.astro";
+import FocusSound from "../components/FocusSound.astro";
+import Privacy from "../components/Privacy.astro";
+import Faq from "../components/Faq.astro";
+import Cta from "../components/Cta.astro";
+import Footer from "../components/Footer.astro";
+import { buildSchemaGraph } from "../data/schema.js";
+---
+
+<BaseLayout graph={buildSchemaGraph()}>
+  <Header />
+  <main id="main">
+    <Hero />
+    <Features />
+    <Themes />
+    <TimeCalendar />
+    <FocusSound />
+    <Privacy />
+    <Faq />
+    <Cta />
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  (function () {
+    const root = document.documentElement;
+    const STORAGE_KEY = "um-theme";
+    const themeToggle = document.querySelector("[data-theme-toggle]");
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+    function applyTheme(theme, persist) {
+      root.classList.add("theme-switching");
+      root.setAttribute("data-theme", theme);
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", theme === "dark" ? "#121b17" : "#f6efe3");
+      }
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => root.classList.remove("theme-switching"))
+      );
+      if (persist) {
+        try {
+          localStorage.setItem(STORAGE_KEY, theme);
+        } catch (e) {}
+      }
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        applyTheme(next, true);
+      });
+    }
+
+    // Mobile navigation
+    const navToggle = document.querySelector("[data-nav-toggle]");
+    const mobileNav = document.querySelector("[data-mobile-nav]");
+    function closeNav() {
+      if (!navToggle || !mobileNav) return;
+      navToggle.classList.remove("is-open");
+      navToggle.setAttribute("aria-expanded", "false");
+      navToggle.setAttribute("aria-label", "Open menu");
+      mobileNav.classList.remove("is-open");
+    }
+    if (navToggle && mobileNav) {
+      navToggle.addEventListener("click", () => {
+        const isOpen = mobileNav.classList.toggle("is-open");
+        navToggle.classList.toggle("is-open", isOpen);
+        navToggle.setAttribute("aria-expanded", String(isOpen));
+        navToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+      });
+      mobileNav.querySelectorAll("a").forEach((l) => l.addEventListener("click", closeNav));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeNav();
+      });
+      const mq = window.matchMedia("(min-width: 961px)");
+      const onDesktop = (e) => {
+        if (e.matches) closeNav();
+      };
+      if (mq.addEventListener) mq.addEventListener("change", onDesktop);
+      else if (mq.addListener) mq.addListener(onDesktop);
+    }
+
+    // Header scrolled state
+    const header = document.querySelector("[data-header]");
+    const onScroll = () => {
+      if (header) header.classList.toggle("is-scrolled", window.scrollY > 8);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    // Scrollspy
+    const spyLinks = document.querySelectorAll(".site-nav .nav-link");
+    const spyIds = ["features", "themes", "focus", "privacy", "faq"];
+    if (spyLinks.length && "IntersectionObserver" in window) {
+      const spy = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const target = "#" + entry.target.id;
+            spyLinks.forEach((link) => {
+              const active = link.getAttribute("href") === target;
+              link.classList.toggle("is-active", active);
+              if (active) link.setAttribute("aria-current", "true");
+              else link.removeAttribute("aria-current");
+            });
+          });
+        },
+        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+      );
+      spyIds.forEach((id) => {
+        const s = document.getElementById(id);
+        if (s) spy.observe(s);
+      });
+    }
+
+    // FAQ single-open accordion
+    const faqList = document.querySelector("[data-faq]");
+    if (faqList) {
+      faqList.querySelectorAll("details").forEach((d) => {
+        d.addEventListener("toggle", () => {
+          if (!d.open) return;
+          faqList.querySelectorAll("details[open]").forEach((o) => {
+            if (o !== d) o.open = false;
+          });
+        });
+      });
+    }
+  })();
+</script>

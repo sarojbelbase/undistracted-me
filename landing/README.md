@@ -1,51 +1,76 @@
 # Undistracted Me — Landing Page
 
-A self-contained static marketing site for the **Undistracted Me** browser extension.
+An **Astro** marketing site for the **Undistracted Me** browser extension. SEO-first,
+static output, zero client-side JS beyond a tiny theme/nav script.
 
 - **Marketing site:** `https://undistracted.me` and `https://www.undistracted.me`
 - **Web app / API:** `https://app.undistracted.me`
 - **Privacy & Terms:** `https://undistracted.me/pp-and-tos`
 
+## Stack
+
+- **Astro** (static output) — `@astrojs/sitemap` + `@jdevalk/astro-seo-graph` for build-time SEO validation.
+- Plain CSS design system (OKLCH tokens, light + dark), no UI framework.
+- Fresh product screenshots captured with Playwright from the live app, optimized to WebP.
+
 ## Files
 
 ```
 landing/
-├── index.html        Semantic, accessible single page
-├── pp-and-tos.html   Privacy Policy & Terms of Service (self-contained, no JS)
-├── styles.css        Design system (light + dark mode, CSS variables, responsive)
-├── app.js            Mobile nav, theme toggle, scroll reveal, scrollspy, FAQ accordion
-├── vercel.json       Standalone Vercel config (static site, security headers)
-├── assets/           Logo, favicon, hero photography, and product screenshots
-├── .gitignore        Ignores the local `.vercel/` project link
-└── README.md         This file
+├── astro.config.mjs       site config + sitemap + SEO integration
+├── package.json           astro, @astrojs/sitemap, @jdevalk/astro-seo-graph
+├── vercel.json            framework: astro + security/CSP/agent-discovery headers
+├── src/
+│   ├── pages/
+│   │   ├── index.astro        the landing page
+│   │   └── robots.txt.ts      robots.txt + Content-Signals + sitemap ref
+│   ├── layouts/BaseLayout.astro   <head> (Seo component, fonts, analytics)
+│   ├── components/           Header, Hero, Features, Themes, TimeCalendar,
+│   │                         FocusSound, Privacy, Faq, Cta, Footer, Wordmark,
+│   │                         BrowserIcon
+│   ├── data/                 site constants, FAQ, JSON-LD schema builder
+│   ├── assets/showcase/      product screenshots (WebP)
+│   └── styles/global.css     design system
+└── public/
+    ├── favicon.png, logo.svg
+    ├── hero-{960,1600,2560}.webp   hero photography
+    ├── og.jpg               Open Graph share image (1200×630)
+    └── pp-and-tos.html      Privacy Policy & Terms (self-contained)
 ```
 
 ## Run locally
 
-Open `landing/index.html` in a browser, or serve the folder:
-
 ```bash
 cd landing
-python3 -m http.server 8080
-# → http://localhost:8080
+npm install
+npm run dev      # → http://localhost:4321
+npm run build    # static build → dist/
+npm run preview  # serve the build
 ```
 
-There is no build step — it's plain HTML, CSS, and JS.
+## SEO
 
-## Deploy to `www.undistracted.me` (Vercel)
+The build ships and validates, via `@jdevalk/astro-seo-graph`, at every build:
 
-The marketing site is a **separate** Vercel project from the web app (which lives at
-`app.undistracted.me`). This landing folder is plain static HTML/CSS/JS with its own
-`vercel.json` (no build step).
+- `title` / `description` / canonical / Open Graph / Twitter / `robots` meta
+- JSON-LD `@graph`: `Organization`, `WebSite`, `SoftwareApplication` (with install offers), `WebPage`, `FAQPage`
+- `sitemap-index.xml` (`@astrojs/sitemap`) + `robots.txt` (with `Content-Signal:`)
+- `llms.txt` for LLM/agent discovery
+- H1 / image-alt / metadata-length / duplicate-metadata / internal-link validation
 
-### Current setup
+## Deploy to Vercel
+
+The landing is a **separate** Vercel project from the web app (`app.undistracted.me`).
 
 | Piece | Value |
 |---|---|
 | Vercel project | `undistracted-me-landing` (org: `saroj-belbases-projects`) |
+| Root directory | `landing` |
+| Framework preset | `Astro` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
 | Production URL | `https://undistracted-me-landing.vercel.app` |
-| Domains → landing | `undistracted.me` + `www.undistracted.me` |
-| Domain → app | `app.undistracted.me` (existing `undistracted-me` project) |
+| Domains | `undistracted.me` + `www.undistracted.me` |
 
 Deploy from this folder:
 
@@ -54,22 +79,15 @@ cd landing
 vercel deploy --prod
 ```
 
-To make future pushes auto-deploy, connect the repo in the Vercel dashboard and set the
-project's **Root Directory** to `landing` (Framework Preset: *Other*).
+Pushes to `main` auto-deploy (git connected).
 
 ### DNS records required (at Cloudflare)
-
-The domain uses Cloudflare nameservers, so these records must be added in the Cloudflare
-dashboard. Until they're set, the custom domains won't resolve / SSL won't issue:
 
 | Type | Name | Value |
 |---|---|---|
 | A | `@` (apex) | `76.76.21.21` |
 | CNAME | `www` | `cname.vercel-dns.com` |
 | CNAME | `app` | `cname.vercel-dns.com` |
-
-After the DNS records propagate, Vercel auto-issues the SSL certs and the aliases
-(`undistracted.me`, `www.undistracted.me`) complete.
 
 ## Links
 
@@ -79,33 +97,15 @@ After the DNS records propagate, Vercel auto-issues the SSL certs and the aliase
 | Firefox Add-ons | `https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/` |
 | GitHub | `https://github.com/sarojbelbase/undistracted-me` |
 | Privacy & Terms | `https://undistracted.me/pp-and-tos` |
-
-## Feedback form
-
-The landing page links to the project's Google Feedback form:
-
-```
-https://forms.gle/7vf4VGrB9Loz8hB76
-```
-
-This URL is used for both "Report a bug" and "Suggest a feature" in `index.html`
-(footer and FAQ). If a separate feature-request form is created later, update the
-two links in `index.html` accordingly.
-
-## Brand / assets
-
-- `assets/logo.svg` — the lotus + wordmark (copied from `src/assets/img/logo.svg`).
-  The rendered wordmark in the header/footer is inlined so it adapts to light/dark.
-- `assets/favicon.png` — lotus icon (copied from `public/favicon/lotus512.png`).
-- `assets/*.png` — product screenshots (copied from `public/showcase/`).
+| Feedback form | `https://forms.gle/7vf4VGrB9Loz8hB76` |
 
 ## Design system (summary)
 
-The full system is documented in [`../DESIGN.md`](../DESIGN.md) — the single source of truth.
+The full system lives in [`../DESIGN.md`](../DESIGN.md) — the single source of truth.
 
-- **Style:** "Himal" — Himalayan editorial. Rules-and-columns replace the card grid; an asymmetric hero; one saffron accent used sparingly.
-- **Signature move:** a thin Himalayan ridgeline (inline SVG) dividing sections, underlining the active nav link, and capping the footer, plus a Devanagari Bikram Sambat year (`वि.सं. २०८३`) in the hero.
+- **Style:** "Himal" — Himalayan editorial. Rules-and-columns replace the card grid; one saffron accent used sparingly.
+- **Signature move:** a thin Himalayan ridgeline (inline SVG) dividing sections, underlining the active nav link, and capping the footer.
 - **Colors:** parchment `#f6efe3` / pine ink `#1d2b26` / Himalayan pine `#2f5a4b` / saffron `#bd6f1e` (authored in OKLCH).
-- **Type:** `Fraunces` (display serif) + `Schibsted Grotesk` (body), via Google Fonts.
+- **Type (3 voices):** `Newsreader` (display serif) + `Work Sans` (body) + `IBM Plex Mono` (kickers, labels, dates, numerals), via Google Fonts.
 - **Modes:** light/dark via `prefers-color-scheme` + a manual toggle (persisted).
-- **Hero photography:** misty Himalayan range, warm-graded and served as responsive WebP (`hero-960/1600/2560.webp`).
+- **Hero photography:** misty Himalayan range, warm-graded, responsive WebP.

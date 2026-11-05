@@ -1,1 +1,6 @@
-.vercel
+node_modules/
+dist/
+.astro/
+.vercel/
+.DS_Store
+_shots/
