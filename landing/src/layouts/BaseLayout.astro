@@ -41,6 +41,7 @@ const fontsUrl =
         { rel: "privacy-policy", href: site.privacyUrl },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
+        { rel: "preconnect", href: "https://cloud.umami.is" },
         { rel: "stylesheet", href: fontsUrl },
       ]}
       extraMeta={[
@@ -57,6 +58,13 @@ const fontsUrl =
       imagesizes="(max-width: 960px) 100vw, 46vw"
       fetchpriority="high"
     />
+
+    <!-- Umami Web Analytics -->
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="c2b2368b-72f8-4771-b615-f78ce2c2168c"
+    ></script>
 
     <script is:inline>
       (function () {
