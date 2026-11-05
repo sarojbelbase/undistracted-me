@@ -446,23 +446,14 @@ function handlePrefetchSync(msg) {
 
 /**
  * Returns a valid Google OAuth access token for use in the service worker, or null.
- * Chrome: uses chrome.identity.getAuthToken() directly (silent, no UI).
- * Firefox: reads the stored PKCE token from chrome.storage.local.
+ * Reads the unified PKCE token from chrome.storage.local (written by googleAuth.js).
+ * The service worker never triggers an interactive flow — if no valid token is
+ * stored, it returns null and lets the page handle auth on the next open.
  */
 async function getGcalToken() {
-  // Chrome extension path — chrome.identity is available in MV3 service workers
-  if (typeof chrome.identity?.getAuthToken === 'function') {
-    return new Promise((resolve) => {
-      chrome.identity.getAuthToken({ interactive: false }, (token) => {
-        if (chrome.runtime.lastError || !token) resolve(null);
-        else resolve(token);
-      });
-    });
-  }
-  // Firefox / other: read stored PKCE access token (written by googleAuth.js)
   try {
-    const result = await chrome.storage.local.get('google_ff_tokens');
-    const stored = result.google_ff_tokens ?? null;
+    const result = await chrome.storage.local.get('google_tokens');
+    const stored = result.google_tokens ?? null;
     if (!stored?.access_token) return null;
     // Only use if not expired (with 60 s buffer); let the page handle refresh
     if (stored.expires_at - Date.now() > 60_000) return stored.access_token;
@@ -496,11 +487,9 @@ async function runGcalPrefetch() {
     );
 
     if (res.status === 401) {
-      // Token expired — evict from Chrome's cache so the next getAuthToken call
-      // triggers a silent refresh rather than returning the stale token again.
-      if (typeof chrome.identity?.removeCachedAuthToken === 'function') {
-        chrome.identity.removeCachedAuthToken({ token }, () => { });
-      }
+      // Token expired/revoked — clear the stored token so the page re-authenticates
+      // on the next open (the service worker cannot prompt interactively).
+      await chrome.storage.local.remove('google_tokens');
       return;
     }
     if (!res.ok) return;

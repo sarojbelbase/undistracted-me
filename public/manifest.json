@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Undistracted Me",
   "version": "4.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkRaqrXERzV7BV2wl/wX2E6lKeLAR3xdbO+gs+5K5IzhLwB7AqZqGY6R35rA5uFy25L4Qqn1DoosZCdr8Dwt1P3yJ/ClLVK6igqyOWti19vr7bXR9RoTwDcty75KM3YQTTDdW70H20A25W6lGdoa0UV8VcUY7FKT6NAN1hGB+ldWIMesryVFTUfokA4/6qKuSnVyhkNqbh6qyu5hk4t+ula/iMw2ONhwoZ5oQEscKbANd4+KFFJXnL5QifVbfjtf+wfrF1EGAd9wUwjDENhDwroIcVr9mwit5JbcyTVoaGnZnXNEYQrFp505D3TwrwXuzi37kHGzLq3V+mz0lCem+ewIDAQAB",
   "author": {
     "email": "hello@undistracted.me"
   },
@@ -102,16 +103,5 @@
         "<all_urls>"
       ]
     }
-  ],
-  "oauth2": {
-    "client_id": "xxxxxxxxxx.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/calendar.readonly",
-      "https://www.googleapis.com/auth/contacts.readonly",
-      "https://www.googleapis.com/auth/tasks",
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/drive.appdata"
-    ]
-  }
+  ]
 }

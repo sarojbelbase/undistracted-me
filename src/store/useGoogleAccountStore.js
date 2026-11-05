@@ -100,9 +100,8 @@ export const useGoogleAccountStore = create((set, get) => ({
     globalThis.dispatchEvent(
       new CustomEvent(GOOGLE_ACCOUNT_CHANGED, { detail: { connected: false, profile: null } }),
     );
-    // Background cleanup — pass null like the earlier code to avoid fetching a token
-    // right after clearAllCachedAuthTokens (which can cause chrome.identity to hang).
-    try { await signOutGoogle(null); } catch { /* best-effort */ }
+    // Background cleanup.
+    try { await signOutGoogle(); } catch { /* best-effort */ }
     Promise.resolve(disconnectCalendar()).catch(() => { });
     Promise.resolve(disconnectContacts()).catch(() => { });
   },
