@@ -37,12 +37,8 @@ jobs:
         run: bun run build
         env:
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
-          VITE_PHOTOS_API_KEY: ${{ secrets.VITE_PHOTOS_API_KEY }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
-          VITE_OWM_API_KEY: ${{ secrets.VITE_OWM_API_KEY }}
-          VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.VITE_UNSPLASH_ACCESS_KEY }}
           VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE }}
           VITE_CF_BEACON_TOKEN: ${{ secrets.VITE_CF_BEACON_TOKEN }}
 

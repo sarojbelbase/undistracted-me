@@ -55,12 +55,9 @@ Vercel (available from the Vercel env export).
 - [ ] `CLOUDFLARE_API_TOKEN` — API token with **Account → Cloudflare Pages → Edit**
       and **Account → Workers Scripts → Edit** (used by `deploy-landing.yml` + `deploy-app.yml`).
 - [ ] `VITE_API_KEY`
-- [ ] `VITE_PHOTOS_API_KEY`
 - [ ] `VITE_SPOTIFY_CLIENT_ID`
 - [ ] `VITE_GOOGLE_CLIENT_ID` (used by `build-extension.yml` + `deploy-app.yml`)
-- [ ] `VITE_GITHUB_CLIENT_ID`
-- [ ] `VITE_OWM_API_KEY`
-- [ ] `VITE_UNSPLASH_ACCESS_KEY`
+- [ ] `VITE_DEBUG_MODE`
 - [ ] `VITE_DEBUG_MODE`
 
 Runtime secrets already set on Cloudflare Pages (`undistracted-me-app`):
