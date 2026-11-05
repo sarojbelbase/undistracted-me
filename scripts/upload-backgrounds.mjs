@@ -1,31 +1,39 @@
 /**
- * Upload background images from src/assets/backgrounds/ to Vercel Blob.
+ * Upload background images from src/assets/backgrounds/ to Cloudflare R2.
  *
  * Drop your image files (jpg, jpeg, png, webp, avif) into:
  *   src/assets/backgrounds/
  * Then run:
- *   node --env-file=.env.local scripts/upload-backgrounds.mjs
+ *   node scripts/upload-backgrounds.mjs
  *
- * Each file is uploaded to:
- *   backgrounds/<filename>          e.g. backgrounds/mountain-dawn.jpg
+ * Each file is uploaded to the `undistracted-me-media` bucket under:
+ *   backgrounds/<filename>          e.g. backgrounds/1.jpg
  *
- * After uploading, the /api/photos/curated endpoint automatically reflects the
- * new files via @vercel/blob list() — no code changes required.
+ * Served publicly (zero egress) at:
+ *   https://media.undistracted.me/backgrounds/<filename>
  *
- * To remove a background, delete it from the Blob store:
- *   vercel blob del backgrounds/<filename>
+ * IMPORTANT: `functions/_media/media.js` is a *static* manifest consumed by
+ * /api/photos/curated — not a dynamic listing. After uploading new files you
+ * must also add them to that manifest for the endpoint to serve them.
+ *
+ * To remove a background, delete it from R2:
+ *   wrangler r2 object delete undistracted-me-media/backgrounds/<filename>
  *
  * Requirements:
- *   BLOB_READ_WRITE_TOKEN — auto-pulled via `vercel env pull .env.local`
+ *   - wrangler installed and on PATH (or available via `npx wrangler`)
+ *   - CLOUDFLARE_API_TOKEN env var (or run `wrangler login` once)
+ *   - account_id set in wrangler.toml (already present)
  */
 
-import { put } from '@vercel/blob';
-import { readdir, readFile } from 'node:fs/promises';
-import { join, extname, basename } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { readdir } from 'node:fs/promises';
+import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const BACKGROUNDS_DIR = join(__dirname, '..', 'src', 'assets', 'backgrounds');
+const BUCKET = 'undistracted-me-media';
+const PUBLIC_BASE = 'https://media.undistracted.me';
 const SUPPORTED_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
 
 const CONTENT_TYPES = {
@@ -36,10 +44,21 @@ const CONTENT_TYPES = {
   '.avif': 'image/avif',
 };
 
-if (!process.env.BLOB_READ_WRITE_TOKEN) {
-  console.error('ERROR: BLOB_READ_WRITE_TOKEN env var is required.');
-  console.error('Run: vercel env pull .env.local  then  node --env-file=.env.local scripts/upload-backgrounds.mjs');
-  process.exit(1);
+// Prefer `wrangler` on PATH, falling back to `npx wrangler` (downloads on first run).
+function runWrangler(args) {
+  const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const candidates = [['wrangler'], [npx, 'wrangler']];
+
+  for (const cmd of candidates) {
+    const res = spawnSync(cmd[0], [...cmd.slice(1), ...args], { encoding: 'utf8' });
+    if (res.error && res.error.code === 'ENOENT') continue; // binary not found → try next
+    return res;
+  }
+  throw new Error('wrangler is not installed and `npx wrangler` failed. Install with: bun add -g wrangler');
+}
+
+if (!process.env.CLOUDFLARE_API_TOKEN && !process.env.CLOUDFLARE_ACCOUNT_ID) {
+  console.log('Note: no CLOUDFLARE_API_TOKEN set — relying on `wrangler login` if available.\n');
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -47,7 +66,7 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
 let files;
 try {
   files = (await readdir(BACKGROUNDS_DIR))
-    .filter(f => SUPPORTED_EXTS.has(extname(f).toLowerCase()));
+    .filter((f) => SUPPORTED_EXTS.has(extname(f).toLowerCase()));
 } catch {
   console.error(`ERROR: Could not read ${BACKGROUNDS_DIR}`);
   console.error('Create the directory and add your image files first.');
@@ -60,7 +79,7 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-console.log(`\n🚀 Uploading ${files.length} background(s) to Vercel Blob…\n`);
+console.log(`\n🚀 Uploading ${files.length} background(s) to R2 (${BUCKET})…\n`);
 
 const uploaded = [];
 const failed = [];
@@ -69,32 +88,25 @@ for (const filename of files) {
   const filePath = join(BACKGROUNDS_DIR, filename);
   const ext = extname(filename).toLowerCase();
   const contentType = CONTENT_TYPES[ext] || 'application/octet-stream';
-  const blobPathname = `backgrounds/${filename}`;
+  const key = `backgrounds/${filename}`;
+  const objectPath = `${BUCKET}/${key}`;
 
-  process.stdout.write(`  ${filename}: reading…`);
+  process.stdout.write(`  ${filename}: uploading…`);
 
-  let data;
-  try {
-    data = await readFile(filePath);
-  } catch (err) {
-    console.log(` ❌ read failed: ${err.message}`);
-    failed.push(filename);
-    continue;
-  }
+  const res = runWrangler([
+    'r2', 'object', 'put', objectPath,
+    '--file', filePath,
+    '--content-type', contentType,
+    '--force',
+  ]);
 
-  process.stdout.write(' uploading…');
-
-  try {
-    const blob = await put(blobPathname, data, {
-      access: 'public',
-      contentType,
-      addRandomSuffix: false,   // keep deterministic filenames
-    });
-    console.log(` ✅`);
-    console.log(`     ${blob.url}`);
-    uploaded.push({ filename, url: blob.url });
-  } catch (err) {
-    console.log(` ❌ upload failed: ${err.message}`);
+  if (res.status === 0) {
+    console.log(' ✅');
+    console.log(`     ${PUBLIC_BASE}/${key}`);
+    uploaded.push({ filename, url: `${PUBLIC_BASE}/${key}` });
+  } else {
+    const detail = (res.stderr || res.stdout || '').trim().split('\n').pop();
+    console.log(` ❌ upload failed: ${detail || `exit code ${res.status}`}`);
     failed.push(filename);
   }
 }
@@ -103,6 +115,5 @@ console.log(`\n✅ Uploaded ${uploaded.length}/${files.length} file(s).`);
 if (failed.length > 0) {
   console.log(`⚠️  Failed: ${failed.join(', ')}`);
 }
-console.log('\nThe /api/photos/curated endpoint now serves these automatically.');
-console.log('No code changes needed — the endpoint lists blobs dynamically.\n');
-
+console.log('\nRemember: /api/photos/curated serves from the static manifest in');
+console.log('functions/_media/media.js — add any new files there too.\n');
