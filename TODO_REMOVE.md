@@ -69,6 +69,7 @@ Runtime secrets already set on Cloudflare Pages (`undistracted-me-app`):
       enter `undistracted.me`.
 - [ ] Copy the beacon token (`data-cf-beacon='{"token":"…"}'`) and wire it into
       `landing/src/layouts/BaseLayout.astro` (replaces the removed Vercel Analytics).
+      **Snippet added; the `REPLACE_WITH_YOUR_CF_BEACON_TOKEN` placeholder still needs the real token.**
 - [ ] (Optional) Add `app.undistracted.me` as a second Web Analytics site.
 
 ---
@@ -78,11 +79,11 @@ Runtime secrets already set on Cloudflare Pages (`undistracted-me-app`):
 - [ ] Delete the old **Vercel Blob store** (backgrounds + rain are now on R2 at
       `media.undistracted.me`; the Vercel blob is redundant). `vercel blob rm` or
       delete the store in the Vercel dashboard.
-- [ ] Delete the old `api/` directory (Vercel serverless functions — replaced by
+- [x] Delete the old `api/` directory (Vercel serverless functions — replaced by
       `functions/`).
-- [ ] Delete root `vercel.json` (Vercel config — replaced by `_headers` + `_redirects`).
-- [ ] Remove `@vercel/analytics` and `@vercel/blob` from `package.json` (no longer used).
-- [ ] Repoint `scripts/upload-backgrounds.mjs` from `@vercel/blob` to R2
+- [x] Delete root `vercel.json` (Vercel config — replaced by `_headers` + `_redirects`).
+- [x] Remove `@vercel/analytics` and `@vercel/blob` from `package.json` (no longer used).
+- [x] Repoint `scripts/upload-backgrounds.mjs` from `@vercel/blob` to R2
       (`wrangler r2 object put`) so future background uploads go to R2.
 - [ ] Delete the Vercel projects `undistracted-me` and `undistracted-me-landing`
       once the Cloudflare domains have been stable for a few days.
