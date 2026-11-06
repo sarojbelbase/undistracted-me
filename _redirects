@@ -5,6 +5,6 @@
 /popup.html /entries/popup 200
 /blocked.html /entries/blocked 200
 
-# SPA fallback - serve the dashboard HTML for any unmatched route
+# Serve the dashboard HTML at the root (the build has no dist/index.html —
+# the entry lives at dist/entries/index.html).
 / /entries/ 200
-/* /entries/ 200
