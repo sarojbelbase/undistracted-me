@@ -23,17 +23,23 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # VITE_GOOGLE_CLIENT_ID must be configured as a repo secret (Settings → Secrets and variables → Actions).
+      # VITE_API_KEY, VITE_GOOGLE_CLIENT_ID and VITE_SPOTIFY_CLIENT_ID must be
+      # configured as repo secrets (Settings → Secrets and variables → Actions).
+      # Keep them in sync with Cloudflare Pages + local .env via `make secrets`.
       - name: Build for Firefox
         if: matrix.browser == 'firefox'
         env:
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
         run: bun run build && bun run build:firefox
 
       - name: Build for Chrome
         if: matrix.browser == 'chrome'
         env:
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
         run: bun run build && bun run build:chrome
 
       - name: Rename Firefox zip
