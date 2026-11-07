@@ -4,8 +4,11 @@
  *
  * Rain audio is ~30 MB, which exceeds Cloudflare Pages static-file limit
  * (25 MiB), so it must be served from R2 rather than Pages static assets.
+ * The file is Ogg Vorbis — served as `audio/ogg` with an `.ogg` name so the
+ * <audio> element decodes it correctly (a previous `.mp3`/`audio/mpeg` upload
+ * of the same Ogg bytes broke decoding).
  */
-export const RAIN_URL = "https://media.undistracted.me/rain/rain.mp3";
+export const RAIN_URL = "https://media.undistracted.me/rain/rain.ogg";
 
 export const BACKGROUNDS = [
   {

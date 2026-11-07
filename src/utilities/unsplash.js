@@ -8,17 +8,17 @@
  *  - jumpToPhotoById(id)→ moves any photo to head without discarding others.
  *  - getPhotoLibrary()  → returns the full cached library.
  *
- * Photo source: Vercel curated proxy — VITE_PHOTOS_API_URL or the
- *   hardcoded fallback app.undistracted.me/api/photos/curated.
+ * Photo source: backend curated proxy — VITE_PHOTOS_API_URL or the
+ *   hardcoded fallback api.undistracted.me/photos/curated.
  *
  * Attribution: per Unsplash ToS every photo carries author + link.
  */
 
-import { PRODUCTION_BASE_URL } from '../constants/env.js';
+import { PRODUCTION_BASE_URL, API_BASE_URL } from '../constants/env.js';
 
 const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
-  || `${PRODUCTION_BASE_URL}/api/photos/curated`;
-/** Shared secret sent as X-API-Key header to the Vercel proxy. */
+  || `${API_BASE_URL}/photos/curated`;
+/** Shared secret sent as X-API-Key header to the backend. */
 const PHOTOS_API_KEY = import.meta.env.VITE_API_KEY || null;
 
 const CACHE_KEY = 'fm_unsplash_cache';
@@ -35,22 +35,16 @@ const getCurrentPhotoId = () => { try { return localStorage.getItem(CURRENT_KEY)
 export const setCurrentPhotoId = (id) => { try { if (id) localStorage.setItem(CURRENT_KEY, id); else localStorage.removeItem(CURRENT_KEY); } catch { } };
 
 /**
- * Compute a ~200 px thumbnail URL for a cached photo entry.
- * Uses Vercel Image Optimization served from the production deployment so
- * it works from any environment — local dev, staging, or extension.
- * Falls back to the full-res URL when no source URL is available.
+ * Compute a thumbnail URL for a cached photo entry.
  *
- * Since we now strip non-essential fields from the cache (see stripPhotoFields),
- * `small` and `thumb` may not exist. Compute from `regular` or `url` directly.
+ * The photos now come straight from Cloudflare R2 (media.undistracted.me) with
+ * no image-resizing proxy (the old Vercel `/_vercel/image` endpoint is gone).
+ * Return the raw source URL directly — the R2 objects are pre-sized JPGs, so
+ * they work fine as picker thumbnails.
  */
 export const getThumbUrl = (photo) => {
   if (!photo) return null;
-  // In local dev, /_vercel/image is cross-origin and CORS-blocked. Use the raw blob URL directly.
-  const isLocalDev = typeof location !== 'undefined' && location.hostname === 'localhost';
-  const src = photo.regular || photo.url;
-  if (isLocalDev) return src || null;
-  if (!src) return null;
-  return `${PRODUCTION_BASE_URL}/_vercel/image?url=${encodeURIComponent(src)}&w=200&q=70`;
+  return photo.regular || photo.url || null;
 };
 
 // ─── Cache helpers ────────────────────────────────────────────────────────────

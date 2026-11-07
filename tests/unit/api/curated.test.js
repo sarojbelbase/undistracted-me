@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeReq, makeContext, ORIGINS } from './helpers.js';
-import { onRequest } from '../../../functions/api/photos/curated.js';
+import { onRequest } from '../../../functions/photos/curated.js';
 
 const KEY = 'test-api-key-xyz';
 const allowedOrigin = ORIGINS.production;

@@ -261,6 +261,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
                   aria-hidden
                   decoding="async"
                   loading="lazy"
+                  crossOrigin="anonymous"
                   className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                   style={{
                     filter: isLoaded ? 'none' : 'blur(10px)',

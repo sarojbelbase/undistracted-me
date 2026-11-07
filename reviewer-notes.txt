@@ -39,8 +39,8 @@ OAUTH FLOWS
 1. Google (Firefox)
    ----------------
    PKCE via chrome.identity.launchWebAuthFlow. Authorization code exchanged
-   server-side through Vercel endpoint:
-     https://app.undistracted.me/api/auth/google/token
+   server-side through our backend endpoint:
+     https://api.undistracted.me/auth/google/token
 
    Bundle contains: VITE_GOOGLE_DESKTOP_CLIENT_ID (XOR-encoded, public)
    Server holds: GOOGLE_CLIENT_SECRET (environment variable only)
@@ -76,7 +76,7 @@ THIRD-PARTY SERVICES
   Stocks:       nepalipaisa.com, www.merolagani.com (no auth)
   Spotify:      api.spotify.com, accounts.spotify.com (OAuth token)
   Google APIs:  www.googleapis.com, tasks.googleapis.com, people.googleapis.com (OAuth token)
-  Backend:      app.undistracted.me (Vercel proxy for FF token exchange)
+  Backend:      api.undistracted.me (FF token exchange, photos, favicon, RSS)
 
   No PII except OAuth tokens when user explicitly connects Google/Spotify.
 

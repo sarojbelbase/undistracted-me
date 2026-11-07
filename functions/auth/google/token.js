@@ -1,5 +1,5 @@
 /**
- * POST /api/auth/google/token
+ * POST /auth/google/token
  *
  * Server-side Google OAuth token exchange for website mode.
  * Handles two grant types:
@@ -13,7 +13,7 @@
  * the production / local origins so all contexts can call this endpoint.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../../../_config.js';
+import { assertOrigin, assertApiKey, json, corsHeaders } from '../../_config.js';
 
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
@@ -27,7 +27,7 @@ const ALLOWED_REDIRECT_URIS = [
 
 // Regex to allow extension redirect URIs (Chrome/Firefox MV3)
 // Chrome: https://{extension-id}.chromiumapp.org/
-// Firefox: https://{extension-id}.extensions.allizom.org/
+// Firefox: https://{sha1(gecko-id)}.extensions.allizom.org/ (Firefox hashes the id)
 const EXTENSION_REDIRECT_PATTERN = /^https:\/\/[a-z0-9]+\.(chromiumapp\.org|extensions\.allizom\.org)\/?$/i;
 
 export async function onRequest(context) {

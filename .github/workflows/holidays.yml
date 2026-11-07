@@ -19,8 +19,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: master
+        # Branch-agnostic: no `ref` hardcoded. For `schedule` events GitHub
+        # checks out the default branch; for `workflow_dispatch` it's the
+        # selected branch (defaulting to the default branch).
 
       - name: Scrape holidays
         run: node scripts/scrape-holidays.mjs
@@ -30,11 +31,13 @@ jobs:
           git config --global user.email "holidays-bot@users.noreply.github.com"
           git config --global user.name "holidays-bot"
 
-          if git diff --quiet -- holidays.json; then
+          if git diff --quiet -- public/holidays.json; then
             echo "holidays.json unchanged — nothing to commit"
             exit 0
           fi
 
-          git add holidays.json
+          git add public/holidays.json
           git commit -m "data: update holidays.json"
-          git push origin HEAD:master
+          # Push to the same branch that was checked out (branch-agnostic —
+          # `github.ref_name` is the default branch on schedule runs).
+          git push origin HEAD:${{ github.ref_name }}

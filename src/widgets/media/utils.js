@@ -29,20 +29,17 @@ const generateCodeChallenge = async (verifier) => {
     .replaceAll('+', '-').replaceAll('/', '_').replaceAll(/=+$/g, '');
 };
 
-const isFirefox = () => typeof globalThis.browser !== 'undefined' || navigator.userAgent.includes('Firefox');
-
 const getRedirectUri = () => {
   if (isWebMode()) return `${globalThis.location.origin}/callbacks/auth.html`;
-  // Firefox extensions use chrome.identity.getRedirectURL() which returns the
-  // allizom.org URI; Chrome extensions use the chromiumapp.org URI.
-  if (isFirefox()) {
-    const url = typeof chrome !== 'undefined' && chrome.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
-    if (!url) throw new Error('chrome.identity not available in Firefox context.');
-    return url;
-  }
-  const id = typeof chrome !== 'undefined' && chrome.runtime?.id; // eslint-disable-line no-undef
-  if (!id) throw new Error('Chrome extension context unavailable. Load the extension from chrome://extensions before connecting.');
-  return `https://${id}.chromiumapp.org/`;
+  // Extension: chrome.identity.getRedirectURL() returns the provider-registered
+  // redirect URL — https://<id>.chromiumapp.org/ on Chrome/Chromium and
+  // https://sha1(<gecko-id>).extensions.allizom.org/ on Firefox (Firefox hashes
+  // the id — it's not the raw id). This exact URI must be
+  // added to the Spotify Developer Dashboard, otherwise launchWebAuthFlow fails
+  // with "Authorization page could not be loaded."
+  const url = typeof chrome !== 'undefined' && chrome.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
+  if (!url) throw new Error('chrome.identity unavailable — load the extension from chrome://extensions before connecting.');
+  return url;
 };
 
 // ─── Auth ────────────────────────────────────────────────────────────────────

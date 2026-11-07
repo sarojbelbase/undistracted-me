@@ -1,5 +1,5 @@
 /**
- * GET /api/favicon?domain=example.com&sz=64
+ * GET /favicon?domain=example.com&sz=64
  *
  * Server-side favicon waterfall: Google → DuckDuckGo → Icon Horse.
  * Tries each service in order and streams back the first successful image.
@@ -10,7 +10,7 @@
  * CORS: allows GET from chrome-extension://, moz-extension://, and production origins.
  */
 
-import { assertOrigin, corsHeaders, FAVICON_SERVICES, PRIVATE_HOST_RE } from '../_config.js';
+import { assertOrigin, corsHeaders, FAVICON_SERVICES, PRIVATE_HOST_RE } from './_config.js';
 
 /** Rough hostname validation — rejects obvious junk before hitting any upstream */
 const VALID_DOMAIN_RE = /^[a-z0-9][a-z0-9\-_.]{0,252}[a-z0-9]$/i;

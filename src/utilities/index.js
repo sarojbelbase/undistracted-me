@@ -223,6 +223,33 @@ export function shorthandFromUrl(url) {
 export const isExtension = () =>
     typeof chrome !== 'undefined' && !!chrome?.runtime?.id;
 
+/**
+ * Fetch the browser's top sites, cross-browser (Chrome + Firefox).
+ *
+ * Firefox exposes `browser.topSites.get()` (Promise) and, under the `chrome`
+ * namespace, also supports callbacks. Chrome's `chrome.topSites.get()` is
+ * callback-based before Chrome 96 and Promise-based after. This helper accepts
+ * either shape and resolves to an array (never rejects).
+ */
+export const getTopSites = async () => {
+    const api = globalThis.chrome?.topSites || globalThis.browser?.topSites;
+    if (!api) return [];
+    try {
+        // Promise style — Firefox (browser.topSites / chrome.topSites) and Chrome 96+.
+        const sites = await api.get();
+        return Array.isArray(sites) ? sites : [];
+    } catch {
+        // Callback-only APIs (Chrome 88–95) reject a bare get() call — retry with a callback.
+        return new Promise((resolve) => {
+            try {
+                api.get((sites) => resolve(Array.isArray(sites) ? sites : []));
+            } catch {
+                resolve([]);
+            }
+        });
+    }
+};
+
 export function friendlyError(err) {
     const msg = err?.message || '';
     if (!msg) return 'Something went wrong. Please try again.';
@@ -230,6 +257,7 @@ export function friendlyError(err) {
     if (/popup_closed|user_cancelled|cancelled|Sign-in cancelled/i.test(msg)) return 'Sign-in was cancelled.';
     if (/popup.*blocked|blocked.*popup/i.test(msg)) return 'Pop-up was blocked — allow pop-ups for this site and try again.';
     if (/invalid_grant/i.test(msg)) return 'Your session expired. Please sign in again.';
+    if (/authorization page could not be loaded/i.test(msg)) return "The sign-in page couldn't load. Make sure your extension's redirect URI is registered with the provider, then try again.";
     if (/not_authenticated|not authenticated/i.test(msg)) return 'Please sign in to Google first.';
     if (/interrupted|no authorization code/i.test(msg)) return 'Sign-in was interrupted. Please try again.';
     return msg;

@@ -1,22 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
-import { getPhotoLibrary, getThumbUrl } from "../utilities/unsplash";
-import { extractColorFromImage } from "../utilities/favicon";
+import { useMemo } from "react";
 import { ACCENT_COLORS } from "../theme";
 import { getOrbRgbById } from "../constants/orbPalettes";
-import bgImage from "../assets/img/bg.webp";
-import { useSettingsStore } from "../store";
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
-
-function getBgImageUrl(bgType, canvasBg) {
-  if (bgType === "custom") return canvasBg?.url || null;
-  if (bgType === "curated") {
-    const p = getPhotoLibrary()[0];
-    return canvasBg?.url || p?.regular || p?.small || null;
-  }
-  if (bgType === "default") return bgImage;
-  return null;
-}
 
 // Expand a 6-digit hex string to [r, g, b] integers.
 function hexToRgb(hex) {
@@ -97,9 +83,7 @@ function getSolidGradientBg(isDark, accent, cardStyle = "glass") {
   return [grain, mesh, base].join(", ");
 }
 
-function computePageBg(bgType, isDark, accent, canvasBg, cardStyle) {
-  if (bgType === "curated") return canvasBg?.color || "#0c0c10";
-  if (bgType === "custom" || bgType === "default") return "#000000";
+function computePageBg(bgType, isDark, accent, cardStyle) {
   if (bgType === "orb") {
     if (isDark) {
       // Give comic mode a warm dark-paper page behind the orb instead of near-black.
@@ -115,12 +99,11 @@ function computePageBg(bgType, isDark, accent, canvasBg, cardStyle) {
 // ── Hook ───────────────────────────────────────────────────────────────────────
 
 /**
- * All canvas background computation: type, URLs, page background colour,
- * blur-up load tracking, and colour extraction from curated photos.
+ * Canvas background computation for the two supported modes: solid (accent
+ * mesh gradient) and orb (animated gradient).
  */
 export function useCanvasBg({
   canvasBg,
-  setCanvasBg,
   isDark,
   accent,
   cardStyle = "glass",
@@ -133,57 +116,15 @@ export function useCanvasBg({
     [bgOrbId],
   );
 
-  const bgImageUrl = useMemo(
-    () => getBgImageUrl(bgType, canvasBg),
-    [bgType, canvasBg],
-  );
-
-  // canvasBg?.url is listed as a dependency so a newly-selected curated photo
-  // causes the thumb to recompute even though its value comes from the library.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const bgThumbUrl = useMemo(() => {
-    if (bgType !== "curated") return null;
-    return getThumbUrl(getPhotoLibrary()[0]);
-  }, [bgType, canvasBg?.url]);
-
-  // Only canvasBg?.color is read inside computePageBg — narrowing the
-  // dependency avoids recomputing when other canvasBg fields change.
-  // cardStyle IS a dep: switching comic↔glass↔paper changes the page background.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const pageBg = useMemo(
-    () => computePageBg(bgType, isDark, accent, canvasBg, cardStyle),
-    [bgType, isDark, accent, canvasBg?.color, cardStyle],
-  );
-
-  const [thumbLoadedUrl, setThumbLoadedUrl] = useState(null);
-  const [fullLoadedUrl, setFullLoadedUrl] = useState(null);
-
-  const onThumbLoad = useCallback(
-    (e) => {
-      extractColorFromImage(e.currentTarget, (color) => {
-        const current = useSettingsStore.getState().canvasBg;
-        setCanvasBg({ ...current, color });
-      });
-      setThumbLoadedUrl(bgThumbUrl);
-    },
-    [bgThumbUrl, setCanvasBg],
-  );
-
-  const onFullLoad = useCallback(
-    () => setFullLoadedUrl(bgImageUrl),
-    [bgImageUrl],
+    () => computePageBg(bgType, isDark, accent, cardStyle),
+    [bgType, isDark, accent, cardStyle],
   );
 
   return {
     bgType,
     bgOrbId,
     bgOrbRgb,
-    bgImageUrl,
-    bgThumbUrl,
     pageBg,
-    thumbReady: !!bgThumbUrl && thumbLoadedUrl === bgThumbUrl,
-    fullReady: !!bgImageUrl && fullLoadedUrl === bgImageUrl,
-    onThumbLoad,
-    onFullLoad,
   };
 }

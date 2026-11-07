@@ -1,11 +1,11 @@
 /**
- * GET /api/stocks/chart?symbol=NABIL&from=<unix>&to=<unix>
+ * GET /stocks/chart?symbol=NABIL&from=<unix>&to=<unix>
  *
  * Server-side proxy for merolagani.com TechnicalChartHandler.
  * Avoids CORS issues when the app is served from a web origin.
  */
 
-import { assertOrigin, json, corsHeaders } from '../../_config.js';
+import { assertOrigin, json, corsHeaders } from '../_config.js';
 
 const ML_BASE = 'https://www.merolagani.com/handlers/TechnicalChartHandler.ashx';
 

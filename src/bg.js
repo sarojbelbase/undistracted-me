@@ -578,7 +578,7 @@ async function runStocksPrefetch() {
 const RSS_QUEUE_MAX = 20;
 
 /**
- * Lightweight XML helpers (same logic as api/rss/feed.js — kept inline to
+ * Lightweight XML helpers (same logic as rss/feed.js — kept inline to
  * avoid ES module import issues in the MV3 service worker build).
  */
 function _rssGetTag(xml, tag) {

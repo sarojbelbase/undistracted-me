@@ -4,7 +4,8 @@ An **Astro** marketing site for the **Undistracted Me** browser extension. SEO-f
 static output, zero client-side JS beyond a tiny theme/nav script.
 
 - **Marketing site:** `https://undistracted.me` and `https://www.undistracted.me`
-- **Web app / API:** `https://app.undistracted.me`
+- **Web app:** `https://app.undistracted.me`
+- **Backend API:** `https://api.undistracted.me`
 - **Privacy & Terms:** `https://undistracted.me/pp-and-tos`
 
 ## Stack

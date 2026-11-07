@@ -22,6 +22,7 @@
 
 GH_REPO       ?= sarojbelbase/undistracted-me
 PAGES_PROJECT ?= undistracted-me-app
+API_PROJECT   ?= undistracted-me-api
 
 .PHONY: push_secrets push_cloudflare secrets
 
@@ -34,12 +35,12 @@ push_secrets:
 	@printf '%s' "$(VITE_CF_BEACON_TOKEN)" | gh secret set VITE_CF_BEACON_TOKEN --repo $(GH_REPO)
 	@echo "published GitHub Actions secrets"
 
-## Publish runtime secrets to Cloudflare Pages (production).
+## Publish runtime secrets to the API project (Cloudflare Pages Functions).
 push_cloudflare:
 	@test -n "$(VITE_API_KEY)" || { echo "error: VITE_API_KEY missing from .env"; exit 1; }
-	@printf '%s' "$(VITE_API_KEY)" | wrangler pages secret put API_KEY --project-name $(PAGES_PROJECT)
-	@printf '%s' "$(GOOGLE_CLIENT_ID)" | wrangler pages secret put GOOGLE_CLIENT_ID --project-name $(PAGES_PROJECT)
-	@printf '%s' "$(GOOGLE_CLIENT_SECRET)" | wrangler pages secret put GOOGLE_CLIENT_SECRET --project-name $(PAGES_PROJECT)
+	@printf '%s' "$(VITE_API_KEY)" | wrangler pages secret put API_KEY --project-name $(API_PROJECT)
+	@printf '%s' "$(GOOGLE_CLIENT_ID)" | wrangler pages secret put GOOGLE_CLIENT_ID --project-name $(API_PROJECT)
+	@printf '%s' "$(GOOGLE_CLIENT_SECRET)" | wrangler pages secret put GOOGLE_CLIENT_SECRET --project-name $(API_PROJECT)
 	@echo "published Cloudflare Pages secrets — redeploy to bind them"
 
 ## Publish to both GitHub Actions and Cloudflare Pages.

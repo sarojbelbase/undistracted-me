@@ -1,11 +1,12 @@
 import { MEROLAGANI_CHART_API, NEPALI_PAISA_COMPANIES_API } from '../../constants/urls.js';
+import { API_BASE_URL } from '../../constants/env.js';
 
 // Default watchlist now lives in constants/defaults.js (single source of truth).
 // Re-exported here so existing import paths keep working.
 export { DEFAULT_SYMBOLS } from '../../constants/defaults.js';
 
 // In dev (localhost) requests go through the Vite proxy to avoid CORS.
-// In production (web app) requests go through Vercel API proxy routes.
+// In production (web app) requests go through the backend API (api.undistracted.me).
 // In the browser extension the chrome-extension:// origin is allowed by host_permissions.
 const hostname = typeof location !== 'undefined' ? location.hostname : '';
 const isDev = hostname === 'localhost';
@@ -14,17 +15,17 @@ const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 // ── Company list ──────────────────────────────────────────────────────────────
 // dev → Vite proxy (/np-api → nepalipaisa.com)
 // extension → direct (allowed by host_permissions)
-// web → Vercel proxy route (/api/stocks/companies)
+// web → backend API (api.undistracted.me/stocks/companies)
 const COMPANIES_URL = isDev
   ? '/np-api/GetCompanies'
   : isExtension
     ? NEPALI_PAISA_COMPANIES_API
-    : '/api/stocks/companies';
+    : `${API_BASE_URL}/stocks/companies`;
 
 // ── Chart data ────────────────────────────────────────────────────────────────
 // dev → Vite proxy (/ml-api → merolagani.com)
 // extension → direct (allowed by host_permissions)
-// web → Vercel proxy route (/api/stocks/chart?symbol=...)
+// web → backend API (api.undistracted.me/stocks/chart?symbol=...)
 function chartUrl(symbol) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 90 * 24 * 60 * 60; // 90 days of daily data for sparkline
@@ -34,7 +35,7 @@ function chartUrl(symbol) {
   if (isExtension) {
     return `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
   }
-  return `/api/stocks/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
+  return `${API_BASE_URL}/stocks/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────

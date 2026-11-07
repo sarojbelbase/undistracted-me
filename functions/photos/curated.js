@@ -1,5 +1,5 @@
 /**
- * GET /api/photos/curated
+ * GET /photos/curated
  *
  * Returns the curated ambient background photos. Previously listed blobs from
  * Vercel Blob (`backgrounds/` prefix) and generated `/_vercel/image` resize
@@ -10,8 +10,8 @@
  * production origin so the extension can call this directly.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../../_config.js';
-import { BACKGROUNDS } from '../../_media/media.js';
+import { assertOrigin, assertApiKey, json, corsHeaders } from '../_config.js';
+import { BACKGROUNDS } from '../_media/media.js';
 
 export async function onRequest(context) {
   const { request, env } = context;

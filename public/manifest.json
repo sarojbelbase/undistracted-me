@@ -59,6 +59,7 @@
   "host_permissions": [
     "*://*/*",
     "https://app.undistracted.me/*",
+    "https://api.undistracted.me/*",
     "https://api.spotify.com/*",
     "https://accounts.spotify.com/*",
     "*://*.youtube.com/*",

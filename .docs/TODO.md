@@ -81,13 +81,13 @@
 - [x] Multi-symbol: 2-line rows (symbol above, price below) — no truncation
 
 ### Google Auth & Integrations
-- [x] **Unified Google OAuth** (`googleAuth.js`) — Chrome (getAuthToken), Firefox (PKCE launchWebAuthFlow), Web (popup + PKCE + server-side `/api/auth/google/token`)
+- [x] **Unified Google OAuth** (`googleAuth.js`) — Chrome (getAuthToken), Firefox (PKCE launchWebAuthFlow), Web (popup + PKCE + server-side `/auth/google/token`)
 - [x] **Google Contacts** (`googleContacts.js`) — People API, paginated (up to 2000 contacts), birthdays + anniversaries
 - [x] **Google Tasks** (`googleTasks.js`) — full CRUD (list/create/complete/delete) via `tasks.googleapis.com`; `useFocusTasks()` hook in Focus Mode
 - [x] **Tokens in chrome.storage.local** — Spotify tokens + GCal/Profile cache migrated from localStorage (security)
 - [x] **Google scopes**: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`
 - [x] **obscureEnvKeys** Vite plugin — XOR-encodes VITE_GOOGLE_DESKTOP_CLIENT_ID/SECRET at build time
-- [x] **Vercel API** — `api/photos/curated.js` (Blob store), `api/auth/google/token.js` (OAuth exchange), `api/favicon.js`
+- [x] **Backend API** — `photos/curated.js` (media store), `auth/google/token.js` (OAuth exchange), `favicon.js`
 
 ### Service Worker (`bg.js`)
 - [x] Event reminders — notification 5 min before upcoming events

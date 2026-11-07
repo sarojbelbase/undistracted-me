@@ -3,9 +3,9 @@
  * and relative-time formatter.
  *
  * Three-environment URL routing (mirrors the stock widget pattern):
- *   dev       → Vite dev-server middleware at /api/rss/feed
- *   extension → Always Vercel proxy (RSS feeds are CORS-blocked from extension context)
- *   web       → Always Vercel proxy
+ *   dev       → Vite dev-server middleware at /rss/feed
+ *   extension → Always backend proxy (RSS feeds are CORS-blocked from extension context)
+ *   web       → Always backend proxy
  */
 
 import { humanizeTime } from '../../utilities/humanizeTime';
@@ -24,10 +24,10 @@ const hostname = typeof location !== 'undefined' ? location.hostname : '';
 const isDev = hostname === 'localhost';
 
 // For extension: RSS feeds are CORS-blocked even with host_permissions, so we
-// always route through the Vercel proxy. Only dev uses the local Vite proxy.
+// always route through the backend proxy. Only dev uses the local Vite proxy.
 export function rssUrl(feedUrl) {
   const encoded = encodeURIComponent(feedUrl);
-  if (isDev) return `/api/rss/feed?url=${encoded}`;
+  if (isDev) return `/rss/feed?url=${encoded}`;
   return `${RSS_FEED_PROXY_URL}?url=${encoded}`;
 }
 

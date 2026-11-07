@@ -6,23 +6,25 @@
  * one canonical place to update an endpoint if it ever changes.
  */
 
-import { PRODUCTION_BASE_URL, LANDING_BASE_URL } from './env.js';
+import { PRODUCTION_BASE_URL, API_BASE_URL, LANDING_BASE_URL } from './env.js';
 
 // ── Own APIs ──────────────────────────────────────────────────────────────────
 
-/** Vercel-hosted RSS feed proxy (CORS-safe for extension origins). */
-export const RSS_FEED_PROXY_URL = `${PRODUCTION_BASE_URL}/api/rss/feed`;
+/** Backend RSS feed proxy (CORS-safe for extension origins). */
+export const RSS_FEED_PROXY_URL = `${API_BASE_URL}/rss/feed`;
 
 /** Public privacy policy & terms of service page (hosted on the landing site). */
 export const PP_AND_TOS_URL = `${LANDING_BASE_URL}/pp-and-tos`;
 
 /**
- * Committed `holidays.json` (Nepali + international, AD-dated) served via the
- * jsDelivr CDN.  Refreshed by `.github/workflows/holidays.yml`, which scrapes
- * Wikipedia and commits only when the data actually changes.
+ * Committed `holidays.json` (Nepali + international, AD-dated), served from the
+ * app's own origin (the file lives in `public/` so the build copies it into
+ * `dist/` and Cloudflare Pages serves it at `/holidays.json`).  Self-hosting is
+ * branch-agnostic — no GitHub branch name or CDN reference to go stale.
+ * Refreshed by `.github/workflows/holidays.yml`, which scrapes Wikipedia and
+ * commits only when the data actually changes.
  */
-export const HOLIDAYS_URL =
-  'https://cdn.jsdelivr.net/gh/sarojbelbase/undistracted-me@main/holidays.json';
+export const HOLIDAYS_URL = `${PRODUCTION_BASE_URL}/holidays.json`;
 
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 
