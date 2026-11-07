@@ -1,5 +1,5 @@
 /**
- * GET /api/rss/feed?url=<encodedFeedUrl>
+ * GET /rss/feed?url=<encodedFeedUrl>
  *
  * Cloudflare Pages Function — fetches an RSS/Atom feed server-side (CORS bypass),
  * parses with rss-parser and returns clean JSON.
@@ -13,8 +13,8 @@
  */
 
 import Parser from 'rss-parser';
-import { assertOrigin, json, corsHeaders } from '../../_config.js';
-import { PRESET_FEEDS } from '../../../src/widgets/rss/feeds.js';
+import { assertOrigin, json, corsHeaders } from '../_config.js';
+import { PRESET_FEEDS } from '../../src/widgets/rss/feeds.js';
 
 // ── Source label mapping (derived from PRESET_FEEDS — single source of truth) ─
 

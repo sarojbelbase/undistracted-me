@@ -61,6 +61,11 @@ const fromLegacy = () => {
         })(),
         canvasBg: (() => {
           const cb = stored.state.canvasBg ?? D.canvasBg;
+          // Photo/curated backgrounds were removed — normalise any legacy
+          // 'default' | 'curated' | 'custom' type back to a solid background.
+          if (cb.type !== "solid" && cb.type !== "orb") {
+            return { type: "solid", orbId: null };
+          }
           return cb.type === "orb" && cb.orbId && cb.orbId !== "accent"
             ? { ...cb, orbId: "accent" }
             : cb;
@@ -212,7 +217,7 @@ export const useSettingsStore = create(
         _syncNotifications(get().notificationsEnabled, types);
       },
 
-      /** Canvas background — { type: 'solid'|'orb'|'curated'|'custom', orbId?, url? } */
+      /** Canvas background — { type: 'solid'|'orb', orbId? } */
       setCanvasBg: (canvasBg) => {
         set({ canvasBg });
       },

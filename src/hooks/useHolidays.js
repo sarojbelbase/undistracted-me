@@ -1,8 +1,8 @@
 /**
  * useHolidays — Nepali + international holidays for the calendar widget.
  *
- * Fetches the committed `holidays.json` from the jsDelivr CDN (updated weekly
- * by a GitHub Actions workflow), caches the payload in the shared DataHub
+ * Fetches the committed `holidays.json` from the app's own origin (updated
+ * weekly by a GitHub Actions workflow), caches the payload in the shared DataHub
  * (stamped with `updatedAt`), and re-fetches only when the entry is older than
  * 24h.  Returns two lookups so the calendar can style Nepali and international
  * holidays differently:

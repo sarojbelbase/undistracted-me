@@ -28,6 +28,7 @@ const NEVER_BLOCK_PROTOCOLS = [
 const NEVER_BLOCK_DOMAINS = new Set([
   'localhost', '127.0.0.1', '[::1]',
   'app.undistracted.me',
+  'api.undistracted.me',
   'undistracted.me',
   'www.undistracted.me',
 ]);

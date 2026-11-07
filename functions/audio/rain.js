@@ -1,13 +1,13 @@
 /**
- * GET /api/audio/rain
+ * GET /audio/rain
  *
  * Returns the ambient rain audio URL. Previously listed blobs from Vercel
  * Blob (`rain/` prefix); now served from the static media manifest since the
  * asset still lives on Vercel Blob.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../../_config.js';
-import { RAIN_URL } from '../../_media/media.js';
+import { assertOrigin, assertApiKey, json, corsHeaders } from '../_config.js';
+import { RAIN_URL } from '../_media/media.js';
 
 export async function onRequest(context) {
   const { request, env } = context;

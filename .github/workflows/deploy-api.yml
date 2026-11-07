@@ -1,0 +1,29 @@
+name: Deploy API to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'functions/**'
+      - 'pages-api/**'
+      - '.github/workflows/deploy-api.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 8daf806d18c057c542bd141fce6ca034
+          command: pages deploy pages-api --project-name=undistracted-me-api --branch=${{ github.ref_name }} --commit-hash=${{ github.sha }} --commit-message="${{ github.event.head_commit.message }}"

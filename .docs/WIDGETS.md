@@ -582,7 +582,7 @@ stock/
 - **Data sources**:
   - Chart data: `merolagani.com/handlers/TechnicalChartHandler.ashx` (90-day OHLCV).
   - Company list: `nepalipaisa.com/api/GetCompanies` (POST with empty JSON body).
-  - Both routed through env-aware URL builders: `dev → Vite proxy`, `extension → direct (host_permissions)`, `web → Vercel proxy routes`.
+  - Both routed through env-aware URL builders: `dev → Vite proxy`, `extension → direct (host_permissions)`, `web → backend API (api.undistracted.me)`.
 - `fetchChart(symbol)` extracts: `prices = c[]` (all closes for sparkline), `ltp = c[n-1]`, `prevClose = c[n-2]`, `open/high/low = o/h/l[n-1]`.
 - **Sparkline** (`buildSparklinePaths`): LTTB (Largest Triangle Three Buckets) downsampling to 40 points, then Catmull-Rom bezier curve. Enforces a 1.5% minimum visual range to prevent low-volatility stocks from appearing as noise.
 - The `Sparkline` SVG uses a `ResizeObserver` on itself to set its `viewBox` width — making it truly responsive.
@@ -680,7 +680,7 @@ rss/
 - **OPML Export**: `generateOPML()` creates valid OPML XML from the current custom feeds with proper XML escaping. Downloaded via `downloadFile()` blob helper.
 - **Sample OPML**: `generateSampleOPML()` produces a ready-to-use OPML with real Nepali news feeds organized in "News" and "Podcasts" folders, demonstrating the nested outline structure.
 - **JSON support removed**: Only OPML is supported for import/export. The Data section has Export OPML + Import OPML buttons, a guidance callout mentioning online OPML generators and podcast support, and footer actions (Sample OPML | Clear All).
-- **CORS proxy**: RSS feeds are CORS-blocked. The proxy at `https://app.undistracted.me/api/rss/feed?url=...` is used in both web and extension contexts. Dev uses the Vite dev server middleware.
+- **CORS proxy**: RSS feeds are CORS-blocked. The proxy at `https://api.undistracted.me/rss/feed?url=...` is used in both web and extension contexts. Dev uses the Vite dev server middleware.
 - **Cache**: `localStorage['rss_cache_{feedId}']` — TTL 10 min. Cache is read instantly on mount; network fetch skipped if cache is fresh.
 - `useRssMulti`: Fetches all active feeds in `Promise.allSettled`, injects a `source` label into each item, sorts by `isoDate` descending, merges into a flat list. Each feed's cache key is `custom_${url}`. Epoch counter prevents slow initial loads from overwriting faster manual refreshes.
 - **Seen-links deduplication**: `seenLinksRef` tracks links already shown; new items from a refresh are prepended without duplicating existing ones.

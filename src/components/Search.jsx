@@ -54,7 +54,7 @@ const pushHistory = (query) => {
 const IS_DEV = typeof location !== "undefined" && location.hostname === "localhost";
 
 // In dev the browser CORS-blocks direct suggest endpoints (suggestqueries.google.com /
-// ac.duckduckgo.com). Route through the Vite `/api/suggest` proxy instead; in the
+// ac.duckduckgo.com). Route through the Vite `/suggest` proxy instead; in the
 // packaged extension, host_permissions allow the direct URL.
 function suggestUrl(engine) {
   if (!engine.suggest) return null;
@@ -62,11 +62,11 @@ function suggestUrl(engine) {
   const u = new URL(engine.suggest);
   // DuckDuckGo's suggest URL has no `client` query param, so detect it by
   // hostname rather than relying on a `client=ddg` marker that never appears.
-  if (/duckduckgo\.com/i.test(u.hostname)) return "/api/suggest?client=ddg&q=";
+  if (/duckduckgo\.com/i.test(u.hostname)) return "/suggest?client=ddg&q=";
   const client = u.searchParams.get("client") || "chrome";
   const ds = u.searchParams.get("ds") || "";
-  if (ds) return `/api/suggest?client=${client}&ds=${ds}&q=`;
-  return `/api/suggest?client=${client}&q=`;
+  if (ds) return `/suggest?client=${client}&ds=${ds}&q=`;
+  return `/suggest?client=${client}&q=`;
 }
 
 async function fetchSuggestionsFor(engine, query, signal) {

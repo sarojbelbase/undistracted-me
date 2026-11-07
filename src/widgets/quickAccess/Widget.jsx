@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { FaviconIcon } from "../../components/ui/FaviconIcon";
 import { faviconCache, getHostname } from "../../utilities/favicon";
-import { shorthandFromUrl } from "../../utilities/index";
+import { shorthandFromUrl, getTopSites } from "../../utilities/index";
 
 const MAX_TILES = 5;
 
@@ -58,12 +58,10 @@ export const Widget = ({ id, onRemove }) => {
   const [topSites, setTopSites] = useState([]);
 
   useEffect(() => {
-    if (typeof chrome !== "undefined" && chrome.topSites) {
-      chrome.topSites.get(sites => setTopSites((sites || []).slice(0, MAX_TILES)));
-    }
+    getTopSites().then((sites) => setTopSites(sites.slice(0, MAX_TILES)));
   }, []);
 
-  const isUnsupported = typeof chrome === 'undefined' || !chrome.topSites;
+  const isUnsupported = typeof chrome === 'undefined' && typeof globalThis.browser === 'undefined';
 
   if (isUnsupported || !topSites.length) {
     return (

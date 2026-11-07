@@ -276,7 +276,7 @@ Zone-based layout driven by `config.js` ZONES object. Each zone is a separate co
 
 ### TopZone (`zones/TopZone.jsx`)
 - **NavBar**: Canvas-mode button, fullscreen toggle, rain/noise audio toggle, settings button
-- **Rain audio**: Ambient rain & white-noise audio powered by `useRainStream`. Uses the Web Audio API to stream 30-second `.wav` segments dynamically from Vercel Blob Storage (`api/audio/rain.js` proxy). The hook prefetches segments to ensure gapless playback and handles a 3-second ease-in-out master GainNode volume crossfade. Playback position is persisted to `localStorage['rain_seg_pos']` and resumes exactly where left off. The toggle button is a custom inline SVG component (`RainNoiseIcon.jsx`) styled dynamically via React state, evading browser `:active` bugs.
+- **Rain audio**: Ambient rain & white-noise audio powered by `useRainStream`. Uses the Web Audio API to stream segments dynamically from the media R2 store (`audio/rain.js` proxy returns the URL). The hook prefetches segments to ensure gapless playback and handles a 3-second ease-in-out master GainNode volume crossfade. Playback position is persisted to `localStorage['rain_seg_pos']` and resumes exactly where left off. The toggle button is a custom inline SVG component (`RainNoiseIcon.jsx`) styled dynamically via React state, evading browser `:active` bugs.
 - **InfoStrip**: weatherIcon (SVG) + temp + `·` + date + year (smaller) — item-based rendering driven by ZONES.top
 - Reads weather from Zustand `useWidgetInstancesStore`; falls back to `useLocationStore` coords
 - Polls **Open-Meteo** via `useFocusWeather()` — NOT OpenWeatherMap
@@ -341,7 +341,7 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 - `useFocusTimezones()` — reads clock widget timezones from Zustand `useWidgetInstancesStore`
 
 ## Unsplash Photo Library (`src/utilities/unsplash.js`)
-- **Source**: Curated proxy — `/api/photos/curated` (no direct Unsplash key needed in extension)
+- **Source**: Curated proxy — `/photos/curated` on api.undistracted.me (no direct Unsplash key needed in extension)
 - **Auth**: `X-API-Key: VITE_API_KEY` header to the curated endpoint
 - localStorage key: `fm_unsplash_cache` — stores up to `LIBRARY_MAX=10` photo objects
 - Each item: `{ id, url, regular, color, author, authorUrl, photoUrl, cachedAt }`
@@ -354,8 +354,8 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 Single "Web application" OAuth client + PKCE, works in every environment:
 - **Extension (Chrome, Brave, Edge, Opera, Vivaldi, Firefox)**: PKCE authorization-code
   flow via `chrome.identity.launchWebAuthFlow()`, then server-side token exchange against
-  `/api/auth/google/token`. Client ID XOR-encoded at build time by `obscureEnvKeys`.
-- **Web (website mode)**: popup + PKCE + `/api/auth/google/token` server-side exchange.
+  `/auth/google/token` (api.undistracted.me). Client ID XOR-encoded at build time by `obscureEnvKeys`.
+- **Web (website mode)**: popup + PKCE + `/auth/google/token` server-side exchange.
 
 Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
 
@@ -441,7 +441,8 @@ Key shared components:
 "permissions": ["identity", "storage", "geolocation", "topSites", "favicon",
                  "notifications", "alarms", "tabs", "scripting"]
 "host_permissions": [
-  "https://app.undistracted.me/*",  // Vercel backend
+  "https://app.undistracted.me/*",  // Web app (holidays.json, OAuth callback)
+  "https://api.undistracted.me/*",  // Backend API
   "https://api.spotify.com/*",
   "https://accounts.spotify.com/*",
   "https://nepalipaisa.com/*",                     // NEPSE company list
@@ -462,10 +463,10 @@ Content scripts: `src/utilities/media.js` injected into **SoundCloud only** (`*:
 `oauth2` section present for Chrome identity scopes.
 Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scripting` permissions on Firefox build.
 
-## Vercel API (`api/`)
-- `api/photos/curated.js` — Lists photos from Vercel Blob store (`backgrounds/` prefix). Auth via `X-API-Key`. CORS: chrome-extension://, moz-extension://, production origin.
-- `api/auth/google/token.js` — Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser. CORS: same origins + localhost.
-- `api/favicon.js` — Favicon proxy helper.
+## Backend API (`functions/` → api.undistracted.me)
+- `photos/curated.js` — Lists photos from the media R2 store (`backgrounds/` prefix). Auth via `X-API-Key`. CORS: chrome-extension://, moz-extension://, production origin.
+- `auth/google/token.js` — Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser. CORS: same origins + localhost.
+- `favicon.js` — Favicon proxy helper.
 
 ## Dev Proxy (`vite.config.ts`)
 ```js

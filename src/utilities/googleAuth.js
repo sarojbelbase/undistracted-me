@@ -6,15 +6,16 @@
  * Extension (any browser) → chrome.identity.launchWebAuthFlow() + PKCE
  *                          redirect URI = chrome.identity.getRedirectURL()
  *                          (https://<id>.chromiumapp.org/ on Chrome/Chromium,
- *                           https://<id>.extensions.allizom.org/ on Firefox)
+ *                           https://sha1(<gecko-id>).extensions.allizom.org/ on
+ *                           Firefox — Firefox hashes the id, it's not the raw id)
  * Website                → popup + PKCE
  *                          redirect URI = <origin>/callbacks/auth.html
  *
- * Both exchange the authorization code via POST /api/auth/google/token, so the
+ * Both exchange the authorization code via POST /auth/google/token, so the
  * client_secret never leaves the server. The bundle carries only the public
  * client_id (VITE_GOOGLE_CLIENT_ID, XOR-encoded at build time).
  */
-import { PRODUCTION_BASE_URL } from '../constants/env.js';
+import { API_BASE_URL } from '../constants/env.js';
 import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
 // Obfuscated by obscureEnvKeys Vite plugin at build time.
@@ -24,11 +25,11 @@ const API_KEY = import.meta.env.VITE_API_KEY || '';
 
 // Server-side token-exchange endpoint. Absolute URL so it works from
 // chrome-extension://, moz-extension://, and https:// origins alike.
-// Dev: localhost:3000 (when running `vercel dev` / a local API); prod: app.undistracted.me.
+// Dev: localhost:3000 (when running a local API); prod: api.undistracted.me.
 const isDev = import.meta.env.DEV || false;
 const TOKEN_ENDPOINT = isDev
-  ? 'http://localhost:3000/api/auth/google/token'
-  : `${PRODUCTION_BASE_URL}/api/auth/google/token`;
+  ? 'http://localhost:3000/auth/google/token'
+  : `${API_BASE_URL}/auth/google/token`;
 
 // One logical key. Extension paths persist it in chrome.storage.local; website
 // mode persists it in sessionStorage (never exposed across tabs).
@@ -95,7 +96,7 @@ async function clearStoredToken() {
 // ─── Server-side token exchange ───────────────────────────────────────────────
 
 /**
- * Exchange an authorization code for tokens via /api/auth/google/token.
+ * Exchange an authorization code for tokens via /auth/google/token.
  * The client_secret stays server-side; the client sends only the public
  * client_id, the code, and the PKCE verifier.
  */

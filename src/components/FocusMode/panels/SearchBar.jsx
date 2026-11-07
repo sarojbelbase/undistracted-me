@@ -12,6 +12,7 @@ import { getTokens, FM_CARD_BLUR, FM_BORDER, FM_INK_3 } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 import { EngineIcon } from '../../../utilities/searchEngines';
+import { getTopSites } from '../../../utilities/index';
 import { useSearchCore } from '../../Search';
 import { Search } from 'react-bootstrap-icons';
 import { GlobeIcon } from '../../../assets/svg/GlobeIcon';
@@ -182,9 +183,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
   // ── Top sites (fetched once when enabled) ────────────────────────────────────
   useEffect(() => {
     if (!focusSearchTopSites) { setTopSites([]); return; }
-    const api = globalThis.chrome?.topSites;
-    if (!api) return;
-    api.get(sites => setTopSites(sites?.slice(0, 8) || []));
+    getTopSites().then((sites) => setTopSites(sites.slice(0, 8)));
   }, [focusSearchTopSites]);
 
   // ── Close on outside click ───────────────────────────────────────────────────

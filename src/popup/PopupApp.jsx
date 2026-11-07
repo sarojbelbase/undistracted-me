@@ -14,6 +14,7 @@ import { getTimeParts } from "../widgets/clock/utils";
 import { getGreeting } from "../data/greetings";
 import { getDateParts } from "../widgets/dateToday/utils";
 import { getSunTimes, computeAutoMode } from "../utilities/sunTime";
+import { getTopSites } from "../utilities/index";
 import { useWeather } from "../hooks/useWeather";
 import {
   addBookmark,
@@ -172,9 +173,7 @@ export const PopupApp = () => {
   // ── Top sites ─────────────────────────────────────────────────────────────
   const [topSites, setTopSites] = useState([]);
   useEffect(() => {
-    if (typeof chrome !== "undefined" && chrome.topSites) {
-      chrome.topSites.get((sites) => setTopSites((sites || []).slice(0, 6)));
-    }
+    getTopSites().then((sites) => setTopSites(sites.slice(0, 6)));
   }, []);
 
   // ── Derived ───────────────────────────────────────────────────────────────

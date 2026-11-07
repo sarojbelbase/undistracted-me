@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { makeReq, makeContext, ORIGINS } from './helpers.js';
-import { onRequest } from '../../../functions/api/auth/google/token.js';
+import { onRequest } from '../../../functions/auth/google/token.js';
 
 const KEY = 'test-api-key-xyz';
 const CLIENT_ID = 'client-id-123.apps.googleusercontent.com';
@@ -26,7 +26,7 @@ const mockGoogleFail = (status = 400, error = 'invalid_grant') => ({
   json: async () => ({ error, error_description: 'Token has been expired or revoked.' }),
 });
 
-describe('POST /api/auth/google/token', () => {
+describe('POST /auth/google/token', () => {
   let fetchSpy;
 
   const env = () => ({ API_KEY: KEY, GOOGLE_CLIENT_ID: CLIENT_ID, GOOGLE_CLIENT_SECRET: CLIENT_SECRET });

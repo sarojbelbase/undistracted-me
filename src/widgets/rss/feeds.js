@@ -3,10 +3,10 @@
  *
  * Imported by:
  *   src/widgets/rss/utils.js   (client-side)
- *   api/rss/feed.js            (Vercel serverless — derives SOURCE_NAMES from this)
+ *   rss/feed.js                (Cloudflare Pages Function — derives SOURCE_NAMES from this)
  *
  * No imports allowed here. Keep this file pure data so it is safe to import
- * from any environment (browser, Node.js, Vercel edge).
+ * from any environment (browser, Node.js, Cloudflare Pages Functions).
  */
 
 export const PRESET_FEEDS = [

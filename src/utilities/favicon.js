@@ -1,4 +1,4 @@
-import { PRODUCTION_BASE_URL } from '../constants/env.js';
+import { API_BASE_URL } from '../constants/env.js';
 
 const PRIVATE_HOST_RE = /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$/;
 
@@ -43,12 +43,13 @@ export const parentDomain = (hostname) => {
 };
 
 // Base URL for the server-side favicon waterfall API.
-// - Web / dev: relative path works (Vite middleware or Vercel function)
-// - Extension dev (CRXJS): pages are chrome-extension:// origin → needs absolute localhost URL
-// - Extension production: needs the deployed Vercel URL
+// - Web dev: relative path hits the Vite `/favicon` middleware
+// - Extension dev (CRXJS): chrome-extension:// origin → absolute localhost URL
+// - Extension + web production: the deployed API (api.undistracted.me)
 const _isExt = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
-const _extBase = import.meta.env.DEV ? 'http://localhost:3000' : PRODUCTION_BASE_URL;
-const _faviconApiBase = _isExt ? _extBase : '';
+const _faviconApiBase = import.meta.env.DEV
+  ? (_isExt ? 'http://localhost:3000' : '')
+  : API_BASE_URL;
 
 /**
  * Builds an ordered favicon fallback chain for a URL.
@@ -71,7 +72,7 @@ export const buildFaviconSources = (url, size = 64) => {
   if (!isWebHostname) return [''];
   return [
     // Server-side waterfall (Google → DDG → Icon Horse) — zero client-side 404s
-    `${_faviconApiBase}/api/favicon?domain=${hostname}&sz=${size}`,
+    `${_faviconApiBase}/favicon?domain=${hostname}&sz=${size}`,
     // Direct Icon Horse as offline fallback for extension (virtually never 404s)
     ...(_isExt ? [FAVICON_SERVICES.iconHorse(hostname)] : []),
     // Empty string → letter initial fallback

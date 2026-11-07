@@ -581,10 +581,10 @@
       to <code>drive.appdata</code> access only.
     </p>
 
-    <h3>Data passed through our Vercel proxy</h3>
+    <h3>Data passed through our backend</h3>
     <p>
       Some API calls are routed through our backend at
-      <code>app.undistracted.me</code>
+      <code>api.undistracted.me</code>
       so that secret API keys are never embedded in the extension bundle. These calls are:
     </p>
     <ul class="styled">
@@ -593,9 +593,9 @@
       <li><strong>Favicon proxy</strong> — a website domain name is sent to fetch its icon. No session or identity data is included.</li>
     </ul>
     <p>
-      Our proxy does not log user-identifiable information. Standard web-server access logs
+      Our backend does not log user-identifiable information. Standard web-server access logs
       (IP address, timestamp, HTTP method) may be retained for up to 30 days by our hosting
-      provider (Vercel) for security and abuse-prevention purposes.
+      provider (Cloudflare) for security and abuse-prevention purposes.
     </p>
 
     <h3>Geolocation</h3>
@@ -707,8 +707,8 @@
             <td><span class="badge-yes">Via server</span></td>
           </tr>
           <tr>
-            <td>app.undistracted.me</td>
-            <td>Our Vercel proxy (photos, favicon, FF token exchange)</td>
+            <td>api.undistracted.me</td>
+            <td>Our backend (photos, favicon, FF token exchange)</td>
             <td><span class="badge-yes">API key</span></td>
           </tr>
         </tbody>

@@ -1,7 +1,7 @@
 /**
  * useRainStream — single-file ambient audio player
  *
- * Fetches the secure OGG URL from /api/audio/rain on mount, then sets
+ * Fetches the secure OGG URL from /audio/rain on mount, then sets
  * it as the src on a stable <audio> ref. The browser handles HTTP Range
  * Requests and native caching automatically — no manual fetch needed.
  *
@@ -11,10 +11,10 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { PRODUCTION_BASE_URL } from "../constants/env.js";
+import { API_BASE_URL } from "../constants/env.js";
 
 const RAIN_API_URL =
-  import.meta.env.VITE_RAIN_API_URL || `${PRODUCTION_BASE_URL}/api/audio/rain`;
+  import.meta.env.VITE_RAIN_API_URL || `${API_BASE_URL}/audio/rain`;
 const API_KEY = import.meta.env.VITE_API_KEY || null;
 const POS_KEY = "rain_audio_pos";
 const URL_CACHE_KEY = "rain_audio_url"; // stale-while-revalidate cache

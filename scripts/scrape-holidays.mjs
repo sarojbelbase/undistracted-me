@@ -6,8 +6,9 @@
  *     Nepal" Wikipedia page (Bikram Sambat dates converted to AD).
  *   – A curated list of international observances + major festivals (AD-fixed).
  *
- * Writes a single `holidays.json` at the repo root.  The GitHub Actions
- * workflow diffs that file and only commits when its contents changed.
+ * Writes a single `holidays.json` into `public/` so the app build copies it
+ * into `dist/` and serves it at `/holidays.json`.  The GitHub Actions workflow
+ * diffs that file and only commits when its contents changed.
  *
  * Runs under plain Node (`node scripts/scrape-holidays.mjs`); every import in
  * the module graph uses explicit `.js` extensions so Node's ESM resolver can
@@ -22,7 +23,7 @@ import { buildInternationalHolidays } from './international-holidays.mjs';
 const WIKI_URL =
   'https://en.wikipedia.org/w/index.php?title=Public_holidays_in_Nepal&action=raw';
 
-const OUT_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'holidays.json');
+const OUT_PATH = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'holidays.json');
 
 /** Stable signature for a holiday list so we can detect *actual* data changes
  *  (ignoring the generatedAt timestamp, which would otherwise force a commit

@@ -1,11 +1,11 @@
 /**
- * POST /api/stocks/companies
+ * POST /stocks/companies
  *
  * Server-side proxy for nepalipaisa.com GetCompanies endpoint.
  * Avoids CORS issues when the app is served from a web origin.
  */
 
-import { assertOrigin, json, corsHeaders } from '../../_config.js';
+import { assertOrigin, json, corsHeaders } from '../_config.js';
 
 const NP_URL = 'https://nepalipaisa.com/api/GetCompanies';
 

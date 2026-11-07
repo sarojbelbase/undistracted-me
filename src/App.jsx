@@ -202,7 +202,6 @@ const App = () => {
     })),
   );
   const canvasBg = useSettingsStore((s) => s.canvasBg);
-  const setCanvasBg = useSettingsStore((s) => s.setCanvasBg);
   const instances = useWidgetInstancesStore((s) => s.instances);
   const addInstance = useWidgetInstancesStore((s) => s.addInstance);
   const removeInstance = useWidgetInstancesStore((s) => s.removeInstance);
@@ -274,7 +273,7 @@ const App = () => {
     openFocusMode();
   }, [focusModeRequest, openFocusMode]);
 
-  const bg = useCanvasBg({ canvasBg, setCanvasBg, isDark, accent, cardStyle });
+  const bg = useCanvasBg({ canvasBg, isDark, accent, cardStyle });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
   // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
   useEffect(() => {

@@ -49,6 +49,16 @@ if (manifest.background) {
     minify: false,
     // Target modern Firefox (matching the main build target).
     target: 'firefox128',
+    // Vite injects a module-preload helper (preload-helper-*.js) into bg.js
+    // because it has a dynamic import. That helper uses `import.meta.url` and
+    // `import.meta.resolve`, which are empty in IIFE format. Rewrite them so
+    // the helper resolves dep URLs against the background page instead of
+    // throwing `Invalid URL` at runtime (and so esbuild stops emitting the
+    // `empty-import-meta` warnings).
+    define: {
+      'import.meta.url': 'self.location.href',
+      'import.meta.resolve': 'undefined',
+    },
   });
 
   manifest.background = { scripts: ['bg-ff.js'] };

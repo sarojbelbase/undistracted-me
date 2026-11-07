@@ -18,7 +18,7 @@ export default defineConfig({
       validateImageAlt: true,
       validateMetadataLength: true,
       validateInternalLinks: {
-        skip: (href) => href.startsWith('/api/') || href.startsWith('https://app.undistracted.me'),
+        skip: (href) => href.startsWith('/api/') || href.startsWith('https://app.undistracted.me') || href.startsWith('https://api.undistracted.me'),
       },
       llmsTxt: {
         title: 'Undistracted Me',

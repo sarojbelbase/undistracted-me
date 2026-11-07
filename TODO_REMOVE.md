@@ -1,8 +1,9 @@
 # Pre-Launch Checklist
 
 > Delete this file once every box below is checked. This is the remaining work
-> before `undistracted.me` (landing), `app.undistracted.me` (web app + API), and
-> the extension are fully live on Cloudflare with no Vercel dependency.
+> before `undistracted.me` (landing), `app.undistracted.me` (web app),
+> `api.undistracted.me` (backend API), and the extension are fully live on
+> Cloudflare with no Vercel dependency.
 
 ---
 
@@ -24,7 +25,7 @@ have this exact URI registered, or the popup errors out.
       http://localhost:3000/callbacks/auth.html                                           ← web dev
       http://localhost:5173/callbacks/auth.html                                           ← web dev
       https://dbmaaolpghdcdcpjmjafjedomcclmbmn.chromiumapp.org/                           ← Chrome/Brave/Edge/Opera/Vivaldi
-      https://{1071d037-0f17-4c92-b06c-704050d2e2c3}.extensions.allizom.org/              ← Firefox
+      https://2e81ac27e122df6c2f53ff217523926ae8d3563f.extensions.allizom.org/            ← Firefox (SHA-1 of the gecko id, not the raw id)
       ```
       (The Chrome/Chromium ID `dbmaaolpghdcdcpjmjafjedomcclmbmn` is pinned via the
       `"key"` field in `public/manifest.json`, so it is stable across machines.)
@@ -36,7 +37,7 @@ have this exact URI registered, or the popup errors out.
       ```
       https://app.undistracted.me/callbacks/auth.html                       ← web mode
       https://dbmaaolpghdcdcpjmjafjedomcclmbmn.chromiumapp.org/            ← Chrome extension (pinned via manifest "key")
-      https://{1071d037-0f17-4c92-b06c-704050d2e2c3}.extensions.allizom.org/ ← Firefox extension
+      https://2e81ac27e122df6c2f53ff217523926ae8d3563f.extensions.allizom.org/ ← Firefox extension (SHA-1 of the gecko id, not the raw id)
       ```
 - [ ] **Note (Spotify Web):** `user-modify-playback-state` (play/pause/skip) is
       **Premium-only**. Free-tier users can connect and see "now playing" but

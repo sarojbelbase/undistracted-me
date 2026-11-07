@@ -5,14 +5,14 @@ import manifest from "./public/manifest.json" with { type: "json" };
 import { obscureEnvKeys } from "./plugins/obscureEnvKeys.ts";
 
 /**
- * Dev-only: intercepts GET /api/favicon?domain=...&sz=... and does a
+ * Dev-only: intercepts GET /favicon?domain=...&sz=... and does a
  * server-side waterfall (Google → DuckDuckGo → Icon Horse) so the browser
  * never sees individual-service 404s in the console.
  */
 const faviconWaterfall = (): Plugin => ({
   name: "favicon-waterfall",
   configureServer(server) {
-    server.middlewares.use("/api/favicon", async (req, res, next) => {
+    server.middlewares.use("/favicon", async (req, res, next) => {
       if (req.method !== "GET") return next();
       const qs = (req.url ?? "").split("?")[1] ?? "";
       const params = new URLSearchParams(qs);
@@ -110,14 +110,14 @@ const readBody = (
   });
 
 /**
- * Dev-only: proxies POST /api/auth/google/token to Google's token endpoint,
+ * Dev-only: proxies POST /auth/google/token to Google's token endpoint,
  * injecting the client secret from the local .env file so it never touches
- * the client bundle.  Mirrors the logic of api/auth/google/token.js exactly.
+ * the client bundle.  Mirrors the logic of auth/google/token.js exactly.
  */
 const googleTokenProxy = (): Plugin => ({
   name: "google-token-proxy",
   configureServer(server) {
-    server.middlewares.use("/api/auth/google/token", async (req, res, next) => {
+    server.middlewares.use("/auth/google/token", async (req, res, next) => {
       if (req.method === "OPTIONS") {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -243,14 +243,14 @@ function decodeEntities(str: string): string {
 
 
 /**
- * Dev-only: proxies /api/suggest?client=chrome&q=... to suggestqueries.google.com
- * and /api/suggest/ddg?q=... to duckduckgo.com server-side, bypassing CORS.
+ * Dev-only: proxies /suggest?client=chrome&q=... to suggestqueries.google.com
+ * and /suggest/ddg?q=... to duckduckgo.com server-side, bypassing CORS.
  * In the real extension, host_permissions handles this natively.
  */
 const suggestProxy = (): Plugin => ({
   name: "suggest-proxy",
   configureServer(server) {
-    server.middlewares.use("/api/suggest", async (req, res) => {
+    server.middlewares.use("/suggest", async (req, res) => {
       if (req.method !== "GET") {
         res.statusCode = 405;
         res.end();
@@ -294,13 +294,13 @@ const suggestProxy = (): Plugin => ({
 });
 
 /**
- * Dev-only: proxies GET /api/rss/feed?url=... using rss-parser.
- * Mirrors api/rss/feed.js exactly.
+ * Dev-only: proxies GET /rss/feed?url=... using rss-parser.
+ * Mirrors rss/feed.js exactly.
  */
 const rssProxy = (): Plugin => ({
   name: "rss-proxy",
   configureServer(server) {
-    server.middlewares.use("/api/rss/feed", async (req, res) => {
+    server.middlewares.use("/rss/feed", async (req, res) => {
       if (req.method !== "GET") { res.statusCode = 405; res.end(); return; }
       const qs = (req.url ?? "").split("?")[1] ?? "";
       const url = decodeURIComponent(new URLSearchParams(qs).get("url") ?? "");
