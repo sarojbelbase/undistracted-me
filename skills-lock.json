@@ -31,6 +31,12 @@
       "sourceType": "github",
       "computedHash": "9ae38e4e201f338b6150e462b98a2db0f2ae7c180c77e8cfb1d33eba9d33bf33"
     },
+    "cross-browser-testing": {
+      "source": "petrkindlmann/qa-skills",
+      "sourceType": "github",
+      "skillPath": "skills/cross-browser-testing/SKILL.md",
+      "computedHash": "c77d57fe95852c7625695d0be55c89ef95bd1c5b361cc8bf294a6873ec6f8187"
+    },
     "e2e-testing-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",
