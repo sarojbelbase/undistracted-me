@@ -1,7 +1,7 @@
 /**
  * Runtime environment & feature flags.
  *
- * Set VITE_WEBSITE_MODE=true when deploying as a regular website (e.g. Vercel).
+ * Set VITE_WEBSITE_MODE=true when deploying as a regular website (e.g. Cloudflare Pages).
  * Leave unset (or false) for the Chrome / Firefox extension builds.
  *
  * ┌──────────────────────────────────────────┬──────────┬─────────┐
@@ -12,7 +12,7 @@
  * │ Widget grid (clock, notes, countdown…)   │    ✅    │   ✅    │
  * │ Focus Mode + LookAway                    │    ✅    │   ✅    │
  * │ Weather widget (OpenWeatherMap)          │    ✅    │   ✅    │
- * │ Curated photo backgrounds (Vercel Blob)  │    ✅    │   ✅    │
+ * │ Curated photo backgrounds (Cloudflare R2)  │    ✅    │   ✅    │
  * │ localStorage persistence                 │    ✅    │   ✅    │
  * │ Dynamic browser-tab favicon (date)       │    ✅    │   ✗     │
  * ├──────────────────────────────────────────┼──────────┼─────────┤

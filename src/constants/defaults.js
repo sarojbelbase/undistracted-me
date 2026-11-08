@@ -22,7 +22,6 @@
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
 
 export const APP_SETTINGS_DEFAULTS = Object.freeze({
-  language: "en",
   accent: "Matte Black",
   mode: "light", // resolved against prefers-color-scheme at first boot
   defaultView: "canvas",
@@ -56,7 +55,10 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
 
 // ─── Widget settings defaults (keyed by widget type) ──────────────────────────
 
-export const WIDGET_SETTINGS_DEFAULTS = {
+// Frozen (shallow) so callers can't accidentally mutate the shared defaults by
+// reference — `useWidgetSettings` returns a copy, and any in-place mutation of
+// a default would otherwise corrupt the value for every widget instance.
+export const WIDGET_SETTINGS_DEFAULTS = Object.freeze({
   clock: { format: "24h", timezones: [] },
   dateToday: { language: "en" },
   calendar: { calendarType: "bs", showHolidays: true },
@@ -92,7 +94,7 @@ export const WIDGET_SETTINGS_DEFAULTS = {
     monthBudget: "",
     yearBudget: "",
   },
-};
+});
 
 // ─── Notification type registry ───────────────────────────────────────────────
 
@@ -119,9 +121,6 @@ export const DEFAULT_SYMBOLS = ["NEPSE"];
 
 /** Default active RSS feeds. */
 export const DEFAULT_RSS_ACTIVE_IDS = ["hn", "bbc", "guardian"];
-
-/** Legacy single-feed default still used by useRss. */
-export const DEFAULT_RSS_FEED_ID = "hn";
 
 /** Default progress widget period + calendar. */
 export const DEFAULT_PROGRESS_PERIOD = "day";
@@ -152,40 +151,40 @@ export const DEFAULT_CATEGORIES = [
 // ─── First-run demo content (Quick Tour seed / reset) ─────────────────────────
 
 /** Occasions — stored in localStorage 'birthdays_manual'. */
-export const DEMO_OCCASIONS = [
+export const DEMO_OCCASIONS = Object.freeze([
   { id: "demo_suman_birthday", name: "Suman", type: "birthday", month: 4, day: 8, _source: "manual" },
   { id: "demo_parents_anniversary", name: "Mom & Dad", type: "anniversary", month: 1, day: 15, _source: "manual" },
-];
+]);
 
 /** Countdown events — stored in localStorage 'countdown_events'. */
-export const DEMO_COUNTDOWN_EVENTS = [
+export const DEMO_COUNTDOWN_EVENTS = Object.freeze([
   { id: "demo_salary", title: "Salary Day", targetDate: null, targetTime: "17:00", repeat: "monthly" },
-];
+]);
 
 /** Calendar events — stored in localStorage 'widget_events'. */
-export const DEMO_EVENTS = [
+export const DEMO_EVENTS = Object.freeze([
   { id: "demo_leetcode", title: "Solve LeetCode", startDate: "2030-03-15", startTime: "", endDate: "", endTime: "" },
   { id: "demo_trekking", title: "Plan Another Trekking", startDate: "2032-05-01", startTime: "", endDate: "", endTime: "" },
-];
+]);
 
 /** Bookmark widget settings — written to widgetSettings['bookmark']. */
-export const DEMO_BOOKMARK_SETTINGS = {
+export const DEMO_BOOKMARK_SETTINGS = Object.freeze({
   url: "https://buymemomo.com/sarojbelbase",
   name: "Buy Me Momo",
   iconMode: "favicon",
-};
+});
 
 /** Pomodoro timer state — stored in localStorage 'pomodoro_timer_state_pomodoro'. */
-export const DEMO_POMODORO_STATE = {
+export const DEMO_POMODORO_STATE = Object.freeze({
   phase: "timer",
   preset: "30 min",
   duration: 1800,
   remaining: 1800,
   running: true,
-};
+});
 
 /** Notes widget settings — written to widgetSettings['notes']. */
-export const DEMO_NOTES_SETTINGS = {
+export const DEMO_NOTES_SETTINGS = Object.freeze({
   notes: ["✅ Today's goals\n• Deep work — 2 focused blocks\n• Review PRs\n• Exercise 30 min"],
   idx: 0,
-};
+});

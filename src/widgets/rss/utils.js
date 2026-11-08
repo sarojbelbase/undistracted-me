@@ -15,7 +15,6 @@ export { PRESET_FEEDS, PRESET_CATEGORIES } from './feeds.js';
 // Default feed IDs live in constants/defaults.js (single source of truth).
 export {
   DEFAULT_RSS_ACTIVE_IDS as DEFAULT_ACTIVE_IDS,
-  DEFAULT_RSS_FEED_ID as DEFAULT_FEED_ID,
 } from '../../constants/defaults.js';
 
 // ── Environment detection ─────────────────────────────────────────────────────
@@ -29,34 +28,6 @@ export function rssUrl(feedUrl) {
   const encoded = encodeURIComponent(feedUrl);
   if (isDev) return `/rss/feed?url=${encoded}`;
   return `${RSS_FEED_PROXY_URL}?url=${encoded}`;
-}
-
-// ── localStorage cache (TTL: 10 min) ─────────────────────────────────────────
-
-const CACHE_TTL = 10 * 60 * 1000;
-
-/**
- * Read a cached feed from localStorage. Returns null when absent or expired.
- * Shape: { items: [...], ts: number }
- */
-export function readRssCache(feedId) {
-  try {
-    const raw = localStorage.getItem(`rss_cache_${feedId}`);
-    if (!raw) return null;
-    const cached = JSON.parse(raw);
-    if (Date.now() - cached.ts > CACHE_TTL) return null;
-    return cached;
-  } catch { return null; }
-}
-
-/** Write items + timestamps for a feed to localStorage. */
-export function writeRssCache(feedId, items, fetchedAt = null) {
-  try {
-    localStorage.setItem(
-      `rss_cache_${feedId}`,
-      JSON.stringify({ items, ts: Date.now(), fetchedAt }),
-    );
-  } catch { /* quota exceeded — ignore */ }
 }
 
 // ── Fetch helper ──────────────────────────────────────────────────────────────

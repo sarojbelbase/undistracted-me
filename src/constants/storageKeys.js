@@ -68,7 +68,6 @@ export const STORAGE_KEYS = Object.freeze({
 
   // ── Legacy / migration keys (read-only, never written by new code) ────
   _LEGACY: Object.freeze({
-    LANGUAGE: "language",
     ACCENT: "app_accent",
     MODE: "app_mode",
     DEFAULT_VIEW: "defaultView",

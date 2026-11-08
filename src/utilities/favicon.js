@@ -118,7 +118,7 @@ export const extractColorFromUrl = (src, onColor) => {
 /**
  * Extract the dominant colour from an already-loaded HTMLImageElement.
  * The image must have been loaded with crossOrigin="anonymous" for canvas
- * access to work across origins (Vercel Blob / /_vercel/image both allow it).
+ * access to work across origins (Cloudflare R2 / the image endpoint both allow it).
  */
 export const extractColorFromImage = (imgEl, onColor) => {
   if (!imgEl) return;
