@@ -109,36 +109,11 @@ export const useWidgetInstancesStore = create(
           const src = state.instances.find((i) => i.id === sourceId);
           if (!src) return {};
           const id = mkId(src.type);
-          const srcSettings = state.widgetSettings[sourceId];
-          return {
-            instances: [...state.instances, { id, type: src.type }],
-            widgetSettings: srcSettings
-              ? {
-                  ...state.widgetSettings,
-                  [id]: JSON.parse(JSON.stringify(srcSettings)),
-                }
-              : state.widgetSettings,
-          };
-        });
-      },
-
-      /**
-       * "Pin to top" — move the instance to the FRONT of the instances array.
-       * No-op if already at index 0 (or unknown). The visual top position is
-       * persisted separately (layout write) by WidgetGrid, which owns REG_MAP.
-       */
-      pinInstance: (id) => {
-        set((state) => {
-          const idx = state.instances.findIndex((i) => i.id === id);
-          if (idx <= 0) return {};
-          const item = state.instances[idx];
-          return {
-            instances: [
-              item,
-              ...state.instances.slice(0, idx),
-              ...state.instances.slice(idx + 1),
-            ],
-          };
+          // The duplicate starts empty (fresh defaults) — no settings are copied
+          // from the source, so it lands in the same "first-run" state as a
+          // newly added widget. `useWidgetSettings` falls back to defaults when
+          // no entry exists for the new id.
+          return { instances: [...state.instances, { id, type: src.type }] };
         });
       },
 
