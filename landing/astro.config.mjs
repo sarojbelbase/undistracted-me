@@ -11,7 +11,11 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   integrations: [
-    sitemap(),
+    sitemap({
+      // `public/pp-and-tos.html` is a static file, not an Astro route, so it
+      // isn't picked up automatically — list it explicitly.
+      customPages: ["https://undistracted.me/pp-and-tos"],
+    }),
     seoGraph({
       validateH1: true,
       validateUniqueMetadata: true,
