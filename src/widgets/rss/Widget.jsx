@@ -19,6 +19,7 @@ import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
 import { AUTO_ADVANCE_MS } from "./constants";
 import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
+import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 import { Broadcast, Rss } from "react-bootstrap-icons";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
@@ -110,34 +111,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
   }, []);
 
   // ── Gesture (drag to navigate) ────────────────────────────────────────────
-  const startX = useRef(null);
-  const dragged = useRef(false);
-  const [dragX, setDragX] = useState(0);
-  const [releasing, setReleasing] = useState(false);
-
-  const handlePointerDown = (e) => {
-    if (e.target.closest("button, a")) return;
-    if (e.button !== 0 && e.pointerType !== "touch") return;
-    startX.current = e.clientX;
-    dragged.current = false;
-    setReleasing(false);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-  const handlePointerMove = (e) => {
-    if (startX.current === null) return;
-    const dx = e.clientX - startX.current;
-    dragged.current = Math.abs(dx) > 6;
-    const resistance = (v) => Math.sign(v) * (60 * (1 - Math.exp(-Math.abs(v) / 120)));
-    setDragX(dragged.current ? resistance(dx) : 0);
-  };
-  const handlePointerUp = (e) => {
-    if (startX.current === null) return;
-    const dx = e.clientX - startX.current;
-    startX.current = null;
-    setReleasing(true);
-    setDragX(0);
-    if (Math.abs(dx) > 40) { dx < 0 ? onNext() : onPrev(); }
-  };
+  const { dragX, releasing, handlers } = useSwipeToNavigate({ onNext, onPrev });
 
   if (!item) return null;
 
@@ -152,9 +126,9 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
         transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.01}deg)` : "none",
         transition: releasing ? "transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
       }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      onPointerDown={handlers.onPointerDown}
+      onPointerMove={handlers.onPointerMove}
+      onPointerUp={handlers.onPointerUp}
       onMouseEnter={() => setNavHovered(true)}
       onMouseLeave={() => setNavHovered(false)}
       aria-label={item.title}

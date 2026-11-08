@@ -25,10 +25,10 @@ export function useRssMulti(feeds = []) {
   feedsRef.current = feeds;
 
   // SW-prefetched merged queue from the DataHub.
-  const { data, updatedAt, meta, hydrated, write } = useDataHub("rss");
+  const { data, updatedAt, entry, hydrated, write } = useDataHub("rss");
 
   // Only trust the hub entry if it was produced for the exact feed set.
-  const hasMatching = Array.isArray(data) && meta?.feedsKey === feedsKey;
+  const hasMatching = Array.isArray(data) && entry?.feedsKey === feedsKey;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
