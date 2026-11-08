@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { BaseWidget } from "../BaseWidget";
 import config from "./config";
@@ -160,11 +160,18 @@ const SunriseSunset = ({ sunTimes }) => {
  * A pulsing coloured dot + AQI number that reveals a popup with the level
  * label and PM2.5 reading on hover. Used in both Minimal and Expressive views.
  */
-const AQIBadge = ({ value, pm25 }) => {
+const AQIBadge = ({ value, pm25, variant = 'label' }) => {
   const ref = useRef(null);
   const [anchor, setAnchor] = useState(null);
   const level = getAQILevel(value);
   if (!level || value == null) return null;
+
+  // Two visual variants share the dot + hover-popup anatomy:
+  //   'label'    → dot + level label                       (minimal view)
+  //   'extended' → dot + number + label side-by-side       (expressive view)
+  const isExtended = variant === 'extended';
+  const dotSize = isExtended ? 5 : 6;
+  const gap = isExtended ? '0.3em' : '0.25em';
 
   return (
     <>
@@ -173,12 +180,12 @@ const AQIBadge = ({ value, pm25 }) => {
         role="img"
         aria-label={`Air quality: ${level.label}, AQI ${value}`}
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.28em",
-          cursor: "default",
+          display: 'flex',
+          alignItems: 'center',
+          gap,
+          cursor: 'default',
           flexShrink: 0,
-          userSelect: "none",
+          userSelect: 'none',
         }}
         onMouseEnter={() =>
           setAnchor(ref.current?.getBoundingClientRect() ?? null)
@@ -189,25 +196,50 @@ const AQIBadge = ({ value, pm25 }) => {
         <span
           aria-hidden
           style={{
-            display: "inline-block",
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
+            display: 'inline-block',
+            width: dotSize,
+            height: dotSize,
+            borderRadius: '50%',
             backgroundColor: level.color,
             flexShrink: 0,
-            animation: "aqi-breathe 2.8s ease-in-out infinite",
+            animation: 'aqi-breathe 2.8s ease-in-out infinite',
           }}
         />
-        <span
-          style={{
-            fontSize: "0.65rem",
-            fontWeight: 700,
-            color: "var(--w-ink-3)",
-            lineHeight: 1,
-          }}
-        >
-          {value}
-        </span>
+        {isExtended ? (
+          <>
+            <span
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: level.color,
+                lineHeight: 1,
+              }}
+            >
+              {value}
+            </span>
+            <span
+              style={{
+                fontSize: '0.68rem',
+                fontWeight: 500,
+                color: 'var(--w-ink-5)',
+                lineHeight: 1,
+              }}
+            >
+              {level.label}
+            </span>
+          </>
+        ) : (
+          <span
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              color: level.color,
+              lineHeight: 1,
+            }}
+          >
+            {level.label}
+          </span>
+        )}
       </div>
 
       {/* Hover popup — shows level label + PM2.5 */}
@@ -215,25 +247,25 @@ const AQIBadge = ({ value, pm25 }) => {
         <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
           <div
             style={{
-              fontSize: "0.72rem",
+              fontSize: '0.72rem',
               fontWeight: 700,
               color: level.color,
-              whiteSpace: "nowrap",
+              whiteSpace: 'nowrap',
             }}
           >
             {level.label}
           </div>
           <div
             style={{
-              fontSize: "0.65rem",
+              fontSize: '0.65rem',
               fontWeight: 500,
-              color: "var(--w-ink-4)",
-              marginTop: "1px",
-              whiteSpace: "nowrap",
+              color: 'var(--w-ink-4)',
+              marginTop: '1px',
+              whiteSpace: 'nowrap',
             }}
           >
             AQI {value}
-            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ""}
+            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ''}
           </div>
         </Popup>
       )}
@@ -351,83 +383,6 @@ const ErrorState = ({ onRetry }) => (
   </div>
 );
 
-// ── Minimal-mode AQI chip — dot + level label, hover for number + PM2.5 ──────
-const MinimalAQIChip = ({ value, pm25 }) => {
-  const ref = useRef(null);
-  const [anchor, setAnchor] = useState(null);
-  const level = getAQILevel(value);
-  if (!level || value == null) return null;
-  return (
-    <>
-      <div
-        ref={ref}
-        role="img"
-        aria-label={`Air quality: ${level.label}, AQI ${value}`}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.25em",
-          cursor: "default",
-          userSelect: "none",
-          flexShrink: 0,
-        }}
-        onMouseEnter={() =>
-          setAnchor(ref.current?.getBoundingClientRect() ?? null)
-        }
-        onMouseLeave={() => setAnchor(null)}
-      >
-        <span
-          aria-hidden
-          style={{
-            display: "inline-block",
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            backgroundColor: level.color,
-            flexShrink: 0,
-            animation: "aqi-breathe 2.8s ease-in-out infinite",
-          }}
-        />
-        <span
-          style={{
-            fontSize: "0.7rem",
-            fontWeight: 600,
-            color: level.color,
-            lineHeight: 1,
-          }}
-        >
-          {level.label}
-        </span>
-      </div>
-      {anchor && (
-        <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
-          <div
-            style={{
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              color: level.color,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {level.label}
-          </div>
-          <div
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 500,
-              color: "var(--w-ink-4)",
-              marginTop: "1px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            AQI {value}
-            {pm25 != null ? ` · PM2.5 ${pm25} μg/m³` : ""}
-          </div>
-        </Popup>
-      )}
-    </>
-  );
-};
 // ── Minimal mode — Apple Weather-style ───────────────────────────────────────
 // Layout: condition at top · hero temp centred · bottom row (city+AQI left / sun event right)
 const MinimalView = ({
@@ -455,7 +410,7 @@ const MinimalView = ({
         </span>
       </div>
       {showAQI && aqi?.value != null && (
-        <MinimalAQIChip value={aqi.value} pm25={aqi.pm25} />
+        <AQIBadge value={aqi.value} pm25={aqi.pm25} />
       )}
     </div>
 
@@ -534,88 +489,6 @@ const MinimalView = ({
     </div>
   </div>
 );
-
-const AQIBadgeExtended = ({ aqi, aqiLevel }) => {
-  const ref = useRef(null);
-  const [anchor, setAnchor] = useState(null);
-  return (
-    <>
-      <div
-        ref={ref}
-        onMouseEnter={() =>
-          setAnchor(ref.current?.getBoundingClientRect() ?? null)
-        }
-        onMouseLeave={() => setAnchor(null)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.3em",
-          cursor: "default",
-          userSelect: "none",
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            display: "inline-block",
-            width: 5,
-            height: 5,
-            borderRadius: "50%",
-            backgroundColor: aqiLevel.color,
-            flexShrink: 0,
-            animation: "aqi-breathe 2.8s ease-in-out infinite",
-          }}
-        />
-        <span
-          style={{
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            color: aqiLevel.color,
-            lineHeight: 1,
-          }}
-        >
-          {aqi.value}
-        </span>
-        <span
-          style={{
-            fontSize: "0.68rem",
-            fontWeight: 500,
-            color: "var(--w-ink-5)",
-            lineHeight: 1,
-          }}
-        >
-          {aqiLevel.label}
-        </span>
-      </div>
-      {anchor && (
-        <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
-          <div
-            style={{
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              color: aqiLevel.color,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {aqiLevel.label}
-          </div>
-          <div
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 500,
-              color: "var(--w-ink-4)",
-              marginTop: "1px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            AQI {aqi.value}
-            {aqi.pm25 != null ? ` · PM2.5 ${aqi.pm25} μg/m³` : ""}
-          </div>
-        </Popup>
-      )}
-    </>
-  );
-};
 
 const ExpressiveView = ({
   weather,
@@ -744,7 +617,7 @@ const ExpressiveView = ({
         {/* Third line: AQI — dot (colour = severity) + number + level label */}
         {aqiLevel && (
           <div style={{ marginTop: "0.12em" }}>
-            <AQIBadgeExtended aqi={aqi} aqiLevel={aqiLevel} />
+            <AQIBadge value={aqi.value} pm25={aqi.pm25} variant="extended" />
           </div>
         )}
       </div>
@@ -926,6 +799,10 @@ export const Widget = ({ id = "weather", onRemove }) => {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [aqi, setAqi] = useState(null);
+  // Tracks the unit the currently-displayed `weather` was fetched in, so a
+  // °C↔°F switch can convert the stale value on the fly instead of briefly
+  // mislabelling it (e.g. showing "16°F" while the imperial fetch is in flight).
+  const weatherUnitRef = useRef(unit);
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -965,9 +842,29 @@ export const Widget = ({ id = "weather", onRemove }) => {
 
   // Sync hook output to widget state (allows the rest of the widget to read from
   // weather/forecast/aqi as before without changing any rendering code).
-  useEffect(() => { setWeather(hookWeather); }, [hookWeather]);
+  useEffect(() => {
+    setWeather(hookWeather);
+    weatherUnitRef.current = unit; // the unit this payload was fetched in
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hookWeather]);
   useEffect(() => { setForecast(hookForecast); }, [hookForecast]);
   useEffect(() => { setAqi(hookAqi); }, [hookAqi]);
+
+  // Convert the stale payload to the target unit while a unit switch is still
+  // fetching, so the displayed temperature is always correct for the label.
+  const displayWeather = useMemo(() => {
+    if (!weather) return null;
+    const from = weatherUnitRef.current;
+    if (from === unit) return weather;
+    const toF = (c) => Math.round((c * 9) / 5 + 32);
+    const toC = (f) => Math.round(((f - 32) * 5) / 9);
+    const conv = from === "metric" ? toF : toC;
+    return {
+      ...weather,
+      temperature: conv(weather.temperature),
+      feelsLike: weather.feelsLike != null ? conv(weather.feelsLike) : null,
+    };
+  }, [weather, unit]);
 
   // Location-denied detection
   useEffect(() => {
@@ -995,22 +892,27 @@ export const Widget = ({ id = "weather", onRemove }) => {
 
   const unitLabel = unit === "imperial" ? "F" : "C";
 
-  const quip = getWeatherQuip(forecast, weather, {
-    windGust: weather?.windGust ?? 0,
+  const quip = getWeatherQuip(forecast, displayWeather, {
+    windGust: displayWeather?.windGust ?? 0,
   });
 
   // City displayed as first comma-segment (safe when weather exists)
-  const cityShort = weather?.city?.split(",")?.[0]?.trim() || "";
+  const cityShort = displayWeather?.city?.split(",")?.[0]?.trim() || "";
 
   // Sunrise/sunset — computed locally (no API needed) from available coords
   const sunLat = location?.lat ?? geoLat;
   const sunLon = location?.lon ?? geoLon;
-  const sunTimes =
-    sunLat != null && sunLon != null ? getSunTimes(sunLat, sunLon) : null;
-  const sunEvent =
-    showSunTimes && sunLat != null && sunLon != null
-      ? getNextSunEvent(sunLat, sunLon)
-      : null;
+  const sunTimes = useMemo(
+    () => (sunLat != null && sunLon != null ? getSunTimes(sunLat, sunLon) : null),
+    [sunLat, sunLon],
+  );
+  const sunEvent = useMemo(
+    () =>
+      showSunTimes && sunLat != null && sunLon != null
+        ? getNextSunEvent(sunLat, sunLon)
+        : null,
+    [showSunTimes, sunLat, sunLon],
+  );
 
   const content = getWeatherContent({
     locationDenied,
@@ -1019,7 +921,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
     onRetry: () => {
       setRefreshKey((k) => k + 1);
     },
-    weather,
+    weather: displayWeather,
     style,
     unitLabel,
     quip,

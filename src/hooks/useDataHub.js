@@ -38,7 +38,10 @@ export function useDataHub(namespace) {
   return {
     data: entry?.data ?? null,
     updatedAt: entry?.updatedAt ?? null,
-    meta: entry ?? null,
+    // The full namespace entry ({ data, updatedAt, ...customMeta }). Named
+    // `entry` (not `meta`) because `entry.data` and `data` above are the SAME
+    // reference — this is not a separate small metadata object.
+    entry: entry ?? null,
     hydrated,
     write,
   };

@@ -7,6 +7,7 @@ import { FACTS } from "../../data/facts";
 import { useDailyJoke } from "./useDailyJoke";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 import { DailysSettings, MODE_OPTIONS } from "./Settings";
+import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
 
@@ -79,37 +80,7 @@ const AdaptiveText = ({ text, fontFamily, fontWeight, textLineHeight }) => {
 };
 
 const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
-  const startX = useRef(null);
-  const dragged = useRef(false);
-  const [dragX, setDragX] = useState(0);
-  const [releasing, setReleasing] = useState(false);
-
-  const handlePointerDown = (e) => {
-    if (e.target.closest("button, a")) return;
-    if (e.button !== 0 && e.pointerType !== "touch") return;
-    startX.current = e.clientX;
-    dragged.current = false;
-    setReleasing(false);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-  const handlePointerMove = (e) => {
-    if (startX.current === null) return;
-    const dx = e.clientX - startX.current;
-    dragged.current = Math.abs(dx) > 6;
-    const resistance = (v) =>
-      Math.sign(v) * (60 * (1 - Math.exp(-Math.abs(v) / 120)));
-    setDragX(dragged.current ? resistance(dx) : 0);
-  };
-  const handlePointerUp = (e) => {
-    if (startX.current === null) return;
-    const dx = e.clientX - startX.current;
-    startX.current = null;
-    setReleasing(true);
-    setDragX(0);
-    if (Math.abs(dx) > 40) {
-      dx < 0 ? onNext() : onPrev();
-    }
-  };
+  const { dragX, releasing, handlers } = useSwipeToNavigate({ onNext, onPrev });
 
   return (
     <div
@@ -122,9 +93,9 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
           ? "transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)"
           : "none",
       }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      onPointerDown={handlers.onPointerDown}
+      onPointerMove={handlers.onPointerMove}
+      onPointerUp={handlers.onPointerUp}
     >
       <div className="dailys-text-area">
         <AdaptiveText
