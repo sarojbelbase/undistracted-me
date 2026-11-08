@@ -26,6 +26,8 @@
  *   - Events (widget_events) — native only, GCal events are stripped
  *   - Bookmarks (widget_bookmarks)
  *   - Countdown pinned (countdown_pinned)
+ *   - Focus Mode background (focus_mode) — source, custom URL, orb palette,
+ *     selected photo (aggregated from the `fm_*` keys)
  *   - Notes index (notes_index) — note_id → file metadata; the note *content*
  *     itself is NOT synced here (it lives in per-note files managed by
  *     `notesSync.js`).
@@ -50,6 +52,7 @@ import {
   mapToElementSet,
   elementSetToObject,
 } from './syncMerge';
+import { readFocusModeState, writeFocusModeState } from './focusModeState';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -76,6 +79,7 @@ const SYNC_MAP = {
   'widget_bookmarks': STORAGE_KEYS.BOOKMARKS,
   'countdown_events': STORAGE_KEYS.COUNTDOWN_EVENTS,
   'notes_index': STORAGE_KEYS.NOTES_INDEX,
+  'focus_mode': 'focus_mode',
 };
 const SYNC_KEYS = Object.keys(SYNC_MAP);
 
@@ -100,6 +104,7 @@ let pollCleanup = null;
 let writeQueue = Promise.resolve();
 let onChangeCallbacks = new Set(); // external listeners for UI updates
 let syncHooks = new Set(); // post-sync hooks (e.g. notesSync.syncNotes)
+let refreshListeners = new Set(); // downstream state-store rehydrators
 
 /** Record the latest sync error and notify listeners (so UI can show guidance). */
 const reportError = (message) => {
@@ -313,6 +318,16 @@ const writeFingerprint = (local, remote) => {
 };
 
 /**
+ * Read a syncable value for a local key. Most keys read straight from their
+ * storage key; `focus_mode` is a virtual key that aggregates the individual
+ * `fm_*` localStorage keys (see focusModeState.js).
+ */
+const readLocalForKey = (localKey) => {
+  if (localKey === 'focus_mode') return readFocusModeState();
+  return readLocal(SYNC_MAP[localKey]);
+};
+
+/**
  * Content hash of the *local* syncable state (all sync keys, raw values). This
  * is only compared against itself over time — it detects "did anything change
  * locally since the last sync" without needing the wire format.
@@ -320,7 +335,7 @@ const writeFingerprint = (local, remote) => {
 const hashLocalState = () => {
   const parts = [];
   for (const localKey of SYNC_KEYS) {
-    const raw = readLocal(SYNC_MAP[localKey]);
+    const raw = readLocalForKey(localKey);
     parts.push(localKey + ':' + (raw === null || raw === undefined ? '∅' : hashValue(raw)));
   }
   return hashString(parts.join('|'));
@@ -401,18 +416,25 @@ const writeRemote = async (keys, devices) => {
 // ── Event dispatch for hooks ──────────────────────────────────────────────────
 
 /**
- * Dispatch a window event so hooks (useEvents, etc.) pick up changes
- * that were written to localStorage by the sync engine.
+ * Dispatch a window event so hooks (useEvents, sharedBookmarks, the countdown
+ * widget, FocusMode) pick up changes that were written to localStorage by the
+ * sync engine. The event name is keyed by the *sync* key, not the storage key.
  */
+const SYNC_HOOK_EVENTS = {
+  'widget_events': 'widget_events_changed',
+  'widget_bookmarks': 'um_bookmarks_changed',
+  'countdown_events': 'countdown_events_changed',
+  'focus_mode': 'focus_mode_changed',
+};
+
 const notifyHooks = (localKey) => {
-  if (localKey === STORAGE_KEYS.EVENTS) {
-    try {
-      globalThis.dispatchEvent(new Event('widget_events_changed'));
-    } catch {
-      /* ignore */
-    }
+  const event = SYNC_HOOK_EVENTS[localKey];
+  if (!event) return;
+  try {
+    globalThis.dispatchEvent(new Event(event));
+  } catch {
+    /* ignore */
   }
-  // For other keys, hooks subscribe via Zustand — no custom event needed.
 };
 
 // ── Merge metadata (per-key last-synced element/field sets) ──────────────────
@@ -664,6 +686,30 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
   };
 };
 
+/**
+ * Merge focus_mode (the Focus Mode background: source, custom URL, orb palette,
+ * selected photo). Field-level LWW — the same independent-field union used by
+ * settings — so a wallpaper change on one device never clobbers an unrelated
+ * background field changed concurrently on another. The local side reads from
+ * and writes to the individual `fm_*` keys via focusModeState.js.
+ * Returns { wire, changed }.
+ */
+const mergeFocusModeKey = (localKey, remoteWire) => {
+  const localState = readFocusModeState();
+  const meta = readMeta(localKey) || { fields: { items: {}, deleted: {} } };
+  const localSet = mapToElementSet(localState, meta.fields, now());
+  const remoteSet = { items: remoteWire?.fields || {}, deleted: {} };
+  const merged = mergeElementSets(localSet, remoteSet);
+  const newState = elementSetToObject(merged);
+
+  const changed = !deepEqual(newState, localState);
+  writeMeta(localKey, { fields: merged });
+  if (changed) {
+    writeFocusModeState(newState);
+  }
+  return { wire: { fields: merged.items, version: remoteWire?.version ?? 0 }, changed };
+};
+
 // ── Pull: merge remote → local ────────────────────────────────────────────────
 
 /**
@@ -715,6 +761,8 @@ const pullFromSync = async () => {
       changed = mergeSettingsKey(localKey, normalizeSettings(entry.v, entry.t)).changed;
     } else if (localKey === 'widget_instances') {
       changed = mergeWidgetInstancesKey(localKey, normalizeWidgetInstances(entry.v, entry.t)).changed;
+    } else if (localKey === 'focus_mode') {
+      changed = mergeFocusModeKey(localKey, normalizeSettings(entry.v, entry.t)).changed;
     } else if (localKey === 'notes_index') {
       const storageKey = SYNC_MAP[localKey];
       const merged = mergeNotesIndex(readLocal(storageKey), entry.v);
@@ -734,6 +782,11 @@ const pullFromSync = async () => {
   if (Object.keys(changes).length > 0) {
     lastSyncAt = now();
     lastMergeCount = Object.keys(changes).length;
+    // Rehydrate downstream stores (settings, widget instances) and any other
+    // registered listeners so the UI reflects the merged local state.
+    refreshListeners.forEach((fn) => {
+      try { fn(changes); } catch { /* ignore */ }
+    });
   }
   return changes;
 };
@@ -882,6 +935,20 @@ const pushAll = async () => {
           continue;
         }
 
+        // Focus mode background — field-level merge.
+        if (localKey === 'focus_mode') {
+          const remoteEntry = keys[localKey];
+          const remoteWire = normalizeSettings(remoteEntry?.v, remoteEntry?.t);
+          const { wire } = mergeFocusModeKey(localKey, remoteWire);
+          if (!deepEqual(wire, remoteWire)) {
+            const ts = now();
+            keys[localKey] = { v: wire, t: ts };
+            setLocalTs(localKey, ts);
+            changed = true;
+          }
+          continue;
+        }
+
         // Notes index — union merge (local wins where newer).
         const local = readLocal(storageKey);
         if (local === null || local === undefined) continue;
@@ -1012,7 +1079,6 @@ const adoptRemote = (localKey, entry) => {
     const set = normalizeElementSet(entry.v, entry.t);
     writeLocal(storageKey, elementSetToArray(set, []));
     writeMeta(localKey, set);
-    notifyHooks(localKey);
     return;
   }
 
@@ -1038,6 +1104,13 @@ const adoptRemote = (localKey, entry) => {
     if (version !== undefined) nextRaw.version = version;
     writeLocal(storageKey, nextRaw);
     writeMeta(localKey, { instances, widgetSettings });
+    return;
+  }
+
+  if (localKey === 'focus_mode') {
+    const { fields } = normalizeSettings(entry.v, entry.t);
+    writeFocusModeState(elementSetToObject({ items: fields, deleted: {} }));
+    writeMeta(localKey, { fields: { items: fields, deleted: {} } });
     return;
   }
 
@@ -1069,11 +1142,22 @@ const pullSync = async () => {
 
   clearError();
   let changed = false;
+  const changedKeys = {};
   for (const localKey of SYNC_KEYS) {
     const entry = remote.keys?.[localKey];
     if (!entry) continue;
     adoptRemote(localKey, entry);
     changed = true;
+    changedKeys[localKey] = true;
+    notifyHooks(localKey);
+  }
+
+  if (changed) {
+    // Rehydrate downstream stores (settings, widget instances) and any other
+    // registered listeners so the UI reflects the pulled local state.
+    refreshListeners.forEach((fn) => {
+      try { fn(changedKeys); } catch { /* ignore */ }
+    });
   }
 
   pendingConflict = null;
@@ -1107,8 +1191,7 @@ const pushSync = async () => {
   const metaUpdates = {};
   const ts = now();
   for (const localKey of SYNC_KEYS) {
-    const storageKey = SYNC_MAP[localKey];
-    const raw = readLocal(storageKey);
+    const raw = readLocalForKey(localKey);
     if (raw == null) continue;
 
     if (ARRAY_KEYS.has(localKey)) {
@@ -1131,6 +1214,11 @@ const pushSync = async () => {
       const wsSet = mapToElementSet(ws, { items: {}, deleted: {} }, ts);
       keys[localKey] = { v: { instances: instSet, widgetSettings: wsSet, version: raw.version ?? 0 }, t: ts };
       metaUpdates[localKey] = { instances: instSet, widgetSettings: wsSet };
+    } else if (localKey === 'focus_mode') {
+      const state = readFocusModeState();
+      const set = mapToElementSet(state, { items: {}, deleted: {} }, ts);
+      keys[localKey] = { v: { fields: set.items, version: 0 }, t: ts };
+      metaUpdates[localKey] = { fields: set };
     } else if (localKey === 'notes_index') {
       keys[localKey] = { v: raw, t: ts };
     }
@@ -1341,6 +1429,18 @@ const registerSyncHook = (fn) => {
   return () => syncHooks.delete(fn);
 };
 
+/**
+ * Register a listener invoked whenever a sync pull/merge writes incoming
+ * changes to localStorage. The callback receives the changed sync keys
+ * (`{ <localKey>: true }`). Used by the sync-refresh bridge to rehydrate the
+ * Zustand stores so the UI reflects merged settings and widget instances
+ * immediately. Returns an unsubscribe function.
+ */
+const registerRefreshListener = (fn) => {
+  refreshListeners.add(fn);
+  return () => refreshListeners.delete(fn);
+};
+
 /** Run all registered post-sync hooks (awaiting each in turn). */
 const runSyncHooks = async () => {
   let changed = false;
@@ -1446,6 +1546,7 @@ const syncEngine = {
   initSync,
   onSyncChange,
   registerSyncHook,
+  registerRefreshListener,
   SYNC_MAP, // exposed so stores know which keys to watch
 };
 
