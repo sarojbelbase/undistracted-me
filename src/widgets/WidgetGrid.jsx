@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Responsive, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 
@@ -60,12 +60,36 @@ const loadLayouts = () => {
   return {};
 };
 
-// Self-registering render — new widgets just need an entry in WIDGET_COMPONENTS.
-const renderWidget = (id, type, onRemove) => {
+// Memoized widget cell — isolates each widget subtree from grid re-renders.
+// react-grid-layout fires onLayoutChange per drag pixel, re-rendering the whole
+// grid. Without memo that re-rendered all 16 widgets' internals at 60Hz during
+// a drag. The context value + onRemove are memoized per (id) so React.memo
+// actually pays off — otherwise the fresh `{ id, duplicate }` object and inline
+// arrows would defeat it and force every BaseWidget subtree to re-render.
+const WidgetCell = React.memo(function WidgetCell({
+  id,
+  type,
+  onRemoveInstance,
+  duplicateInstance,
+}) {
+  const onRemove = useMemo(
+    () => (onRemoveInstance ? () => onRemoveInstance(id) : undefined),
+    [onRemoveInstance, id],
+  );
+  const contextValue = useMemo(
+    () => ({ id, duplicate: () => duplicateInstance(id) }),
+    [id, duplicateInstance],
+  );
+
   const Component = WIDGET_COMPONENTS[type];
   if (!Component) return null;
-  return <Component id={id} onRemove={onRemove} />;
-};
+
+  return (
+    <WidgetActionsContext.Provider value={contextValue}>
+      <Component id={id} onRemove={onRemove} />
+    </WidgetActionsContext.Provider>
+  );
+});
 
 /** Shown when there are no renderable widgets (all removed, or unknown types). */
 const EmptyCanvas = () => (
@@ -94,8 +118,18 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
   // meaning setWidth() is called with an unchanged value and React skips all
   // post-mount re-renders. Without this, 2-3 forced re-renders caused the blink.
+  //
+  // debounceTimeout: when a window resize crosses a breakpoint, react-grid-layout
+  // re-renders once per ResizeObserver firing *and* once more in its own
+  // breakpoint-detection useEffect (new width + stale cols, then corrected cols).
+  // During a fast resize that's a burst of transient layouts — widgets visibly
+  // flash through wrong positions before settling (worst on frosted-glass cards
+  // whose backdrop-filter re-rasterizes every frame). Debouncing the width update
+  // coalesces the burst into a single width change → a single, imperceptible
+  // relayout instead of a multi-frame glitch.
   const { width, containerRef } = useContainerWidth({
     initialWidth: globalThis.innerWidth ?? 1280,
+    debounceTimeout: 120,
   });
 
   // Quantize the container width so column widths are always integer CSS pixels.
@@ -104,6 +138,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // positions causing persistent blur. Uses breakpoint-specific cols/margin/padding
   // so the snap is accurate at every viewport size, not just lg.
   const quantizedWidth = quantizeWidth(width);
+  // Breakpoint is derived from the SAME width RGL receives (quantizedWidth), and
+  // fed back as a controlled `breakpoint` + `key`. Without the key, RGL keeps
+  // `cols` as internal state updated in a post-render effect, so a breakpoint
+  // crossing renders once with stale cols (widgets flash to wrong/off-screen
+  // positions) before the effect corrects it. Remounting on breakpoint change
+  // makes RGL compute the correct cols + layout synchronously on mount → a single
+  // clean swap instead of a multi-frame glitch.
+  const currentBp = (BP_SPECS.find((s) => quantizedWidth >= s.minW) ?? BP_SPECS.at(-1)).name;
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
@@ -255,20 +297,17 @@ export const WidgetGrid = React.memo(function WidgetGrid({
         <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
           {sorted.map(({ id, type }) => {
             const reg = REG_MAP[type];
-            const widget = renderWidget(id, type, onRemoveInstance ? () => onRemoveInstance(id) : undefined);
-            if (!widget || !reg) return null;
+            if (!WIDGET_COMPONENTS[type] || !reg) return null;
             const h = reg.breakpoints?.xxs?.h ?? reg.h;
             const height = h * ROW_H + (h - 1) * GAP;
             return (
               <div key={id} data-widget-type={type} style={{ height }}>
-                <WidgetActionsContext.Provider
-                  value={{
-                    id,
-                    duplicate: () => duplicateInstance(id),
-                  }}
-                >
-                  <Suspense fallback={null}>{widget}</Suspense>
-                </WidgetActionsContext.Provider>
+                <WidgetCell
+                  id={id}
+                  type={type}
+                  onRemoveInstance={onRemoveInstance}
+                  duplicateInstance={duplicateInstance}
+                />
               </div>
             );
           })}
@@ -288,9 +327,11 @@ export const WidgetGrid = React.memo(function WidgetGrid({
            snapping is split evenly across both sides instead of all landing on the right. */}
       <div style={{ width: quantizedWidth, margin: "0 auto" }}>
         <Responsive
+          key={currentBp}
           className="layout"
           layouts={layoutItems}
           width={quantizedWidth}
+          breakpoint={currentBp}
           breakpoints={RGL_BREAKPOINTS}
           cols={RGL_COLS}
           rowHeight={8.5}
@@ -309,12 +350,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           onDragStop={handleDragStop}
         >
           {(instances || []).map(({ id, type }) => {
-            const widget = renderWidget(
-              id,
-              type,
-              onRemoveInstance ? () => onRemoveInstance(id) : undefined,
-            );
-            if (!widget) return null;
+            if (!WIDGET_COMPONENTS[type]) return null;
             return (
               <div
                 key={id}
@@ -356,14 +392,12 @@ export const WidgetGrid = React.memo(function WidgetGrid({
                   style={{ pointerEvents: arrangeMode ? "none" : undefined }}
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <WidgetActionsContext.Provider
-                    value={{
-                      id,
-                      duplicate: () => duplicateInstance(id),
-                    }}
-                  >
-                    <Suspense fallback={null}>{widget}</Suspense>
-                  </WidgetActionsContext.Provider>
+                  <WidgetCell
+                    id={id}
+                    type={type}
+                    onRemoveInstance={onRemoveInstance}
+                    duplicateInstance={duplicateInstance}
+                  />
                 </div>
               </div>
             );
