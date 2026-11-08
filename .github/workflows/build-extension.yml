@@ -32,7 +32,7 @@ jobs:
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
-        run: bun run build && bun run build:firefox
+        run: bun run build:firefox
 
       - name: Build for Chrome
         if: matrix.browser == 'chrome'
@@ -40,7 +40,7 @@ jobs:
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
-        run: bun run build && bun run build:chrome
+        run: bun run build:chrome
 
       - name: Rename Firefox zip
         if: matrix.browser == 'firefox'

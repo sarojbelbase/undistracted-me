@@ -24,7 +24,7 @@ GH_REPO       ?= sarojbelbase/undistracted-me
 PAGES_PROJECT ?= undistracted-me-app
 API_PROJECT   ?= undistracted-me-api
 
-.PHONY: push_secrets push_cloudflare secrets
+.PHONY: push_secrets push_cloudflare secrets build build-chrome build-firefox start-firefox
 
 ## Publish VITE_* build secrets to GitHub Actions.
 push_secrets:
@@ -45,3 +45,32 @@ push_cloudflare:
 
 ## Publish to both GitHub Actions and Cloudflare Pages.
 secrets: push_secrets push_cloudflare
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Extension builds
+#
+#   make build           Chrome (unpacked) build → dist/
+#   make build-chrome    Chrome Web Store zip    → builds/chrome.zip
+#   make build-firefox   Firefox Addons zip      → builds/*.zip (web-ext)
+#   make start-firefox   Run the Firefox build locally via web-ext
+#
+# Chrome and Firefox builds are isolated: Chrome builds to `dist/`, Firefox
+# builds to a cloned `dist-firefox/` (patched by scripts/patch-manifest-firefox.mjs)
+# so the Chrome `key`/extension-ID is never clobbered.
+# ─────────────────────────────────────────────────────────────────────────────
+
+## Build the Chrome (unpacked) extension into dist/.
+build:
+	bun run build
+
+## Build + zip for the Chrome Web Store.
+build-chrome:
+	bun run build:chrome
+
+## Build + zip for Firefox Addons (isolated dist-firefox/).
+build-firefox:
+	bun run build:firefox
+
+## Build and run the Firefox extension locally via web-ext.
+start-firefox:
+	bun run start:firefox
