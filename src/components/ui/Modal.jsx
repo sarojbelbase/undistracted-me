@@ -32,6 +32,7 @@ export const Modal = ({
   const prevFocusRef = useRef(
     typeof document !== "undefined" ? document.activeElement : null,
   );
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
@@ -40,6 +41,44 @@ export const Modal = ({
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  // Move focus into the dialog on mount (the <dialog> is tabIndex=-1 but was
+  // never actually focused, so keyboard/screen-reader users had no target).
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const focusables = el.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    const first = focusables[0];
+    if (first) first.focus();
+    else el.focus();
+  }, []);
+
+  // Lightweight focus trap — keep Tab/Shift+Tab cycling inside the dialog so
+  // focus can't escape to the page behind the modal.
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key !== "Tab") return;
+      const el = dialogRef.current;
+      if (!el) return;
+      const focusables = [...el.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )].filter((n) => !n.disabled && n.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -62,6 +101,7 @@ export const Modal = ({
 
   return createPortal(
     <dialog
+      ref={dialogRef}
       open
       aria-modal="true"
       aria-label={ariaLabel ?? title ?? "Dialog"}

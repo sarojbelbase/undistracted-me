@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { LockFill } from 'react-bootstrap-icons';
 import { MESSAGES } from '../../data/lookawayMessages';
@@ -71,15 +71,22 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
   );
 
   // ── Graceful dismiss: play exit animation then unmount ────────────────────
+  // The 500ms exit timer is tracked so it can't fire onDismiss/onSnooze after
+  // the overlay has already unmounted.
+  const dismissTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(dismissTimerRef.current), []);
+
   const dismiss = useCallback(() => {
     setIsExiting(true);
-    setTimeout(onDismiss, 500);
+    clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(onDismiss, 500);
   }, [onDismiss]);
 
   const handleSnooze = useCallback((mins) => {
     setSnoozeActive(mins);
     setIsExiting(true);
-    setTimeout(() => onSnooze?.(mins), 500);
+    clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(() => onSnooze?.(mins), 500);
   }, [onSnooze]);
 
   // ── Countdown ──────────────────────────────────────────────────────────────
@@ -106,7 +113,8 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
   const handleLockScreen = useCallback(() => {
     const el = document.documentElement;
     if (!document.fullscreenElement && el.requestFullscreen) {
-      el.requestFullscreen().catch(() => { });
+      const p = el.requestFullscreen();
+      if (p?.catch) p.catch((err) => console.warn('[lookaway] requestFullscreen failed:', err));
     }
   }, []);
 

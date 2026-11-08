@@ -4,7 +4,7 @@
  * rendering to components. Styling lives in _popup.scss.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSettingsStore } from "../store/useSettingsStore";
 import { useLocationStore } from "../store/useLocationStore";
 import { useShallow } from "zustand/react/shallow";
@@ -75,7 +75,15 @@ const relSun = (lat, lon) => {
 
 export const PopupApp = () => {
   const [clockTick, setClockTick] = useState(0);
-  useEffect(() => onClockTick(() => setClockTick(n => n + 1)), []);
+  // The popup clock shows HH:MM — tick at minute granularity, not 60×/minute.
+  const minuteRef = useRef(Math.floor(Date.now() / 60000));
+  useEffect(() => onClockTick(() => {
+    const m = Math.floor(Date.now() / 60000);
+    if (m !== minuteRef.current) {
+      minuteRef.current = m;
+      setClockTick((n) => n + 1);
+    }
+  }), []);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const mode = useSettingsStore((s) => s.mode);

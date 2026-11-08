@@ -84,7 +84,8 @@ const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const MINUTES_COARSE = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
 const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinute, onSetAmPm, onTabChange, onClose }) => {
-  const { cardStyle, mode: themeMode } = useSettingsStore();
+  const cardStyle = useSettingsStore((s) => s.cardStyle);
+  const themeMode = useSettingsStore((s) => s.mode);
   const isGlass = cardStyle === 'glass';
   const isDark = themeMode === 'dark' || (themeMode === 'auto' && document.documentElement.dataset.mode === 'dark');
   let popBg, popBorder, trackBg;
@@ -167,7 +168,8 @@ const TimePopover = ({ anchorEl, hour12, minute, ampm, tab, onSetHour, onSetMinu
 };
 
 const CalendarPopover = ({ anchorEl, navYear, navMonth, selYear, selMonth, selDay, onSelectDay, onNavMonth, onClose }) => {
-  const { cardStyle, mode } = useSettingsStore();
+  const cardStyle = useSettingsStore((s) => s.cardStyle);
+  const mode = useSettingsStore((s) => s.mode);
   const isGlass = cardStyle === 'glass';
   const isDark = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
   let popBg, popBorder;
@@ -263,7 +265,8 @@ export const SegmentedDateTime = ({
   time = '',
   onTimeChange,
 }) => {
-  const { cardStyle, mode: themeMode } = useSettingsStore();
+  const cardStyle = useSettingsStore((s) => s.cardStyle);
+  const themeMode = useSettingsStore((s) => s.mode);
   const isGlass = cardStyle === 'glass';
   const isDark = themeMode === 'dark' || (themeMode === 'auto' && document.documentElement.dataset.mode === 'dark');
   const wrapRef = useRef(null);
@@ -601,9 +604,9 @@ export const SegmentedDateTime = ({
           ampm={tp.ampm}
           tab={timeTab}
           onTabChange={setTimeTab}
-          onSetHour={(h) => { goTime(h, tp.ampm, tp.minute); }}
-          onSetMinute={(m) => { goTime(tp.hour12, tp.ampm, m); }}
-          onSetAmPm={(a) => { goTime(tp.hour12, a, tp.minute); }}
+          onSetHour={(h) => { goTime(h, tp.ampm, tp.minute); setTimeTab('minute'); }}
+          onSetMinute={(m) => { goTime(tp.hour12, tp.ampm, m); closeTimePicker(); }}
+          onSetAmPm={(a) => { goTime(tp.hour12, a, tp.minute); closeTimePicker(); }}
           onClose={closeTimePicker}
         />
       )}

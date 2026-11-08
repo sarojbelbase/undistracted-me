@@ -134,7 +134,8 @@ export const ToggleRow = ({ label, description, checked, onChange, borderTop = f
 //  privacyLabel  string|null — shown in footer with lock icon
 
 export const AccountSection = ({ icon, label = 'Google', description = null, privacyLabel = null }) => {
-  const { connected, profile } = useGoogleAccountStore();
+  const connected = useGoogleAccountStore((s) => s.connected);
+  const profile = useGoogleAccountStore((s) => s.profile);
   const openAccountsDialog = useUIStore(s => s.openAccountsDialog);
 
   const pillStyle = {

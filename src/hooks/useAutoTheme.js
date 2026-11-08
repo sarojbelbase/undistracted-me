@@ -35,11 +35,10 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
 
 export const useAutoTheme = (mode, accent, cardStyle = "glass") => {
   // Read location + sun data from the centralized store
-  const { lat, lon, source, sunrise, sunset } = useLocationStore(
+  const { lat, lon, sunrise, sunset } = useLocationStore(
     useShallow((s) => ({
       lat: s.lat,
       lon: s.lon,
-      source: s.source,
       sunrise: s.sunrise,
       sunset: s.sunset,
     })),

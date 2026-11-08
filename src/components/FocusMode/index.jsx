@@ -224,8 +224,16 @@ export const FocusMode = ({ onExit }) => {
   }, [isFullscreen, resetHideTimer]);
 
   const toggleFullscreen = useCallback(() => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else document.documentElement.requestFullscreen().catch(() => {});
+    // Surface failures instead of silently swallowing them (a rejected
+    // requestFullscreen in an iframe/headless context otherwise looks like a
+    // dead button with no way to diagnose it).
+    if (document.fullscreenElement) {
+      const p = document.exitFullscreen();
+      if (p?.catch) p.catch((err) => console.warn('[focus] exitFullscreen failed:', err));
+    } else {
+      const p = document.documentElement.requestFullscreen?.();
+      if (p?.catch) p.catch((err) => console.warn('[focus] requestFullscreen failed:', err));
+    }
   }, []);
 
   // ── Google auth (shared state for Tasks panel) ──────────────────

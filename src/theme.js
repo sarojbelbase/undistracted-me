@@ -74,9 +74,16 @@ const _getInitTheme = () => {
   } catch {
     /* ignore */
   }
+  // Fall back to legacy per-key entries. On first install (nothing stored),
+  // respect the OS color-scheme preference — otherwise themeInit.js (imported
+  // first) paints dark, then this module-load applyTheme repaints light (FOUC +
+  // wrong mode for first-install dark-mode users).
+  const storedMode = localStorage.getItem("app_mode");
+  const prefersDark =
+    !storedMode && globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches;
   return {
     accent: localStorage.getItem("app_accent") || "Matte Black",
-    mode: localStorage.getItem("app_mode") || "light",
+    mode: storedMode || (prefersDark ? "dark" : "light"),
     cardStyle: "glass",
   };
 };

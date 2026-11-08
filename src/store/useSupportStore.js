@@ -62,3 +62,14 @@ export const useSupportStore = create((set, get) => ({
  */
 export const triggerSupportNudge = (reason) =>
   useSupportStore.getState().maybeNudge(reason);
+
+// Debug hook — exposes the store so QA can open the support dialog
+// deterministically from the console (bypasses the random gate + cooldown):
+//   window.__support.open()
+if (typeof window !== "undefined" && import.meta.env.DEV) {
+  window.__support = {
+    open: () => useSupportStore.getState().show("console"),
+    close: () => useSupportStore.getState().dismiss(),
+    reset: () => localStorage.removeItem("support_last_shown"),
+  };
+}

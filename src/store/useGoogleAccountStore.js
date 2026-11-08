@@ -33,7 +33,6 @@ export const useGoogleAccountStore = create((set, get) => ({
   connected: false,
   profile: null,   // { name, email, picture } | null
   connecting: false,
-  disconnecting: false,
   error: null,
   initialized: false,
 
@@ -93,7 +92,7 @@ export const useGoogleAccountStore = create((set, get) => ({
     localStorage.setItem(USER_DISCONNECTED_KEY, '1');
     // Update state immediately so UI responds — don't block on async token/cache cleanup.
     // (Mirroring the earlier approach: set state first, then clean up in the background.)
-    set({ connected: false, profile: null, error: null, disconnecting: false });
+    set({ connected: false, profile: null, error: null });
     // Google sign-out disables cross-device sync (Drive scope is gone).
     syncTransport.setConnected(false);
     useSettingsStore.getState().setSyncEnabled(false);

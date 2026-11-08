@@ -191,6 +191,9 @@ export function useSearchCore({
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      // Abort the in-flight suggestion fetch on cleanup, not just the next effect
+      // cycle — otherwise a fetch resolving after unmount keeps running.
+      acRef.current?.abort();
     };
   }, [query, engine, debounceMs, withHistory, doFetchSuggestions]);
 

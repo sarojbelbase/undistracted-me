@@ -73,7 +73,7 @@ async function readStoredToken() {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   }
-  const result = await chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
+  const result = await globalThis.chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
   return result[TOKEN_KEY] ?? null;
 }
 
@@ -82,7 +82,7 @@ async function writeStoredToken(tokens) {
     try { sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens)); } catch { /* ignore */ }
     return;
   }
-  await chrome?.storage?.local?.set({ [TOKEN_KEY]: tokens }); // eslint-disable-line no-undef
+  await globalThis.chrome?.storage?.local?.set({ [TOKEN_KEY]: tokens }); // eslint-disable-line no-undef
 }
 
 async function clearStoredToken() {
@@ -90,7 +90,7 @@ async function clearStoredToken() {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
     return;
   }
-  await chrome?.storage?.local?.remove(TOKEN_KEY); // eslint-disable-line no-undef
+  await globalThis.chrome?.storage?.local?.remove(TOKEN_KEY); // eslint-disable-line no-undef
 }
 
 // ─── Server-side token exchange ───────────────────────────────────────────────
@@ -115,7 +115,9 @@ async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
   return {
     access_token: body.access_token,
     refresh_token: body.refresh_token,
-    expires_at: Date.now() + body.expires_in * 1000,
+    // Guard against a missing `expires_in` (→ NaN, which would force a refresh
+    // on every call). Default to 1 hour.
+    expires_at: Date.now() + (Number(body.expires_in) || 3600) * 1000,
   };
 }
 
@@ -134,9 +136,14 @@ async function refreshStoredToken(refreshToken) {
   return {
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token || refreshToken,
-    expires_at: Date.now() + tokens.expires_in * 1000,
+    expires_at: Date.now() + (Number(tokens.expires_in) || 3600) * 1000,
   };
 }
+
+// In-flight refresh dedup — Calendar, Contacts, Tasks, and Drive all call
+// getValidStoredToken() on the same page load; without this, each expired-token
+// caller would kick off its own refreshStoredToken round-trip.
+let refreshInFlight = null;
 
 /**
  * Returns a valid stored access token, or null. Silently refreshes via the
@@ -150,10 +157,19 @@ async function getValidStoredToken() {
   if (stored.expires_at - Date.now() > 30_000) return stored.access_token;
   if (!stored.refresh_token) return null;
 
-  const refreshed = await refreshStoredToken(stored.refresh_token);
-  if (!refreshed) return null;
-  await writeStoredToken(refreshed);
-  return refreshed.access_token;
+  if (!refreshInFlight) {
+    refreshInFlight = refreshStoredToken(stored.refresh_token)
+      .then(async (refreshed) => {
+        if (refreshed) await writeStoredToken(refreshed);
+        return refreshed;
+      })
+      .catch(() => null) // network failure → treat as "no token", don't throw
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  const refreshed = await refreshInFlight;
+  return refreshed?.access_token ?? null;
 }
 
 // ─── PKCE helpers ─────────────────────────────────────────────────────────────

@@ -12,7 +12,9 @@ import { CANVAS_INPUT_TEXT } from '../../theme/canvas';
  * All props are forwarded to <input>.
  */
 export const Input = React.forwardRef(function Input({ style, ...props }, ref) {
-  const { mode } = useSettingsStore();
+  // Narrow selector — `useSettingsStore()` (whole store) would re-render every
+  // mounted Input on ANY settings change (slider drag, accent toggle, etc.).
+  const mode = useSettingsStore((s) => s.mode);
   const isDark = mode === 'dark' || (mode === 'auto' && document.documentElement.dataset.mode === 'dark');
   return (
     <input

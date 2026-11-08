@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRepeat } from 'react-bootstrap-icons';
 
 // ─── Scope pills ──────────────────────────────────────────────────────────────
 
@@ -25,7 +24,6 @@ const ScopePill = ({ label }) => (
  *  scopes          string[]           — capability bullets shown when not connected
  *  connected       boolean
  *  connecting      boolean
- *  disconnecting   boolean
  *  error           string|null
  *  profile         { name, email?, picture?, avatar?, product? } | null
  *  profileSubtitle string|null        — explicit subtitle; falls back to profile.email
@@ -39,7 +37,6 @@ export const AccountCard = ({
   scopes = [],
   connected,
   connecting = false,
-  disconnecting = false,
   error = null,
   profile = null,
   profileSubtitle = null,
@@ -110,13 +107,10 @@ export const AccountCard = ({
         <button
           type="button"
           onClick={onDisconnect}
-          disabled={disconnecting}
-          className="shrink-0 flex items-center gap-1.5 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer disabled:cursor-not-allowed"
+          className="shrink-0 flex items-center gap-1.5 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer"
           style={{ color: 'var(--w-danger, #ef4444)', background: 'none', border: 'none', padding: 0 }}
         >
-          {disconnecting
-            ? <><ArrowRepeat size={11} className="animate-spin" /> Disconnecting…</>
-            : 'Disconnect'}
+          Disconnect
         </button>
       </div>
     );

@@ -21,7 +21,22 @@ export const RightZone = ({ centerOnDark = true }) => {
   useEffect(() => {
     if (!timezones?.length) return;
     const fmt = clockFormat || '24h';
-    const tick = () => setTimes(timezones.map(tz => getTimeInZone(tz, fmt)));
+    const tick = () =>
+      setTimes((prev) => {
+        const next = timezones.map((tz) => getTimeInZone(tz, fmt));
+        // World clocks display HH:MM — the value changes once a minute. Skip the
+        // per-second re-render (and allocation) when the formatted times match.
+        if (
+          prev.length === next.length &&
+          prev.every(
+            (p, i) =>
+              p.time === next[i].time &&
+              p.period === next[i].period &&
+              p.label === next[i].label,
+          )
+        ) return prev;
+        return next;
+      });
     return onClockTick(tick);
   }, [timezones, clockFormat]);
 

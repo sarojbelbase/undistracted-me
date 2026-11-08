@@ -1,6 +1,6 @@
 import "./App.css";
 import "./styles/main.scss";
-import React, { useState, Suspense, lazy, useEffect } from "react";
+import React, { useState, Suspense, lazy, useEffect, useCallback } from "react";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
@@ -206,13 +206,11 @@ const App = () => {
   const instances = useWidgetInstancesStore((s) => s.instances);
   const addInstance = useWidgetInstancesStore((s) => s.addInstance);
   const removeInstance = useWidgetInstancesStore((s) => s.removeInstance);
-  const {
-    settingsOpenAt,
-    clearSettingsOpenAt,
-    catalogOpenRequest,
-    arrangeToggleRequest,
-    focusModeRequest,
-  } = useUIStore();
+  const settingsOpenAt = useUIStore((s) => s.settingsOpenAt);
+  const clearSettingsOpenAt = useUIStore((s) => s.clearSettingsOpenAt);
+  const catalogOpenRequest = useUIStore((s) => s.catalogOpenRequest);
+  const arrangeToggleRequest = useUIStore((s) => s.arrangeToggleRequest);
+  const focusModeRequest = useUIStore((s) => s.focusModeRequest);
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
@@ -305,6 +303,29 @@ const App = () => {
     onTrigger: () => setShowLookAway(true),
   });
 
+  // Stabilized callbacks for the LookAway overlay — inline arrows would change
+  // identity every render and re-run the overlay's 1s countdown effect.
+  const handleLookAwayDismiss = useCallback(() => {
+    setShowLookAway(false);
+    clearLookAwayDue();
+    triggerSupportNudge('lookaway');
+  }, []);
+  const handleLookAwaySnooze = useCallback((mins) => {
+    setShowLookAway(false);
+    snoozeLookAway(mins);
+  }, []);
+
+  // Stabilized handlers for ControlCluster — inline arrows change identity every
+  // render, defeating any memo on the cluster.
+  const openCatalog = useCallback(() => {
+    setShowCatalog(true);
+    closeSettings();
+  }, [closeSettings]);
+  const previewLookAway = useCallback(() => {
+    setShowLookAway(true);
+    closeSettings();
+  }, [closeSettings]);
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div
@@ -337,15 +358,9 @@ const App = () => {
             toggleSettings={toggleSettings}
             closeSettings={closeSettings}
             settingsInitialTab={settingsInitialTab}
-            onOpenCatalog={() => {
-              setShowCatalog(true);
-              closeSettings();
-            }}
+            onOpenCatalog={openCatalog}
             onPreloadCatalog={preloadCatalog}
-            onPreviewLookAway={() => {
-              setShowLookAway(true);
-              closeSettings();
-            }}
+            onPreviewLookAway={previewLookAway}
           />
 
           {showCatalog && (
@@ -382,15 +397,8 @@ const App = () => {
       {showLookAway && (
         <Suspense fallback={null}>
           <LookAway
-            onDismiss={() => {
-              setShowLookAway(false);
-              clearLookAwayDue();
-              triggerSupportNudge('lookaway');
-            }}
-            onSnooze={(mins) => {
-              setShowLookAway(false);
-              snoozeLookAway(mins);
-            }}
+            onDismiss={handleLookAwayDismiss}
+            onSnooze={handleLookAwaySnooze}
             duration={60}
             isDark={isDark}
           />

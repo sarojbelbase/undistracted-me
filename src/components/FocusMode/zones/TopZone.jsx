@@ -11,6 +11,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import {
   GearFill,
@@ -128,6 +129,7 @@ const getStartTime = async () => {
 const ScreenTime = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsed, setElapsed] = useState(0);
+  const lastMinuteRef = useRef(-1);
 
   useEffect(() => {
     getStartTime().then((ts) => {
@@ -137,7 +139,12 @@ const ScreenTime = () => {
   }, []);
 
   const tick = useCallback(() => {
-    if (startTime) setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    if (!startTime) return;
+    // The label shows whole minutes/hours — only re-render when the minute flips.
+    const minute = Math.floor((Date.now() - startTime) / 60000);
+    if (minute === lastMinuteRef.current) return;
+    lastMinuteRef.current = minute;
+    setElapsed(Math.floor((Date.now() - startTime) / 1000));
   }, [startTime]);
 
   useEffect(() => onClockTick(tick), [tick]);
@@ -343,11 +350,22 @@ export const TopZone = ({
       : getBikramSambatDateParts(),
   );
   const update = useCallback(() => {
-    setDateParts(
-      dateFormat === "gregorian"
-        ? getGregorianDateParts()
-        : getBikramSambatDateParts(),
-    );
+    setDateParts((prev) => {
+      const next =
+        dateFormat === "gregorian"
+          ? getGregorianDateParts()
+          : getBikramSambatDateParts();
+      // The date changes once a day but the clock ticks every second. Skip the
+      // re-render (and the NavBar/InfoStrip subtree it drags in) when unchanged.
+      if (
+        prev &&
+        prev.dow === next.dow &&
+        prev.month === next.month &&
+        prev.day === next.day &&
+        prev.year === next.year
+      ) return prev;
+      return next;
+    });
   }, [dateFormat]);
   useEffect(() => onClockTick(update), [update]);
 

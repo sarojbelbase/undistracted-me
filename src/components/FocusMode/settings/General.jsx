@@ -82,10 +82,12 @@ const SettingRow = ({ icon, label, description, control }) => (
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const General = () => {
-  const {
-    dateFormat, setDateFormat,
-    clockFormat, setClockFormat,
-  } = useSettingsStore();
+  // Narrow selectors — a whole-store subscription would re-render the panel on
+  // any settings change (accent, mode, notifications, …).
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const setDateFormat = useSettingsStore((s) => s.setDateFormat);
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
+  const setClockFormat = useSettingsStore((s) => s.setClockFormat);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

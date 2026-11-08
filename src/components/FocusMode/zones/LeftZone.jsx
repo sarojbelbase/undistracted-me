@@ -32,9 +32,23 @@ import { OccasionPanel } from '../panels/Occasion';
 const TickingPomodoro = () => {
   const [pomodoro, setPomodoro] = useState(() => readPomodoro());
   const lastRef = useRef(null);
+  // Cache the running state so the 1s tick advances `remaining` from the
+  // wall-clock endTime without re-reading + JSON.parsing localStorage every
+  // second. We only re-read to detect a *new* timer start (idle → running, or a
+  // freshly-persisted auto-break). This is safe in Focus Mode because
+  // PomodoroPanel is display-only — no external pause/resume writes happen here.
+  const cachedRef = useRef(null);
 
   useEffect(() => onClockTick(() => {
-    const next = readPomodoro();
+    const cached = cachedRef.current;
+    let next;
+    if (cached && cached.endTime != null) {
+      const remaining = Math.round((cached.endTime - Date.now()) / 1000);
+      next = remaining > 0 ? { ...cached, remaining } : null;
+    } else {
+      next = readPomodoro();
+    }
+    cachedRef.current = next;
     setPomodoro(next);
 
     const prev = lastRef.current;
@@ -59,6 +73,7 @@ const TickingPomodoro = () => {
           breakDuration: prev.breakDuration || 5,
           soundEnabled: prev.soundEnabled,
         });
+        cachedRef.current = readPomodoro(); // pick up the freshly-started break
       } else {
         localStorage.removeItem(STORAGE_KEYS.POMODORO);
         localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState('pomodoro'));

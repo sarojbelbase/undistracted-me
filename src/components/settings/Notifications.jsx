@@ -30,10 +30,10 @@ const SectionLabel = ({ children }) => (
 );
 
 export const Notifications = () => {
-  const {
-    notificationsEnabled, setNotificationsEnabled,
-    notificationTypes, setNotificationType,
-  } = useSettingsStore();
+  const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
+  const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
+  const notificationTypes = useSettingsStore((s) => s.notificationTypes);
+  const setNotificationType = useSettingsStore((s) => s.setNotificationType);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

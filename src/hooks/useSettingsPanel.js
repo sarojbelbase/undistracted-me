@@ -7,6 +7,11 @@ export function useSettingsPanel() {
   const [showSettings, setShowSettings] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState(DEFAULT_SETTINGS_TAB);
   const panelRef = useRef(null);
+  // Mirror of showSettings so toggleSettings can read the current value without
+  // a stale closure (its dep list is []) and without nesting a setState inside a
+  // setState updater (which React double-invokes in StrictMode).
+  const showSettingsRef = useRef(false);
+  showSettingsRef.current = showSettings;
 
   useEffect(() => {
     if (!showSettings) return;
@@ -27,10 +32,10 @@ export function useSettingsPanel() {
   }, [showSettings]);
 
   const toggleSettings = useCallback(() => {
-    setShowSettings(s => {
-      if (s) setSettingsInitialTab(DEFAULT_SETTINGS_TAB); // reset on close
-      return !s;
-    });
+    // Reset the initial tab when closing (read the current value from the ref —
+    // setState-in-setState is an impure updater).
+    if (showSettingsRef.current) setSettingsInitialTab(DEFAULT_SETTINGS_TAB);
+    setShowSettings((s) => !s);
   }, []);
   const closeSettings = useCallback(() => {
     setShowSettings(false);
