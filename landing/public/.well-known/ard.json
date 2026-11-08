@@ -1,0 +1,16 @@
+{
+  "entries": [
+    {
+      "identifier": "urn:air:undistracted.me:api",
+      "displayName": "Undistracted Me API",
+      "type": "application/json",
+      "url": "https://api.undistracted.me",
+      "description": "Backend API for the Undistracted Me new-tab dashboard: curated photo backgrounds, favicon proxy, RSS feed parser, Nepali stock data, and Google OAuth token exchange.",
+      "representativeQueries": [
+        "get curated background photos for my dashboard",
+        "parse an RSS feed for my news widget",
+        "get Nepali stock chart data"
+      ]
+    }
+  ]
+}
