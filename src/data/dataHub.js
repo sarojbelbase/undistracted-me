@@ -39,7 +39,16 @@ let storageListenerAttached = false;
 let writeChain = Promise.resolve();
 
 function emit() {
-  for (const fn of listeners) fn();
+  // Per-listener isolation — a single throwing listener must not abort the rest
+  // (and, since emit() runs inside writeEntry's write-chain, a throw would
+  // otherwise reject a subsequent write). Matches sharedClock._notify().
+  for (const fn of listeners) {
+    try {
+      fn();
+    } catch (err) {
+      console.error("[dataHub] listener error:", err);
+    }
+  }
 }
 
 function attachStorageListener() {
@@ -69,6 +78,7 @@ function attachStorageListener() {
 
 async function readRaw() {
   if (snapshot) return snapshot;
+  const wasUnhydrated = !snapshot;
   if (hasChromeStorage) {
     try {
       const result = await chrome.storage.local.get(HUB_KEY);
@@ -85,6 +95,10 @@ async function readRaw() {
   } else {
     snapshot = EMPTY;
   }
+  // First hydration silently mutated `snapshot` from null → a real object.
+  // Notify subscribers so useSyncExternalStore re-renders without each hook
+  // having to paper over it with a separate `hydrated` flag.
+  if (wasUnhydrated) emit();
   return snapshot;
 }
 
@@ -111,6 +125,20 @@ export function subscribe(listener) {
   return () => listeners.delete(listener);
 }
 
+// Coalesce bursts of writes (e.g. the service worker's multi-namespace prefetch)
+// into a single full-hub serialize + storage write. The in-memory `snapshot` and
+// `emit()` stay immediate — only the durable `persist` is debounced, so N rapid
+// writeEntry/removeEntry calls produce one storage round-trip instead of N.
+let persistTimer = null;
+
+function schedulePersist() {
+  if (persistTimer != null) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    persist(snapshot).catch(() => {});
+  }, 100);
+}
+
 /** Synchronous snapshot of the whole hub (stable reference). */
 export function getSnapshot() {
   return snapshot ?? EMPTY;
@@ -135,8 +163,10 @@ export function writeEntry(namespace, data, meta = {}) {
       [namespace]: { data, updatedAt: Date.now(), ...meta },
     };
     snapshot = hub;
-    await persist(hub);
+    // Notify subscribers immediately — don't gate live propagation on the
+    // storage round-trip.
     emit();
+    schedulePersist();
   });
   return writeChain;
 }
@@ -147,8 +177,8 @@ export function removeEntry(namespace) {
     const hub = { ...(await readRaw()) };
     delete hub[namespace];
     snapshot = hub;
-    await persist(hub);
     emit();
+    schedulePersist();
   });
   return writeChain;
 }

@@ -11,7 +11,7 @@
  *   - Localhost
  */
 
-import { isExtension } from './index';
+import { isExtension } from './isExtension';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

@@ -41,7 +41,7 @@
  */
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { isExtension } from './index';
+import { isExtension } from './isExtension';
 import { syncTransport, SYNC_SCHEMA_VERSION } from './syncTransport';
 import {
   itemKey,
@@ -67,7 +67,7 @@ const MAX_SYNC_ENTRIES = {
 };
 
 /**
- * syncKey → localStorage key. The sync key names the entry inside the gist's
+ * syncKey → localStorage key. The sync key names the entry inside the sync file's
  * `keys` map; the storage key is where the value lives locally. Fixes the
  * phantom-key bug: bookmarks live in `um_bookmarks`, countdowns in
  * `countdown_events` — not the old `widget_bookmarks`/`countdown_pinned`.
@@ -97,7 +97,7 @@ let lastSyncAt = null;
 let lastError = null;
 let lastAutoSyncAt = 0;
 let lastMergeCount = 0; // number of keys merged from remote on the last pull
-let lastRemoteHash = null; // content hash of the last gist payload read/written
+let lastRemoteHash = null; // content hash of the last sync file payload read/written
 let pendingConflict = null; // divergence preview awaiting a user pull/push/merge choice
 let pollTimer = null;
 let pollCleanup = null;
@@ -132,7 +132,7 @@ const generateDeviceId = () => {
 
 // ── Device identity (registry) ────────────────────────────────────────────────
 //
-// Each device persists a stable id + friendly name/os. The gist's `devices` map
+// Each device persists a stable id + friendly name/os. The sync file's `devices` map
 // keys on the id so multiple devices can coexist without one clobbering the
 // other's identity. `lastSeenAt` is the last time that device pushed.
 
@@ -253,7 +253,7 @@ const getLocalSyncVersion = () => {
  */
 const migrateSync = (fromVersion) => {
   if (fromVersion < 2) {
-    // v2 introduced gist discovery + schema versioning. Nothing to rewrite locally:
+    // v2 introduced sync file discovery + schema versioning. Nothing to rewrite locally:
     // `sync_timestamps` / `sync_device_id` are compatible as-is.
   }
 };
@@ -347,9 +347,9 @@ const recordFingerprint = () => {
 };
 
 /**
- * True when neither the local state nor the remote gist has changed since the
+ * True when neither the local state nor the remote sync file has changed since the
  * last sync — i.e. there is nothing to pull or push. Both hashes must be known
- * (non-null); a null remote hash (gist missing/corrupt) forces a real sync.
+ * (non-null); a null remote hash (sync file missing/corrupt) forces a real sync.
  */
 const isSyncClean = () => {
   if (lastRemoteHash == null) return false;
@@ -358,7 +358,7 @@ const isSyncClean = () => {
   return hashLocalState() === fp.local;
 };
 
-// ── Gist transport ────────────────────────────────────────────────────────────
+// ── Sync transport ────────────────────────────────────────────────────────────
 
 /**
  * Read the remote config payload via the transport.
@@ -606,7 +606,7 @@ const normalizeWidgetInstances = (v, outerT) => {
       if (id) instances.items[id] = { v: inst, t: outerT || 0 };
     }
     const ws = { ...(v.state.widgetSettings || {}) };
-    delete ws.notes; // notes synced via per-note gists
+    delete ws.notes; // notes synced via per-note sync files
     const widgetSettings = { items: {}, deleted: {} };
     for (const [id, s] of Object.entries(ws)) {
       widgetSettings.items[id] = { v: s, t: outerT || 0 };
@@ -622,7 +622,7 @@ const normalizeWidgetInstances = (v, outerT) => {
 
 /**
  * Merge widget_instances (per-instance + per-widget-setting LWW). The notes
- * widget's settings are excluded — notes sync via per-note gists — and the local
+ * widget's settings are excluded — notes sync via per-note sync files — and the local
  * notes settings are preserved on rebuild.
  * Returns { wire, changed }.
  */
@@ -653,11 +653,11 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
   const mergedInstances = mergeElementSets(localInstSet, remoteWire?.instances || { items: {}, deleted: {} });
   const mergedWidgetSettings = mergeElementSets(localWsSet, remoteWire?.widgetSettings || { items: {}, deleted: {} });
 
-  // Notes content must NEVER ride inside the config gist — it syncs through
-  // per-note private gists (notesSync.js). The local side is stripped above, but
-  // a stale `notes` entry from a previously-polluted gist would survive the
+  // Notes content must NEVER ride inside the config sync file — it syncs through
+  // per-note private sync files (notesSync.js). The local side is stripped above, but
+  // a stale `notes` entry from a previously-polluted sync file would survive the
   // union. Drop it unconditionally: the wire/remoteWire diff in pushAll then
-  // detects the difference and writes a cleaned gist. No tombstone is needed —
+  // detects the difference and writes a cleaned sync file. No tombstone is needed —
   // every device strips `notes` locally, so it can never be re-added via merge.
   delete mergedWidgetSettings.items.notes;
 
@@ -713,7 +713,7 @@ const mergeFocusModeKey = (localKey, remoteWire) => {
 // ── Pull: merge remote → local ────────────────────────────────────────────────
 
 /**
- * Pull all syncable data from the gist and merge into localStorage using
+ * Pull all syncable data from the sync file and merge into localStorage using
  * last-write-wins (higher timestamp wins).
  *
  * Returns an object describing what changed: { settings, widgetInstances, ... }
@@ -739,7 +739,7 @@ const pullFromSync = async () => {
   // If the remote was written by a newer app version we don't understand, don't
   // blindly parse/overwrite it (that risks corrupting the shared state).
   if (typeof remote.v === 'number' && remote.v > SYNC_SCHEMA_VERSION) {
-    console.error('[sync] remote gist uses a newer schema (v' + remote.v + ') — skipping pull');
+    console.error('[sync] remote sync file uses a newer schema (v' + remote.v + ') — skipping pull');
     reportError('Sync data was written by a newer version of the app. Please update the app.');
     return {};
   }
@@ -812,7 +812,7 @@ const mergeNotesIndex = (localIndex, remoteIndex) => {
 };
 
 /**
- * Push a single key from localStorage to the gist. Does nothing if sync is
+ * Push a single key from localStorage to the sync file. Does nothing if sync is
  * disabled or if the value is unchanged. Writes are serialized through the
  * shared write queue. Resolves to { changed: boolean }.
  *
@@ -873,7 +873,7 @@ const schedulePush = () => {};
 
 /**
  * Push all syncable keys immediately (used on first enable). Skips unchanged
- * keys and skips the gist write entirely when nothing changed.
+ * keys and skips the sync file write entirely when nothing changed.
  * Resolves to { changed: boolean }.
  */
 const pushAll = async () => {
@@ -990,7 +990,12 @@ const pushAll = async () => {
 /** True when any syncable key holds non-trivial local data. */
 const hasLocalData = () => {
   for (const localKey of SYNC_KEYS) {
-    const raw = readLocal(SYNC_MAP[localKey]);
+    // Read through the virtual-key indirection — `focus_mode` is an aggregate of
+    // the `fm_*` keys (readLocalForKey), NOT a literal `focus_mode` storage key.
+    // Using readLocal(SYNC_MAP[localKey]) here returned null for focus_mode, so a
+    // fresh install that had *only* changed its Focus Mode wallpaper was treated
+    // as empty and its local state got clobbered on first connect.
+    const raw = readLocalForKey(localKey);
     if (raw == null) continue;
     if (Array.isArray(raw)) {
       if (raw.length > 0) return true;
@@ -1006,14 +1011,14 @@ const hasLocalData = () => {
   return false;
 };
 
-/** Build the registry entry for the gist's last writer (for UI display). */
+/** Build the registry entry for the sync file's last writer (for UI display). */
 const remoteDeviceInfo = (remote) => {
   if (!remote || !remote.deviceId) return null;
   return remote.devices?.[remote.deviceId] || { name: 'Another device', os: 'Unknown', lastSeenAt: remote.updatedAt || null };
 };
 
 /**
- * Read the gist fresh and classify the local↔remote relationship against the
+ * Read the sync file fresh and classify the local↔remote relationship against the
  * last-synced base hash. Does NOT mutate anything.
  *
  * Returns:
@@ -1093,7 +1098,7 @@ const adoptRemote = (localKey, entry) => {
 
   if (localKey === 'widget_instances') {
     const { instances, widgetSettings, version } = normalizeWidgetInstances(entry.v, entry.t);
-    // Preserve local notes settings — notes are never synced in the config gist.
+    // Preserve local notes settings — notes are never synced in the config sync file.
     const localRaw = readLocal(storageKey);
     const localNotes = localRaw?.state?.widgetSettings?.notes;
     const newWs = elementSetToObject(widgetSettings);
@@ -1120,7 +1125,7 @@ const adoptRemote = (localKey, entry) => {
 };
 
 /**
- * Pull: overwrite local state with the remote gist (remote wins). Used when the
+ * Pull: overwrite local state with the remote sync file (remote wins). Used when the
  * user explicitly chooses "pull" to resolve a divergence, or on a clean
  * fast-forward where only the remote changed.
  */
@@ -1171,7 +1176,7 @@ const pullSync = async () => {
 };
 
 /**
- * Push: overwrite the remote gist with local state (local wins). Used when the
+ * Push: overwrite the remote sync file with local state (local wins). Used when the
  * user explicitly chooses "push" to resolve a divergence, or on a clean
  * fast-forward where only the local side changed.
  */
@@ -1294,7 +1299,7 @@ const setupPolling = () => {
   if (pollTimer || !isExtension()) return;
 
   // Daily auto-sync. The 5-minute throttle additionally blocks "continuous"
-  // syncing (rapid focus events, multiple tabs) to respect GitHub rate limits.
+  // syncing (rapid focus events, multiple tabs) to respect Google Drive rate limits.
   pollTimer = setInterval(() => {
     if (enabled && canAutoSync()) runAutoSync();
   }, DAILY_INTERVAL_MS);
@@ -1327,7 +1332,7 @@ const teardownPolling = () => {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
- * Enable cross-device sync (requires a GitHub connection).
+ * Enable cross-device sync (requires a Google Drive connection).
  * - Classifies local vs remote against the last-synced base.
  * - Fast-forwards (pull or push) when only one side changed.
  * - On a divergence (including first-connect with data on both sides), does NOT
@@ -1379,7 +1384,7 @@ const enableSync = async () => {
 
 /**
  * Disable cross-device sync — stops polling and clears pending push timers.
- * Does NOT delete the gist (user may reconnect later).
+ * Does NOT delete the sync file (user may reconnect later).
  */
 const disableSync = () => {
   enabled = false;
@@ -1421,7 +1426,7 @@ const onSyncChange = (callback) => {
 
 /**
  * Register a post-sync hook that runs after each full sync cycle (auto or
- * manual). Used by notesSync to reconcile per-note gists with the config index.
+ * manual). Used by notesSync to reconcile per-note sync files with the config index.
  * Returns an unsubscribe function.
  */
 const registerSyncHook = (fn) => {
@@ -1507,7 +1512,7 @@ const forceSync = async () => {
 
 /**
  * Initialize sync on app load. Re-enables silently if the user had sync on and
- * is still connected to GitHub.
+ * is still connected to Google Drive.
  */
 const initSync = async () => {
   if (!isExtension()) return;
@@ -1536,9 +1541,6 @@ const syncEngine = {
   getSyncStatus,
   schedulePush,
   pushKey,
-  pullFromSync,
-  pushAll,
-  previewSync,
   pullSync,
   pushSync,
   mergeSync,
@@ -1547,7 +1549,6 @@ const syncEngine = {
   onSyncChange,
   registerSyncHook,
   registerRefreshListener,
-  SYNC_MAP, // exposed so stores know which keys to watch
 };
 
 export default syncEngine;

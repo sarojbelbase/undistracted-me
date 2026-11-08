@@ -108,6 +108,9 @@ function _init() {
   if (!('locks' in navigator)) {
     // No Web Locks API (Safari < 17) — BroadcastChannel is available but no
     // leader election; every tab runs its own interval. Still second-aligned.
+    // Stop consuming other tabs' broadcasts too, otherwise each tab both ticks
+    // locally AND fires on every other tab's broadcast (N× amplification).
+    bc.onmessage = null;
     _becomeLeader(null);
     return;
   }
