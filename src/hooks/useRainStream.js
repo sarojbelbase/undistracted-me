@@ -2,12 +2,19 @@
  * useRainStream — single-file ambient audio player
  *
  * Fetches the secure OGG URL from /audio/rain on mount, then sets
- * it as the src on a stable <audio> ref. The browser handles HTTP Range
- * Requests and native caching automatically — no manual fetch needed.
+ * it as the src on the <audio> element via the returned ref. The browser
+ * handles HTTP Range Requests and native caching automatically — no manual
+ * fetch needed.
+ *
+ * The <audio> element is not guaranteed to be stable — the pomodoro widget
+ * renders a fresh <audio> node per phase — so this hook re-applies the src
+ * whenever the element is swapped out.
  *
  * Usage:
- *   const { toggle, isPlaying, audioRef } = useRainStream(FADE_DURATION_MS);
+ *   const { toggle, play, pause, isPlaying, audioRef, ready } = useRainStream(FADE_DURATION_MS);
  *   // Place <audio ref={audioRef} loop preload="none" /> in the tree.
+ *   // - `toggle` flips based on current isPlaying (good for user buttons).
+ *   // - `play`/`pause` are deterministic/idempotent (good for syncing a desired state).
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -27,26 +34,34 @@ export function useRainStream(fadeDurationMs = 3000) {
   // Tracks the URL already applied to the <audio> element so a fresh URL from
   // the API revalidation can replace a stale cached URL instead of being ignored.
   const appliedUrlRef = useRef(null);
+  // Tracks which DOM element the URL was applied to. The <audio> node can be
+  // remounted (the pomodoro widget swaps PICK ↔ TIMER branches, each with its
+  // own <audio>), so a fresh node must be re-populated with the same URL.
+  const appliedElRef = useRef(null);
+
+  const applyUrl = useCallback((url) => {
+    if (!url) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    // Skip only when this exact URL is already on this exact element. A remounted
+    // node (new element, empty src) must be re-populated.
+    if (appliedElRef.current === audio && appliedUrlRef.current === url) return;
+    appliedElRef.current = audio;
+    // Don't interrupt active playback with a URL swap — keep the current
+    // stream but remember the fresh URL for the next play session.
+    if (audio.src && !audio.paused) {
+      appliedUrlRef.current = url;
+      return;
+    }
+    appliedUrlRef.current = url;
+    audio.src = url;
+    setReady(true);
+  }, []);
 
   // 1. Fetch the secure CDN URL — serve stale from localStorage instantly,
   //    then revalidate from API in background.
   useEffect(() => {
     let cancelled = false;
-
-    const applyUrl = (url) => {
-      if (!url || appliedUrlRef.current === url) return;
-      const audio = audioRef.current;
-      if (!audio) return;
-      // Don't interrupt active playback with a URL swap — keep the current
-      // stream but remember the fresh URL for the next play session.
-      if (audio.src && !audio.paused) {
-        appliedUrlRef.current = url;
-        return;
-      }
-      appliedUrlRef.current = url;
-      audio.src = url;
-      setReady(true);
-    };
 
     // Serve cached URL immediately (zero latency)
     const cached = localStorage.getItem(URL_CACHE_KEY);
@@ -67,7 +82,14 @@ export function useRainStream(fadeDurationMs = 3000) {
     };
     init();
     return () => { cancelled = true; };
-  }, []);
+  }, [applyUrl]);
+
+  // Re-populate the <audio> src if the element was swapped out on a later render
+  // (e.g. the pomodoro widget remounts its <audio> when the phase changes).
+  // Idempotent — the appliedElRef guard in applyUrl makes repeated calls a no-op.
+  useEffect(() => {
+    if (appliedUrlRef.current) applyUrl(appliedUrlRef.current);
+  });
 
   // 2. Restore saved playback position once src is set
   useEffect(() => {
@@ -141,5 +163,33 @@ export function useRainStream(fadeDurationMs = 3000) {
     }
   }, [isPlaying, ready, fadeVolume]);
 
-  return { toggle, isPlaying, audioRef, ready };
+  // Deterministic start/stop — safe to call regardless of captured `isPlaying`.
+  // The pomodoro widget (and any caller syncing a desired on/off state) should
+  // use these instead of `toggle()` to avoid stale-closure toggles.
+  const play = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !ready) return;
+    if (!audio.paused) return;
+    audio.volume = 0;
+    audio.play()
+      .then(() => {
+        setIsPlaying(true);
+        fadeVolume(0, 1, null);
+      })
+      .catch(() => {});
+  }, [ready, fadeVolume]);
+
+  const pause = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !ready) return;
+    if (audio.paused) return;
+    const vol = audio.volume;
+    setIsPlaying(false);
+    fadeVolume(vol, 0, () => {
+      audio.pause();
+      audio.volume = 0;
+    });
+  }, [ready, fadeVolume]);
+
+  return { toggle, play, pause, isPlaying, audioRef, ready };
 }

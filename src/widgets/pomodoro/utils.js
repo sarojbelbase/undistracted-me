@@ -1,8 +1,62 @@
-import { MAX_HISTORY, HISTORY_STORAGE_KEY, SESSION_TYPE } from './constants';
+import { MAX_HISTORY, HISTORY_STORAGE_KEY, SESSION_TYPE, PHASE } from './constants';
+import { playChime, playBreakChime } from './chime';
+import { sendToServiceWorker } from '../../utilities/chrome';
+import { STORAGE_KEYS } from '../../constants/storageKeys';
 
 // Re-export PRESETS so Focus Mode (panels/Pomodoro.jsx) doesn't break.
 // New code should import from './constants' directly.
 export { PRESETS } from './constants';
+
+/**
+ * Fire the user-facing completion signals (chime + notification) for a finished
+ * pomodoro session. Shared by the canvas widget and Focus Mode so completion
+ * works regardless of which view is currently active.
+ *
+ * Does NOT write session history — the canvas widget defers that to the "Done"
+ * button (to capture the note), while Focus Mode saves it immediately itself.
+ */
+export function firePomodoroComplete({ sessionType, preset, soundEnabled = true }) {
+  const isFocus = sessionType === SESSION_TYPE.FOCUS;
+  if (soundEnabled) {
+    if (isFocus) playChime();
+    else playBreakChime();
+  }
+  if (isFocus) {
+    sendToServiceWorker({ type: 'POMODORO_DONE', preset });
+  }
+}
+
+/**
+ * Persist a freshly-started break timer to the shared datahub (both the Focus
+ * Mode sync key and the per-widget persist key). Used by Focus Mode to auto-start
+ * a break when a focus session completes there — the canvas widget isn't mounted,
+ * so the break state must be written directly so it ticks correctly on remount.
+ */
+export function persistBreakTimer({ breakDuration = 5, soundEnabled = true }) {
+  const breakSecs = Math.round(breakDuration * 60);
+  const endTime = Date.now() + breakSecs * 1000;
+  const preset = `${breakDuration}m break`;
+
+  localStorage.setItem(STORAGE_KEYS.pomodoroTimerState('pomodoro'), JSON.stringify({
+    phase: PHASE.BREAK,
+    preset,
+    duration: breakSecs,
+    remaining: breakSecs,
+    running: true,
+    sessionType: SESSION_TYPE.BREAK,
+    endTime,
+  }));
+
+  localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
+    running: true,
+    remaining: breakSecs,
+    endTime,
+    total: breakSecs,
+    preset,
+    sessionType: SESSION_TYPE.BREAK,
+    soundEnabled,
+  }));
+}
 
 // ─── Time formatting ──────────────────────────────────────────────────────────
 

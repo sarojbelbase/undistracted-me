@@ -26,6 +26,41 @@ const SOURCE_META = {
   'soundcloud.com': { color: '#ff5500', label: 'SoundCloud' },
 };
 
+/**
+ * Host priority for tie-breaking between multiple media sessions.
+ * Lower = higher priority. Used by `selectActiveSession` so the canvas Media
+ * widget and Focus Mode both resolve the same "now playing" tab.
+ */
+export function chromeHostPriority(host) {
+  if (!host) return 99;
+  if (host === 'music.youtube.com') return 0;
+  if (host.includes('youtube.com')) return 1;
+  if (host.includes('soundcloud.com')) return 2;
+  return 99;
+}
+
+/**
+ * Picks the single session that best represents "now playing" from the raw
+ * session list. Rules, in order:
+ *   1. Prefer a session whose playbackState is 'playing' over one that is paused.
+ *   2. Among equal playback states, prefer the higher-priority host.
+ *
+ * This is the single source of truth shared by the canvas Media widget and
+ * Focus Mode — previously Focus Mode naively used `sessions[0]`, which could be
+ * a stale (most-recently-updated but paused) session and lag behind the widget.
+ */
+export function selectActiveSession(sessions) {
+  if (!sessions?.length) return null;
+  return sessions.reduce((best, s) => {
+    if (!best) return s;
+    const bestPlaying = best.playbackState === 'playing';
+    const sPlaying = s.playbackState === 'playing';
+    if (sPlaying && !bestPlaying) return s;
+    if (!sPlaying && bestPlaying) return best;
+    return chromeHostPriority(s.host) <= chromeHostPriority(best.host) ? s : best;
+  }, null) ?? null;
+}
+
 export function chromeArtworkRing(host) {
   const meta = host ? (SOURCE_META[host] ?? null) : null;
   if (!meta) return {};

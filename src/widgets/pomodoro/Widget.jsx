@@ -5,7 +5,6 @@ import {
 import { BaseWidget } from '../BaseWidget';
 import { PillButton } from '../../components/ui/PillButton';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
-import { sendToServiceWorker } from '../../utilities/chrome';
 import { useRainStream } from '../../hooks/useRainStream';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { PomodoroSettings } from './Settings';
@@ -13,17 +12,42 @@ import { STORAGE_KEYS } from '../../constants/storageKeys';
 import {
   PRESETS, PHASE, SESSION_TYPE, DEFAULT_SETTINGS,
 } from './constants';
-import { formatTime, saveSession } from './utils';
-import { playChime, playBreakChime } from './chime';
+import { formatTime, saveSession, firePomodoroComplete } from './utils';
 
 // ─── Persistence helpers (keyed per widget instance id) ───────────────────
 const loadTimer = (id) => {
+  // Prefer the freshest running state (`fm_pomodoro`, written every 1s) over the
+  // per-widget key (historically written every 5s), so remounting after switching
+  // between canvas and Focus Mode never restores stale state and resets the timer.
+  try {
+    const fmRaw = localStorage.getItem(STORAGE_KEYS.POMODORO);
+    if (fmRaw) {
+      const fm = JSON.parse(fmRaw);
+      if (fm.running && fm.endTime) {
+        const remaining = Math.round((fm.endTime - Date.now()) / 1000);
+        if (remaining > 0) {
+          return {
+            phase: fm.sessionType === SESSION_TYPE.BREAK ? PHASE.BREAK : PHASE.TIMER,
+            preset: fm.preset,
+            duration: fm.total,
+            remaining,
+            running: true,
+            sessionType: fm.sessionType,
+          };
+        }
+      }
+    }
+  } catch { /* fall through to the per-widget key */ }
+
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.pomodoroTimerState(id)));
     if (!raw?.phase || raw.phase === PHASE.PICK) return null;
     if (raw.running && raw.endTime) {
-      const remaining = Math.max(0, Math.round((raw.endTime - Date.now()) / 1000));
-      return { ...raw, remaining, running: remaining > 0 };
+      const remaining = Math.round((raw.endTime - Date.now()) / 1000);
+      // Already reached zero — the session completed while this widget was
+      // unmounted. Don't restore a "done" state that would re-fire completion.
+      if (remaining <= 0) return null;
+      return { ...raw, remaining, running: true };
     }
     return raw;
   } catch { return null; }
@@ -138,8 +162,8 @@ export const Widget = ({ id, onRemove }) => {
   // ── Rain stream (hidden — toggled from settings, not widget face) ─────
   const rainSound = settings.rainSound ?? DEFAULT_SETTINGS.rainSound;
   const {
-    toggle: toggleRain,
-    isPlaying: rainPlaying,
+    play: playRain,
+    pause: pauseRain,
     audioRef: rainAudioRef,
     ready: rainReady,
   } = useRainStream(3000);
@@ -170,14 +194,15 @@ export const Widget = ({ id, onRemove }) => {
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
 
-  // Sync the `rainSound` setting to actual playback — but only while a session
-  // is actually in progress (TIMER/BREAK phase). Rain must not auto-play just
-  // from opening the new tab (PICK phase) — it should follow the timer state,
-  // continuing through both running and paused.
-  const rainActive = rainSound && (phase === PHASE.TIMER || phase === PHASE.BREAK);
+  // Sync the `rainSound` setting to actual playback — rain follows the *running*
+  // countdown, not just the phase. It starts when a session begins counting down
+  // and pauses when the timer is paused, then stops when the session completes
+  // (done) or you return to pick.
+  const rainActive = rainSound && (phase === PHASE.TIMER || phase === PHASE.BREAK) && running && !done;
   useEffect(() => {
-    if (!rainReady || rainActive === rainPlaying) return;
-    toggleRain();
+    if (!rainReady) return;
+    if (rainActive) playRain();
+    else pauseRain();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rainActive, rainReady]);
 
@@ -302,11 +327,18 @@ export const Widget = ({ id, onRemove }) => {
         total: duration,
         preset,
         sessionType,
+        // Carry the settings Focus Mode needs to chime/notify + auto-break on completion.
+        soundEnabled,
+        autoBreak,
+        breakDuration,
       }));
+      // Keep the per-widget persist key fresh every second (not just every 5s in
+      // the interval) so a remount after switching views never resets the timer.
+      saveTimer(id, { phase, preset, duration, remaining, running: true, sessionType });
     } else if (!isTimerPhase || !running || remaining <= 0) {
       localStorage.removeItem(STORAGE_KEYS.POMODORO);
     }
-  }, [id, phase, running, remaining, preset, duration, sessionType]);
+  }, [id, phase, running, remaining, preset, duration, sessionType, soundEnabled, autoBreak, breakDuration]);
 
   // ── Fire completion side-effects when timer reaches 0 ─────────────────
   useEffect(() => {
@@ -323,13 +355,8 @@ export const Widget = ({ id, onRemove }) => {
       type: sessionType,
     };
 
-    if (soundEnabled) {
-      if (isFocus) playChime();
-      else playBreakChime();
-    }
-    if (isFocus) {
-      sendToServiceWorker({ type: 'POMODORO_DONE', preset });
-    }
+    firePomodoroComplete({ sessionType, preset, soundEnabled });
+
     // Auto-start the break timer when enabled (focus sessions only).
     if (isFocus && autoBreak) {
       const t = setTimeout(() => startBreak(), 1200);
