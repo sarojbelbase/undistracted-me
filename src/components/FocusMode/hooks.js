@@ -331,14 +331,13 @@ export function switchToTab(tab) {
 // ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───
 
 /**
- * Polls the background SW for browser media sessions every 3s.
- * Returns the top session (most recently active) as a normalized track object,
- * or null when nothing is playing.
- * Also returns a `sendAction(action)` helper for play/pause/next/previous.
+ * Shared browser-media hook — re-exported for Focus Mode.
  *
- * Polling is skipped while the tab is hidden (user switched to another tab)
- * and resumes immediately when the tab becomes visible again — avoids sending
- * unnecessary SW messages when the new-tab page isn't in view.
+ * Reads live sessions from chrome.storage.local['chrome_media_sessions']
+ * (written by bg.js) and returns the actively-playing session as a normalized
+ * `track` (same smart selection the canvas Media widget uses), plus `sessions`,
+ * `sendAction`, `pending`, and `skipPending`. See
+ * `src/widgets/media/hooks/useChromeMedia.js` for the implementation.
  */
 export { useChromeMedia } from "../../widgets/media/hooks/useChromeMedia";
 

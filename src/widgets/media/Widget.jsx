@@ -5,7 +5,7 @@ import { SPOTIFY_CLIENT_ID, isSpotifyConnected } from './utils';
 import { useChromeMedia } from './hooks/useChromeMedia';
 import { useChromeSessionManager } from './hooks/useChromeSessionManager';
 import { useSpotifyPlayback } from './hooks/useSpotifyPlayback';
-import { resolveColors } from './hooks/mediaHelpers';
+import { resolveColors, selectActiveSession } from './hooks/mediaHelpers';
 import { useUIStore } from '../../store/useUIStore';
 import { ChromeMediaPlayer } from './ChromeMediaPlayer';
 import { SpotifyPlayer } from './SpotifyPlayer';
@@ -37,21 +37,7 @@ export const Widget = ({ onRemove }) => {
 
   useEffect(() => { clearInterval(tickRef.current); return () => clearInterval(tickRef.current); }, [track?.isPlaying]);
 
-  const chromePriority = (host) => {
-    if (!host) return 99;
-    if (host === 'music.youtube.com') return 0;
-    if (host.includes('youtube.com')) return 1;
-    if (host.includes('soundcloud.com')) return 2;
-    return 99;
-  };
-  const activeSession = chromeMediaSessions.reduce((best, s) => {
-    if (!best) return s;
-    const bestPlaying = best.playbackState === 'playing';
-    const sPlaying = s.playbackState === 'playing';
-    if (sPlaying && !bestPlaying) return s;
-    if (!sPlaying && bestPlaying) return best;
-    return chromePriority(s.host) <= chromePriority(best.host) ? s : best;
-  }, null) ?? null;
+  const activeSession = selectActiveSession(chromeMediaSessions);
 
   useEffect(() => {
     if (!activeSession) return;
@@ -111,8 +97,10 @@ export const Widget = ({ onRemove }) => {
     );
   }
 
-  // Chrome media fallback
-  if ((!connected || !track) && chromeMediaSessions.length) {
+  // Chrome media fallback — also takes over when Spotify is connected but idle
+  // (is_playing: false), so a stale last-played track can't mask live browser
+  // media (SoundCloud, YouTube, etc.).
+  if ((!connected || !track?.isPlaying) && chromeMediaSessions.length) {
     return <ChromeMediaPlayer
       onRemove={onRemove} settingsPanel={settingsPanel}
       chromeBgStyle={chromeBgStyle} chromeInk={chromeInk} chromeMute={chromeMute}

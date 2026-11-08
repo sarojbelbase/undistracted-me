@@ -12,6 +12,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { getChromeMedia, sendChromeMediaAction } from '../utils';
+import { selectActiveSession } from './mediaHelpers';
 
 const FALLBACK_POLL_MS = 30_000;
 
@@ -48,7 +49,7 @@ export function useChromeMedia() {
     };
   }, []);
 
-  const top = sessions[0] ?? null;
+  const top = selectActiveSession(sessions);
   const track = top ? {
     title: top.title || 'Playing',
     artist: top.artist || top.host || '',
