@@ -18,6 +18,7 @@ import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { onClockTick } from '../../utilities/sharedClock';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { AllEventsModal } from './AllEventsModal';
+import { isPast } from './utils';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
@@ -65,6 +66,11 @@ export const Widget = ({ onRemove }) => {
 
   const MAX_VISIBLE = 2;
   const visibleEvents = upcomingEvents.slice(0, MAX_VISIBLE);
+
+  // Full list (upcoming + past) for the "All Events" modal so past events are
+  // viewable/deletable instead of being orphaned in storage with no UI path.
+  const allEvents = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
+  const hasPastEvents = useMemo(() => allEvents.some((e) => isPast(e)), [allEvents]);
 
   const syncLabel = connected && ageLabel ? ageLabel : null;
 
@@ -117,7 +123,7 @@ export const Widget = ({ onRemove }) => {
 
         {/* ── Footer ── */}
         <div className="flex items-center justify-between shrink-0 pt-0.5">
-          {upcomingEvents.length > MAX_VISIBLE ? (
+          {upcomingEvents.length > MAX_VISIBLE || hasPastEvents ? (
             <TintedChip size="md" onClick={() => setShowAll(true)} onMouseDown={e => e.stopPropagation()}>
               View All <ArrowRight size={13} />
             </TintedChip>
@@ -139,7 +145,7 @@ export const Widget = ({ onRemove }) => {
       </BaseWidget>
 
       {showCreate && <UnifiedAddDialog type="event" onClose={() => setShowCreate(false)} />}
-      {showAll && <AllEventsModal events={upcomingEvents} onClose={() => setShowAll(false)} onRemove={removeEvent} />}
+      {showAll && <AllEventsModal events={allEvents} onClose={() => setShowAll(false)} onRemove={removeEvent} />}
     </>
   );
 };

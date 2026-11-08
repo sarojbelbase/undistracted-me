@@ -10,15 +10,20 @@ export const AllEventsModal = ({ events, onClose, onRemove }) => {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const buckets = ['Today', 'Tomorrow', 'Later'];
+  const buckets = ['Today', 'Tomorrow', 'Later', 'Past'];
   const grouped = buckets.reduce((acc, b) => { acc[b] = []; return acc; }, {});
   events.forEach(e => {
     const b = bucketLabel(e.startDate);
     if (grouped[b]) grouped[b].push(e);
-    // 'Past' bucket is intentionally dropped — this modal only shows upcoming
   });
+  // Past events: most-recent-first so a just-finished event isn't buried.
+  grouped.Past.sort((a, b) =>
+    `${b.startDate || '0000'}T${b.startTime || '99:99'}`.localeCompare(`${a.startDate || '0000'}T${a.startTime || '99:99'}`)
+  );
 
   const hasAny = buckets.some(b => grouped[b].length > 0);
+  const upcomingCount = grouped.Today.length + grouped.Tomorrow.length + grouped.Later.length;
+  const pastCount = grouped.Past.length;
 
   return (
     <Modal onClose={onClose} className="w-full max-w-120 max-h-[80vh] flex flex-col" ariaLabel="All Events">
@@ -30,7 +35,7 @@ export const AllEventsModal = ({ events, onClose, onRemove }) => {
         <div>
           <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>All Events</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--w-ink-4)' }}>
-            {events.length} upcoming
+            {upcomingCount} upcoming{pastCount > 0 ? ` · ${pastCount} past` : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">

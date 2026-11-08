@@ -142,7 +142,9 @@ export const exportSettings = () => {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Defer revoke — revoking the object URL synchronously can abort the download
+  // in some WebKit/Safari timing paths.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 /** Parse a JSON string and restore all settings, then reload. */
@@ -195,10 +197,39 @@ export const importFromFile = (onError) => {
 
 /** Clear every localStorage key and reload.
  *  Preserves quickTourSeenVersion so the onboarding tour is not shown again.
+ *  Also signs out connected accounts (Google/Spotify) — their tokens live in
+ *  chrome.storage.local / sessionStorage, outside the localStorage sweep below.
  *  Re-applies first-run widget defaults so the dashboard starts populated. */
 export const resetSettings = () => {
   // Preserve tour seen status — user has already completed onboarding.
   const tourVersion = useSettingsStore.getState().quickTourSeenVersion;
+
+  // ── Flush connected accounts ────────────────────────────────────────────────
+  // Mark Google as user-disconnected so init() won't auto-reconnect the
+  // (now-cleared) token on the next page load.
+  try { localStorage.setItem('google_user_disconnected', '1'); } catch { /* ignore */ }
+
+  // Extension: tokens + caches live in chrome.storage.local (not localStorage).
+  try {
+    globalThis.chrome?.storage?.local?.remove?.([
+      'google_tokens',
+      'gcal_events_cache',
+      'gcal_profile_cache',
+      'gcal_synced_at',
+      'contacts_birthdays_cache',
+      'contacts_birthdays_synced_at',
+      'spotify_tokens',
+      'spotify_profile',
+      'spotify_connected',
+      'drive_sync_connected',
+    ]);
+  } catch { /* ignore */ }
+
+  // Web: tokens live in sessionStorage (never persisted across tabs).
+  try {
+    sessionStorage.removeItem('google_tokens');
+    sessionStorage.removeItem('spotify_tokens');
+  } catch { /* ignore */ }
 
   // Only clear app-owned keys — never touch browser or third-party localStorage entries.
   const keysToRemove = [];

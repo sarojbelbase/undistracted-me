@@ -184,7 +184,6 @@ export const Widget = ({ id, onRemove }) => {
   const [showCustom, setShowCustom] = useState(false);
   const [note, setNote] = useState('');
   const intervalRef = useRef(null);
-  const lastSaveRef = useRef(0);
   const completedRef = useRef(false);
   const pendingSessionRef = useRef(null);
   // Stable ref mirroring `note` so startBreak can read the latest note without
@@ -207,7 +206,7 @@ export const Widget = ({ id, onRemove }) => {
   }, [rainActive, rainReady]);
 
   // ── Start a timer (focus or break) ────────────────────────────────────
-  const startTimer = useCallback((secs, label, type = SESSION_TYPE.FOCUS, running = false) => {
+  const startTimer = useCallback((secs, label, type = SESSION_TYPE.FOCUS, running = true) => {
     const next = {
       phase: type === SESSION_TYPE.BREAK ? PHASE.BREAK : PHASE.TIMER,
       preset: label,
@@ -287,23 +286,14 @@ export const Widget = ({ id, onRemove }) => {
     clearInterval(intervalRef.current);
     if (running && !done) {
       intervalRef.current = setInterval(() => {
-        setRemaining((r) => {
-          const next = r <= 1 ? 0 : r - 1;
-          if (next === 0) {
-            setRunning(false);
-            localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
-          } else if (next % 5 === 0 && next !== lastSaveRef.current) {
-            lastSaveRef.current = next;
-            saveTimer(id, {
-              phase, preset, duration, remaining: next, running: true, sessionType,
-            });
-          }
-          return next;
-        });
+        // Pure decrement. Completion side effects (stop + persistence) live in
+        // the effects below — calling setState / writing localStorage inside a
+        // state updater is double-invoked in StrictMode and fires during render.
+        setRemaining((r) => (r <= 1 ? 0 : r - 1));
       }, 1000);
     }
     return () => clearInterval(intervalRef.current);
-  }, [running, done, phase, preset, duration, sessionType, id]);
+  }, [running, done]);
 
   // ── Persist timer state + sync to Focus Mode ─────────────────────────
   useEffect(() => {
@@ -345,6 +335,11 @@ export const Widget = ({ id, onRemove }) => {
     if (!done || completedRef.current) return;
     completedRef.current = true;
 
+    // Stop the countdown + drop the per-widget persist key (moved here from the
+    // now-pure tick updater).
+    setRunning(false);
+    localStorage.removeItem(STORAGE_KEYS.pomodoroTimerState(id));
+
     const isFocus = sessionType === SESSION_TYPE.FOCUS;
     // Defer the history write to when the user clicks "Done" so the session
     // note (typed *after* completion) is captured instead of always being "".
@@ -362,7 +357,7 @@ export const Widget = ({ id, onRemove }) => {
       const t = setTimeout(() => startBreak(), 1200);
       return () => clearTimeout(t);
     }
-  }, [done, sessionType, preset, duration, soundEnabled, autoBreak, startBreak]);
+  }, [done, sessionType, preset, duration, soundEnabled, autoBreak, startBreak, id]);
 
   // ── Cleanup on unmount ────────────────────────────────────────────────
   useEffect(() => {

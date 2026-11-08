@@ -150,53 +150,47 @@ export const Widget = ({ id, onRemove }) => {
   const handleTitleChange = useCallback(
     (e) => {
       const val = e.target.value.replaceAll("\n", "");
-      setLocalNotes((prev) => {
-        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
-        const { bodyText: prevBody } = splitNote(cur.text);
-        const newText = mergeNote(val, prevBody);
-        const next = [...prev];
-        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
-        persist(next);
-        notesSync.onNoteChanged(cur.id, newText);
-        return next;
-      });
+      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const { bodyText: prevBody } = splitNote(cur.text);
+      const newText = mergeNote(val, prevBody);
+      const next = [...localNotes];
+      next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
+      setLocalNotes(next);
+      persist(next);
+      notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, persist],
+    [localIdx, localNotes, persist],
   );
 
   // Called by LexicalEditor whenever the body markdown changes
   const handleBodyChange = useCallback(
     (md) => {
-      setLocalNotes((prev) => {
-        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
-        const { titleLine: prevTitle } = splitNote(cur.text);
-        const newText = mergeNote(prevTitle, md);
-        const next = [...prev];
-        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
-        persist(next);
-        notesSync.onNoteChanged(cur.id, newText);
-        return next;
-      });
+      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const { titleLine: prevTitle } = splitNote(cur.text);
+      const newText = mergeNote(prevTitle, md);
+      const next = [...localNotes];
+      next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
+      setLocalNotes(next);
+      persist(next);
+      notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, persist],
+    [localIdx, localNotes, persist],
   );
 
   // Widget card textarea — preserves the title (first line), updates body only
   const handleWidgetTextChange = useCallback(
     (e) => {
       const val = e.target.value;
-      setLocalNotes((prev) => {
-        const cur = prev[localIdx] ?? { id: "", text: "", updatedAt: 0 };
-        const { titleLine: prevTitle } = splitNote(cur.text);
-        const newText = mergeNote(prevTitle, val);
-        const next = [...prev];
-        next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
-        persist(next);
-        notesSync.onNoteChanged(cur.id, newText);
-        return next;
-      });
+      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const { titleLine: prevTitle } = splitNote(cur.text);
+      const newText = mergeNote(prevTitle, val);
+      const next = [...localNotes];
+      next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
+      setLocalNotes(next);
+      persist(next);
+      notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, persist],
+    [localIdx, localNotes, persist],
   );
 
   // ── Navigation ────────────────────────────────────────────────────────────────

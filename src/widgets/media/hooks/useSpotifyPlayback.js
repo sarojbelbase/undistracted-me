@@ -14,6 +14,7 @@ export function useSpotifyPlayback(connected, setConnected) {
   const prevTrackIdRef = useRef(null);
   const [albumColor, setAlbumColor] = useState(null);
   const lastArtRef = useRef(null);
+  const colorReqRef = useRef(0);
   const [pending, setPending] = useState(false);
   const [skipPending, setSkipPending] = useState(null);
   const skipTimerRef = useRef(null);
@@ -43,7 +44,15 @@ export function useSpotifyPlayback(connected, setConnected) {
   useEffect(() => {
     if (!track?.albumArt || track.albumArt === lastArtRef.current) return;
     lastArtRef.current = track.albumArt;
-    extractAlbumColor(track.albumArt).then(setAlbumColor);
+    const req = ++colorReqRef.current;
+    extractAlbumColor(track.albumArt).then((color) => {
+      // Ignore stale/out-of-order resolutions — rapid skips can resolve a
+      // previous album's colour after the current one.
+      if (req === colorReqRef.current) setAlbumColor(color);
+    });
+    return () => {
+      colorReqRef.current++; // invalidate the in-flight extraction
+    };
   }, [track?.albumArt]);
 
   useEffect(() => {

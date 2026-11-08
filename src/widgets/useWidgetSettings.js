@@ -20,14 +20,16 @@ export const useWidgetSettings = (widgetId, defaults) => {
   // Stabilise defaults reference so the selector doesn't create new arrays/objects
   // on every store tick — prevents cross-widget re-render cascades.
   const defaultsRef = useRef(defaults);
-  defaultsRef.current = defaults;
+  if (defaultsRef.current !== defaults) defaultsRef.current = defaults;
 
   // Read — shallow-compare the merged settings object so only real changes cause re-renders
   const settings = useWidgetInstancesStore(
     useShallow((s) => {
       const stored = s.widgetSettings[widgetId];
       const d = defaultsRef.current;
-      return stored ? { ...d, ...stored } : d;
+      // Return a shallow copy in the fallback (not `d` itself) so callers can't
+      // mutate the shared module-level default object by reference.
+      return stored ? { ...d, ...stored } : { ...d };
     }),
   );
 

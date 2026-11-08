@@ -27,23 +27,21 @@ export const useStocks = () => {
   // Two-step selector: first find the stock instance id (stable),
   // then read only that instance's symbols — avoids re-rendering on
   // unrelated widget setting changes (e.g. notes keystrokes, RSS refresh).
-  const stockInstId = useWidgetInstancesStore(
-    useShallow((s) => {
-      const inst = s.instances.find((i) => i.type === "stock");
-      return inst?.id ?? "stock";
-    }),
-  );
+  const stockInstId = useWidgetInstancesStore((s) => {
+    const inst = s.instances.find((i) => i.type === "stock");
+    return inst?.id ?? "stock";
+  });
   const symbols = useWidgetInstancesStore(
     useShallow((s) => s.widgetSettings[stockInstId]?.symbols ?? DEFAULT_SYMBOLS),
   );
 
   const symbolsKey = JSON.stringify(symbols);
-  const { data, updatedAt, meta, hydrated, write } = useDataHub("stocks");
+  const { data, updatedAt, entry, hydrated, write } = useDataHub("stocks");
 
   // The hub entry is only valid for the exact symbol set that produced it.
   const hasMatching =
     Array.isArray(data) &&
-    meta?.symbolsKey === symbolsKey &&
+    entry?.symbolsKey === symbolsKey &&
     data.length === symbols.length;
 
   // Sync symbols to the service worker so it can pre-fetch in the background.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MusicNoteBeamed } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { SPOTIFY_CLIENT_ID, isSpotifyConnected } from './utils';
@@ -20,7 +20,6 @@ export const Widget = ({ onRemove }) => {
     handlePlayPause, handleNext, handlePrev,
   } = useSpotifyPlayback(connected, setConnected);
 
-  const tickRef = useRef(null);
   const { sessions: chromeMediaSessions } = useChromeMedia();
 
   const {
@@ -34,8 +33,6 @@ export const Widget = ({ onRemove }) => {
     skipNext: handleChromeNext,
     skipPrev: handleChromePrev,
   } = useChromeSessionManager(chromeMediaSessions);
-
-  useEffect(() => { clearInterval(tickRef.current); return () => clearInterval(tickRef.current); }, [track?.isPlaying]);
 
   const activeSession = selectActiveSession(chromeMediaSessions);
 

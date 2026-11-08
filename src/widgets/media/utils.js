@@ -136,7 +136,7 @@ export const connectSpotify = async () => {
     // CONNECTED_FLAG and profile stay in localStorage (non-sensitive).
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
   } else {
-    await chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
+    await globalThis.chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
   }
   localStorage.setItem(CONNECTED_FLAG, '1'); // sync flag so isSpotifyConnected() is immediate
   return stored.access_token;
@@ -180,14 +180,14 @@ async function getExtensionAccessToken() {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (legacy?.access_token) {
-        await chrome?.storage?.local?.set({ [TOKEN_KEY]: legacy }); // eslint-disable-line no-undef
+        await globalThis.chrome?.storage?.local?.set({ [TOKEN_KEY]: legacy }); // eslint-disable-line no-undef
         localStorage.setItem(CONNECTED_FLAG, '1');
       }
     } catch { /* ignore malformed legacy data */ }
     localStorage.removeItem(TOKEN_KEY); // always clear — even if parse failed
   }
 
-  const result = await chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
+  const result = await globalThis.chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
   const stored = result[TOKEN_KEY] ?? null;
   if (!stored) return null;
 
@@ -217,7 +217,7 @@ async function getExtensionAccessToken() {
     refresh_token: tokens.refresh_token || stored.refresh_token,
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
-  await chrome?.storage?.local?.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
+  await globalThis.chrome?.storage?.local?.set({ [TOKEN_KEY]: updated }); // eslint-disable-line no-undef
   return updated.access_token;
 }
 
@@ -231,7 +231,7 @@ export const disconnectSpotify = () => {
     sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(PROFILE_KEY);
   } else {
-    chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
+    globalThis.chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
   }
   localStorage.removeItem(CONNECTED_FLAG);
 };
@@ -255,7 +255,7 @@ export const getSpotifyProfile = async () => {
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
   }
-  const result = await chrome?.storage?.local?.get(PROFILE_KEY) ?? {}; // eslint-disable-line no-undef
+  const result = await globalThis.chrome?.storage?.local?.get(PROFILE_KEY) ?? {}; // eslint-disable-line no-undef
   return result[PROFILE_KEY] ?? null;
 };
 
@@ -295,7 +295,7 @@ export const fetchAndCacheProfile = async () => {
       // Persist only name + product in localStorage (no avatar URL).
       localStorage.setItem(PROFILE_KEY, JSON.stringify(persistedProfile));
     } else {
-      await chrome?.storage?.local?.set({ [PROFILE_KEY]: persistedProfile }); // eslint-disable-line no-undef
+      await globalThis.chrome?.storage?.local?.set({ [PROFILE_KEY]: persistedProfile }); // eslint-disable-line no-undef
     }
     return fullProfile;
   } catch { return null; }

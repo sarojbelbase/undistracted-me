@@ -262,52 +262,48 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
         ...(trimmedNote ? { note: trimmedNote } : {}),
         createdAt: Date.now(),
       };
-      setExpenses((prev) => {
-        const next = [entry, ...prev];
-        return save(widgetId, next);
-      });
+      const next = [entry, ...expenses];
+      // Persist (and truncate) OUTSIDE the state updater — setState updaters must
+      // be pure; save() performs a synchronous localStorage write.
+      setExpenses(save(widgetId, next));
     },
-    [currency, widgetId],
+    [currency, widgetId, expenses],
   );
 
   const deleteExpense = useCallback(
     (expId) => {
-      setExpenses((prev) => {
-        const next = prev.filter((e) => e.id !== expId);
-        return save(widgetId, next);
-      });
+      const next = expenses.filter((e) => e.id !== expId);
+      setExpenses(save(widgetId, next));
     },
-    [widgetId],
+    [widgetId, expenses],
   );
 
   // Update an existing expense in place, preserving its id + createdAt timestamp.
   const updateExpense = useCallback(
     (expId, fields = {}) => {
-      setExpenses((prev) => {
-        const idx = prev.findIndex((e) => e.id === expId);
-        if (idx === -1) return prev;
-        const existing = prev[idx];
-        const nextEntry = { ...existing };
+      const idx = expenses.findIndex((e) => e.id === expId);
+      if (idx === -1) return;
+      const existing = expenses[idx];
+      const nextEntry = { ...existing };
 
-        if (fields.amount != null) {
-          const nextAmount = Number.parseFloat(Number(fields.amount).toFixed(2));
-          // Reject non-positive amounts (mirrors the modal's disabled button).
-          if (!Number.isFinite(nextAmount) || nextAmount <= 0) return prev;
-          nextEntry.amount = nextAmount;
-        }
-        if (fields.category) nextEntry.category = fields.category;
-        if (fields.note !== undefined) {
-          const trimmedNote = String(fields.note).trim().slice(0, 100);
-          if (trimmedNote) nextEntry.note = trimmedNote;
-          else delete nextEntry.note; // clearing a note removes the key
-        }
+      if (fields.amount != null) {
+        const nextAmount = Number.parseFloat(Number(fields.amount).toFixed(2));
+        // Reject non-positive amounts (mirrors the modal's disabled button).
+        if (!Number.isFinite(nextAmount) || nextAmount <= 0) return;
+        nextEntry.amount = nextAmount;
+      }
+      if (fields.category) nextEntry.category = fields.category;
+      if (fields.note !== undefined) {
+        const trimmedNote = String(fields.note).trim().slice(0, 100);
+        if (trimmedNote) nextEntry.note = trimmedNote;
+        else delete nextEntry.note; // clearing a note removes the key
+      }
 
-        const next = prev.slice();
-        next[idx] = nextEntry;
-        return save(widgetId, next);
-      });
+      const next = expenses.slice();
+      next[idx] = nextEntry;
+      setExpenses(save(widgetId, next));
     },
-    [widgetId],
+    [widgetId, expenses],
   );
 
   const clearAll = useCallback(() => {
