@@ -79,10 +79,14 @@ This outputs a `chrome.zip` inside the `builds/` folder, ready to upload to the 
 3. Enable **Developer mode**
 4. Click **Load unpacked** and select the `dist/` folder
 
+> ⚠️ Load the `dist/` folder (not `dist-firefox/`). `dist/` is the Chrome build with
+> the pinned extension ID; `dist-firefox/` is Firefox-only and has the `key`
+> removed (a different ID, and Google/Spotify OAuth won't work).
+
 ### Firefox
 
 ```bash
-# build for Firefox Addons
+# build for Firefox Addons (patches an isolated dist-firefox/ copy)
 bun run build:firefox
 
 # run locally with web-ext
@@ -90,6 +94,11 @@ bun run start:firefox
 ```
 
 This outputs a `.zip` inside the `builds/` folder via `web-ext`, ready to upload to Firefox Addons.
+
+> `build:firefox` clones `dist/` → `dist-firefox/` and patches *that* copy
+> (via `scripts/patch-manifest-firefox.mjs`), so `dist/` always stays a clean
+> Chrome build. Running a Firefox build no longer clobbers your Chrome
+> `Load unpacked` extension ID.
 
 ## Testing
 

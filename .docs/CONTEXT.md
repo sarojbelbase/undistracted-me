@@ -461,7 +461,7 @@ Key shared components:
 Content scripts: `src/utilities/media.js` injected into **SoundCloud only** (`*://*.soundcloud.com/*`).
 `scripting` permission: `bg.js` uses `chrome.scripting.executeScript` to inject media.js into SoundCloud tabs already open when extension installs.
 `oauth2` section present for Chrome identity scopes.
-Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scripting` permissions on Firefox build.
+Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-firefox/` and patches the clone (strips `key`, `favicon` permission, `oauth2`, `use_dynamic_url`, and re-bundles the background worker as a classic `bg-ff.js` script). `dist/` is left untouched so the Chrome `key`/extension-ID survives a Firefox build.
 
 ## Backend API (`functions/` → api.undistracted.me)
 - `photos/curated.js` — Lists photos from the media R2 store (`backgrounds/` prefix). Auth via `X-API-Key`. CORS: chrome-extension://, moz-extension://, production origin.
@@ -573,7 +573,10 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` strips `favicon` + `scrip
 
 ## Commands
 - `bun run dev` — Vite dev server
-- `bun run build` — extension build (outputs to `dist/`)
+- `bun run build` — Chrome extension build (outputs to `dist/`)
+- `bun run build:chrome` — Chrome Web Store zip (`builds/chrome.zip`)
+- `bun run build:firefox` — Firefox Addons zip (`builds/*.zip`); patches an isolated `dist-firefox/` clone
+- `bun run start:firefox` — run Firefox build locally via web-ext
 - `bun run test` — Playwright E2E tests
 - `bun run test:unit` — Vitest unit tests
 
