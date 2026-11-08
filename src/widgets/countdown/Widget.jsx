@@ -320,8 +320,8 @@ export const Widget = ({ id, onRemove }) => {
   // top-right corner regardless of card size (dims.h = content-wrap height).
   // Oversized + intentionally clipped at the card edge for a decorative bleed.
   const ghostSize = dims.h > 0
-    ? Math.max(128, Math.min(360, Math.round(dims.h * 1.2)))
-    : 160;
+    ? Math.max(182, Math.min(360, Math.round(dims.h * 1.2)))
+    : 182;
 
   const settingsContent = (onClose) => (
     <>
