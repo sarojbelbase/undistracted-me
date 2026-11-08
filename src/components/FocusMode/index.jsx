@@ -147,6 +147,20 @@ export const FocusMode = ({ onExit }) => {
   const [customBgUrl, setCustomBgUrl] = useState(() => getCustomBgUrl());
   const [orbRgb, setOrbRgb] = useState(getOrbRgb);
   const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
+
+  // Re-read the wallpaper when cross-device sync pulls a new focus-mode
+  // background while Focus Mode is open. `focus_mode_changed` is dispatched by
+  // the sync engine after it merges a remote `focus_mode` into localStorage.
+  useEffect(() => {
+    const onFocusModeChanged = () => {
+      setBgSource(getBgSource());
+      setCustomBgUrl(getCustomBgUrl());
+      setOrbRgb(getOrbRgb());
+    };
+    globalThis.addEventListener("focus_mode_changed", onFocusModeChanged);
+    return () =>
+      globalThis.removeEventListener("focus_mode_changed", onFocusModeChanged);
+  }, []);
   const {
     clock: clockDark,
     search: searchDark,

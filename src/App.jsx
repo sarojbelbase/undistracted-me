@@ -28,6 +28,7 @@ import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
 import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
 import syncEngine from "./utilities/syncEngine";
+import { initSyncRefresh } from "./utilities/syncRefresh";
 import bgImage from "./assets/img/bg.webp";
 
 // ── On-demand lazy components ────────────────────────────────────────────────
@@ -223,6 +224,7 @@ const App = () => {
 
   // ── Cross-device sync — init on mount if previously enabled ──────────────
   useEffect(() => {
+    initSyncRefresh();
     syncEngine.initSync();
   }, []);
 

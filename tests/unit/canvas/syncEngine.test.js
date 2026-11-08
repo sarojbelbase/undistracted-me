@@ -241,6 +241,77 @@ describe('phantom-key mapping', () => {
   });
 });
 
+// ─── focus_mode background sync ─────────────────────────────────────────────
+
+describe('focus_mode background sync', () => {
+  it('pushes the focus-mode background as a fields element set', async () => {
+    localStorage.setItem('fm_bg_source', 'orb');
+    localStorage.setItem('fm_orb_palette_id', 'sunset');
+
+    await syncEngine.pushAll();
+
+    const written = JSON.parse(state.gistContent);
+    const fields = written.keys.focus_mode.v.fields;
+    expect(fields.bgSource.v).toBe('orb');
+    expect(fields.orbPaletteId.v).toBe('sunset');
+  });
+
+  it('merges a remote focus-mode background into local (field-level LWW)', async () => {
+    localStorage.setItem('fm_bg_source', 'custom');
+    localStorage.setItem('fm_custom_bg_url', 'https://a.jpg');
+    localStorage.setItem('fm_orb_palette_id', 'blueberry');
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
+      focus_mode: { fields: { items: {
+        bgSource: { v: 'custom', t: 100 },
+        customBgUrl: { v: 'https://a.jpg', t: 100 },
+        orbPaletteId: { v: 'blueberry', t: 100 },
+        selectedPhotoId: { v: null, t: 100 },
+      }, deleted: {} } },
+    }));
+    setGist({ focus_mode: { v: { fields: {
+      bgSource: { v: 'orb', t: 200 },
+      orbPaletteId: { v: 'sunset', t: 200 },
+    }, version: 0 }, t: 200 } });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes.focus_mode).toBe(true);
+    expect(localStorage.getItem('fm_bg_source')).toBe('orb');
+    expect(localStorage.getItem('fm_custom_bg_url')).toBe('https://a.jpg');
+    expect(localStorage.getItem('fm_orb_palette_id')).toBe('sunset');
+  });
+});
+
+// ─── refresh listeners ──────────────────────────────────────────────────────
+
+describe('refresh listeners', () => {
+  it('notifies refresh listeners with changed keys after a pull', async () => {
+    const listener = vi.fn();
+    const unsub = syncEngine.registerRefreshListener(listener);
+
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
+    localStorage.setItem('sync_merge_meta', JSON.stringify({
+      undistracted_settings: { fields: { items: { accent: { v: 'local', t: 100 } }, deleted: {} } },
+    }));
+    setGist({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 200 } }, version: 0 }, t: 200 } });
+
+    await syncEngine.pullFromSync();
+
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({ undistracted_settings: true }));
+    unsub();
+  });
+
+  it('does not notify refresh listeners when nothing changed', async () => {
+    const listener = vi.fn();
+    const unsub = syncEngine.registerRefreshListener(listener);
+
+    await syncEngine.pullFromSync(); // empty gist → nothing to pull
+
+    expect(listener).not.toHaveBeenCalled();
+    unsub();
+  });
+});
+
 // ─── widget_instances per-instance merge ────────────────────────────────────
 
 describe('widget_instances per-instance merge', () => {
