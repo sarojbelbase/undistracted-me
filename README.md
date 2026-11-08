@@ -113,6 +113,11 @@ bun run test:unit
 bun run test:unit:coverage
 ```
 
+## Known Issues
+
+See [`.docs/KNOWN_ISSUES.md`](.docs/KNOWN_ISSUES.md) for browser-level rendering
+quirks (e.g. glass-mode flicker on resize) and their root causes.
+
 ## License
 
 MIT
