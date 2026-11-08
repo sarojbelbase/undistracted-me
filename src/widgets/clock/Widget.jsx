@@ -18,10 +18,33 @@ export const Widget = ({ id, onRemove }) => {
   const [extraTimes, setExtraTimes] = useState([]);
 
   const update = useCallback(() => {
-    setParts(getTimeParts(format));
+    // Gate on actual change — the clock shows HH:MM (no seconds), so skip the
+    // per-second re-render when the formatted time/period/greeting is unchanged.
+    setParts((prev) => {
+      const next = getTimeParts(format);
+      if (
+        prev &&
+        prev.time === next.time &&
+        prev.period === next.period &&
+        prev.greeting?.label === next.greeting?.label
+      ) return prev;
+      return next;
+    });
     // Clamp to the first 2 timezones — out-of-band data (import/legacy) can
     // exceed the settings limit, and the widget must not render 3+ clocks.
-    setExtraTimes(timezones.slice(0, 2).map(tz => getTimeInZone(tz, format)));
+    setExtraTimes((prev) => {
+      const next = timezones.slice(0, 2).map((tz) => getTimeInZone(tz, format));
+      if (
+        prev.length === next.length &&
+        prev.every(
+          (p, i) =>
+            p.time === next[i].time &&
+            p.period === next[i].period &&
+            p.label === next[i].label,
+        )
+      ) return prev;
+      return next;
+    });
   }, [format, timezones]);
 
   useEffect(() => onClockTick(update), [update]);

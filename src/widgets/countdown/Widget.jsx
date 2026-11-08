@@ -99,20 +99,35 @@ export const Widget = ({ id, onRemove }) => {
   const [localEvents, , removeEventFromStore] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const today = todayStr();
-  const allEvents = [...localEvents, ...(gcalEvents || [])];
 
-  const upcomingEvents = allEvents
-    .filter((e) => {
-      const dt = new Date(
-        `${e.startDate || today}T${e.startTime || "00:00"}`,
-      );
-      return dt >= new Date(Date.now() - 2 * 60 * 1000);
-    })
-    .sort((a, b) => {
-      const aKey = `${a.startDate || today}T${a.startTime || "99:99"}`;
-      const bKey = `${b.startDate || today}T${b.startTime || "99:99"}`;
-      return aKey.localeCompare(bKey);
-    });
+  // The widget re-renders every second (live countdown). Memoize the event-list
+  // derivations so a 1s tick doesn't re-spread / re-parse / re-sort every event.
+  const allEvents = useMemo(
+    () => [...localEvents, ...(gcalEvents || [])],
+    [localEvents, gcalEvents],
+  );
+
+  const upcomingEvents = useMemo(
+    () =>
+      allEvents
+        .filter((e) => {
+          const dt = new Date(`${e.startDate || today}T${e.startTime || "00:00"}`);
+          return dt >= new Date(Date.now() - 2 * 60 * 1000);
+        })
+        .sort((a, b) => {
+          const aKey = `${a.startDate || today}T${a.startTime || "99:99"}`;
+          const bKey = `${b.startDate || today}T${b.startTime || "99:99"}`;
+          return aKey.localeCompare(bKey);
+        }),
+    [allEvents, today],
+  );
+
+  // "From Calendar" must not re-list countdowns that were mirrored into the
+  // events store (_fromCountdown) — those already appear under "My Countdowns".
+  const calendarEvents = useMemo(
+    () => upcomingEvents.filter((e) => !e._fromCountdown),
+    [upcomingEvents],
+  );
 
   const setPin = useCallback(
     (p) => {
@@ -126,24 +141,24 @@ export const Widget = ({ id, onRemove }) => {
 
   const removeCustom = useCallback(
     (cdId) => {
-      setCustom((prev) => {
-        const next = prev.filter((c) => c.id !== cdId);
-        saveCustom(next);
-        return next;
-      });
-      setPinned((p) => {
-        if (p?.type === "custom" && p?.id === cdId) {
-          savePinned(id, null);
-          return null;
-        }
-        return p;
-      });
+      const next = custom.filter((c) => c.id !== cdId);
+      setCustom(next);
+      saveCustom(next);
+      if (pinned?.type === "custom" && pinned?.id === cdId) {
+        setPinned(null);
+        savePinned(id, null);
+      }
       removeEventFromStore(cdId);
     },
-    [removeEventFromStore, id],
+    [custom, pinned, removeEventFromStore, id],
   );
 
   useEffect(() => onClockTick(() => setNow(Date.now())), []);
+
+  // Clear the post-completion pin-clear timer on unmount so a pending
+  // setTimeout can't fire setPin(null) after the widget is gone.
+  const pinClearRef = useRef(null);
+  useEffect(() => () => clearTimeout(pinClearRef.current), []);
 
   // Re-read countdowns when the unified dialog adds/edits one (it writes to
   // localStorage directly and broadcasts this event).
@@ -154,12 +169,9 @@ export const Widget = ({ id, onRemove }) => {
   }, []);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
-  const { target, shouldClearPin } = resolveTarget(
-    pinned,
-    allEvents,
-    upcomingEvents,
-    today,
-    custom,
+  const { target, shouldClearPin } = useMemo(
+    () => resolveTarget(pinned, allEvents, upcomingEvents, today, custom),
+    [pinned, allEvents, upcomingEvents, today, custom],
   );
 
   useEffect(() => {
@@ -191,10 +203,10 @@ export const Widget = ({ id, onRemove }) => {
 
     if (pinned?.type === "custom") {
       const cd = custom.find((c) => c.id === pinned.id);
-      if (cd?.repeat === "none") setTimeout(() => setPin(null), 10_000);
+      if (cd?.repeat === "none") pinClearRef.current = setTimeout(() => setPin(null), 10_000);
     }
     if (pinned?.type === "event") {
-      setTimeout(() => setPin(null), 10_000);
+      pinClearRef.current = setTimeout(() => setPin(null), 10_000);
     }
   }, [notifKey, totalSeconds === 0]);
 
@@ -236,8 +248,6 @@ export const Widget = ({ id, onRemove }) => {
   const measureText = timePart;
 
   // ── Minimal metadata — time + smart day label (no recurrence on face) ──────
-  const todayDate = new Date();
-
   const metaTime = useMemo(() => {
     if (!activeTarget?.startTime) return '';
     return fmt12(activeTarget.startTime);
@@ -246,7 +256,10 @@ export const Widget = ({ id, onRemove }) => {
   const dayLabel = useMemo(() => {
     if (!activeTarget?.nextDate) return '';
     const d = activeTarget.nextDate;
-    const today = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+    // Derive "today" from the ticking `now` state (not a render-time `new Date()`)
+    // so the Today/Tomorrow/Yesterday label flips at midnight while mounted.
+    const nowDate = new Date(now);
+    const today = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
     const targetDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const diff = Math.round((targetDay - today) / 86400000);
 
@@ -254,11 +267,11 @@ export const Widget = ({ id, onRemove }) => {
     if (diff === 1) return 'Tomorrow';
     if (diff === -1) return 'Yesterday';
 
-    if (d.getFullYear() === todayDate.getFullYear()) {
+    if (d.getFullYear() === nowDate.getFullYear()) {
       return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
     return formatTargetDate(d);
-  }, [activeTarget?.nextDate]);
+  }, [activeTarget?.nextDate, now]);
 
   const showMeta = metaTime || dayLabel;
 
@@ -281,9 +294,20 @@ export const Widget = ({ id, onRemove }) => {
   // Binary search: find largest hero font size that fits the reserved height.
   // The title label (up to 2 lines) + meta row occupy a fixed band, so the
   // hero phrase is sized against the remaining vertical space.
+  //
+  // `measureText` (the hero phrase) re-computes every second because the widget
+  // ticks, but its *string value* only changes at phrase boundaries ("in 3
+  // years" stays identical for a whole year). Skip the 20-iteration
+  // getBoundingClientRect loop when neither the text nor the container size
+  // changed since the last measure.
+  const lastMeasureKeyRef = useRef('');
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el || !measureText || dims.w <= 0 || dims.h <= 0) return;
+
+    const key = `${measureText}|${dims.w}x${dims.h}`;
+    if (lastMeasureKeyRef.current === key) return;
+    lastMeasureKeyRef.current = key;
 
     const RESERVED = 46; // 2-line title (~30px) + meta row (~14px) + gaps
     const availH = Math.max(16, dims.h - RESERVED);
@@ -347,7 +371,7 @@ export const Widget = ({ id, onRemove }) => {
         <CountdownSettings
           custom={custom}
           pinned={pinned}
-          upcomingEvents={upcomingEvents}
+          upcomingEvents={calendarEvents}
           onRemoveCustom={removeCustom}
           onPin={setPin}
           onClose={onClose}

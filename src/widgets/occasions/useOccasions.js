@@ -52,12 +52,12 @@ export const useOccasions = () => {
       if (e.key === MANUAL_LOCAL_KEY) load();
     };
 
-    chrome?.storage?.onChanged?.addListener?.(onStorageChanged);
+    globalThis.chrome?.storage?.onChanged?.addListener?.(onStorageChanged);
     globalThis.addEventListener('storage', onStorage);
 
     return () => {
       cancelled = true;
-      chrome?.storage?.onChanged?.removeListener?.(onStorageChanged);
+      globalThis.chrome?.storage?.onChanged?.removeListener?.(onStorageChanged);
       globalThis.removeEventListener('storage', onStorage);
     };
   }, []);
