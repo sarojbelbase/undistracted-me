@@ -342,7 +342,10 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const inputRef = useRef(null);
 
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 80);
+    return () => clearTimeout(t);
+  }, []);
 
   const { ok: syntaxOk, hint } = classifyUrl(value);
 

@@ -17,10 +17,8 @@ export function useFocusMode(defaultView) {
       if (!e.altKey || !e.shiftKey || e.key.toLowerCase() !== 'f') return;
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      setShowFocusMode(v => {
-        if (!v) setFocusModeEverShown(true);
-        return !v;
-      });
+      setFocusModeEverShown(true); // idempotent "ever shown" flag
+      setShowFocusMode(v => !v);
     };
     globalThis.addEventListener('keydown', handleKey);
     return () => globalThis.removeEventListener('keydown', handleKey);

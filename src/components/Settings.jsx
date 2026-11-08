@@ -10,7 +10,7 @@
  */
 
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
 import { Modal } from './ui/Modal';
 import { Appearance } from './settings/Appearance';
@@ -107,6 +107,24 @@ export const Settings = ({
   onPreviewLookAway,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const scrollRef = useRef(null);
+  const [showScrollFade, setShowScrollFade] = useState(false);
+
+  // Show a bottom fade only when the tab body is scrollable AND not yet at the
+  // bottom — a subtle affordance that content continues below the fold.
+  const updateScrollFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const canScroll = el.scrollHeight > el.clientHeight + 4;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+    setShowScrollFade(canScroll && !atBottom);
+  }, []);
+
+  useEffect(() => {
+    // Re-measure after the tab body renders (layout may not be settled yet).
+    const id = requestAnimationFrame(updateScrollFade);
+    return () => cancelAnimationFrame(id);
+  }, [activeTab, updateScrollFade]);
 
   return (
     <Modal
@@ -158,16 +176,31 @@ export const Settings = ({
       <TabBar active={activeTab} onChange={setActiveTab} />
 
       {/* ── Tab content ── */}
-      <div
-        id={`settings-panel-${activeTab}`}
-        role="tabpanel"
-        aria-label={TABS.find(t => t.id === activeTab)?.label}
-        style={{ padding: '18px 20px 22px', overflowY: 'auto', height: 360 }}
-      >
-        {activeTab === 'appearance' && <Appearance />}
-        {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
-        {activeTab === 'accounts' && <Accounts />}
-        {activeTab === 'data' && <Data onNavigateToAccounts={() => setActiveTab('accounts')} />}
+      <div style={{ position: 'relative', height: 360, flexShrink: 0 }}>
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollFade}
+          id={`settings-panel-${activeTab}`}
+          role="tabpanel"
+          aria-label={TABS.find(t => t.id === activeTab)?.label}
+          style={{ padding: '18px 20px 28px', overflowY: 'auto', height: '100%' }}
+        >
+          {activeTab === 'appearance' && <Appearance />}
+          {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
+          {activeTab === 'accounts' && <Accounts />}
+          {activeTab === 'data' && <Data onNavigateToAccounts={() => setActiveTab('accounts')} />}
+        </div>
+        {showScrollFade && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, height: 44,
+              pointerEvents: 'none',
+              background: 'linear-gradient(to bottom, transparent, var(--card-bg))',
+              transition: 'opacity 0.2s ease',
+            }}
+          />
+        )}
       </div>
     </Modal>
   );

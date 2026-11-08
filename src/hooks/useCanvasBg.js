@@ -121,10 +121,11 @@ export function useCanvasBg({
     [bgType, isDark, accent, cardStyle],
   );
 
-  return {
-    bgType,
-    bgOrbId,
-    bgOrbRgb,
-    pageBg,
-  };
+  // Return a stable object reference so `<CanvasBackground {...bg}>` (and any
+  // memoized consumer of it) doesn't re-render on every App render when the
+  // underlying values are unchanged.
+  return useMemo(
+    () => ({ bgType, bgOrbId, bgOrbRgb, pageBg }),
+    [bgType, bgOrbId, bgOrbRgb, pageBg],
+  );
 }

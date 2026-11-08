@@ -33,7 +33,15 @@ const Segment = ({ children, style = {} }) => (
 );
 
 export const Appearance = () => {
-  const { mode, setMode, accent, setAccent, cardStyle, setCardStyle, canvasBg, setCanvasBg } = useSettingsStore();
+  // Narrow selectors — avoid re-rendering the whole panel on any single change.
+  const mode = useSettingsStore((s) => s.mode);
+  const setMode = useSettingsStore((s) => s.setMode);
+  const accent = useSettingsStore((s) => s.accent);
+  const setAccent = useSettingsStore((s) => s.setAccent);
+  const cardStyle = useSettingsStore((s) => s.cardStyle);
+  const setCardStyle = useSettingsStore((s) => s.setCardStyle);
+  const canvasBg = useSettingsStore((s) => s.canvasBg);
+  const setCanvasBg = useSettingsStore((s) => s.setCanvasBg);
 
   // Canonical auto-mode resolution — resolves 'auto' to the effective light/dark
   // so the accent swatches use the correct tone even during the day.

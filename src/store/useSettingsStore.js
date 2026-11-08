@@ -41,15 +41,16 @@ export const STORE_KEY = STORAGE_KEYS.SETTINGS;
  */
 const fromLegacy = () => {
   const D = APP_SETTINGS_DEFAULTS;
+  const _prefersDark =
+    globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   try {
     const stored = JSON.parse(
       localStorage.getItem(STORAGE_KEYS.SETTINGS) || "null",
     );
     if (stored?.state)
       return {
-        language: stored.state.language ?? D.language,
         accent: stored.state.accent ?? D.accent,
-        mode: stored.state.mode ?? D.mode,
+        mode: stored.state.mode ?? (_prefersDark ? "dark" : D.mode),
         defaultView: stored.state.defaultView ?? D.defaultView,
         dateFormat: stored.state.dateFormat ?? D.dateFormat,
         lookAwayEnabled: stored.state.lookAwayEnabled ?? D.lookAwayEnabled,
@@ -71,10 +72,7 @@ const fromLegacy = () => {
             : cb;
         })(),
         cardStyle: stored.state.cardStyle ?? D.cardStyle,
-        modePrefs: stored.state.modePrefs ?? {
-          light: { cardStyle: stored.state.cardStyle ?? D.cardStyle },
-          dark: { cardStyle: stored.state.cardStyle ?? D.cardStyle },
-        },
+        modePrefs: stored.state.modePrefs ?? D.modePrefs,
         notificationsEnabled:
           stored.state.notificationsEnabled ?? D.notificationsEnabled,
         notificationTypes:
@@ -87,10 +85,7 @@ const fromLegacy = () => {
     /* ignore */
   }
   // Legacy single-key fallback
-  const _prefersDark =
-    globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   return {
-    language: localStorage.getItem(STORAGE_KEYS._LEGACY.LANGUAGE) || D.language,
     accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || D.accent,
     mode:
       localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) ||
@@ -145,16 +140,6 @@ export const useSettingsStore = create(
 
       /** Re-show the quick tour on next mount by resetting the seen version. */
       resetQuickTourSeen: () => set({ quickTourSeenVersion: null }),
-
-      setLanguage: (language) => {
-        set({ language });
-        // Mirror to legacy key — Playwright tests assert localStorage.getItem('language').
-        try {
-          localStorage.setItem(STORAGE_KEYS._LEGACY.LANGUAGE, language);
-        } catch {
-          /* storage unavailable */
-        }
-      },
 
       /** Clock time format shown in Focus Mode: '24h' | '12h' */
       setClockFormat: (clockFormat) => set({ clockFormat }),

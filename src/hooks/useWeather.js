@@ -31,6 +31,12 @@ import {
 } from "../widgets/weather/utils.jsx";
 import { useDataHub } from "./useDataHub";
 
+// Module-level in-flight dedup. useWeather is instantiated independently by the
+// Weather widget (full: true), Focus Mode, and the popup — on a cold start with
+// no SW/DataHub prefetch, all three would otherwise fire their own fetchOpenMeteo.
+// This Map lets concurrent consumers share ONE fetch per (location, unit, full).
+const inFlight = new Map();
+
 /**
  * @param {Object} opts
  * @param {number}  opts.lat          Latitude
@@ -49,7 +55,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
   // SW-prefetched raw Open-Meteo data (metric) from the DataHub.
   const {
     data: hubRaw,
-    meta: hubMeta,
+    entry: hubEntry,
     hydrated,
     write: writeHub,
   } = useDataHub("weather");
@@ -87,15 +93,15 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
     const hubMatches =
       unit === "metric" &&
       hubRaw &&
-      hubMeta?.lat != null &&
-      hubMeta?.lon != null &&
-      Math.abs(hubMeta.lat - lat) <= 0.01 &&
-      Math.abs(hubMeta.lon - lon) <= 0.01;
+      hubEntry?.lat != null &&
+      hubEntry?.lon != null &&
+      Math.abs(hubEntry.lat - lat) <= 0.01 &&
+      Math.abs(hubEntry.lon - lon) <= 0.01;
 
     if (hubMatches) {
       const w = parseWeather(hubRaw, cityName);
       const f = parseForecast(hubRaw);
-      const a = full && hubMeta.aqiData ? parseAQI(hubMeta.aqiData) : null;
+      const a = full && hubEntry.aqiData ? parseAQI(hubEntry.aqiData) : null;
       applyData(w, f, a);
       writeWeatherCache(w, f, a, locKey, unit);
       return;
@@ -103,16 +109,25 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
 
     // ── Tier 3: live fetch (first load, or unit/location mismatch) ──────
     setLoading(true);
-    (async () => {
-      try {
-        const fetches = full
-          ? [fetchOpenMeteo(lat, lon, unit), fetchAQI(lat, lon).catch(() => null)]
-          : [fetchOpenMeteo(lat, lon, unit)];
-        const results = await Promise.all(fetches);
+    const fetchKey = `${locKey}|${unit}|${full ? 1 : 0}`;
+    let fetchPromise = inFlight.get(fetchKey);
+    if (!fetchPromise) {
+      fetchPromise = (async () => {
+        try {
+          const fetches = full
+            ? [fetchOpenMeteo(lat, lon, unit), fetchAQI(lat, lon).catch(() => null)]
+            : [fetchOpenMeteo(lat, lon, unit)];
+          const results = await Promise.all(fetches);
+          return { raw: results[0], aqiRaw: results[1] ?? null };
+        } finally {
+          inFlight.delete(fetchKey);
+        }
+      })();
+      inFlight.set(fetchKey, fetchPromise);
+    }
+    fetchPromise
+      .then(({ raw, aqiRaw }) => {
         if (cancelled) return;
-
-        const raw = results[0];
-        const aqiRaw = results[1] ?? null;
         const w = parseWeather(raw, cityName);
         const f = parseForecast(raw);
         const a = full && aqiRaw ? parseAQI(aqiRaw) : null;
@@ -121,18 +136,18 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
         writeWeatherCache(w, f, a, locKey, unit);
         // Feed metric results back into the hub so the SW and other tabs reuse them.
         if (unit === "metric") writeHub(raw, { aqiData: aqiRaw, lat, lon });
-      } catch {
+      })
+      .catch(() => {
         if (!cancelled) {
           setLoading(false);
           setError(true);
         }
-      }
-    })();
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [lat, lon, unit, cityName, full, hydrated, hubRaw, hubMeta, writeHub, refreshKey]);
+  }, [lat, lon, unit, cityName, full, hydrated, hubRaw, hubEntry, writeHub, refreshKey]);
 
   return { weather, forecast, aqi, loading, error };
 }

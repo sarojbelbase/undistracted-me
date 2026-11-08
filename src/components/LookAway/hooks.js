@@ -19,11 +19,9 @@ if (typeof document !== 'undefined') {
 
 /** Returns true if a snooze window is currently active. */
 function isSnoozed() {
-  if (hasChromeApi() && chrome.storage?.local) {
-    // Chrome storage is async — we check a module-level cache updated by the
-    // storage.onChanged listener in the scheduler. For a quick synchronous
-    // answer we also read from localStorage as a shadow copy.
-  }
+  // The extension also mirrors `lookaway_snooze_until` into chrome.storage.local
+  // (see the storage.onChanged listener below), but the localStorage shadow copy
+  // is the single synchronous source of truth used by this check.
   try {
     const v = localStorage.getItem('lookaway_snooze_until');
     return v ? Date.now() < Number(v) : false;

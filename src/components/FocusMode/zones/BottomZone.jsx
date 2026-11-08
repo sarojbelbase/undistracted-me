@@ -10,7 +10,14 @@ import { ZONES } from '../config';
 
 export const BottomZone = ({ greetOnDark = true }) => {
   const [parts, setParts] = useState(() => getTimeParts('24h'));
-  const update = useCallback(() => setParts(getTimeParts('24h')), []);
+  // The greeting changes hourly, not every second — gate the setState.
+  const update = useCallback(() => {
+    setParts((prev) => {
+      const next = getTimeParts('24h');
+      if (prev && prev.greeting?.label === next.greeting?.label) return prev;
+      return next;
+    });
+  }, []);
   useEffect(() => onClockTick(update), [update]);
 
   if (!ZONES.bottom.items.greeting.enable) return null;

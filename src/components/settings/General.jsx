@@ -29,13 +29,17 @@ const NOTIF_ICONS = {
 };
 
 export const General = ({ onPreviewLookAway }) => {
-  const {
-    defaultView, setDefaultView,
-    lookAwayEnabled, setLookAwayEnabled,
-    lookAwayInterval, setLookAwayInterval,
-    notificationsEnabled, setNotificationsEnabled,
-    notificationTypes, setNotificationType,
-  } = useSettingsStore();
+  // Narrow selectors — avoid re-rendering the whole panel on any single change.
+  const defaultView = useSettingsStore((s) => s.defaultView);
+  const setDefaultView = useSettingsStore((s) => s.setDefaultView);
+  const lookAwayEnabled = useSettingsStore((s) => s.lookAwayEnabled);
+  const setLookAwayEnabled = useSettingsStore((s) => s.setLookAwayEnabled);
+  const lookAwayInterval = useSettingsStore((s) => s.lookAwayInterval);
+  const setLookAwayInterval = useSettingsStore((s) => s.setLookAwayInterval);
+  const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
+  const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
+  const notificationTypes = useSettingsStore((s) => s.notificationTypes);
+  const setNotificationType = useSettingsStore((s) => s.setNotificationType);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

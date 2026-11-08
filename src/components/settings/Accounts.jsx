@@ -98,7 +98,14 @@ const SpotifySection = () => {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export const Accounts = () => {
-  const { connected, connecting, disconnecting, error, profile, connect, disconnect } = useGoogleAccountStore();
+  // Narrow selectors — the Google store flips `connecting`/`error`/`initialized`
+  // frequently; subscribing to the whole store re-rendered the panel each time.
+  const connected = useGoogleAccountStore((s) => s.connected);
+  const connecting = useGoogleAccountStore((s) => s.connecting);
+  const error = useGoogleAccountStore((s) => s.error);
+  const profile = useGoogleAccountStore((s) => s.profile);
+  const connect = useGoogleAccountStore((s) => s.connect);
+  const disconnect = useGoogleAccountStore((s) => s.disconnect);
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,7 +127,6 @@ export const Accounts = () => {
           scopes={GOOGLE_SCOPES}
           connected={connected}
           connecting={connecting}
-          disconnecting={disconnecting}
           error={error}
           profile={profile}
           connectLabel="Connect with Google"

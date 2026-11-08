@@ -155,6 +155,14 @@ export const useGoogleCalendar = () => {
   const [error, setError] = useState(null);
   const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
   const fetchedRef = useRef(false);
+  // Tracks mount state so async callbacks (refresh/connect) never setState on an
+  // unmounted tree — a remount of Focus Mode/Events mid-fetch would otherwise
+  // clobber the new instance's state via the `finally { setLoading(false) }`.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,19 +180,22 @@ export const useGoogleCalendar = () => {
     setError(null);
     try {
       const { events, changed } = await fetchCalendarOnce(false);
+      if (!mountedRef.current) return;
       setConnected(true);
       setError(null);
       setSyncedAt(loadGcalSyncedAt());
       if (changed) setGcalEvents(events);
     } catch {
+      if (!mountedRef.current) return;
       const cached = await loadCachedGcalEvents();
+      if (!mountedRef.current) return;
       if (cached.length > 0) {
         setConnected(true);
       } else {
         setConnected(false);
       }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 
@@ -194,12 +205,15 @@ export const useGoogleCalendar = () => {
     setError(null);
     try {
       const { events, changed } = await fetchCalendarOnce(true);
+      if (!mountedRef.current) return;
       setConnected(true);
       setError(null);
       setSyncedAt(loadGcalSyncedAt());
       if (changed) setGcalEvents(events);
     } catch (err) {
+      if (!mountedRef.current) return;
       const cached = await loadCachedGcalEvents();
+      if (!mountedRef.current) return;
       if (cached.length > 0) {
         setConnected(true);
       } else {
@@ -220,7 +234,7 @@ export const useGoogleCalendar = () => {
         setError(msg);
       }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 

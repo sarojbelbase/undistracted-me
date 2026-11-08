@@ -139,31 +139,36 @@ const BlockedPage = () => {
   // Countdown tick — only for timed blocks with a valid entry in storage.
   // Skip if infinite, or if the entry was not found (site was unblocked).
   const tick = !infinite && !notFound;
+
+  // Stable 1s interval — decrement the countdown. (`remainingMs` was previously
+  // in the dep array, which tore down and re-created the interval every second,
+  // and re-ran the isNowInfinite/removeBlockedEntry localStorage reads each tick.)
   useEffect(() => {
-    if (!tick) return;
+    if (!tick || redirecting) return;
+    const iv = setInterval(() => {
+      setRemainingMs((r) => Math.max(0, r - 1000));
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [tick, redirecting]);
 
-    if (remainingMs <= 0 && !redirecting) {
-      if (isNowInfinite(blockedDomain)) return;
-      removeBlockedEntry(blockedDomain);
+  // Reached zero → remove the block entry, show "Redirecting now…", then navigate.
+  useEffect(() => {
+    if (!tick || redirecting || remainingMs > 0) return;
+    if (isNowInfinite(blockedDomain)) return;
 
-      // Show "Redirecting now..." for 5 seconds, then navigate
-      setRedirecting(true);
-      const t = setTimeout(() => {
-        if (blockedDomain) {
-          globalThis.location.href = 'https://' + blockedDomain;
-        } else {
-          globalThis.location.reload();
-        }
-      }, 5000);
-      return () => clearTimeout(t);
-    }
-    if (!redirecting) {
-      const t = setInterval(() => {
-        setRemainingMs((r) => Math.max(0, r - 1000));
-      }, 1000);
-      return () => clearInterval(t);
-    }
-  }, [tick, remainingMs, blockedDomain, redirecting]); // eslint-disable-line react-hooks/exhaustive-deps
+    removeBlockedEntry(blockedDomain);
+
+    // Show "Redirecting now..." for 5 seconds, then navigate
+    setRedirecting(true);
+    const t = setTimeout(() => {
+      if (blockedDomain) {
+        globalThis.location.href = 'https://' + blockedDomain;
+      } else {
+        globalThis.location.reload();
+      }
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [tick, redirecting, remainingMs, blockedDomain]);
 
   // ── Auto-redirect when site was unblocked (notFound) ────────────────────
   useEffect(() => {

@@ -38,7 +38,8 @@ export const SettingsInput = React.forwardRef(function SettingsInput(
   },
   ref,
 ) {
-  const { cardStyle, mode } = useSettingsStore();
+  const cardStyle = useSettingsStore((s) => s.cardStyle);
+  const mode = useSettingsStore((s) => s.mode);
   const isGlass = cardStyle === "glass";
   const isComic = cardStyle === "comic";
   const isDarkMode =

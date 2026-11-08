@@ -25,6 +25,16 @@ export function invalidateContactsCache() {
   _contactsMemCache = null;
 }
 
+// Invalidate the memory cache when the service worker (or another tab) writes
+// fresh contacts to chrome.storage.local, so a long-lived page doesn't serve
+// stale birthdays after bg.js's prefetch.
+if (globalThis.chrome?.storage?.onChanged) {
+  globalThis.chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return;
+    if (changes[CACHE_KEY]) _contactsMemCache = null;
+  });
+}
+
 export async function loadCachedContacts() {
   if (_contactsMemCache !== null) return _contactsMemCache;
 
@@ -34,14 +44,14 @@ export async function loadCachedContacts() {
     try {
       const legacy = JSON.parse(legacyRaw);
       if (Array.isArray(legacy) && legacy.length > 0) {
-        await chrome?.storage?.local?.set({ [CACHE_KEY]: legacy }); // eslint-disable-line no-undef
+        await globalThis.chrome?.storage?.local?.set({ [CACHE_KEY]: legacy }); // eslint-disable-line no-undef
         localStorage.setItem(HAS_CACHE_FLAG, '1');
       }
     } catch { /* ignore malformed data */ }
     localStorage.removeItem(CACHE_KEY);
   }
 
-  const result = await chrome?.storage?.local?.get(CACHE_KEY) ?? {}; // eslint-disable-line no-undef
+  const result = await globalThis.chrome?.storage?.local?.get(CACHE_KEY) ?? {}; // eslint-disable-line no-undef
   _contactsMemCache = result[CACHE_KEY] ?? [];
   return _contactsMemCache;
 }
@@ -53,14 +63,14 @@ export function loadContactsSyncedAt() {
 
 async function saveCachedContacts(entries) {
   _contactsMemCache = entries; // update memory immediately
-  await chrome?.storage?.local?.set({ [CACHE_KEY]: entries }); // eslint-disable-line no-undef
+  await globalThis.chrome?.storage?.local?.set({ [CACHE_KEY]: entries }); // eslint-disable-line no-undef
   localStorage.setItem(HAS_CACHE_FLAG, '1');
   localStorage.setItem(SYNCED_KEY, String(Date.now()));
 }
 
 export async function clearContactsCache() {
   _contactsMemCache = [];
-  await chrome?.storage?.local?.remove(CACHE_KEY); // eslint-disable-line no-undef
+  await globalThis.chrome?.storage?.local?.remove(CACHE_KEY); // eslint-disable-line no-undef
   localStorage.removeItem(HAS_CACHE_FLAG);
   localStorage.removeItem(SYNCED_KEY);
 }
@@ -241,9 +251,9 @@ export function loadManualBirthdays() {
   try {
     const arr = JSON.parse(localStorage.getItem(MANUAL_KEY) || '[]');
     // Seed chrome.storage.local on first read so bg.js can access them.
-    chrome?.storage?.local?.get?.('occasions_manual').then((r) => { // eslint-disable-line no-undef
+    globalThis.chrome?.storage?.local?.get?.('occasions_manual').then((r) => { // eslint-disable-line no-undef
       if (!r?.occasions_manual?.length && arr.length) {
-        chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
+        globalThis.chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
       }
     }).catch(() => { });
     return arr;
@@ -255,7 +265,7 @@ function saveManualBirthdays(arr) {
     localStorage.setItem(MANUAL_KEY, JSON.stringify(arr));
     // Mirror to chrome.storage.local so bg.js can fire occasion notifications
     // without needing access to localStorage (SW can't read it directly).
-    chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
+    globalThis.chrome?.storage?.local?.set({ occasions_manual: arr }); // eslint-disable-line no-undef
   } catch { /* storage full */ }
 }
 

@@ -14,10 +14,10 @@ import { GOOGLE_TASKS_API } from '../constants/urls.js';
 
 const BASE = GOOGLE_TASKS_API;
 
-async function apiFetch(path, options = {}, retried = false) {
+async function apiFetch(path, options = {}, retried = false, interactive = false) {
   let token;
   try {
-    token = await getGoogleAuthToken(false);
+    token = await getGoogleAuthToken(interactive);
   } catch {
     throw new Error('Not authenticated with Google');
   }
@@ -32,10 +32,14 @@ async function apiFetch(path, options = {}, retried = false) {
   });
 
   // 401 = expired token; 403 = stale token missing tasks scope.
-  // Remove it and retry once so a fresh token is fetched.
+  // Remove the cached token and retry ONCE with an *interactive* auth flow so a
+  // fresh token (now carrying the tasks scope) is fetched. Retrying
+  // non-interactively here was dead code: the token was just deleted, so
+  // getGoogleAuthToken(false) always threw — and it silently logged Calendar /
+  // Contacts / Drive out too, since they share the same `google_tokens` key.
   if ((res.status === 401 || res.status === 403) && !retried) {
     await removeGoogleAuthToken();
-    return apiFetch(path, options, true);
+    return apiFetch(path, options, true, true);
   }
 
   if (!res.ok) {

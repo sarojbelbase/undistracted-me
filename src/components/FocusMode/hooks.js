@@ -26,12 +26,11 @@ export const useFocusWeather = () => {
   // Use a two-step selector to avoid creating a new reference on every
   // unrelated store mutation (e.g. notes keystrokes, RSS refresh).
   // Step 1: find the weather instance id (stable unless instances array reorders).
-  const weatherInstId = useWidgetInstancesStore(
-    useShallow((s) => {
-      const inst = s.instances.find((i) => i.type === "weather");
-      return inst?.id ?? "weather";
-    }),
-  );
+  // Returns a primitive string — no useShallow needed (identity compare is enough).
+  const weatherInstId = useWidgetInstancesStore((s) => {
+    const inst = s.instances.find((i) => i.type === "weather");
+    return inst?.id ?? "weather";
+  });
   // Step 2: read only that instance's settings — isolated from other widget writes.
   const weatherSettings = useWidgetInstancesStore(
     useShallow((s) => s.widgetSettings[weatherInstId] ?? null),
@@ -376,9 +375,11 @@ export function useFocusTasks() {
       setTasks(list);
       setGtasksConnected(true);
       // Fetch profile lazily — non-blocking, don't await
-      getGoogleUserProfile().then((p) => {
-        if (p) setUserProfile(p);
-      });
+      getGoogleUserProfile()
+        .then((p) => {
+          if (p) setUserProfile(p);
+        })
+        .catch(() => {});
     } catch {
       setTasks([]);
       setGtasksConnected(false);

@@ -72,49 +72,48 @@ export const useWidgetInstancesStore = create(
        * read `widgetSettings_*` directly continue to work.
        */
       updateWidgetSetting: (widgetId, key, value) => {
-        set((state) => {
-          const current = state.widgetSettings[widgetId] ?? {};
-          const updated = { ...current, [key]: value };
-          // Mirror to legacy key — keeps Playwright tests and any external
-          // readers in sync with the Zustand store.
-          try {
-            localStorage.setItem(
-              STORAGE_KEYS.widgetSettings(widgetId),
-              JSON.stringify(updated),
-            );
-          } catch { /* storage unavailable */ }
-          return {
-            widgetSettings: {
-              ...state.widgetSettings,
-              [widgetId]: updated,
-            },
-          };
+        const current = get().widgetSettings[widgetId] ?? {};
+        const updated = { ...current, [key]: value };
+        set({
+          widgetSettings: {
+            ...get().widgetSettings,
+            [widgetId]: updated,
+          },
         });
+        // Mirror to legacy key — keeps Playwright tests and any external
+        // readers in sync with the Zustand store. Done *outside* the updater so
+        // the store action stays pure (updaters may be re-invoked).
+        try {
+          localStorage.setItem(
+            STORAGE_KEYS.widgetSettings(widgetId),
+            JSON.stringify(updated),
+          );
+        } catch { /* storage unavailable */ }
       },
 
       addInstance: (type) => {
-        set((state) => {
-          const firstOccupied = state.instances.some((i) => i.id === type);
-          const id = firstOccupied ? mkId(type) : type;
-          return { instances: [...state.instances, { id, type }] };
-        });
+        // Generate the id OUTSIDE the updater — mkId() is non-deterministic
+        // (Date.now + random), and a pure updater must not generate ids (it may
+        // be re-invoked, producing a different id on each invocation).
+        const firstOccupied = get().instances.some((i) => i.id === type);
+        const id = firstOccupied ? mkId(type) : type;
+        set((state) => ({ instances: [...state.instances, { id, type }] }));
       },
 
       /**
-       * Clone an existing instance: same type, fresh id, and a deep copy of
-       * the source's per-instance settings. No-op if the source id is unknown.
+       * Clone an existing instance: same type, fresh id, empty settings (the
+       * duplicate starts from defaults — see inline comment). No-op if the
+       * source id is unknown.
        */
       duplicateInstance: (sourceId) => {
-        set((state) => {
-          const src = state.instances.find((i) => i.id === sourceId);
-          if (!src) return {};
-          const id = mkId(src.type);
-          // The duplicate starts empty (fresh defaults) — no settings are copied
-          // from the source, so it lands in the same "first-run" state as a
-          // newly added widget. `useWidgetSettings` falls back to defaults when
-          // no entry exists for the new id.
-          return { instances: [...state.instances, { id, type: src.type }] };
-        });
+        const src = get().instances.find((i) => i.id === sourceId);
+        if (!src) return;
+        const id = mkId(src.type);
+        // The duplicate starts empty (fresh defaults) — no settings are copied
+        // from the source, so it lands in the same "first-run" state as a
+        // newly added widget. `useWidgetSettings` falls back to defaults when
+        // no entry exists for the new id.
+        set((state) => ({ instances: [...state.instances, { id, type: src.type }] }));
       },
 
       removeInstance: (id) => {

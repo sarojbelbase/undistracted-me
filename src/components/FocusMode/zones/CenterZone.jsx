@@ -42,7 +42,21 @@ export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDar
     useShallow(s => ({ clockFormat: s.clockFormat || '24h', focusSearchBar: s.focusSearchBar ?? true })),
   );
   const [parts, setParts] = useState(() => getTimeParts(clockFormat));
-  const update = useCallback(() => setParts(getTimeParts(clockFormat)), [clockFormat]);
+  // Gate on actual change — the clock shows HH:MM (no seconds), so the value
+  // only flips once a minute. Without this guard CenterZone (Clock + SearchBar)
+  // re-rendered 60×/minute.
+  const update = useCallback(() => {
+    setParts((prev) => {
+      const next = getTimeParts(clockFormat);
+      if (
+        prev &&
+        prev.time === next.time &&
+        prev.period === next.period &&
+        prev.greeting?.label === next.greeting?.label
+      ) return prev;
+      return next;
+    });
+  }, [clockFormat]);
   useEffect(() => onClockTick(update), [update]);
 
   const showSearch = CENTER.searchBar.enable && focusSearchBar;
