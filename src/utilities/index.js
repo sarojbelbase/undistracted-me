@@ -220,8 +220,9 @@ export function shorthandFromUrl(url) {
  */
 
 /** Shared check — are we running inside a Chrome/Firefox extension? */
-export const isExtension = () =>
-    typeof chrome !== 'undefined' && !!chrome?.runtime?.id;
+// Re-exported from a dependency-free leaf so the service worker can import it
+// without pulling dayjs + the calendar table into the MV3 bundle.
+export { isExtension } from './isExtension';
 
 /**
  * Fetch the browser's top sites, cross-browser (Chrome + Firefox).

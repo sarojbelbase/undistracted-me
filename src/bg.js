@@ -630,7 +630,7 @@ async function runRssPrefetch() {
     const config = stored.rss_feed_config ?? [];
     if (!config.length) return;
 
-    // Fetch all feeds in parallel via the Vercel proxy
+    // Fetch all feeds in parallel via the backend proxy
     const results = await Promise.allSettled(
       config.map(async ({ url, label }) => {
         const res = await fetch(`${RSS_FEED_PROXY_URL}?url=${encodeURIComponent(url)}`, {

@@ -166,90 +166,117 @@ export const useLocationStore = create(
        * so widgets can re-fetch their data immediately.
        */
       refresh: async () => {
+        // In-flight guard — refresh() is triggered by mount, a 30-min interval,
+        // and visibilitychange. Overlapping runs race each other with
+        // last-write-wins, so a slow IP lookup can overwrite a fresher GPS fix.
+        if (get().status === 'loading') return;
         set({ status: 'loading' });
         const { lat: prevLat, lon: prevLon, source: prevSource } = get();
 
-        // Tier 1 — Browser geolocation (GPS/WiFi, most accurate)
-        const fromBrowser = await new Promise((resolve) => {
-          if (!navigator?.geolocation) return resolve(null);
-          navigator.geolocation.getCurrentPosition(
-            ({ coords }) => resolve({ lat: coords.latitude, lon: coords.longitude }),
-            () => resolve(null),
-            { timeout: 8_000, maximumAge: 6 * 3_600_000 },
-          );
-        });
+        try {
+          // Tier 1 — Browser geolocation (GPS/WiFi, most accurate)
+          const fromBrowser = await new Promise((resolve) => {
+            if (!navigator?.geolocation) return resolve(null);
+            try {
+              navigator.geolocation.getCurrentPosition(
+                ({ coords }) => resolve({ lat: coords.latitude, lon: coords.longitude }),
+                () => resolve(null),
+                { timeout: 8_000, maximumAge: 6 * 3_600_000 },
+              );
+            } catch {
+              resolve(null); // getCurrentPosition threw synchronously (blocked API)
+            }
+          });
 
-        if (fromBrowser) {
-          const { lat, lon } = fromBrowser;
-          const sameCoords = prevLat != null && haversineKm(prevLat, prevLon, lat, lon) < 0.5;
-          const [city, detectedTz] = await Promise.all([
-            sameCoords ? Promise.resolve(get().city) : reverseGeocodeCity(lat, lon),
-            Promise.resolve(Intl.DateTimeFormat().resolvedOptions().timeZone),
-          ]);
+          if (fromBrowser) {
+            const { lat, lon } = fromBrowser;
+            const sameCoords = prevLat != null && haversineKm(prevLat, prevLon, lat, lon) < 0.5;
+            const [city, detectedTz] = await Promise.all([
+              sameCoords ? Promise.resolve(get().city) : reverseGeocodeCity(lat, lon),
+              Promise.resolve(Intl.DateTimeFormat().resolvedOptions().timeZone),
+            ]);
+            set({
+              lat, lon,
+              city: city || '',
+              timezone: detectedTz,
+              source: 'browser',
+              ...computeSunFields(lat, lon),
+              status: 'ready',
+              lastUpdated: Date.now(),
+            });
+            // Notify consumers if we just upgraded from a fallback/IP source
+            // (first real GPS fix, or browser geo became available after denial)
+            if (prevSource !== 'browser') {
+              _dispatchLocationChanged(lat, lon);
+            }
+            return;
+          }
+
+          // Tier 2 — IP geolocation
+          const fromIP = await getCoordsFromIP();
+          if (fromIP) {
+            const { lat, lon, timezone: ipTz } = fromIP;
+
+            // Upgrade from fallback → first real IP fix, or VPN jump (>100 km).
+            // Both are meaningful location changes that consumers should react to.
+            const wasFallback = !prevSource || prevSource === 'default';
+            const moved =
+              !wasFallback && prevLat != null
+                ? haversineKm(prevLat, prevLon, lat, lon) > 100
+                : false;
+            const locationChanged = wasFallback || moved;
+
+            // Use city from IP response; fall back to Nominatim if empty
+            let city = fromIP.city || '';
+            if (!city) city = await reverseGeocodeCity(lat, lon);
+
+            const timezone = ipTz || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            set({
+              lat, lon,
+              city,
+              timezone,
+              source: 'ip',
+              ...computeSunFields(lat, lon),
+              status: 'ready',
+              lastUpdated: Date.now(),
+            });
+
+            if (locationChanged) {
+              _dispatchLocationChanged(lat, lon);
+            }
+            return;
+          }
+
+          // Tier 3 — Kathmandu hardcoded fallback
           set({
-            lat, lon,
-            city: city || '',
-            timezone: detectedTz,
-            source: 'browser',
-            ...computeSunFields(lat, lon),
+            lat: KATHMANDU.lat,
+            lon: KATHMANDU.lon,
+            city: KATHMANDU.city,
+            timezone: KATHMANDU.timezone,
+            source: 'default',
+            ...computeSunFields(KATHMANDU.lat, KATHMANDU.lon),
             status: 'ready',
             lastUpdated: Date.now(),
           });
-          // Notify consumers if we just upgraded from a fallback/IP source
-          // (first real GPS fix, or browser geo became available after denial)
-          if (prevSource !== 'browser') {
-            _dispatchLocationChanged(lat, lon);
-          }
-          return;
+        } catch (err) {
+          // Never let a transient geo/IP/sun failure wedge the store in
+          // 'loading' forever (which would disable every future refresh). Recover
+          // to the default location and a ready status so the pipeline keeps running.
+          console.warn('[location] refresh failed, falling back to default:', err);
+          try {
+            set({
+              lat: KATHMANDU.lat,
+              lon: KATHMANDU.lon,
+              city: KATHMANDU.city,
+              timezone: KATHMANDU.timezone,
+              source: 'default',
+              ...computeSunFields(KATHMANDU.lat, KATHMANDU.lon),
+              status: 'ready',
+              lastUpdated: Date.now(),
+            });
+          } catch { /* computeSunFields itself threw — nothing more we can do */ }
         }
-
-        // Tier 2 — IP geolocation
-        const fromIP = await getCoordsFromIP();
-        if (fromIP) {
-          const { lat, lon, timezone: ipTz } = fromIP;
-
-          // Upgrade from fallback → first real IP fix, or VPN jump (>100 km).
-          // Both are meaningful location changes that consumers should react to.
-          const wasFallback = !prevSource || prevSource === 'default';
-          const moved =
-            !wasFallback && prevLat != null
-              ? haversineKm(prevLat, prevLon, lat, lon) > 100
-              : false;
-          const locationChanged = wasFallback || moved;
-
-          // Use city from IP response; fall back to Nominatim if empty
-          let city = fromIP.city || '';
-          if (!city) city = await reverseGeocodeCity(lat, lon);
-
-          const timezone = ipTz || Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-          set({
-            lat, lon,
-            city,
-            timezone,
-            source: 'ip',
-            ...computeSunFields(lat, lon),
-            status: 'ready',
-            lastUpdated: Date.now(),
-          });
-
-          if (locationChanged) {
-            _dispatchLocationChanged(lat, lon);
-          }
-          return;
-        }
-
-        // Tier 3 — Kathmandu hardcoded fallback
-        set({
-          lat: KATHMANDU.lat,
-          lon: KATHMANDU.lon,
-          city: KATHMANDU.city,
-          timezone: KATHMANDU.timezone,
-          source: 'default',
-          ...computeSunFields(KATHMANDU.lat, KATHMANDU.lon),
-          status: 'ready',
-          lastUpdated: Date.now(),
-        });
       },
     }),
     {
