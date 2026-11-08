@@ -2,7 +2,7 @@
  * Chrome Web Store Showcase Screenshots
  *
  * Generates production-quality screenshots at 1280×800 (Chrome Store format).
- * Saves to: public/showcase/
+ * Saves to: store-assets/showcase/ (kept out of `public/` so they never ship in the extension build)
  *
  * ⚠️  MUST run in headed mode — the canvas/WebGL background doesn't render in
  *     chrome-headless-shell:
@@ -30,7 +30,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SHOWCASE_DIR = path.resolve(__dirname, '../../../public/showcase');
+const SHOWCASE_DIR = path.resolve(__dirname, '../../../store-assets/showcase');
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
