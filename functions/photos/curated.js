@@ -35,8 +35,8 @@ export async function onRequest(context) {
     id: b.id,
     url: b.url,
     regular: b.url,
-    small: b.url,
-    thumb: b.url,
+    small: b.thumb || b.url,
+    thumb: b.thumb || b.url,
     color: '#18191b',
   }));
 

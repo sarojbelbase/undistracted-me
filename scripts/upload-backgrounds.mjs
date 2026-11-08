@@ -97,6 +97,7 @@ for (const filename of files) {
     'r2', 'object', 'put', objectPath,
     '--file', filePath,
     '--content-type', contentType,
+    '--remote', // wrangler 4.x defaults r2 object put to --local; force real R2
     '--force',
   ]);
 

@@ -56,8 +56,8 @@ describe('GET /api/photos/curated', () => {
     expect(first.id).toBe('1');
     expect(first.url).toBe('https://media.undistracted.me/backgrounds/1.jpg');
     expect(first.regular).toBe(first.url);
-    expect(first.small).toBe(first.url);
-    expect(first.thumb).toBe(first.url);
+    expect(first.small).toBe('https://media.undistracted.me/backgrounds/thumbs/1.webp');
+    expect(first.thumb).toBe('https://media.undistracted.me/backgrounds/thumbs/1.webp');
     expect(first.color).toBe('#18191b');
   });
 
