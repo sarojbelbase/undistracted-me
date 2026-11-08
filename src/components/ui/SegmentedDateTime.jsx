@@ -297,7 +297,14 @@ export const SegmentedDateTime = ({
 
   const now = new Date();
   const dp = dateParts ?? { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
-  const tp = timeParts ?? { hour12: 12, minute: 0, ampm: 'AM' };
+  // Default an empty time to the *current* time (not a hardcoded 12:00 AM) so the
+  // time picker popover highlights the current hour instead of always 12.
+  const nowHour = now.getHours();
+  const tp = timeParts ?? {
+    hour12: nowHour % 12 === 0 ? 12 : nowHour % 12,
+    minute: now.getMinutes(),
+    ampm: nowHour >= 12 ? 'PM' : 'AM',
+  };
   const calNavYear = navYear ?? dp.year;
   const calNavMonth = navMonth ?? dp.month;
 
