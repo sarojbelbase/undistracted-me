@@ -3,9 +3,6 @@
  *
  * Each entry includes the ISO 4217 code, symbol, display name, and
  * locale used for Intl.NumberFormat formatting.
- *
- * The list is sorted by global usage prevalence, with the user's
- * likely currency detected via Intl.NumberFormat heuristics.
  */
 
 export const CURRENCIES = [
@@ -75,29 +72,6 @@ export const CURRENCIES = [
   { code: 'MAD', symbol: 'د.م.', name: 'Moroccan Dirham', locale: 'ar-MA' },
 ];
 
-/** Cache for the detected user currency (computed once). */
-let _detected = null;
-
-/**
- * Heuristic: detect the user's likely currency from their locale.
- * Falls back to USD if detection fails.
- */
-export function detectUserCurrency() {
-  if (_detected) return _detected;
-  try {
-    const opts = new Intl.NumberFormat().resolvedOptions();
-    const locale = opts.locale;
-    // Try to find a currency matching the user's locale region
-    const match = CURRENCIES.find(
-      (c) => c.locale === locale || c.locale.startsWith(locale.split('-')[0]),
-    );
-    _detected = match?.code ?? 'USD';
-  } catch {
-    _detected = 'USD';
-  }
-  return _detected;
-}
-
 /**
  * Format an amount in the given currency using Intl.NumberFormat.
  * Handles zero-decimal currencies (JPY, KRW, etc.) automatically.
@@ -126,11 +100,4 @@ export function formatAmount(amount, currencyCode, locale) {
  */
 export function getCurrencySymbol(code) {
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
-}
-
-/**
- * Get the locale for a currency code. Fallback to 'en-US'.
- */
-export function getCurrencyLocale(code) {
-  return CURRENCIES.find((c) => c.code === code)?.locale ?? 'en-US';
 }

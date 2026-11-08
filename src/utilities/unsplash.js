@@ -191,7 +191,7 @@ const stripPhotoFields = (photo) => {
 };
 
 /**
- * Fetch the complete curated photo list from the Vercel proxy and replace
+ * Fetch the complete curated photo list from the backend proxy and replace
  * the local library with those photos.
  *
  * Returns the array of downloaded photos (may be fewer than 10 if the

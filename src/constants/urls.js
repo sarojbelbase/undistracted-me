@@ -6,15 +6,12 @@
  * one canonical place to update an endpoint if it ever changes.
  */
 
-import { PRODUCTION_BASE_URL, API_BASE_URL, LANDING_BASE_URL } from './env.js';
+import { PRODUCTION_BASE_URL, API_BASE_URL } from './env.js';
 
 // ── Own APIs ──────────────────────────────────────────────────────────────────
 
 /** Backend RSS feed proxy (CORS-safe for extension origins). */
 export const RSS_FEED_PROXY_URL = `${API_BASE_URL}/rss/feed`;
-
-/** Public privacy policy & terms of service page (hosted on the landing site). */
-export const PP_AND_TOS_URL = `${LANDING_BASE_URL}/pp-and-tos`;
 
 /**
  * Committed `holidays.json` (Nepali + international, AD-dated), served from the
@@ -74,9 +71,6 @@ export const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/drive.appdata',
 ].join(' ');
-
-/** Google Drive REST API base (appDataFolder sync). */
-export const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
 /** Nepali Paisa — company / ticker listing for NEPSE. */
 export const NEPALI_PAISA_COMPANIES_API = 'https://nepalipaisa.com/api/GetCompanies';

@@ -43,9 +43,3 @@ export const WIDGET_REGISTRY = [
   rssConfig,
   expenseConfig,
 ];
-
-export const WIDGET_TYPES = Object.freeze(
-  Object.fromEntries(
-    WIDGET_REGISTRY.map((c) => [c.type.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase(), c.type])
-  )
-);
