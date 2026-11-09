@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowRepeat } from 'react-bootstrap-icons';
 
 // ─── Scope pills ──────────────────────────────────────────────────────────────
 
