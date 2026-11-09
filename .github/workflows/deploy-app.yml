@@ -3,7 +3,6 @@ name: Deploy App to Cloudflare Pages
 on:
   push:
     branches:
-      - master
       - main
       - 'feature/*'
     paths:
@@ -53,4 +52,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy dist --project-name=undistracted-me-app --branch=master
+          command: pages deploy dist --project-name=undistracted-me-app --branch=feature/vite-migration-redesign
