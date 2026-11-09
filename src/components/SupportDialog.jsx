@@ -8,8 +8,13 @@
  *
  * Visual language: a warm two-ink riso print — chestnut and marigold on butter
  * paper, a pleated momo mark on a gold circle, halftone dot corner, film-grain
- * texture, and a bold "Buy Me a Momo" call-to-action. Kept compact (square-ish,
- * not tall) and fully responsive from desktop down to narrow phone screens.
+ * texture, and a bold "Buy Me a Momo" call-to-action. Portrait card (400px max)
+ * that fits the viewport; it tightens on short screens and only scrolls as a
+ * last resort.
+ *
+ * Font: "Bricolage Grotesque" (500 / 800). It is NOT requested from Google here,
+ * so no third-party request is made. Load it once in the app (self-hosted) to get
+ * the exact look; otherwise it falls back to the system UI font.
  */
 
 import { useEffect, useRef } from "react";
@@ -31,7 +36,7 @@ export function SupportDialog({
 
   useEffect(() => {
     if (!open) return;
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -63,13 +68,12 @@ export function SupportDialog({
 
         <p className="sd-body">
           {appName} is free and local, with no ads or usage tracking. If it
-          helps you, Buy Me a Momo is the only way to help fund its development,
-          and even the price of a snack counts.
+          helps, Buy Me a Momo is the only way to chip in, even a snack&rsquo;s
+          worth.
         </p>
         <p className="sd-body sd-note">
-          For the first 3 months, I&rsquo;m testing this support model. If it
-          can&rsquo;t cover hosting and server costs, I&rsquo;ll have to switch
-          to a paid model to keep {appName} running.
+          I&rsquo;m testing this support model for 3 months. If it can&rsquo;t
+          cover hosting and servers, I&rsquo;ll need to switch to a paid model.
         </p>
 
         <a
@@ -82,7 +86,7 @@ export function SupportDialog({
             <span className="sd-cta-label">Support on Buy Me a Momo</span>
             <ExternalIcon />
           </span>
-          <span className="sd-cta-hint">External link, opens in a new tab</span>
+          <span className="sd-cta-hint">External link, opens in new tab</span>
         </a>
 
         {githubUrl && (
@@ -94,9 +98,8 @@ export function SupportDialog({
           >
             <StarIcon />
             <span>
-              A star on GitHub also helps more people find {appName}, and it
-              means a lot.
-              <span className="sd-sr"> (External link, opens in a new tab)</span>
+              A GitHub star helps others find {appName}. It means a lot.
+              <span className="sd-sr"> (External link, opens in new tab)</span>
             </span>
             <ExternalIcon />
           </a>
@@ -104,7 +107,7 @@ export function SupportDialog({
 
         <footer className="sd-footer">
           <p className="sd-thanks">
-            Thank you for staying and using {appName}. <HeartIcon />
+            Thank you for staying and using it. <HeartIcon />
           </p>
           <button
             ref={closeRef}
@@ -228,14 +231,21 @@ const css = `
   -webkit-font-smoothing: antialiased;
 }
 
+/* keep the host app's global styles from resizing anything inside */
+.sd-card,
+.sd-card *,
+.sd-card *::before,
+.sd-card *::after {
+  box-sizing: border-box;
+}
+
 .sd-card {
   position: relative;
   isolation: isolate;
-  box-sizing: border-box;
   width: 100%;
-  max-width: 520px;
+  max-width: 400px;
   margin: auto;
-  padding: 28px 36px 22px;
+  padding: 26px 28px 20px;
   overflow: hidden;
   border-radius: 16px;
   background: var(--paper);
@@ -251,8 +261,8 @@ const css = `
   position: absolute;
   top: 0;
   right: 0;
-  width: 240px;
-  height: 200px;
+  width: 210px;
+  height: 180px;
   pointer-events: none;
   z-index: -1;
   background: radial-gradient(circle, #e9bd62 1.6px, transparent 2.1px) 0 0 / 9px 9px;
@@ -287,20 +297,23 @@ const css = `
   margin: 0;
 }
 
+/* momo badge — must stay display:block (it's a <span>), or the SVG sizes itself
+   to the whole card width and floats in the middle */
 .sd-badge {
   --momo-fill: var(--paper);
+  display: block;
   position: relative;
-  width: 64px;
-  height: 54px;
-  margin: 0 0 18px 8px;
+  width: 56px;
+  height: 47px;
+  margin: 0 0 16px 10px;
 }
 .sd-badge::before {
   content: "";
   position: absolute;
   left: -14px;
   top: -10px;
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: var(--gold);
   mix-blend-mode: multiply;
@@ -311,25 +324,27 @@ const css = `
   width: 100%;
   height: 100%;
 }
+.sd-momo-body {
+  fill: var(--momo-fill, none);
+}
 
 .sd-title {
-  font-size: 32px;
-  line-height: 1.02;
+  font-size: 28px;
+  line-height: 1.04;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
 .sd-body {
   margin-top: 12px;
-  max-width: 44ch;
-  font-size: 15.5px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.55;
   font-weight: 500;
 }
 
 .sd-note {
   margin-top: 10px;
-  padding-left: 14px;
+  padding-left: 12px;
   border-left: 3px solid var(--gold);
   font-size: 13.5px;
   line-height: 1.5;
@@ -340,8 +355,8 @@ const css = `
 .sd-cta {
   display: flex;
   flex-direction: column;
-  margin-top: 20px;
-  padding: 13px 18px;
+  margin-top: 16px;
+  padding: 12px 16px;
   border-radius: 12px;
   background: var(--gold);
   color: var(--ink);
@@ -366,7 +381,7 @@ const css = `
   gap: 12px;
 }
 .sd-cta-label {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
@@ -381,10 +396,10 @@ const css = `
   --star-fill: var(--gold);
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  font-size: 13.5px;
-  line-height: 1.5;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.45;
   font-weight: 500;
   color: inherit;
   text-decoration: none;
@@ -407,17 +422,17 @@ const css = `
 /* ── Footer ── */
 .sd-footer {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 18px;
-  padding-top: 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 2px dotted rgba(60, 36, 21, 0.28);
 }
 .sd-thanks {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink-soft);
+  text-align: center;
 }
 .sd-thanks svg {
   color: var(--gold-deep);
@@ -429,7 +444,7 @@ const css = `
   color: inherit;
   background: none;
   cursor: pointer;
-  padding: 9px 16px;
+  padding: 10px 16px;
   border: 1.5px solid rgba(60, 36, 21, 0.4);
   border-radius: 12px;
   font-size: 14px;
@@ -488,11 +503,22 @@ const css = `
 
 @media (max-width: 480px) {
   .sd-backdrop { padding: 12px; }
-  .sd-card { padding: 22px 18px 18px; border-radius: 14px; }
-  .sd-badge { width: 56px; height: 48px; margin-bottom: 14px; }
-  .sd-badge::before { width: 54px; height: 54px; left: -12px; top: -8px; }
+  .sd-card { padding: 22px 20px 18px; border-radius: 14px; }
   .sd-title { font-size: 26px; }
-  .sd-body { font-size: 15px; }
-  .sd-cta-label { font-size: 16.5px; }
+}
+
+/* short screens: tighten so it still fits without scrolling */
+@media (max-height: 700px) {
+  .sd-card { padding-top: 20px; padding-bottom: 16px; }
+  .sd-badge { width: 46px; height: 39px; margin-bottom: 12px; }
+  .sd-badge::before { width: 48px; height: 48px; left: -12px; top: -8px; }
+  .sd-title { font-size: 24px; }
+  .sd-body { margin-top: 8px; font-size: 14px; line-height: 1.5; }
+  .sd-note { margin-top: 8px; font-size: 12.5px; line-height: 1.45; }
+  .sd-cta { margin-top: 12px; padding: 10px 14px; }
+  .sd-cta-label { font-size: 16px; }
+  .sd-star { margin-top: 10px; font-size: 12.5px; }
+  .sd-footer { margin-top: 10px; padding-top: 10px; gap: 8px; }
+  .sd-close { padding: 8px 14px; }
 }
 `;
