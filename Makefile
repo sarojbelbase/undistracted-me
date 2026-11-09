@@ -39,7 +39,7 @@ push_secrets:
 push_cloudflare:
 	@test -n "$(VITE_API_KEY)" || { echo "error: VITE_API_KEY missing from .env"; exit 1; }
 	@printf '%s' "$(VITE_API_KEY)" | wrangler pages secret put API_KEY --project-name $(API_PROJECT)
-	@printf '%s' "$(GOOGLE_CLIENT_ID)" | wrangler pages secret put GOOGLE_CLIENT_ID --project-name $(API_PROJECT)
+	@printf '%s' "$(VITE_GOOGLE_CLIENT_ID)" | wrangler pages secret put GOOGLE_CLIENT_ID --project-name $(API_PROJECT)
 	@printf '%s' "$(GOOGLE_CLIENT_SECRET)" | wrangler pages secret put GOOGLE_CLIENT_SECRET --project-name $(API_PROJECT)
 	@echo "published Cloudflare Pages secrets — redeploy to bind them"
 
