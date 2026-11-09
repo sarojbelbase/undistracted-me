@@ -31,7 +31,7 @@ if (
   import.meta.env.VITE_CF_BEACON_TOKEN
 ) {
   const beacon = document.createElement('script');
-  beacon.type = 'module';
+  beacon.defer = true;
   beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
   beacon.dataset.cfBeacon = JSON.stringify({
     token: import.meta.env.VITE_CF_BEACON_TOKEN,
