@@ -3,7 +3,6 @@ name: Deploy API to Cloudflare Pages
 on:
   push:
     branches:
-      - master
       - main
       - 'feature/*'
     paths:
@@ -30,4 +29,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy pages-api --project-name=undistracted-me-api --branch=master --commit-hash=${{ github.sha }} --commit-message="${{ github.event.head_commit.message }}"
+          command: pages deploy pages-api --project-name=undistracted-me-api --branch=feature/vite-migration-redesign --commit-hash=${{ github.sha }} --commit-message="${{ github.event.head_commit.message }}"
