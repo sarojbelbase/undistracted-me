@@ -86,7 +86,7 @@ const DayCell = ({ day, isWeekend, isCurrent, eventsForDay, holidaysForDay, date
           className="cal-day-cell__number"
           style={{
             opacity: hovered ? 0 : 1,
-            color: !isWeekend
+            color: !isCurrent && !isWeekend
               ? isHoliday ? 'var(--w-danger)' : isIntl ? 'var(--w-sunset)' : undefined
               : undefined,
           }}
