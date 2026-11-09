@@ -228,6 +228,20 @@ describe('resetSettings', () => {
     resetSettings();
     expect(reloadMock).toHaveBeenCalledTimes(1);
   });
+
+  it('clears sync state and notes metadata so reset fully signs out', () => {
+    localStorage.setItem('drive_sync_connected', '1');
+    localStorage.setItem('sync_enabled', 'true');
+    localStorage.setItem('sync_timestamps', JSON.stringify({ x: 1 }));
+    localStorage.setItem('notes_index', JSON.stringify({ n1: { fileId: 'f1' } }));
+    localStorage.setItem('notes_deleted', JSON.stringify({ n2: 123 }));
+    resetSettings();
+    expect(localStorage.getItem('drive_sync_connected')).toBeNull();
+    expect(localStorage.getItem('sync_enabled')).toBeNull();
+    expect(localStorage.getItem('sync_timestamps')).toBeNull();
+    expect(localStorage.getItem('notes_index')).toBeNull();
+    expect(localStorage.getItem('notes_deleted')).toBeNull();
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

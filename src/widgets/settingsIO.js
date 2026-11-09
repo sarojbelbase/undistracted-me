@@ -83,6 +83,27 @@ const EXPORT_EXCLUDED_PREFIXES = [
   "expense_migrated_",
 ];
 
+/**
+ * Sync-state keys that live in localStorage under their own names (not covered
+ * by APP_KEY_PREFIXES). A "Reset all settings" must clear these too — otherwise
+ * a stale `drive_sync_connected` flag leaves the Data tab showing "connected to
+ * the cloud" even after the account is signed out, and stale notes index/tombstone
+ * entries would re-pull deleted notes on the next reconnect.
+ */
+const SYNC_RESET_KEYS = [
+  "drive_sync_connected",
+  "sync_enabled",
+  "sync_device_id",
+  "sync_device_info",
+  "sync_timestamps",
+  "sync_merge_meta",
+  "sync_fingerprint",
+  "sync_version",
+  // Notes sync metadata (note content itself is re-seeded with demo defaults).
+  "notes_index",
+  "notes_deleted",
+];
+
 /** App-owned key that is safe to back up and restore. */
 const isPortableKey = (key) =>
   isAppKey(key) &&
@@ -221,7 +242,6 @@ export const resetSettings = () => {
       'spotify_tokens',
       'spotify_profile',
       'spotify_connected',
-      'drive_sync_connected',
     ]);
   } catch { /* ignore */ }
 
@@ -237,6 +257,9 @@ export const resetSettings = () => {
     const key = localStorage.key(i);
     if (isAppKey(key)) keysToRemove.push(key);
   }
+  // Sync state is kept under its own localStorage keys — clear those explicitly
+  // so resetting doesn't leave a stale "connected to cloud" flag behind.
+  keysToRemove.push(...SYNC_RESET_KEYS);
   keysToRemove.forEach((k) => localStorage.removeItem(k));
   if (tourVersion) {
     localStorage.setItem(
