@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - 'feature/*'
     paths:
       - 'src/**'
       - 'functions/**'
@@ -52,4 +53,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy dist --project-name=undistracted-me-app
+          command: pages deploy dist --project-name=undistracted-me-app --branch=master
