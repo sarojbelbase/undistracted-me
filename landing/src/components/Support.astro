@@ -1,0 +1,107 @@
+---
+import { site } from "../data/site.js";
+
+// Momo pricing: one momo = Rs. 100 in Nepal, $5 via Stripe. NPR↔INR uses the
+// fixed Nepal Rastra Bank peg (Rs. 1.6 = ₹1), so no exchange-rate lookup needed.
+const MOMO_NPR = 100;
+const MOMO_USD = 5;
+const NPR_PER_INR = 1.6;
+
+const fmt = (n) => n.toLocaleString("en-US");
+
+const tiers = [
+  { value: "platinum", name: "Platinum", npr: 10000 },
+  { value: "gold", name: "Gold", npr: 5000 },
+  { value: "silver", name: "Silver", npr: 2000 },
+  { value: "bronze", name: "Bronze", npr: 1000 },
+].map((t) => {
+  const momos = t.npr / MOMO_NPR;
+  return {
+    ...t,
+    momos,
+    nprLabel: `Rs. ${fmt(t.npr)}`,
+    inrLabel: `₹${fmt(t.npr / NPR_PER_INR)}`,
+    usdLabel: `$${fmt(momos * MOMO_USD)}`,
+  };
+});
+
+const nepalPayments = ["eSewa", "ConnectIPS", "Khalti"];
+const intlPayments = ["Stripe", "Card", "Apple Pay", "Google Pay", "Amazon Pay", "Cash App Pay"];
+
+// Add supporters by hand: { name: "Aarav", amount: "Rs. 5,000", tier: "gold" }
+const supporters = [];
+---
+
+<section class="sec cream support" id="support">
+  <div class="sup-top">
+    <div class="sup-t">
+      <h2>Keep it growing.</h2>
+      <p>Undistracted Me is free and local, with no ads or tracking. For the next 3 months I'm testing this support model. If it can't cover hosting and server costs, I'll have to make it paid.</p>
+      <div class="promise"><b>Support now and you're counted for good.</b>If Undistracted Me ever becomes a paid product, early supporters will be contacted and kept free, always.</div>
+    </div>
+    <div class="momo" role="img" aria-label="Hand-drawn momo dumplings with a bowl of dipping sauce">
+      <svg class="steam" viewBox="0 0 200 70" aria-hidden="true">
+        <path d="M40 68c-9-12 9-17 0-30s9-16 2-30" />
+        <path d="M100 68c-9-12 9-17 0-30s9-16 2-30" />
+        <path d="M160 68c-9-12 9-17 0-30s9-16 2-30" />
+      </svg>
+    </div>
+  </div>
+
+  <div class="tiers-wrap" id="tiers">
+    <h3 class="sub-h">Choose how you'd like to be counted</h3>
+    <p class="hint">Buy in momos — one momo is Rs. 100 in Nepal, or $5 anywhere else. Prices adjust to your region.</p>
+    <div class="tiers">
+      {tiers.map((t) => (
+        <div class="tier-card">
+          <span class="tc-name">{t.name}</span>
+          <span class="tc-amt" data-npr={t.nprLabel} data-inr={t.inrLabel} data-usd={t.usdLabel}>{t.nprLabel}</span>
+          <span class="tc-usd">{t.momos} momos</span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="pay">
+    <div class="pay-g">
+      <span class="pay-l">Payment methods available in Nepal</span>
+      {nepalPayments.map((p) => (
+        <a class="chip" href={site.momoUrl} rel="noopener">{p}<span class="sr"> (opens Buy Me a Momo in a new tab)</span></a>
+      ))}
+    </div>
+    <div class="pay-g">
+      <span class="pay-l">Elsewhere</span>
+      {intlPayments.map((p) => (
+        <a class="chip" href={site.momoUrl} rel="noopener">{p}<span class="sr"> (opens Stripe checkout in a new tab)</span></a>
+      ))}
+    </div>
+    <p class="pay-n">Tap any of them to continue on Buy Me a Momo.</p>
+  </div>
+
+  <div class="sup-cta">
+    <a class="btn pulse" href={site.momoUrl} rel="noopener"><svg class="ic"><use href="#i-heart" /></svg>Buy me a momo<span class="sr"> (opens in a new tab)</span></a>
+    <a class="btn ghost" href={site.githubUrl} rel="noopener"><svg class="ic"><use href="#i-github" /></svg>Star on GitHub<span class="sr"> (opens in a new tab)</span></a>
+  </div>
+
+  <div class="wall" id="supporters">
+    <div class="wall-h"><h3>Our supporters</h3><span class="meta">Every name here is counted for good.</span></div>
+    {tiers.map((t) => {
+      const tierSupporters = supporters.filter((s) => s.tier === t.value);
+      return (
+        <div class="tier" data-tier={t.value}>
+          <h4>{t.name}<small>from {t.momos} momos</small></h4>
+          <ul class="tl">
+            {tierSupporters.length > 0 ? (
+              tierSupporters.map((s) => (
+                <li>{s.name}{s.amount ? <span>{s.amount}</span> : null}</li>
+              ))
+            ) : (
+              <li class="empty">Your name could be here</li>
+            )}
+          </ul>
+        </div>
+      );
+    })}
+  </div>
+  <p class="thanks">Thank you for using Undistracted Me.</p>
+</section>

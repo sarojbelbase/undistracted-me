@@ -1,6 +1,6 @@
 import { site } from "./site.js";
 import { faq } from "./faq.js";
-import { features } from "./features.js";
+import { widgets } from "./widgets.js";
 
 /**
  * Builds the JSON-LD `@graph` for the landing page.
@@ -63,7 +63,7 @@ export function buildSchemaGraph() {
         inLanguage: "en",
         keywords:
           "nepali calendar, bikram sambat, nepali date, new tab extension, chrome extension, firefox addon, focus mode, distraction free, nepali patro",
-        featureList: features.map((f) => f.title),
+        featureList: widgets.map((w) => w.title),
         author: { "@id": `${site.url}/#author` },
         publisher: { "@id": `${site.url}/#org` },
         offers: [

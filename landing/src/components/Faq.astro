@@ -2,25 +2,18 @@
 import { faq } from "../data/faq.js";
 ---
 
-<section class="section faq" id="faq">
-  <div class="container faq-inner">
-    <header class="section-head">
-      <p class="kicker">Good questions</p>
-      <h2 class="section-title">Frequently <em>asked.</em></h2>
-    </header>
-
-    <div class="faq-list" data-faq>
-      {faq.map((item, i) => (
-        <details class="faq-item" open={i === 0}>
-          <summary>
-            <span>{item.q}</span>
-            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </summary>
-          <div class="faq-answer">
-            <p set:html={item.a} />
-          </div>
-        </details>
-      ))}
-    </div>
-  </div>
+<section class="sec white faq" id="faq">
+  <h2>Frequently asked.</h2>
+  {faq.map((item) => (
+    <details>
+      <summary>
+        <span>{item.q}</span>
+        <svg class="fq" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path class="v" d="M11 5h2v14h-2z" />
+          <path d="M5 11h14v2H5z" />
+        </svg>
+      </summary>
+      <p set:html={item.a} />
+    </details>
+  ))}
 </section>
