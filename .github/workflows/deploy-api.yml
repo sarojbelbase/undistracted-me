@@ -29,4 +29,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy pages-api --project-name=undistracted-me-api --branch=feature/vite-migration-redesign --commit-hash=${{ github.sha }} --commit-message="${{ github.event.head_commit.message }}"
+          # `--commit-message` is intentionally omitted: a multi-line commit
+          # message body breaks wrangler's argument parsing. `--commit-hash`
+          # already identifies the deployment.
+          command: pages deploy pages-api --project-name=undistracted-me-api --branch=feature/vite-migration-redesign --commit-hash=${{ github.sha }}
