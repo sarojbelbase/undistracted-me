@@ -10,25 +10,24 @@
 import { computeAutoMode } from './utilities/sunTime';
 import { ACCENT_COLORS } from './constants/accents';
 import { THEME_PROFILES } from './theme/profiles';
+import { APP_SETTINGS_DEFAULTS } from './constants/defaults';
 
 try {
   // Prefer the Zustand persist key — this is where settings live after first run.
   // Fall back to legacy per-key entries for first-time users migrating from older builds.
-  let mode = 'light';
-  let accentName = 'Matte Black';
-  let cardStyle = 'glass';
+  let mode = APP_SETTINGS_DEFAULTS.mode;
+  let accentName = APP_SETTINGS_DEFAULTS.accent;
+  let cardStyle = APP_SETTINGS_DEFAULTS.cardStyle;
 
   const stored = JSON.parse(localStorage.getItem('undistracted_settings') || 'null');
   if (stored?.state) {
-    mode = stored.state.mode || 'light';
-    accentName = stored.state.accent || 'Matte Black';
-    cardStyle = stored.state.cardStyle || 'glass';
+    mode = stored.state.mode || APP_SETTINGS_DEFAULTS.mode;
+    accentName = stored.state.accent || APP_SETTINGS_DEFAULTS.accent;
+    cardStyle = stored.state.cardStyle || APP_SETTINGS_DEFAULTS.cardStyle;
   } else {
     const storedMode = localStorage.getItem('app_mode');
-    // On first install (nothing stored), respect the browser/OS color-scheme preference.
-    const prefersDark = !storedMode && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    mode = storedMode || (prefersDark ? 'dark' : 'light');
-    accentName = localStorage.getItem('app_accent') || 'Matte Black';
+    mode = storedMode || APP_SETTINGS_DEFAULTS.mode;
+    accentName = localStorage.getItem('app_accent') || APP_SETTINGS_DEFAULTS.accent;
   }
 
   // Resolve 'auto' synchronously before painting — uses cached coords or Kathmandu
@@ -40,7 +39,7 @@ try {
 
   // Apply the complete per-theme profile so there is no flash regardless of
   // the active card style (paper / glass / comic).
-  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES[APP_SETTINGS_DEFAULTS.cardStyle];
   const tokens = profile[dark ? 'dark' : 'light'] ?? profile.light;
   Object.entries(tokens).forEach(([k, v]) => r.style.setProperty(k, v));
 

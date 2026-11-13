@@ -23,6 +23,7 @@ import { useShallow } from "zustand/react/shallow";
 import { getFMCardVars, FM_ORB_BG } from "./theme";
 import { getFMAccentVars } from "../../constants/accents";
 import { getOrbRgbById } from "../../constants/orbPalettes";
+import { APP_SETTINGS_DEFAULTS } from "../../constants/defaults";
 import { TopZone } from "./zones/TopZone";
 import { CenterZone } from "./zones/CenterZone";
 import { BottomZone } from "./zones/BottomZone";
@@ -55,9 +56,9 @@ const persistCustomUrl = (url) => {
 const ORB_PALETTE_KEY = "fm_orb_palette_id";
 const getOrbPaletteId = () => {
   try {
-    return localStorage.getItem(ORB_PALETTE_KEY) || "blueberry";
+    return localStorage.getItem(ORB_PALETTE_KEY) || "accent";
   } catch {
-    return "blueberry";
+    return "accent";
   }
 };
 const getOrbRgb = () => getOrbRgbById(getOrbPaletteId());
@@ -177,7 +178,7 @@ export const FocusMode = ({ onExit }) => {
       accent: s.accent,
     })),
   );
-  const effectiveCardStyle = cardStyle || "glass";
+  const effectiveCardStyle = cardStyle || APP_SETTINGS_DEFAULTS.cardStyle;
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);

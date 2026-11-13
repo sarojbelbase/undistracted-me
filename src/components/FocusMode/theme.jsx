@@ -20,6 +20,7 @@
 // which is independent of the card-surface theme.
 import { getFMAccentVars } from "../../constants/accents";
 import { THEME_PROFILES } from "../../theme/profiles";
+import { APP_SETTINGS_DEFAULTS } from "../../constants/defaults";
 
 // ── Card surface token exports — CSS var wrappers ──────────────────────────────
 export const FM_CARD_BG = "var(--fm-card-bg)";
@@ -164,7 +165,7 @@ export const COMIC_DIALOG_STYLE = dialogSurface(THEME_PROFILES.comic.focus);
  * @param {string} accentName  — accent key (e.g. "blueberry")
  * @param {string} cardStyle   — "glass" | "paper" | "comic" (defaults to "glass")
  */
-export function getDialogStyle(accentName, cardStyle = "glass") {
+export function getDialogStyle(accentName, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) {
   const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
   return {
     ...dialogSurface(profile.focus),

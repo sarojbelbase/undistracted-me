@@ -8,6 +8,7 @@ import { SunFill, MoonFill, CircleHalf, CheckLg } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { ACCENT_COLORS } from '../../theme';
 import { CARD_STYLES } from '../../constants/cardStyles';
+import { APP_SETTINGS_DEFAULTS } from '../../constants/defaults';
 import { TooltipBtn } from '../ui/TooltipBtn';
 import { useAutoTheme } from '../../hooks/useAutoTheme';
 
@@ -47,10 +48,10 @@ export const Appearance = () => {
   // so the accent swatches use the correct tone even during the day.
   const effectiveMode = useAutoTheme(mode, accent, cardStyle);
 
-  const bgType = canvasBg?.type ?? 'solid';
+  const bgType = canvasBg?.type ?? APP_SETTINGS_DEFAULTS.canvasBg.type;
 
-  const selectSolid = () => setCanvasBg({ type: 'solid', orbId: canvasBg?.orbId ?? 'blueberry' });
-  const selectOrb = () => setCanvasBg({ type: 'orb', orbId: canvasBg?.orbId ?? 'blueberry' });
+  const selectSolid = () => setCanvasBg({ type: 'solid', orbId: canvasBg?.orbId ?? APP_SETTINGS_DEFAULTS.canvasBg.orbId });
+  const selectOrb = () => setCanvasBg({ type: 'orb', orbId: canvasBg?.orbId ?? APP_SETTINGS_DEFAULTS.canvasBg.orbId });
 
   const backgroundOptions = [
     { id: 'solid', label: 'Solid', hint: 'Accent tint', onClick: selectSolid },

@@ -22,17 +22,18 @@
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
 
 export const APP_SETTINGS_DEFAULTS = Object.freeze({
-  accent: "Matte Black",
-  mode: "light", // resolved against prefers-color-scheme at first boot
+  accent: "Latte",
+  mode: "light",
   defaultView: "canvas",
   dateFormat: "gregorian",
   lookAwayEnabled: false,
   lookAwayInterval: 20, // minutes between eye-break reminders
-  canvasBg: { type: "solid", orbId: "accent", url: null },
-  cardStyle: "glass",
+  // "Motion" background = the animated orb, tinted by the active accent.
+  canvasBg: { type: "orb", orbId: "accent", url: null },
+  cardStyle: "paper",
   modePrefs: {
     light: { cardStyle: "paper" },
-    dark: { cardStyle: "glass" },
+    dark: { cardStyle: "paper" },
   },
   notificationsEnabled: true,
   quickTourSeenVersion: null,
