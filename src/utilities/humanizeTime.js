@@ -129,7 +129,9 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   const absDays = Math.abs(days);
   const calMonths = Math.abs(diffCalMonths(target, now));
 
-  if (isToday) return _futureToday(target, now);
+  // Sub-24h tiers are keyed on elapsed time, not the calendar day — an event
+  // 2 hours away that happens to fall on "tomorrow" should read "in 2 hours".
+  if (target - now < 24 * 3600 * 1000) return _futureToday(target, now, isToday);
   if (isTomorrow) return { compact: 'Tomorrow', full: 'tomorrow', calendar: 'Tomorrow' };
   if (absDays < 7) return _futureDays(absDays, target);
   if (absDays < 14 && _isNextWeek(target, now)) return { compact: 'Next Week', full: 'next week', calendar: 'Next Week' };
@@ -145,13 +147,14 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   return _futureYears(Math.floor(calMonths / 12));
 }
 
-function _futureToday(target, now) {
+function _futureToday(target, now, isToday) {
   const diffMs = target - now;
   const totalMin = Math.ceil(diffMs / 60000);
-  if (totalMin < 1) return { compact: '<1m', full: 'in <1 min', calendar: 'Today' };
-  if (totalMin < 60) return { compact: fmtMins(totalMin), full: `in ${fullMins(totalMin)}`, calendar: 'Today' };
+  const calendar = isToday ? 'Today' : 'Tomorrow';
+  if (totalMin < 1) return { compact: '<1m', full: 'in <1 min', calendar };
+  if (totalMin < 60) return { compact: fmtMins(totalMin), full: `in ${fullMins(totalMin)}`, calendar };
   const h = Math.floor(totalMin / 60);
-  return { compact: fmtHours(h), full: `in ${fullHours(h)}`, calendar: 'Today' };
+  return { compact: fmtHours(h), full: `in ${fullHours(h)}`, calendar };
 }
 
 function _futureDays(absDays, target) {
@@ -183,8 +186,12 @@ function _humanizePast(target, now, days, isToday, isYesterday) {
   const calYears = Math.abs(diffCalYears(target, now));
 
   if (totalMin < 1) return { compact: 'just now', full: 'just now', calendar: 'Today' };
-  if (totalMin < 60) return { compact: `${fmtMins(totalMin)} ago`, full: `${fullMins(totalMin)} ago`, calendar: 'Today' };
-  if (isToday) return { compact: `${fmtHours(totalHrs)} ago`, full: `${fullHours(totalHrs)} ago`, calendar: 'Today' };
+  if (totalMin < 60) return { compact: `${fmtMins(totalMin)} ago`, full: `${fullMins(totalMin)} ago`, calendar: isToday ? 'Today' : 'Yesterday' };
+  // Sub-24h tiers are keyed on elapsed time, not the calendar day — a 3h-old
+  // timestamp that falls on "yesterday" should read "3h ago", not "Yesterday".
+  if (totalHrs < 24) {
+    return { compact: `${fmtHours(totalHrs)} ago`, full: `${fullHours(totalHrs)} ago`, calendar: isToday ? 'Today' : 'Yesterday' };
+  }
   if (isYesterday) return { compact: 'Yesterday', full: 'yesterday', calendar: 'Yesterday' };
   if (absDays < 7) return { compact: `${fmtDays(absDays)} ago`, full: `${fullDays(absDays)} ago`, calendar: `${fullDays(absDays)} ago` };
   if (absDays < 14) return { compact: '1w ago', full: 'last week', calendar: 'last week' };
