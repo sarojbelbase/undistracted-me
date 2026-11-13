@@ -12,7 +12,7 @@
  * the stores import `syncEngine`, and `syncEngine` must never import the stores.
  */
 
-import syncEngine from './syncEngine';
+import syncEngine from './syncEngineFacade';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useWidgetInstancesStore } from '../store/useWidgetInstancesStore';
 

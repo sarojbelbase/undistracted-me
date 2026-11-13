@@ -26,7 +26,7 @@ import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
 import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
-import syncEngine from "./utilities/syncEngine";
+import syncEngine from "./utilities/syncEngineFacade";
 import { initSyncRefresh } from "./utilities/syncRefresh";
 import bgImage from "./assets/img/bg.webp";
 

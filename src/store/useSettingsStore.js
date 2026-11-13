@@ -19,7 +19,7 @@ import {
   APP_SETTINGS_DEFAULTS,
   DEFAULT_NOTIFICATION_TYPES,
 } from "../constants/defaults";
-import syncEngine from "../utilities/syncEngine";
+import syncEngine from "../utilities/syncEngineFacade";
 
 /** Sync notification config to chrome.storage.local so bg.js can read it. */
 function _syncNotifications(enabled, types) {
