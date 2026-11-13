@@ -10,22 +10,23 @@
  * production origin so the extension can call this directly.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../_config.js';
+import { assertStrictOrigin, json, corsHeaders } from '../_config.js';
+import { rateLimit } from '../_ratelimit.js';
 import { BACKGROUNDS } from '../_media/media.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
-  const keyRejected = assertApiKey(request, env);
-  if (keyRejected) return keyRejected;
+  const limited = await rateLimit(env, request);
+  if (limited) return limited;
 
   if (request.method !== 'GET') {
     return json({ error: 'Method not allowed' }, 405, { request });
@@ -40,7 +41,7 @@ export async function onRequest(context) {
     color: '#18191b',
   }));
 
-  // Client-side cache for 1 hour; no CDN caching — endpoint is key-authenticated
+  // Client-side cache for 1 hour; origin-gated, no per-user auth needed.
   return json(photos, 200, {
     request,
     headers: { 'Cache-Control': 'private, max-age=3600' },

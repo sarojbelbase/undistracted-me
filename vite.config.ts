@@ -2,7 +2,6 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import preact from "@preact/preset-vite";
 import { crx } from "@crxjs/vite-plugin";
 import manifest from "./public/manifest.json" with { type: "json" };
-import { obscureEnvKeys } from "./plugins/obscureEnvKeys.ts";
 
 /**
  * Dev-only: intercepts GET /favicon?domain=...&sz=... and does a
@@ -12,9 +11,15 @@ import { obscureEnvKeys } from "./plugins/obscureEnvKeys.ts";
 const faviconWaterfall = (): Plugin => ({
   name: "favicon-waterfall",
   configureServer(server) {
-    server.middlewares.use("/favicon", async (req, res, next) => {
+    // Mounted at the root and matched explicitly: mounting at "/favicon" would
+    // also capture real static assets (`/favicon/lotus48.png`, used by the
+    // manifest and the HTML) and 400 them in dev.
+    server.middlewares.use((req, res, next) => {
       if (req.method !== "GET") return next();
-      const qs = (req.url ?? "").split("?")[1] ?? "";
+      const rawUrl = req.url ?? "";
+      const path = rawUrl.split("?")[0];
+      if (path !== "/favicon" && path !== "/favicon/") return next();
+      const qs = rawUrl.split("?")[1] ?? "";
       const params = new URLSearchParams(qs);
       const domain = params.get("domain") ?? "";
       const sz = params.get("sz") ?? "64";
@@ -360,12 +365,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      // Must be first — transforms import.meta.env.VITE_* before Vite's own define pass.
-      obscureEnvKeys([
-        "VITE_API_KEY",
-        "VITE_SPOTIFY_CLIENT_ID",
-        "VITE_GOOGLE_CLIENT_ID",
-      ]),
       preact({ reactAliasesEnabled: false }),
       // @ts-ignore
       crx({ manifest: dynamicManifest }),

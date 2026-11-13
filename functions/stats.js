@@ -8,7 +8,8 @@
  * The response is edge-cached for a minute so we don't hammer shields.io.
  */
 
-import { assertOrigin, corsHeaders, json } from './_config.js';
+import { assertStrictOrigin, corsHeaders, json } from './_config.js';
+import { rateLimit } from './_ratelimit.js';
 import { getTries } from './_kv.js';
 
 const GITHUB_STARS =
@@ -37,13 +38,15 @@ export async function onRequest(context) {
   const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
+  const limited = await rateLimit(env, request);
+  if (limited) return limited;
 
   if (request.method !== 'GET') {
     return json({ error: 'Method not allowed' }, 405, { request });

@@ -13,7 +13,8 @@
  */
 
 import Parser from 'rss-parser';
-import { assertOrigin, json, corsHeaders } from '../_config.js';
+import { assertStrictOrigin, json, corsHeaders, PRIVATE_HOST_RE } from '../_config.js';
+import { rateLimit } from '../_ratelimit.js';
 import { PRESET_FEEDS } from '../../src/widgets/rss/feeds.js';
 
 // ── Source label mapping (derived from PRESET_FEEDS — single source of truth) ─
@@ -92,16 +93,18 @@ const parser = new Parser({
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function onRequest(context) {
-  const { request } = context;
+  const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
+  const limited = await rateLimit(env, request);
+  if (limited) return limited;
 
   if (request.method !== 'GET') {
     return json({ error: 'Method not allowed' }, 405, { request });
@@ -109,7 +112,13 @@ export async function onRequest(context) {
 
   const { searchParams } = new URL(request.url);
   const url = searchParams.get('url');
-  if (!url || !url.startsWith('http')) {
+  // SSRF guard: only http/https, and never private/link-local/loopback hosts
+  // (mirrors the favicon endpoint's PRIVATE_HOST_RE check).
+  let feedUrl = null;
+  try { feedUrl = new URL(url); } catch { feedUrl = null; }
+  const isPrivateHost = feedUrl && PRIVATE_HOST_RE.test(feedUrl.hostname);
+  const isHttp = feedUrl && (feedUrl.protocol === 'http:' || feedUrl.protocol === 'https:');
+  if (!url || !feedUrl || !isHttp || isPrivateHost) {
     return json({ items: [], error: 'url is required' }, 400, { request });
   }
 

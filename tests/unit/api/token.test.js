@@ -2,12 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { makeReq, makeContext, ORIGINS } from './helpers.js';
 import { onRequest } from '../../../functions/auth/google/token.js';
 
-const KEY = 'test-api-key-xyz';
 const CLIENT_ID = 'client-id-123.apps.googleusercontent.com';
 const CLIENT_SECRET = 'GOCSPX-secret';
 
 const allowedOrigin = ORIGINS.production;
-const validHeaders = { 'x-api-key': KEY, 'content-type': 'application/json' };
+const validHeaders = { 'content-type': 'application/json' };
 
 const mockGoogleOk = (extra = {}) => ({
   ok: true,
@@ -29,7 +28,7 @@ const mockGoogleFail = (status = 400, error = 'invalid_grant') => ({
 describe('POST /auth/google/token', () => {
   let fetchSpy;
 
-  const env = () => ({ API_KEY: KEY, GOOGLE_CLIENT_ID: CLIENT_ID, GOOGLE_CLIENT_SECRET: CLIENT_SECRET });
+  const env = () => ({ GOOGLE_CLIENT_ID: CLIENT_ID, GOOGLE_CLIENT_SECRET: CLIENT_SECRET });
   const call = (req, e = env()) => onRequest(makeContext(req, e));
 
   beforeEach(() => {
@@ -52,19 +51,6 @@ describe('POST /auth/google/token', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  // ── API key gate ──────────────────────────────────────────────────────────
-
-  it('rejects missing API key with 401', async () => {
-    const res = await call(makeReq({ method: 'POST', origin: allowedOrigin, body: {} }));
-    expect(res.status).toBe(401);
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('rejects wrong API key with 401', async () => {
-    const res = await call(makeReq({ method: 'POST', origin: allowedOrigin, headers: { 'x-api-key': 'bad' }, body: {} }));
-    expect(res.status).toBe(401);
-  });
-
   // ── Method enforcement ────────────────────────────────────────────────────
 
   it('rejects GET with 405', async () => {
@@ -77,7 +63,7 @@ describe('POST /auth/google/token', () => {
   it('returns 503 when GOOGLE_CLIENT_ID is not configured', async () => {
     const res = await call(
       makeReq({ method: 'POST', origin: allowedOrigin, headers: validHeaders, body: { grant_type: 'authorization_code' } }),
-      { API_KEY: KEY, GOOGLE_CLIENT_SECRET: CLIENT_SECRET },
+      { GOOGLE_CLIENT_SECRET: CLIENT_SECRET },
     );
     expect(res.status).toBe(503);
     expect(fetchSpy).not.toHaveBeenCalled();

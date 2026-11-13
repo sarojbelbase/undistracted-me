@@ -6,7 +6,8 @@
 
 /**
  * Regex that matches every valid request origin.
- * Extension ID locking is intentionally omitted — the API key is the auth layer.
+ * Origin allow-listing is the primary access gate; sensitive endpoints add
+ * their own checks (e.g. the Google token redirect_uri allowlist).
  */
 export const ALLOWED_ORIGINS =
   /^chrome-extension:\/\/|^moz-extension:\/\/|^https:\/\/(app\.|www\.)?undistracted\.me$|^http:\/\/localhost(:\d+)?$/;
@@ -22,7 +23,7 @@ export function corsHeaders(request, methods = 'GET, OPTIONS') {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': methods,
-    'Access-Control-Allow-Headers': 'Content-Type, X-Api-Key',
+    'Access-Control-Allow-Headers': 'Content-Type',
     'Vary': 'Origin',
   };
 }
@@ -48,22 +49,25 @@ export function assertOrigin(request) {
 }
 
 /**
- * Validate the X-Api-Key header against env.API_KEY.
- * Use on fetch()-based endpoints (photos, token, rain) — NOT on favicon which
- * loads via <img src> and cannot send custom headers.
- * In dev (API_KEY unset) the check is skipped so local development works.
+ * Strict origin gate for fetch()-based endpoints (photos, rain, token, rss,
+ * tries). Unlike assertOrigin — which the favicon <img> endpoint needs because
+ * <img> requests carry no Origin header — this REJECTS requests with no Origin,
+ * so a non-browser client (curl, scripts) that omits Origin is refused.
+ *
+ * Honest caveat: a non-browser client can still FORGE an Origin header, because
+ * Origin is a browser-enforced signal, not a secret. This stops browsers and
+ * naive clients; real bot/curl protection lives in Cloudflare (Bot Fight Mode /
+ * Managed Challenge, which use a JS challenge + TLS fingerprinting).
  */
-export function assertApiKey(request, env) {
-  const expected = (env.API_KEY || '').trim();
-  if (!expected) return null; // dev: no key configured
-  const provided = request.headers.get('x-api-key');
-  if (!provided || provided !== expected) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
+export function assertStrictOrigin(request) {
+  const origin = request.headers.get('origin') || '';
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
     });
   }
-  return null;
+  return assertOrigin(request);
 }
 
 /**
