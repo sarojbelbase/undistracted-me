@@ -76,10 +76,13 @@ export const computeUpcoming = (raw) => {
 
 /**
  * Human-readable "days away" label.
+ * Today → "Today", tomorrow → "Tomorrow", further out → "in N days/weeks/months".
  */
 export const daysLabel = (n) => {
+  if (n <= 0) return 'Today';
+  if (n === 1) return 'Tomorrow';
   const target = new Date(Date.now() + n * 86400000);
-  return humanizeTime(target).calendar;
+  return humanizeTime(target).full;
 };
 
 export const typeLabel = (type) => {
