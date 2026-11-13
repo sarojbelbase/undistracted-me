@@ -8,6 +8,7 @@ const APP_KEY_PREFIXES = [
   "countdown_",
   "fm_",
   "gcal_",
+  "contacts_",
   "spotify_",
   "pomodoro_",
   "location_state",
@@ -238,7 +239,6 @@ export const resetSettings = () => {
       'gcal_profile_cache',
       'gcal_synced_at',
       'contacts_birthdays_cache',
-      'contacts_birthdays_synced_at',
       'spotify_tokens',
       'spotify_profile',
     ]);
