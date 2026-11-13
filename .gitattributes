@@ -1,5 +1,0 @@
-# The repo has core.autocrlf=true, which would rewrite the Makefile to CRLF on
-# checkout and break `make` on macOS/CI. Pin makefiles to LF explicitly.
-Makefile    text eol=lf
-makefile    text eol=lf
-GNUmakefile text eol=lf
