@@ -133,14 +133,19 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Mock unsplash
-vi.mock('../../../src/utilities/unsplash', () => ({
-  hasUnsplashKey: vi.fn(() => false),
-  getPhotoLibrary: vi.fn(() => []),
-  downloadNewPhoto: vi.fn(() => Promise.resolve()),
-  deletePhoto: vi.fn(),
-  jumpToPhotoById: vi.fn(),
-  LIBRARY_MAX: 20,
-}));
+vi.mock('../../../src/utilities/unsplash', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    hasUnsplashKey: vi.fn(() => false),
+    getPhotoLibrary: vi.fn(() => []),
+    downloadNewPhoto: vi.fn(() => Promise.resolve()),
+    downloadCuratedPhotos: vi.fn(() => Promise.resolve([])),
+    deletePhoto: vi.fn(),
+    jumpToPhotoById: vi.fn(),
+    LIBRARY_MAX: 20,
+  };
+});
 
 // Mock theme
 vi.mock('../../../src/theme', () => ({
@@ -268,11 +273,13 @@ describe('Events Widget', () => {
     expect(screen.getAllByTestId('plus').length).toBeGreaterThan(0);
   });
 
-  it('opens CreateModal when + is clicked', () => {
+  it('opens the unified add dialog when + is clicked', () => {
     render(<EventsWidget onRemove={vi.fn()} />);
     const plusBtns = screen.getAllByTestId('plus');
     fireEvent.click(plusBtns[0]);
-    expect(screen.getByTestId('create-modal')).toBeTruthy();
+    // Events now use the shared UnifiedAddDialog (a portalled <dialog>).
+    expect(document.querySelector('dialog[open]')).toBeTruthy();
+    expect(screen.getByText('New Event')).toBeTruthy();
   });
 
   it('renders events when some exist', () => {
@@ -326,12 +333,14 @@ describe('Events Widget', () => {
     expect(screen.queryAllByText('🗑').length).toBe(0);
   });
 
-  it('calls removeEvent when trash button is clicked', () => {
+  it('calls removeEvent when trash button is confirmed', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'e1', title: 'Delete me', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    const trashBtn = screen.getByText('🗑').closest('button');
+    // Removal is a two-step ConfirmButton ("Sure?"), so click twice.
+    const trashBtn = screen.getByLabelText('Remove Delete me');
+    fireEvent.click(trashBtn);
     fireEvent.click(trashBtn);
     expect(mockRemoveEvent).toHaveBeenCalledWith('e1');
   });
@@ -392,14 +401,17 @@ describe('FocusModeSettings', () => {
     expect(screen.getByText('12h')).toBeTruthy();
   });
 
-  it('renders Background Change button', () => {
+  it('renders a Background settings tab', () => {
     render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
-    expect(screen.getByText('Change background')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /background/i })).toBeTruthy();
   });
 
-  it('calls onOpenBgModal when Background button is clicked', () => {
+  it('opens the Background tab when it is clicked', () => {
     render(<FocusModeSettings onOpenBgModal={onOpenBgModal} />);
-    fireEvent.click(screen.getByText('Change background'));
-    expect(onOpenBgModal).toHaveBeenCalledOnce();
+    const tab = screen.getByRole('tab', { name: /background/i });
+    fireEvent.click(tab);
+    expect(tab.getAttribute('aria-selected')).toBe('true');
+    // The Background panel offers the Motion / Curated / Custom sources.
+    expect(screen.getByText('Motion')).toBeTruthy();
   });
 });

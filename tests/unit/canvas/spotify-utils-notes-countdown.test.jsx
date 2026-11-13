@@ -22,37 +22,42 @@ vi.stubGlobal('chrome', {
 // Mock fetch globally
 vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
-// Mock react-bootstrap-icons
-vi.mock('react-bootstrap-icons', () => ({
-  EyeFill: () => <span data-testid="eye">👁</span>,
-  EyeSlashFill: () => <span data-testid="eye-slash">👁‍🗨</span>,
-  ArrowsFullscreen: () => <span>⛶</span>,
-  FullscreenExit: () => <span>⛶exit</span>,
-  PlusLg: () => <span data-testid="plus">+</span>,
-  Plus: () => <span data-testid="plus">+</span>,
-  DashLg: () => <span>-</span>,
-  ArrowLeft: () => <span>←</span>,
-  ArrowClockwise: () => <span>↻</span>,
-  CheckCircleFill: () => <span>✓</span>,
-  ChevronLeft: () => <span>‹</span>,
-  ChevronRight: () => <span>›</span>,
-  XLg: () => <span>X</span>,
-  Trash3: () => <span>🗑</span>,
-  HourglassSplit: () => <span>⏳</span>,
-  ArrowRepeat: () => <span>🔄</span>,
-  CalendarEvent: () => <span>📅</span>,
-  BalloonFill: () => <span>🎈</span>,
-  PersonHeart: () => <span>🫶</span>,
-  HeartFill: () => <span>♥</span>,
-  StarFill: () => <span>⭐</span>,
-  GeoAlt: () => <span>📍</span>,
-  XCircleFill: () => <span>✕</span>,
-  Search: () => <span>🔍</span>,
-  GraphUpArrow: () => <span>📈</span>,
-  InfoCircleFill: () => <span>ℹ</span>,
-  Grid3x3GapFill: () => <span>▦</span>,
-  CalendarCheck: () => <span>✅</span>,
-}));
+// Mock react-bootstrap-icons — override the icons this suite asserts on and keep
+// the real exports so any other icon a component imports still resolves.
+vi.mock('react-bootstrap-icons', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    EyeFill: () => <span data-testid="eye">👁</span>,
+    EyeSlashFill: () => <span data-testid="eye-slash">👁‍🗨</span>,
+    ArrowsFullscreen: () => <span>⛶</span>,
+    FullscreenExit: () => <span>⛶exit</span>,
+    PlusLg: () => <span data-testid="plus">+</span>,
+    Plus: () => <span data-testid="plus">+</span>,
+    DashLg: () => <span>-</span>,
+    ArrowLeft: () => <span>←</span>,
+    ArrowClockwise: () => <span>↻</span>,
+    CheckCircleFill: () => <span>✓</span>,
+    ChevronLeft: () => <span>‹</span>,
+    ChevronRight: () => <span>›</span>,
+    XLg: () => <span>X</span>,
+    Trash3: () => <span>🗑</span>,
+    HourglassSplit: () => <span>⏳</span>,
+    ArrowRepeat: () => <span>🔄</span>,
+    CalendarEvent: () => <span>📅</span>,
+    BalloonFill: () => <span>🎈</span>,
+    PersonHeart: () => <span>🫶</span>,
+    HeartFill: () => <span>♥</span>,
+    StarFill: () => <span>⭐</span>,
+    GeoAlt: () => <span>📍</span>,
+    XCircleFill: () => <span>✕</span>,
+    Search: () => <span>🔍</span>,
+    GraphUpArrow: () => <span>📈</span>,
+    InfoCircleFill: () => <span>ℹ</span>,
+    Grid3x3GapFill: () => <span>▦</span>,
+    CalendarCheck: () => <span>✅</span>,
+  };
+});
 
 // Prevent store init crash (circular dep via widget registry)
 vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
@@ -96,22 +101,26 @@ vi.mock('../../../src/widgets/useEvents', () => ({
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
-// Mock countdown utils
-vi.mock('../../../src/widgets/countdown/utils', () => ({
-  REPEAT_OPTIONS: [
-    { value: 'none', label: 'None' },
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-  ],
-  getNextOccurrence: vi.fn((cd) => {
-    const d = new Date(`${cd.targetDate}T${cd.targetTime || '00:00'}`);
-    return d;
-  }),
-  formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
-  formatTargetDate: vi.fn(() => 'Jul 4, 2025'),
-  loadCustom: vi.fn(() => []),
-  saveCustom: vi.fn(),
-}));
+// Mock countdown utils — override only the deterministic bits; keep the rest of
+// the module real so a newly imported helper doesn't break the suite.
+vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    REPEAT_OPTIONS: [
+      { value: 'none', label: 'None' },
+      { value: 'daily', label: 'Daily' },
+      { value: 'weekly', label: 'Weekly' },
+    ],
+    getNextOccurrence: vi.fn((cd) => {
+      const d = new Date(`${cd.targetDate}T${cd.targetTime || '00:00'}`);
+      return d;
+    }),
+    formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
+    formatTargetDate: vi.fn(() => 'Jul 4, 2025'),
+    saveCustom: vi.fn(),
+  };
+});
 
 // Mock events utils
 vi.mock('../../../src/widgets/events/utils', () => ({
@@ -317,9 +326,8 @@ describe('Countdown Widget', () => {
     render(<CountdownWidget onRemove={vi.fn()} />);
     fireEvent.click(screen.getAllByTestId('plus')[0]);
     expect(screen.getByText('New Countdown')).toBeTruthy();
-    // Close modal via X button
-    const closeBtn = screen.getByText('X').closest('button');
-    fireEvent.click(closeBtn);
+    // AddCountdown's footer Cancel button closes the modal without saving.
+    fireEvent.click(screen.getByText('Cancel'));
     expect(screen.queryByText('New Countdown')).toBeNull();
   });
 });

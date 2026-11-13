@@ -131,21 +131,18 @@ describe('PomodoroWidget — timer controls', () => {
     vi.unstubAllGlobals();
   });
 
-  it('clicking + then pause shows pause button', () => {
+  it('clicking a preset starts the timer immediately', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    // Now in timer phase - click play
-    const playBtn = screen.getByTestId('play').closest('button');
-    fireEvent.click(playBtn);
-    // Should show pause now
+    // Presets auto-start: the control row shows Pause, not Play.
     expect(screen.getByTestId('pause')).toBeTruthy();
+    expect(document.body.textContent).toContain('25:00');
   });
 
   it('pause stops the timer', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    fireEvent.click(screen.getByTestId('play').closest('button'));
-    fireEvent.click(screen.getByTestId('pause').closest('button'));
+    fireEvent.click(screen.getByLabelText('Pause timer'));
     // back to play
     expect(screen.getByTestId('play')).toBeTruthy();
   });
@@ -153,19 +150,19 @@ describe('PomodoroWidget — timer controls', () => {
   it('reset button restores full time', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    // Start timer and advance
-    fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(5000); });
     // Reset
-    fireEvent.click(screen.getByTestId('reset').closest('button'));
+    fireEvent.click(screen.getByLabelText('Reset timer'));
     expect(screen.getByText('25:00')).toBeTruthy();
   });
 
   it('back button returns to pick phase', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    expect(screen.getByTestId('back')).toBeTruthy();
-    fireEvent.click(screen.getByTestId('back').closest('button'));
+    // Back is a two-step ConfirmButton ("Sure?"), so confirm on the second click.
+    const back = screen.getByLabelText('Back to timer selection');
+    fireEvent.click(back);
+    fireEvent.click(back);
     expect(screen.getByText('Focus Timer')).toBeTruthy();
   });
 
@@ -198,7 +195,6 @@ describe('PomodoroWidget — timer controls', () => {
   it('timer tick counts down each second', () => {
     render(<PomodoroWidget key="timer-tick" />);
     fireEvent.click(screen.getByText('25 min'));
-    fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(3000); });
     // Should now show 24:57 (25*60 - 3 = 1497 seconds)
     expect(document.body.textContent).toContain('24:57');
@@ -210,7 +206,6 @@ describe('PomodoroWidget — timer controls', () => {
     const input = document.querySelector('input[type="number"]');
     fireEvent.change(input, { target: { value: '0.05' } }); // ~3 seconds
     fireEvent.click(screen.getByText('Start'));
-    fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(5 * 1000); });
     expect(screen.getByText('Session Complete')).toBeTruthy();
   });
@@ -218,7 +213,6 @@ describe('PomodoroWidget — timer controls', () => {
   it('stores pomodoro state in localStorage when running', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(1000); });
     const stored = JSON.parse(localStorage.getItem('fm_pomodoro') || 'null');
     expect(stored).toBeTruthy();
@@ -228,9 +222,8 @@ describe('PomodoroWidget — timer controls', () => {
   it('removes pomodoro from localStorage when paused', () => {
     render(<PomodoroWidget />);
     fireEvent.click(screen.getByText('25 min'));
-    fireEvent.click(screen.getByTestId('play').closest('button'));
     act(() => { vi.advanceTimersByTime(1000); });
-    fireEvent.click(screen.getByTestId('pause').closest('button'));
+    fireEvent.click(screen.getByLabelText('Pause timer'));
     expect(localStorage.getItem('fm_pomodoro')).toBeNull();
   });
 });
@@ -244,58 +237,47 @@ describe('NotesWidget — expand modal', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
 
-  it('renders expand button (TrafficLights yellow)', () => {
+  it('renders the open-in-full-screen control in widget view', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    // TrafficLights renders buttons with aria-label from the label props
-    expect(screen.getByLabelText('Expand')).toBeTruthy();
+    expect(screen.getByLabelText('Open in full screen')).toBeTruthy();
   });
 
-  it('opens expanded modal when expand is clicked', () => {
+  it('opens the full-screen page when the control is clicked', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand'));
-    // Modal is rendered via createPortal — check a dialog[open] appeared
-    expect(document.querySelector('dialog[open]')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Open in full screen'));
+    // Rendered via createPortal as an overlay, not a <dialog>.
+    expect(document.querySelector('.notes-fullscreen')).toBeTruthy();
   });
 
-  it('expanded modal has close button', () => {
+  it('full-screen page has a back control', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand'));
-    // Modal TrafficLights has two "Close" buttons (red enabled, yellow disabled)
-    const closeBtns = screen.getAllByLabelText('Close');
-    expect(closeBtns.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getByLabelText('Open in full screen'));
+    expect(screen.getByLabelText('Back to widget')).toBeTruthy();
   });
 
-  it('closes expanded modal when close is clicked', () => {
+  it('closes the full-screen page when back is clicked', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand'));
-    // Click the first (enabled red) Close button in the modal
-    fireEvent.click(screen.getAllByLabelText('Close')[0]);
-    // Back to widget mode — textarea is shown again
+    fireEvent.click(screen.getByLabelText('Open in full screen'));
+    fireEvent.click(screen.getByLabelText('Back to widget'));
+    expect(document.querySelector('.notes-fullscreen')).toBeNull();
+    // Back to widget mode — its textarea is shown again
     expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
-  it('closes expanded modal when overlay is clicked', () => {
+  it('closes the full-screen page on Escape', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand'));
-    // Click the overlay (the outer fixed div)
-    const modal = document.querySelector('.fixed.inset-0');
-    if (modal) fireEvent.click(modal);
-    // Widget renders without crash
-    expect(document.body.querySelector('textarea')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Open in full screen'));
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.querySelector('.notes-fullscreen')).toBeNull();
   });
 
-  it('can type in expanded modal textarea', () => {
+  it('can type in the full-screen textarea', () => {
     render(<NotesWidget id="notes_expand" onRemove={vi.fn()} />);
-    fireEvent.click(screen.getByLabelText('Expand'));
+    fireEvent.click(screen.getByLabelText('Open in full screen'));
     const textareas = document.querySelectorAll('textarea');
     const expandedTA = textareas[textareas.length - 1];
     fireEvent.change(expandedTA, { target: { value: 'Expanded text' } });
     expect(expandedTA.value).toBe('Expanded text');
-  });
-
-  it('renders Full page button in widget view', () => {
-    render(<NotesWidget id="notes_hide" onRemove={vi.fn()} />);
-    expect(screen.getByLabelText('Full page')).toBeTruthy();
   });
 
   it('compact textarea is present in widget view', () => {
@@ -342,7 +324,7 @@ describe('Calendar Settings', () => {
 
   it('renders Calendar Format label', () => {
     render(<CalendarSettings id="cal_1" calendarType="bs" onChange={vi.fn()} />);
-    expect(screen.getByTestId('radio-group')).toBeTruthy();
+    expect(screen.getAllByTestId('radio-group').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Calendar Format')).toBeTruthy();
   });
 
