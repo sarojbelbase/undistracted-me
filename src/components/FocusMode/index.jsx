@@ -162,15 +162,6 @@ export const FocusMode = ({ onExit }) => {
     return () =>
       globalThis.removeEventListener("focus_mode_changed", onFocusModeChanged);
   }, []);
-  const {
-    clock: clockDark,
-    search: searchDark,
-    greet: greetDark,
-  } = useCenterOnDark(slotA, slotB, activeSlot);
-  // Non-curated sources are always dark — prevents white-shadow flash.
-  const effectiveClockDark = bgSource === "curated" ? clockDark : true;
-  const effectiveSearchDark = bgSource === "curated" ? searchDark : true;
-  const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
   // Card surface style (glass vs flat) — both are always dark-tinted.
   const { cardStyle, accent } = useSettingsStore(
     useShallow((s) => ({
@@ -179,6 +170,22 @@ export const FocusMode = ({ onExit }) => {
     })),
   );
   const effectiveCardStyle = cardStyle || APP_SETTINGS_DEFAULTS.cardStyle;
+
+  const {
+    clock: clockDark,
+    search: searchDark,
+    greet: greetDark,
+  } = useCenterOnDark(slotA, slotB, activeSlot);
+  // Non-curated sources are always dark — prevents white-shadow flash.
+  const effectiveClockDark = bgSource === "curated" ? clockDark : true;
+  // The search pill is photo-adaptive (translucent glass) only in glass mode.
+  // Paper and comic render the pill as a solid dark surface (see _paper.scss /
+  // _comic.scss `:has(> #fm-search)`), so its text must stay light even over a
+  // bright photo — otherwise a light search zone flips the text to black-on-dark.
+  const searchAdaptsToPhoto =
+    bgSource === "curated" && effectiveCardStyle === "glass";
+  const effectiveSearchDark = searchAdaptsToPhoto ? searchDark : true;
+  const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
