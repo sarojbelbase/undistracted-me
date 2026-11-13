@@ -56,7 +56,8 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd, editing }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors cursor-pointer focus:outline-none btn-close"
+          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
+          style={{ color: 'var(--w-ink-3)' }}
         >
           <XLg size={11} />
         </button>
