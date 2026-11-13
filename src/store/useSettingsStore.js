@@ -41,8 +41,6 @@ export const STORE_KEY = STORAGE_KEYS.SETTINGS;
  */
 const fromLegacy = () => {
   const D = APP_SETTINGS_DEFAULTS;
-  const _prefersDark =
-    globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   try {
     const stored = JSON.parse(
       localStorage.getItem(STORAGE_KEYS.SETTINGS) || "null",
@@ -50,7 +48,7 @@ const fromLegacy = () => {
     if (stored?.state)
       return {
         accent: stored.state.accent ?? D.accent,
-        mode: stored.state.mode ?? (_prefersDark ? "dark" : D.mode),
+        mode: stored.state.mode ?? D.mode,
         defaultView: stored.state.defaultView ?? D.defaultView,
         dateFormat: stored.state.dateFormat ?? D.dateFormat,
         lookAwayEnabled: stored.state.lookAwayEnabled ?? D.lookAwayEnabled,
@@ -87,9 +85,7 @@ const fromLegacy = () => {
   // Legacy single-key fallback
   return {
     accent: localStorage.getItem(STORAGE_KEYS._LEGACY.ACCENT) || D.accent,
-    mode:
-      localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) ||
-      (_prefersDark ? "dark" : D.mode),
+    mode: localStorage.getItem(STORAGE_KEYS._LEGACY.MODE) || D.mode,
     defaultView:
       localStorage.getItem(STORAGE_KEYS._LEGACY.DEFAULT_VIEW) || D.defaultView,
     dateFormat:

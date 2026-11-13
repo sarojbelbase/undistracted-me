@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { ACCENT_COLORS } from "../theme";
 import { getOrbRgbById } from "../constants/orbPalettes";
+import { APP_SETTINGS_DEFAULTS } from "../constants/defaults";
 
 // ── Pure helpers ───────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ const GRAIN_DARK = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
  * Per-style base tone sits behind all gradient layers so the overall
  * temperature of the background still reflects the card mode.
  */
-function getSolidGradientBg(isDark, accent, cardStyle = "glass") {
+function getSolidGradientBg(isDark, accent, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) {
   // Use the dark-mode tonal accent when rendering a dark background so the
   // shades are derived from the correct hue variant.
   const colorDef = ACCENT_COLORS.find((a) => a.name === accent);
@@ -106,10 +107,10 @@ export function useCanvasBg({
   canvasBg,
   isDark,
   accent,
-  cardStyle = "glass",
+  cardStyle = APP_SETTINGS_DEFAULTS.cardStyle,
 }) {
-  const bgType = canvasBg?.type || "solid";
-  const bgOrbId = canvasBg?.orbId || "accent";
+  const bgType = canvasBg?.type || APP_SETTINGS_DEFAULTS.canvasBg.type;
+  const bgOrbId = canvasBg?.orbId || APP_SETTINGS_DEFAULTS.canvasBg.orbId;
 
   const bgOrbRgb = useMemo(
     () => (bgOrbId === "accent" ? null : getOrbRgbById(bgOrbId)),

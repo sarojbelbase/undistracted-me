@@ -1,5 +1,6 @@
 import { computeAutoMode } from "./utilities/sunTime";
 import { THEME_PROFILES } from "./theme/profiles";
+import { APP_SETTINGS_DEFAULTS } from "./constants/defaults";
 export { ACCENT_COLORS } from "./constants/accents";
 export { CARD_STYLES } from "./theme/profiles";
 import { ACCENT_COLORS } from "./constants/accents";
@@ -24,12 +25,12 @@ const hexToRgb = (hex) => {
  * @param {string} mode      - 'light' | 'dark' | 'auto'
  * @param {string} cardStyle - 'paper' | 'glass' | 'comic'
  */
-export const applyTheme = (accent, mode, cardStyle = "glass") => {
+export const applyTheme = (accent, mode, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) => {
   const resolved = mode === "auto" ? computeAutoMode() : mode;
   const root = document.documentElement;
 
   // Complete theme profile (base ink/surface + semantic + card/panel/modal).
-  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
+  const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES[APP_SETTINGS_DEFAULTS.cardStyle];
   const tokens = profile[resolved] ?? profile.light;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
@@ -53,7 +54,7 @@ export const applyTheme = (accent, mode, cardStyle = "glass") => {
   // data-card-style attribute — enables [data-card-style="…"] CSS selectors
   // in _paper.scss / _glass.scss / _comic.scss for non-token styling
   // (typography weight/letter-spacing, border-radius, scrollbars, etc.).
-  root.dataset.cardStyle = cardStyle ?? "glass";
+  root.dataset.cardStyle = cardStyle ?? APP_SETTINGS_DEFAULTS.cardStyle;
 };
 
 /**
@@ -66,25 +67,22 @@ const _getInitTheme = () => {
     const stored = JSON.parse(localStorage.getItem("undistracted_settings"));
     if (stored?.state) {
       return {
-        accent: stored.state.accent || "Matte Black",
-        mode: stored.state.mode || "light",
-        cardStyle: stored.state.cardStyle || "glass",
+        accent: stored.state.accent || APP_SETTINGS_DEFAULTS.accent,
+        mode: stored.state.mode || APP_SETTINGS_DEFAULTS.mode,
+        cardStyle: stored.state.cardStyle || APP_SETTINGS_DEFAULTS.cardStyle,
       };
     }
   } catch {
     /* ignore */
   }
-  // Fall back to legacy per-key entries. On first install (nothing stored),
-  // respect the OS color-scheme preference — otherwise themeInit.js (imported
-  // first) paints dark, then this module-load applyTheme repaints light (FOUC +
-  // wrong mode for first-install dark-mode users).
+  // Fall back to legacy per-key entries. Defaults are owned by
+  // APP_SETTINGS_DEFAULTS so first installs always boot with the intended
+  // theme/accent/card style (no OS color-scheme override).
   const storedMode = localStorage.getItem("app_mode");
-  const prefersDark =
-    !storedMode && globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches;
   return {
-    accent: localStorage.getItem("app_accent") || "Matte Black",
-    mode: storedMode || (prefersDark ? "dark" : "light"),
-    cardStyle: "glass",
+    accent: localStorage.getItem("app_accent") || APP_SETTINGS_DEFAULTS.accent,
+    mode: storedMode || APP_SETTINGS_DEFAULTS.mode,
+    cardStyle: APP_SETTINGS_DEFAULTS.cardStyle,
   };
 };
 

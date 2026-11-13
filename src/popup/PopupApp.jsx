@@ -16,6 +16,7 @@ import { getDateParts } from "../widgets/dateToday/utils";
 import { getSunTimes, computeAutoMode } from "../utilities/sunTime";
 import { getTopSites } from "../utilities/index";
 import { useWeather } from "../hooks/useWeather";
+import { APP_SETTINGS_DEFAULTS } from "../constants/defaults";
 import {
   addBookmark,
   loadBookmarks,
@@ -95,9 +96,9 @@ export const PopupApp = () => {
   useEffect(() => {
     const s = useSettingsStore.getState();
     applyTheme(
-      s.accent || "Matte Black",
+      s.accent || APP_SETTINGS_DEFAULTS.accent,
       resolvedMode,
-      s.cardStyle || "glass",
+      s.cardStyle || APP_SETTINGS_DEFAULTS.cardStyle,
     );
   }, []);
 

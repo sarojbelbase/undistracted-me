@@ -104,7 +104,7 @@ describe('ACCENT_COLORS catalogue', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('applyTheme — light mode', () => {
-  beforeEach(() => applyTheme('Default', 'light'));
+  beforeEach(() => applyTheme('Default', 'light', 'glass'));
 
   it('sets data-mode attribute to "light"', () => {
     expect(document.documentElement.getAttribute('data-mode')).toBe('light');
@@ -132,7 +132,7 @@ describe('applyTheme — light mode', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('applyTheme — dark mode', () => {
-  beforeEach(() => applyTheme('Blueberry', 'dark'));
+  beforeEach(() => applyTheme('Blueberry', 'dark', 'glass'));
 
   it('sets data-mode attribute to "dark"', () => {
     expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
@@ -224,9 +224,9 @@ describe('applyTheme — mode switching idempotency', () => {
   });
 
   it('switching from dark to light updates --w-page-bg correctly', () => {
-    applyTheme('Blueberry', 'dark');
+    applyTheme('Blueberry', 'dark', 'glass');
     expect(cssVar('--w-page-bg')).toBe('#141414');
-    applyTheme('Blueberry', 'light');
+    applyTheme('Blueberry', 'light', 'glass');
     expect(cssVar('--w-page-bg')).toBe('#ebebeb');
   });
 

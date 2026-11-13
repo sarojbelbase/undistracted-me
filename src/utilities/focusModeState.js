@@ -20,7 +20,7 @@ const CUSTOM_BG_URL_KEY = 'fm_custom_bg_url';
 const ORB_PALETTE_KEY = 'fm_orb_palette_id';
 const SELECTED_PHOTO_KEY = 'fm_selected_photo_id';
 
-const DEFAULT_ORB_PALETTE = 'blueberry';
+const DEFAULT_ORB_PALETTE = 'accent';
 
 const getStr = (key) => {
   try {

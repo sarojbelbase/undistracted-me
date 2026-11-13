@@ -152,10 +152,10 @@ export const getCachedPhotoSync = () => readCache()[0] || null;
 
 export const BG_SOURCE_KEY = 'fm_bg_source';
 
-/** Returns the active background source: 'default' | 'curated' | 'custom'. */
+/** Returns the active background source: 'default' | 'curated' | 'custom' | 'orb'. */
 export const getBgSource = () => {
-  try { return localStorage.getItem(BG_SOURCE_KEY) || 'default'; }
-  catch { return 'default'; }
+  try { return localStorage.getItem(BG_SOURCE_KEY) || 'orb'; }
+  catch { return 'orb'; }
 };
 
 /** Persists the background source choice. */

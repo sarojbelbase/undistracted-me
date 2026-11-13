@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { applyTheme } from "../theme";
+import { APP_SETTINGS_DEFAULTS } from "../constants/defaults";
 import {
   getSunTimes,
   getEffectiveMode,
@@ -33,7 +34,7 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   return 60 * 60 * 1000;
 };
 
-export const useAutoTheme = (mode, accent, cardStyle = "glass") => {
+export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) => {
   // Read location + sun data from the centralized store
   const { lat, lon, sunrise, sunset } = useLocationStore(
     useShallow((s) => ({
