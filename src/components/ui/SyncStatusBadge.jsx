@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowRepeat, CheckCircleFill } from 'react-bootstrap-icons';
-import syncEngine from '../../utilities/syncEngine';
+import syncEngine from '../../utilities/syncEngineFacade';
 import syncTransport from '../../utilities/syncTransport';
 import { useSettingsStore } from '../../store';
 

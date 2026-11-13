@@ -15,7 +15,7 @@ import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 import { SyncConflictDialog } from '../ui/SyncConflictDialog';
 import syncTransport from '../../utilities/syncTransport';
-import syncEngine from '../../utilities/syncEngine';
+import syncEngine from '../../utilities/syncEngineFacade';
 import { exportSettings, importFromFile, resetSettings } from '../../widgets/settingsIO';
 
 const SectionLabel = ({ children }) => (

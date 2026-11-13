@@ -26,7 +26,7 @@
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import syncTransport from './syncTransport';
-import syncEngine from './syncEngine';
+import syncEngine from './syncEngineFacade';
 import { splitNote, mergeNote, noteLabel } from './noteText';
 
 export const NOTES_SYNC_EVENT = 'notes_sync_changed';

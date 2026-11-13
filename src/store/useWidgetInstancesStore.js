@@ -17,7 +17,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import syncEngine from '../utilities/syncEngine';
+import syncEngine from '../utilities/syncEngineFacade';
 import { useSettingsStore } from './useSettingsStore';
 
 const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;

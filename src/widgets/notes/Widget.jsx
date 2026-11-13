@@ -25,7 +25,7 @@ import { Popup } from "../../components/ui/Popup";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
 import { splitNote, mergeNote, migrateNotes, makeNoteId } from "../../utilities/noteText";
 import notesSync, { NOTES_SYNC_EVENT } from "../../utilities/notesSync";
-import syncEngine from "../../utilities/syncEngine";
+import syncEngine from "../../utilities/syncEngineFacade";
 import syncTransport from "../../utilities/syncTransport";
 
 // Only fetched the first time a user expands a note to full-screen mode.

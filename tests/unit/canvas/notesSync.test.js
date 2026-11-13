@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../src/utilities/syncEngine', () => ({
+vi.mock('../../../src/utilities/syncEngineFacade', () => ({
   default: {
     isSyncEnabled: () => mocks.isSyncEnabled(),
     registerSyncHook: (fn) => {
