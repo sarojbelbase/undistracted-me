@@ -8,6 +8,7 @@ on:
     paths:
       - 'functions/**'
       - 'pages-api/**'
+      - 'wrangler.toml'
       - '.github/workflows/deploy-api.yml'
 
 jobs:
