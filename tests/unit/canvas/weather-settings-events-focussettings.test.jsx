@@ -414,7 +414,8 @@ describe('FocusModeSettings', () => {
     const tab = screen.getByRole('tab', { name: /background/i });
     fireEvent.click(tab);
     expect(tab.getAttribute('aria-selected')).toBe('true');
-    // The Background panel offers the Motion / Curated / Custom sources.
-    expect(screen.getByText('Motion')).toBeTruthy();
+    // The Background panel offers the Curated Photos / Custom URL sources.
+    expect(screen.getByText('Curated Photos')).toBeTruthy();
+    expect(screen.getByText('Custom URL')).toBeTruthy();
   });
 });

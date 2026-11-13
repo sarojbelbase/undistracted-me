@@ -152,7 +152,11 @@ export const BG_SOURCE_KEY = 'fm_bg_source';
 
 /** Returns the active background source: 'default' | 'curated' | 'custom' | 'orb'. */
 export const getBgSource = () => {
-  try { return localStorage.getItem(BG_SOURCE_KEY) || 'default'; }
+  try {
+    const src = localStorage.getItem(BG_SOURCE_KEY) || 'default';
+    // "orb" (Motion) is no longer a Focus Mode background — treat it as default.
+    return src === 'orb' ? 'default' : src;
+  }
   catch { return 'default'; }
 };
 
