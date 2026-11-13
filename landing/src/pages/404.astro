@@ -1,0 +1,72 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site.js";
+---
+
+<BaseLayout
+  title="Page not found — Undistracted Me"
+  description="This page doesn't exist. It may have moved, or the link was wrong. The rest of Undistracted Me is still where you left it."
+>
+  <main id="main" class="nf">
+    <p class="nf-code">404</p>
+    <h1>A tab with nothing in it.</h1>
+    <p class="nf-sub">
+      The page you're looking for has moved or never existed. The rest of
+      Undistracted Me is still where you left it.
+    </p>
+    <div class="nf-cta">
+      <a class="btn" href="/">Back to the homepage</a>
+      <a class="btn ghost" href={site.chromeUrl}>Get the extension</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: calc(var(--nav) + 2rem) var(--pad) 6rem;
+    background: var(--cream) var(--tc);
+  }
+  .nf-code {
+    font: 400 clamp(4.5rem, 16vw, 10rem) / 0.8 var(--caps);
+    letter-spacing: 0.04em;
+    color: var(--sun);
+    margin-bottom: var(--s2);
+  }
+  .nf h1 {
+    font-size: clamp(2.2rem, 5.5vw, 4.4rem);
+    line-height: 0.95;
+    max-width: 18ch;
+  }
+  .nf-sub {
+    max-width: 34rem;
+    margin-top: var(--s3);
+    font-size: 1.25rem;
+    line-height: 1.55;
+    color: var(--mute);
+  }
+  .nf-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem 1rem;
+    margin-top: var(--s4);
+  }
+  @media (max-width: 600px) {
+    .nf {
+      padding-top: calc(var(--nav) + 1rem);
+    }
+    .nf-sub {
+      font-size: 1.1rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-code {
+      animation: none;
+    }
+  }
+</style>
