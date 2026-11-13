@@ -3,7 +3,6 @@
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
 
-import React from 'react';
 import { SunFill, MoonFill, CircleHalf, CheckLg } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { ACCENT_COLORS } from '../../theme';

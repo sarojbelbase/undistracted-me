@@ -1,4 +1,3 @@
-import React from "react";
 import { shorthandFromUrl } from "../../utilities/index";
 import { FaviconIcon } from "../ui/FaviconIcon";
 

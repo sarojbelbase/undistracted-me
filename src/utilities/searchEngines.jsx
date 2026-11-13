@@ -2,7 +2,6 @@
  * Search engine definitions — shared between the Focus Mode Search Bar
  * and the Canvas Command Palette.
  */
-import React from 'react';
 
 export const ENGINES = [
   {

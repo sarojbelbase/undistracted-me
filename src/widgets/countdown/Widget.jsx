@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 import { HourglassSplit, XLg } from "react-bootstrap-icons";
 import { BaseWidget } from "../BaseWidget";
 import { useEvents, useGoogleCalendar } from "../../hooks/useEvents";

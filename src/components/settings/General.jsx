@@ -3,7 +3,6 @@
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
 
-import React from 'react';
 import { useSettingsStore } from '../../store';
 import { Divider } from '../ui/Divider';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';

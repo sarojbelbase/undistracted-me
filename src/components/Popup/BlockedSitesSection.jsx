@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { XLg } from "react-bootstrap-icons";
 import { getBlockedSites, unblockSite } from "../../utilities/siteBlocker";
 import { shorthandFromUrl } from "../../utilities/index";

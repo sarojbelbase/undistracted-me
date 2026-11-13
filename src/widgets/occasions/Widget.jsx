@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { PersonHeart, BalloonFill, HeartFill, StarFill, XLg } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';

@@ -12,7 +12,6 @@
  *     (a true first-connect can't safely merge, so it's hidden then).
  */
 
-import React from 'react';
 import { ArrowRepeat, Download, Upload, XLg, ExclamationTriangleFill, Laptop } from 'react-bootstrap-icons';
 import { Modal } from './Modal';
 

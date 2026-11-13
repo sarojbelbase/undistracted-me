@@ -1,4 +1,4 @@
-import React, { forwardRef, Suspense, lazy } from "react";
+import { forwardRef, Suspense, lazy } from "react";
 import { Grid3x3GapFill, GearFill, Grid1x2Fill } from "react-bootstrap-icons";
 import { SearchIcon } from "../../assets/svg/SearchIcon";
 import { TooltipBtn } from "./TooltipBtn";

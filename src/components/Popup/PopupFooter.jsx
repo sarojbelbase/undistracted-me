@@ -1,4 +1,3 @@
-import React from "react";
 import { GridFill } from "react-bootstrap-icons";
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MusicNoteBeamed } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { SPOTIFY_CLIENT_ID, isSpotifyConnected } from './utils';

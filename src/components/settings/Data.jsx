@@ -8,7 +8,7 @@
  * Accounts tab; this tab only surfaces sync status and actions.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, ArrowClockwise, CheckCircleFill } from 'react-bootstrap-icons';
 import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';

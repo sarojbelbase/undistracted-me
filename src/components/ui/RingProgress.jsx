@@ -3,7 +3,6 @@ import React from 'react';
 // ─── Shared ring constants ────────────────────────────────────────────────────
 
 const RING_R = 7;
-const RING_CIRC = 2 * Math.PI * RING_R;
 
 // ─── Thin ring progress (accent-tinted) ───────────────────────────────────────
 // Used by LookAway overlay, website blocker blocked page, and Pomodoro widget.

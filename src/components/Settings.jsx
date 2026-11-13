@@ -10,7 +10,7 @@
  */
 
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
 import { Modal } from './ui/Modal';
 import { Appearance } from './settings/Appearance';

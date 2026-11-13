@@ -1,4 +1,3 @@
-import React from 'react';
 import { SkipStartFill, SkipEndFill, PlayFill, PauseFill } from 'react-bootstrap-icons';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { BaseWidget } from '../BaseWidget';

@@ -5,7 +5,7 @@
  *   • Collapsed pill — shows remaining count, springs open on click.
  *   • Expanded panel — task list (connected) or connect CTA (not connected).
  */
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   FM_CARD_BG, FM_CARD_BORDER, FM_CARD_BLUR, FM_CARD_SHADOW,
   FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,

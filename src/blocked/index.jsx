@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import BlockedPage from './BlockedPage';
 import './blocked.scss';

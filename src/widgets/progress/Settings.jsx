@@ -1,4 +1,3 @@
-import React from 'react';
 import { PERIOD_TYPES, CALENDAR_TYPES } from './utils';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 

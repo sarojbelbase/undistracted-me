@@ -14,7 +14,7 @@
  * Attribution: per Unsplash ToS every photo carries author + link.
  */
 
-import { PRODUCTION_BASE_URL, API_BASE_URL } from '../constants/env.js';
+import { API_BASE_URL } from '../constants/env.js';
 
 const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
   || `${API_BASE_URL}/photos/curated`;

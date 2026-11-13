@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ClockHistory } from 'react-bootstrap-icons';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Toggle } from '../../components/ui/Toggle';

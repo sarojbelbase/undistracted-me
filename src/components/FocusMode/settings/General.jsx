@@ -3,7 +3,6 @@
  * No Modal wrapper — rendered inside the unified FocusModeSettings dialog.
  */
 
-import React from 'react';
 import { useSettingsStore } from '../../../store';
 import { SECTION_CARD_STYLE, SectionLabel } from '../dialog/shared';
 import {

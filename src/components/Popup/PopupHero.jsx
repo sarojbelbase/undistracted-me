@@ -1,4 +1,3 @@
-import React from "react";
 import { SunriseFill, SunsetFill } from "react-bootstrap-icons";
 import { getWeatherIcon } from "../../widgets/weather/utils.jsx";
 

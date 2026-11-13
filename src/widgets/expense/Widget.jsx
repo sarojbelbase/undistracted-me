@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useLayoutEffect, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useLayoutEffect, useEffect, useMemo } from 'react';
 import { WalletFill, PlusLg, ListUl, CashStack, CheckCircleFill } from 'react-bootstrap-icons';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';

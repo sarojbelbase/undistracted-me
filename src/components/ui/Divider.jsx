@@ -1,4 +1,3 @@
-import React from 'react';
 import { CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 
 /**

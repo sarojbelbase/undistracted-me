@@ -1,4 +1,3 @@
-import React from 'react';
 
 // ── Weather atmosphere CSS animations live in src/styles/_animations.scss ───────
 

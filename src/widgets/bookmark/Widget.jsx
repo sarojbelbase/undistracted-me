@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { BaseSettingsModal } from "../BaseSettingsModal";
 import { useWidgetSettings } from "../useWidgetSettings";
