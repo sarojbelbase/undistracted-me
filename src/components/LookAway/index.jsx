@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { LockFill } from 'react-bootstrap-icons';
-import { MESSAGES } from '../../data/lookawayMessages';
+import { FALLBACK_MESSAGES, loadLookawayMessages } from '../../data/lookawayMessagesClient';
 import { ORB_PALETTES } from '../../constants/orbPalettes';
 import RingProgress from '../ui/RingProgress';
 
@@ -63,7 +63,15 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
   const [timeLabel, setTimeLabel] = useState(getTimeLabel);
   const [isExiting, setIsExiting] = useState(false);
   const [snoozeActive, setSnoozeActive] = useState(null); // null | 5 | 10 | 15
-  const [msg] = useState(() => MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
+  const [msg, setMsg] = useState(() => FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)]);
+  // Swap in a message from the full API catalog once it loads (offline keeps the fallback).
+  useEffect(() => {
+    let mounted = true;
+    loadLookawayMessages().then((msgs) => {
+      if (mounted) setMsg(msgs[Math.floor(Math.random() * msgs.length)]);
+    });
+    return () => { mounted = false; };
+  }, []);
   // Pick a random palette once per overlay mount — independent of user accent
   const orbRgb = useMemo(
     () => ORB_RGBS[Math.floor(Math.random() * ORB_RGBS.length)],
