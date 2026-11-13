@@ -185,7 +185,22 @@ const mergedDevices = (remote) => ({
 });
 
 /** Get current epoch ms timestamp. */
-const now = () => Date.now();
+/**
+ * Strictly-increasing timestamp source for merge metadata.
+ *
+ * Element-set merges resolve last-write-wins by timestamp and prefer the remote
+ * side on an exact tie. Two writes inside the same millisecond (e.g. the first
+ * sync pushing the defaults, then the user changing a field) would therefore
+ * let the freshly-synced remote value shadow the newer local edit. Bumping the
+ * stamp guarantees a local change always beats everything this device has
+ * already written.
+ */
+let _lastStamp = 0;
+const now = () => {
+  const t = Date.now();
+  _lastStamp = t > _lastStamp ? t : _lastStamp + 1;
+  return _lastStamp;
+};
 
 /** Read a value from localStorage safely. */
 const readLocal = (key) => {
@@ -1544,6 +1559,11 @@ const syncEngine = {
   pullSync,
   pushSync,
   mergeSync,
+  // Lower-level merge primitives, exported for tests and for callers that need
+  // the element-set merge (field-level LWW) rather than the whole-key adopt.
+  pullFromSync,
+  pushAll,
+  previewSync,
   forceSync,
   initSync,
   onSyncChange,

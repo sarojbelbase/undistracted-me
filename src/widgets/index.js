@@ -43,3 +43,17 @@ export const WIDGET_REGISTRY = [
   rssConfig,
   expenseConfig,
 ];
+
+/**
+ * WIDGET_TYPES — frozen map of CONSTANT_KEY → widget type, derived from the
+ * registry. Kept in sync automatically so a newly registered widget is always
+ * reachable by name (and so a typo in a config's `type` surfaces in tests).
+ */
+export const WIDGET_TYPES = Object.freeze(
+  Object.fromEntries(
+    WIDGET_REGISTRY.map((c) => [
+      c.type.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase(),
+      c.type,
+    ]),
+  ),
+);
