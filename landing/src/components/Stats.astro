@@ -9,8 +9,7 @@ const stats = [
 ];
 ---
 
-<div class="tally" id="tally" data-api="https://api.undistracted.me/stats" role="group" aria-label="Live numbers">
-  <span class="tally-live"><i aria-hidden="true"></i>live</span>
+<div class="tally" id="tally" data-api="https://api.undistracted.me/stats" role="group" aria-label="Usage numbers">
   {stats.map((s) => (
     <a class="tally-cell" href={s.href} rel="noopener" target="_blank" data-k={s.key}>
       <span class="tally-n">—</span>
@@ -26,25 +25,31 @@ const stats = [
   const root = document.getElementById("tally");
   const cells = [...root.querySelectorAll(".tally-cell")];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const fmt = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
+
+  // Visual format: comma-grouped, with a leading zero on single digits so the
+  // numerals share a fixed width and align with two- and three-digit numbers.
+  const fmt = (n) => {
+    if (typeof n !== "number") return "—";
+    const s = n.toLocaleString("en-US");
+    return n < 10 ? "0" + s : s;
+  };
+  // Plain format for screen readers — no zero padding ("8 users", not "08").
+  const plain = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
 
   function render(values) {
-    let any = false;
     cells.forEach((cell) => {
       const v = values[cell.dataset.k];
       const num = cell.querySelector(".tally-n");
       const label = cell.querySelector(".tally-l span");
       if (typeof v === "number") {
-        any = true;
         num.dataset.v = String(v);
-        num.textContent = reduce ? fmt(v) : "0";
-        cell.setAttribute("aria-label", `${fmt(v)} ${label.textContent.trim().replace(/\s+/g, " ")}`);
+        num.textContent = reduce ? fmt(v) : fmt(0);
+        cell.setAttribute("aria-label", `${plain(v)} ${label.textContent.trim().replace(/\s+/g, " ")}`);
       } else {
         num.textContent = "—";
       }
     });
-    root.classList.toggle("live", any);
-    if (any && !reduce) countUp();
+    if (!reduce) countUp();
   }
 
   function countUp() {
