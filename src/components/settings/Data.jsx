@@ -33,7 +33,19 @@ export const Data = ({ onNavigateToAccounts }) => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   // ── Sync state ─────────────────────────────────────────────────────
-  const [githubConnected, setGithubConnected] = useState(() => syncTransport.isConnected());
+  const [syncConnected, setSyncConnected] = useState(() => syncTransport.isConnected());
+
+  // Keep the connection state fresh. A Google sign-in/out happens in the
+  // Accounts tab *after* this component mounts, so a one-time read would leave
+  // a stale "Sign in with Google" prompt (or stale sync controls) indefinitely.
+  // React to the `google_account_changed` event that useGoogleAccountStore
+  // dispatches on connect/disconnect.
+  useEffect(() => {
+    const refresh = () => setSyncConnected(syncTransport.isConnected());
+    refresh();
+    globalThis.addEventListener('google_account_changed', refresh);
+    return () => globalThis.removeEventListener('google_account_changed', refresh);
+  }, []);
   const [syncing, setSyncing] = useState(false);
   const [justSynced, setJustSynced] = useState(false);
   const [alreadySynced, setAlreadySynced] = useState(false);
@@ -150,7 +162,7 @@ export const Data = ({ onNavigateToAccounts }) => {
           </p>
         </div>
 
-        {githubConnected ? (
+        {syncConnected ? (
           <div style={{
             display: 'flex', flexDirection: 'column', gap: 10,
             padding: '12px 14px', borderRadius: 12,

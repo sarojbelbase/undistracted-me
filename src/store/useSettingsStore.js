@@ -113,9 +113,6 @@ export const useSettingsStore = create(
       ...fromLegacy(),
 
       // ── Onboarding ────────────────────────────────────────────────────────
-      /** Unix-ms timestamp of the very first time this store was initialised. */
-      firstInstalledAt: Date.now(),
-
       clockFormat: APP_SETTINGS_DEFAULTS.clockFormat,
       focusSearchBar: APP_SETTINGS_DEFAULTS.focusSearchBar,
       focusTasks: APP_SETTINGS_DEFAULTS.focusTasks,

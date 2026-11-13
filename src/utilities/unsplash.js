@@ -18,8 +18,6 @@ import { API_BASE_URL } from '../constants/env.js';
 
 const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
   || `${API_BASE_URL}/photos/curated`;
-/** Shared secret sent as X-API-Key header to the backend. */
-const PHOTOS_API_KEY = import.meta.env.VITE_API_KEY || null;
 
 const CACHE_KEY = 'fm_unsplash_cache';
 export const LIBRARY_MAX = 20;
@@ -198,11 +196,8 @@ const stripPhotoFields = (photo) => {
  * server returned errors), or null on network failure.
  */
 export const downloadCuratedPhotos = async () => {
-  const headers = {};
-  if (PHOTOS_API_KEY) headers['X-Api-Key'] = PHOTOS_API_KEY;
-
   try {
-    const res = await fetch(PHOTOS_API_URL, { headers });
+    const res = await fetch(PHOTOS_API_URL);
     if (!res.ok) return null;
     const photos = await res.json();
     if (!Array.isArray(photos) || photos.length === 0) return null;

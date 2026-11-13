@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Undistracted Me",
+  "name": "Undistracted Me — New Tab",
   "version": "4.0.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkRaqrXERzV7BV2wl/wX2E6lKeLAR3xdbO+gs+5K5IzhLwB7AqZqGY6R35rA5uFy25L4Qqn1DoosZCdr8Dwt1P3yJ/ClLVK6igqyOWti19vr7bXR9RoTwDcty75KM3YQTTDdW70H20A25W6lGdoa0UV8VcUY7FKT6NAN1hGB+ldWIMesryVFTUfokA4/6qKuSnVyhkNqbh6qyu5hk4t+ula/iMw2ONhwoZ5oQEscKbANd4+KFFJXnL5QifVbfjtf+wfrF1EGAd9wUwjDENhDwroIcVr9mwit5JbcyTVoaGnZnXNEYQrFp505D3TwrwXuzi37kHGzLq3V+mz0lCem+ewIDAQAB",
   "author": {
     "email": "hello@undistracted.me"
   },
-  "description": "Replaces your new tabs with a distraction free nepali date.",
+  "description": "Undistracted Me is a distraction-free new tab: Nepali calendar, Focus Mode, and 30+ quiet widgets. No account, works offline.",
   "icons": {
     "16": "favicon/lotus16.png",
     "32": "favicon/lotus32.png",
@@ -33,14 +33,11 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}",
-      "strict_min_version": "128.0",
-      "data_collection_permissions": {
-        "required": []
-      }
+      "strict_min_version": "128.0"
     }
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'none';"
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'none';"
   },
   "homepage_url": "https://undistracted.me",
   "permissions": [
@@ -48,7 +45,6 @@
     "storage",
     "geolocation",
     "topSites",
-    "favicon",
     "notifications",
     "alarms",
     "idle",
@@ -57,7 +53,6 @@
     "declarativeNetRequest"
   ],
   "host_permissions": [
-    "*://*/*",
     "https://app.undistracted.me/*",
     "https://api.undistracted.me/*",
     "https://api.spotify.com/*",

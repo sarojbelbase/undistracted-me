@@ -6,26 +6,43 @@ import { computeAutoMode } from '../utilities/sunTime';
 
 // ─── Module-level: read blocked domain + info once, before React mounts ──────
 
+// The value is later used in `location.href = 'https://' + domain`, so it must
+// be a bare hostname — no scheme, path, port, query, or fragment. Reject
+// anything else to prevent an open redirect via the web-accessible page.
+const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+
 const readDomain = () => {
-  try { return new URLSearchParams(globalThis.location.search).get('d') || ''; }
+  try {
+    const raw = new URLSearchParams(globalThis.location.search).get('d') || '';
+    return HOSTNAME_RE.test(raw) ? raw.toLowerCase() : '';
+  }
   catch { return ''; }
 };
 
 const readBlockInfo = (domain) => {
   try {
     const raw = localStorage.getItem('blocked_sites');
-    if (!raw) return { remainingMs: 0, totalDurationMs: 0, infinite: false, notFound: true };
+    if (!raw) return { remainingMs: 0, totalDurationMs: 0, deadline: 0, infinite: false, notFound: true };
     const sites = JSON.parse(raw);
-    if (!Array.isArray(sites)) return { remainingMs: 0, totalDurationMs: 0, infinite: false, notFound: true };
+    if (!Array.isArray(sites)) return { remainingMs: 0, totalDurationMs: 0, deadline: 0, infinite: false, notFound: true };
     for (const s of sites) {
       if (s.domain === domain) {
-        if (s.infinite) return { remainingMs: 0, totalDurationMs: 0, infinite: true, notFound: false };
+        if (s.infinite) return { remainingMs: 0, totalDurationMs: 0, deadline: 0, infinite: true, notFound: false };
         const remainingMs = Math.max(0, s.blockedUntil - Date.now());
-        return { remainingMs, totalDurationMs: s.totalDurationMs || remainingMs, infinite: false, notFound: false };
+        return {
+          remainingMs,
+          totalDurationMs: s.totalDurationMs || remainingMs,
+          // Wall-clock deadline — the countdown is derived from this on every
+          // tick instead of decrementing, so a throttled/backgrounded tab still
+          // shows (and expires) the true remaining time.
+          deadline: s.blockedUntil,
+          infinite: false,
+          notFound: false,
+        };
       }
     }
   } catch { /* ignore */ }
-  return { remainingMs: 0, totalDurationMs: 0, infinite: false, notFound: true };
+  return { remainingMs: 0, totalDurationMs: 0, deadline: 0, infinite: false, notFound: true };
 };
 
 const BLOCKED_DOMAIN = readDomain();
@@ -118,7 +135,7 @@ const randomInt = (max) => {
 const BlockedPage = () => {
   const isDark = resolveMode(readSettings().mode) === 'dark';
   const blockedDomain = BLOCKED_DOMAIN;
-  const { remainingMs: initialRemaining, totalDurationMs, infinite, notFound } = BLOCK_INFO;
+  const { remainingMs: initialRemaining, totalDurationMs, deadline, infinite, notFound } = BLOCK_INFO;
 
   // ── Pick a random orb palette for visual variety (matching LookAway) ───
   const orbRgb = useMemo(
@@ -145,16 +162,24 @@ const BlockedPage = () => {
   // Skip if infinite, or if the entry was not found (site was unblocked).
   const tick = !infinite && !notFound;
 
-  // Stable 1s interval — decrement the countdown. (`remainingMs` was previously
-  // in the dep array, which tore down and re-created the interval every second,
-  // and re-ran the isNowInfinite/removeBlockedEntry localStorage reads each tick.)
+  // Stable 1s interval — recompute the countdown from the stored wall-clock
+  // deadline rather than decrementing. A hidden/backgrounded tab is throttled
+  // to ~1 tick/minute, so a decrementing counter would fall behind real time
+  // and delay the redirect. Recomputing also makes focus/visibility jumps
+  // instant. (`remainingMs` is deliberately NOT in the dep array.)
   useEffect(() => {
-    if (!tick || redirecting) return;
-    const iv = setInterval(() => {
-      setRemainingMs((r) => Math.max(0, r - 1000));
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [tick, redirecting]);
+    if (!tick || redirecting || !deadline) return;
+    const recompute = () => setRemainingMs(Math.max(0, deadline - Date.now()));
+    recompute();
+    const iv = setInterval(recompute, 1000);
+    document.addEventListener('visibilitychange', recompute);
+    globalThis.addEventListener('focus', recompute);
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener('visibilitychange', recompute);
+      globalThis.removeEventListener('focus', recompute);
+    };
+  }, [tick, redirecting, deadline]);
 
   // Reached zero → remove the block entry, show "Redirecting now…", then navigate.
   useEffect(() => {

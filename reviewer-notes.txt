@@ -2,81 +2,138 @@ Undistracted Me — Extension Reviewer Notes
 ==========================================
 Extension ID (Firefox): {1071d037-0f17-4c92-b06c-704050d2e2c3}
 Version: 4.0.0
+Name: Undistracted Me — New Tab
+Homepage: https://undistracted.me
+Developer email: hello@undistracted.me
+Categories: Productivity (Chrome) / Productivity (Firefox)
 
 
 BUILD
 -----
   bun install && bun run build
   Output: dist/ (Vite + @crxjs/vite-plugin for MV3)
+  Firefox: bun run build:firefox (patches dist-firefox/)
 
 
-XOR-ENCODED CONFIGURATION VALUES
----------------------------------
-The Vite plugin at plugins/obscureEnvKeys.ts XOR-encodes three build-time
-configuration values before they are written into the bundle:
-  - VITE_API_KEY            (shared secret for Vercel proxy)
-  - VITE_SPOTIFY_CLIENT_ID  (Spotify PKCE client — public by Spotify's model)
-  - VITE_GOOGLE_DESKTOP_CLIENT_ID (Google Desktop-app client)
+WHAT IT IS
+----------
+Undistracted Me replaces the new tab with a calm, distraction-free dashboard:
+a Nepali (Bikram Sambat) calendar alongside the Gregorian date, a Focus Mode
+with a full-screen cinematic clock and optional rain sounds, and a grid of
+30+ optional, drag-and-drop widgets (notes, expenses, countdowns, NEPSE
+stocks, weather, Pomodoro, media controls, RSS news, and more). No account,
+no ads, no tracking — data stays on the device. Works offline. Open source (MIT).
 
-Why: Automated string-pattern scanners flag alphanumeric 32-char strings as
-potential leaked secrets. XOR byte arrays do not match those patterns.
 
-What this is NOT:
-  - Does not obfuscate code logic
-  - Decoding routine is a readable one-liner IIFE
-  - No encrypted or hidden behavior
+NO OBFUSCATION / NO SHARED CLIENT SECRET
+----------------------------------------
+The bundle contains no obfuscated code and no shared secrets. The only
+client-side identifiers are public OAuth client IDs (Google PKCE "Web
+application" client, Spotify PKCE client), emitted as plain constants — they
+are public by design and require no encoding.
 
-Decoding example:
-  (()=>{ const _b=[...bytes], _s=seed; return _b.map((b,i) =>
-    String.fromCharCode(b^((_s*17+i*7)%256))).join('') })()
-
-Source: plugins/obscureEnvKeys.ts
+All Google OAuth is PKCE with a server-side token exchange; the client_secret
+lives only in the backend environment and never ships in the bundle. Backend
+endpoints are access-gated by Origin allow-listing (see below), and the Google
+token endpoint additionally validates redirect_uri against a server-side
+allowlist + PKCE code_verifier, so there is no shared key to leak or rotate.
 
 
 OAUTH FLOWS
 -----------
-
-1. Google (Firefox)
-   ----------------
+1. Google (all browsers)
    PKCE via chrome.identity.launchWebAuthFlow. Authorization code exchanged
    server-side through our backend endpoint:
      https://api.undistracted.me/auth/google/token
 
-   Bundle contains: VITE_GOOGLE_DESKTOP_CLIENT_ID (XOR-encoded, public)
+   Bundle contains: VITE_GOOGLE_CLIENT_ID (public PKCE client, plaintext)
    Server holds: GOOGLE_CLIENT_SECRET (environment variable only)
-   Neither initial exchange nor refresh calls Google directly from extension.
-   Source: src/utilities/googleAuth.js (getTokenFirefox, getValidStoredFFToken)
+   The endpoint validates redirect_uri (allowlist + extension-ID pattern) and
+   exchanges code + code_verifier. Single-use code; never calls Google with a
+   stored secret on the client.
+   Source: src/utilities/googleAuth.js, functions/auth/google/token.js
+
+2. Spotify
+   PKCE via launchWebAuthFlow. Only client_id + locally-generated
+   code_verifier are sent; token exchange goes directly to Spotify, never
+   through our servers. Tokens stored in chrome.storage.local (never
+   localStorage). Source: src/widgets/media/
 
 
 PERMISSIONS & PURPOSE
 ---------------------
-  identity         → Google OAuth (PKCE) + Spotify OAuth
-  storage          → Widget settings, OAuth tokens (chrome.storage.local for sensitive)
-  geolocation      → Weather widget (user browser prompt required)
-  topSites         → Quick Access widget
-  tabs             → Media controls routing, look-away notifications
-  scripting        → Inject media.js into YouTube/SoundCloud
-  notifications    → Event reminders, Pomodoro, look-away breaks
-  alarms           → Periodic tasks (event checks, timers)
+  identity              → Google OAuth (PKCE) + Spotify OAuth
+  storage               → Widget settings, OAuth tokens (chrome.storage.local for sensitive)
+  geolocation           → Weather widget (browser prompts user before any read)
+  topSites              → Quick Access widget (displayed inline only)
+  notifications         → Event reminders, Pomodoro, look-away breaks
+  alarms                → Periodic tasks (event checks, timers, RSS prefetch)
+  idle                  → LookAway OS idle/locked-state cross-check (bg.js)
+  tabs                  → Media-controls relay: the extension queries open tabs
+                          to find which one has an active media session so play/
+                          pause/next route to the right tab, and to inject the
+                          media content script into already-open YouTube/
+                          SoundCloud tabs. URLs/titles are only read for this
+                          routing; no browsing history is collected or stored.
+  scripting             → Inject media.js into already-open YouTube/SoundCloud tabs
+  declarativeNetRequest → Website Blocker: dynamic rules to block distracting
+                          domains (Focus Mode); IDs 1000+, user-configured only
+                          Source: src/utilities/siteBlocker.js
+
+HOST PERMISSIONS
+----------------
+Scoped to exactly the origins the extension actually contacts (YouTube/SoundCloud
+media, Spotify, Google APIs, weather/geolocation, stocks, search-suggest, jokes,
+and the undistracted.me API). No broad `<all_urls>` / `*://*/*` grant is present.
 
 
 CONTENT SCRIPTS
 ---------------
-  Sites: YouTube, SoundCloud (media.js)
+  Sites: YouTube, SoundCloud (media.js), run_at document_idle
   Purpose: Poll mediaSession, route MEDIA_ACTION commands [play, pause, next, previous]
-  Validation: All messages validated against explicit allowlist
-  No: innerHTML, eval, external data exfiltration
+  Validation: All messages validated against an explicit allowlist
+  No: innerHTML, eval, or external data exfiltration
+
+WEB-ACCESSIBLE RESOURCES
+------------------------
+  entries/blocked.html (+ assets/blocked*) exposed on <all_urls> for the
+  "site blocked" interstitial shown by Focus Mode. This is required so the DNR
+  redirect can load the block page from any blocked site; it is a static,
+  non-privileged page that exposes no extension internals. A website could
+  probe the pinned extension ID to detect installation (accepted tradeoff —
+  no data is exfiltrated; the iframe is cross-origin isolated). The page's
+  `?d=` parameter is validated against a strict hostname regex before any use.
 
 
 THIRD-PARTY SERVICES
 --------------------
-  Weather:      api.open-meteo.com, geocoding-api.open-meteo.com (no auth)
-  Geolocation:  nominatim.openstreetmap.org (IP only, User-Agent: UndistractedMe/4.0)
-                freeipapi.com (IP fallback)
-  Stocks:       nepalipaisa.com, www.merolagani.com (no auth)
-  Spotify:      api.spotify.com, accounts.spotify.com (OAuth token)
-  Google APIs:  www.googleapis.com, tasks.googleapis.com, people.googleapis.com (OAuth token)
-  Backend:      api.undistracted.me (FF token exchange, photos, favicon, RSS)
+  Weather:       api.open-meteo.com, air-quality-api.open-meteo.com,
+                 geocoding-api.open-meteo.com (no auth)
+  Geolocation:   nominatim.openstreetmap.org (IP only, UA: UndistractedMe/4.0)
+                 freeipapi.com / ipapi.co (IP fallback) — the user's IP address
+                 is sent here only when browser geolocation is unavailable and
+                 the user has enabled the Weather widget; disclosed in the
+                 privacy policy
+  Stocks:        nepalipaisa.com, www.merolagani.com (no auth)
+  Spotify:       api.spotify.com, accounts.spotify.com (OAuth token)
+  Google APIs:   www.googleapis.com, tasks.googleapis.com,
+                 people.googleapis.com, content.googleapis.com,
+                 oauth2.googleapis.com (OAuth token)
+  Search:        suggestqueries.google.com, ac.duckduckgo.com (suggest)
+  Jokes:         icanhazdadjoke.com (Daily-dose widget, no auth)
+  Backend:       api.undistracted.me (FF token exchange, photos, favicon,
+                 RSS proxy)
 
-  No PII except OAuth tokens when user explicitly connects Google/Spotify.
+  No remotely-hosted code, no eval, no importScripts from a CDN.
+  CSP: script-src 'self' (no eval-family directives).
 
+
+STORE LISTING
+-------------
+  Name:              Undistracted Me — New Tab
+  Short description: Undistracted Me is a distraction-free new tab: Nepali
+                     calendar, Focus Mode, and 30+ quiet widgets. No account,
+                     works offline.
+  Category:          Productivity
+  Developer website: https://undistracted.me (must replace the old
+                     whatsthemiti.sarojbelbase.com.np in the Chrome dashboard)

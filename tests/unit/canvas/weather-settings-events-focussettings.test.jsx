@@ -239,7 +239,10 @@ describe('WeatherSettings', () => {
     const input = screen.getByPlaceholderText('Search city…');
     fireEvent.change(input, { target: { value: 'Kathm' } });
 
-    await act(async () => { await vi.runAllTimersAsync(); });
+    // Advance past the 350ms debounce. Use advanceTimersByTimeAsync (not
+    // runAllTimersAsync) — runAllTimersAsync can spin forever because the
+    // Zustand useLocationStore re-render schedules fresh timers each flush.
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
 
     expect(fetch).toHaveBeenCalled();
     vi.useRealTimers();
