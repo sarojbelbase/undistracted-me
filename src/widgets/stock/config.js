@@ -1,10 +1,8 @@
-import { GraphUpArrow } from 'react-bootstrap-icons';
-
 export default {
   type: 'stock',
   title: 'Stock',
   category: 'info',
-  icon: GraphUpArrow,
+  icon: 'GraphUpArrow',
   description: 'NEPSE stock watchlist',
   enabled: true,
   platforms: {

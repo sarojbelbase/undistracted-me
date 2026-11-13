@@ -1,10 +1,8 @@
-import { BarChartFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'progress',
   title: 'Progress',
   category: 'time',
-  icon: BarChartFill,
+  icon: 'BarChartFill',
   description: 'Visual progress bar for the day',
   enabled: true,
   platforms: {

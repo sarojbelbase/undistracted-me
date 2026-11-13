@@ -1,10 +1,8 @@
-import { CloudSunFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'weather',
   title: 'Weather',
   category: 'info',
-  icon: CloudSunFill,
+  icon: 'CloudSunFill',
   description: 'Local weather & forecast',
   enabled: true,
   platforms: {

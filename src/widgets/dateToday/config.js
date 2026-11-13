@@ -1,10 +1,8 @@
-import { CalendarDateFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'dateToday',
   title: 'Date Today',
   category: 'time',
-  icon: CalendarDateFill,
+  icon: 'CalendarDateFill',
   description: 'English & Nepali date display',
   enabled: true,
   platforms: {

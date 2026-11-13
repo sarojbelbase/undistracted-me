@@ -1,10 +1,8 @@
-import { HourglassSplit } from 'react-bootstrap-icons';
-
 export default {
   type: 'countdown',
   title: 'Countdown',
   category: 'time',
-  icon: HourglassSplit,
+  icon: 'HourglassSplit',
   description: 'Count down to events or track time since milestones',
   enabled: true,
   platforms: {

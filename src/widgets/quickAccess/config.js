@@ -1,10 +1,8 @@
-import { Grid3x3GapFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'quickAccess',
   title: 'Quick Access',
   category: 'tools',
-  icon: Grid3x3GapFill,
+  icon: 'Grid3x3GapFill',
   description: 'Top visited sites dock',
   enabled: true,
   platforms: {

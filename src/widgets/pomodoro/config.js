@@ -1,11 +1,9 @@
 import { PomodoroSettings } from './Settings';
-import { StopwatchFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'pomodoro',
   title: 'Pomodoro',
   category: 'planning',
-  icon: StopwatchFill,
+  icon: 'StopwatchFill',
   description: 'Focus timer with breaks and rain sounds',
   enabled: true,
   platforms: {
