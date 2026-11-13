@@ -14,7 +14,7 @@ const faviconWaterfall = (): Plugin => ({
     // Mounted at the root and matched explicitly: mounting at "/favicon" would
     // also capture real static assets (`/favicon/lotus48.png`, used by the
     // manifest and the HTML) and 400 them in dev.
-    server.middlewares.use((req, res, next) => {
+    server.middlewares.use(async (req, res, next) => {
       if (req.method !== "GET") return next();
       const rawUrl = req.url ?? "";
       const path = rawUrl.split("?")[0];
