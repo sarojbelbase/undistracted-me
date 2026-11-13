@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { assertOrigin, assertApiKey, corsHeaders, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../functions/_config.js';
+import { assertOrigin, assertStrictOrigin, corsHeaders, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../functions/_config.js';
 import { makeReq, ORIGINS } from './helpers.js';
 
 describe('ALLOWED_ORIGINS regex', () => {
@@ -36,6 +36,21 @@ describe('assertOrigin', () => {
   });
 });
 
+describe('assertStrictOrigin', () => {
+  it('allows a valid origin (returns null)', () => {
+    expect(assertStrictOrigin(makeReq({ origin: ORIGINS.production }))).toBeNull();
+  });
+
+  it('rejects an Origin-less request with 403 (blocks curl that omits Origin)', () => {
+    const res = assertStrictOrigin(makeReq({ origin: '' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects an unknown origin with 403', () => {
+    expect(assertStrictOrigin(makeReq({ origin: ORIGINS.bad })).status).toBe(403);
+  });
+});
+
 describe('corsHeaders', () => {
   it('returns CORS headers for an allowed origin', () => {
     const req = makeReq({ origin: ORIGINS.production });
@@ -51,33 +66,6 @@ describe('corsHeaders', () => {
   it('honors a custom methods argument', () => {
     const req = makeReq({ origin: ORIGINS.chrome });
     expect(corsHeaders(req, 'POST, OPTIONS')['Access-Control-Allow-Methods']).toBe('POST, OPTIONS');
-  });
-});
-
-describe('assertApiKey', () => {
-  const KEY = 'test-secret-key-abc123';
-  const env = { API_KEY: KEY };
-
-  it('passes when correct key provided', () => {
-    const req = makeReq({ headers: { 'x-api-key': KEY } });
-    expect(assertApiKey(req, env)).toBeNull();
-  });
-
-  it('rejects missing key with 401', () => {
-    const req = makeReq();
-    const res = assertApiKey(req, env);
-    expect(res.status).toBe(401);
-  });
-
-  it('rejects wrong key with 401', () => {
-    const req = makeReq({ headers: { 'x-api-key': 'wrong-key' } });
-    const res = assertApiKey(req, env);
-    expect(res.status).toBe(401);
-  });
-
-  it('allows any request when API_KEY is not configured (dev mode)', () => {
-    const req = makeReq(); // no key header
-    expect(assertApiKey(req, {})).toBeNull();
   });
 });
 

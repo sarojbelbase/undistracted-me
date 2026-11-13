@@ -36,7 +36,6 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE }}

@@ -6,22 +6,23 @@
  * asset still lives on Vercel Blob.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../_config.js';
+import { assertStrictOrigin, json, corsHeaders } from '../_config.js';
+import { rateLimit } from '../_ratelimit.js';
 import { RAIN_URL } from '../_media/media.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
-  const keyRejected = assertApiKey(request, env);
-  if (keyRejected) return keyRejected;
+  const limited = await rateLimit(env, request);
+  if (limited) return limited;
 
   if (request.method !== 'GET') {
     return json({ error: 'Method not allowed' }, 405, { request });

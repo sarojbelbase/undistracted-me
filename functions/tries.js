@@ -9,19 +9,19 @@
  * sent — the counter is just a number.
  */
 
-import { assertOrigin, corsHeaders, json } from './_config.js';
+import { assertStrictOrigin, corsHeaders, json } from './_config.js';
 import { getTries, incrementTries } from './_kv.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
 
   if (request.method === 'GET') {

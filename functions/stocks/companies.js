@@ -5,21 +5,24 @@
  * Avoids CORS issues when the app is served from a web origin.
  */
 
-import { assertOrigin, json, corsHeaders } from '../_config.js';
+import { assertStrictOrigin, json, corsHeaders } from '../_config.js';
+import { rateLimit } from '../_ratelimit.js';
 
 const NP_URL = 'https://nepalipaisa.com/api/GetCompanies';
 
 export async function onRequest(context) {
-  const { request } = context;
+  const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request, 'POST, OPTIONS') });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
+  const limited = await rateLimit(env, request);
+  if (limited) return limited;
 
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405, { request, methods: 'POST, OPTIONS' });

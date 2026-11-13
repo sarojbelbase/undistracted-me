@@ -13,7 +13,8 @@
  * the production / local origins so all contexts can call this endpoint.
  */
 
-import { assertOrigin, assertApiKey, json, corsHeaders } from '../../_config.js';
+import { assertStrictOrigin, json, corsHeaders } from '../../_config.js';
+import { rateLimit } from '../../_ratelimit.js';
 
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
@@ -34,15 +35,15 @@ export async function onRequest(context) {
   const { request, env } = context;
 
   if (request.method === 'OPTIONS') {
-    const rejected = assertOrigin(request);
+    const rejected = assertStrictOrigin(request);
     if (rejected) return rejected;
     return new Response(null, { status: 204, headers: corsHeaders(request, 'POST, OPTIONS') });
   }
 
-  const rejected = assertOrigin(request);
+  const rejected = assertStrictOrigin(request);
   if (rejected) return rejected;
-  const keyRejected = assertApiKey(request, env);
-  if (keyRejected) return keyRejected;
+  const limited = await rateLimit(env, request, { limit: 30 });
+  if (limited) return limited;
 
   if (request.method !== 'POST') {
     return new Response(null, { status: 405, headers: corsHeaders(request, 'POST, OPTIONS') });
