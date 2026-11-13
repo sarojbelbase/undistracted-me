@@ -10,6 +10,7 @@ const steps = [
     title: "I'd open a tab to check one thing.",
     text: "Then the headlines started.",
     image: story1,
+    alt: "A browser tab crowded with headlines and notifications.",
     on: true,
   },
   {
@@ -17,6 +18,7 @@ const steps = [
     title: "And lose track of what I was doing.",
     text: "My context, the thing I sat down to finish, dissolved into everything else on the screen.",
     image: story2,
+    alt: "A cluttered screen pulling focus away from the task at hand.",
     on: false,
   },
   {
@@ -24,6 +26,7 @@ const steps = [
     title: "Help turned into weight.",
     text: "Every tool meant to lighten the day added one more thing to carry.",
     image: story3,
+    alt: "A person weighed down by too many apps and alerts.",
     on: false,
   },
   {
@@ -31,6 +34,7 @@ const steps = [
     title: "So I built a tab that carries it all, quietly.",
     text: "One place for the clock, the calendar and the few things I need. Nothing to get lost in.",
     image: story4,
+    alt: "A calm new-tab dashboard with a clock, calendar and a few quiet widgets.",
     on: false,
   },
 ];
@@ -39,7 +43,7 @@ const steps = [
 <section class="story" id="story">
   <div class="stage" aria-hidden="true">
     {steps.map((s) => (
-      <img class={s.on ? "on" : undefined} src={s.image.src} alt="" loading="lazy" decoding="async" />
+      <img class={s.on ? "on" : undefined} src={s.image.src} alt={s.alt} loading="lazy" decoding="async" />
     ))}
     <ol class="dots">
       {steps.map((s) => <li class={s.on ? "on" : undefined}></li>)}
