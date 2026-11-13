@@ -221,7 +221,13 @@ export async function getCalendarEvents(interactive = false) {
     return { events: fresh, changed };
   } catch (err) {
     if (err.message === 'TOKEN_EXPIRED' && token) {
-      await removeGoogleAuthToken();
+      // A 401 on an ostensibly-valid token can be transient (clock skew, a
+      // raced refresh, a server-side hiccup). Do NOT wipe the stored refresh
+      // token here: getGoogleAuthToken already refreshes via the stored
+      // refresh_token, and removing it would force a full interactive re-auth
+      // (and silently log out Contacts/Drive, which share the same key).
+      // Matches bg.js's no-wipe prefetch and the Spotify "don't clear on
+      // transient failure" convention.
       try {
         const freshToken = await getGoogleAuthToken(interactive);
         const fresh = await fetchEventsWithToken(freshToken);

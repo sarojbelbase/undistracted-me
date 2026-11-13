@@ -69,7 +69,7 @@ let prefetchCoords = null; // { lat, lon } or null
 // ─── Notification config (synced from page via chrome.storage.local) ─────────
 let notifConfig = {
   enabled: true,
-  types: { events: true, countdown: true, pomodoro: true, lookaway: true },
+  types: { events: true, countdown: true, pomodoro: true, lookaway: true, occasion: true },
 };
 
 /**

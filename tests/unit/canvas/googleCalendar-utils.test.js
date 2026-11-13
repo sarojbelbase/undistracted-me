@@ -264,11 +264,17 @@ describe("getCalendarEvents", () => {
     expect(result.events[0].title).toBe("Regular event");
   });
 
-  it("clears the stored token and throws on 401 (non-interactive cannot re-auth)", async () => {
+  it("does NOT wipe the stored token on a 401 — retries via refresh, then rethrows", async () => {
     seedValidToken();
-    global.fetch.mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" });
+    global.fetch
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" })
+      .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" });
     await expect(getCalendarEvents()).rejects.toThrow();
-    expect(chromeMockStorage[TOKEN_KEY]).toBeUndefined();
+    // A transient 401 must not remove the shared `google_tokens` key (access +
+    // refresh token) — wiping it would force a full interactive re-auth and
+    // silently log out Contacts/Drive, which share the same key.
+    expect(chromeMockStorage[TOKEN_KEY]).toBeDefined();
+    expect(chromeMockStorage[TOKEN_KEY].refresh_token).toBe("refresh-token");
   });
 
   it("throws when no token is stored", async () => {

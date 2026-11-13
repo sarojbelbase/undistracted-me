@@ -205,7 +205,27 @@ export async function getContactBirthdays(interactive = true) {
     return entries;
   } catch (err) {
     if (err.message === 'SERVICE_DISABLED') throw err;
-    if ((err.message === 'TOKEN_EXPIRED' || err.message === 'SCOPE_INSUFFICIENT') && token) {
+    if (err.message === 'TOKEN_EXPIRED' && token) {
+      // Transient 401 — retry against the refresh path WITHOUT wiping the
+      // stored refresh_token (matches bg.js's no-wipe prefetch and the Spotify
+      // "don't clear on transient failure" convention). A silent background
+      // sync (interactive=false) must not force a re-auth; the caller falls
+      // back to the cached contacts.
+      try {
+        const freshToken = await getGoogleAuthToken(interactive);
+        const connections = await fetchAllConnections(freshToken);
+        const entries = parseContacts(connections);
+        saveCachedContacts(entries);
+        return entries;
+      } catch (retryErr) {
+        console.warn('[GoogleContacts] Retry failed:', retryErr.message);
+        return loadCachedContacts();
+      }
+    }
+    if (err.message === 'SCOPE_INSUFFICIENT' && token) {
+      // 403 = the stored token lacks the People scope. A fresh token carrying
+      // the scope can only come from a re-auth, so wipe and re-prompt (matches
+      // googleTasks.js's scope-retry convention).
       await removeGoogleAuthToken();
       try {
         const freshToken = await getGoogleAuthToken(interactive);
