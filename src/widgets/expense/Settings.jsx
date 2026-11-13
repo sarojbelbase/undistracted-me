@@ -1,9 +1,9 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Download, Upload, InfoCircle, Trash3Fill, FileEarmarkText } from 'react-bootstrap-icons';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { CURRENCIES } from '../../data/currencies';
 import { DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
 
@@ -197,7 +197,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
         <span className="w-label">
           Budget ({RANGE_CONFIG[timeRange]?.label ?? 'Weekly'})
         </span>
-        <SettingsInput
+        <Input pill
           type="number"
           min="0"
           step="0.01"

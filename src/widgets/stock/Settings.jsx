@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { XLg, Search } from 'react-bootstrap-icons';
 import { fetchCompanies } from './utils';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 /**
@@ -114,7 +114,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
 
       {/* Search */}
       <div className="pb-3">
-        <SettingsInput
+        <Input pill
           ref={inputRef}
           id="stock-search"
           name="stock-search"

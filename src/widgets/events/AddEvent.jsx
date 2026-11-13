@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, HourglassSplit } from 'react-bootstrap-icons';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { todayStr } from '../../utilities';
 import {
@@ -86,7 +86,7 @@ export const AddEvent = ({ onSave, onCancel, initialDate, initial }) => {
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Title */}
-        <SettingsInput
+        <Input pill
           ref={titleRef}
           id="event-title"
           name="event-title"

@@ -54,7 +54,7 @@ export const CANVAS_ICON_LABEL = (isDark) =>
 export const CANVAS_ICON_MUTED = (isDark) =>
   isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
 
-// ── Input surface (SettingsInput, Input) ─────────────────────────────────────
+// ── Input surface (Input) ────────────────────────────────────────────────────
 // Each setting input uses a glass-pill container whose background/border changes
 // based on the combined glass×mode state. These helpers centralise those values.
 
