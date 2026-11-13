@@ -19,6 +19,8 @@
  *   • DEMO_*                   — first-run seed content (Quick Tour / reset)
  */
 
+import { MOMO_URL } from './urls.js';
+
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
 
 export const APP_SETTINGS_DEFAULTS = Object.freeze({
@@ -170,7 +172,7 @@ export const DEMO_EVENTS = Object.freeze([
 
 /** Bookmark widget settings — written to widgetSettings['bookmark']. */
 export const DEMO_BOOKMARK_SETTINGS = Object.freeze({
-  url: "https://buymemomo.com/sarojbelbase",
+  url: MOMO_URL,
   name: "Buy Me Momo",
   iconMode: "favicon",
 });
