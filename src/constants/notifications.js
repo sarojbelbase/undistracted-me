@@ -93,20 +93,18 @@ export function buildNotification(type, data = {}) {
     case 'countdown': {
       const label = data.title?.trim();
       const body = data.body?.trim();
-      // `body` carries the "what happened" phrase. The countdown widget sends
-      // "…is starting" for calendar events (which START, not end) and
-      // "Countdown complete" for custom countdowns. Distinguish by content so
-      // a calendar-event countdown never says "just ended".
-      const isEventStart = /starting/i.test(body || '');
+      // The widget always sends an explicit `body` ("…is starting" for calendar
+      // events, "Countdown complete" for custom countdowns), so render it
+      // verbatim whenever present. Only fall back to the generic copy when no
+      // body was provided.
       return {
         type: 'basic',
         iconUrl: ICON,
         title: label || 'Countdown finished',
-        message: isEventStart
-          ? body
-          : label
+        message: body
+          || (label
             ? `Your countdown for "${label}" just ended.`
-            : 'The timer you set has reached zero. Time to move.',
+            : 'The timer you set has reached zero. Time to move.'),
         priority: 2,
       };
     }
