@@ -28,41 +28,45 @@ vi.stubGlobal('chrome', {
   action: {},
 });
 
-// Mock react-bootstrap-icons
-vi.mock('react-bootstrap-icons', () => ({
-  PlusLg: () => <span data-testid="plus-icon">+</span>,
-  DashLg: () => <span data-testid="dash-icon">-</span>,
-  XLg: () => <span>X</span>,
-  BookmarkFill: () => <span data-testid="bookmark-icon">🔖</span>,
-  BookmarkStarFill: () => <span>⭐</span>,
-  StickyFill: () => <span>📝</span>,
-  Calendar3: () => <span>🗓</span>,
-  GraphUpArrow: () => <span>📈</span>,
-  CloudSunFill: () => <span>⛅</span>,
-  ClockFill: () => <span>🕐</span>,
-  BarChartFill: () => <span>📊</span>,
-  CalendarEventFill: () => <span>📆</span>,
-  StopwatchFill: () => <span>⏱</span>,
-  ChatLeftQuoteFill: () => <span>💬</span>,
-  CalendarDateFill: () => <span>📅</span>,
-  Trash3: () => <span data-testid="trash-icon">🗑</span>,
-  HourglassSplit: () => <span>⏳</span>,
-  ArrowRepeat: () => <span>🔄</span>,
-  CalendarEvent: () => <span>📅</span>,
-  CheckLg: () => <span data-testid="check-icon">✓</span>,
-  BalloonFill: () => <span>🎈</span>,
-  PersonHeart: () => <span>🫶</span>,
-  HeartFill: () => <span>♥</span>,
-  StarFill: () => <span>⭐</span>,
-  GeoAlt: () => <span>📍</span>,
-  XCircleFill: () => <span>✕</span>,
-  Search: () => <span>🔍</span>,
-  InfoCircleFill: () => <span>ℹ</span>,
-  Grid3x3GapFill: () => <span>▦</span>,
-  CalendarCheck: () => <span>✅</span>,
-  MusicNoteBeamed: () => <span>🎵</span>,
-  ChatLeftQuoteFill: () => <span>💬</span>,
-}));
+// Mock react-bootstrap-icons — override the icons asserted on, keep the rest real.
+vi.mock('react-bootstrap-icons', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    PlusLg: () => <span data-testid="plus-icon">+</span>,
+    DashLg: () => <span data-testid="dash-icon">-</span>,
+    XLg: () => <span>X</span>,
+    BookmarkFill: () => <span data-testid="bookmark-icon">🔖</span>,
+    BookmarkStarFill: () => <span>⭐</span>,
+    StickyFill: () => <span>📝</span>,
+    Calendar3: () => <span>🗓</span>,
+    GraphUpArrow: () => <span>📈</span>,
+    CloudSunFill: () => <span>⛅</span>,
+    ClockFill: () => <span>🕐</span>,
+    BarChartFill: () => <span>📊</span>,
+    CalendarEventFill: () => <span>📆</span>,
+    StopwatchFill: () => <span>⏱</span>,
+    ChatLeftQuoteFill: () => <span>💬</span>,
+    CalendarDateFill: () => <span>📅</span>,
+    Trash3: () => <span data-testid="trash-icon">🗑</span>,
+    HourglassSplit: () => <span>⏳</span>,
+    ArrowRepeat: () => <span>🔄</span>,
+    CalendarEvent: () => <span>📅</span>,
+    CheckLg: () => <span data-testid="check-icon">✓</span>,
+    BalloonFill: () => <span>🎈</span>,
+    PersonHeart: () => <span>🫶</span>,
+    HeartFill: () => <span>♥</span>,
+    StarFill: () => <span>⭐</span>,
+    GeoAlt: () => <span>📍</span>,
+    XCircleFill: () => <span>✕</span>,
+    Search: () => <span>🔍</span>,
+    InfoCircleFill: () => <span>ℹ</span>,
+    Grid3x3GapFill: () => <span>▦</span>,
+    CalendarCheck: () => <span>✅</span>,
+    MusicNoteBeamed: () => <span>🎵</span>,
+    ChatLeftQuoteFill: () => <span>💬</span>,
+  };
+});
 
 // Mock BaseWidget
 vi.mock('../../../src/widgets/BaseWidget', () => ({
@@ -100,6 +104,14 @@ vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
     }),
     formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
     formatTargetDate: vi.fn(() => 'Aug 15, 2025'),
+    // The widget renders one humanized hero phrase ("in 10 days") rather than
+    // separate number/unit nodes — keep it deterministic instead of depending
+    // on the real calendar-relative humanizer.
+    formatCountdownPhrase: vi.fn((days, hours, mins) => {
+      if (days > 0) return `${days} days`;
+      if (hours > 0) return `${hours} hrs`;
+      return `${mins} min`;
+    }),
   };
 });
 
@@ -254,10 +266,10 @@ describe('Config files', () => {
   });
 });
 
-describe('Countdown Settings.jsx (null export)', () => {
-  it('exports null Settings', async () => {
-    const { Settings } = await import('../../../src/widgets/countdown/Settings');
-    expect(Settings).toBeNull();
+describe('Countdown Settings.jsx', () => {
+  it('exports the CountdownSettings panel component', async () => {
+    const mod = await import('../../../src/widgets/countdown/Settings');
+    expect(mod.CountdownSettings).toBeTypeOf('function');
   });
   it('dateToday Settings.jsx exports a component', async () => {
     const { Settings } = await import('../../../src/widgets/dateToday/Settings');
@@ -412,15 +424,18 @@ describe('Countdown Widget — additional coverage', () => {
     expect(screen.getAllByText('Pinned Calendar Event').length).toBeGreaterThan(0);
   });
 
-  it('shows "days" unit when countdown is days > 0', () => {
+  it('renders the hero phrase for a multi-day countdown', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'ev1', title: 'Test Event', startDate: '2027-08-15', startTime: '10:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
-    // With 10 days and 0 hours, it renders '10' and 'days'
+    // The widget renders one humanized phrase (mocked as "10 days") plus a
+    // decorative oversized ghost numeral.
     vi.mocked(formatCountdown).mockReturnValue({ days: 10, hours: 0, minutes: 0, totalSeconds: 864000 });
     render(<CountdownWidget onRemove={vi.fn()} />);
+    // The hero phrase ("10 days") is also rendered in a hidden measurement node,
+    // so assert on the visible hero element rather than a text query.
+    expect(document.querySelector('.cdn-time-hero').textContent).toBe('10 days');
     expect(screen.getByText('10')).toBeTruthy();
-    expect(screen.getByText('days')).toBeTruthy();
   });
 
   it('shows countdown number when auto-picked', () => {
@@ -441,14 +456,13 @@ describe('Countdown Widget — additional coverage', () => {
     expect(screen.getByText('No countdowns yet.')).toBeTruthy();
   });
 
-  it('shows countdown number when hours is the tiebreaker', () => {
+  it('uses hours when the countdown is under a day', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'ev1', title: 'Soon Event', startDate: '2027-07-02', startTime: '10:00', endDate: '', endTime: '' },
     ], vi.fn(), vi.fn()]);
-    // 0 days, 5 hours, 15 min → hoursTier(5, 15) → no rounding up → { main: '5', unit: 'hrs' }
     vi.mocked(formatCountdown).mockReturnValue({ days: 0, hours: 5, minutes: 15, totalSeconds: 19500 });
     render(<CountdownWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('hrs')).toBeTruthy();
+    expect(document.querySelector('.cdn-time-hero').textContent).toBe('5 hrs');
   });
 
   it('renders settings panel with CountdownSettings', () => {
@@ -482,8 +496,7 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows empty state when no custom ones', () => {
     render(<CountdownWidget onRemove={vi.fn()} />);
-    // Empty state text is "Nothing to count down to"
-    expect(screen.getByText('Nothing to count down to')).toBeTruthy();
+    expect(screen.getByText('Nothing to track yet')).toBeTruthy();
   });
 
   it('shows custom countdown in settings list', () => {
@@ -511,7 +524,7 @@ describe('Countdown Widget — additional coverage', () => {
     const plusBtns = screen.getAllByTestId('plus-icon');
     fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
     expect(screen.getByText('New Countdown')).toBeTruthy();
-    fireEvent.click(screen.getByText('X'));
+    fireEvent.click(screen.getByLabelText('Close'));
     expect(screen.queryByText('New Countdown')).toBeNull();
   });
 
@@ -519,9 +532,7 @@ describe('Countdown Widget — additional coverage', () => {
     render(<CountdownWidget onRemove={vi.fn()} />);
     const plusBtns = screen.getAllByTestId('plus-icon');
     fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-    // Save button should be disabled
-    const saveBtn = screen.getAllByText('Save').find(b => b.tagName === 'BUTTON');
-    expect(saveBtn?.disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Save Countdown' }).disabled).toBe(true);
   });
 
   it('AddModal shows repeat options', () => {
@@ -529,8 +540,8 @@ describe('Countdown Widget — additional coverage', () => {
     const plusBtns = screen.getAllByTestId('plus-icon');
     fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
     expect(screen.getByText('Repeat')).toBeTruthy();
-    expect(screen.getByText('None')).toBeTruthy();
-    expect(screen.getByText('Daily')).toBeTruthy();
+    expect(screen.getByText('Once')).toBeTruthy();
+    expect(screen.getByText('Weekly')).toBeTruthy();
   });
 
   it('AddModal can set title', () => {
@@ -538,7 +549,7 @@ describe('Countdown Widget — additional coverage', () => {
     const plusBtns = screen.getAllByTestId('plus-icon');
     fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
 
-    const titleInput = screen.getByPlaceholderText(/What are you counting down to/i);
+    const titleInput = screen.getByPlaceholderText(/Trip to Japan/i);
     fireEvent.change(titleInput, { target: { value: 'My Birthday' } });
     expect(titleInput.value).toBe('My Birthday');
   });
@@ -552,11 +563,12 @@ describe('Countdown Widget — additional coverage', () => {
     localStorage.setItem('countdown_events', JSON.stringify(countdownData));
     render(<CountdownWidget onRemove={vi.fn()} />);
 
-    // The trash button has aria-label="Remove Delete Me"
+    // The trash control is a two-step ConfirmButton ("Sure?"), so confirm twice.
     const removeBtn = screen.getByLabelText('Remove Delete Me');
     fireEvent.click(removeBtn);
-    // After deletion, should show "Nothing to count down to"
-    expect(screen.getByText('Nothing to count down to')).toBeTruthy();
+    fireEvent.click(removeBtn);
+    // After deletion, the list falls back to its empty state
+    expect(screen.getByText('Nothing to track yet')).toBeTruthy();
   });
 
   it('repeating countdown shows repeat badge', () => {

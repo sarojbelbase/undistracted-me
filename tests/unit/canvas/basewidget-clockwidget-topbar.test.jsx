@@ -10,13 +10,18 @@ import React from 'react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
-// Mock react-bootstrap-icons
-vi.mock('react-bootstrap-icons', () => ({
-  GearFill: ({ size, ...props }) => <span data-testid="gear-icon" {...props}>⚙</span>,
-  ArrowsFullscreen: () => <span>⛶</span>,
-  FullscreenExit: () => <span>⛶</span>,
-  CalendarDateFill: () => <span data-testid="calendar-date-icon">📅</span>,
-}));
+// Mock react-bootstrap-icons — keep the real exports (components import many
+// icons) and only override the ones this suite asserts on.
+vi.mock('react-bootstrap-icons', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    GearFill: ({ size, ...props }) => <span data-testid="gear-icon" {...props}>⚙</span>,
+    ArrowsFullscreen: () => <span>⛶</span>,
+    FullscreenExit: () => <span>⛶</span>,
+    CalendarDateFill: () => <span data-testid="calendar-date-icon">📅</span>,
+  };
+});
 
 // Mock weather utils for TopBar (it imports weather/utils.jsx)
 vi.mock('../../../src/widgets/weather/utils.jsx', () => ({

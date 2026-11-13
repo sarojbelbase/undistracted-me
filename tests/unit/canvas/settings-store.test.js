@@ -25,10 +25,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 // ────────────────────────────────────────────────────────────────────────────
 
 import { useSettingsStore, STORE_KEY } from '../../../src/store/useSettingsStore';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../../src/constants/defaults';
 
 const resetStore = (overrides = {}) =>
   useSettingsStore.setState({
-    language: 'en',
     accent: 'Default',
     mode: 'light',
     defaultView: 'canvas',
@@ -68,8 +68,8 @@ describe('initial state defaults', () => {
     expect(useSettingsStore.getState().accent).toBe('Default');
   });
 
-  it('language defaults to "en"', () => {
-    expect(useSettingsStore.getState().language).toBe('en');
+  it('date language defaults to "en" on the date widget', () => {
+    expect(WIDGET_SETTINGS_DEFAULTS.dateToday.language).toBe('en');
   });
 
   it('lookAwayEnabled defaults to false', () => {
@@ -169,19 +169,14 @@ describe('setDefaultView', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// setLanguage
+// Language
 // ────────────────────────────────────────────────────────────────────────────
-
-describe('setLanguage', () => {
-  it('can switch to Nepali', () => {
-    useSettingsStore.getState().setLanguage('ne');
-    expect(useSettingsStore.getState().language).toBe('ne');
-  });
-
-  it('can switch back to English', () => {
-    useSettingsStore.getState().setLanguage('ne');
-    useSettingsStore.getState().setLanguage('en');
-    expect(useSettingsStore.getState().language).toBe('en');
+// The global `language` setting was removed — date formatting language is now
+// per-widget (`dateToday.language`, see WIDGET_SETTINGS_DEFAULTS). Guard against
+// a half-reintroduced global language key.
+describe('language', () => {
+  it('has no global language setter on the settings store', () => {
+    expect(useSettingsStore.getState().setLanguage).toBeUndefined();
   });
 });
 

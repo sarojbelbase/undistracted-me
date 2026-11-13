@@ -469,8 +469,9 @@ describe('change detection and throttle', () => {
     const fp = JSON.parse(localStorage.getItem('sync_fingerprint'));
     expect(fp).toBeTruthy();
     expect(typeof fp.local).toBe('string');
-    // A clean first sync (no remote data) records no base hash yet.
-    expect(fp.remote).toBe(null);
+    // Enabling sync on a device with local data uploads it (ahead → push), so
+    // the base remote hash is recorded straight away.
+    expect(typeof fp.remote).toBe('string');
   });
 
   it('records an updated fingerprint after a real push', async () => {
@@ -491,6 +492,9 @@ describe('change detection and throttle', () => {
 
 describe('previewSync — divergence classification', () => {
   it('classifies a first-connect with data on both sides as diverged', async () => {
+    // Simulate a device that has never synced (enableSync in beforeEach already
+    // recorded a base, so drop it).
+    localStorage.removeItem('sync_fingerprint');
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 } }, version: 0 }, t: 100 } });
 
@@ -508,6 +512,7 @@ describe('previewSync — divergence classification', () => {
   });
 
   it('classifies local-only data as ahead (no remote yet)', async () => {
+    localStorage.removeItem('sync_fingerprint'); // never synced from this device
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local-new' }, version: 0 }));
     state.gistContent = null; // no config → notFound
 

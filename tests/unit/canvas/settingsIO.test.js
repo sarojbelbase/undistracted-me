@@ -170,8 +170,16 @@ describe('exportSettings', () => {
   });
 
   it('calls URL.revokeObjectURL to free memory', () => {
-    exportSettings();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:fake');
+    // The revoke is deferred (a synchronous revoke can abort the download in
+    // WebKit), so advance the timer before asserting.
+    vi.useFakeTimers();
+    try {
+      exportSettings();
+      vi.runAllTimers();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:fake');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('file download name starts with "undistracted-me-"', () => {
