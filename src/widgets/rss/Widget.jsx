@@ -10,7 +10,7 @@
  *  • Digest   – compact numbered headline list, scrollable, accent left-bar on hover.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { useRssMulti } from "./useRssMulti";
@@ -110,6 +110,30 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
     return () => ro.disconnect();
   }, []);
 
+  // ── Source pill overflow ──────────────────────────────────────────────────
+  // The pill is capped at a share of the row. If the feed label is longer than
+  // that, it ellipsizes at rest and marquees its full text on hover/focus —
+  // never pushing the refresh button or timestamp out of the row.
+  const pillRef = useRef(null);
+  const pillTextRef = useRef(null);
+  const [pillShift, setPillShift] = useState(0);
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    const text = pillTextRef.current;
+    if (!pill || !text) {
+      setPillShift(0);
+      return;
+    }
+    const measure = () => {
+      const shift = text.scrollWidth - text.clientWidth;
+      setPillShift(shift > 1 ? shift : 0);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(pill);
+    return () => ro.disconnect();
+  }, [item?.source]);
+
   // ── Gesture (drag to navigate) ────────────────────────────────────────────
   const { dragX, releasing, handlers } = useSwipeToNavigate({ onNext, onPrev });
 
@@ -152,8 +176,20 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
           style={{ animation: `${textAnim} 0.3s ease-out both` }}
         >
           {item.source && (
-            <span className="rss-marquee__source-pill">
-              {item.source}
+            <span
+              ref={pillRef}
+              className={`rss-marquee__source-pill${pillShift > 0 ? " rss-marquee__source-pill--scroll" : ""}`}
+              style={{
+                "--rss-source-shift": `${pillShift}px`,
+                "--rss-source-dur": `${Math.max(4, pillShift / 18)}s`,
+              }}
+              title={item.source}
+              tabIndex={pillShift > 0 ? 0 : undefined}
+              aria-label={item.source}
+            >
+              <span ref={pillTextRef} className="rss-marquee__source-pill-text">
+                {item.source}
+              </span>
             </span>
           )}
 

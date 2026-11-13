@@ -200,7 +200,36 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 3px 7px;
   border-radius: 999px;
-  flex-shrink: 0;
+  // Long feed labels (e.g. "Benita Kolovos Victorian state correspondent")
+  // must never push the refresh button or timestamp out of the row. Cap the
+  // pill, let it shrink, and clip the label at rest.
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 62%;
+  overflow: hidden;
+  white-space: nowrap;
+  outline: none;
+
+  &-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Overflowing label → reveal the full text as a marquee on hover/focus.
+  // Non-overflowing labels keep the plain, static pill.
+  &--scroll {
+    &:hover,
+    &:focus-visible {
+
+      .rss-marquee__source-pill-text {
+        overflow: visible;
+        text-overflow: clip;
+        animation: rss-source-scroll var(--rss-source-dur, 6s) ease-in-out infinite alternate;
+      }
+    }
+  }
 }
 
 .rss-marquee__spacer {
@@ -360,6 +389,30 @@
 
   to {
     opacity: 1;
+    transform: none;
+  }
+}
+
+// Source-pill marquee — only runs while an overflowing pill is hovered or
+// focused. `alternate` bounces back to the start instead of hard-resetting.
+@keyframes rss-source-scroll {
+  0%,
+  10% {
+    transform: translateX(0);
+  }
+
+  90%,
+  100% {
+    transform: translateX(calc(-1 * var(--rss-source-shift, 0px)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rss-marquee__source-pill--scroll:hover .rss-marquee__source-pill-text,
+  .rss-marquee__source-pill--scroll:focus-visible .rss-marquee__source-pill-text {
+    animation: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transform: none;
   }
 }
