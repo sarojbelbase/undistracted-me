@@ -9,6 +9,7 @@ import {
 } from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { CURRENT_PLATFORM } from '../constants/env';
+import { MOMO_URL } from '../constants/urls';
 
 /** Returns 'full' | 'partial' | 'none' for the widget on the current platform. */
 const getPlatformSupport = (widget) => {
@@ -301,7 +302,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         <div className="wc-footer">
           <span className="wc-footer-hint">+ Add &nbsp;·&nbsp; − Remove from Canvas</span>
           <a
-            href="https://buymemomo.com/sarojbelbase"
+            href={MOMO_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="wc-momo-link"

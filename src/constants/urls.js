@@ -23,6 +23,14 @@ export const RSS_FEED_PROXY_URL = `${API_BASE_URL}/rss/feed`;
  */
 export const HOLIDAYS_URL = `${PRODUCTION_BASE_URL}/holidays.json`;
 
+// ── Support / funding ─────────────────────────────────────────────────────────
+
+/** Buy Me a Momo — support link (support nudge, widget catalog, demo bookmark). */
+export const MOMO_URL = 'https://buymemomo.com/sarojbelbase';
+
+/** Project repository — GitHub star link in the support nudge. */
+export const GITHUB_URL = 'https://github.com/sarojbelbase/undistracted-me';
+
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 
 export const OPEN_METEO_WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
