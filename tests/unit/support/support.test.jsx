@@ -99,7 +99,7 @@ describe('SupportDialog', () => {
     render(<SupportDialog open onClose={() => {}} />);
     const cta = screen.getByRole('link', { name: /Support on Buy Me a Momo/ });
     expect(cta).toHaveAttribute('href', 'https://buymemomo.com/sarojbelbase');
-    const star = screen.getByRole('link', { name: /A star on GitHub/ });
+    const star = screen.getByRole('link', { name: /A GitHub star/ });
     expect(star).toHaveAttribute('href', 'https://github.com/sarojbelbase/undistracted-me');
   });
 });

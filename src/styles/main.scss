@@ -26,6 +26,7 @@
 @use "widget-catalog"; // .wc-* drawer panel
 @use "focus-mode"; // .fm-* Focus Mode layout
 @use "look-away"; // .la-* Look Away overlay
+@use "support"; // .sd-* Support nudge dialog
 @use "widgets"; // .weather-minimal-* and other widget layout helpers
 @use "widgets/rss";
 @use "widgets/weather";
