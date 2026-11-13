@@ -116,6 +116,15 @@ export const widgets = [
     alt: "The NEPSE stock watchlist widget.",
     images: [stockNepse, stockStacked],
   },
+  {
+    kind: "shot",
+    slot: "visible",
+    title: "Weather",
+    text: "Local weather and forecast in one small card.",
+    tooltip: "Weather",
+    alt: "The weather widget, compact view.",
+    images: [weatherSimple, weatherExpressive],
+  },
 
   // ── "Also inside" (hidden) ──────────────────────────────────────────────
   {
@@ -153,15 +162,6 @@ export const widgets = [
     tooltip: "Pomodoro",
     alt: "The Pomodoro focus timer widget.",
     images: [pomodoro],
-  },
-  {
-    kind: "shot",
-    slot: "hidden",
-    title: "Weather",
-    text: "Local weather and forecast in one small card.",
-    tooltip: "Weather",
-    alt: "The weather widget, compact view.",
-    images: [weatherSimple, weatherExpressive],
   },
   {
     kind: "shot",
