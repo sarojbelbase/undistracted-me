@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MESSAGES } from '../data/lookawayMessages';
+import { FALLBACK_MESSAGES, loadLookawayMessages } from '../data/lookawayMessagesClient';
 import { ORB_PALETTES } from '../constants/orbPalettes';
 import { shorthandFromUrl } from '../utilities/index';
 import { computeAutoMode } from '../utilities/sunTime';
@@ -127,10 +127,15 @@ const BlockedPage = () => {
   );
 
   // ── Pick a random message (stable for the session) ─────────────────────
-  const msg = useMemo(
-    () => MESSAGES[randomInt(MESSAGES.length)],
-    [],
-  );
+  const [msg, setMsg] = useState(() => FALLBACK_MESSAGES[randomInt(FALLBACK_MESSAGES.length)]);
+  // Swap in a message from the full API catalog once it loads (offline keeps the fallback).
+  useEffect(() => {
+    let mounted = true;
+    loadLookawayMessages().then((msgs) => {
+      if (mounted) setMsg(msgs[randomInt(msgs.length)]);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   // ── Countdown state ────────────────────────────────────────────────────
   const [remainingMs, setRemainingMs] = useState(() => initialRemaining);
