@@ -1,0 +1,88 @@
+---
+import { site } from "../data/site.js";
+
+const stats = [
+  { key: "stars", top: "GitHub", sub: "stars", icon: "github", href: site.githubUrl },
+  { key: "chrome", top: "Chrome", sub: "users", icon: "chrome", href: site.chromeUrl },
+  { key: "firefox", top: "Firefox", sub: "users", icon: "firefox", href: site.firefoxUrl },
+  { key: "tries", top: "Web app", sub: "tries", icon: "web", href: site.webAppUrl },
+];
+---
+
+<div class="tally" id="tally" data-api="https://api.undistracted.me/stats" role="group" aria-label="Live numbers">
+  <span class="tally-live"><i aria-hidden="true"></i>live</span>
+  {stats.map((s) => (
+    <a class="tally-cell" href={s.href} rel="noopener" target="_blank" data-k={s.key}>
+      <span class="tally-n">—</span>
+      <span class="tally-l">
+        <svg class="ic" aria-hidden="true"><use href={`#i-${s.icon}`} /></svg>
+        <span>{s.top}<small>{s.sub}</small></span>
+      </span>
+    </a>
+  ))}
+</div>
+
+<script>
+  const root = document.getElementById("tally");
+  const cells = [...root.querySelectorAll(".tally-cell")];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fmt = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : "—");
+
+  function render(values) {
+    let any = false;
+    cells.forEach((cell) => {
+      const v = values[cell.dataset.k];
+      const num = cell.querySelector(".tally-n");
+      const label = cell.querySelector(".tally-l span");
+      if (typeof v === "number") {
+        any = true;
+        num.dataset.v = String(v);
+        num.textContent = reduce ? fmt(v) : "0";
+        cell.setAttribute("aria-label", `${fmt(v)} ${label.textContent.trim().replace(/\s+/g, " ")}`);
+      } else {
+        num.textContent = "—";
+      }
+    });
+    root.classList.toggle("live", any);
+    if (any && !reduce) countUp();
+  }
+
+  function countUp() {
+    cells.forEach((cell) => {
+      const num = cell.querySelector(".tally-n");
+      const target = Number(num.dataset.v);
+      if (!Number.isFinite(target)) return;
+      const t0 = performance.now();
+      const dur = 900;
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        num.textContent = fmt(Math.round(target * eased));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  const io = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (!e.isIntersecting || root.dataset.loaded) return;
+        root.dataset.loaded = "1";
+        io.disconnect();
+        fetch(root.dataset.api, { signal: AbortSignal.timeout(6000) })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) =>
+            render({
+              stars: d && d.github && d.github.stars,
+              chrome: d && d.chrome && d.chrome.users,
+              firefox: d && d.firefox && d.firefox.users,
+              tries: d && d.tries,
+            }),
+          )
+          .catch(() => render({}));
+      }),
+    { threshold: 0.4 },
+  );
+  io.observe(root);
+</script>

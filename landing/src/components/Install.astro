@@ -1,6 +1,7 @@
 ---
 import reachLeft from "../assets/design/reach-left.webp";
 import reachRight from "../assets/design/reach-right.webp";
+import Stats from "./Stats.astro";
 import { site } from "../data/site.js";
 ---
 
@@ -24,6 +25,7 @@ import { site } from "../data/site.js";
           <span class="lb"><small>Or try the</small>Web app</span>
         </a>
       </div>
+      <Stats />
     </div>
     <img class="mul hand hr" src={reachRight.src} alt="A hand reaching in from the right." loading="lazy" decoding="async" />
   </div>
