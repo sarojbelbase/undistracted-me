@@ -1,10 +1,8 @@
-import { ChatLeftQuoteFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'dailys',
   title: 'Dailys',
   category: 'info',
-  icon: ChatLeftQuoteFill,
+  icon: 'ChatLeftQuoteFill',
   description: 'Daily quote or interesting fact',
   enabled: true,
   platforms: {

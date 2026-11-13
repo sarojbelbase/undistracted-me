@@ -1,10 +1,8 @@
-import { Calendar3 } from 'react-bootstrap-icons';
-
 export default {
   type: 'calendar',
   title: 'Calendar',
   category: 'planning',
-  icon: Calendar3,
+  icon: 'Calendar3',
   description: 'Monthly calendar at a glance',
   enabled: true,
   platforms: {

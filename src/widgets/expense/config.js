@@ -1,11 +1,9 @@
 import { ExpenseSettings } from './Settings';
-import { WalletFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'expense',
   title: 'Expense Tracker',
   category: 'tools',
-  icon: WalletFill,
+  icon: 'WalletFill',
   description: 'Track daily expenses with summaries',
   enabled: true,
   platforms: {

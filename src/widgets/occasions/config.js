@@ -1,10 +1,8 @@
-import { BalloonFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'occasions',
   title: 'Occasions',
   category: 'planning',
-  icon: BalloonFill,
+  icon: 'BalloonFill',
   description: 'Birthdays, anniversaries & special occasions',
   enabled: true,
   platforms: {

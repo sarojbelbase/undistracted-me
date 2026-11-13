@@ -53,6 +53,10 @@ vi.mock('react-bootstrap-icons', () => ({
   CalendarCheck: () => <span>✅</span>,
   Trash3: () => <span>🗑</span>,
   CalendarEvent: () => <span>📅</span>,
+  ChatLeftQuoteFill: () => <span>💬</span>,
+  WalletFill: () => <span>👛</span>,
+  Rss: () => <span>📡</span>,
+  App: () => <span>🔲</span>,
 }));
 
 // Prevent store init crash (circular dep via widget registry)

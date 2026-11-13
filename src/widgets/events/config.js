@@ -1,10 +1,8 @@
-import { CalendarEventFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'events',
   title: 'Upcoming Events',
   category: 'planning',
-  icon: CalendarEventFill,
+  icon: 'CalendarEventFill',
   description: "Today's events from your calendar",
   enabled: true,
   platforms: {

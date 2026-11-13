@@ -7,9 +7,42 @@ import {
   BoxArrowUpRight,
   InfoCircleFill, GearFill, ClockFill, CalendarEventFill,
 } from 'react-bootstrap-icons';
+import {
+  BookmarkStarFill, Calendar3, HourglassSplit, ChatLeftQuoteFill,
+  CalendarDateFill, WalletFill, MusicNoteBeamed, StickyFill,
+  BalloonFill, StopwatchFill, BarChartFill, Grid3x3GapFill,
+  Rss, GraphUpArrow, CloudSunFill, App,
+} from 'react-bootstrap-icons';
 import { WIDGET_REGISTRY } from './index';
 import { CURRENT_PLATFORM } from '../constants/env';
 import { MOMO_URL } from '../constants/urls';
+
+// ─── Widget icon registry ─────────────────────────────────────────────────────
+// config.js files store the icon as a STRING name (not a React component) so the
+// eager WIDGET_REGISTRY (src/widgets/index.js) never imports `react-bootstrap-icons`.
+// Only this lazy catalog resolves the name → component. Keep the map exhaustive
+// over every widget config's `icon` value; unknown names fall back to `App`.
+const WIDGET_ICONS = {
+  BookmarkStarFill,
+  Calendar3,
+  ClockFill,
+  HourglassSplit,
+  ChatLeftQuoteFill,
+  CalendarDateFill,
+  CalendarEventFill,
+  WalletFill,
+  MusicNoteBeamed,
+  StickyFill,
+  BalloonFill,
+  StopwatchFill,
+  BarChartFill,
+  Grid3x3GapFill,
+  Rss,
+  GraphUpArrow,
+  CloudSunFill,
+};
+
+const resolveWidgetIcon = (name) => WIDGET_ICONS[name] ?? App;
 
 /** Returns 'full' | 'partial' | 'none' for the widget on the current platform. */
 const getPlatformSupport = (widget) => {
@@ -54,7 +87,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
   const isActive = count > 0 && support !== 'none';
   const disabled = support === 'none';
   const partial = support === 'partial';
-  const Icon = widget.icon;
+  const Icon = resolveWidgetIcon(widget.icon);
 
   const descText = disabled
     ? 'Extension only — not available here'

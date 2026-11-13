@@ -1,10 +1,8 @@
-import { ClockFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'clock',
   title: 'Clock',
   category: 'time',
-  icon: ClockFill,
+  icon: 'ClockFill',
   description: 'Live clock with extra time zones',
   enabled: true,
   platforms: {

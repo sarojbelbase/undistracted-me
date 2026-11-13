@@ -1,10 +1,8 @@
-import { Rss } from 'react-bootstrap-icons';
-
 export default {
   type: 'rss',
   title: 'News Feed',
   category: 'info',
-  icon: Rss,
+  icon: 'Rss',
   description: 'RSS news headlines',
   enabled: true,
   platforms: {

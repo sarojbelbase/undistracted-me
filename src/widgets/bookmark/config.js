@@ -1,10 +1,8 @@
-import { BookmarkStarFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'bookmark',
   title: 'Bookmark',
   category: 'tools',
-  icon: BookmarkStarFill,
+  icon: 'BookmarkStarFill',
   description: 'Quick-access bookmarks',
   enabled: true,
   platforms: {

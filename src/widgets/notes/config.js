@@ -1,10 +1,8 @@
-import { StickyFill } from 'react-bootstrap-icons';
-
 export default {
   type: 'notes',
   title: 'Notes',
   category: 'planning',
-  icon: StickyFill,
+  icon: 'StickyFill',
   description: 'Quick sticky note',
   enabled: true,
   platforms: {
