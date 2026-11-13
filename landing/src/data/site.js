@@ -3,7 +3,7 @@ export const site = {
   url: "https://undistracted.me",
   title: "Undistracted Me: unplug the noise",
   description:
-    "Undistracted Me is a free, open-source new tab for Chrome and Firefox: a calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. No account, works offline.",
+    "Undistracted Me is a free, open-source new tab for Chrome and Firefox: calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. Works offline.",
   // Bump this whenever the landing page content materially changes.
   lastUpdated: "2026-11-13",
   author: {
