@@ -1,13 +1,20 @@
 /**
  * KV-backed "web app tries" counter.
  *
- * Shared by /tries (increment + read) and /stats (read). The counter lives in
- * a Cloudflare KV namespace bound as `TRIES` on the api.undistracted.me Pages
- * project. Until that binding is added, every read resolves to 0 and every
- * increment is a no-op, so nothing throws and the tally simply shows "0".
+ * Shared by /tries (increment + read) and /stats (read). Two things must line
+ * up for the counter to actually count:
+ *
+ *   1. A KV namespace binding named `TRIES` on the api.undistracted.me Pages
+ *      project (Cloudflare dashboard → Pages → undistracted-me-api → Settings
+ *      → Functions → KV namespace bindings). That's what makes `env.TRIES`
+ *      resolve to the namespace.
+ *   2. The key inside that namespace (below, `APP_VISTS`) — already created.
+ *
+ * Until the binding is added, every read resolves to 0 and every increment is
+ * a no-op, so nothing throws and the tally simply shows "0".
  */
 
-export const TRIES_KEY = 'tries';
+export const TRIES_KEY = 'APP_VISTS';
 
 /** Read the current count (0 when the KV binding is absent or unreadable). */
 export async function getTries(env) {
