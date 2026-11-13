@@ -23,7 +23,7 @@ export const DailysSettings = ({ mode, autoSlide, onChange }) => (
           fontSize: '10.5px', color: 'var(--w-ink-5)',
           marginTop: -4, lineHeight: 1.4,
         }}>
-          Cycles through quote, joke, and fact every 30 seconds
+          Cycles through quote, joke and fact every 30 seconds
         </p>
       </div>
       <Toggle
