@@ -222,11 +222,9 @@ html.js .cell.in{opacity:1;translate:none}
 @media(max-width:1000px){.wide{grid-template-columns:1fr 1fr;grid-template-areas:"l r" "a a";min-height:0}.hl{grid-area:l}.hr{grid-area:r}.ask{grid-area:a;padding:var(--s3) var(--g) 0}.ask h2{white-space:normal;font-size:clamp(2.4rem,11vw,3.6rem)}.hand{max-width:46vw}.ask .ctas{flex-direction:column;align-items:stretch;max-width:22rem;margin:0 auto}.ask .bb{flex:none;justify-content:center}}
 
 /* tally: the live numbers, a quiet ledger row under the install buttons */
-.tally{margin-top:var(--s4);display:grid;grid-template-columns:auto repeat(4,minmax(6.5rem,auto));border-top:1px solid rgba(11,11,11,.24);border-bottom:1px solid rgba(11,11,11,.24)}
-.tally-live{display:flex;align-items:center;gap:.5rem;padding:1rem 1.4rem 1rem .1rem;font:500 .7rem/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-.tally-live i{width:.5rem;height:.5rem;border-radius:50%;background:#c9c8c3;transition:background var(--dur-1)}
-.tally.live .tally-live i{background:var(--red);animation:ring 2.6s ease-out infinite}
-.tally-cell{display:grid;gap:.4rem;justify-items:start;padding:1rem 1.4rem;border-left:1px solid rgba(11,11,11,.24);text-decoration:none}
+.tally{margin-top:var(--s4);display:grid;grid-template-columns:repeat(4,minmax(6.5rem,1fr));border-top:1px solid rgba(11,11,11,.24);border-bottom:1px solid rgba(11,11,11,.24)}
+.tally-cell{display:grid;gap:.4rem;justify-items:center;padding:1rem 1.4rem;border-left:1px solid rgba(11,11,11,.24);text-decoration:none;text-align:center}
+.tally-cell:first-child{border-left:none}
 .tally-n{font:400 clamp(2.2rem,3.6vw,2.8rem)/.85 var(--caps);letter-spacing:.04em;color:var(--ink);font-variant-numeric:tabular-nums;transition:color var(--dur-1)}
 .tally-l{display:inline-flex;align-items:center;gap:.45rem;font:600 .78rem/1.15 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
 .tally-l .ic{width:1.05rem;height:1.05rem;color:var(--mute)}
@@ -234,9 +232,9 @@ html.js .cell.in{opacity:1;translate:none}
 .tally-cell:hover .tally-n{color:var(--red)}
 @media(max-width:640px){
   .tally{grid-template-columns:1fr 1fr}
-  .tally-live{grid-column:1/-1;justify-content:center;border-bottom:1px solid rgba(11,11,11,.24);padding:.6rem 0}
-  .tally-cell{justify-items:center;padding:.85rem .5rem;border-left:none}
-  .tally-cell:nth-child(odd){border-left:1px solid rgba(11,11,11,.24)}
+  .tally-cell{justify-items:center;padding:.85rem .5rem;border-left:none;border-top:1px solid rgba(11,11,11,.24)}
+  .tally-cell:nth-child(-n+2){border-top:none}
+  .tally-cell:nth-child(even){border-left:1px solid rgba(11,11,11,.24)}
 }
 
 /* support */
