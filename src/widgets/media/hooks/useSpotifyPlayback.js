@@ -3,7 +3,7 @@
  * account sync, and play/pause/skip controls.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getCurrentPlayback, setPlayPause, skipNext, skipPrev, extractAlbumColor } from '../utils';
+import { getCurrentPlayback, setPlayPause, skipNext, skipPrev, extractAlbumColor, isSpotifyConnected } from '../utils';
 import { parseTrack } from './mediaHelpers';
 
 export const SPOTIFY_ACCOUNT_CHANGED = 'spotify_account_changed';
@@ -42,6 +42,20 @@ export function useSpotifyPlayback(connected, setConnected) {
         // Focus Mode useSpotify hook's behavior.
       }
     }
+  }, []);
+
+  // Cross-window disconnect: `SPOTIFY_ACCOUNT_CHANGED` above only fires in the
+  // window that performed the action. `disconnectSpotify()` removes the
+  // `spotify_connected` localStorage flag, which emits a `storage` event in
+  // every *other* open tab — so a genuine disconnect in one tab flips this
+  // widget off without reacting to transient poll failures (those no longer
+  // touch `connected`). Mirrors useSpotify.js.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'spotify_connected') setConnected(isSpotifyConnected());
+    };
+    globalThis.addEventListener('storage', onStorage);
+    return () => globalThis.removeEventListener('storage', onStorage);
   }, [setConnected]);
 
   useEffect(() => {
