@@ -4,10 +4,10 @@
  * Dark glass style throughout — no dependency on BackgroundPicker.jsx.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../../assets/img/bg.webp';
-import { SettingsInput } from '../../ui/SettingsInput';
+import { Input } from '../../ui/Input';
 import { TabRow } from '../../ui/TabRow';
 import {
   getPhotoLibrary,
@@ -380,7 +380,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
         </label>
         <div className="flex gap-2 items-center">
           <div className="flex-1">
-            <SettingsInput ref={inputRef} id="fmUrlInput" name="fmUrlInput" type="url" value={value} dark
+            <Input pill ref={inputRef} id="fmUrlInput" name="fmUrlInput" type="url" value={value} dark
               onChange={(e) => { setValue(e.target.value); setStatus('idle'); setPreviewUrl(null); }}
               onKeyDown={(e) => { if (e.key === 'Enter') verify(); }}
               placeholder="https://example.com/photo.jpg"

@@ -3,7 +3,7 @@ import { OPEN_METEO_GEOCODING_API } from '../../constants/urls.js';
 import { createPortal } from "react-dom";
 import { GeoAlt, XCircleFill } from "react-bootstrap-icons";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
-import { SettingsInput } from "../../components/ui/SettingsInput";
+import { Input } from "../../components/ui/Input";
 import { useLocationStore } from "../../store/useLocationStore";
 
 const haversineKm = (lat1, lon1, lat2, lon2) => {
@@ -189,7 +189,7 @@ export const Settings = ({
           )}
         </div>
 
-        <SettingsInput
+        <Input pill
           id="weather-location"
           name="weather-location"
           wrapperRef={inputWrapRef}

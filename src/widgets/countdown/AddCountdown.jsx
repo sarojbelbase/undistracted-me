@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { REPEAT_OPTIONS, MODE_OPTIONS } from './utils';
@@ -44,7 +44,7 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Title */}
-        <SettingsInput
+        <Input pill
           ref={titleRef}
           id="countdown-title"
           name="countdown-title"

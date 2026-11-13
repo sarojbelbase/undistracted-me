@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 
 const MONTHS = [
@@ -73,7 +73,7 @@ export const AddOccasion = ({ onSave, onCancel, initial }) => {
       {/* Body */}
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Name */}
-        <SettingsInput
+        <Input pill
           ref={nameRef}
           id="occasion-name"
           name="occasion-name"

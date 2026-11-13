@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { XLg, Search } from 'react-bootstrap-icons';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 import { TIMEZONES, TZ_MAP, TZ_REGIONS } from '../../data/timezones';
 import { getUtcOffset } from './utils';
@@ -90,7 +90,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <SettingsInput
+      <Input pill
         ref={inputRef}
         icon={<Search size={11} style={{ color: 'var(--w-ink-4)' }} />}
         placeholder="Search city, country, or timezone…"

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { WalletFill, XLg, CashStack } from 'react-bootstrap-icons';
 import { Modal } from '../../components/ui/Modal';
-import { SettingsInput } from '../../components/ui/SettingsInput';
+import { Input } from '../../components/ui/Input';
 import { Popup } from '../../components/ui/Popup';
 import { DEFAULT_CATEGORIES } from './useExpenses';
 
@@ -68,7 +68,7 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd, editing }) {
       {/* Body */}
       <div className="exp-add-modal__body">
         {/* Amount */}
-        <SettingsInput
+        <Input pill
           ref={inputRef}
           type="number"
           min="0"
@@ -116,7 +116,7 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd, editing }) {
         </div>
 
         {/* Note */}
-        <SettingsInput
+        <Input pill
           type="text"
           placeholder="Note (optional)"
           value={note}

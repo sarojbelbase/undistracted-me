@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SettingsInput } from "../../components/ui/SettingsInput";
+import { Input } from "../../components/ui/Input";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { RefreshIcon } from "../../assets/svg/RefreshIcon";
@@ -97,7 +97,7 @@ export const BookmarkSettings = ({
         <label htmlFor="bm-url" className="w-label">
           URL
         </label>
-        <SettingsInput
+        <Input pill
           id="bm-url"
           name="bm-url"
           autoFocus
@@ -114,7 +114,7 @@ export const BookmarkSettings = ({
         <label htmlFor="bm-name" className="w-label">
           Name
         </label>
-        <SettingsInput
+        <Input pill
           id="bm-name"
           name="bm-name"
           placeholder={derivedName || "Buy Me Momo"}
