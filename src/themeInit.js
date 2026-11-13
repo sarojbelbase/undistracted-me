@@ -11,6 +11,7 @@ import { computeAutoMode } from './utilities/sunTime';
 import { ACCENT_COLORS } from './constants/accents';
 import { THEME_PROFILES } from './theme/profiles';
 import { APP_SETTINGS_DEFAULTS } from './constants/defaults';
+import { loadCardStyle } from './styles/cardStyleLoader';
 
 try {
   // Prefer the Zustand persist key — this is where settings live after first run.
@@ -45,6 +46,9 @@ try {
 
   r.setAttribute('data-mode', mode);
   r.setAttribute('data-card-style', cardStyle);
+  // Load the card-style stylesheet for non-default styles (comic / glass).
+  // `paper` lives in main.scss so the default look has no flash.
+  loadCardStyle(cardStyle);
 
   // Use the luminous dark-mode tonal variant when dark, otherwise the standard light-mode hex
   const accentHex = dark ? (accent.darkHex ?? accent.hex) : accent.hex;
