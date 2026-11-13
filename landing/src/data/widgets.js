@@ -46,7 +46,7 @@ export const widgets = [
     kind: "lead",
     slot: "lead",
     title: "Every widget, one glance.",
-    text: "Clock, notes, events, weather, stocks, news and more. All optional, all rearrangeable — none of them pulling you in.",
+    text: "Clock, notes, events, weather, stocks, news and more. All optional, all rearrangeable and none of them pulling you in.",
     tooltip: "Canvas Mode",
     alt: "The Undistracted Me dashboard canvas: an editable grid of widgets on one calm page.",
     images: [canvasMode],
