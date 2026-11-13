@@ -1,6 +1,9 @@
 import { useEffect, useImperativeHandle, forwardRef, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Input } from '../../components/ui/Input';
+// Editor styles are scoped to the notes widget's lazy chunk so the dashboard's
+// global CSS (and the popup/blocked pages) don't carry WYSIWYG rules.
+import '../../styles/_lexical.scss';
 
 const SOURCE_SERIF_HREF = 'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap';
 const loadSourceSerif = () => {

@@ -4,6 +4,7 @@ import { APP_SETTINGS_DEFAULTS } from "./constants/defaults";
 export { ACCENT_COLORS } from "./constants/accents";
 export { CARD_STYLES } from "./theme/profiles";
 import { ACCENT_COLORS } from "./constants/accents";
+import { loadCardStyle } from "./styles/cardStyleLoader";
 
 const hexToRgb = (hex) => {
   const r = Number.parseInt(hex.slice(1, 3), 16);
@@ -55,6 +56,10 @@ export const applyTheme = (accent, mode, cardStyle = APP_SETTINGS_DEFAULTS.cardS
   // in _paper.scss / _glass.scss / _comic.scss for non-token styling
   // (typography weight/letter-spacing, border-radius, scrollbars, etc.).
   root.dataset.cardStyle = cardStyle ?? APP_SETTINGS_DEFAULTS.cardStyle;
+
+  // Load the card-style stylesheet for non-default styles (comic / glass).
+  // `paper` lives in main.scss so the default look has no flash.
+  loadCardStyle(cardStyle);
 };
 
 /**
