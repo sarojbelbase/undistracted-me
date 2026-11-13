@@ -30,8 +30,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   dateFormat: "gregorian",
   lookAwayEnabled: false,
   lookAwayInterval: 20, // minutes between eye-break reminders
-  // "Motion" background = the animated orb, tinted by the active accent.
-  canvasBg: { type: "orb", orbId: "accent", url: null },
+  canvasBg: { type: "solid", orbId: "accent", url: null },
   cardStyle: "paper",
   modePrefs: {
     light: { cardStyle: "paper" },
