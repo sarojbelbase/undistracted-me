@@ -4,7 +4,7 @@
  * rendering to components. Styling lives in _popup.scss.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSettingsStore } from "../store/useSettingsStore";
 import { useLocationStore } from "../store/useLocationStore";
 import { useShallow } from "zustand/react/shallow";

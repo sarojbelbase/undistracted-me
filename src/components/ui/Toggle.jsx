@@ -7,7 +7,6 @@
  *   ariaLabel – accessible name for the switch (required for a11y)
  */
 
-import React from 'react';
 
 export const Toggle = ({ checked, onChange, ariaLabel }) => (
   <button

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MESSAGES } from '../data/lookawayMessages';
 import { ORB_PALETTES } from '../constants/orbPalettes';
 import { shorthandFromUrl } from '../utilities/index';

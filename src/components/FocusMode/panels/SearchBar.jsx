@@ -5,7 +5,7 @@
 // Only rendered inside FocusMode — lives at panels/ per convention.
 
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getHistory, switchToTab } from '../hooks';
 import { getTokens, FM_CARD_BLUR, FM_BORDER, FM_INK_3 } from '../theme';

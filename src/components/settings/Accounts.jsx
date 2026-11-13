@@ -4,7 +4,7 @@
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AccountCard } from '../ui/AccountCard';
 import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
 import { GoogleIcon, SpotifyIcon } from '../../assets/brand/icons';

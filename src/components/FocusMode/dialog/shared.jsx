@@ -5,7 +5,6 @@
  * Never hardcode colors here — import FM_* constants from '../theme'.
  */
 
-import React from 'react';
 import { XLg } from 'react-bootstrap-icons';
 import { useGoogleAccountStore } from '../../../store/useGoogleAccountStore';
 import { useUIStore } from '../../../store/useUIStore';

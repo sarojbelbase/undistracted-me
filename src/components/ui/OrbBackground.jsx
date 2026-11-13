@@ -1,4 +1,3 @@
-import React from 'react';
 
 /**
  * Animated orb colour-motion background.

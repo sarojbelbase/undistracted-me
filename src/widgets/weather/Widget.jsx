@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { BaseWidget } from "../BaseWidget";
 import config from "./config";

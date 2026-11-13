@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { EngineIcon } from "../../utilities/searchEngines";

@@ -3,7 +3,7 @@
 // Ambient world clocks — rendered as right-side floating text (no glass card).
 // Hidden on screens narrower than 900 px via .fm-world-panel CSS.
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getTimeInZone } from '../../../widgets/clock/utils';
 import { onClockTick } from '../../../utilities/sharedClock';
 import { useSettingsStore } from '../../../store';

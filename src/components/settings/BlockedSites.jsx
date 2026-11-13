@@ -9,7 +9,7 @@
  * Used in the General settings panel.
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash3Fill, PlusLg, ClockFill } from 'react-bootstrap-icons';
 import { getBlockedSites, blockSite, clearBlockedSites } from '../../utilities/siteBlocker';
 import { ConfirmButton } from '../ui/ConfirmButton';

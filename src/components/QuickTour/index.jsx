@@ -7,7 +7,7 @@
  *   Next ver   → bump TOUR_VERSION to '4.0.0' when ready
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Fullscreen,

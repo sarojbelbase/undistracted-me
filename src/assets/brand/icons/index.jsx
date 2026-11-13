@@ -8,7 +8,6 @@
  *   import { GoogleIcon, SpotifyIcon, SoundCloudIcon, YouTubeIcon, YouTubeMusicIcon } from '../../assets/brand/icons';
  */
 
-import React from 'react';
 
 // ─── Google ───────────────────────────────────────────────────────────────────
 // The official multicolour "G" mark. Renders the paths only — pair with a

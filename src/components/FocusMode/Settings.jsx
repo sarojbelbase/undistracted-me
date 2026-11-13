@@ -13,7 +13,7 @@
  *   onBgRotate  () => void
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { useSettingsStore } from '../../store';
 import { General } from './settings/General';

@@ -1,4 +1,3 @@
-import React from "react";
 
 export const RainNoiseIcon = ({ active, fadeDurationMs = 450 }) => (
   <svg

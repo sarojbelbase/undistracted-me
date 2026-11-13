@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';

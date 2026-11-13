@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from "react";
+import { useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 
 const MARGIN = 10; // min gap from every viewport edge

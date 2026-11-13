@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL, fmtVolume } from './utils';
+import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
 import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 import config from './config';
 import { useStocks } from './useStocks';

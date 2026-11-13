@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { TrashFill } from "react-bootstrap-icons";
 import { shorthandFromUrl } from "../../utilities/index";
 

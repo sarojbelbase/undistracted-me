@@ -5,7 +5,6 @@
  * Notifications tab.
  */
 
-import React from 'react';
 import { useSettingsStore } from '../../store';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';

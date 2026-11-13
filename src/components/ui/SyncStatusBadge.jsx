@@ -10,7 +10,7 @@
  * Used in the General settings panel and optionally in the app header.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowRepeat, CheckCircleFill } from 'react-bootstrap-icons';
 import syncEngine from '../../utilities/syncEngine';
 import syncTransport from '../../utilities/syncTransport';

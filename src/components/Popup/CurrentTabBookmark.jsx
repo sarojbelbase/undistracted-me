@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { BookmarkPlus, BookmarkCheckFill, SlashCircleFill, XLg } from "react-bootstrap-icons";
 import { shorthandFromUrl } from "../../utilities/index";
 import { canBlock, blockSite } from "../../utilities/siteBlocker";

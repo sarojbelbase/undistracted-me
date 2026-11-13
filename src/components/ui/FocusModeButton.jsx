@@ -1,4 +1,3 @@
-import React from "react";
 import { MoonStarsFill } from "react-bootstrap-icons";
 import { focusShortcut } from "../../hooks/useFocusMode";
 import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";

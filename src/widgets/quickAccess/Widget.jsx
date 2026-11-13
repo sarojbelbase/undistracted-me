@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { FaviconIcon } from "../../components/ui/FaviconIcon";
 import { faviconCache, getHostname } from "../../utilities/favicon";
