@@ -107,7 +107,7 @@ export function SupportDialog({
 
         <footer className="sd-footer">
           <p className="sd-thanks">
-            Thank you for staying and using it. <HeartIcon />
+            Thank you for staying and using it.
           </p>
           <button
             ref={closeRef}
@@ -194,20 +194,6 @@ function ExternalIcon() {
       <path d="M15 3h6v6" />
       <path d="M10 14 21 3" />
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    </svg>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 21.2c-.3 0-.6-.1-.8-.3C6.4 17 3 13.8 3 9.9 3 7.2 5.1 5 7.8 5c1.6 0 3.2.8 4.2 2.1C13 5.8 14.6 5 16.2 5 18.9 5 21 7.2 21 9.9c0 3.9-3.4 7.1-8.2 11-.2.2-.5.3-.8.3z" />
     </svg>
   );
 }
