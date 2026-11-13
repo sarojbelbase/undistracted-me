@@ -24,6 +24,13 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
+      # Cloudflare Pages Functions must live in <output>/functions. The repo
+      # keeps them in /functions, so stage a copy into pages-api before upload.
+      - name: Stage Functions into pages-api
+        run: |
+          rm -rf pages-api/functions
+          cp -r functions pages-api/functions
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

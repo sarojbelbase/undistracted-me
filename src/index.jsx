@@ -2,7 +2,7 @@ import './themeInit.js'; // must be first — sets data-mode & CSS vars before R
 import ReactDOM from 'react-dom/client';
 import React from 'react';
 import App from './App';
-import { getPlatform, PLATFORMS } from './constants/env';
+import { getPlatform, PLATFORMS, API_BASE_URL } from './constants/env';
 
 // ── Auto-hide scrollbars ──────────────────────────────────────────────────────
 // Add .is-scrolling to any element while it's scrolling; remove 1s after it stops.
@@ -37,6 +37,22 @@ if (
     token: import.meta.env.VITE_CF_BEACON_TOKEN,
   });
   document.head.appendChild(beacon);
+}
+
+// ── Count a web-app "try" (hosted app only, once per browser session) ────────
+// Increments the /tries KV counter on api.undistracted.me. Strictly gated to
+// app.undistracted.me so extension new-tab opens never fire it (and never trip
+// the extension CSP). A session cookie dedupes across tabs and refreshes, and
+// no identifier is sent — the counter is just a number.
+if (location.hostname === 'app.undistracted.me') {
+  try {
+    if (!document.cookie.includes('um_tried=1')) {
+      document.cookie = 'um_tried=1; path=/; samesite=lax';
+      fetch(`${API_BASE_URL}/tries`, { method: 'POST' }).catch(() => {});
+    }
+  } catch (e) {
+    // cookie or fetch blocked — never crash the app
+  }
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
