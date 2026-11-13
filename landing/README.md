@@ -1,7 +1,8 @@
 # Undistracted Me — Landing Page
 
 An **Astro** marketing site for the **Undistracted Me** browser extension. SEO-first,
-static output, zero client-side JS beyond a tiny theme/nav script.
+static output, with a small client-side script for the masonry layout, scroll
+reveals, browser detection, and the live Focus Mode clock.
 
 - **Marketing site:** `https://undistracted.me` and `https://www.undistracted.me`
 - **Web app:** `https://app.undistracted.me`
@@ -11,8 +12,8 @@ static output, zero client-side JS beyond a tiny theme/nav script.
 ## Stack
 
 - **Astro** (static output) — `@astrojs/sitemap` + `@jdevalk/astro-seo-graph` for build-time SEO validation.
-- Plain CSS design system (OKLCH tokens, light + dark), no UI framework.
-- Fresh product screenshots captured with Playwright from the live app, optimized to WebP.
+- Plain CSS design system (hex tokens, fixed light design with dark sections), no UI framework.
+- Product screenshots (PNG) optimized to WebP, plus photos extracted from the reference design.
 
 ## Files
 
@@ -22,18 +23,21 @@ landing/
 ├── package.json           astro, @astrojs/sitemap, @jdevalk/astro-seo-graph
 ├── src/
 │   ├── pages/
-│   │   ├── index.astro        the landing page
-│   │   └── robots.txt.ts      robots.txt + Content-Signals + sitemap ref
+│   │   ├── index.astro        the landing page + client-side JS
+│   │   └── robots.txt.ts      robots.txt + sitemap ref
 │   ├── layouts/BaseLayout.astro   <head> (Seo component, fonts)
-│   ├── components/           Header, Hero, Features, Themes, TimeCalendar,
-│   │                         FocusSound, Privacy, Faq, Cta, Footer, Wordmark,
-│   │                         BrowserIcon
-│   ├── data/                 site constants, FAQ, JSON-LD schema builder
-│   ├── assets/showcase/      product screenshots (WebP)
+│   ├── components/           Header, Hero, Why, Marquee, Story, Features,
+│   │                         Themes, Focus, Privacy, Faq, Install, Support,
+│   │                         Close, Footer, Sprite (icon symbol sprite)
+│   ├── data/                 site constants, widgets catalog, FAQ, JSON-LD schema
+│   ├── assets/
+│   │   ├── design/           photos extracted from the reference HTML (WebP)
+│   │   ├── photos/           LookAway / Sync feature photos (WebP)
+│   │   └── screenshots/      product screenshots captured from the app (WebP)
 │   └── styles/global.css     design system
 └── public/
     ├── favicon.png, logo.svg
-    ├── hero-{960,1600,2560}.webp   hero photography
+    ├── textures/            grain-cream / grain-white / momo (CSS backgrounds)
     ├── og.jpg               Open Graph share image (1200×630)
     └── pp-and-tos.html      Privacy Policy & Terms (self-contained)
 ```
@@ -86,11 +90,18 @@ or runtime dependencies.
 
 ## Design system (summary)
 
-The full system lives in [`../DESIGN.md`](../DESIGN.md) — the single source of truth.
+The reference design (single HTML page) is the source of truth; the tokens and
+content rules are recorded in `artifacts/docs/DESIGN.md`.
 
-- **Style:** "Himal" — Himalayan editorial. Rules-and-columns replace the card grid; one saffron accent used sparingly.
-- **Signature move:** a thin Himalayan ridgeline (inline SVG) dividing sections, underlining the active nav link, and capping the footer.
-- **Colors:** parchment `#f6efe3` / pine ink `#1d2b26` / Himalayan pine `#2f5a4b` / saffron `#bd6f1e` (authored in OKLCH).
-- **Type (3 voices):** `Newsreader` (display serif) + `Work Sans` (body) + `IBM Plex Mono` (kickers, labels, dates, numerals), via Google Fonts.
-- **Modes:** light/dark via `prefers-color-scheme` + a manual toggle (persisted).
-- **Hero photography:** misty Himalayan range, warm-graded, responsive WebP.
+- **Style:** "unplug the noise" — a calm paper-and-ink single page with pinned
+  scroll sections (the "why" and the four-step "story"), a notification ticker,
+  and a masonry widget gallery with a tooltip on hover.
+- **Colors:** cream `#f4f1ec` / white `#f7f7f7` / near-black `#0b0b0b` /
+  muted `#6a6964` / sun `#f6b414` (the only accent) / red `#d92d20` (badges).
+- **Type (5 voices):** `Bricolage Grotesque` (titles/head), `Hanken Grotesk`
+  (body/UI), `Bebas Neue` (labels/caps), `DM Mono` (numbering/meta),
+  `Fraunces` italic (storytelling only), via Google Fonts.
+- **Modes:** light design with hardcoded dark sections (Focus, Privacy, footer)
+  — no manual toggle.
+- **Motion:** scroll-scrubbed reveals, staggered entrances, and a live Focus
+  Mode clock, all disabled under `prefers-reduced-motion`.

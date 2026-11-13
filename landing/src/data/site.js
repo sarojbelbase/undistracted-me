@@ -1,11 +1,11 @@
 export const site = {
   name: "Undistracted Me",
   url: "https://undistracted.me",
-  title: "Undistracted Me — Nepali Calendar & Focus New Tab Extension",
+  title: "Undistracted Me: unplug the noise",
   description:
-    "Undistracted Me is a free Nepali calendar and focus new-tab extension for Chrome and Firefox. Bikram Sambat date, dual-timezone clock, Focus Mode, ambient rain, and mindful widgets. Made in Nepal.",
+    "Undistracted Me is a free, open-source new tab for Chrome and Firefox: a calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. No account, works offline.",
   // Bump this whenever the landing page content materially changes.
-  lastUpdated: "2026-11-09",
+  lastUpdated: "2026-11-13",
   author: {
     name: "Saroj Belbase",
     url: "https://github.com/sarojbelbase",
@@ -17,5 +17,6 @@ export const site = {
   webAppUrl: "https://app.undistracted.me",
   githubUrl: "https://github.com/sarojbelbase/undistracted-me",
   formsUrl: "https://forms.gle/7vf4VGrB9Loz8hB76",
+  momoUrl: "https://buymemomo.com/sarojbelbase",
   privacyUrl: "/pp-and-tos",
 };

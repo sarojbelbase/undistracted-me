@@ -1,136 +1,406 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Sprite from "../components/Sprite.astro";
 import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
+import Why from "../components/Why.astro";
+import Marquee from "../components/Marquee.astro";
+import Story from "../components/Story.astro";
 import Features from "../components/Features.astro";
 import Themes from "../components/Themes.astro";
-import TimeCalendar from "../components/TimeCalendar.astro";
-import FocusSound from "../components/FocusSound.astro";
+import Focus from "../components/Focus.astro";
 import Privacy from "../components/Privacy.astro";
 import Faq from "../components/Faq.astro";
-import Cta from "../components/Cta.astro";
+import Install from "../components/Install.astro";
+import Support from "../components/Support.astro";
+import Close from "../components/Close.astro";
 import Footer from "../components/Footer.astro";
 import { buildSchemaGraph } from "../data/schema.js";
 ---
 
 <BaseLayout graph={buildSchemaGraph()}>
+  <Sprite />
+  <div id="prog" aria-hidden="true"></div>
   <Header />
+
   <main id="main">
     <Hero />
+    <Why />
+    <Marquee />
+    <Story />
     <Features />
     <Themes />
-    <TimeCalendar />
-    <FocusSound />
+    <Focus />
     <Privacy />
     <Faq />
-    <Cta />
+    <Install />
+    <Support />
+    <Close />
   </main>
+
   <Footer />
+
+  <button class="fab" id="fab" type="button" aria-label="Back to top" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l-6 6 1.4 1.4L11 8.8V19h2V8.8l3.6 3.6L18 11z" /></svg>
+  </button>
 </BaseLayout>
 
 <script>
-  (function () {
-    const root = document.documentElement;
-    const STORAGE_KEY = "um-theme";
-    const themeToggle = document.querySelector("[data-theme-toggle]");
-    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  const STORE = {
+    chrome: "https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef",
+    firefox: "https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/",
+    web: "https://app.undistracted.me",
+  };
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const nav = document.getElementById("nav");
+  const fab = document.getElementById("fab");
 
-    function applyTheme(theme, persist) {
-      root.classList.add("theme-switching");
-      root.setAttribute("data-theme", theme);
-      if (themeColorMeta) {
-        themeColorMeta.setAttribute("content", theme === "dark" ? "#121b17" : "#f6efe3");
+  // Smart install buttons: pick the store for this browser.
+  async function detect() {
+    const ua = navigator.userAgent;
+    const br = ((navigator.userAgentData && navigator.userAgentData.brands) || []).map((b) => b.brand).join(" ");
+    if (/Android|iPhone|iPad|iPod/i.test(ua) || (navigator.userAgentData && navigator.userAgentData.mobile)) return "web";
+    try {
+      if (navigator.brave && (await navigator.brave.isBrave())) return "brave";
+    } catch (e) {}
+    if (/Firefox\//.test(ua)) return "firefox";
+    if (/OPR\/|Opera/.test(ua) || /Opera/.test(br)) return "opera";
+    if (/Edg\//.test(ua) || /Microsoft Edge/.test(br)) return "edge";
+    if (/Vivaldi/.test(ua) || /Vivaldi/.test(br)) return "vivaldi";
+    if (/Chrome\//.test(ua)) return "chrome";
+    return "web";
+  }
+  function install(k) {
+    const N = { chrome: "Chrome", brave: "Brave", opera: "Opera", edge: "Edge", vivaldi: "Vivaldi", firefox: "Firefox" };
+    const P =
+      k === "web"
+        ? { i: "web", n: "the web app", s: "Web app", h: STORE.web, v: "Open", p: "Open the" }
+        : k === "firefox"
+          ? { i: "firefox", n: "Firefox", s: "Firefox", h: STORE.firefox, v: "Add to", p: "Add it to" }
+          : { i: k, n: N[k], s: N[k], h: STORE.chrome, v: "Add to", p: "Add it to" };
+    const S =
+      k === "firefox" || k === "web"
+        ? { i: "chrome", n: "Chrome", s: "Chrome", h: STORE.chrome, v: "Get it for", p: "Get it for" }
+        : { i: "firefox", n: "Firefox", s: "Firefox", h: STORE.firefox, v: "Get it for", p: "Get it for" };
+    const T = k === "web" ? null : { i: "web", n: "the web app", s: "Web app", h: STORE.web, v: "Or try", p: "Or try the" };
+    const M = { 1: P, 2: S, 3: T };
+    document.querySelectorAll("[data-slot]").forEach((a) => {
+      const s = a.dataset.slot;
+      if (s === "nav") {
+        a.href = P.h;
+        return;
       }
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => root.classList.remove("theme-switching"))
-      );
-      if (persist) {
-        try {
-          localStorage.setItem(STORAGE_KEY, theme);
-        } catch (e) {}
+      const d = M[s];
+      if (!d) {
+        a.hidden = true;
+        return;
       }
-    }
+      a.href = d.h;
+      a.querySelector("use").setAttribute("href", "#i-" + d.i);
+      a.querySelector(".lb").innerHTML = a.dataset.kind === "bb" ? "<small>" + d.p + "</small>" + d.s : d.v + " " + d.n;
+    });
+    document.querySelectorAll('a[href^="http"]').forEach((a) => {
+      a.target = "_blank";
+      a.rel = "noopener";
+    });
+  }
+  detect().then(install);
 
-    if (themeToggle) {
-      themeToggle.addEventListener("click", () => {
-        const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        applyTheme(next, true);
-      });
-    }
+  // Story: crossfade the stage image and dots as each step enters.
+  const imgs = [...document.querySelectorAll(".stage img")];
+  const dots = [...document.querySelectorAll(".dots li")];
+  const io = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const n = +e.target.dataset.i;
+        imgs.forEach((m, i) => m.classList.toggle("on", i === n));
+        dots.forEach((d, i) => d.classList.toggle("on", i === n));
+      }),
+    { rootMargin: "-45% 0px -45% 0px" },
+  );
+  document.querySelectorAll(".step").forEach((s) => io.observe(s));
 
-    // Mobile navigation
-    const navToggle = document.querySelector("[data-nav-toggle]");
-    const mobileNav = document.querySelector("[data-mobile-nav]");
-    function closeNav() {
-      if (!navToggle || !mobileNav) return;
-      navToggle.classList.remove("is-open");
-      navToggle.setAttribute("aria-expanded", "false");
-      navToggle.setAttribute("aria-label", "Open menu");
-      mobileNav.classList.remove("is-open");
-    }
-    if (navToggle && mobileNav) {
-      navToggle.addEventListener("click", () => {
-        const isOpen = mobileNav.classList.toggle("is-open");
-        navToggle.classList.toggle("is-open", isOpen);
-        navToggle.setAttribute("aria-expanded", String(isOpen));
-        navToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-      });
-      mobileNav.querySelectorAll("a").forEach((l) => l.addEventListener("click", closeNav));
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeNav();
-      });
-      const mq = window.matchMedia("(min-width: 961px)");
-      const onDesktop = (e) => {
-        if (e.matches) closeNav();
-      };
-      if (mq.addEventListener) mq.addEventListener("change", onDesktop);
-      else if (mq.addListener) mq.addListener(onDesktop);
-    }
+  // Cell reveals.
+  const ro = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("in");
+          ro.unobserve(e.target);
+        }
+      }),
+    { threshold: 0.12 },
+  );
+  document.querySelectorAll(".cell:not(.x)").forEach((c) => ro.observe(c));
 
-    // Header scrolled state
-    const header = document.querySelector("[data-header]");
-    const onScroll = () => {
-      if (header) header.classList.toggle("is-scrolled", window.scrollY > 8);
+  // Why: words, badges and the chess hand follow the scroll.
+  const why = document.getElementById("why");
+  const words = [...why.querySelectorAll(".w")];
+  const wp = why.querySelector(".why-p");
+  const wc = why.querySelector(".why-chess");
+  const apps = [...why.querySelectorAll(".app")];
+  function tick() {
+    nav.classList.toggle("scrolled", scrollY > 24);
+    const dh = document.documentElement.scrollHeight - innerHeight;
+    document.documentElement.style.setProperty("--p", (dh > 0 ? clamp(scrollY / dh) : 0).toFixed(4));
+    fab.hidden = scrollY < innerHeight * 1.2;
+    if (reduce) {
+      apps.forEach((a) => {
+        a.querySelector("i").textContent = a.dataset.n;
+      });
+      return;
+    }
+    const r = why.getBoundingClientRect();
+    const p = clamp(-r.top / (r.height - innerHeight));
+    words.forEach((w, i) => {
+      const t = (i + 1) / words.length;
+      w.style.opacity = 0.14 + 0.86 * clamp((p / 0.5 - (t - 0.18)) / 0.18);
+    });
+    const q = clamp((p - 0.5) / 0.15);
+    wp.style.opacity = q;
+    wp.style.translate = `0 ${(1 - q) * 24}px`;
+    wc.style.opacity = clamp((p - 0.05) / 0.2);
+    wc.style.translate = `0 ${(1 - clamp((p - 0.05) / 0.4)) * 80}px`;
+    apps.forEach((a) => {
+      const o = clamp((p - a.dataset.t) / 0.07);
+      a.style.setProperty("--o", o);
+      const i = a.querySelector("i");
+      i.textContent = Math.round(o * a.dataset.n);
+      i.style.visibility = o > 0.05 ? "visible" : "hidden";
+    });
+  }
+  addEventListener("scroll", () => requestAnimationFrame(tick), { passive: true });
+  addEventListener("resize", tick);
+  tick();
+
+  // Tooltips follow the pointer inside each card.
+  document.querySelectorAll(".cell[data-tip]").forEach((c) =>
+    c.addEventListener("pointermove", (e) => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty("--mx", Math.max(8, Math.min(e.clientX - r.left + 16, r.width - 230)) + "px");
+      c.style.setProperty("--my", Math.max(8, e.clientY - r.top - 48) + "px");
+    }),
+  );
+
+  // Image sliders: dot controls cycle a widget's screenshots.
+  document.querySelectorAll(".slide").forEach((slide) => {
+    const imgs = [...slide.querySelectorAll(".slide-img")];
+    const dots = [...slide.querySelectorAll(".dot")];
+    const go = (i) => {
+      imgs.forEach((im, k) => {
+        im.classList.toggle("on", k === i);
+        im.setAttribute("aria-hidden", String(k !== i));
+      });
+      dots.forEach((d, k) => {
+        d.classList.toggle("on", k === i);
+        d.setAttribute("aria-current", String(k === i));
+      });
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    dots.forEach((d, k) => d.addEventListener("click", () => go(k)));
+  });
 
-    // Scrollspy
-    const spyLinks = document.querySelectorAll(".site-nav .nav-link");
-    const spyIds = ["features", "themes", "focus", "privacy", "faq"];
-    if (spyLinks.length && "IntersectionObserver" in window) {
-      const spy = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            const target = "#" + entry.target.id;
-            spyLinks.forEach((link) => {
-              const active = link.getAttribute("href") === target;
-              link.classList.toggle("is-active", active);
-              if (active) link.setAttribute("aria-current", "true");
-              else link.removeAttribute("aria-current");
-            });
-          });
-        },
-        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
-      );
-      spyIds.forEach((id) => {
-        const s = document.getElementById(id);
-        if (s) spy.observe(s);
+  // Masonry: shortest-column placement; the first (lead) cell spans full width.
+  const mason = document.getElementById("mason");
+  const more = document.getElementById("more");
+  const extras = [...mason.querySelectorAll(".cell.x")];
+  function layout() {
+    if (!mason.clientWidth) return;
+    const W = mason.clientWidth;
+    const n = W >= 1000 ? 3 : W >= 600 ? 2 : 1;
+    const g = Math.round(clamp(innerWidth * 0.016, 12, 20));
+    const cw = (W - g * (n - 1)) / n;
+    const items = [...mason.children].filter((el) => !el.hidden);
+    items.forEach((el) => {
+      el.style.width = (el.classList.contains("a") ? W : cw) + "px";
+    });
+    const hs = items.map((el) => el.offsetHeight);
+    const cols = Array(n).fill(0);
+    items.forEach((el, i) => {
+      let x, y;
+      if (el.classList.contains("a")) {
+        x = 0;
+        y = Math.max(...cols);
+        cols.fill(y + hs[i] + g);
+      } else {
+        const c = cols.indexOf(Math.min(...cols));
+        x = c * (cw + g);
+        y = cols[c];
+        cols[c] += hs[i] + g;
+      }
+      if (!el.classList.contains("pre")) {
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+      }
+    });
+    mason.style.height = Math.max(...cols) - g + "px";
+  }
+  mason.classList.add("on");
+  layout();
+  let lq = 0;
+  const relayout = () =>
+    lq ||
+    (lq = requestAnimationFrame(() => {
+      lq = 0;
+      layout();
+    }));
+  addEventListener("resize", relayout);
+  addEventListener("load", relayout);
+  if (document.fonts) document.fonts.ready.then(relayout);
+  const ro2 = new ResizeObserver(relayout);
+  [...mason.children].forEach((el) => ro2.observe(el));
+
+  function toggleMore(on) {
+    mason.classList.toggle("open", on);
+    more.setAttribute("aria-expanded", on);
+    document.getElementById("moreS").textContent = on ? "Fold them away again." : "Unfold the rest of the widgets.";
+    const ml = more.style.left;
+    const mt = more.style.top;
+    const mw = more.style.width;
+    if (on) {
+      extras.forEach((el) => {
+        el.hidden = false;
+        el.classList.add("pre");
+        el.style.transitionDelay = "0s";
+        el.style.left = ml;
+        el.style.top = mt;
+        el.style.width = mw;
       });
-    }
-
-    // FAQ single-open accordion
-    const faqList = document.querySelector("[data-faq]");
-    if (faqList) {
-      faqList.querySelectorAll("details").forEach((d) => {
-        d.addEventListener("toggle", () => {
-          if (!d.open) return;
-          faqList.querySelectorAll("details[open]").forEach((o) => {
-            if (o !== d) o.open = false;
-          });
+      mason.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        extras.forEach((el, i) => {
+          el.style.transitionDelay = i * 70 + "ms";
+          el.classList.remove("pre");
         });
+        layout();
+        setTimeout(() => extras.forEach((el) => (el.style.transitionDelay = "")), 1200);
       });
+    } else {
+      extras.forEach((el, i) => {
+        el.style.transitionDelay = (extras.length - i) * 40 + "ms";
+        el.classList.add("pre");
+        el.style.left = ml;
+        el.style.top = mt;
+      });
+      setTimeout(() => {
+        extras.forEach((el) => {
+          el.hidden = true;
+          el.style.transitionDelay = "";
+        });
+        layout();
+      }, 750);
+    }
+  }
+  more.addEventListener("click", () => toggleMore(!mason.classList.contains("open")));
+
+  // Region-aware pricing: swap the tier amounts to the visitor's currency.
+  const applyRegion = (region) => {
+    document.querySelectorAll(".tc-amt").forEach((el) => {
+      el.textContent = el.dataset[region] || el.dataset.npr;
+    });
+  };
+  // Detect country from IP; fall back to Nepal if the lookup fails or is blocked.
+  (async () => {
+    try {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
+      clearTimeout(to);
+      const d = await res.json();
+      const code = d.country_code;
+      applyRegion(code === "IN" ? "inr" : code === "NP" ? "npr" : "usd");
+    } catch (e) {
+      applyRegion("npr");
     }
   })();
+
+  // Skip link and back to top.
+  const skip = document.querySelector(".skip");
+  skip.addEventListener("click", (e) => {
+    e.preventDefault();
+    const t = document.getElementById("main");
+    t.setAttribute("tabindex", "-1");
+    t.focus();
+    t.scrollIntoView();
+  });
+  fab.addEventListener("click", () => scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
+
+  // Phone and tablet menu.
+  const menu = document.getElementById("menu");
+  const mnav = document.getElementById("mnav");
+  function setMenu(on) {
+    nav.classList.toggle("open", on);
+    menu.setAttribute("aria-expanded", on);
+    menu.setAttribute("aria-label", on ? "Close menu" : "Open menu");
+    document.body.classList.toggle("menu-open", on);
+    document.documentElement.style.overflow = on ? "hidden" : "";
+    if (on) {
+      mnav.hidden = false;
+      requestAnimationFrame(() => {
+        mnav.classList.add("show");
+        mnav.querySelector("a").focus();
+      });
+    } else {
+      mnav.classList.remove("show");
+      setTimeout(() => {
+        if (!nav.classList.contains("open")) mnav.hidden = true;
+      }, reduce ? 0 : 350);
+    }
+  }
+  menu.addEventListener("click", () => setMenu(!nav.classList.contains("open")));
+  mnav.addEventListener("click", (e) => {
+    if (e.target.closest("a")) setMenu(false);
+  });
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && nav.classList.contains("open")) {
+      setMenu(false);
+      menu.focus();
+    }
+  });
+  matchMedia("(min-width:961px)").addEventListener("change", (e) => {
+    if (e.matches && nav.classList.contains("open")) setMenu(false);
+  });
+
+  // Scrollspy: underline the nav link of the section in view.
+  const so = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        nav.querySelectorAll(".l a:not(.pill)").forEach((a) => {
+          if (a.getAttribute("href") === "#" + e.target.id) {
+            if (e.isIntersecting) a.setAttribute("aria-current", "location");
+            else a.removeAttribute("aria-current");
+          }
+        });
+      }),
+    { rootMargin: "-45% 0px -50% 0px" },
+  );
+  ["features", "themes", "focus", "privacy", "support"].forEach((id) => {
+    const s = document.getElementById(id);
+    if (s) so.observe(s);
+  });
+
+  // Staggered reveals for headings, copy and cards.
+  document
+    .querySelectorAll(
+      ".feat>h2,.feat>.sub,.themes>h2,.themes>.sub,.swatches figure,.themes .note,#focus .demo,#focus h2,#focus h2~p,#focus .checks,.priv h2,.priv p,.priv li,.priv .alt,.faq h2,.faq details,.reach .ask,.reach .hand,.support h2,.support .sup-t p,.support .promise,.support .momo,.support .sub-h,.support .hint,.support .tiers,.support .pay,.support .sup-cta,.support .wall-h,.support .tier,.support .thanks,.close h2,.close p,.close .alt,.close-grid>img",
+    )
+    .forEach((el) => el.classList.add("rv"));
+  const grp = new Map();
+  document.querySelectorAll(".rv").forEach((el) => {
+    const n = grp.get(el.parentNode) || 0;
+    grp.set(el.parentNode, n + 1);
+    el.style.setProperty("--d", Math.min(n, 6) * 0.07 + "s");
+  });
+  const rvo = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("in");
+          rvo.unobserve(e.target);
+        }
+      }),
+    { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+  );
+  document.querySelectorAll(".rv").forEach((el) => rvo.observe(el));
 </script>

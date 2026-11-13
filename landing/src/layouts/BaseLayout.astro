@@ -16,19 +16,20 @@ const {
 } = Astro.props;
 
 const fontsUrl =
-  "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&family=Work+Sans:ital,wght@0,400..700;1,400..700&display=swap";
+  "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Fraunces:ital,opsz,wght@1,9..144,500..800&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap";
 ---
 
 <!doctype html>
-<html lang="en" data-theme="auto">
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
     <Seo
       title={title}
       description={description}
       canonical={site.url}
       ogType="website"
       ogImage={site.ogImage}
-      ogImageAlt="Undistracted Me — a calm new tab dashboard with a Nepali date, clock, and widgets."
+      ogImageAlt="Undistracted Me — a calm new tab dashboard with a Nepali calendar, Focus Mode and quiet widgets."
       ogImageWidth={1200}
       ogImageHeight={630}
       siteName={site.name}
@@ -45,18 +46,9 @@ const fontsUrl =
         { rel: "stylesheet", href: fontsUrl },
       ]}
       extraMeta={[
-        { name: "theme-color", content: "#f6efe3" },
-        { name: "color-scheme", content: "light dark" },
+        { name: "theme-color", content: "#f7f7f7" },
+        { name: "color-scheme", content: "light" },
       ]}
-    />
-
-    <link
-      rel="preload"
-      as="image"
-      href="/hero-1600.webp"
-      imagesrcset="/hero-960.webp 960w, /hero-1600.webp 1600w, /hero-2560.webp 2560w"
-      imagesizes="(max-width: 960px) 100vw, 46vw"
-      fetchpriority="high"
     />
 
     <!-- Umami Web Analytics -->
@@ -67,24 +59,12 @@ const fontsUrl =
     ></script>
 
     <script is:inline>
-      (function () {
-        try {
-          var t = localStorage.getItem("um-theme");
-          var d = document.documentElement;
-          d.setAttribute(
-            "data-theme",
-            t === "light" || t === "dark"
-              ? t
-              : window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light"
-          );
-        } catch (e) {}
-      })();
+      // JS-gated reveal/motion: elements start hidden only when JS runs.
+      document.documentElement.classList.add("js");
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip" href="#main">Skip to content</a>
     <slot />
   </body>
 </html>

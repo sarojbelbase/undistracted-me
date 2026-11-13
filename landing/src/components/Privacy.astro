@@ -1,49 +1,25 @@
 ---
+import speak from "../assets/design/speak.png";
 import { site } from "../data/site.js";
 
 const points = [
-  {
-    dt: "No account required",
-    dd: "Install and go. Everything works without ever signing in.",
-  },
-  {
-    dt: "Tokens stored locally",
-    dd: "Google integrations store your tokens on your device — not on a server.",
-  },
-  {
-    dt: "Minimal permissions",
-    dd: "We only ask for what each feature genuinely needs, and nothing more.",
-  },
-  {
-    dt: "Open source",
-    dd: "Read every line on GitHub. There are no surprises because there's nothing hidden.",
-  },
+  { b: "No account required", t: "Install and go. Everything works without ever signing in." },
+  { b: "Tokens stored locally", t: "Google integrations store your tokens on your device, not on a server." },
+  { b: "Minimal permissions", t: "We only ask for what each feature genuinely needs, and nothing more." },
+  { b: "Open source", t: "Read every line on GitHub. There are no surprises because there's nothing hidden." },
 ];
 ---
 
-<section class="section privacy" id="privacy">
-  <div class="container privacy-inner">
-    <div class="privacy-copy">
-      <p class="kicker">Private by design</p>
-      <h2 class="section-title">Your new tab is <em>nobody's business.</em></h2>
-      <p class="section-lede">
-        Undistracted Me is built to be quiet about your data. There's no account to create, no tracking to opt out of, and no analytics watching over your shoulder.
-      </p>
-      <p class="privacy-cta">
-        <a class="text-link" href={site.privacyUrl} rel="noopener">
-          Read the privacy policy &amp; terms
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-      </p>
-    </div>
-
-    <dl class="privacy-points">
+<section class="sec dark two priv" id="privacy">
+  <img class="priv-img" src={speak.src} alt="A person speaking." loading="lazy" decoding="async" />
+  <div>
+    <h2>Your new tab is nobody's business.</h2>
+    <p>Undistracted Me is built to be quiet about your data. There's no account to create, no tracking to opt out of, and no analytics watching over your shoulder.</p>
+    <ul>
       {points.map((p) => (
-        <div class="privacy-point">
-          <dt>{p.dt}</dt>
-          <dd>{p.dd}</dd>
-        </div>
+        <li><b>{p.b}</b>{p.t}</li>
       ))}
-    </dl>
+    </ul>
+    <a class="alt" href={site.privacyUrl}>Read the privacy policy and terms</a>
   </div>
 </section>

@@ -10,6 +10,7 @@ const cols = [
       { href: "#themes", label: "Themes" },
       { href: "#focus", label: "Focus Mode" },
       { href: "#privacy", label: "Privacy" },
+      { href: "#supporters", label: "Supporters" },
       { href: "#faq", label: "FAQ" },
     ],
   },
@@ -18,50 +19,36 @@ const cols = [
     links: [
       { href: site.chromeUrl, label: "Chrome Web Store", external: true },
       { href: site.firefoxUrl, label: "Firefox Add-ons", external: true },
-      { href: site.webAppUrl, label: "Try the web app", external: true },
+      { href: site.webAppUrl, label: "Web app", external: true },
     ],
   },
   {
     h: "Links",
     links: [
-      { href: site.githubUrl, label: "GitHub", external: true },
-      { href: site.privacyUrl, label: "Privacy & Terms" },
+      { href: "#support", label: "Support" },
       { href: site.formsUrl, label: "Report a bug", external: true },
       { href: site.formsUrl, label: "Suggest a feature", external: true },
+      { href: site.url, label: "Website", external: true },
+      { href: site.githubUrl, label: "GitHub", external: true },
     ],
   },
 ];
 ---
 
-<footer class="site-footer">
-  <div class="ridgeline ridgeline--footer" aria-hidden="true">
-    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" fill="none"><path d="M0 34 L120 30 L210 44 L330 26 L470 40 L610 20 L720 36 L860 24 L1000 42 L1140 28 L1270 40 L1440 30" stroke="currentColor" stroke-width="1.25"/></svg>
+<footer class="dark foot">
+  <div>
+    <a class="logo" href="#top" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <p>Your new tab, minus the noise. A calm dashboard with Focus Mode, quiet widgets and everything you need in one place.</p>
   </div>
 
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <span class="brand-logo brand-logo-footer" aria-hidden="true"><Wordmark /></span>
-      <p class="footer-tagline">Your new tab, minus the noise. A calm dashboard with a Nepali calendar, Focus Mode, and mindful widgets.</p>
-    </div>
-
-    <nav class="footer-nav" aria-label="Footer">
-      {cols.map((col) => (
-        <div class="footer-col">
-          <h3>{col.h}</h3>
-          <ul>
-            {col.links.map((l) => (
-              <li>
-                <a href={l.href} rel={l.external ? "noopener" : undefined}>{l.label}</a>
-              </li>
-            ))}
-          </ul>
-        </div>
+  {cols.map((col) => (
+    <div>
+      <h4>{col.h}</h4>
+      {col.links.map((l) => (
+        <a href={l.href} rel={l.external ? "noopener" : undefined} target={l.external ? "_blank" : undefined}>{l.label}</a>
       ))}
-    </nav>
-
-    <div class="footer-bottom">
-      <p>Made with <span class="heart" aria-label="love">❤</span> in Nepal · © 2026 Undistracted Me · MIT license</p>
-      <p class="footer-credit">Landscape photo via <a href="https://unsplash.com" rel="noopener">Unsplash</a></p>
     </div>
-  </div>
+  ))}
+
+  <p class="legal">Made with ♥ in Nepal. © 2026 Undistracted Me. MIT license.</p>
 </footer>

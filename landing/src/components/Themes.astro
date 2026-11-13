@@ -1,47 +1,35 @@
 ---
-import { Image } from "astro:assets";
-import paper from "../assets/showcase/dashboard-paper.webp";
-import glass from "../assets/showcase/dashboard-glass.webp";
-import comic from "../assets/showcase/dashboard-comic.webp";
-import dark from "../assets/showcase/dashboard-dark.webp";
+import themePaper from "../assets/design/theme-paper.webp";
+import themeGlass from "../assets/design/theme-glass.webp";
+import themeComic from "../assets/design/theme-comic.webp";
+import themeDark from "../assets/design/theme-dark.webp";
 
 const themes = [
-  { name: "Paper", hint: "Warm paper grain", src: paper, swatch: "theme-swatch--paper" },
-  { name: "Glass", hint: "Frosted glass", src: glass, swatch: "theme-swatch--glass" },
-  { name: "Comic", hint: "Pop-art panel", src: comic, swatch: "theme-swatch--comic" },
-  { name: "Dark", hint: "Auto after sunset", src: dark, swatch: "theme-swatch--dark" },
+  { name: "Paper", n: "01 / 04", text: "Warm cream cards with a paper grain.", alt: "The Paper theme: warm cream cards.", image: themePaper },
+  { name: "Glass", n: "02 / 04", text: "Frosted, translucent and light.", alt: "The Glass theme: frosted translucent cards.", image: themeGlass },
+  { name: "Comic", n: "03 / 04", text: "Bold outlines and hard pop-art shadows.", alt: "The Comic theme: bold outlined cards with hard shadows.", image: themeComic },
+  { name: "Dark", n: "04 / 04", text: "Deep and restful for the evening.", alt: "The Dark theme: deep blue translucent cards.", image: themeDark },
 ];
 ---
 
-<section class="section themes" id="themes">
-  <div class="container">
-    <header class="section-head">
-      <p class="kicker">Look the way you think</p>
-      <h2 class="section-title">Paper. Glass. Comic. <em>Yours.</em></h2>
-      <p class="section-lede">
-        Three hand-tuned widget surfaces — a warm paper grain, a frosted glass, and a bold pop-art panel — so your new tab feels like yours.
-      </p>
-    </header>
-
-    <div class="theme-gallery">
-      {themes.map((t) => (
-        <figure class="theme-card">
-          <div class="theme-card-frame">
-            <Image src={t.src} alt={`The ${t.name.toLowerCase()} theme of the Undistracted Me dashboard.`} width={1440} height={900} loading="lazy" />
+<section class="sec cream themes" id="themes" style="padding-top:0">
+  <h2>Paper. Glass. Comic. Dark.</h2>
+  <p class="sub">Three hand-tuned widget surfaces, a warm paper grain, a frosted glass and a bold pop-art panel, so your new tab feels like yours.</p>
+  <div class="swatches">
+    {themes.map((t) => (
+      <figure>
+        <img src={t.image.src} alt={t.alt} loading="lazy" decoding="async" />
+        <figcaption>
+          <div class="th-row">
+            <span class="th-t">{t.name}</span>
+            <span class="th-n">{t.n}</span>
           </div>
-          <figcaption class="theme-card-label">
-            <span>{t.name}</span>
-            <span class={`theme-swatch ${t.swatch}`} aria-hidden="true"></span>
-          </figcaption>
-        </figure>
-      ))}
-    </div>
-
-    <div class="theme-note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-      <p>
-        <strong>Sunrise to sunset, automatically.</strong> Set your location and Undistracted Me flips between light and dark on its own — bright parchment during the day, a restful pine at night. No toggle, no thought.
-      </p>
-    </div>
+          <p>{t.text}</p>
+        </figcaption>
+      </figure>
+    ))}
   </div>
+  <p class="note">
+    <b>Sunrise to sunset, automatically.</b> Set your location and it flips between light and dark on its own: bright parchment during the day, a restful pine at night. No toggle, no thought.
+  </p>
 </section>

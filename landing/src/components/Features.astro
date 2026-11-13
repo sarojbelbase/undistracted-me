@@ -1,22 +1,96 @@
 ---
-import { features } from "../data/features.js";
+import { leadWidget, visibleWidgets, hiddenWidgets } from "../data/widgets.js";
+
+const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
 ---
 
-<section class="section features" id="features">
-  <div class="container">
-    <header class="section-head">
-      <p class="kicker">Everything in one quiet place</p>
-      <h2 class="section-title">A dashboard that works <em>with</em> your focus, not against it.</h2>
-      <p class="section-lede">Every widget is optional, rearrangeable, and tuned to be glanced at — never to pull you in.</p>
-    </header>
+<section class="sec cream feat" id="features">
+  <h2>Everything in one quiet place.</h2>
+  <p class="sub">A dashboard that works with your focus, not against it. Every widget is optional, rearrangeable, and tuned to be glanced at, never to pull you in.</p>
 
-    <div class="feature-index">
-      {features.map((f) => (
-        <article class="feature-entry">
-          <h3 class="feature-title">{f.title}</h3>
-          <p class="feature-text">{f.text}</p>
-        </article>
-      ))}
-    </div>
+  <div class="mason" id="mason">
+    <article class="cell a" data-tip={leadWidget.tooltip}>
+      <div class="media">
+        <img class="gs" src={leadWidget.images[0].src} alt={leadWidget.alt} loading="eager" decoding="async" />
+      </div>
+      <div class="cap">
+        <h3>{leadWidget.title}</h3>
+        <p>{leadWidget.text}</p>
+      </div>
+    </article>
+
+    {visibleWidgets.map((w) => (
+      <article class={cellClass(w.kind)} data-tip={w.tooltip}>
+        <div class="media">
+          {w.images.length > 1 ? (
+            <div class="slide" style={`aspect-ratio:${w.images[0].width}/${w.images[0].height}`}>
+              {w.images.map((img, i) => (
+                <img
+                  class={i === 0 ? "slide-img on" : "slide-img"}
+                  src={img.src}
+                  alt={i === 0 ? w.alt : `${w.tooltip}, view ${i + 1}`}
+                  aria-hidden={i !== 0}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ))}
+              <div class="dots" role="group" aria-label={`${w.tooltip} views`}>
+                {w.images.map((_, i) => (
+                  <button
+                    class={i === 0 ? "dot on" : "dot"}
+                    type="button"
+                    data-i={i}
+                    aria-label={`Show ${w.tooltip} view ${i + 1}`}
+                    aria-current={i === 0}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <img class="gs" src={w.images[0].src} alt={w.alt} loading="eager" decoding="async" />
+          )}
+        </div>
+      </article>
+    ))}
+
+    <button class="cell more" id="more" type="button" aria-expanded="false">
+      <span class="f-t">Also inside</span>
+      <span class="f-s" id="moreS">Unfold the rest of the widgets.</span>
+      <span class="f-i" aria-hidden="true"></span>
+    </button>
+
+    {hiddenWidgets.map((w) => (
+      <article class="cell x in" hidden data-tip={w.tooltip}>
+        <div class="media">
+          {w.images.length > 1 ? (
+            <div class="slide" style={`aspect-ratio:${w.images[0].width}/${w.images[0].height}`}>
+              {w.images.map((img, i) => (
+                <img
+                  class={i === 0 ? "slide-img on" : "slide-img"}
+                  src={img.src}
+                  alt={i === 0 ? w.alt : `${w.tooltip}, view ${i + 1}`}
+                  aria-hidden={i !== 0}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ))}
+              <div class="dots" role="group" aria-label={`${w.tooltip} views`}>
+                {w.images.map((_, i) => (
+                  <button
+                    class={i === 0 ? "dot on" : "dot"}
+                    type="button"
+                    data-i={i}
+                    aria-label={`Show ${w.tooltip} view ${i + 1}`}
+                    aria-current={i === 0}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <img class="gs" src={w.images[0].src} alt={w.alt} loading="lazy" decoding="async" />
+          )}
+        </div>
+      </article>
+    ))}
   </div>
 </section>
