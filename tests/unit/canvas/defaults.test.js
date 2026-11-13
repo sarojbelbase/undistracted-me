@@ -23,7 +23,7 @@ describe('APP_SETTINGS_DEFAULTS — first-install appearance', () => {
     expect(D.modePrefs.dark.cardStyle).toBe('paper');
   });
 
-  it('uses the Motion (animated orb) canvas background by default', () => {
-    expect(D.canvasBg).toEqual({ type: 'orb', orbId: 'accent', url: null });
+  it('uses the solid canvas background by default', () => {
+    expect(D.canvasBg).toEqual({ type: 'solid', orbId: 'accent', url: null });
   });
 });
