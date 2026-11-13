@@ -1,6 +1,6 @@
 /**
  * Background — FocusMode background settings tab.
- * Self-contained: motion orb + curated photo grid + custom URL input.
+ * Self-contained: curated photo grid + custom URL input.
  * Dark glass style throughout — no dependency on BackgroundPicker.jsx.
  */
 
@@ -23,7 +23,6 @@ import { FM_SURFACE, FM_SURFACE_2, FM_SECTION_CARD_BG, FM_BORDER, FM_INK_1, FM_I
 // ─── Tab config ─────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'motion', label: 'Motion' },
   { id: 'curated', label: 'Curated Photos' },
   { id: 'custom', label: 'Custom URL' },
 ];
@@ -421,48 +420,12 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   );
 };
 
-// ─── Motion (animated orb) panel ──────────────────────────────────────────────────────────────
-
-const MotionPanel = ({ isActive, onApply }) => (
-  <div className="flex flex-col gap-3">
-    <button
-      className="relative rounded-lg overflow-hidden cursor-pointer group focus:outline-none"
-      style={{ aspectRatio: '16/7', display: 'block', padding: 0, border: 'none', background: '#060608' }}
-      onClick={onApply}
-      aria-label="Use the animated motion background"
-      aria-pressed={isActive}
-    >
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 80% at 28% 30%, rgba(var(--w-accent-rgb),0.55) 0%, transparent 60%),' +
-            'radial-gradient(55% 70% at 78% 70%, rgba(var(--w-accent-rgb),0.38) 0%, transparent 62%),' +
-            'radial-gradient(40% 50% at 60% 18%, rgba(var(--w-accent-rgb),0.22) 0%, transparent 60%)',
-          filter: 'blur(6px)',
-        }}
-      />
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(0,0,0,0.22)' }} />
-      {isActive && <ActiveBadge />}
-      <div className="absolute bottom-1 left-1 pointer-events-none">
-        <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,0,0,0.52)', color: '#fff', letterSpacing: '0.06em' }}>Motion</span>
-      </div>
-    </button>
-    <p style={{ fontSize: 10, lineHeight: 1.45, color: FM_INK_3 }}>
-      Animated orb tinted by your accent color. Lighter than photos and always in motion.
-    </p>
-  </div>
-);
-
 // ─── Main export ──────────────────────────────────────────────────────────────────────────────
 
 export const Background = ({ initialSource, initialCustomUrl, initialPhotoUrl, onApply, onRotatePhoto }) => {
-  const [activeSource, setActiveSource] = useState(initialSource ?? 'orb');
+  const [activeSource, setActiveSource] = useState(initialSource ?? 'curated');
   const [tab, setTab] = useState(() => (
-    initialSource === 'custom' ? 'custom'
-      : initialSource === 'orb' ? 'motion'
-        : 'curated'
+    initialSource === 'custom' ? 'custom' : 'curated'
   ));
 
   const handleApply = useCallback((type, opts = {}) => {
@@ -474,12 +437,6 @@ export const Background = ({ initialSource, initialCustomUrl, initialPhotoUrl, o
     <div className="flex flex-col gap-3">
       <TabRow tabs={TABS} value={tab} onChange={setTab} dark />
       <div>
-        {tab === 'motion' && (
-          <MotionPanel
-            isActive={activeSource === 'orb'}
-            onApply={() => handleApply('orb')}
-          />
-        )}
         {tab === 'curated' && (
           <CuratedPanel
             isActive={activeSource === 'curated'}

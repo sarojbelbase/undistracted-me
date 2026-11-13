@@ -245,14 +245,14 @@ describe('phantom-key mapping', () => {
 
 describe('focus_mode background sync', () => {
   it('pushes the focus-mode background as a fields element set', async () => {
-    localStorage.setItem('fm_bg_source', 'orb');
+    localStorage.setItem('fm_bg_source', 'curated');
     localStorage.setItem('fm_orb_palette_id', 'sunset');
 
     await syncEngine.pushAll();
 
     const written = JSON.parse(state.gistContent);
     const fields = written.keys.focus_mode.v.fields;
-    expect(fields.bgSource.v).toBe('orb');
+    expect(fields.bgSource.v).toBe('curated');
     expect(fields.orbPaletteId.v).toBe('sunset');
   });
 

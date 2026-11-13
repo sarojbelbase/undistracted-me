@@ -6,7 +6,6 @@ import {
   Suspense,
   lazy,
 } from "react";
-import { OrbBackground } from "../ui/OrbBackground";
 import bgImage from "../../assets/img/bg.webp";
 import {
   useFocusPhoto,
@@ -20,9 +19,8 @@ import {
 } from "../../utilities/unsplash";
 import { useSettingsStore } from "../../store";
 import { useShallow } from "zustand/react/shallow";
-import { getFMCardVars, FM_ORB_BG } from "./theme";
+import { getFMCardVars } from "./theme";
 import { getFMAccentVars } from "../../constants/accents";
-import { getOrbRgbById } from "../../constants/orbPalettes";
 import { APP_SETTINGS_DEFAULTS } from "../../constants/defaults";
 import { TopZone } from "./zones/TopZone";
 import { CenterZone } from "./zones/CenterZone";
@@ -53,16 +51,6 @@ const persistCustomUrl = (url) => {
   } catch {}
 };
 
-const ORB_PALETTE_KEY = "fm_orb_palette_id";
-const getOrbPaletteId = () => {
-  try {
-    return localStorage.getItem(ORB_PALETTE_KEY) || "accent";
-  } catch {
-    return "accent";
-  }
-};
-const getOrbRgb = () => getOrbRgbById(getOrbPaletteId());
-
 const FG_MASK =
   "linear-gradient(to bottom, transparent 0%, transparent 64%, rgba(0,0,0,0.5) 78%, black 100%)";
 
@@ -72,7 +60,6 @@ function FocusBgLayer({
   slotB,
   activeSlot,
   customBgUrl,
-  orbRgb,
 }) {
   const bgStyle = {
     position: "absolute",
@@ -116,8 +103,7 @@ function FocusBgLayer({
           />
         </>
       )}
-      {bgSource === "orb" && <OrbBackground rgb={orbRgb} isDark />}
-      {bgSource !== "curated" && bgSource !== "orb" && activeBg && (
+      {bgSource !== "curated" && activeBg && (
         <div
           style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }}
         />
@@ -146,7 +132,6 @@ export const FocusMode = ({ onExit }) => {
   // ── Background ──────────────────────────────────────────────────────────────
   const [bgSource, setBgSource] = useState(() => getBgSource());
   const [customBgUrl, setCustomBgUrl] = useState(() => getCustomBgUrl());
-  const [orbRgb, setOrbRgb] = useState(getOrbRgb);
   const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
 
   // Re-read the wallpaper when cross-device sync pulls a new focus-mode
@@ -156,7 +141,6 @@ export const FocusMode = ({ onExit }) => {
     const onFocusModeChanged = () => {
       setBgSource(getBgSource());
       setCustomBgUrl(getCustomBgUrl());
-      setOrbRgb(getOrbRgb());
     };
     globalThis.addEventListener("focus_mode_changed", onFocusModeChanged);
     return () =>
@@ -261,7 +245,6 @@ export const FocusMode = ({ onExit }) => {
   const handleBgChange = useCallback((source, customUrl) => {
     persistBgSource(source);
     setBgSource(source);
-    if (source === "orb") setOrbRgb(getOrbRgb());
     if (customUrl !== undefined) {
       setCustomBgUrl(customUrl);
       persistCustomUrl(customUrl);
@@ -277,7 +260,7 @@ export const FocusMode = ({ onExit }) => {
     <div
       className="fixed inset-0 z-50 overflow-hidden fm-root"
       style={{
-        backgroundColor: bgSource === "orb" ? FM_ORB_BG : photoColor,
+        backgroundColor: photoColor,
         ...getFMCardVars(effectiveCardStyle),
         ...getFMAccentVars(accent),
       }}
@@ -288,7 +271,6 @@ export const FocusMode = ({ onExit }) => {
         slotB={slotB}
         activeSlot={activeSlot}
         customBgUrl={customBgUrl}
-        orbRgb={orbRgb}
       />
 
       {/* Cinematic vignette */}
