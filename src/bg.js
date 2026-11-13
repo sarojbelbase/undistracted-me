@@ -33,8 +33,35 @@ let storageCache = "[]";
 let chromeSessions = {};
 let chromeSessionOrder = [];
 
-// IDs of events we've already notified for (in-memory, good for one SW lifetime)
+// IDs of events we've already notified for. Hydrated from chrome.storage.local
+// on startup (MV3 kills the SW after ~30s idle, so in-memory-only would let the
+// same event re-fire on the next wake while still inside the 5-min window).
 const notified = new Set();
+
+const EVENTS_FIRED_KEY = 'events_fired';
+
+/** Hydrate the in-memory `notified` set from storage (pruned to today). */
+async function loadEventsFired() {
+  try {
+    const { events_fired } = await chrome.storage.local.get(EVENTS_FIRED_KEY);
+    if (events_fired && typeof events_fired === 'object') {
+      const today = new Date().toISOString().slice(0, 10);
+      for (const [key, day] of Object.entries(events_fired)) {
+        if (day === today) notified.add(key);
+      }
+    }
+  } catch { /* storage unavailable — rely on in-memory only */ }
+}
+
+/** Persist the in-memory `notified` set (pruned to today). */
+function persistEventsFired() {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const map = {};
+    for (const key of notified) map[key] = today;
+    chrome.storage.local.set({ [EVENTS_FIRED_KEY]: map });
+  } catch { /* storage unavailable */ }
+}
 
 // Stores lat/lon sent from the page for weather pre-fetching
 let prefetchCoords = null; // { lat, lon } or null
@@ -115,6 +142,7 @@ function checkEventReminders() {
 
   const now = Date.now();
   const WINDOW_MS = 5 * 60 * 1000; // notify 5 min before
+  let newlyFired = false;
 
   for (const ev of events) {
     if (!ev.startDate || !ev.startTime) continue;
@@ -125,6 +153,7 @@ function checkEventReminders() {
     const diff = startMs - now;
     if (diff >= 0 && diff <= WINDOW_MS) {
       notified.add(key);
+      newlyFired = true;
       if (!notifAllowed('events')) continue;
       chrome.notifications.create(
         `event_${key}`,
@@ -132,6 +161,8 @@ function checkEventReminders() {
       );
     }
   }
+
+  if (newlyFired) persistEventsFired();
 }
 
 // ─── Storage sync via chrome.storage.local ────────────────────────────────────
@@ -143,6 +174,7 @@ async function syncEventsFromStorage() {
   try {
     const result = await chrome.storage.local.get("widget_events");
     storageCache = result.widget_events || "[]";
+    await loadEventsFired();
     checkEventReminders();
   } catch {
     // storage unavailable
@@ -487,9 +519,13 @@ async function runGcalPrefetch() {
     );
 
     if (res.status === 401) {
-      // Token expired/revoked — clear the stored token so the page re-authenticates
-      // on the next open (the service worker cannot prompt interactively).
-      await chrome.storage.local.remove('google_tokens');
+      // Token rejected. Do NOT wipe google_tokens here: a 401 on an ostensibly
+      // valid token can be clock skew or a transient server-side rejection, and
+      // removing the refresh token would force a full interactive re-auth. Let
+      // the page handle refresh/re-auth on the next open (googleAuth.js will
+      // refresh via the stored refresh_token, or clear only on a genuine
+      // revocation). Matches the Spotify "don't clear on transient failure"
+      // convention.
       return;
     }
     if (!res.ok) return;
@@ -676,7 +712,7 @@ function handleCountdownDone(msg) {
   if (!notifAllowed('countdown')) return;
   chrome.notifications.create(
     `countdown_done_${Date.now()}`,
-    buildNotification('countdown', { title: msg.title }),
+    buildNotification('countdown', { title: msg.title, body: msg.body }),
   );
 }
 

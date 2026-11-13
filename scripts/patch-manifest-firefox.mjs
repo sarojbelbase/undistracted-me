@@ -117,9 +117,10 @@ if (!manifest.browser_specific_settings) {
 if (!manifest.browser_specific_settings.gecko) {
   manifest.browser_specific_settings.gecko = {};
 }
-// Note: data_collection_permissions is only supported in Firefox 140+.
-// With strict_min_version: 128.0, we omit it to avoid validation errors.
-// Future: when minimum version is raised to 140+, add this field.
+// data_collection_permissions is only supported in Firefox 140+. With
+// strict_min_version: 128.0 we delete it defensively (the source manifest no
+// longer carries it, but guard against it being re-added).
+delete manifest.browser_specific_settings.gecko.data_collection_permissions;
 
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 console.log('✓ manifest.json patched for Firefox (dist-firefox/)');

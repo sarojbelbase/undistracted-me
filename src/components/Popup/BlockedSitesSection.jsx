@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { XLg } from "react-bootstrap-icons";
 import { getBlockedSites, unblockSite } from "../../utilities/siteBlocker";
+import { onClockTick } from "../../utilities/sharedClock";
 import { shorthandFromUrl } from "../../utilities/index";
 
 /**
@@ -14,10 +15,8 @@ export const BlockedSitesSection = () => {
   // Only tick `now` for countdown display — do NOT call getBlockedSites()
   // every second because it destructively writes back to localStorage,
   // which would wipe out infinite-block entries (blockedUntil === null).
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  // Driven by the shared clock (no per-component 1s interval).
+  useEffect(() => onClockTick(() => setNow(Date.now())), []);
 
   // Periodically refresh to prune expired timed blocks (every 30s).
   // Does NOT run every second — avoids the destructive write race condition.

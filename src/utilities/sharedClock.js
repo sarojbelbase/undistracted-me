@@ -31,6 +31,13 @@
  * • No Web Locks (Safari < 17) → BroadcastChannel only, every tab runs its own
  *   interval (same as before, but second-aligned).
  *
+ * Recovery
+ * ────────
+ * Entering the back/forward cache fires `pagehide` (releasing the lock and
+ * stopping the interval) but does NOT re-run this module on restore. A restored
+ * tab therefore re-attaches itself as a follower on `pageshow` (persisted) and
+ * re-queues for the lock, so it can never end up as a silent, frozen follower.
+ *
  * API
  * ───
  * import { onClockTick } from './sharedClock';
@@ -115,12 +122,44 @@ function _init() {
     return;
   }
 
-  // ── Leader election ───────────────────────────────────────────────────────
+  _electLeader(bc);
+
+  // ── bfcache / tab-restore recovery ────────────────────────────────────────
+  // Entering the back/forward cache fires `pagehide`, which releases the lock
+  // and stops the leader interval. A restored page does NOT re-run this module,
+  // so without this handler a restored tab would sit as a mute follower whose
+  // clock is frozen forever. Re-attach as a follower and re-queue for leader.
+  globalThis.window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    if (!leader) bc.onmessage = _notify;
+    _electLeader(bc);
+  });
+}
+
+/** True while this tab is generating ticks. */
+let leader = false;
+/** True while a Web Locks request is outstanding. */
+let hasRequest = false;
+
+/**
+ * Queue this tab for leader election.
+ *
+ * Re-entrant-safe: repeated calls (init + bfcache restore) never stack
+ * competing lock requests, which would otherwise make the second callback
+ * resolve immediately and tear down the real leader's interval.
+ */
+function _electLeader(bc) {
+  if (hasRequest || leader) return;
+  hasRequest = true;
+
   // navigator.locks.request queues this tab. The callback fires as soon as this
   // tab becomes the exclusive lock holder — immediately if no other tab has it,
   // or after the current leader releases it (on pagehide / crash).
   navigator.locks.request(LOCK_NAME, { mode: 'exclusive' }, () => {
     // === We are the leader ===
+    hasRequest = false;
+    leader = true;
+
     // Stop listening to the channel (we generate ticks, not consume them).
     bc.onmessage = null;
 
@@ -130,12 +169,17 @@ function _init() {
     // 'pagehide' is the correct event — 'unload' is deprecated and unreliable in MV3.
     return new Promise(resolve => {
       globalThis.window.addEventListener('pagehide', resolve, { once: true });
-    }).finally(cleanup);
-
-    // When the promise resolves, the lock is released and the next queued tab
-    // (if any) automatically becomes the new leader. No manual re-request needed.
+    }).finally(() => {
+      cleanup();
+      leader = false;
+      // Keep ticking as a follower when the page survives (bfcache restore).
+      // When the promise resolves, the lock is released and the next queued tab
+      // (if any) automatically becomes the new leader. No manual re-request needed.
+      bc.onmessage = _notify;
+    });
   }).catch(() => {
     // Lock request aborted or denied (e.g. Permissions-Policy) — stay as follower.
+    hasRequest = false;
   });
 }
 

@@ -34,9 +34,12 @@ export function useSpotifyPlayback(connected, setConnected) {
     } catch (e) {
       if (e.message === 'not_authenticated') {
         setTrack(null);
-        // Token is gone/invalid — flip to disconnected so the widget shows the
-        // connect CTA again instead of a phantom "connected, nothing playing".
-        setConnected(false);
+        // Do NOT setConnected(false) here: getAccessToken() returns null (and
+        // apiCall throws 'not_authenticated') on a *transient* refresh failure
+        // too — a network hiccup would otherwise flip the widget back to the
+        // "Connect Spotify" onboarding screen. Genuine disconnects are handled
+        // by the SPOTIFY_ACCOUNT_CHANGED event (see Accounts.jsx), matching the
+        // Focus Mode useSpotify hook's behavior.
       }
     }
   }, [setConnected]);

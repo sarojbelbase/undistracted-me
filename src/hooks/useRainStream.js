@@ -22,7 +22,6 @@ import { API_BASE_URL } from "../constants/env.js";
 
 const RAIN_API_URL =
   import.meta.env.VITE_RAIN_API_URL || `${API_BASE_URL}/audio/rain`;
-const API_KEY = import.meta.env.VITE_API_KEY || null;
 const POS_KEY = "rain_audio_pos";
 const URL_CACHE_KEY = "rain_audio_url"; // stale-while-revalidate cache
 
@@ -70,9 +69,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     // Always revalidate from API
     const init = async () => {
       try {
-        const headers = {};
-        if (API_KEY) headers["X-Api-Key"] = API_KEY;
-        const res = await fetch(RAIN_API_URL, { headers });
+        const res = await fetch(RAIN_API_URL);
         if (!res.ok || cancelled) return;
         const { url } = await res.json();
         if (!url || cancelled) return;

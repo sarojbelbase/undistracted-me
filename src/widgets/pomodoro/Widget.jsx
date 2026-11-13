@@ -189,6 +189,13 @@ export const Widget = ({ id, onRemove }) => {
   // Stable ref mirroring `note` so startBreak can read the latest note without
   // changing its own dependency list (which would cancel the auto-break timer).
   const noteRef = useRef('');
+  // Wall-clock deadline + mirror of `remaining` so the countdown survives
+  // background-tab throttling (setInterval in hidden tabs drops to ~1/min).
+  const remainingRef = useRef(remaining);
+  const endTimeRef = useRef(null);
+  // Sync the mirror *after* render (never write refs during render — a discarded
+  // concurrent render would otherwise leave the deadline based on stale time).
+  useEffect(() => { remainingRef.current = remaining; }, [remaining]);
 
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
@@ -285,12 +292,17 @@ export const Widget = ({ id, onRemove }) => {
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (running && !done) {
+      // Capture the wall-clock deadline at the moment the timer starts/resumes.
+      // Each tick recomputes `remaining` from Date.now() instead of decrementing
+      // a counter, so a background-throttled setInterval (hidden tabs drop to
+      // ~1/min) can't stall the countdown — it self-corrects on the next tick.
+      endTimeRef.current = Date.now() + remainingRef.current * 1000;
       intervalRef.current = setInterval(() => {
-        // Pure decrement. Completion side effects (stop + persistence) live in
-        // the effects below — calling setState / writing localStorage inside a
-        // state updater is double-invoked in StrictMode and fires during render.
-        setRemaining((r) => (r <= 1 ? 0 : r - 1));
+        const secsLeft = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+        setRemaining(secsLeft);
       }, 1000);
+    } else {
+      endTimeRef.current = null;
     }
     return () => clearInterval(intervalRef.current);
   }, [running, done]);

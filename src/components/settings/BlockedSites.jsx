@@ -12,6 +12,7 @@
 import { useState, useEffect } from 'react';
 import { Trash3Fill, PlusLg, ClockFill } from 'react-bootstrap-icons';
 import { getBlockedSites, blockSite, clearBlockedSites } from '../../utilities/siteBlocker';
+import { onClockTick } from '../../utilities/sharedClock';
 import { ConfirmButton } from '../ui/ConfirmButton';
 
 const SectionLabel = ({ children }) => (
@@ -37,11 +38,9 @@ export const BlockedSites = () => {
   const [adding, setAdding] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  // Tick `now` every second for countdown display
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  // Tick `now` every second for countdown display — via the shared clock so we
+  // never add a per-component 1s interval (one timer drives every new tab).
+  useEffect(() => onClockTick(() => setNow(Date.now())), []);
 
   // Refresh site list once on mount
   useEffect(() => {

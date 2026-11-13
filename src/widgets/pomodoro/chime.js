@@ -11,8 +11,21 @@
 
 let audioCtx = null;
 
-/** Lazily get or create an AudioContext (must happen after user gesture on web). */
+/**
+ * Lazily get or create an AudioContext (must happen after user gesture on web).
+ *
+ * The context is intentionally kept alive for the page's lifetime rather than
+ * closed after each chime: browsers cap concurrent AudioContexts (Chrome ≈ 6)
+ * and a closed context can only be replaced by a *new* one, so a
+ * create/close cycle per chime would leak contexts and eventually break audio.
+ * Oscillators are short-lived and fully disconnected after `stop()`, so the
+ * retained context itself is cheap (~a few hundred bytes plus the output
+ * device stream, which is released when the page unloads).
+ */
 const getCtx = () => {
+  // A context can be closed by the platform (e.g. after a long suspend) —
+  // recreate it rather than throwing on every future chime.
+  if (audioCtx && audioCtx.state === 'closed') audioCtx = null;
   if (!audioCtx) {
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
     audioCtx = new AC();

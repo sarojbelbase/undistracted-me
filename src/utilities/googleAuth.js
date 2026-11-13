@@ -13,15 +13,12 @@
  *
  * Both exchange the authorization code via POST /auth/google/token, so the
  * client_secret never leaves the server. The bundle carries only the public
- * client_id (VITE_GOOGLE_CLIENT_ID, XOR-encoded at build time).
+ * client_id (VITE_GOOGLE_CLIENT_ID).
  */
 import { API_BASE_URL } from '../constants/env.js';
 import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../constants/urls.js';
 
-// Obfuscated by obscureEnvKeys Vite plugin at build time.
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-
-const API_KEY = import.meta.env.VITE_API_KEY || '';
 
 // Server-side token-exchange endpoint. Absolute URL so it works from
 // chrome-extension://, moz-extension://, and https:// origins alike.
@@ -103,7 +100,7 @@ async function clearStoredToken() {
 async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, code_verifier: codeVerifier, redirect_uri: redirectUri }),
   });
   const body = await res.json().catch(() => ({}));
@@ -128,7 +125,7 @@ async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
 async function refreshStoredToken(refreshToken) {
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken }),
   });
   if (!res.ok) return null;

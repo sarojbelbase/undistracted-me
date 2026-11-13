@@ -241,7 +241,6 @@ export const resetSettings = () => {
       'contacts_birthdays_synced_at',
       'spotify_tokens',
       'spotify_profile',
-      'spotify_connected',
     ]);
   } catch { /* ignore */ }
 

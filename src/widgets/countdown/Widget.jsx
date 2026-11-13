@@ -198,7 +198,10 @@ export const Widget = ({ id, onRemove }) => {
           : "Event is starting",
       );
     } else {
-      sendNotification("Countdown complete", target.title);
+      // Title in the title slot; "Countdown complete" is the body. Previously
+      // these were swapped, so the notification read 'Your countdown for
+      // "Countdown complete" just ended.'
+      sendNotification(target.title, "Countdown complete");
     }
 
     if (pinned?.type === "custom") {

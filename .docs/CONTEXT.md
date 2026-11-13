@@ -342,7 +342,7 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 
 ## Unsplash Photo Library (`src/utilities/unsplash.js`)
 - **Source**: Curated proxy — `/photos/curated` on api.undistracted.me (no direct Unsplash key needed in extension)
-- **Auth**: `X-API-Key: VITE_API_KEY` header to the curated endpoint
+- **Auth**: None. Access is gated by the request `Origin` (`assertStrictOrigin`) — no API key is shipped in the bundle.
 - localStorage key: `fm_unsplash_cache` — stores up to `LIBRARY_MAX=10` photo objects
 - Each item: `{ id, url, regular, color, author, authorUrl, photoUrl, cachedAt }`
 - Library model: `library[0]` = current photo. `rotatePhoto()` cycles head→tail (never discards). `downloadNewPhoto()` force-fetches and prepends. `deletePhoto(id)` removes. `jumpToPhotoById(id)` promotes to head.
@@ -354,7 +354,8 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 Single "Web application" OAuth client + PKCE, works in every environment:
 - **Extension (Chrome, Brave, Edge, Opera, Vivaldi, Firefox)**: PKCE authorization-code
   flow via `chrome.identity.launchWebAuthFlow()`, then server-side token exchange against
-  `/auth/google/token` (api.undistracted.me). Client ID XOR-encoded at build time by `obscureEnvKeys`.
+  `/auth/google/token` (api.undistracted.me). Client ID is a public value (it is not a secret)
+  and allows only the registered `redirect_uri`s.
 - **Web (website mode)**: popup + PKCE + `/auth/google/token` server-side exchange.
 
 Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
@@ -373,8 +374,19 @@ High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT cal
 - Manual entries: `manual_birthdays` in localStorage — `[{ id, name, type, month, day }]`
 - Exports: `getContactBirthdays`, `loadCachedContacts`, `loadContactsSyncedAt`, `isContactsConnected`, `disconnectContacts`, `loadManualBirthdays`, `addManualBirthday`, `removeManualBirthday`, `clearContactsDisconnectedFlag`
 
+## Cross-Device Sync (`src/utilities/syncEngine*.js`, `syncTransport.js`)
+- **Transport**: Google Drive `appDataFolder` (migrated from a GitHub Gist transport in `04cac41`). Requires the `drive.appdata` scope, which is part of the normal Google connect flow.
+- **Entry point**: `syncEngineFacade.js` — lazily imports the heavy engine (`syncEngine.js`) only when `localStorage.sync_enabled === '1'`, so the new tab page pays nothing for an unused feature.
+- **Gates**:
+  - `sync_enabled` (localStorage) — user toggle.
+  - `drive_sync_connected` (the transport's `CONNECTED_FLAG`) — set by `syncTransport` once Drive access is verified.
+  - `enableSync()` refuses to start unless `syncTransport.isConnected()`.
+- **UI**: Settings → Data. Reads `useGoogleAccountStore` (`connected`/`syncEnabled`), and **must subscribe to `google_account_changed`** — it re-renders on connect/disconnect. (Bug fixed in this pass: the panel read `githubConnected` once at mount and never updated after the GitHub→Drive migration, so the toggle stayed permanently disabled.)
+- `useGoogleAccountStore.setSyncEnabled(true)` runs on connect/init; `false` on disconnect.
+- `SyncStatusBadge` polls status every 30 s while mounted (intentional — not the shared clock).
+
 ## Media Session / Browser Media Integration
-- `src/utilities/media.js` — serves as both the SoundCloud content script (injected into `*://*.soundcloud.com/*`) and a shared utility module
+- `src/utilities/media.js` — serves as both the SoundCloud/YouTube content script (injected into `*://*.soundcloud.com/*` and `*://*.youtube.com/*`) and a shared utility module
 - Detects playback via `navigator.mediaSession` + `<audio>/<video>` element fallback
 - Reports to background SW via `chrome.runtime.sendMessage({ type: 'MEDIA_SESSION_UPDATE', ... })`
 - SW manages `chromeSessions` in-memory map (keyed by tabId, max 3 entries ordered by activity)
@@ -438,35 +450,59 @@ Key shared components:
 
 ## Manifest v3 (`public/manifest.json`) — version 4.0.0
 ```json
-"permissions": ["identity", "storage", "geolocation", "topSites", "favicon",
-                 "notifications", "alarms", "tabs", "scripting"]
+"permissions": ["identity", "storage", "geolocation", "topSites", "notifications",
+                 "alarms", "idle", "tabs", "scripting", "declarativeNetRequest"]
 "host_permissions": [
   "https://app.undistracted.me/*",  // Web app (holidays.json, OAuth callback)
   "https://api.undistracted.me/*",  // Backend API
   "https://api.spotify.com/*",
   "https://accounts.spotify.com/*",
+  "*://*.youtube.com/*",                          // media relay content script
+  "*://*.soundcloud.com/*",                       // media relay content script
   "https://nepalipaisa.com/*",                     // NEPSE company list
   "https://www.merolagani.com/*",                  // NEPSE chart data
   "https://people.googleapis.com/*",               // Contacts API
-  \"https://www.googleapis.com/*\",                  // Calendar, userinfo + other Google APIs
+  "https://www.googleapis.com/*",                  // Calendar, userinfo + other Google APIs
   "https://tasks.googleapis.com/*",                // Google Tasks API
   "https://oauth2.googleapis.com/*",               // Token exchange
+  "https://content.googleapis.com/*",              // Calendar API (legacy host)
+  "https://suggestqueries.google.com/*",           // Search suggestions
+  "https://ac.duckduckgo.com/*",                   // Search suggestions (fallback)
   "https://api.open-meteo.com/*",                  // Weather data (no API key)
+  "https://air-quality-api.open-meteo.com/*",      // Air quality
   "https://geocoding-api.open-meteo.com/*",        // Weather manual location search
   "https://nominatim.openstreetmap.org/*",         // Reverse-geocode city name
+  "https://icanhazdadjoke.com/*",                  // Jokes widget
   "https://ipapi.co/*",                            // IP geolocation (web mode only)
   "https://freeipapi.com/*"                        // IP geolocation (extension mode)
 ]
 ```
-Content scripts: `src/utilities/media.js` injected into **SoundCloud only** (`*://*.soundcloud.com/*`).
-`scripting` permission: `bg.js` uses `chrome.scripting.executeScript` to inject media.js into SoundCloud tabs already open when extension installs.
-`oauth2` section present for Chrome identity scopes.
-Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-firefox/` and patches the clone (strips `key`, `favicon` permission, `oauth2`, `use_dynamic_url`, and re-bundles the background worker as a classic `bg-ff.js` script). `dist/` is left untouched so the Chrome `key`/extension-ID survives a Firefox build.
+There is **no `*://*/*` wide host permission** — the site blocker uses
+`declarativeNetRequest` dynamic rules, which need no host access. `tabs` is kept
+for the media relay (enumerating audible tabs). `favicon` was dropped; the
+favicon proxy endpoint is a plain HTTPS fetch to `api.undistracted.me`.
+Content scripts: `src/utilities/media.js` injected into **SoundCloud and YouTube**
+(`*://*.soundcloud.com/*`, `*://*.youtube.com/*`).
+`scripting` permission: `bg.js` uses `chrome.scripting.executeScript` to inject media.js into SoundCloud/YouTube tabs already open when the extension installs.
+Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-firefox/` and patches the clone (strips `key`, `oauth2`, `use_dynamic_url`,
+`data_collection_permissions`, and re-bundles the background worker as a classic `bg-ff.js` script). `dist/` is left untouched so the Chrome `key`/extension-ID survives a Firefox build.
 
 ## Backend API (`functions/` → api.undistracted.me)
-- `photos/curated.js` — Lists photos from the media R2 store (`backgrounds/` prefix). Auth via `X-API-Key`. CORS: chrome-extension://, moz-extension://, production origin.
-- `auth/google/token.js` — Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser. CORS: same origins + localhost.
-- `favicon.js` — Favicon proxy helper.
+- **Access control**: every endpoint checks the request `Origin` against
+  `ALLOWED_ORIGINS` (`chrome-extension://`, `moz-extension://`,
+  `https://undistracted.me`, `https://app.undistracted.me`, `http://localhost:*`).
+  Fetch-based endpoints use `assertStrictOrigin` (rejects a missing `Origin`, so
+  bare `curl` is refused); `/favicon` uses the relaxed `assertOrigin` because an
+  `<img>` request carries no `Origin`. No API key is shipped to clients.
+- **Rate limiting**: `functions/_ratelimit.js` — KV-backed fixed-window limiter
+  keyed on `CF-Connecting-IP` + pathname (30 req/min for the OAuth token
+  endpoint, 120 req/min elsewhere). Fails open if KV is unavailable. It is an
+  approximate (non-atomic) counter; real bot protection is Cloudflare's job
+  (Bot Fight Mode — **Managed Challenge must stay OFF**, it breaks extension
+  fetch traffic because no browser challenge can be solved there).
+- `photos/curated.js` — Lists photos from the media R2 store (`backgrounds/` prefix).
+- `auth/google/token.js` — Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser.
+- `favicon.js` — Favicon proxy helper (SSRF-guarded via `PRIVATE_HOST_RE`).
 
 ## Dev Proxy (`vite.config.ts`)
 ```js
@@ -534,12 +570,15 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 | Variable | Used by |
 |---|---|
 | `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production URL) |
-| `VITE_API_KEY` | Shared secret sent as `X-Api-Key` header to the token + curated-photos endpoints |
-| `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website (XOR-encoded at build by `obscureEnvKeys` plugin) |
+| `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website |
 | `VITE_WEBSITE_MODE` | Set to `'true'` for the hosted website (disables extension-only features) |
 | `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
 | `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Cloudflare env var, never in bundle) |
-| `API_KEY` | Server-side key for `functions/_config.js` `assertApiKey()` (same value as VITE_API_KEY) |
+
+> No client-side API key exists any more: the old `VITE_API_KEY` / `API_KEY`
+> pair (and the `obscureEnvKeys` XOR pilot) was removed. Endpoint access is
+> gated by `Origin` + Cloudflare bot protection instead. If a deployment still
+> defines `VITE_API_KEY`/`API_KEY`, they are simply unused and can be deleted.
 
 > Weather uses **Open-Meteo** (free, no API key required).
 
@@ -553,14 +592,14 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 - **Focus Mode zone z-index**: CenterZone z25 sits ABOVE the foreground photo overlay at z15. Clock is not behind the image anymore.
 - **LookAway stale break**: skip if page was hidden (laptop asleep) for most of the interval — `lastHiddenAt` tracked via `document.visibilitychange`
 - **Token security**: Spotify tokens + Google Calendar/Contacts cache stored in `chrome.storage.local`, not `localStorage` — prevents other extensions from reading them
-- **Key obfuscation**: `obscureEnvKeys` Vite plugin XOR-encodes `VITE_GOOGLE_CLIENT_ID` so it never appears as plain text in the JS bundle
+- **Key obfuscation**: removed. The old `obscureEnvKeys` Vite plugin (XOR-encoded `VITE_GOOGLE_CLIENT_ID`) was deleted — a public OAuth client ID is not a secret, and the XOR value was trivially recoverable.
 - **Widget settings**: `useWidgetSettings` is backed by Zustand `useWidgetInstancesStore.widgetSettings` — do NOT read `widgetSettings_${id}` from localStorage directly in new code; call `useWidgetSettings(id)` instead
-- **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)` — only one tab runs the real timer
+- **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)` — only one tab runs the real timer. This applies to settings popovers and the extension popup too; the blocked interstitial (`blocked/BlockedPage.jsx`) is the only exception, and it derives its countdown from the stored `blockedUntil` wall-clock deadline (not a decrement) so background-tab throttling can't stretch the block.
 - **`useGoogleAccountStore.connect()`**: call this to trigger interactive Google OAuth — do NOT call `getGoogleAuthToken(true)` from UI components directly
 - **`mode='auto'`**: `setMode('auto')` does NOT call `applyTheme` directly — `useAutoTheme` does it after mount once sunrise/sunset is resolved
 - **Data tab**: Global settings → Data tab hosts Cross-Device Sync, Backup & Restore (Export/Import .json), and Reset. Import/export/reset were migrated here from WidgetCatalog to reduce tab-bar clutter.
 - **OPML import/export**: RSS widget only supports OPML (no JSON). Uses native `DOMParser` for parsing, supports file picker + paste XML, preview with checkboxes, nested folder flattening, and URL deduplication. Export generates valid OPML with proper XML escaping. Sample OPML includes real Nepali news feeds organized in folders.
-- **Web Audio chime**: `pomodoro/chime.js` uses the Web Audio API (`OscillatorNode` + `GainNode`) for a D4→G4 completion chime — zero external audio files, works offline. Same pattern usable in any widget needing audio feedback.
+- **Web Audio chime**: `pomodoro/chime.js` uses the Web Audio API (`OscillatorNode` + `GainNode`) for a D4→G4 completion chime — zero external audio files, works offline. The `AudioContext` is a module-level singleton and is deliberately **not** closed after each chime (browsers cap concurrent contexts at ~6; oscillators self-disconnect after `stop()`). A context closed by the platform is recreated on the next call.
 - **CSS-only bar charts**: Pomodoro's weekly stats and Expense widget both use CSS-only horizontal/vertical bars (no Chart.js). The `.pom-stats-chart` uses `grid-template-columns: repeat(7, 1fr)` for the weekly view; `.pom-stats-grid` uses `grid-template-columns: repeat(3, 1fr)` for stat chips spanning full width.
 
 ## Data (`src/data/`)
