@@ -156,10 +156,13 @@ import { buildSchemaGraph } from "../data/schema.js";
     const p = clamp(-r.top / (r.height - innerHeight));
     words.forEach((w, i) => {
       const t = (i + 1) / words.length;
-      w.style.opacity = 0.14 + 0.86 * clamp((p / 0.5 - (t - 0.18)) / 0.18);
+      // Reveal via color (muted grey → ink) instead of opacity, so the heading
+      // stays above the WCAG contrast threshold at every scroll position.
+      const k = clamp((p / 0.5 - (t - 0.18)) / 0.18);
+      w.style.color = `rgb(${Math.round(106 - 95 * k)}, ${Math.round(105 - 94 * k)}, ${Math.round(100 - 89 * k)})`;
     });
     const q = clamp((p - 0.5) / 0.15);
-    wp.style.opacity = q;
+    wp.style.color = `rgb(${Math.round(106 - 95 * q)}, ${Math.round(105 - 94 * q)}, ${Math.round(100 - 89 * q)})`;
     wp.style.translate = `0 ${(1 - q) * 24}px`;
     wc.style.opacity = clamp((p - 0.05) / 0.2);
     wc.style.translate = `0 ${(1 - clamp((p - 0.05) / 0.4)) * 80}px`;

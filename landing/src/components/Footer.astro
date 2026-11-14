@@ -43,7 +43,7 @@ const cols = [
 
   {cols.map((col) => (
     <div>
-      <h4>{col.h}</h4>
+      <h3>{col.h}</h3>
       {col.links.map((l) => (
         <a href={l.href} rel={l.external ? "noopener" : undefined} target={l.external ? "_blank" : undefined}>{l.label}</a>
       ))}

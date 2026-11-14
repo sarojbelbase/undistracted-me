@@ -80,9 +80,9 @@ nav.scrolled .pill{background:#f4f3ef;color:var(--ink)}
 .why-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--chess);padding:calc(var(--nav) + 2rem) var(--pad) 3rem;display:flex;flex-direction:column;justify-content:center}
 .why-h{font-size:clamp(3rem,10.5vw,10.5rem);line-height:.88;max-width:11ch}
 .w{display:inline-block}
-html.js .w{opacity:.14}
+html.js .w{color:var(--mute)}
 .why-p{max-width:34rem;margin-top:var(--s3);font-size:1.3rem}
-html.js .why-p{opacity:0}
+html.js .why-p{color:var(--mute)}
 .apps{position:absolute;right:var(--pad);top:calc(var(--nav) + 2rem);width:min(42vw,560px);height:min(34svh,300px)}
 .app{position:absolute;width:clamp(3.4rem,5vw,4.6rem);aspect-ratio:1;border-radius:22%;background:rgba(11,11,11,.06);border:1px solid rgba(11,11,11,.14);color:rgba(11,11,11,.5);display:grid;place-items:center}
 html.js .app{--o:0;opacity:var(--o);scale:calc(.55 + .45*var(--o));rotate:calc((1 - var(--o))*-14deg)}
@@ -257,7 +257,7 @@ html.js .cell.in{opacity:1;translate:none}
 
 .foot{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:var(--g);align-items:start;padding:calc(var(--sec)*.7) var(--pad) calc(1.75rem + env(safe-area-inset-bottom,0px))}
 .foot p{max-width:22rem;font-size:1.05rem}
-.foot h4{font:500 .8rem var(--mono);letter-spacing:.02em;color:#9a9a96;margin-bottom:.8rem}
+.foot h3{font:500 .8rem var(--mono);letter-spacing:.02em;color:#9a9a96;margin-bottom:.8rem}
 .foot a{display:block;margin-bottom:.55rem;font:500 1.05rem var(--sans);text-decoration:none}
 .foot a:hover{color:var(--sun)}
 .foot .logo{margin-bottom:.9rem}
@@ -271,7 +271,7 @@ html.js .cell.in{opacity:1;translate:none}
 .story{display:block}.stage{order:0;z-index:1;height:46svh}.stage img{max-height:38svh}.step{min-height:70svh;justify-content:flex-start;padding:10svh var(--g) 0}.step h2{font-size:clamp(2.4rem,11vw,4.2rem)}
 .foot{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.faq details p{padding-right:0}.bb{flex:1 1 100%}.btn{flex:1 1 100%;justify-content:center}.hcopy .cta{flex-direction:column;align-items:stretch}}
-@media(prefers-reduced-motion:reduce){.fig,.fig img,.marq>div,.pulse,.bb.pri,.point,.ap i{animation:none}.stage img{transition:none}html{scroll-behavior:auto}html.js .cell{opacity:1;translate:none}html.js .w,html.js .why-p{opacity:1}html.js .app{--o:1}.why{height:auto}.why-pin{position:relative;height:auto;min-height:100svh}.mason,.mason.on .cell,.f-i{transition:none}}
+@media(prefers-reduced-motion:reduce){.fig,.fig img,.marq>div,.pulse,.bb.pri,.point,.ap i{animation:none}.stage img{transition:none}html{scroll-behavior:auto}html.js .cell{opacity:1;translate:none}html.js .w,html.js .why-p{color:var(--ink)}html.js .app{--o:1}.why{height:auto}.why-pin{position:relative;height:auto;min-height:100svh}.mason,.mason.on .cell,.f-i{transition:none}}
 
 /* MOMO: the hand-drawn dumplings, with steam, on Support and Pricing */
 .momo{position:relative;aspect-ratio:1.5;width:min(100%,600px);justify-self:end;background:var(--momo) center bottom/contain no-repeat;mix-blend-mode:multiply}
