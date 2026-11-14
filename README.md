@@ -24,7 +24,7 @@ top, then the widgets you care about — weather, notes, countdown, stocks,
 events, occasions, top sites and more — dragged into place exactly how you like.
 
 <p align="center">
-  <img src="landing/app/assets/screenshots/canvas_mode.webp" alt="Canvas mode — the Undistracted Me dashboard with its draggable widget grid" width="85%">
+  <img src="landing/src/assets/screenshots/canvas_mode.webp" alt="Canvas mode — the Undistracted Me dashboard with its draggable widget grid" width="85%">
 </p>
 
 ### Focus mode — the cinematic clock
@@ -34,7 +34,7 @@ with ambient context panels (Pomodoro, upcoming events, stocks, weather, world
 clocks) that surface only when you need them.
 
 <p align="center">
-  <img src="landing/app/assets/screenshots/focus_mode.webp" alt="Focus mode — the Undistracted Me cinematic fullscreen clock" width="85%">
+  <img src="landing/src/assets/screenshots/focus_mode.webp" alt="Focus mode — the Undistracted Me cinematic fullscreen clock" width="85%">
 </p>
 
 ## Deployments

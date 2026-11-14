@@ -14,6 +14,7 @@ examples/new_ones
 .wrangler
 .env*.local
 app/assets/backgrounds/
+pages-api/functions/
 builds
 .DS_Store
 store-assets
