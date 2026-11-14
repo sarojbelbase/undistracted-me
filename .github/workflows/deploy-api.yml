@@ -38,4 +38,4 @@ jobs:
           # `--commit-message` is intentionally omitted: a multi-line commit
           # message body breaks wrangler's argument parsing. `--commit-hash`
           # already identifies the deployment.
-          command: pages deploy pages-api --project-name=undistracted-me-api --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy pages-api --project-name=undistracted-me-api --branch=main --commit-dirty=true --commit-hash=${{ github.sha }}
