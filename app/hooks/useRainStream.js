@@ -83,7 +83,11 @@ export function useRainStream(fadeDurationMs = 3000) {
 
   // Re-populate the <audio> src if the element was swapped out on a later render
   // (e.g. the pomodoro widget remounts its <audio> when the phase changes).
-  // Idempotent — the appliedElRef guard in applyUrl makes repeated calls a no-op.
+  // Deliberately no dependency array: it must run after *every* render to catch
+  // a freshly-mounted <audio> node — the swap is driven by the parent's DOM (the
+  // pomodoro widget swaps PICK ↔ TIMER branches, each with its own <audio>), not
+  // by any hook state we can observe. Idempotent — the appliedElRef guard in
+  // applyUrl makes repeated calls a no-op.
   useEffect(() => {
     if (appliedUrlRef.current) applyUrl(appliedUrlRef.current);
   });
@@ -99,10 +103,28 @@ export function useRainStream(fadeDurationMs = 3000) {
       if (audio.readyState >= 1) doSeek();
       else audio.addEventListener("loadedmetadata", doSeek, { once: true });
     }
-    const onTimeUpdate = () =>
+    // Throttle position persistence — `timeupdate` fires ~4×/second; writing
+    // localStorage at that rate hammers disk (and any `storage` listeners).
+    let lastPersist = 0;
+    const onTimeUpdate = () => {
+      const now = Date.now();
+      if (now - lastPersist < 5000) return;
+      lastPersist = now;
+      localStorage.setItem(POS_KEY, String(audio.currentTime));
+    };
+    const persistNow = () =>
       localStorage.setItem(POS_KEY, String(audio.currentTime));
     audio.addEventListener("timeupdate", onTimeUpdate);
-    return () => audio.removeEventListener("timeupdate", onTimeUpdate);
+    // Persist immediately on pause/end (final position) and when the tab hides.
+    audio.addEventListener("pause", persistNow);
+    audio.addEventListener("ended", persistNow);
+    document.addEventListener("visibilitychange", persistNow);
+    return () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("pause", persistNow);
+      audio.removeEventListener("ended", persistNow);
+      document.removeEventListener("visibilitychange", persistNow);
+    };
   }, [ready]);
 
   // 3. Save position on unmount

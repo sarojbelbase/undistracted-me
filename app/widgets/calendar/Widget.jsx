@@ -215,22 +215,24 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   const goPrev = () => {
-    setStartWeek(prev => {
-      if (prev > 0) return prev - 1;
-      // Cross into previous month — flag so we land at its last weeks on load.
-      pendingPrevCross.current = true;
-      setMonthOffset(m => m - 1);
-      return 0;
-    });
+    if (startWeek > 0) {
+      setStartWeek(startWeek - 1);
+      return;
+    }
+    // Cross into previous month — flag so we land at its last weeks on load.
+    pendingPrevCross.current = true;
+    setMonthOffset(m => m - 1);
+    setStartWeek(0);
   };
 
   const goNext = () => {
-    setStartWeek(prev => {
-      if (prev + 2 < totalWeeks) return prev + 1;
-      // Cross into next month
-      setMonthOffset(m => m + 1);
-      return 0;
-    });
+    if (startWeek + 2 < totalWeeks) {
+      setStartWeek(startWeek + 1);
+      return;
+    }
+    // Cross into next month
+    setMonthOffset(m => m + 1);
+    setStartWeek(0);
   };
 
   const goToday = () => {

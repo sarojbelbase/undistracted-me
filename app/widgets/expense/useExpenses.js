@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   CupFill,
   CartFill,
@@ -159,18 +159,23 @@ export const RANGE_CONFIG = {
   year: { budgetKey: 'yearBudget', label: 'Yearly', periodLabel: 'This year spending' },
 };
 
-function load(widgetId) {
+// Pure read — no side effects (safe to call during render).
+function read(widgetId) {
   try {
-    // Only run migration once — check marker before calling the function
-    const markerKey = MIGRATED_MARKER + widgetId;
-    if (!localStorage.getItem(markerKey)) {
-      migrateIfNeeded(widgetId);
-    }
     const raw = localStorage.getItem(PREFIX + widgetId);
     if (!raw) return [];
     const p = JSON.parse(raw);
     return Array.isArray(p) ? p : [];
   } catch { return []; }
+}
+
+function load(widgetId) {
+  // Only run migration once — check marker before calling the function
+  const markerKey = MIGRATED_MARKER + widgetId;
+  if (!localStorage.getItem(markerKey)) {
+    migrateIfNeeded(widgetId);
+  }
+  return read(widgetId);
 }
 
 function save(widgetId, list) {
@@ -232,10 +237,18 @@ export function computeDayComparison(list) {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday', timeRange = 'week') {
-  const initRef = useRef(undefined);
-  if (initRef.current === undefined) initRef.current = load(widgetId);
+  // Pure read during render — the one-time legacy migration (a localStorage
+  // write) is deferred to an effect so the render phase stays side-effect free.
+  const [expenses, setExpenses] = useState(() => read(widgetId));
 
-  const [expenses, setExpenses] = useState(() => initRef.current);
+  useEffect(() => {
+    // One-time migration: move expenses from the legacy `widgetSettings_*` key.
+    // Marker-guarded (runs once ever); if it moved data, refresh state.
+    const markerKey = MIGRATED_MARKER + widgetId;
+    if (localStorage.getItem(markerKey)) return;
+    migrateIfNeeded(widgetId);
+    setExpenses(read(widgetId));
+  }, [widgetId]);
 
   const summary = useMemo(
     () => computeSummary(expenses, timeRange, weekStartsOn),

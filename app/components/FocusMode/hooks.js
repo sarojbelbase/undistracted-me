@@ -75,6 +75,9 @@ export const useFocusPhoto = () => {
   // photo — preventing a spurious slot-switch on first render.
   const cachedUrl = cached?.regular ?? cached?.url ?? null;
   const prevUrlRef = useRef(cachedUrl);
+  // Mirror of activeSlot so applyPhoto can decide which slot to write without
+  // nesting setState inside another setState's updater (impure updater).
+  const activeSlotRef = useRef("a");
 
   const applyPhoto = useCallback((p) => {
     if (!p) return;
@@ -83,15 +86,11 @@ export const useFocusPhoto = () => {
     prevUrlRef.current = url;
     setCurrentPhotoId(p.id);
     setPhoto(p);
-    setActiveSlot((cur) => {
-      if (cur === "a") {
-        setSlotB(url);
-        return "b";
-      } else {
-        setSlotA(url);
-        return "a";
-      }
-    });
+    const next = activeSlotRef.current === "a" ? "b" : "a";
+    if (activeSlotRef.current === "a") setSlotB(url);
+    else setSlotA(url);
+    activeSlotRef.current = next;
+    setActiveSlot(next);
   }, []);
 
   // Called with no args: advance to next photo (shuffle).

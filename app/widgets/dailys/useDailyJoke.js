@@ -24,6 +24,7 @@ export const useDailyJoke = () => {
       return;
     }
 
+    let cancelled = false;
     setLoading(true);
     setError(false);
     fetch(ICANHAZDADJOKE_API, {
@@ -35,11 +36,19 @@ export const useDailyJoke = () => {
     })
       .then((r) => r.json())
       .then((json) => {
+        if (cancelled) return;
         if (json?.joke) write({ date: today, joke: json.joke });
         else setError(true);
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [hydrated, hasTodayJoke, today, write]);
 
   return { joke: hasTodayJoke ? data.joke : null, loading, error };

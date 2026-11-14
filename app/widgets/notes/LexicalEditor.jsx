@@ -328,6 +328,20 @@ const theme = {
 
 const NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode, CodeNode, CodeHighlightNode, LinkNode];
 
+// onError + initial config hoisted to module scope so their identity is stable
+// across renders — rebuilding initialConfig every render would make
+// LexicalComposer re-create the editor on each render.
+const onLexError = (err) => console.warn('[LexicalEditor]', err);
+
+const INITIAL_CONFIG = {
+  namespace: 'notes',
+  theme,
+  nodes: NODES,
+  onError: onLexError,
+  // Don't set editorState here — ValueSyncPlugin handles it
+  editorState: null,
+};
+
 // CHECK_LIST is missing from TRANSFORMERS in @lexical/markdown v0.43 — add it first
 const MY_TRANSFORMERS = [CHECK_LIST, ...TRANSFORMERS];
 
@@ -373,15 +387,6 @@ const LexicalEditor = forwardRef(function LexicalEditor(
     });
   }, [onChange]);
 
-  const initialConfig = {
-    namespace: 'notes',
-    theme,
-    nodes: NODES,
-    onError: (err) => console.warn('[LexicalEditor]', err),
-    // Don't set editorState here — ValueSyncPlugin handles it
-    editorState: null,
-  };
-
   // Extract only the padding values so we can mirror them onto the placeholder.
   // Padding lives on the ContentEditable; placeholder is absolutely positioned
   // inside the same wrapper, so it needs matching insets to align with line 1.
@@ -394,7 +399,7 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   );
 
   return (
-    <LexicalComposer initialConfig={initialConfig}>
+    <LexicalComposer initialConfig={INITIAL_CONFIG}>
       <div className="notes-lexical-shell">
         <RichTextPlugin
           contentEditable={

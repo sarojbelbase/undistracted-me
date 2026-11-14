@@ -155,18 +155,25 @@ export const PopupApp = () => {
   };
 
   // ── Shared bookmarks ──────────────────────────────────────────────────────
-  const [bookmarks, setBookmarks] = useState(() => {
+  // Pure read during render — the one-time legacy migration (a localStorage
+  // write) runs in an effect so the render phase stays side-effect free.
+  const [bookmarks, setBookmarks] = useState(() => loadBookmarks());
+
+  useEffect(() => {
     try {
-      const legacy = JSON.parse(
-        localStorage.getItem("um_popup_bookmarks") || "[]",
-      );
-      legacy.forEach((l) => addBookmark({ url: l.url, title: l.title }));
+      const raw = localStorage.getItem("um_popup_bookmarks");
+      if (!raw) return;
+      const legacy = JSON.parse(raw);
+      let list = loadBookmarks();
+      for (const l of legacy) {
+        if (l?.url) list = addBookmark({ url: l.url, title: l.title });
+      }
       localStorage.removeItem("um_popup_bookmarks");
+      setBookmarks(list);
     } catch {
       /* noop */
     }
-    return loadBookmarks();
-  });
+  }, []);
 
   useEffect(() => onBookmarksChanged(() => setBookmarks(loadBookmarks())), []);
 

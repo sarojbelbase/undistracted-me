@@ -11,7 +11,11 @@ export function useSettingsPanel() {
   // a stale closure (its dep list is []) and without nesting a setState inside a
   // setState updater (which React double-invokes in StrictMode).
   const showSettingsRef = useRef(false);
-  showSettingsRef.current = showSettings;
+  // Keep the ref in sync via an effect — writing refs during render is unsafe
+  // under concurrent rendering (a discarded render could observe a stale ref).
+  useEffect(() => {
+    showSettingsRef.current = showSettings;
+  }, [showSettings]);
 
   useEffect(() => {
     if (!showSettings) return;

@@ -22,7 +22,11 @@ const sortNewest = (items) =>
 export function useRssMulti(feeds = []) {
   const feedsKey = feeds.map((f) => f.url).join("|");
   const feedsRef = useRef(feeds);
-  feedsRef.current = feeds;
+  // Keep the ref in sync via an effect — writing refs during render is unsafe
+  // under concurrent rendering (a discarded render could observe a stale ref).
+  useEffect(() => {
+    feedsRef.current = feeds;
+  }, [feeds]);
 
   // SW-prefetched merged queue from the DataHub.
   const { data, updatedAt, entry, hydrated, write } = useDataHub("rss");
