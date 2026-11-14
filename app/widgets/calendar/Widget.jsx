@@ -138,6 +138,35 @@ const dayDateStr = (day, calendarData) => {
   return `${String(calendarData.year).padStart(4, '0')}-${String(calendarData.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`;
 };
 
+// ── Skeleton ─────────────────────────────────────────────────────────────────
+
+const CalendarSkeleton = () => (
+  <>
+    <div className="flex items-center justify-between">
+      <div className="flex items-baseline gap-2 min-w-0">
+        <span className="cal-skeleton__label" />
+        <span className="cal-skeleton__sublabel" />
+      </div>
+      <div className="flex items-center gap-0.5 shrink-0">
+        <span className="cal-skeleton__nav" />
+        <span className="cal-skeleton__nav" />
+      </div>
+    </div>
+    <div className="grid grid-cols-7 gap-x-1 text-center">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <span key={i} className="cal-skeleton__weekday" />
+      ))}
+    </div>
+    {[0, 1].map((row) => (
+      <div key={row} className="grid grid-cols-7 gap-x-1 text-center cal-week-row">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <span key={i} className="cal-skeleton__day" />
+        ))}
+      </div>
+    ))}
+  </>
+);
+
 // ── Widget ───────────────────────────────────────────────────────────────────
 
 export const Widget = ({ id = 'calendar', onRemove }) => {
@@ -154,10 +183,14 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
 
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
   const [localEvents] = useEvents();
-  const { gcalEvents } = useGoogleCalendar();
+  const { gcalEvents, loading: gcalLoading } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
   const { dates: holidayDates, names: holidayNames, intlDates, intlNames } = useHolidays();
   const [createDate, setCreateDate] = useState(null);
+
+  // Show a skeleton while Google Calendar events are still loading on first
+  // mount (mirrors the events widget), so the day-cell dots don't pop in late.
+  const showSkeleton = gcalLoading && gcalEvents.length === 0;
 
   // Holidays for a date as a flat [{ name, kind }] list (Nepali first).
   const holidaysForDate = useCallback((dateStr) => {
@@ -278,6 +311,10 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
         settingsContent={<Settings id={id} calendarType={calendarType} showHolidays={showHolidays} onChange={updateSetting} />}
         onRemove={onRemove}
       >
+        {showSkeleton ? (
+          <CalendarSkeleton />
+        ) : (
+          <>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2 min-w-0">
@@ -367,6 +404,8 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
             );
           })}
         </div>
+          </>
+        )}
       </BaseWidget>
 
       {createDate && (

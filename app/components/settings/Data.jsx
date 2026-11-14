@@ -34,6 +34,10 @@ export const Data = ({ onNavigateToAccounts }) => {
 
   // ── Sync state ─────────────────────────────────────────────────────
   const [syncConnected, setSyncConnected] = useState(() => syncTransport.isConnected());
+  // Sync runs only inside the extension — its Drive appDataFolder backend needs
+  // the `drive.appdata` scope, which Google won't grant to web apps. Constant for
+  // the page's lifetime, so read it once instead of holding it in state.
+  const syncAvailable = syncEngine.getSyncStatus().available;
 
   // Keep the connection state fresh. A Google sign-in/out happens in the
   // Accounts tab *after* this component mounts, so a one-time read would leave
@@ -150,6 +154,22 @@ export const Data = ({ onNavigateToAccounts }) => {
     });
   };
 
+  let syncButtonIcon = <ArrowClockwise size={12} className="shrink-0" />;
+  if (syncing) {
+    syncButtonIcon = <ArrowRepeat size={12} className="animate-spin shrink-0" />;
+  } else if (justSynced || alreadySynced) {
+    syncButtonIcon = <CheckCircleFill size={12} className="shrink-0" />;
+  }
+
+  let syncButtonLabel = 'Sync now';
+  if (syncing) {
+    syncButtonLabel = 'Syncing…';
+  } else if (justSynced) {
+    syncButtonLabel = 'Synced';
+  } else if (alreadySynced) {
+    syncButtonLabel = 'Already synced';
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
@@ -162,7 +182,7 @@ export const Data = ({ onNavigateToAccounts }) => {
           </p>
         </div>
 
-        {syncConnected ? (
+        {syncAvailable && syncConnected ? (
           <div style={{
             display: 'flex', flexDirection: 'column', gap: 10,
             padding: '12px 14px', borderRadius: 12,
@@ -187,18 +207,8 @@ export const Data = ({ onNavigateToAccounts }) => {
                 background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
               }}
             >
-              {syncing
-                ? <ArrowRepeat size={12} className="animate-spin shrink-0" />
-                : justSynced || alreadySynced
-                  ? <CheckCircleFill size={12} className="shrink-0" />
-                  : <ArrowClockwise size={12} className="shrink-0" />}
-              {syncing
-                ? 'Syncing…'
-                : justSynced
-                  ? 'Synced'
-                  : alreadySynced
-                    ? 'Already synced'
-                    : 'Sync now'}
+              {syncButtonIcon}
+              {syncButtonLabel}
             </button>
 
             <p style={{ fontSize: 10, color: 'var(--w-ink-5)', lineHeight: 1.4, margin: 0, textAlign: 'center' }}>
@@ -214,16 +224,20 @@ export const Data = ({ onNavigateToAccounts }) => {
           }}>
             <InfoCircle size={13} style={{ color: 'var(--w-ink-4)', flexShrink: 0 }} />
             <p style={{ fontSize: 10.5, color: 'var(--w-ink-4)', lineHeight: 1.45, margin: 0, flex: 1 }}>
-              Sign in with Google in the Accounts tab to sync across devices.
+              {syncAvailable
+                ? 'Sign in with Google in the Accounts tab to sync across devices.'
+                : 'Sync is only available in the browser extension.'}
             </p>
-            <button
-              type="button"
-              onClick={onNavigateToAccounts}
-              className="shrink-0 text-[11px] font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-              style={{ color: 'var(--w-accent)', background: 'none', border: 'none', padding: 0 }}
-            >
-              Open Accounts
-            </button>
+            {syncAvailable && (
+              <button
+                type="button"
+                onClick={onNavigateToAccounts}
+                className="shrink-0 text-[11px] font-semibold transition-opacity hover:opacity-75 cursor-pointer"
+                style={{ color: 'var(--w-accent)', background: 'none', border: 'none', padding: 0 }}
+              >
+                Open Accounts
+              </button>
+            )}
           </div>
         )}
       </div>
