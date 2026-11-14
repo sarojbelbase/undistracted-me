@@ -1,4 +1,4 @@
-name: Deploy Landing to Cloudflare Pages
+name: Deploy Landing Page
 
 on:
   push:
@@ -23,20 +23,13 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: landing/package-lock.json
-
       - name: Install dependencies
         working-directory: landing
-        run: npm ci
+        run: bun install
 
       - name: Build landing
         working-directory: landing
-        run: npm run build
+        run: bun run build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
