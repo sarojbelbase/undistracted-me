@@ -34,9 +34,7 @@
 		"dayjs": "^1.11.23",
 		"lexical": "^0.53.0",
 		"preact": "^11.2.0",
-		"react": "^19.3.1",
 		"react-bootstrap-icons": "^1.11.6",
-		"react-dom": "^19.3.1",
 		"react-grid-layout": "^2.3.0",
 		"rss-parser": "^3.13.0",
 		"zustand": "^5.1.0"
@@ -53,6 +51,8 @@
 		"esbuild": "^0.28.2",
 		"jsdom": "~31.0.1",
 		"postcss": "^8.5.33",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
 		"sass": "^1.108.2",
 		"tailwindcss": "^4.3.5",
 		"vite": "^8.3.8",

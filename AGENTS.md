@@ -8,8 +8,9 @@ Project guide for AI agents working in this repo.
 new tab page with a Nepali-date dashboard: Focus Mode (cinematic clock) and
 Dashboard (draggable widget grid).
 
-- **Stack**: React 19 · Vite 8 · `@crxjs/vite-plugin` · Tailwind CSS v4 ·
-  Zustand (+ `persist`) · react-grid-layout · Lexical · dayjs · Preact (legacy)
+- **Stack**: Preact (via `react`/`react-dom` → `preact/compat` alias) · Vite 8 ·
+  `@crxjs/vite-plugin` · Tailwind CSS v4 · Zustand (+ `persist`) ·
+  react-grid-layout · Lexical · dayjs
 - **Backend**: Cloudflare Pages Functions in `api/` → `api.undistracted.me`
 - **Landing**: Astro site in `landing/` → `undistracted.me`
 - **Tests**: Vitest (unit) + Playwright (E2E)
@@ -65,8 +66,13 @@ Custom subagents live in `.opencode/agents/`: `react-guru`,
   calendar/contacts caches — never `localStorage`.
 - **Spotify refresh failure**: do not clear tokens; only
   `disconnectSpotify()` wipes them.
-- **StrictMode safety**: never mutate state inside `setX(prev => …)` when you
-  also dispatch events (double-invoke bug).
+- **Runtime is Preact, not React**: `react`/`react-dom` are aliased to
+  `preact/compat` in `vite.config.ts` and are dev-only deps (Vitest runs on real
+  React). Preact's `compat` does NOT implement `React.StrictMode` double-invocation,
+  `use`, or `useOptimistic` — don't rely on those in app code.
+- **Pure render**: never call `setState` inside another `setState` updater, and
+  never write to localStorage/refs during render (future-proofs a return to React
+  19 dev, where these become real bugs).
 - **Per-breakpoint layouts**: persist `allLayouts` from `onLayoutChange`.
 - **Widgets**: register in `app/widgets/index.js` (`WIDGET_TYPES`,
   `WIDGET_REGISTRY`) and add a folder under `app/widgets/<name>/`.

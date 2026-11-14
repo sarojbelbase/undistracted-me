@@ -1,6 +1,5 @@
 import './themeInit.js'; // must be first — sets data-mode & CSS vars before React renders
 import ReactDOM from 'react-dom/client';
-import React from 'react';
 import App from './App';
 import { getPlatform, PLATFORMS, API_BASE_URL } from './constants/env';
 
@@ -55,10 +54,10 @@ if (location.hostname === 'app.undistracted.me') {
   }
 }
 
+// Note: this app runs on Preact — `react`/`react-dom` are aliased to
+// `preact/compat` in vite.config.ts. Preact's compat layer renders
+// <StrictMode> as a passthrough (no double-invocation of updaters/effects), so
+// the wrapper is omitted here to avoid implying a guarantee we don't get.
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+root.render(<App />);
 
