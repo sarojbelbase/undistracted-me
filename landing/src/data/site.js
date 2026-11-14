@@ -1,7 +1,7 @@
 export const site = {
   name: "Undistracted Me",
   url: "https://undistracted.me",
-  title: "Undistracted Me: unplug the noise",
+  title: "Undistracted Me - New Tab Page | Unplug The Noise",
   description:
     "Undistracted Me is a free, open-source new tab for Chrome and Firefox: calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. Works offline.",
   // Bump this whenever the landing page content materially changes.
