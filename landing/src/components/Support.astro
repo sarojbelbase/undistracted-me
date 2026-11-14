@@ -22,6 +22,7 @@ const tiers = [
     nprLabel: `Rs. ${fmt(t.npr)}`,
     inrLabel: `₹${fmt(t.npr / NPR_PER_INR)}`,
     usdLabel: `$${fmt(momos * MOMO_USD)}`,
+    usdValue: momos * MOMO_USD,
   };
 });
 
@@ -55,7 +56,7 @@ const supporters = [];
       {tiers.map((t) => (
         <div class="tier-card">
           <span class="tc-name">{t.name}</span>
-          <span class="tc-amt" data-npr={t.nprLabel} data-inr={t.inrLabel} data-usd={t.usdLabel}>{t.nprLabel}</span>
+          <span class="tc-amt" data-npr={t.nprLabel} data-inr={t.inrLabel} data-usd={t.usdLabel} data-usd-val={t.usdValue}>{t.nprLabel}</span>
           <span class="tc-usd">{t.momos} momos</span>
         </div>
       ))}
