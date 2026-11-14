@@ -41,9 +41,8 @@ describe('assertStrictOrigin', () => {
     expect(assertStrictOrigin(makeReq({ origin: ORIGINS.production }))).toBeNull();
   });
 
-  it('rejects an Origin-less request with 403 (blocks curl that omits Origin)', () => {
-    const res = assertStrictOrigin(makeReq({ origin: '' }));
-    expect(res.status).toBe(403);
+  it('allows an Origin-less request (extension host_permissions omit Origin)', () => {
+    expect(assertStrictOrigin(makeReq({ origin: '' }))).toBeNull();
   });
 
   it('rejects an unknown origin with 403', () => {

@@ -49,24 +49,20 @@ export function assertOrigin(request) {
 }
 
 /**
- * Strict origin gate for fetch()-based endpoints (photos, rain, token, rss,
- * tries). Unlike assertOrigin — which the favicon <img> endpoint needs because
- * <img> requests carry no Origin header — this REJECTS requests with no Origin,
- * so a non-browser client (curl, scripts) that omits Origin is refused.
+ * Origin allow-list for fetch()-based endpoints (photos, rain, token, rss,
+ * tries, stats, …).
  *
- * Honest caveat: a non-browser client can still FORGE an Origin header, because
- * Origin is a browser-enforced signal, not a secret. This stops browsers and
- * naive clients; real bot/curl protection lives in Cloudflare (Bot Fight Mode /
- * Managed Challenge, which use a JS challenge + TLS fingerprinting).
+ * Rejects requests whose Origin is present but NOT allow-listed — the actual
+ * abuse vector: a foreign website firing cross-origin requests at the API.
+ *
+ * Requests with NO Origin are allowed through: the extension calls the API via
+ * `host_permissions` (CORS is bypassed at the browser level), so Chrome omits
+ * the Origin header — notably from the MV3 background service worker. Rejecting
+ * no-Origin returned 403 for every legitimate extension call. (A non-browser
+ * client can forge an Origin anyway; real bot/curl protection lives in
+ * Cloudflare Bot Fight Mode / Managed Challenge.)
  */
 export function assertStrictOrigin(request) {
-  const origin = request.headers.get('origin') || '';
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-    });
-  }
   return assertOrigin(request);
 }
 
