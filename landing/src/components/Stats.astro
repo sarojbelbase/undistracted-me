@@ -5,7 +5,7 @@ const stats = [
   { key: "stars", top: "GitHub", sub: "stars", icon: "github", href: site.githubUrl },
   { key: "chrome", top: "Chrome", sub: "users", icon: "chrome", href: site.chromeUrl },
   { key: "firefox", top: "Firefox", sub: "users", icon: "firefox", href: site.firefoxUrl },
-  { key: "tries", top: "Web app", sub: "tries", icon: "web", href: site.webAppUrl },
+  { key: "visits", top: "Web app", sub: "visits", icon: "web", href: site.webAppUrl },
 ];
 ---
 
@@ -82,7 +82,7 @@ const stats = [
               stars: d && d.github && d.github.stars,
               chrome: d && d.chrome && d.chrome.users,
               firefox: d && d.firefox && d.firefox.users,
-              tries: d && d.tries,
+              visits: d && d.visits,
             }),
           )
           .catch(() => render({}));

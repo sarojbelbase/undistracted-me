@@ -39,16 +39,16 @@ if (
   document.head.appendChild(beacon);
 }
 
-// ── Count a web-app "try" (hosted app only, once per browser session) ────────
-// Increments the /tries KV counter on api.undistracted.me. Strictly gated to
+// ── Count a web-app visit (hosted app only, once per browser session) ─────────
+// Increments the /visits KV counter on api.undistracted.me. Strictly gated to
 // app.undistracted.me so extension new-tab opens never fire it (and never trip
 // the extension CSP). A session cookie dedupes across tabs and refreshes, and
 // no identifier is sent — the counter is just a number.
 if (location.hostname === 'app.undistracted.me') {
   try {
-    if (!document.cookie.includes('um_tried=1')) {
-      document.cookie = 'um_tried=1; path=/; samesite=lax';
-      fetch(`${API_BASE_URL}/tries`, { method: 'POST' }).catch(() => {});
+    if (!document.cookie.includes('um_visited=1')) {
+      document.cookie = 'um_visited=1; path=/; samesite=lax';
+      fetch(`${API_BASE_URL}/visits`, { method: 'POST' }).catch(() => {});
     }
   } catch (e) {
     // cookie or fetch blocked — never crash the app

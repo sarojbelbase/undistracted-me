@@ -4,7 +4,7 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
-# KV binding for the "web app tries" counter (api/tries.js + api/_kv.js).
+# KV binding for the "web app visits" counter (api/visits.js + api/_kv.js).
 # The dashboard Bindings section is read-only while this file is the source of
 # truth, so the binding must live here. The API project (undistracted-me-api)
 # also deploys with this file in the working directory, so the binding applies

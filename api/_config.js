@@ -50,7 +50,7 @@ export function assertOrigin(request) {
 
 /**
  * Origin allow-list for fetch()-based endpoints (photos, rain, token, rss,
- * tries, stats, …).
+ * visits, stats, …).
  *
  * Rejects requests whose Origin is present but NOT allow-listed — the actual
  * abuse vector: a foreign website firing cross-origin requests at the API.

@@ -3,14 +3,14 @@
  *
  * Aggregates GitHub stars, Chrome Web Store users and Firefox users via
  * shields.io (the same source as the README badges — the only public source
- * for Chrome's user count) plus the KV-backed web-app "tries" counter.
+ * for Chrome's user count) plus the KV-backed web-app "visits" counter.
  *
  * The response is edge-cached for a minute so we don't hammer shields.io.
  */
 
 import { assertStrictOrigin, corsHeaders, json } from './_config.js';
 import { rateLimit } from './_ratelimit.js';
-import { getTries } from './_kv.js';
+import { getVisits } from './_kv.js';
 
 const GITHUB_STARS =
   'https://img.shields.io/github/stars/sarojbelbase/undistracted-me.json';
@@ -52,11 +52,11 @@ export async function onRequest(context) {
     return json({ error: 'Method not allowed' }, 405, { request });
   }
 
-  const [stars, chromeUsers, firefoxUsers, tries] = await Promise.all([
+  const [stars, chromeUsers, firefoxUsers, visits] = await Promise.all([
     shieldsValue(GITHUB_STARS),
     shieldsValue(CHROME_USERS),
     shieldsValue(FIREFOX_USERS),
-    getTries(env),
+    getVisits(env),
   ]);
 
   return json(
@@ -64,7 +64,7 @@ export async function onRequest(context) {
       github: { stars },
       chrome: { users: chromeUsers },
       firefox: { users: firefoxUsers },
-      tries,
+      visits,
     },
     200,
     { request, headers: { 'Cache-Control': 'public, max-age=60' } },
