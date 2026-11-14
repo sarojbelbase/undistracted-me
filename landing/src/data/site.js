@@ -18,5 +18,13 @@ export const site = {
   githubUrl: "https://github.com/sarojbelbase/undistracted-me",
   formsUrl: "https://forms.gle/7vf4VGrB9Loz8hB76",
   momoUrl: "https://buymemomo.com/sarojbelbase",
+  social: {
+    reddit: "https://www.reddit.com/r/Nepal/comments/ggyzev/undistracted_me_a_nepali_extension_for_your/",
+    linkedin: [
+      "https://www.linkedin.com/posts/sarojbelbase_undistractedme-madeinnepal-chromeextension-ugcPost-7294304729004703744-k1tI",
+      "https://www.linkedin.com/posts/sarojbelbase_chromestore-share-6667725433678778368-c04V",
+      "https://www.linkedin.com/posts/sarojbelbase_firefox-chrome-share-6665168217478168576-BuQo",
+    ],
+  },
   privacyUrl: "/pp-and-tos",
 };

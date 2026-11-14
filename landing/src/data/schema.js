@@ -19,7 +19,7 @@ export function buildSchemaGraph() {
         "@id": `${site.url}/#author`,
         name: site.author.name,
         url: site.author.url,
-        sameAs: [site.author.url],
+        sameAs: [site.author.url, ...site.social.linkedin],
         jobTitle: "Creator",
         knowsAbout: [
           "Nepali calendar",
@@ -37,7 +37,7 @@ export function buildSchemaGraph() {
           "@type": "ImageObject",
           url: `${site.url}/favicon.png`,
         },
-        sameAs: [site.githubUrl, site.chromeUrl, site.firefoxUrl],
+        sameAs: [site.githubUrl, site.chromeUrl, site.firefoxUrl, site.social.reddit],
         founder: { "@id": `${site.url}/#author` },
       },
       {
