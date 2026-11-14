@@ -38,7 +38,7 @@ Actions: `addInstance`, `removeInstance`, `restoreInstances`, `updateWidgetSetti
 Persistence key: `location_state`
 Fields: `lat`, `lon`, `city`, `timezone`, `source` (`'browser'|'ip'|'default'|null`), `sunrise`, `sunset`, `isDay`, `status` (`'idle'|'loading'|'ready'|'error'`), `lastUpdated`
 Actions: `refresh` (full 3-tier pipeline), `refreshSunTimes` (no-network sun recalculation)
-- Resolution pipeline: `navigator.geolocation` → IP (freeipapi.com / ipapi.co) → Kathmandu hardcoded
+- Resolution pipeline: `navigator.geolocation` → IP (free.freeipapi.com / ipapi.co) → Kathmandu hardcoded
 - Reverse-geocodes city name via **Nominatim** (`nominatim.openstreetmap.org`)
 - VPN detection: if IP coords shift >100 km from previous, dispatches `location_changed` window event
 - `source='browser'` TTL: 6 h; `source='ip'` TTL: 30 min; managed by `useLocation` hook in `app/hooks/useLocation.js`
@@ -474,7 +474,7 @@ Key shared components:
   "https://nominatim.openstreetmap.org/*",         // Reverse-geocode city name
   "https://icanhazdadjoke.com/*",                  // Jokes widget
   "https://ipapi.co/*",                            // IP geolocation (web mode only)
-  "https://freeipapi.com/*"                        // IP geolocation (extension mode)
+  "https://free.freeipapi.com/*"                   // IP geolocation (extension mode)
 ]
 ```
 There is **no `*://*/*` wide host permission** — the site blocker uses

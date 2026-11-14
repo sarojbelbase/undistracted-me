@@ -308,7 +308,7 @@ import { buildSchemaGraph } from "../data/schema.js";
     try {
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), 3000);
-      const res = await fetch("https://freeipapi.com/api/json", { signal: ctrl.signal });
+      const res = await fetch("https://free.freeipapi.com/api/v1/json", { signal: ctrl.signal });
       clearTimeout(to);
       const d = await res.json();
       const code = d.countryCode;

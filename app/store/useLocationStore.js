@@ -14,7 +14,7 @@
  *
  * Resolution pipeline (in priority order):
  *   1. navigator.geolocation — GPS/WiFi, most accurate
- *   2. freeipapi.com         — IP-based, works from extension origins
+ *   2. free.freeipapi.com    — IP-based, works from extension origins
  *   3. Kathmandu hardcoded  — last resort (source = 'default')
  */
 
@@ -75,7 +75,7 @@ const reverseGeocodeCity = async (lat, lon) => {
   }
 };
 
-/** IP geolocation — tries freeipapi.com (works from extension origins). */
+/** IP geolocation — tries free.freeipapi.com (works from extension origins). */
 const getCoordsFromIP = async () => {
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
@@ -97,7 +97,7 @@ const getCoordsFromIP = async () => {
     } catch { /* fall through */ }
   }
 
-  // freeipapi.com — CORS-enabled, works from extension origins
+  // free.freeipapi.com — CORS-enabled, works from extension origins
   try {
     const r = await fetch(FREEIPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
     if (r.ok) {
@@ -107,7 +107,7 @@ const getCoordsFromIP = async () => {
           lat: d.latitude,
           lon: d.longitude,
           city: d.cityName || '',
-          timezone: d.timeZone || null,
+          timezone: d.timeZones?.[0] || null,
         };
       }
     }

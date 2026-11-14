@@ -74,7 +74,7 @@
     "https://nominatim.openstreetmap.org/*",
     "https://icanhazdadjoke.com/*",
     "https://ipapi.co/*",
-    "https://freeipapi.com/*"
+    "https://free.freeipapi.com/*"
   ],
   "content_scripts": [
     {

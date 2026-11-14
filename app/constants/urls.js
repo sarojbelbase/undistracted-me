@@ -46,7 +46,7 @@ export const NOMINATIM_REVERSE_API = 'https://nominatim.openstreetmap.org/revers
 export const IPAPI_GEO_URL = 'https://ipapi.co/json/';
 
 /** IP geolocation fallback — CORS-enabled, works from extension origins. */
-export const FREEIPAPI_GEO_URL = 'https://freeipapi.com/api/json';
+export const FREEIPAPI_GEO_URL = 'https://free.freeipapi.com/api/v1/json';
 
 // ── Nepal stock market ────────────────────────────────────────────────────────
 
