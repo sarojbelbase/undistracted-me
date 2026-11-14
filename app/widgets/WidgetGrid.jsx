@@ -238,7 +238,9 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   // Keep a ref to the latest layouts so onDragStop can persist without a stale closure.
   const layoutsRef = useRef(layouts);
-  layoutsRef.current = layouts;
+  useEffect(() => {
+    layoutsRef.current = layouts;
+  }, [layouts]);
 
   const handleDragStart = useCallback((_layout, oldItem) => {
     setDraggingId(oldItem.i);

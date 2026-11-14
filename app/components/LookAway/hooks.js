@@ -40,7 +40,9 @@ function isSnoozed() {
  */
 export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onTrigger }) => {
   const triggerRef = useRef(onTrigger);
-  triggerRef.current = onTrigger;
+  useEffect(() => {
+    triggerRef.current = onTrigger;
+  }, [onTrigger]);
 
   // ── Sync alarm with the service worker ───────────────────────────────────────
   useEffect(() => {

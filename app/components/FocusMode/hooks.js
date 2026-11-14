@@ -360,7 +360,9 @@ export function useFocusTasks() {
   // Ref mirror of tasks — lets mutation callbacks read the current list without
   // being in their dependency arrays (avoids recreating on every task change).
   const tasksRef = useRef(tasks);
-  tasksRef.current = tasks;
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   const load = useCallback(async () => {
     if (!isGoogleAuthAvailable()) {
