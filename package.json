@@ -43,7 +43,7 @@
 	},
 	"devDependencies": {
 		"@crxjs/vite-plugin": "^3.0.0",
-		"@playwright/test": "^1.65.0",
+		"@playwright/test": "^1.65.1",
 		"@preact/preset-vite": "^2.10.6",
 		"@tailwindcss/postcss": "^4.3.5",
 		"@testing-library/jest-dom": "^7.0.1",
@@ -52,7 +52,7 @@
 		"@vitest/coverage-v8": "^5.1.0",
 		"esbuild": "^0.28.2",
 		"jsdom": "~31.0.1",
-		"postcss": "^8.5.32",
+		"postcss": "^8.5.33",
 		"sass": "^1.108.2",
 		"tailwindcss": "^4.3.5",
 		"vite": "^8.3.8",
