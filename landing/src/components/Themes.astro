@@ -18,7 +18,7 @@ const themes = [
   <div class="swatches">
     {themes.map((t) => (
       <figure>
-        <img src={t.image.src} alt={t.alt} loading="lazy" decoding="async" />
+        <img src={t.image.src} width={t.image.width} height={t.image.height} alt={t.alt} loading="lazy" decoding="async" />
         <figcaption>
           <div class="th-row">
             <span class="th-t">{t.name}</span>

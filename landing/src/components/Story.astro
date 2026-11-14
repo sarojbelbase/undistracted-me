@@ -43,7 +43,7 @@ const steps = [
 <section class="story" id="story">
   <div class="stage" aria-hidden="true">
     {steps.map((s) => (
-      <img class={s.on ? "on" : undefined} src={s.image.src} alt={s.alt} loading="lazy" decoding="async" />
+      <img class={s.on ? "on" : undefined} src={s.image.src} width={s.image.width} height={s.image.height} alt={s.alt} loading="lazy" decoding="async" />
     ))}
     <ol class="dots">
       {steps.map((s) => <li class={s.on ? "on" : undefined}></li>)}

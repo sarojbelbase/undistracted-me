@@ -1,5 +1,5 @@
 ---
-import speak from "../assets/design/speak.png";
+import speak from "../assets/design/speak.webp";
 import { site } from "../data/site.js";
 
 const points = [
@@ -11,7 +11,7 @@ const points = [
 ---
 
 <section class="sec dark two priv" id="privacy">
-  <img class="priv-img" src={speak.src} alt="A person speaking." loading="lazy" decoding="async" />
+  <img class="priv-img" src={speak.src} width={speak.width} height={speak.height} alt="A person speaking." loading="lazy" decoding="async" />
   <div>
     <h2>Your new tab is nobody's business.</h2>
     <p>Undistracted Me is built to be quiet about your data. There's no account to create, no tracking to opt out of, and no analytics watching over your shoulder.</p>

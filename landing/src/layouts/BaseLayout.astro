@@ -44,13 +44,18 @@ const fontsUrl =
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
         { rel: "preconnect", href: "https://cloud.umami.is" },
-        { rel: "stylesheet", href: fontsUrl },
       ]}
       extraMeta={[
         { name: "theme-color", content: "#f7f7f7" },
         { name: "color-scheme", content: "light" },
       ]}
     />
+
+    <!-- Fonts: loaded non-blocking so first paint isn't held back by the
+         Google Fonts round-trip; text renders in fallback then swaps in
+         (display=swap). -->
+    <link rel="stylesheet" href={fontsUrl} media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href={fontsUrl} /></noscript>
 
     <!-- Umami Web Analytics -->
     <script

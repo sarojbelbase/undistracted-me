@@ -11,7 +11,7 @@ const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
   <div class="mason" id="mason">
     <article class="cell a" data-tip={leadWidget.tooltip}>
       <div class="media">
-        <img class="gs" src={leadWidget.images[0].src} alt={leadWidget.alt} loading="eager" decoding="async" />
+        <img class="gs" src={leadWidget.images[0].src} width={leadWidget.images[0].width} height={leadWidget.images[0].height} alt={leadWidget.alt} loading="eager" decoding="async" />
       </div>
       <div class="cap">
         <h3>{leadWidget.title}</h3>
@@ -28,6 +28,8 @@ const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
                 <img
                   class={i === 0 ? "slide-img on" : "slide-img"}
                   src={img.src}
+                  width={img.width}
+                  height={img.height}
                   alt={i === 0 ? w.alt : `${w.tooltip}, view ${i + 1}`}
                   aria-hidden={i !== 0}
                   loading={i === 0 ? "eager" : "lazy"}
@@ -47,7 +49,7 @@ const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
               </div>
             </div>
           ) : (
-            <img class="gs" src={w.images[0].src} alt={w.alt} loading="eager" decoding="async" />
+            <img class="gs" src={w.images[0].src} width={w.images[0].width} height={w.images[0].height} alt={w.alt} loading="eager" decoding="async" />
           )}
         </div>
       </article>
@@ -68,6 +70,8 @@ const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
                 <img
                   class={i === 0 ? "slide-img on" : "slide-img"}
                   src={img.src}
+                  width={img.width}
+                  height={img.height}
                   alt={i === 0 ? w.alt : `${w.tooltip}, view ${i + 1}`}
                   aria-hidden={i !== 0}
                   loading="lazy"
@@ -87,7 +91,7 @@ const cellClass = (kind) => (kind === "lead" ? "cell a" : "cell c");
               </div>
             </div>
           ) : (
-            <img class="gs" src={w.images[0].src} alt={w.alt} loading="lazy" decoding="async" />
+            <img class="gs" src={w.images[0].src} width={w.images[0].width} height={w.images[0].height} alt={w.alt} loading="lazy" decoding="async" />
           )}
         </div>
       </article>
