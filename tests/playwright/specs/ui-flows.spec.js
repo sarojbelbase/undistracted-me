@@ -55,8 +55,12 @@ test.describe('Look Away settings', () => {
     await lookAwaySwitch.click();
 
     // The "Remind every" presets should include 20m / 30m / 1 hr.
+    // Scope to the settings dialog — the pomodoro widget's "1 hr" preset also
+    // lives on the canvas (its "Pick phase" is visible when idle), so an
+    // unscoped exact-name lookup is ambiguous.
+    const settingsDialog = page.getByRole('dialog', { name: 'Canvas settings' });
     for (const label of ['20m', '30m', '1 hr']) {
-      await expect(page.getByRole('button', { name: label, exact: true })).toBeVisible();
+      await expect(settingsDialog.getByRole('button', { name: label, exact: true })).toBeVisible();
     }
   });
 

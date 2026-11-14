@@ -22,7 +22,14 @@ test.use({ viewport: { width: 1440, height: 900 } });
 
 /** Base localStorage seeds for a clean dark-mode widget canvas. */
 function baseStorage(extra = {}) {
-  return { showWidgets: 'true', app_mode: 'dark', language: 'en', ...extra };
+  return {
+    showWidgets: 'true',
+    app_mode: 'dark',
+    language: 'en',
+    // Dismiss the Quick Tour onboarding overlay so it doesn't block clicks
+    undistracted_settings: { state: { quickTourSeenVersion: '4.0.0' }, version: 0 },
+    ...extra,
+  };
 }
 
 /** Returns a future ISO date string (YYYY-MM-DD) N days from today. */
@@ -47,9 +54,9 @@ async function loadWith(page, storage = {}) {
 
 /** Navigate to Focus Mode by clicking the moon button. */
 async function enterFocusMode(page) {
-  await page.locator('button[title="Focus Mode (Alt+Shift+F)"]').click();
+  await page.getByRole('button', { name: /^Focus/ }).click();
   // Waiting for the "Back to Canvas" button confirms FocusMode mounted
-  await page.waitForSelector('button[title="Back to Canvas"]', { timeout: 6000 });
+  await page.getByRole('button', { name: 'Back to Canvas' }).waitFor({ state: 'visible', timeout: 6000 });
   // Brief settle for clock/greeting animation
   await page.waitForTimeout(400);
 }
@@ -74,29 +81,29 @@ test.describe('Focus Mode — entry and exit', () => {
   });
 
   test('moon button is visible on canvas', async ({ page }) => {
-    const btn = page.locator('button[title="Focus Mode (Alt+Shift+F)"]');
+    const btn = page.getByRole('button', { name: /^Focus/ });
     await expect(btn).toBeVisible();
   });
 
   test('clicking moon button enters Focus Mode', async ({ page }) => {
     await enterFocusMode(page);
     // "Back to Canvas" button is the canonical sign FocusMode is active
-    await expect(page.locator('button[title="Back to Canvas"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Back to Canvas' })).toBeVisible();
   });
 
   test('pressing Escape exits Focus Mode', async ({ page }) => {
     await enterFocusMode(page);
     await page.keyboard.press('Escape');
     // FocusMode unmounts — "Back to Canvas" disappears
-    await expect(page.locator('button[title="Back to Canvas"]')).toHaveCount(0, { timeout: 4000 });
+    await expect(page.getByRole('button', { name: 'Back to Canvas' })).toHaveCount(0, { timeout: 4000 });
     // App canvas comes back — moon button re-appears
-    await expect(page.locator('button[title="Focus Mode (Alt+Shift+F)"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Focus/ })).toBeVisible();
   });
 
   test('Canvas button in top bar exits Focus Mode', async ({ page }) => {
     await enterFocusMode(page);
-    await page.locator('button[title="Back to Canvas"]').click();
-    await expect(page.locator('button[title="Back to Canvas"]')).toHaveCount(0, { timeout: 4000 });
+    await page.getByRole('button', { name: 'Back to Canvas' }).click();
+    await expect(page.getByRole('button', { name: 'Back to Canvas' })).toHaveCount(0, { timeout: 4000 });
   });
 
   test('defaultView=focus launches directly into Focus Mode', async ({ page }) => {
@@ -108,14 +115,14 @@ test.describe('Focus Mode — entry and exit', () => {
       // Zustand persist format: { state: {...}, version: N }
       const existing = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
       const merged = {
-        state: { mode: 'dark', accent: 'Default', language: 'en', ...((existing?.state) || {}), defaultView: 'focus' },
+        state: { mode: 'dark', accent: 'Default', language: 'en', quickTourSeenVersion: '4.0.0', ...((existing?.state) || {}), defaultView: 'focus' },
         version: existing?.version ?? 0,
       };
       localStorage.setItem('undistracted_settings', JSON.stringify(merged));
     });
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.waitForTimeout(600);
-    await expect(page.locator('button[title="Back to Canvas"]')).toBeVisible({ timeout: 6000 });
+    await expect(page.getByRole('button', { name: 'Back to Canvas' })).toBeVisible({ timeout: 6000 });
   });
 });
 
@@ -130,7 +137,9 @@ test.describe('Focus Mode — clock and greeting', () => {
   });
 
   test('clock digits are visible', async ({ page }) => {
-    const clock = page.locator('.fm-clock-text');
+    // Focus search bar is enabled by default, so the clock renders in compact
+    // mode (`.fm-clock-text-compact`); non-compact is `.fm-clock-text`.
+    const clock = page.locator('.fm-clock-text, .fm-clock-text-compact');
     await expect(clock).toBeVisible();
     // DigitRoller renders each char in an inline-block span — Playwright's
     // innerText() adds \n between inline-block siblings. Use textContent()
@@ -142,7 +151,7 @@ test.describe('Focus Mode — clock and greeting', () => {
   });
 
   test('clock is within viewport bounds', async ({ page }) => {
-    const clock = page.locator('.fm-clock-text');
+    const clock = page.locator('.fm-clock-text, .fm-clock-text-compact');
     await expect(clock).toBeVisible();
     await assertInViewport(clock, page, 'Clock');
   });
@@ -288,8 +297,14 @@ test.describe('Focus Mode — left panel event card', () => {
 
   test('left panel does not show event panel when no events exist', async ({ page }) => {
     await loadWith(page, baseStorage({
+      // Seed a non-empty instance list so `seedWidgetInstancesIfEmpty()` skips
+      // the first-run DEMO seeding (which injects demo events/occasions/stocks
+      // and would make the "Upcoming"/"Stocks" labels appear regardless).
+      widget_instances: { state: { instances: [{ id: 'clock', type: 'clock' }], widgetSettings: {} }, version: 0 },
       widget_events: [],
-      widgetSettings_stock: null,
+      // Empty symbols — `useFocusStocks` falls back to DEFAULT_SYMBOLS ["NEPSE"]
+      // when the key is null/absent, which would render a "Stocks" panel.
+      widgetSettings_stock: { symbols: [] },
     }));
     await enterFocusMode(page);
     await page.waitForTimeout(600);
@@ -357,37 +372,36 @@ test.describe('Focus Mode — background management', () => {
 
   test('gear button opens FocusMode settings panel', async ({ page }) => {
     // Gear icon is in the top-right button group
-    const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
+    const gearBtn = page.getByRole('button', { name: 'Settings', exact: true });
     await gearBtn.click();
     // Settings panel has "Date Calendar" and "Clock Format" toggles
     await expect(page.getByText('Date Calendar')).toBeVisible({ timeout: 4000 });
     await expect(page.getByText('Clock Format')).toBeVisible();
   });
 
-  test('Change background button opens the Background Picker modal', async ({ page }) => {
-    const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
+  test('Background tab opens the Background settings panel', async ({ page }) => {
+    const gearBtn = page.getByRole('button', { name: 'Settings', exact: true });
     await gearBtn.click();
-    // Button label is "Change background" in FocusModeSettings panel
-    await page.getByText('Change background').click();
-    // Modal title is "Focus Mode Background" (rendered via BackgroundPicker scope=focus)
-    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
+    // Settings panel opens on the General tab
+    await expect(page.getByText('Date Calendar')).toBeVisible({ timeout: 4000 });
+    // Navigate to the Background tab
+    await page.getByRole('tab', { name: 'Background' }).click();
+    await expect(page.getByRole('button', { name: 'Curated Photos' })).toBeVisible();
   });
 
-  test('background picker has Photos and URL tabs for focus scope', async ({ page }) => {
-    const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
+  test('background settings show Curated Photos and Custom URL tabs', async ({ page }) => {
+    const gearBtn = page.getByRole('button', { name: 'Settings', exact: true });
     await gearBtn.click();
-    await page.getByText('Change background').click();
-    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
-    // Focus scope shows Photos (curated) and URL (custom) tabs
-    await expect(page.getByRole('button', { name: 'Photos' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'URL' })).toBeVisible();
+    await page.getByRole('tab', { name: 'Background' }).click();
+    await expect(page.getByRole('button', { name: 'Curated Photos' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Custom URL' })).toBeVisible();
   });
 
-  test('background picker close button dismisses the modal', async ({ page }) => {
-    const gearBtn = page.locator('button[title*="Settings"], button[title*="settings"]').last();
+  test('background settings close button dismisses the modal', async ({ page }) => {
+    const gearBtn = page.getByRole('button', { name: 'Settings', exact: true });
     await gearBtn.click();
-    await page.getByText('Change background').click();
-    await expect(page.getByText('Focus Mode Background')).toBeVisible({ timeout: 4000 });
+    await page.getByRole('tab', { name: 'Background' }).click();
+    await expect(page.getByRole('button', { name: 'Curated Photos' })).toBeVisible();
 
     // Close with aria-label button or Escape fallback
     const closeBtns = page.locator('button[aria-label="Close"]');
@@ -396,7 +410,7 @@ test.describe('Focus Mode — background management', () => {
     } else {
       await page.keyboard.press('Escape');
     }
-    await expect(page.getByText('Focus Mode Background')).toHaveCount(0, { timeout: 4000 });
+    await expect(page.getByRole('button', { name: 'Curated Photos' })).toHaveCount(0, { timeout: 4000 });
   });
 });
 
@@ -408,7 +422,7 @@ test.describe('Canvas — Countdown widget', () => {
   /** Mount a single countdown widget via localStorage and go to canvas. */
   async function mountCountdown(page, extra = {}) {
     await loadWith(page, baseStorage({
-      widget_instances: [{ id: 'countdown', type: 'countdown' }],
+      widget_instances: { state: { instances: [{ id: 'countdown', type: 'countdown' }], widgetSettings: {} }, version: 0 },
       ...extra,
     }));
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
@@ -420,7 +434,7 @@ test.describe('Canvas — Countdown widget', () => {
     await page.waitForTimeout(500); // grid settles
 
     // Catalog is opened via the grid icon button titled "Widgets"
-    const catalogBtn = page.locator('button[title="Widgets"]');
+    const catalogBtn = page.getByRole('button', { name: 'Widgets' });
     await expect(catalogBtn).toBeVisible({ timeout: 5000 });
 
     // Record baseline count before adding
@@ -449,11 +463,12 @@ test.describe('Canvas — Countdown widget', () => {
     await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
     // Empty state message in the countdown widget
-    await expect(w).toContainText('Nothing to count down to');
+    await expect(w).toContainText('No countdowns yet.');
   });
 
   test('countdown shows pre-seeded future event with days remaining', async ({ page }) => {
-    const future = futureDate(30);
+    // 5 days out so the humanized phrase is "in N days" (not "next month").
+    const future = futureDate(5);
     const event = { id: 'cd_pw_1', title: 'Product Launch', targetDate: future, targetTime: '10:00', repeat: 'none' };
     // pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
     await mountCountdown(page, {
@@ -476,36 +491,24 @@ test.describe('Canvas — Countdown widget', () => {
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     await page.waitForTimeout(500);
 
-    // CountdownSettings has a round + button (style: rounded-full accent bg) in the Custom section
-    // It's the only button.rounded-full with an SVG child that has accent background
-    const addCustomBtns = page.locator('button.rounded-full').filter({ has: page.locator('svg') });
-    const btnCount = await addCustomBtns.count();
-    // The + button is the last/only accent rounded button visible in the modal
-    let clicked = false;
-    for (let i = btnCount - 1; i >= 0; i--) {
-      const box = await addCustomBtns.nth(i).boundingBox();
-      if (box && box.width <= 28) { // w-6 h-6 = 24px
-        await addCustomBtns.nth(i).click();
-        clicked = true;
-        break;
-      }
-    }
-    if (!clicked) {
-      // Fallback: click the last rounded-full button
-      await addCustomBtns.last().click();
-    }
+    // The "Add Countdown" button (text pill, not a bare round + icon) opens the
+    // UnifiedAddDialog → AddCountdown form (Title text input + Date input).
+    await page.getByRole('button', { name: 'Add Countdown' }).click();
 
-    // AddModal should appear with Title input
     const titleInput = page.locator('input[type="text"]').first();
     await expect(titleInput).toBeVisible({ timeout: 4000 });
     await titleInput.fill('Playwright Demo Day');
 
-    const dateInput = page.locator('input[type="date"]').first();
-    await expect(dateInput).toBeVisible();
-    await dateInput.fill(futureDate(14));
+    // Date is entered via a segmented MM/DD/YYYY field (SegmentedDateTime) — no
+    // native <input type="date">. Open the calendar popover (month segment) and
+    // pick the first day of next month (always in the future).
+    const dateField = page.locator('fieldset[aria-label="Date and Time"]');
+    await dateField.getByRole('button').first().click();
+    await page.getByRole('button', { name: 'Next month' }).click();
+    await page.getByRole('button', { name: '1', exact: true }).click();
 
-    // Save
-    const saveBtn = page.getByRole('button', { name: /save|add/i });
+    // Save (exact — avoids colliding with the "Add Countdown" button behind).
+    const saveBtn = page.getByRole('button', { name: 'Save Countdown', exact: true });
     await saveBtn.click();
     await page.waitForTimeout(600);
 
@@ -535,13 +538,15 @@ test.describe('Canvas — Countdown widget', () => {
     });
     const w = page.locator('.react-grid-item').first();
     await expect(w).toContainText('New Year');
-    await expect(w).toContainText('days');
+    // Next occurrence (Jan 1 of next year) is ~2 months out — the widget shows a
+    // humanized phrase ("in 2 months"), not literal "days". Assert the mode label.
+    await expect(w).toContainText('Countdown');
   });
 
   test('countdown widget is not clipped', async ({ page }) => {
     await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
-    const inner = w.locator('.rounded-2xl').first();
+    const inner = w.locator('.overflow-hidden').first();
     const { hClip, scrollW, clientW } = await inner.evaluate(el => ({
       hClip: el.scrollWidth > el.clientWidth + 2,
       scrollW: el.scrollWidth,
@@ -559,7 +564,7 @@ test.describe('Canvas — Countdown widget', () => {
 test.describe('Canvas — Stock widget (NEPSE)', () => {
   async function mountStock(page, symbols = []) {
     await loadWith(page, baseStorage({
-      widget_instances: [{ id: 'stock', type: 'stock' }],
+      widget_instances: { state: { instances: [{ id: 'stock', type: 'stock' }], widgetSettings: {} }, version: 0 },
       widgetSettings_stock: { symbols },
     }));
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
@@ -570,7 +575,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     await loadWith(page, baseStorage({ widget_instances: [] }));
     await page.waitForTimeout(500);
 
-    const catalogBtn = page.locator('button[title="Widgets"]');
+    const catalogBtn = page.getByRole('button', { name: 'Widgets' });
     await expect(catalogBtn).toBeVisible({ timeout: 5000 });
     const before = await page.locator('.react-grid-item').count();
 
@@ -593,7 +598,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     await mountStock(page, []);
     const w = page.locator('.react-grid-item').first();
     // Widget renders even with no symbols — at minimum the card container is visible
-    const card = w.locator('.rounded-2xl').first();
+    const card = w.locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
   });
 
@@ -639,7 +644,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     }
 
     // NABIL should now appear as a selected chip or in the symbol list
-    const selectedArea = page.locator('.rounded-2xl, [data-selected]');
+    const selectedArea = page.locator('.overflow-hidden, [data-selected]');
     const text = await selectedArea.allInnerTexts();
     expect(text.join(' ')).toContain('NABIL');
   });
@@ -647,7 +652,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
   test('stock widget with pre-seeded symbols renders non-empty card', async ({ page }) => {
     await mountStock(page, ['NABIL', 'NICA']);
     const w = page.locator('.react-grid-item').first();
-    const card = w.locator('.rounded-2xl').first();
+    const card = w.locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
     // After a brief wait the widget shows symbol names
     await page.waitForTimeout(1500);
@@ -672,7 +677,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
   test('stock widget is not clipped', async ({ page }) => {
     await mountStock(page, ['NABIL']);
     const w = page.locator('.react-grid-item').first();
-    const inner = w.locator('.rounded-2xl').first();
+    const inner = w.locator('.overflow-hidden').first();
     const { hClip } = await inner.evaluate(el => ({
       hClip: el.scrollWidth > el.clientWidth + 2,
     }));
@@ -688,7 +693,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
 test.describe('Canvas — Events widget', () => {
   async function mountEvents(page, extra = {}) {
     await loadWith(page, baseStorage({
-      widget_instances: [{ id: 'events', type: 'events' }],
+      widget_instances: { state: { instances: [{ id: 'events', type: 'events' }], widgetSettings: {} }, version: 0 },
       widget_events: [],
       ...extra,
     }));
@@ -700,7 +705,7 @@ test.describe('Canvas — Events widget', () => {
     await loadWith(page, baseStorage({ widget_instances: [] }));
     await page.waitForTimeout(500);
 
-    const catalogBtn = page.locator('button[title="Widgets"]');
+    const catalogBtn = page.getByRole('button', { name: 'Widgets' });
     await expect(catalogBtn).toBeVisible({ timeout: 5000 });
     const before = await page.locator('.react-grid-item').count();
 
@@ -722,7 +727,7 @@ test.describe('Canvas — Events widget', () => {
   test('events widget renders the card container', async ({ page }) => {
     await mountEvents(page);
     const w = page.locator('.react-grid-item').first();
-    const card = w.locator('.rounded-2xl').first();
+    const card = w.locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
   });
 
@@ -789,7 +794,7 @@ test.describe('Canvas — Events widget', () => {
   test('pre-seeded event appears in Focus Mode left panel', async ({ page }) => {
     const tomorrow = futureDate(1);
     await loadWith(page, baseStorage({
-      widget_instances: [{ id: 'events', type: 'events' }],
+      widget_instances: { state: { instances: [{ id: 'events', type: 'events' }], widgetSettings: {} }, version: 0 },
       widget_events: [
         { id: 302, title: 'Engineering All-hands', startDate: tomorrow, startTime: '15:00', endDate: tomorrow, endTime: '16:00' },
       ],
@@ -805,7 +810,7 @@ test.describe('Canvas — Events widget', () => {
   test('events widget is not clipped', async ({ page }) => {
     await mountEvents(page);
     const w = page.locator('.react-grid-item').first();
-    const inner = w.locator('.rounded-2xl').first();
+    const inner = w.locator('.overflow-hidden').first();
     const { hClip } = await inner.evaluate(el => ({
       hClip: el.scrollWidth > el.clientWidth + 2,
     }));
@@ -824,15 +829,21 @@ test.describe('Canvas filled — Countdown + Stock + Events', () => {
   test.beforeEach(async ({ page }) => {
     const t = tomorrow();
     await loadWith(page, baseStorage({
-      widget_instances: [
-        { id: 'countdown', type: 'countdown' },
-        { id: 'stock', type: 'stock' },
-        { id: 'events', type: 'events' },
-      ],
+      widget_instances: {
+        state: {
+          instances: [
+            { id: 'countdown', type: 'countdown' },
+            { id: 'stock', type: 'stock' },
+            { id: 'events', type: 'events' },
+          ],
+          widgetSettings: {},
+        },
+        version: 0,
+      },
       countdown_events: [
-        { id: 'cd_fill_1', title: 'Release Day', targetDate: futureDate(60), targetTime: '09:00', repeat: 'none' },
+        { id: 'cd_fill_1', title: 'Release Day', targetDate: futureDate(5), targetTime: '09:00', repeat: 'none' },
       ],
-      countdown_pinned: { type: 'custom', id: 'cd_fill_1' },
+      countdown_pinned_countdown: { type: 'custom', id: 'cd_fill_1' },
       widgetSettings_stock: { symbols: ['NABIL', 'NICA'] },
       widget_events: [
         { id: 401, title: 'Sprint Demo', startDate: t, startTime: '14:00', endDate: t, endTime: '15:00' },

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { XLg } from "react-bootstrap-icons";
 
@@ -34,7 +34,11 @@ export const Modal = ({
   );
   const dialogRef = useRef(null);
 
-  useEffect(() => {
+  // Register the ESC handler synchronously (useLayoutEffect runs before paint).
+  // useEffect is async in Preact, so an Escape pressed immediately after the
+  // modal opens (before the effect flushes) would be missed — the modal would
+  // render visibly but ignore the first ESC. useLayoutEffect closes that window.
+  useLayoutEffect(() => {
     const handler = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -44,7 +48,7 @@ export const Modal = ({
 
   // Move focus into the dialog on mount (the <dialog> is tabIndex=-1 but was
   // never actually focused, so keyboard/screen-reader users had no target).
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
     const focusables = el.querySelectorAll(

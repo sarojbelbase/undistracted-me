@@ -7,7 +7,6 @@
  *  - No widget bounding box overflows the viewport horizontally
  *  - No widget's internal content is scrollable beyond its card boundary
  *  - Widget catalog drawer opens and closes without overflow
- *  - Widget toggle (show/hide) works
  *  - Screenshots captured for every widget for visual review
  */
 
@@ -59,6 +58,8 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('app_mode', 'dark');
     localStorage.setItem('app_accent', 'Default');
     localStorage.setItem('language', 'en');
+    // Dismiss the Quick Tour onboarding overlay so it doesn't block clicks
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { quickTourSeenVersion: '4.0.0' } }));
   });
   await page.goto('/', { waitUntil: 'networkidle' });
   // Allow widget data to settle (clocks, stock fetches, etc.)
@@ -99,8 +100,8 @@ test('No widget overflows the viewport horizontally', async ({ page }) => {
 });
 
 test('No widget card clips its inner content', async ({ page }) => {
-  // The inner card is the .rounded-2xl inside each .react-grid-item
-  const cards = page.locator('.react-grid-item .rounded-2xl');
+  // The inner card is the .overflow-hidden inside each .react-grid-item
+  const cards = page.locator('.react-grid-item .overflow-hidden');
   const count = await cards.count();
 
   const clippingIssues = [];
@@ -153,20 +154,20 @@ test('Screenshot every widget for visual review', async ({ page }) => {
 // ── Widget catalog ────────────────────────────────────────────────────────────
 
 test('Widget catalog drawer opens', async ({ page }) => {
-  await page.getByTitle('Manage Widgets').click();
+  await page.getByRole('button', { name: 'Widgets', exact: true }).click();
   // The catalog has a close button (XLg icon, aria-label="Close" or title pattern)
   // and the text "Widgets" as a tab heading
   await expect(page.getByText('Widgets').first()).toBeVisible();
 });
 
 test('Widget catalog drawer does not overflow viewport', async ({ page }) => {
-  await page.getByTitle('Manage Widgets').click();
+  await page.getByRole('button', { name: 'Widgets', exact: true }).click();
   await page.waitForTimeout(400); // allow animation
 
   const { width: vw, height: vh } = page.viewportSize();
 
-  // The drawer is a fixed right-side panel (width: 320px)
-  const drawer = page.locator('[style*="width: 320"]');
+  // The drawer is a right-side <dialog> panel (class .wc-panel)
+  const drawer = page.getByRole('dialog', { name: 'Widget catalog' });
   const box = await drawer.boundingBox();
   if (box) {
     expect(box.x + box.width).toBeLessThanOrEqual(vw + 2);
@@ -174,38 +175,21 @@ test('Widget catalog drawer does not overflow viewport', async ({ page }) => {
   }
 });
 
-test('Widget catalog drawer closes when backdrop is clicked', async ({ page }) => {
-  await page.getByTitle('Manage Widgets').click();
-  await expect(page.getByText('Widgets').first()).toBeVisible();
+test('Widget catalog drawer closes via its close button', async ({ page }) => {
+  await page.getByRole('button', { name: 'Widgets', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Widget catalog' })).toBeVisible();
 
-  // Click the backdrop (fixed inset-0 div behind the drawer)
-  await page.mouse.click(200, 400); // left side of viewport, outside the 320px drawer
-  await page.waitForTimeout(300);
+  // The drawer closes via the X button (aria-label "Close (Esc)") — the backdrop
+  // no longer closes it (backdrop has pointer-events: none).
+  await page.getByRole('button', { name: 'Close (Esc)' }).click();
 
-  // The in-drawer "Widgets" tab text should no longer be visible
-  await expect(page.locator('[style*="width: 320"]')).not.toBeAttached();
+  await expect(page.getByRole('dialog', { name: 'Widget catalog' })).not.toBeAttached();
 });
 
-// ── Widget toggle ─────────────────────────────────────────────────────────────
-
-test('Widget toggle hides the widget grid', async ({ page }) => {
-  const grid = page.locator('.react-grid-layout');
-  await expect(grid.first()).toBeAttached();
-
-  await page.getByTitle('Hide Widgets').click();
-
-  // After hiding, the classic Nepali date view should appear
-  await page.waitForSelector('#nepalimiti', { timeout: 4000 });
-  await expect(page.locator('#nepalimiti')).toBeVisible();
-});
-
-test('Widget toggle shows widgets again after hiding', async ({ page }) => {
-  await page.getByTitle('Hide Widgets').click();
-  await page.waitForSelector('#nepalimiti', { timeout: 4000 });
-
-  await page.getByTitle('Show Widgets').click();
-  await page.waitForSelector('.react-grid-layout', { timeout: 4000 });
-  await expect(page.locator('.react-grid-layout').first()).toBeAttached();
-});
+// ── Widget toggle (REMOVED) ───────────────────────────────────────────────────
+//
+// The widget show/hide toggle and the classic Nepali-date (#nepalimiti) view
+// were removed in the Preact migration. The app now always renders the widget
+// grid on the canvas, so there is no hide/show behaviour to test.
 
 

@@ -6,8 +6,8 @@
  * interactions, settings persistence, and clipping.
  *
  * Widgets covered:
- *   clock · dateToday · progress · countdown · notes · facts
- *   bookmarks · weather · stock · pomodoro · events · calendar · spotify
+ *   clock · dateToday · progress · countdown · notes · dailys
+ *   bookmark · weather · stock · pomodoro · events · calendar · media
  */
 
 import { test, expect } from '@playwright/test';
@@ -57,9 +57,9 @@ const widget = (page) => page.locator('.react-grid-item').first();
  * `assertInViewport` separately verifies the bounding box is on-screen.
  */
 async function assertNoClip(locator, label) {
-  // Check the inner card (.rounded-2xl) which is the element with overflow:hidden.
+  // Check the inner card (.overflow-hidden) which is the element with overflow:hidden.
   // Falling back to the passed locator if no inner card is found.
-  const target = locator.locator('.rounded-2xl').first();
+  const target = locator.locator('.overflow-hidden').first();
   const count = await target.count();
   const el = count > 0 ? target : locator;
 
@@ -128,8 +128,8 @@ test.describe('Clock widget', () => {
     await page.getByText('Settings').click();
     // Settings modal should show Time Format label and radio options
     await expect(page.getByText('Time Format')).toBeVisible();
-    await expect(page.getByText('24-hour')).toBeVisible();
-    await expect(page.getByText('12-hour (AM/PM)')).toBeVisible();
+    await expect(page.getByText('24h')).toBeVisible();
+    await expect(page.getByText('12h (AM/PM)')).toBeVisible();
   });
 
   test('is not clipped', async ({ page }) => {
@@ -182,7 +182,7 @@ test.describe('DateToday widget', () => {
 
 // ── 3. Progress widget ────────────────────────────────────────────────────────
 
-test.describe('DayProgress widget', () => {
+test.describe('Progress widget', () => {
   test('shows a percentage label', async ({ page }) => {
     await mountWidget(page, 'progress');
     await expect(widget(page)).toContainText('%');
@@ -229,7 +229,9 @@ test.describe('Countdown widget', () => {
 
   test('shows days count for a pre-seeded future event', async ({ page }) => {
     const futureDate = new Date();
-    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    // Seed a few days out so the humanized phrase is "in N days" (a 1-year-out
+    // event renders as "next year" instead).
+    futureDate.setDate(futureDate.getDate() + 4);
     const dateStr = futureDate.toISOString().slice(0, 10); // YYYY-MM-DD
     const event = { id: 'cd_test_1', title: 'Big Launch', targetDate: dateStr, targetTime: '', repeat: 'none' };
     // Widget uses pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
@@ -261,15 +263,15 @@ test.describe('Notes widget', () => {
     });
     const ta = widget(page).locator('textarea');
     await expect(ta).toBeVisible();
-    await expect(ta).toHaveAttribute('placeholder', 'New note...');
+    await expect(ta).toHaveAttribute('placeholder', 'New Note...');
   });
 
   test('pre-seeded text is shown', async ({ page }) => {
     await mountWidget(page, 'notes', {
-      widgetSettings_notes: { text: 'Hello Playwright', bgColor: null },
+      widgetSettings_notes: { notes: ['Hello Playwright'], idx: 0 },
     });
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Hello Playwright');
+    // A single-line note becomes the title (first line); the body textarea is empty.
+    await expect(widget(page).locator('.notes-title-btn')).toContainText('Hello Playwright');
   });
 
   test('typing in textarea persists to localStorage', async ({ page }) => {
@@ -279,10 +281,14 @@ test.describe('Notes widget', () => {
     const ta = widget(page).locator('textarea');
     await ta.click();
     await ta.fill('Test note content');
-    const saved = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('widgetSettings_notes') || '{}')
-    );
-    expect(saved.text).toBe('Test note content');
+    // The typed text is stored as the note body (single-line → body, empty title).
+    await expect(ta).toHaveValue('Test note content');
+    await expect.poll(async () => {
+      const saved = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('widgetSettings_notes') || '{}')
+      );
+      return (saved.notes?.[0]?.text || '');
+    }, { timeout: 5000 }).toContain('Test note content');
   });
 
   test('is not clipped', async ({ page }) => {
@@ -294,102 +300,84 @@ test.describe('Notes widget', () => {
   });
 });
 
-// ── 6. Facts widget ───────────────────────────────────────────────────────────
+// ── 6. Dailys widget (fact mode) ──────────────────────────────────────────────
 
-test.describe('Facts widget', () => {
+test.describe('Dailys widget (fact mode)', () => {
   test('shows non-empty fact text', async ({ page }) => {
-    await mountWidget(page, 'facts');
+    await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'fact', autoSlide: false } });
     const text = await widget(page).innerText();
     expect(text.trim().length).toBeGreaterThan(10);
   });
 
-  test('shows a category badge', async ({ page }) => {
-    await mountWidget(page, 'facts');
-    // Category is a small span with accent background — it always has text
-    // The facts list has categories like 'science', 'history', etc.
-    const card = widget(page).locator('.rounded-2xl').first();
+  test('shows a mode badge', async ({ page }) => {
+    await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'fact', autoSlide: false } });
+    // The footer badge shows the current mode ("Fact") — it always renders.
+    const card = widget(page).locator('.overflow-hidden').first();
     const text = await card.innerText();
-    // Badge is the last line — it should be non-empty and reasonably short
+    // Badge is the last line — text + "Fact" badge = at least 2 lines
     const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
     expect(lines.length).toBeGreaterThanOrEqual(2);
   });
 
   test('is not clipped', async ({ page }) => {
-    await mountWidget(page, 'facts');
-    await assertNoClip(widget(page), 'Facts');
-    await assertInViewport(widget(page), page, 'Facts');
+    await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'fact', autoSlide: false } });
+    await assertNoClip(widget(page), 'Dailys');
+    await assertInViewport(widget(page), page, 'Dailys');
   });
 });
 
-// ── 7. Bookmarks widget ───────────────────────────────────────────────────────
+// ── 7. Bookmark widget ────────────────────────────────────────────────────────
 
-test.describe('Bookmarks widget', () => {
-  test('shows Add Bookmark button', async ({ page }) => {
-    await mountWidget(page, 'bookmarks', {
-      widgetSettings_bookmarks: { links: [] },
+test.describe('Bookmark widget', () => {
+  test('shows Add bookmark button', async ({ page }) => {
+    await mountWidget(page, 'bookmark', {
+      widgetSettings_bookmark: { url: '', name: '', iconMode: 'favicon' },
     });
-    // "+" plus button or Add Bookmark is present
-    const btn = widget(page).locator('button').filter({ hasNot: page.locator('[aria-label="Widget options"]') }).first();
-    await expect(btn).toBeVisible();
+    // Empty state renders a "+" button (aria-label "Add bookmark")
+    await expect(widget(page).getByRole('button', { name: 'Add bookmark' })).toBeVisible();
   });
 
   test('pre-seeded bookmark renders as a link', async ({ page }) => {
-    const links = [
-      { id: 1, url: 'https://github.com', name: 'GitHub', favicon: 'https://www.google.com/s2/favicons?sz=64&domain=github.com' },
-    ];
-    await mountWidget(page, 'bookmarks', {
-      widgetSettings_bookmarks: { links },
+    await mountWidget(page, 'bookmark', {
+      widgetSettings_bookmark: { url: 'https://github.com', name: 'GitHub', iconMode: 'favicon' },
     });
-    await expect(widget(page)).toContainText('GitHub');
     const anchor = widget(page).locator('a[href="https://github.com"]');
     await expect(anchor).toBeVisible();
+    await expect(anchor).toHaveAttribute('aria-label', 'GitHub');
   });
 
   test('Add Bookmark modal opens with URL input', async ({ page }) => {
-    await mountWidget(page, 'bookmarks', {
-      widgetSettings_bookmarks: { links: [] },
+    await mountWidget(page, 'bookmark', {
+      widgetSettings_bookmark: { url: '', name: '', iconMode: 'favicon' },
     });
-    // Find and click the + button
-    await widget(page).hover();
-    const addBtn = page.locator('button').filter({ hasText: '' }).filter({ has: page.locator('svg') }).last();
-    // Fallback: look for any + button in the widget
-    const plusBtns = widget(page).locator('button');
-    const count = await plusBtns.count();
-    for (let i = 0; i < count; i++) {
-      const box = await plusBtns.nth(i).boundingBox();
-      if (box) {
-        await plusBtns.nth(i).click();
-        break;
-      }
-    }
-    // Modal or inline form should show a URL input
-    const urlInput = page.locator('input[type="url"], input[placeholder*="http"]');
-    if (await urlInput.count() > 0) {
-      await expect(urlInput.first()).toBeVisible();
-    }
+    // Click the empty-state + button
+    await widget(page).getByRole('button', { name: 'Add bookmark' }).click();
+    // The modal opens with a URL input (id "bm-url")
+    await expect(page.locator('#bm-url')).toBeVisible();
   });
 
   test('is not clipped', async ({ page }) => {
-    await mountWidget(page, 'bookmarks', {
-      widgetSettings_bookmarks: { links: [] },
+    await mountWidget(page, 'bookmark', {
+      widgetSettings_bookmark: { url: '', name: '', iconMode: 'favicon' },
     });
-    await assertNoClip(widget(page), 'Bookmarks');
-    await assertInViewport(widget(page), page, 'Bookmarks');
+    await assertNoClip(widget(page), 'Bookmark');
+    await assertInViewport(widget(page), page, 'Bookmark');
   });
 });
 
 // ── 8. Weather widget ─────────────────────────────────────────────────────────
 
 test.describe('Weather widget', () => {
-  test('shows "API KEY not provided" when no env key is set (default dev build)', async ({ page }) => {
+  test('shows a weather empty/error state or live weather', async ({ page }) => {
     await mountWidget(page, 'weather');
-    // In dev builds without VITE_OWM_API_KEY, the widget shows the no-key state
+    // Without geolocation the widget shows "Location needed"; if it somehow has
+    // a location/API key it shows weather or an error state. All are valid renders.
     const text = await widget(page).innerText();
-    const hasNoKey = text.includes('API KEY not provided');
-    const hasWeather = text.match(/°[CF]/);
-    const hasLoading = text.includes('Fetching');
-    // One of these states must be present — all are valid renders
-    expect(hasNoKey || hasWeather || hasLoading).toBe(true);
+    const hasEmpty = text.includes('Location needed') || text.includes("Couldn't load weather");
+    // Live weather renders the degree sign with the unit only in aria-label,
+    // so match on the degree glyph itself (e.g. "11°").
+    const hasWeather = /°/.test(text);
+    expect(hasEmpty || hasWeather).toBe(true);
   });
 
   test('is not clipped', async ({ page }) => {
@@ -406,7 +394,7 @@ test.describe('Stock widget', () => {
     await mountWidget(page, 'stock', {
       widgetSettings_stock: { symbols: ['NABIL'] },
     });
-    const card = widget(page).locator('.rounded-2xl').first();
+    const card = widget(page).locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
   });
 
@@ -475,9 +463,10 @@ test.describe('Pomodoro widget', () => {
     await mountWidget(page, 'pomodoro');
     await widget(page).getByText('25 min').click();
     await expect(widget(page)).toContainText('25:00');
-    // Click the back arrow button
-    const backBtn = widget(page).locator('button').first(); // back arrow is first button
+    // The back arrow is a ConfirmButton: first click arms it ("Sure?"), second confirms.
+    const backBtn = widget(page).getByRole('button', { name: 'Back to timer selection' });
     await backBtn.click();
+    await widget(page).getByRole('button', { name: 'Confirm — click again to proceed' }).click();
     await expect(widget(page)).toContainText('Focus Timer');
   });
 
@@ -500,7 +489,7 @@ test.describe('Pomodoro widget', () => {
 test.describe('Events widget', () => {
   test('renders the events card', async ({ page }) => {
     await mountWidget(page, 'events');
-    const card = widget(page).locator('.rounded-2xl').first();
+    const card = widget(page).locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
   });
 
@@ -530,25 +519,29 @@ test.describe('Events widget', () => {
 test.describe('Calendar widget', () => {
   test('shows weekday headers', async ({ page }) => {
     await mountWidget(page, 'calendar');
-    const text = await widget(page).innerText();
-    // Calendar renders abbreviated weekday headers like Sun, Mon ... or S, M ...
-    const hasWeekdays = /sun|mon|tue|wed|thu|fri|sat/i.test(text);
-    expect(hasWeekdays).toBe(true);
+    // Calendar renders 2-letter weekday abbreviations (Su Mo Tu We Th Fr Sa)
+    const headers = widget(page).locator('.cal-weekday-header');
+    await expect(headers).toHaveCount(7);
+    await expect(headers.first()).toHaveText('Su');
+    await expect(headers.last()).toHaveText('Sa');
   });
 
   test('shows current month and year', async ({ page }) => {
     await mountWidget(page, 'calendar');
-    const now = new Date();
-    const year = String(now.getFullYear());
+    // Default is Bikram Sambat: romanised Nepali month name + BS year (e.g. "Mangsir 2083")
     const text = await widget(page).innerText();
-    expect(text).toContain(year);
+    const BS_MONTHS = ['Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra',
+      'Ashwin', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];
+    expect(BS_MONTHS.some((m) => text.includes(m))).toBe(true);
+    expect(text).toMatch(/\b20\d{2}\b/);
   });
 
   test('shows day numbers in the grid', async ({ page }) => {
     await mountWidget(page, 'calendar');
     const text = await widget(page).innerText();
-    // Must contain at least 1 and at most 31 as individual tokens
-    expect(text).toMatch(/\b1\b/);
+    // The calendar shows a 2-week window anchored to today's week, so "1" may not
+    // be visible. Assert any day number token (1–32) is present.
+    expect(text).toMatch(/\b([1-9]|[12]\d|3[012])\b/);
   });
 
   test('is not clipped', async ({ page }) => {
@@ -558,24 +551,19 @@ test.describe('Calendar widget', () => {
   });
 });
 
-// ── 13. Spotify widget ────────────────────────────────────────────────────────
+// ── 13. Media widget ───────────────────────────────────────────────────────────
 
-test.describe('Spotify widget', () => {
+test.describe('Media widget', () => {
   test('shows "Connect Spotify" button when not authenticated', async ({ page }) => {
-    await mountWidget(page, 'spotify', {
-      // Ensure no tokens exist
-      spotify_tokens: null,
-    });
+    await mountWidget(page, 'media');
     await expect(widget(page)).toContainText('Connect Spotify');
   });
 
   test('Connect Spotify button is visible and not clipped', async ({ page }) => {
-    await mountWidget(page, 'spotify', {
-      spotify_tokens: null,
-    });
+    await mountWidget(page, 'media');
     const btn = widget(page).getByText('Connect Spotify');
     await expect(btn).toBeVisible();
-    await assertNoClip(widget(page), 'Spotify');
-    await assertInViewport(widget(page), page, 'Spotify');
+    await assertNoClip(widget(page), 'Media');
+    await assertInViewport(widget(page), page, 'Media');
   });
 });

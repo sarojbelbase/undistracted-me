@@ -4,17 +4,16 @@
  * Covers:
  *  - Opening RSS widget settings
  *  - Switching to Custom source mode
- *  - Opening OPML import panel (collapsed → expanded)
- *  - File / Paste mode toggle
- *  - Pasting valid OPML XML
- *  - Parse button enabled/disabled
+ *  - "Import OPML" native-file-picker button + hidden file input
+ *  - Uploading a valid OPML file → parsed feed preview
+ *  - Error state for invalid OPML
  *  - Preview: feed list with checkboxes
  *  - Select all / deselect all toggle
  *  - Individual feed toggle
- *  - Already-existing feeds marked as disabled
+ *  - Already-existing feeds marked as disabled ("already added")
  *  - Import action: feeds merged into custom list
- *  - Cancel collapses the panel
- *  - Error state display
+ *  - Duplicate skipping on merge
+ *  - Persistence across settings close/reopen
  */
 
 import { test, expect } from '@playwright/test';
@@ -31,8 +30,13 @@ async function mountRSS(page, extraStorage = {}) {
     localStorage.setItem('language', 'en');
     localStorage.setItem(
       'widget_instances',
-      JSON.stringify([{ id: 'rss', type: 'rss' }])
+      JSON.stringify({
+        state: { instances: [{ id: 'rss', type: 'rss' }], widgetSettings: {} },
+        version: 0,
+      })
     );
+    // Dismiss the Quick Tour onboarding overlay so it doesn't block clicks
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { quickTourSeenVersion: '4.0.0' } }));
     Object.entries(extra).forEach(([k, v]) =>
       localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
     );
@@ -73,6 +77,21 @@ async function selectCustomMode(page) {
   await page.waitForTimeout(200);
 }
 
+/**
+ * Upload an OPML file through the (hidden) native file input that backs the
+ * "Import OPML" button. Replaces the old paste-textarea flow — the redesigned
+ * import UI is file-upload only.
+ */
+async function uploadOPML(page, content, name = 'feeds.opml') {
+  const fileInput = page.locator('input[type="file"]').first();
+  await fileInput.setInputFiles({
+    name,
+    mimeType: 'text/xml',
+    buffer: Buffer.from(content),
+  });
+  await page.waitForTimeout(300);
+}
+
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 
 const SAMPLE_OPML = `<opml version="2.0">
@@ -97,96 +116,40 @@ const SAMPLE_OPML_DUPLICATE = `<opml version="2.0">
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 test.describe('RSS OPML Import', () => {
-  // ── Setup ───────────────────────────────────────────────────────────────
+  // ── Setup / actions visibility ───────────────────────────────────────────
 
-  test('OPML import panel opens and closes', async ({ page }) => {
+  test('Custom mode shows Import OPML and Sample OPML actions', async ({ page }) => {
     await mountRSS(page, {
       widgetSettings_rss: { sourceMode: 'custom', customFeeds: [], viewMode: 'brief' },
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
 
-    // The "Import from OPML" button should be visible in Custom mode
-    const opmlBtn = page.getByText('Import from OPML');
-    await expect(opmlBtn).toBeVisible({ timeout: 3000 });
+    // The redesigned import UI is a direct native-file-picker button
+    await expect(page.getByText('Import OPML')).toBeVisible({ timeout: 3000 });
+    await expect(page.getByText('Sample OPML')).toBeVisible();
 
-    // Click to expand
-    await opmlBtn.click();
-    await page.waitForTimeout(200);
-
-    // Panel should now show Cancel and the SegmentedControl
-    await expect(page.getByText('Cancel')).toBeVisible();
-    await expect(page.getByText('File')).toBeVisible();
-    await expect(page.getByText('Paste')).toBeVisible();
-
-    // Click Cancel to collapse
-    await page.getByText('Cancel').click();
-    await page.waitForTimeout(200);
-    await expect(page.getByText('Cancel')).not.toBeVisible();
+    // The native picker is backed by a hidden file input
+    await expect(page.locator('input[type="file"]')).toHaveCount(1);
   });
 
-  test('File and Paste modes toggle correctly', async ({ page }) => {
+  // ── File upload → parsed preview ─────────────────────────────────────────
+
+  test('uploading an OPML file shows parsed feed preview', async ({ page }) => {
     await mountRSS(page, {
       widgetSettings_rss: { sourceMode: 'custom', customFeeds: [], viewMode: 'brief' },
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
 
-    // Default is File mode — file picker button should be visible
-    await expect(page.getByText(/Choose.*opml.*xml.*file/)).toBeVisible();
-
-    // Switch to Paste mode
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
-
-    // Textarea should appear
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await expect(textarea).toBeVisible();
-
-    // Parse button should be disabled when empty
-    const parseBtn = page.getByText('Parse OPML');
-    await expect(parseBtn).toBeDisabled();
-
-    // Switch back to File
-    await page.getByText('File').click();
-    await page.waitForTimeout(200);
-    await expect(textarea).not.toBeVisible();
-  });
-
-  // ── Parse OPML ──────────────────────────────────────────────────────────
-
-  test('pastes OPML and shows parsed feed preview', async ({ page }) => {
-    await mountRSS(page, {
-      widgetSettings_rss: { sourceMode: 'custom', customFeeds: [], viewMode: 'brief' },
-    });
-    await openRSSSettings(page);
-    await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
-
-    // Type OPML content
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.waitForTimeout(100);
-
-    // Parse button should be enabled
-    const parseBtn = page.getByText('Parse OPML');
-    await expect(parseBtn).toBeEnabled();
-
-    // Click parse
-    await parseBtn.click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
 
     // Should show "3 feeds found" (2 top-level + 1 nested)
     await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // Feed labels should appear
     await expect(page.getByText('Example Blog')).toBeVisible();
-    await expect(page.getByText('News Site')).toBeVisible();
+    await expect(page.getByText('News Site', { exact: true })).toBeVisible();
     await expect(page.getByText('Tech Blog')).toBeVisible();
   });
 
@@ -196,18 +159,10 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    // Type invalid content
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill('This is not OPML content');
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, 'This is not OPML content');
 
-    // Should show error
+    // Should show the import-failed error banner
     await expect(page.getByText('Import failed')).toBeVisible({ timeout: 3000 });
   });
 
@@ -219,15 +174,9 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // All feeds should be pre-selected
     await expect(page.getByText('Deselect all')).toBeVisible();
@@ -255,15 +204,9 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // Initially "Import 3 feeds"
     await expect(page.getByText('Import 3 feeds')).toBeVisible();
@@ -289,15 +232,9 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // The existing feed should show "already added"
     await expect(page.getByText('already added')).toBeVisible({ timeout: 3000 });
@@ -316,26 +253,20 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // Click import
     await page.getByText('Import 3 feeds').click();
     await page.waitForTimeout(300);
 
-    // The OPML panel should collapse after import
-    await expect(page.getByText('Import from OPML')).toBeVisible({ timeout: 3000 });
+    // The preview collapses back to the default Import OPML button
+    await expect(page.getByText('Import OPML')).toBeVisible({ timeout: 3000 });
 
     // The imported feeds should now appear as custom feed chips
     await expect(page.getByText('Example Blog')).toBeVisible();
-    await expect(page.getByText('News Site')).toBeVisible();
+    await expect(page.getByText('News Site', { exact: true })).toBeVisible();
     await expect(page.getByText('Tech Blog')).toBeVisible();
   });
 
@@ -349,15 +280,9 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML_DUPLICATE);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML_DUPLICATE);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // Import (only 1 new feed should actually be added)
     await page.getByText(/Import .* feeds/).click();
@@ -375,15 +300,9 @@ test.describe('RSS OPML Import', () => {
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
     await page.getByText(/Import .* feeds/).click();
     await page.waitForTimeout(300);
 
@@ -403,27 +322,21 @@ test.describe('RSS OPML Import', () => {
 
     // The imported feeds should still be there
     await expect(page.getByText('Example Blog')).toBeVisible({ timeout: 3000 });
-    await expect(page.getByText('News Site')).toBeVisible();
+    await expect(page.getByText('News Site', { exact: true })).toBeVisible();
     await expect(page.getByText('Tech Blog')).toBeVisible();
   });
 
   // ── Widget clipping / layout ─────────────────────────────────────────────
 
-  test('OPML import panel does not overflow the settings modal', async ({ page }) => {
+  test('OPML import preview does not overflow the settings modal', async ({ page }) => {
     await mountRSS(page, {
       widgetSettings_rss: { sourceMode: 'custom', customFeeds: [], viewMode: 'brief' },
     });
     await openRSSSettings(page);
     await selectCustomMode(page);
-    await page.getByText('Import from OPML').click();
-    await page.waitForTimeout(200);
-    await page.getByText('Paste').click();
-    await page.waitForTimeout(200);
 
-    const textarea = page.locator('textarea[placeholder*="OPML"]');
-    await textarea.fill(SAMPLE_OPML);
-    await page.getByText('Parse OPML').click();
-    await page.waitForTimeout(300);
+    await uploadOPML(page, SAMPLE_OPML);
+    await expect(page.getByText(/feeds found/)).toBeVisible({ timeout: 3000 });
 
     // The feed list container should not cause horizontal overflow
     // Find the settings modal

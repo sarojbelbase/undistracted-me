@@ -85,8 +85,23 @@ const NavDot = ({ active, label, onClick, hue }) => {
 // ─── Migrate old string[] notes → { id, text, updatedAt }[] ─────────────────
 // (splitNote / mergeNote / migrateNotes / makeNoteId come from noteText.js)
 function resolveSettings(raw) {
-  if (Array.isArray(raw.notes)) return { notes: migrateNotes(raw.notes), idx: raw.idx ?? 0 };
-  return { notes: migrateNotes([raw.text ?? ""]), idx: 0 };
+  // `useWidgetSettings` merges the default `{ notes: [""], idx: 0 }` over the
+  // stored value, so a legacy `{ text: "…" }` note arrives here as
+  // `{ notes: [""], text: "…" }`. Prefer the legacy `text` string when the
+  // notes array is empty/default, otherwise the user's note silently vanishes.
+  const hasContent =
+    Array.isArray(raw.notes) &&
+    raw.notes.some((n) => (typeof n === "string" ? n : n?.text ?? "").trim() !== "");
+  if (Array.isArray(raw.notes) && hasContent) {
+    return { notes: migrateNotes(raw.notes), idx: raw.idx ?? 0 };
+  }
+  if (typeof raw.text === "string" && raw.text.trim() !== "") {
+    return { notes: migrateNotes([raw.text]), idx: 0 };
+  }
+  return {
+    notes: migrateNotes(Array.isArray(raw.notes) ? raw.notes : [""]),
+    idx: raw.idx ?? 0,
+  };
 }
 
 // ─── Widget ───────────────────────────────────────────────────────────────────

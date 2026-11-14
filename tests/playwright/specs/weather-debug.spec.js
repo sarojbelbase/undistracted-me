@@ -68,9 +68,14 @@ async function injectWeatherWidget(page) {
     localStorage.setItem('app_mode', 'dark');
     localStorage.setItem('app_accent', 'Default');
     localStorage.setItem('language', 'en');
+    // Dismiss the Quick Tour onboarding overlay so it doesn't block clicks
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { quickTourSeenVersion: '4.0.0' } }));
 
     // Inject a weather widget instance (the store reads this on boot)
-    localStorage.setItem('widget_instances', JSON.stringify([{ id: 'weather', type: 'weather' }]));
+    localStorage.setItem('widget_instances', JSON.stringify({
+      state: { instances: [{ id: 'weather', type: 'weather' }], widgetSettings: {} },
+      version: 0,
+    }));
 
     // Widget settings: expressive style + pre-set Chicago coords so the widget
     // never calls geolocation (which is blocked in headless mode). The fetch
@@ -94,8 +99,8 @@ test.describe('Weather widget — expressive layout', () => {
     // Navigate — mocks are registered before navigation so the first fetch is caught
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-    // Wait for the widget to finish loading (city name appears)
-    await page.waitForSelector('[data-testid="weather-city"]', { timeout: 12000 });
+    // Wait for the widget to finish loading (temperature hero always renders)
+    await page.waitForSelector('text=28°C', { timeout: 12000 });
   });
 
   // ── Layout assertions ───────────────────────────────────────────────────────
@@ -111,8 +116,26 @@ test.describe('Weather widget — expressive layout', () => {
     await expect(cityEl).toContainText('Chicago');
   });
 
-  test('shows feels-like when different from temp', async ({ page }) => {
-    // Mock: temp=28, feelsLike=38 → diff=10 ≥ 2 → shows "feels warmer at 38°C"
+  test('shows feels-like when no city name is set', async ({ page }) => {
+    // The expressive second line shows the city when a name is present, and
+    // falls back to feels-like only when there is no city name. Override the
+    // seeded Chicago name (keep coords so no geolocation is attempted).
+    // MUST be an addInitScript (registered AFTER injectWeatherWidget's own init
+    // script) so it runs later on reload and wins over the Chicago seed —
+    // page.evaluate would be clobbered by injectWeatherWidget on navigation.
+    await page.addInitScript(() => {
+      const ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || '{}');
+      ws.location = { lat: 41.85, lon: -87.65 };
+      localStorage.setItem('widgetSettings_weather', JSON.stringify(ws));
+      // Clear the per-coordinate weather cache so the reload re-fetches with an
+      // empty cityName (otherwise the cached "Chicago" payload — same locKey —
+      // is returned within its TTL and the city branch keeps rendering).
+      localStorage.removeItem('weather_cache_v1');
+    });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('text=28°C', { timeout: 12000 });
+
+    // temp=28, feelsLike=38 → second line shows "feels like 38°C"
     await expect(page.locator('text=feels').first()).toBeVisible();
     await expect(page.locator('text=38°C').first()).toBeVisible();
   });
@@ -121,25 +144,24 @@ test.describe('Weather widget — expressive layout', () => {
     const conditionRow = page.locator('[data-testid="weather-condition-row"]');
     await expect(conditionRow).toBeVisible();
     const text = await conditionRow.innerText();
-    // All 12 slots are WMO 0 (clear sky) → dominant = clear sky
+    // All 12 slots are WMO 0 (clear sky) → dominant = clear sky, label "for next 6hrs"
     expect(text.toLowerCase()).toContain('clear sky');
-    // The qualifier phrase "for the next" is in the hours sibling element
-    await expect(page.locator('text=for the next').first()).toBeVisible();
+    expect(text.toLowerCase()).toContain('for next');
     console.log('[debug] condition row text:', text);
   });
 
   test('shows forecast hours as a numeral — dominant condition hours', async ({ page }) => {
-    const hoursEl = page.locator('[data-testid="weather-forecast-hours"]');
-    await expect(hoursEl).toBeVisible();
-    const text = await hoursEl.innerText();
-    // All 12 hourly slots are clear sky → dominant has 6 slots → hours span = "6 hours"
-    expect(text).toMatch(/^\d+ hours?$/);
-    expect(text).toBe('6 hours');
+    const conditionRow = page.locator('[data-testid="weather-condition-row"]');
+    await expect(conditionRow).toBeVisible();
+    const text = await conditionRow.innerText();
+    // All 12 hourly slots are clear sky → dominant has 6 slots → "for next 6hrs"
+    expect(text).toMatch(/for next \d+hrs/);
+    expect(text).toContain('6hrs');
     console.log('[debug] forecast hours text:', text);
   });
 
   test('no text is clipped inside the widget card', async ({ page }) => {
-    const card = page.locator('.react-grid-item .rounded-2xl').first();
+    const card = page.locator('.react-grid-item .overflow-hidden').first();
     const clip = await card.evaluate((el) => ({
       hClip: el.scrollWidth > el.clientWidth + 2,
       vClip: el.scrollHeight > el.clientHeight + 2,
@@ -169,22 +191,12 @@ test.describe('Weather widget — expressive layout', () => {
 
   // ── Data shape debug ───────────────────────────────────────────────────────
 
-  test('logs raw mock payload consumed by the widget', async ({ page }) => {
-    const logs = [];
-    page.on('console', msg => {
-      if (msg.text().startsWith('[Weather]')) logs.push(msg.text());
-    });
-
-    // Re-navigate so fresh load logs appear
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  test('consumes the raw mock payload (city + temperature from Open-Meteo mock)', async ({ page }) => {
+    // The widget no longer emits "[Weather]" console logs; instead verify the
+    // mocked Open-Meteo payload is actually consumed by asserting the rendered
+    // city and temperature match the mock (28°C, Chicago).
     await page.waitForSelector('[data-testid="weather-city"]', { timeout: 12000 });
-    await page.waitForTimeout(1000);
-
-    console.log('\n=== [Weather] console output ===');
-    logs.forEach(l => console.log(l));
-    console.log('================================\n');
-
-    // Sanity: at least one [Weather] log should appear
-    expect(logs.some(l => l.includes('parsed') || l.includes('Open-Meteo'))).toBe(true);
+    await expect(page.locator('text=28°C').first()).toBeVisible();
+    await expect(page.locator('[data-testid="weather-city"]')).toContainText('Chicago');
   });
 });

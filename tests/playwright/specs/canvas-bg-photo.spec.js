@@ -1,93 +1,78 @@
 /**
  * canvas-bg-photo.spec.js
  *
- * Verifies the canvas BackgroundPicker: the dialog opens with "Canvas Background"
- * title and shows Solid and Motion (orb) tabs — the only two modes supported for
- * the canvas scope. (Curated/Photos is a focus-mode-only feature.)
+ * Verifies the canvas Background section (Settings → Appearance). The canvas
+ * scope supports two modes — Solid (accent tint) and Motion (animated orb) —
+ * exposed inline as segment buttons. Curated/Photos is a focus-mode-only
+ * feature and must NOT appear in the canvas scope.
  */
 
 import { test, expect } from '@playwright/test';
 
-/**
- * Opens the canvas BackgroundPicker via Settings → "Change ›" button.
- * Returns the dialog locator.
- */
-async function openCanvasBgPicker(page) {
-  await page.locator('button[title="Settings"]').click();
-
-  const changeBtn = page.locator('button', { hasText: 'Change ›' });
-  await expect(changeBtn).toBeVisible({ timeout: 5000 });
-  await changeBtn.click();
-
-  const dialog = page.locator('[role="dialog"]');
-  await expect(dialog).toBeVisible({ timeout: 5000 });
-  await expect(dialog.locator('h2', { hasText: /canvas background/i })).toBeVisible();
-  return dialog;
+/** Open Settings → Appearance and return the settings dialog locator. */
+async function openAppearance(page) {
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('tab', { name: 'Appearance' }).click();
+  return page.getByRole('dialog', { name: 'Canvas settings' });
 }
 
-test.describe('Canvas BackgroundPicker', () => {
+/** Read the persisted canvasBg from the settings store. */
+async function readCanvasBg(page) {
+  return page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
+    return s?.state?.canvasBg;
+  });
+}
+
+test.describe('Canvas Background', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    // Reset canvasBg to a known state (solid) before each test
-    await page.evaluate(() => {
-      const stored = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
-      if (stored.state) {
-        stored.state.canvasBg = { type: 'solid', orbId: null, url: null };
-        localStorage.setItem('undistracted_settings', JSON.stringify(stored));
-      }
+    // Dismiss the Quick Tour (it overlays z-9999 and intercepts clicks) AND reset
+    // canvasBg to a known state (solid). Both must live in the init script so
+    // they survive every navigation/reload without clobbering each other.
+    await page.addInitScript(() => {
+      const prev = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
+      localStorage.setItem('undistracted_settings', JSON.stringify({
+        ...prev,
+        state: {
+          ...(prev.state || {}),
+          quickTourSeenVersion: '4.0.0',
+          canvasBg: { type: 'solid', orbId: null, url: null },
+        },
+      }));
     });
-    await page.reload();
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
   });
 
-  test('opens with "Canvas Background" title', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    await expect(dialog.locator('h2')).toContainText(/canvas background/i);
+  test('shows Solid and Motion options (no Photos for canvas scope)', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    await expect(dialog.getByText('Background', { exact: true })).toBeVisible();
+    // The two canvas background modes
+    await expect(dialog.getByRole('button', { name: 'Solid' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Motion' })).toBeVisible();
+    // Photos / Curated must NOT appear in the canvas Background section
+    await expect(dialog.getByText('Photos', { exact: true })).not.toBeVisible();
+    await expect(dialog.getByText('Curated', { exact: true })).not.toBeVisible();
   });
 
-  test('shows Solid and Motion tabs (no Photos tab for canvas scope)', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    // Solid tab from CANVAS_TABS
-    await expect(dialog.locator('button', { hasText: /^solid$/i })).toBeVisible();
-    // Motion tab from CANVAS_TABS
-    await expect(dialog.locator('button', { hasText: /^motion$/i })).toBeVisible();
-    // Photos tab must NOT appear in canvas scope
-    await expect(dialog.locator('button', { hasText: /^photos$/i })).not.toBeVisible();
+  test('defaults to Solid selection', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    const bg = await readCanvasBg(page);
+    expect(bg?.type).toBe('solid');
   });
 
-  test('clicking Motion tab shows orb preview panel', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    await dialog.locator('button', { hasText: /^motion$/i }).click();
-    // OrbPanel renders a preview with aria-label "Use Color Motion"
-    await expect(dialog.locator('[aria-label="Use Color Motion"]')).toBeVisible({ timeout: 3000 });
+  test('selecting Motion persists to the store', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    await dialog.getByRole('button', { name: 'Motion' }).click();
+    const bg = await readCanvasBg(page);
+    expect(bg?.type).toBe('orb');
   });
 
-  test('applying the Motion background persists to Zustand store', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    await dialog.locator('button', { hasText: /^motion$/i }).click();
-    // Click the orb preview to apply
-    await dialog.locator('[aria-label="Use Color Motion"]').click();
-    // Close the dialog
-    await page.keyboard.press('Escape');
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-
-    const storedBg = await page.evaluate(() => {
-      const s = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');
-      return s?.state?.canvasBg;
-    });
-    expect(storedBg?.type).toBe('orb');
-  });
-
-  test('close button dismisses the dialog', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    // Click the × close button
-    await dialog.locator('button[aria-label="Close"]').click();
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-  });
-
-  test('Escape key dismisses the dialog', async ({ page }) => {
-    const dialog = await openCanvasBgPicker(page);
-    await page.keyboard.press('Escape');
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+  test('selecting Solid persists to the store (switch back from Motion)', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    await dialog.getByRole('button', { name: 'Motion' }).click();
+    await dialog.getByRole('button', { name: 'Solid' }).click();
+    const bg = await readCanvasBg(page);
+    expect(bg?.type).toBe('solid');
   });
 });

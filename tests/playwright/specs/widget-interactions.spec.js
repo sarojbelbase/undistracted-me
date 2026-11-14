@@ -55,7 +55,7 @@ async function openWidgetSettings(page) {
   if (await moreBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await moreBtn.click();
     // Click "Settings" in the dropdown
-    const settingsItem = page.getByText('Settings').first();
+    const settingsItem = page.getByRole('menuitem', { name: 'Settings' });
     if (await settingsItem.isVisible({ timeout: 1000 }).catch(() => false)) {
       await settingsItem.click();
     }
@@ -82,7 +82,7 @@ async function assertInViewport(locator, page, label) {
 
 /** Assert horizontal scroll content not clipped beyond container. */
 async function assertNoClip(locator, label) {
-  const target = locator.locator('.rounded-2xl').first();
+  const target = locator.locator('.overflow-hidden').first();
   const count = await target.count();
   const el = count > 0 ? target : locator;
   const { hClip, scrollW, clientW } = await el.evaluate((node) => ({
@@ -430,9 +430,8 @@ test.describe('Notes widget interactions', () => {
     await ta.click();
     await ta.fill('Meeting notes at 3pm');
     await page.waitForTimeout(500);
-    // Notes may store via zustand — check value is in textarea at minimum
-    const value = await ta.inputValue();
-    expect(value).toBe('Meeting notes at 3pm');
+    // The widget card's textarea edits the note body (title is edited in fullscreen)
+    await expect(ta).toHaveValue('Meeting notes at 3pm');
   });
 
   test('textarea shows placeholder when empty', async ({ page }) => {
@@ -520,10 +519,11 @@ test.describe('Media widget interactions', () => {
     const sourcesLabel = page.getByText('Playback sources');
     if (await sourcesLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
       await expect(sourcesLabel).toBeVisible();
-      // Should list the source chips
-      await expect(page.getByText('SoundCloud')).toBeVisible();
-      await expect(page.getByText('YouTube')).toBeVisible();
-      await expect(page.getByText('YouTube Music')).toBeVisible();
+      // Should list the source chips (exact match — the widget's empty-state
+      // "Open YouTube or SoundCloud in any tab" also contains these words)
+      await expect(page.getByText('SoundCloud', { exact: true })).toBeVisible();
+      await expect(page.getByText('YouTube', { exact: true })).toBeVisible();
+      await expect(page.getByText('YouTube Music', { exact: true })).toBeVisible();
     }
   });
 
@@ -894,12 +894,12 @@ test.describe('Cross-widget persistence', () => {
   });
 
   test('notes text survives page reload', async ({ page }) => {
-    await mountWidget(page, 'notes', { widgetSettings_notes: { text: 'Survive reload', bgColor: null } });
+    await mountWidget(page, 'notes', { widgetSettings_notes: { notes: ['Survive reload'], idx: 0 } });
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
     await page.waitForTimeout(600);
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Survive reload');
+    const titleBtn = widget(page).locator('.notes-title-btn');
+    await expect(titleBtn).toHaveText('Survive reload');
   });
 
   test('pomodoro preset selection persists', async ({ page }) => {

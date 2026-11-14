@@ -61,7 +61,7 @@ async function openWidgetSettings(page) {
   const moreBtn = page.locator('[aria-label="Widget options"]');
   if (await moreBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await moreBtn.click();
-    const settingsItem = page.getByText('Settings').first();
+    const settingsItem = page.getByRole('menuitem', { name: 'Settings' });
     if (await settingsItem.isVisible({ timeout: 1000 }).catch(() => false)) {
       await settingsItem.click();
     }
@@ -89,7 +89,7 @@ async function assertInViewport(locator, page, label) {
 
 /** Assert horizontal scroll content not clipped beyond container. */
 async function assertNoClip(locator, label) {
-  const target = locator.locator('.rounded-2xl').first();
+  const target = locator.locator('.overflow-hidden').first();
   const count = await target.count();
   const el = count > 0 ? target : locator;
   const { hClip, scrollW, clientW } = await el.evaluate((node) => ({
@@ -853,10 +853,8 @@ test.describe('Expense widget — edge cases', () => {
   test('settings modal shows currency selector', async ({ page }) => {
     await mountWidget(page, 'expense');
     await openWidgetSettings(page);
-    await page.waitForTimeout(500);
-    // Should find currency or time range controls
-    const settingsText = await page.locator('[role="dialog"]').first().innerText().catch(() => '');
-    expect(settingsText.length).toBeGreaterThanOrEqual(0);
+    // Currency selector is a <select id="exp-currency"> populated with many options.
+    await expect(page.locator('#exp-currency')).toBeVisible();
   });
 
   test('settings modal closes via X', async ({ page }) => {
@@ -915,9 +913,9 @@ test.describe('Media widget — edge cases', () => {
     const sourcesLabel = page.getByText('Playback sources');
     if (await sourcesLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
       await expect(sourcesLabel).toBeVisible();
-      await expect(page.getByText('SoundCloud')).toBeVisible();
-      await expect(page.getByText('YouTube')).toBeVisible();
-      await expect(page.getByText('YouTube Music')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'SoundCloud', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'YouTube', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'YouTube Music', exact: true })).toBeVisible();
     }
   });
 
@@ -955,29 +953,29 @@ test.describe('Notes widget — edge cases', () => {
     await expect(ta).toHaveAttribute('placeholder', /note/i);
   });
 
-  test('typing persists text to textarea value', async ({ page }) => {
+  test('typing persists text to the note body', async ({ page }) => {
     await mountWidget(page, 'notes', { widgetSettings_notes: { text: '', bgColor: null } });
     const ta = widget(page).locator('textarea');
     await ta.click();
     await ta.fill('My test note');
     await page.waitForTimeout(500);
-    const value = await ta.inputValue();
-    expect(value).toBe('My test note');
+    // The widget card's textarea edits the note body (title is edited in fullscreen)
+    await expect(ta).toHaveValue('My test note');
   });
 
-  test('pre-seeded text appears in textarea', async ({ page }) => {
-    await mountWidget(page, 'notes', { widgetSettings_notes: { text: 'Hello Playwright', bgColor: null } });
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Hello Playwright');
+  test('pre-seeded text appears in title', async ({ page }) => {
+    await mountWidget(page, 'notes', { widgetSettings_notes: { notes: ['Hello Playwright'], idx: 0 } });
+    const titleBtn = widget(page).locator('.notes-title-btn');
+    await expect(titleBtn).toHaveText('Hello Playwright');
   });
 
   test('pre-seeded text survives page reload', async ({ page }) => {
-    await mountWidget(page, 'notes', { widgetSettings_notes: { text: 'Survive reload', bgColor: null } });
+    await mountWidget(page, 'notes', { widgetSettings_notes: { notes: ['Survive reload'], idx: 0 } });
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
     await page.waitForTimeout(600);
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Survive reload');
+    const titleBtn = widget(page).locator('.notes-title-btn');
+    await expect(titleBtn).toHaveText('Survive reload');
   });
 
   test('add note button creates a new blank note', async ({ page }) => {
@@ -1001,14 +999,14 @@ test.describe('Notes widget — edge cases', () => {
     expect(count).toBe(3);
   });
 
-  test('navigating between notes via dots changes textarea content', async ({ page }) => {
+  test('navigating between notes via dots changes note title', async ({ page }) => {
     await mountWidget(page, 'notes', { widgetSettings_notes: { notes: ['First note', 'Second note'], idx: 0 } });
     await page.waitForTimeout(400);
     const dots = widget(page).locator('.notes-nav-dot');
     await dots.nth(1).click();
     await page.waitForTimeout(400);
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Second note');
+    const titleBtn = widget(page).locator('.notes-title-btn');
+    await expect(titleBtn).toHaveText('Second note');
   });
 
   test('delete note button removes current note', async ({ page }) => {
@@ -1540,12 +1538,13 @@ test.describe('Cross-widget persistence', () => {
   });
 
   test('notes text survives page reload', async ({ page }) => {
-    await mountWidget(page, 'notes', { widgetSettings_notes: { text: 'Persist me!', bgColor: null } });
+    await mountWidget(page, 'notes', { widgetSettings_notes: { notes: ['Persist me!'], idx: 0 } });
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
     await page.waitForTimeout(600);
-    const ta = widget(page).locator('textarea');
-    await expect(ta).toHaveValue('Persist me!');
+    // Legacy `{ text }` (no newline) migrates to the note TITLE — the body is empty
+    const titleBtn = widget(page).locator('.notes-title-btn');
+    await expect(titleBtn).toHaveText('Persist me!');
   });
 
   test('calendar BS format survives page reload', async ({ page }) => {
