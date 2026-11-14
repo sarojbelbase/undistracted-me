@@ -156,17 +156,21 @@ export const DEFAULT_CATEGORIES = [
 export const DEMO_OCCASIONS = Object.freeze([
   { id: "demo_suman_birthday", name: "Suman", type: "birthday", month: 4, day: 8, _source: "manual" },
   { id: "demo_parents_anniversary", name: "Mom & Dad", type: "anniversary", month: 1, day: 15, _source: "manual" },
+  { id: "demo_extension_released", name: "Extension Released", type: "special", month: 5, day: 17, _source: "manual" },
 ]);
 
 /** Countdown events — stored in localStorage 'countdown_events'. */
 export const DEMO_COUNTDOWN_EVENTS = Object.freeze([
   { id: "demo_salary", title: "Salary Day", targetDate: null, targetTime: "17:00", repeat: "monthly" },
+  { id: "demo_vacation", title: "Vacation", targetDate: "2027-12-20", targetTime: "", repeat: "yearly" },
 ]);
 
 /** Calendar events — stored in localStorage 'widget_events'. */
 export const DEMO_EVENTS = Object.freeze([
-  { id: "demo_leetcode", title: "Solve LeetCode", startDate: "2030-03-15", startTime: "", endDate: "", endTime: "" },
-  { id: "demo_trekking", title: "Plan Another Trekking", startDate: "2032-05-01", startTime: "", endDate: "", endTime: "" },
+  { id: "demo_release", title: "Extension Released", startDate: "2027-05-17", startTime: "", endDate: "", endTime: "" },
+  { id: "demo_linkedin", title: "LinkedIn Post", startDate: "2027-05-18", startTime: "10:00", endDate: "", endTime: "" },
+  { id: "demo_reel", title: "Instagram Reel", startDate: "2027-05-19", startTime: "14:00", endDate: "", endTime: "" },
+  { id: "demo_trekking", title: "Plan Another Trekking", startDate: "2027-05-01", startTime: "", endDate: "", endTime: "" },
 ]);
 
 /** Bookmark widget settings — written to widgetSettings['bookmark']. */
@@ -174,19 +178,4 @@ export const DEMO_BOOKMARK_SETTINGS = Object.freeze({
   url: MOMO_URL,
   name: "Buy Me Momo",
   iconMode: "favicon",
-});
-
-/** Pomodoro timer state — stored in localStorage 'pomodoro_timer_state_pomodoro'. */
-export const DEMO_POMODORO_STATE = Object.freeze({
-  phase: "timer",
-  preset: "30 min",
-  duration: 1800,
-  remaining: 1800,
-  running: true,
-});
-
-/** Notes widget settings — written to widgetSettings['notes']. */
-export const DEMO_NOTES_SETTINGS = Object.freeze({
-  notes: ["✅ Today's goals\n• Deep work — 2 focused blocks\n• Review PRs\n• Exercise 30 min"],
-  idx: 0,
 });

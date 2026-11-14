@@ -17,8 +17,6 @@ import {
   DEMO_COUNTDOWN_EVENTS,
   DEMO_EVENTS,
   DEMO_BOOKMARK_SETTINGS,
-  DEMO_POMODORO_STATE,
-  DEMO_NOTES_SETTINGS,
 } from '../constants/defaults';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { useWidgetInstancesStore } from '../store/useWidgetInstancesStore';
@@ -75,20 +73,6 @@ function writeBookmarkToStorage() {
   );
 }
 
-function writePomodoroToStorage() {
-  localStorage.setItem(
-    STORAGE_KEYS.pomodoroTimerState('pomodoro'),
-    JSON.stringify(DEMO_POMODORO_STATE),
-  );
-}
-
-function writeNotesToStorage() {
-  localStorage.setItem(
-    STORAGE_KEYS.widgetSettings('notes'),
-    JSON.stringify(DEMO_NOTES_SETTINGS),
-  );
-}
-
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -101,8 +85,6 @@ export function applyFirstRunDefaultsToStorage() {
   localStorage.setItem(STORAGE_KEYS.COUNTDOWN_EVENTS, JSON.stringify([salaryEvent]));
   localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(DEMO_EVENTS));
   writeBookmarkToStorage();
-  writePomodoroToStorage();
-  writeNotesToStorage();
 }
 
 /**
@@ -116,8 +98,6 @@ export function applyFirstRunDefaults() {
   writeCountdown();
   writeEvents();
   writeBookmarkToStorage();
-  writePomodoroToStorage();
-  writeNotesToStorage();
 
   // Notify the events widget cache (it listens to this custom event).
   try { globalThis.dispatchEvent(new Event('widget_events_changed')); } catch { /* noop */ }
@@ -131,8 +111,5 @@ export function applyFirstRunDefaults() {
     updateWidgetSetting('bookmark', 'name', DEMO_BOOKMARK_SETTINGS.name);
     updateWidgetSetting('bookmark', 'iconMode', DEMO_BOOKMARK_SETTINGS.iconMode);
 
-    // Notes
-    updateWidgetSetting('notes', 'notes', DEMO_NOTES_SETTINGS.notes);
-    updateWidgetSetting('notes', 'idx', DEMO_NOTES_SETTINGS.idx);
   } catch { /* store not available (SSR / test env) */ }
 }
