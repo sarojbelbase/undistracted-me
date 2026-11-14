@@ -40,7 +40,13 @@ export const BlockedSites = () => {
 
   // Tick `now` every second for countdown display — via the shared clock so we
   // never add a per-component 1s interval (one timer drives every new tab).
-  useEffect(() => onClockTick(() => setNow(Date.now())), []);
+  // Only subscribe while there's at least one site with a finite countdown;
+  // otherwise this would re-render the whole section every second for nothing.
+  const hasCountdown = sites.some((s) => s.blockedUntil != null && !s.infinite);
+  useEffect(() => {
+    if (!hasCountdown) return;
+    return onClockTick(() => setNow(Date.now()));
+  }, [hasCountdown]);
 
   // Refresh site list once on mount
   useEffect(() => {

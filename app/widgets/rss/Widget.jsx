@@ -452,6 +452,11 @@ export const Widget = ({ id, onRemove }) => {
     ? activeCustomFeeds.map((f) => ({ label: f.label, url: f.url }))
     : activePresetFeeds.map((p) => ({ label: p.label, url: p.url }));
 
+  // Stable string keys for the effect deps below (avoid JSON.stringify
+  // expressions in dependency arrays, which are non-idiomatic).
+  const feedsKey = allActiveFeeds.map((f) => `${f.label}|${f.url}`).join(",");
+  const activeFeedIdsKey = activeFeedIds.join(",");
+
   // Always use multiResult — useRss (single-feed) was removed as it ran a full
   // fetch+state+interval cycle for a result that was never read.
   const { items, loading, error, refreshedAt, refresh } = useRssMulti(allActiveFeeds);
@@ -462,8 +467,7 @@ export const Widget = ({ id, onRemove }) => {
     if (typeof chrome === "undefined" || !chrome.runtime) return;
     const feeds = allActiveFeeds.map(({ label, url }) => ({ label, url }));
     chrome.runtime.sendMessage({ type: "RSS_CONFIG_SYNC", feeds }).catch(() => { });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(allActiveFeeds)]);
+  }, [feedsKey]);
 
   // Marquee navigation state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -519,8 +523,7 @@ export const Widget = ({ id, onRemove }) => {
     setNavDirection("next");
     prevNewestLinkRef.current = null;
     setOrderedItems([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(activeFeedIds), sourceMode]);
+  }, [activeFeedIdsKey, sourceMode]);
 
   // Clamp index when items load/shrink
   useEffect(() => {

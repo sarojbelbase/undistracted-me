@@ -43,7 +43,12 @@ const SpotifySection = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (connected) getSpotifyProfile().then(p => { if (p) setProfile(p); });
+    if (!connected) return;
+    let cancelled = false;
+    getSpotifyProfile().then(p => {
+      if (!cancelled && p) setProfile(p);
+    });
+    return () => { cancelled = true; };
   }, [connected]);
 
   const handleConnect = useCallback(async () => {

@@ -58,7 +58,11 @@ export const Widget = ({ id, onRemove }) => {
   const [topSites, setTopSites] = useState([]);
 
   useEffect(() => {
-    getTopSites().then((sites) => setTopSites(sites.slice(0, MAX_TILES)));
+    let cancelled = false;
+    getTopSites().then((sites) => {
+      if (!cancelled) setTopSites(sites.slice(0, MAX_TILES));
+    });
+    return () => { cancelled = true; };
   }, []);
 
   const isUnsupported = typeof chrome === 'undefined' && typeof globalThis.browser === 'undefined';

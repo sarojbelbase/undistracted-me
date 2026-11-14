@@ -190,7 +190,11 @@ export const Widget = ({ id, onRemove }) => {
 
   // Load cached contacts from chrome.storage.local on mount (async).
   useEffect(() => {
-    loadCachedContacts().then(entries => { if (entries.length > 0) setRaw(entries); });
+    let cancelled = false;
+    loadCachedContacts().then(entries => {
+      if (!cancelled && entries.length > 0) setRaw(entries);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   // Silent refresh on mount if already connected

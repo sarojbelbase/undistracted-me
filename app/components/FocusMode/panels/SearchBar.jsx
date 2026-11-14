@@ -183,7 +183,11 @@ export const SearchBar = ({ centerOnDark = true }) => {
   // ── Top sites (fetched once when enabled) ────────────────────────────────────
   useEffect(() => {
     if (!focusSearchTopSites) { setTopSites([]); return; }
-    getTopSites().then((sites) => setTopSites(sites.slice(0, 8)));
+    let cancelled = false;
+    getTopSites().then((sites) => {
+      if (!cancelled) setTopSites(sites.slice(0, 8));
+    });
+    return () => { cancelled = true; };
   }, [focusSearchTopSites]);
 
   // ── Close on outside click ───────────────────────────────────────────────────

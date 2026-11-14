@@ -142,10 +142,10 @@ export const Data = ({ onNavigateToAccounts }) => {
     importFromFile((err) => {
       if (err) {
         setImportError(String(err));
-        setTimeout(() => setImportError(null), 4000);
+        feedbackTimerRef.current = setTimeout(() => setImportError(null), 4000);
       } else {
         setImportOk(true);
-        setTimeout(() => setImportOk(false), 2500);
+        feedbackTimerRef.current = setTimeout(() => setImportOk(false), 2500);
       }
     });
   };

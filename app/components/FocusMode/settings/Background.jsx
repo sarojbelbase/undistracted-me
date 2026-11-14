@@ -341,10 +341,19 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const inputRef = useRef(null);
+  const verifyTimerRef = useRef(null);
+  const verifyImgRef = useRef(null);
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
+  }, []);
+
+  // Clear any in-flight verification (5s timeout + image load) on unmount so
+  // its handlers can't setState after the panel is gone.
+  useEffect(() => () => {
+    clearTimeout(verifyTimerRef.current);
+    if (verifyImgRef.current) verifyImgRef.current.src = '';
   }, []);
 
   const { ok: syntaxOk, hint } = classifyUrl(value);
@@ -354,8 +363,10 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
     if (!classifyUrl(url).ok) { setErrorMsg('Enter an https:// image URL to continue.'); setStatus('error'); return; }
     setStatus('checking'); setPreviewUrl(null); setErrorMsg('');
     const img = new globalThis.Image();
+    verifyImgRef.current = img;
     img.crossOrigin = 'anonymous';
     const timeout = setTimeout(() => { img.src = ''; setPreviewUrl(url); setStatus('ok'); }, 5000);
+    verifyTimerRef.current = timeout;
     img.onload = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); };
     img.onerror = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); setErrorMsg('Could not verify — the URL may still work.'); };
     img.src = url;
