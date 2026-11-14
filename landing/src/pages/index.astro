@@ -308,10 +308,10 @@ import { buildSchemaGraph } from "../data/schema.js";
     try {
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), 3000);
-      const res = await fetch("https://ipapi.co/json/", { signal: ctrl.signal });
+      const res = await fetch("https://freeipapi.com/api/json", { signal: ctrl.signal });
       clearTimeout(to);
       const d = await res.json();
-      const code = d.country_code;
+      const code = d.countryCode;
       applyRegion(code === "IN" ? "inr" : code === "NP" ? "npr" : "usd");
     } catch (e) {
       applyRegion("npr");
