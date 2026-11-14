@@ -67,20 +67,20 @@ const supporters = [];
     <div class="pay-g">
       <span class="pay-l">Payment methods available in Nepal</span>
       {nepalPayments.map((p) => (
-        <a class="chip" href={site.momoUrl} rel="noopener">{p}<span class="sr"> (opens Buy Me a Momo in a new tab)</span></a>
+        <a class="chip" href={site.momoUrl} rel="noopener sponsored nofollow">{p}<span class="sr"> (opens Buy Me a Momo in a new tab)</span></a>
       ))}
     </div>
     <div class="pay-g">
       <span class="pay-l">Elsewhere</span>
       {intlPayments.map((p) => (
-        <a class="chip" href={site.momoUrl} rel="noopener">{p}<span class="sr"> (opens Stripe checkout in a new tab)</span></a>
+        <a class="chip" href={site.momoUrl} rel="noopener sponsored nofollow">{p}<span class="sr"> (opens Stripe checkout in a new tab)</span></a>
       ))}
     </div>
     <p class="pay-n">Tap any of them to continue on Buy Me a Momo.</p>
   </div>
 
   <div class="sup-cta">
-    <a class="btn pulse" href={site.momoUrl} rel="noopener"><svg class="ic"><use href="#i-heart" /></svg>Buy me a momo<span class="sr"> (opens in a new tab)</span></a>
+    <a class="btn pulse" href={site.momoUrl} rel="noopener sponsored nofollow"><svg class="ic"><use href="#i-heart" /></svg>Buy me a momo<span class="sr"> (opens in a new tab)</span></a>
     <a class="btn ghost" href={site.githubUrl} rel="noopener"><svg class="ic"><use href="#i-github" /></svg>Star on GitHub<span class="sr"> (opens in a new tab)</span></a>
   </div>
 
