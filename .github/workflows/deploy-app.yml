@@ -11,8 +11,6 @@ on:
       - 'entries/**'
       - 'package.json'
       - 'vite.config.ts'
-      - '_headers'
-      - '_redirects'
       - '.github/workflows/deploy-app.yml'
 
 jobs:
@@ -36,9 +34,6 @@ jobs:
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_CF_BEACON_TOKEN: ${{ secrets.VITE_CF_BEACON_TOKEN }}
-
-      - name: Copy headers and redirects
-        run: cp _headers _redirects dist/
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
