@@ -71,7 +71,7 @@ const urls = [
 
 const unique = [...new Set(urls)];
 if (unique.length === 0) {
-  console.error('No background URLs found in functions/_media/media.js');
+  console.error('No background URLs found in api/_media/media.js');
   process.exit(1);
 }
 
@@ -139,5 +139,5 @@ try {
 
 console.log(`\n✅ Uploaded ${uploaded.length}/${jobs.length} thumbnail(s).`);
 if (failed.length > 0) console.log(`⚠️  Failed: ${failed.join(', ')}`);
-console.log('\nNext: make sure functions/_media/media.js lists the matching `thumb`');
+console.log('\nNext: make sure api/_media/media.js lists the matching `thumb`');
 console.log('URL for each background (it already should if you ran the full setup).\n');

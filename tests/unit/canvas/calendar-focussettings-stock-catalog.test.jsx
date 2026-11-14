@@ -60,14 +60,14 @@ vi.mock('react-bootstrap-icons', () => ({
 }));
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // Mock BaseWidget
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, settingsContent, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget">
       {children}
@@ -81,7 +81,7 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock BaseSettingsModal
-vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
+vi.mock('../../../app/widgets/BaseSettingsModal', () => ({
   BaseSettingsModal: ({ title, children, onClose }) => (
     <div data-testid="settings-modal">
       <span>{title}</span>
@@ -92,7 +92,7 @@ vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
 }));
 
 // Mock useWidgetSettings
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn((id, defaults) => [defaults, vi.fn()]),
 }));
 
@@ -102,7 +102,7 @@ const mockSetClockFormat = vi.fn();
 const mockSetAccent = vi.fn();
 const mockSetMode = vi.fn();
 const mockSetLanguage = vi.fn();
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = {
       dateFormat: 'gregorian', setDateFormat: mockSetDateFormat,
@@ -120,7 +120,7 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Mock theme
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [
     { name: 'Default', hex: '#6366f1', fg: '#fff' },
     { name: 'indigo', hex: '#6366f1', fg: '#fff' },
@@ -131,18 +131,18 @@ vi.mock('../../../src/theme', () => ({
 }));
 
 // Mock constants/settings
-vi.mock('../../../src/constants/settings', () => ({
+vi.mock('../../../app/constants/settings', () => ({
   LANGUAGES: { English: 'en', Nepali: 'ne' },
 }));
 
 // Mock useEvents
-vi.mock('../../../src/hooks/useEvents', () => ({
+vi.mock('../../../app/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], vi.fn(), vi.fn()]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [] })),
 }));
 
 // Mock RadioGroup for calendar Settings
-vi.mock('../../../src/components/ui/RadioGroup', () => ({
+vi.mock('../../../app/components/ui/RadioGroup', () => ({
   RadioGroup: ({ label, options, value, onChange }) => (
     <div data-testid="radio-group">
       <span>{label}</span>
@@ -162,7 +162,7 @@ const mockGetPhotoLibrary = vi.fn(() => []);
 const mockDownloadNewPhoto = vi.fn(() => Promise.resolve());
 const mockDeletePhoto = vi.fn();
 const mockJumpToPhotoById = vi.fn();
-vi.mock('../../../src/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/unsplash', () => ({
   hasUnsplashKey: (...args) => mockHasUnsplashKey(...args),
   getPhotoLibrary: (...args) => mockGetPhotoLibrary(...args),
   downloadNewPhoto: (...args) => mockDownloadNewPhoto(...args),
@@ -172,7 +172,7 @@ vi.mock('../../../src/utilities/unsplash', () => ({
 }));
 
 // Mock stock utils
-vi.mock('../../../src/widgets/stock/utils', () => ({
+vi.mock('../../../app/widgets/stock/utils', () => ({
   fetchCompanies: vi.fn(() => Promise.resolve([
     { symbol: 'NABIL', name: 'Nabil Bank' },
     { symbol: 'NIC', name: 'NIC Asia Bank' },
@@ -181,7 +181,7 @@ vi.mock('../../../src/widgets/stock/utils', () => ({
 }));
 
 // Mock widget registry  
-vi.mock('../../../src/widgets/index', () => ({
+vi.mock('../../../app/widgets/index', () => ({
   WIDGET_REGISTRY: [
     { type: 'clock', title: 'Clock', description: 'Shows the current time', icon: () => <span>🕐</span>, category: 'time' },
     { type: 'calendar', title: 'Calendar', description: 'Monthly calendar', icon: () => <span>📅</span>, category: 'time' },
@@ -191,19 +191,19 @@ vi.mock('../../../src/widgets/index', () => ({
 }));
 
 // Mock settingsIO
-vi.mock('../../../src/widgets/settingsIO', () => ({
+vi.mock('../../../app/widgets/settingsIO', () => ({
   exportSettings: vi.fn(),
   importFromFile: vi.fn(() => Promise.resolve()),
   resetSettings: vi.fn(),
 }));
 
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { useEvents, useGoogleCalendar } from '../../../src/hooks/useEvents';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
+import { useEvents, useGoogleCalendar } from '../../../app/hooks/useEvents';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Calendar Widget — with events for tooltip coverage
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as CalendarWidget } from '../../../src/widgets/calendar/Widget';
+import { Widget as CalendarWidget } from '../../../app/widgets/calendar/Widget';
 
 describe('CalendarWidget — with events', () => {
   beforeEach(() => {
@@ -295,7 +295,7 @@ describe('CalendarWidget — with events', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // FocusMode/Settings.jsx — photo library interactions
 // ─────────────────────────────────────────────────────────────────────────────
-import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
+import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
 
 describe('FocusModeSettings — photo library', () => {
   beforeEach(() => {
@@ -347,8 +347,8 @@ describe('FocusModeSettings — photo library', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Stock Settings (51.16%)
 // ─────────────────────────────────────────────────────────────────────────────
-import { Settings as StockSettings } from '../../../src/widgets/stock/Settings';
-import { fetchCompanies } from '../../../src/widgets/stock/utils';
+import { Settings as StockSettings } from '../../../app/widgets/stock/Settings';
+import { fetchCompanies } from '../../../app/widgets/stock/utils';
 
 describe('Stock Settings', () => {
   beforeEach(() => {
@@ -465,7 +465,7 @@ describe('Stock Settings', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // WidgetCatalog — basic coverage
 // ─────────────────────────────────────────────────────────────────────────────
-import { WidgetCatalog } from '../../../src/widgets/WidgetCatalog';
+import { WidgetCatalog } from '../../../app/widgets/WidgetCatalog';
 
 describe('WidgetCatalog', () => {
   let onAddInstance, onRemoveInstance, onClose;

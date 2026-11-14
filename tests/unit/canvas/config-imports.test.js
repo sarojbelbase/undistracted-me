@@ -12,19 +12,19 @@ import { describe, it, expect } from 'vitest';
 // Widget config.js files
 // ─────────────────────────────────────────────────────────────────────────────
 
-import bookmarkConfig from '../../../src/widgets/bookmark/config';
-import calendarConfig from '../../../src/widgets/calendar/config';
-import clockConfig from '../../../src/widgets/clock/config';
-import countdownConfig from '../../../src/widgets/countdown/config';
-import dateTodayConfig from '../../../src/widgets/dateToday/config';
-import dayProgressConfig from '../../../src/widgets/progress/config';
-import eventsConfig from '../../../src/widgets/events/config';
-import dailysConfig from '../../../src/widgets/dailys/config';
-import notesConfig from '../../../src/widgets/notes/config';
-import pomodoroConfig from '../../../src/widgets/pomodoro/config';
-import stockConfig from '../../../src/widgets/stock/config';
-import weatherConfig from '../../../src/widgets/weather/config';
-import mediaConfig from '../../../src/widgets/media/config';
+import bookmarkConfig from '../../../app/widgets/bookmark/config';
+import calendarConfig from '../../../app/widgets/calendar/config';
+import clockConfig from '../../../app/widgets/clock/config';
+import countdownConfig from '../../../app/widgets/countdown/config';
+import dateTodayConfig from '../../../app/widgets/dateToday/config';
+import dayProgressConfig from '../../../app/widgets/progress/config';
+import eventsConfig from '../../../app/widgets/events/config';
+import dailysConfig from '../../../app/widgets/dailys/config';
+import notesConfig from '../../../app/widgets/notes/config';
+import pomodoroConfig from '../../../app/widgets/pomodoro/config';
+import stockConfig from '../../../app/widgets/stock/config';
+import weatherConfig from '../../../app/widgets/weather/config';
+import mediaConfig from '../../../app/widgets/media/config';
 
 const ALL_CONFIGS = [
   ['bookmark', bookmarkConfig],
@@ -82,12 +82,12 @@ describe('Widget config.js files — structural integrity', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// src/store/index.js — re-exports
+// app/store/index.js — re-exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-import * as storeExports from '../../../src/store';
+import * as storeExports from '../../../app/store';
 
-describe('src/store/index.js re-exports', () => {
+describe('app/store/index.js re-exports', () => {
   it('exports useSettingsStore', () => {
     expect(storeExports).toHaveProperty('useSettingsStore');
     expect(typeof storeExports.useSettingsStore).toBe('function');
@@ -100,10 +100,10 @@ describe('src/store/index.js re-exports', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// src/constants — language/setting constants
+// app/constants — language/setting constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { LANGUAGES } from '../../../src/constants';
+import { LANGUAGES } from '../../../app/constants';
 
 describe('constants (LANGUAGES)', () => {
   it('LANGUAGES has ne and en values', () => {

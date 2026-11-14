@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/dateToday/utils.js
+ * Tests for app/widgets/dateToday/utils.js
  *
  * What can go wrong:
  *  – getDateParts for English (default) returns incorrect weekday index because
@@ -18,7 +18,7 @@ import {
   EN_WEEKDAYS,
   EN_MONTHS,
   getDateParts,
-} from '../../../src/widgets/dateToday/utils';
+} from '../../../app/widgets/dateToday/utils';
 
 afterEach(() => vi.useRealTimers());
 

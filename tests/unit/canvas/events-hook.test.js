@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/useEvents.js — useEvents hook and formatEventTime
+ * Tests for app/widgets/useEvents.js — useEvents hook and formatEventTime
  *
  * What can go wrong:
  *  – load() returning [] when localStorage is empty is essential;
@@ -18,7 +18,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useEvents, formatEventTime } from '../../../src/hooks/useEvents';
+import { useEvents, formatEventTime } from '../../../app/hooks/useEvents';
 
 // Silence Chrome API warnings in test output
 vi.stubGlobal('chrome', undefined);

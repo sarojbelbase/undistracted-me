@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/pomodoro/utils.js
+ * Tests for app/widgets/pomodoro/utils.js
  *
  * What can go wrong:
  *  – formatTime(0) must be '00:00' not '0:0' (the timer UI relies on fixed
@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PRESETS, formatTime } from '../../../src/widgets/pomodoro/utils';
+import { PRESETS, formatTime } from '../../../app/widgets/pomodoro/utils';
 
 // ────────────────────────────────────────────────────────────────────────────
 // PRESETS

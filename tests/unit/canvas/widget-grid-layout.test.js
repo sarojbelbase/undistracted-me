@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/WidgetGrid.jsx — pure utility logic
+ * Tests for app/widgets/WidgetGrid.jsx — pure utility logic
  *
  * The WidgetGrid component itself is large and relies on react-grid-layout,
  * so we focus on the testable pure-function layer:
@@ -22,13 +22,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Prevent store init from loading WIDGET_REGISTRY via circular import
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
-import { WIDGET_TYPES, WIDGET_REGISTRY } from '../../../src/widgets/index.js';
+import { WIDGET_TYPES, WIDGET_REGISTRY } from '../../../app/widgets/index.js';
 
 // ── Replicate the LAYOUT_KEY constant as documented in WidgetGrid.jsx ──
 const LAYOUT_KEY = 'widget_grid_layouts';

@@ -1,8 +1,8 @@
 /**
- * Upload background images from src/assets/backgrounds/ to Cloudflare R2.
+ * Upload background images from app/assets/backgrounds/ to Cloudflare R2.
  *
  * Drop your image files (jpg, jpeg, png, webp, avif) into:
- *   src/assets/backgrounds/
+ *   app/assets/backgrounds/
  * Then run:
  *   node scripts/upload-backgrounds.mjs
  *
@@ -12,7 +12,7 @@
  * Served publicly (zero egress) at:
  *   https://media.undistracted.me/backgrounds/<filename>
  *
- * IMPORTANT: `functions/_media/media.js` is a *static* manifest consumed by
+ * IMPORTANT: `api/_media/media.js` is a *static* manifest consumed by
  * /api/photos/curated — not a dynamic listing. After uploading new files you
  * must also add them to that manifest for the endpoint to serve them.
  *
@@ -74,7 +74,7 @@ try {
 }
 
 if (files.length === 0) {
-  console.log('No image files found in src/assets/backgrounds/');
+  console.log('No image files found in app/assets/backgrounds/');
   console.log('Add .jpg/.png/.webp/.avif files and run again.');
   process.exit(0);
 }
@@ -117,4 +117,4 @@ if (failed.length > 0) {
   console.log(`⚠️  Failed: ${failed.join(', ')}`);
 }
 console.log('\nRemember: /api/photos/curated serves from the static manifest in');
-console.log('functions/_media/media.js — add any new files there too.\n');
+console.log('api/_media/media.js — add any new files there too.\n');

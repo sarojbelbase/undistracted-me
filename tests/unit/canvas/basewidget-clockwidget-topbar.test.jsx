@@ -24,15 +24,15 @@ vi.mock('react-bootstrap-icons', async (importOriginal) => {
 });
 
 // Mock weather utils for TopBar (it imports weather/utils.jsx)
-vi.mock('../../../src/widgets/weather/utils.jsx', () => ({
+vi.mock('../../../app/widgets/weather/utils.jsx', () => ({
   getWeatherIcon: vi.fn(() => <span>☀</span>),
 }));
-vi.mock('../../../src/widgets/weather/utils', () => ({
+vi.mock('../../../app/widgets/weather/utils', () => ({
   getWeatherIcon: vi.fn(() => <span>☀</span>),
 }));
 
 // Mock FocusModeSettings (lazy-loaded via Suspense in TopBar)
-vi.mock('../../../src/components/FocusMode/Settings', () => ({
+vi.mock('../../../app/components/FocusMode/Settings', () => ({
   FocusModeSettings: ({ onRotatePhoto }) => (
     <div data-testid="focus-mode-settings">
       <button onClick={onRotatePhoto}>Rotate</button>
@@ -41,7 +41,7 @@ vi.mock('../../../src/components/FocusMode/Settings', () => ({
 }));
 
 // Mock BaseSettingsModal
-vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
+vi.mock('../../../app/widgets/BaseSettingsModal', () => ({
   BaseSettingsModal: ({ title, children, onClose }) => (
     <div data-testid="settings-modal">
       <span>{title}</span>
@@ -52,12 +52,12 @@ vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
 }));
 
 // Mock useWidgetSettings for ClockWidget
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn((id, defaults) => [defaults, vi.fn()]),
 }));
 
 // Mock utilities/index and constants for ClockWidget
-vi.mock('../../../src/utilities/index', () => ({
+vi.mock('../../../app/utilities/index', () => ({
   getTimeZoneAwareDayJsInstance: vi.fn(() => ({
     day: () => 1, // Monday
     month: () => 5, // June (0-indexed)
@@ -68,7 +68,7 @@ vi.mock('../../../src/utilities/index', () => ({
   convertEnglishToNepali: vi.fn(() => '2082 3 1'), // Returns string like real function
   convertThisNumberToNepali: vi.fn(n => String(n)),
 }));
-vi.mock('../../../src/utilities', () => ({
+vi.mock('../../../app/utilities', () => ({
   getTimeZoneAwareDayJsInstance: vi.fn(() => ({
     day: () => 1,
     month: () => 5,
@@ -80,18 +80,18 @@ vi.mock('../../../src/utilities', () => ({
   convertThisNumberToNepali: vi.fn(n => String(n)),
 }));
 
-vi.mock('../../../src/constants', () => ({
+vi.mock('../../../app/constants', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
   MONTH_NAMES: ['बैशाख', 'जेठ', 'आषाढ', 'श्रावण', 'भाद्र', 'आश्विन', 'कार्तिक', 'मंसिर', 'पौष', 'माघ', 'फाल्गुन', 'चैत्र'],
   MONTH_NAMES_IN_NEPALI: ['बैशाख', 'जेठ', 'आषाढ', 'श्रावण', 'भाद्र', 'आश्विन', 'कार्तिक', 'मंसिर', 'पौष', 'माघ', 'फाल्गुन', 'चैत्र'],
   DAY_NAMES: ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'],
 }));
-vi.mock('../../../src/constants/settings', () => ({
+vi.mock('../../../app/constants/settings', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
 }));
 
 // Mock store for TopBar's lazy Settings
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = {
       dateFormat: 'gregorian',
@@ -110,7 +110,7 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Mock unsplash for FocusModeSettings
-vi.mock('../../../src/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/unsplash', () => ({
   hasUnsplashKey: vi.fn(() => false),
   getPhotoLibrary: vi.fn(() => []),
   downloadNewPhoto: vi.fn(() => Promise.resolve()),
@@ -119,19 +119,19 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   LIBRARY_MAX: 20,
 }));
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [{ name: 'indigo', value: '#6366f1' }],
 }));
 
-import { BaseWidget } from '../../../src/widgets/BaseWidget';
-import { Widget as ClockWidget } from '../../../src/widgets/dateToday/Widget';
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
+import { BaseWidget } from '../../../app/widgets/BaseWidget';
+import { Widget as ClockWidget } from '../../../app/widgets/dateToday/Widget';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
 
 const dateParts = { dow: 'Monday', month: 'June', day: 15, year: 2025 };
 
@@ -271,5 +271,5 @@ describe('ClockWidget (dateToday)', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TopBar was removed in the Focus Mode redesign — its back/fullscreen/settings
-// controls now live in src/components/FocusMode/zones/TopZone.jsx.
+// controls now live in app/components/FocusMode/zones/TopZone.jsx.
 // ─────────────────────────────────────────────────────────────────────────────

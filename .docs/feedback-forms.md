@@ -14,7 +14,7 @@ The live feedback form is hosted at Google Forms:
 This single URL is currently wired into both the landing site footer ("Report a bug" / "Suggest a feature") and the README. Wire it into the **Extension Support dialog** too:
 
 1. **Landing site footer** — already points at `https://forms.gle/7vf4VGrB9Loz8hB76` (`landing/index.html`).
-2. **Extension Support dialog** — `src/components/SupportDialog.jsx` currently links to "Buy Me a Momo" and GitHub. Add `https://forms.gle/7vf4VGrB9Loz8hB76` as a "Send feedback" link (or "Report a bug" + "Request a feature", both pointing here until a separate feature form exists).
+2. **Extension Support dialog** — `app/components/SupportDialog.jsx` currently links to "Buy Me a Momo" and GitHub. Add `https://forms.gle/7vf4VGrB9Loz8hB76` as a "Send feedback" link (or "Report a bug" + "Request a feature", both pointing here until a separate feature form exists).
 
 ---
 

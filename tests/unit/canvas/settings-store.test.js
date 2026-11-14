@@ -1,5 +1,5 @@
 /**
- * Tests for src/store/useSettingsStore.js
+ * Tests for app/store/useSettingsStore.js
  *
  * What can go wrong:
  *  – Zustand's persist reads state from localStorage at startup. If
@@ -24,8 +24,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 // call the store's setState to reset to a known baseline.
 // ────────────────────────────────────────────────────────────────────────────
 
-import { useSettingsStore, STORE_KEY } from '../../../src/store/useSettingsStore';
-import { WIDGET_SETTINGS_DEFAULTS } from '../../../src/constants/defaults';
+import { useSettingsStore, STORE_KEY } from '../../../app/store/useSettingsStore';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../../app/constants/defaults';
 
 const resetStore = (overrides = {}) =>
   useSettingsStore.setState({

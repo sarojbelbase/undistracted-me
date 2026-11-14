@@ -1,5 +1,5 @@
 /**
- * Tests for src/store/useWidgetInstancesStore.js
+ * Tests for app/store/useWidgetInstancesStore.js
  *
  * What can go wrong:
  *  – "First instance keeps id === type" rule: if violated, the grid layout key
@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
+import { useWidgetInstancesStore } from '../../../app/store/useWidgetInstancesStore';
 
 // Helper: wipe store state and localStorage between tests
 const resetStore = (instances = []) => {

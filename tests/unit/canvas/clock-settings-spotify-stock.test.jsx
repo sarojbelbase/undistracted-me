@@ -29,14 +29,14 @@ vi.mock('react-bootstrap-icons', () => ({
 }));
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // Mock BaseWidget to just render children
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, className, settingsContent, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget" className={className}>
       {children}
@@ -46,12 +46,12 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock useWidgetSettings hook
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn(),
 }));
 
 // Mock spotify utils (media/utils) — kept for any transitive import
-vi.mock('../../../src/widgets/media/utils', () => ({
+vi.mock('../../../app/widgets/media/utils', () => ({
   SPOTIFY_CLIENT_ID: null, // Default: not configured
   connectSpotify: vi.fn(),
   disconnectSpotify: vi.fn(),
@@ -67,7 +67,7 @@ vi.mock('../../../src/widgets/media/utils', () => ({
 }));
 
 // Mock stock utils for Stock widget tests
-vi.mock('../../../src/widgets/stock/utils', () => ({
+vi.mock('../../../app/widgets/stock/utils', () => ({
   fetchChart: vi.fn(() => Promise.resolve(null)),
   fetchCompanies: vi.fn(() => Promise.resolve([])),
   buildSparklinePaths: vi.fn(() => ({ line: '', area: '' })),
@@ -79,16 +79,16 @@ vi.mock('../../../src/widgets/stock/utils', () => ({
 }));
 
 // The stock widget reads chart data from the shared useStocks hook (DataHub).
-vi.mock('../../../src/widgets/stock/useStocks', () => ({
+vi.mock('../../../app/widgets/stock/useStocks', () => ({
   useStocks: vi.fn(),
 }));
 
-import { Settings as ClockSettings } from '../../../src/widgets/clock/Settings';
-import { Widget as StockWidget } from '../../../src/widgets/stock/Widget';
+import { Settings as ClockSettings } from '../../../app/widgets/clock/Settings';
+import { Widget as StockWidget } from '../../../app/widgets/stock/Widget';
 
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { fetchChart } from '../../../src/widgets/stock/utils';
-import { useStocks } from '../../../src/widgets/stock/useStocks';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
+import { fetchChart } from '../../../app/widgets/stock/utils';
+import { useStocks } from '../../../app/widgets/stock/useStocks';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clock Settings
@@ -186,7 +186,7 @@ describe('Clock Settings', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Media Widget (formerly Spotify) — the Spotify player moved into the media
-// widget (src/widgets/media/Widget.jsx), which is covered by other suites.
+// widget (app/widgets/media/Widget.jsx), which is covered by other suites.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────

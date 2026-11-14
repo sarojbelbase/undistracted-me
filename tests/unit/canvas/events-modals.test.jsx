@@ -2,7 +2,7 @@
  * Tests for the Events widget modals: AllEventsModal.
  *
  * CreateModal was removed in the events redesign — event creation now happens in
- * the UnifiedAddDialog (see src/components/ui/UnifiedAddDialog.jsx), which the
+ * the UnifiedAddDialog (see app/components/ui/UnifiedAddDialog.jsx), which the
  * AllEventsModal opens via its "+" button.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -23,31 +23,31 @@ vi.mock('react-bootstrap-icons', () => ({
 }));
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // Mock Modal to render children directly (keeps AllEventsModal testable in jsdom)
-vi.mock('../../../src/components/ui/Modal', () => ({
+vi.mock('../../../app/components/ui/Modal', () => ({
   Modal: ({ children }) => <div data-testid="modal">{children}</div>,
 }));
 
 // Mock UnifiedAddDialog — heavy dependency; we only assert it opens.
-vi.mock('../../../src/components/ui/UnifiedAddDialog', () => ({
+vi.mock('../../../app/components/ui/UnifiedAddDialog', () => ({
   UnifiedAddDialog: ({ type }) => <div data-testid="unified-add-dialog" data-type={type} />,
 }));
 
 // Mock ConfirmButton so delete is a single click.
-vi.mock('../../../src/components/ui/ConfirmButton', () => ({
+vi.mock('../../../app/components/ui/ConfirmButton', () => ({
   ConfirmButton: ({ onConfirm, label, children }) => (
     <button aria-label={label} onClick={onConfirm}>{children}</button>
   ),
 }));
 
 // Mock todayStr and other utils to return stable values
-vi.mock('../../../src/widgets/events/utils', async (importOriginal) => {
+vi.mock('../../../app/widgets/events/utils', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -67,7 +67,7 @@ vi.mock('../../../src/widgets/events/utils', async (importOriginal) => {
   };
 });
 
-import { AllEventsModal } from '../../../src/widgets/events/AllEventsModal';
+import { AllEventsModal } from '../../../app/widgets/events/AllEventsModal';
 
 // ── Helper events ──────────────────────────────────────────────────────────
 const todayEvent = {

@@ -12,7 +12,7 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 // Mock dependencies
 // ─────────────────────────────────────────────────────────────────────────────
 
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = {
       mode: 'dark', accent: 'Default', language: 'en',
@@ -29,13 +29,13 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Also mock the direct import path used by widget dependencies
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
-vi.mock('../../../src/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/unsplash', () => ({
   hasUnsplashKey: vi.fn(() => false),
   getPhotoLibrary: vi.fn(() => []),
   downloadNewPhoto: vi.fn(() => Promise.resolve(null)),
@@ -59,7 +59,7 @@ vi.mock('react-grid-layout', () => ({
 
 // The real WIDGET_REGISTRY imports heavy Widget components. Stub them with
 // lightweight synchronous components so WidgetGrid tests stay fast and isolated.
-vi.mock('../../../src/widgets/index', () => ({
+vi.mock('../../../app/widgets/index', () => ({
   WIDGET_REGISTRY: [
     { type: 'facts', x: 0, y: 0, w: 3, h: 2 },
     { type: 'notes', x: 0, y: 0, w: 2, h: 2 },
@@ -69,9 +69,9 @@ vi.mock('../../../src/widgets/index', () => ({
   WIDGET_TYPES: {},
 }));
 
-// WidgetGrid renders via WIDGET_COMPONENTS (src/widgets/components.js), not the
+// WidgetGrid renders via WIDGET_COMPONENTS (app/widgets/components.js), not the
 // registry `Component` field. Stub the component map directly.
-vi.mock('../../../src/widgets/components', () => ({
+vi.mock('../../../app/widgets/components', () => ({
   WIDGET_COMPONENTS: {
     facts: () => <div>A fact about the world</div>,
     notes: () => <textarea defaultValue="note" />,
@@ -84,7 +84,7 @@ vi.mock('../../../src/widgets/components', () => ({
 // FocusModeSettings
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
+import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
 
 describe('FocusModeSettings', () => {
   it('renders without crashing', () => {
@@ -130,7 +130,7 @@ describe('FocusModeSettings', () => {
 // WidgetGrid — with instances
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { WidgetGrid } from '../../../src/widgets/WidgetGrid';
+import { WidgetGrid } from '../../../app/widgets/WidgetGrid';
 
 describe('WidgetGrid', () => {
   beforeEach(() => {

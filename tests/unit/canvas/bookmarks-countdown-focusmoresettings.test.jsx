@@ -69,7 +69,7 @@ vi.mock('react-bootstrap-icons', async (importOriginal) => {
 });
 
 // Mock BaseWidget
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, className, settingsContent, settingsTitle, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget">
       {children}
@@ -83,18 +83,18 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock useWidgetSettings
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn((id, defaults) => [defaults, vi.fn()]),
 }));
 
 // Mock useEvents for countdown
-vi.mock('../../../src/hooks/useEvents', () => ({
+vi.mock('../../../app/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], vi.fn(), vi.fn()]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
 // Mock countdown/utils — keep the real loaders/resolvers, override formatters
-vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
+vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -116,7 +116,7 @@ vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
 });
 
 // Mock events/utils for countdown
-vi.mock('../../../src/widgets/events/utils', () => ({
+vi.mock('../../../app/widgets/events/utils', () => ({
   todayStr: () => '2025-07-01',
   fmt12: vi.fn((t) => t || ''),
   isPast: vi.fn(() => false),
@@ -127,7 +127,7 @@ vi.mock('../../../src/widgets/events/utils', () => ({
 }));
 
 // Mock store for FocusMode/Settings
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = {
       dateFormat: 'gregorian', setDateFormat: vi.fn(),
@@ -142,7 +142,7 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Mock BaseSettingsModal (used by bookmarks + button)
-vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
+vi.mock('../../../app/widgets/BaseSettingsModal', () => ({
   BaseSettingsModal: ({ title, children, onClose }) => (
     <div data-testid="base-settings-modal">
       <span>{title}</span>
@@ -153,17 +153,17 @@ vi.mock('../../../src/widgets/BaseSettingsModal', () => ({
 }));
 
 // Mock FaviconIcon (used by bookmarks widget)
-vi.mock('../../../src/components/ui/FaviconIcon', () => ({
+vi.mock('../../../app/components/ui/FaviconIcon', () => ({
   FaviconIcon: ({ url }) => <div data-testid="favicon">{url}</div>,
 }));
 
 // Mock Popup (used by bookmarks widget hover)
-vi.mock('../../../src/components/ui/Popup', () => ({
+vi.mock('../../../app/components/ui/Popup', () => ({
   Popup: ({ children }) => <div data-testid="popup">{children}</div>,
 }));
 
 // Mock SegmentedControl (used by bookmarks/BookmarkSettings + weather settings)
-vi.mock('../../../src/components/ui/SegmentedControl', () => ({
+vi.mock('../../../app/components/ui/SegmentedControl', () => ({
   SegmentedControl: ({ label, options, value, onChange }) => (
     <div data-testid="segmented-control">
       <span>{label}</span>
@@ -176,7 +176,7 @@ vi.mock('../../../src/components/ui/SegmentedControl', () => ({
 }));
 
 // Mock SettingsInput (used by bookmarks BookmarkSettings)
-vi.mock('../../../src/components/ui/SettingsInput', () => ({
+vi.mock('../../../app/components/ui/SettingsInput', () => ({
   SettingsInput: React.forwardRef(({ id, placeholder, value, onChange, prefix, ...rest }, ref) => (
     <input ref={ref} id={id} placeholder={placeholder} value={value || ''}
       onChange={onChange} data-prefix={prefix} {...rest} />
@@ -184,7 +184,7 @@ vi.mock('../../../src/components/ui/SettingsInput', () => ({
 }));
 
 // Mock theme for FocusMode/Settings
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [
     { name: 'Default', hex: '#6366f1', fg: '#fff' },
     { name: 'indigo', hex: '#6366f1', fg: '#fff' },
@@ -196,12 +196,12 @@ vi.mock('../../../src/theme', () => ({
 }));
 
 // Mock constants/settings
-vi.mock('../../../src/constants/settings', () => ({
+vi.mock('../../../app/constants/settings', () => ({
   LANGUAGES: { English: 'en', Nepali: 'ne' },
 }));
 
 // Mock unsplash
-vi.mock('../../../src/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/unsplash', () => ({
   hasUnsplashKey: vi.fn(() => false),
   getPhotoLibrary: vi.fn(() => []),
   downloadNewPhoto: vi.fn(() => Promise.resolve()),
@@ -211,14 +211,14 @@ vi.mock('../../../src/utilities/unsplash', () => ({
 }));
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // ─── FocusMode subcomponent mocks ───────────────────────────────────────────
-vi.mock('../../../src/components/FocusMode/hooks', () => ({
+vi.mock('../../../app/components/FocusMode/hooks', () => ({
   useFocusModeSettings: vi.fn(() => ({
     language: 'en', setLanguage: vi.fn(),
     showClock: true, setShowClock: vi.fn(),
@@ -226,25 +226,25 @@ vi.mock('../../../src/components/FocusMode/hooks', () => ({
   })),
 }));
 
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { useEvents } from '../../../src/hooks/useEvents';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
+import { useEvents } from '../../../app/hooks/useEvents';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bookmarks Widget
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as BookmarksWidget } from '../../../src/widgets/bookmark/Widget';
-import bookmarksConfig from '../../../src/widgets/bookmark/config';
-import notesConfig from '../../../src/widgets/notes/config';
-import countdownConfig from '../../../src/widgets/countdown/config';
-import calendarConfig from '../../../src/widgets/calendar/config';
-import stockConfig from '../../../src/widgets/stock/config';
-import weatherConfig from '../../../src/widgets/weather/config';
-import clockConfig from '../../../src/widgets/clock/config';
-import dayProgressConfig from '../../../src/widgets/progress/config';
-import eventsConfig from '../../../src/widgets/events/config';
-import pomodoroConfig from '../../../src/widgets/pomodoro/config';
-import dailysConfig from '../../../src/widgets/dailys/config';
-import dateTodayConfig from '../../../src/widgets/dateToday/config';
+import { Widget as BookmarksWidget } from '../../../app/widgets/bookmark/Widget';
+import bookmarksConfig from '../../../app/widgets/bookmark/config';
+import notesConfig from '../../../app/widgets/notes/config';
+import countdownConfig from '../../../app/widgets/countdown/config';
+import calendarConfig from '../../../app/widgets/calendar/config';
+import stockConfig from '../../../app/widgets/stock/config';
+import weatherConfig from '../../../app/widgets/weather/config';
+import clockConfig from '../../../app/widgets/clock/config';
+import dayProgressConfig from '../../../app/widgets/progress/config';
+import eventsConfig from '../../../app/widgets/events/config';
+import pomodoroConfig from '../../../app/widgets/pomodoro/config';
+import dailysConfig from '../../../app/widgets/dailys/config';
+import dateTodayConfig from '../../../app/widgets/dateToday/config';
 
 describe('Config files', () => {
   it('bookmark config has correct type', () => {
@@ -268,27 +268,27 @@ describe('Config files', () => {
 
 describe('Countdown Settings.jsx', () => {
   it('exports the CountdownSettings panel component', async () => {
-    const mod = await import('../../../src/widgets/countdown/Settings');
+    const mod = await import('../../../app/widgets/countdown/Settings');
     expect(mod.CountdownSettings).toBeTypeOf('function');
   });
   it('dateToday Settings.jsx exports a component', async () => {
-    const { Settings } = await import('../../../src/widgets/dateToday/Settings');
+    const { Settings } = await import('../../../app/widgets/dateToday/Settings');
     // dateToday/Settings.jsx exports a real component (RadioGroup-based)
     expect(Settings).not.toBeNull();
     expect(typeof Settings).toBe('function');
   });
   it('progress Settings.jsx exports a component', async () => {
-    const { Settings } = await import('../../../src/widgets/progress/Settings');
+    const { Settings } = await import('../../../app/widgets/progress/Settings');
     expect(Settings).not.toBeNull();
     expect(typeof Settings).toBe('function');
   });
   it('events Settings.jsx exports a component', async () => {
-    const { Settings } = await import('../../../src/widgets/events/Settings');
+    const { Settings } = await import('../../../app/widgets/events/Settings');
     expect(Settings).not.toBeNull();
     expect(typeof Settings).toBe('function');
   });
   it('calendar Settings.jsx exports Settings component', async () => {
-    const { Settings } = await import('../../../src/widgets/calendar/Settings');
+    const { Settings } = await import('../../../app/widgets/calendar/Settings');
     expect(Settings).not.toBeUndefined();
   });
 });
@@ -361,8 +361,8 @@ describe('Bookmarks Widget', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Countdown Widget — additional tests
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as CountdownWidget } from '../../../src/widgets/countdown/Widget';
-import { getNextOccurrence, formatCountdown } from '../../../src/widgets/countdown/utils';
+import { Widget as CountdownWidget } from '../../../app/widgets/countdown/Widget';
+import { getNextOccurrence, formatCountdown } from '../../../app/widgets/countdown/utils';
 
 describe('Countdown Widget — additional coverage', () => {
   beforeEach(() => {
@@ -595,15 +595,15 @@ describe('Countdown Widget — additional coverage', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // FocusMode/Settings.jsx — more interaction coverage
 // ─────────────────────────────────────────────────────────────────────────────
-vi.mock('../../../src/components/ui/Modal', () => ({
+vi.mock('../../../app/components/ui/Modal', () => ({
   Modal: ({ children }) => <div data-testid="fm-modal">{children}</div>,
 }));
-vi.mock('../../../src/components/FocusMode/settings/Background', () => ({
+vi.mock('../../../app/components/FocusMode/settings/Background', () => ({
   Background: () => <div data-testid="fm-background-tab" />,
 }));
 
-import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
-import { useSettingsStore } from '../../../src/store';
+import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
+import { useSettingsStore } from '../../../app/store';
 
 describe('FocusModeSettings — interactions', () => {
   let mockSetDateFormat, mockSetClockFormat;

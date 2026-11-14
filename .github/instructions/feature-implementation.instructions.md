@@ -1,6 +1,6 @@
 ---
 description: "Implementation guide for the 6 planned features: cross-device sync, YouTube Watch Later, OPML import, website blocker, enriched Pomodoro, expense tracker. Covers architecture decisions, file structure, shared component reuse, Karpathy principles, and React Guru patterns."
-applyTo: "src/widgets/**,src/utilities/**,src/store/**,src/components/**,src/bg.js,public/**"
+applyTo: "app/widgets/**,app/utilities/**,app/store/**,app/components/**,app/bg.js,public/**"
 ---
 
 # Feature Implementation Guidelines
@@ -13,7 +13,7 @@ applyTo: "src/widgets/**,src/utilities/**,src/store/**,src/components/**,src/bg.
 ## 1. Universal Rules (Every Feature)
 
 ### Components: Reuse, Don't Rebuild
-- **Toggles/options** → `PillButton` (`src/components/ui/PillButton.jsx`)
+- **Toggles/options** → `PillButton` (`app/components/ui/PillButton.jsx`)
 - **Mutually exclusive choices** → `SegmentedControl`
 - **Destructive actions** → `ConfirmButton` (two-click confirm pattern)
 - **Dropdowns/popovers** → `Popup`
@@ -21,7 +21,7 @@ applyTo: "src/widgets/**,src/utilities/**,src/store/**,src/components/**,src/bg.
 - **Radio lists** → `RadioGroup` (only when PillButton doesn't fit)
 
 ### Card Wrapper: BaseWidget Always
-Every widget uses `BaseWidget` from `src/widgets/BaseWidget.jsx`. It provides:
+Every widget uses `BaseWidget` from `app/widgets/BaseWidget.jsx`. It provides:
 - Forwarded ref (for ResizeObserver)
 - Three-dots menu + settings modal portal
 - Card styling via `--card-*` CSS vars (flat, glass, soft, outlined, comic)
@@ -50,7 +50,7 @@ All Google API features share `useGoogleAccountStore`:
 - **Large collections:** Cap items (RSS does 30 max), trim oldest when exceeding max
 
 ### Clock: sharedClock
-- If widget needs per-second ticks → `onClockTick(fn)` from `src/utilities/sharedClock.js`
+- If widget needs per-second ticks → `onClockTick(fn)` from `app/utilities/sharedClock.js`
 - Returns unsubscribe function — perfect for useEffect cleanup
 - Never run your own `setInterval` for per-second updates
 
@@ -59,7 +59,7 @@ All Google API features share `useGoogleAccountStore`:
 ## 2. Feature-Specific Rules
 
 ### Cross-Device Sync (`chrome.storage.sync`)
-- **Sync engine:** `src/utilities/syncEngine.js` — single source of truth
+- **Sync engine:** `app/utilities/syncEngine.js` — single source of truth
 - **Strategy:** Last-write-wins with per-key timestamps
 - **What syncs:** Settings, widget instances, events, bookmarks, RSS feed URLs, Pomodoro history
 - **What does NOT sync:** Weather cache, Unsplash photos, RSS items, location state, auth tokens
@@ -69,8 +69,8 @@ All Google API features share `useGoogleAccountStore`:
 
 ### Expense Tracker Widget
 - **Data model:** `{ id, amount, currency, category, note, createdAt }` — stored as JSON array in `widgetSettings_${id}.expenses`
-- **Currency:** Curated list of ~50 world currencies in `src/data/currencies.js`. Format via `Intl.NumberFormat` (native, no deps).
-- **Hook:** `src/widgets/expense/useExpenses.js` — CRUD + weekly summary. Cap 500 entries, auto-trim oldest.
+- **Currency:** Curated list of ~50 world currencies in `app/data/currencies.js`. Format via `Intl.NumberFormat` (native, no deps).
+- **Hook:** `app/widgets/expense/useExpenses.js` — CRUD + weekly summary. Cap 500 entries, auto-trim oldest.
 - **Quick-add:** Amount input + category Popup + add button. 3-second logging flow.
 - **Categories:** Default set (Food 🍔, Transport 🚌, Shopping 🛍, Entertainment 🎬, Health 💊, Education 📚, Bills 💡, Other 💰). Custom categories in settings.
 - **Weekly summary:** CSS-only horizontal bars per category. No Chart.js.
@@ -82,17 +82,17 @@ All Google API features share `useGoogleAccountStore`:
 - **Playlist ID:** Always `WL` for authenticated user
 - **API:** `GET https://www.googleapis.com/youtube/v3/playlistItems?playlistId=WL`
 - **Thumbnails:** Use `snippet.thumbnails.medium.url` (320×180) — scaled to 120×68 in CSS
-- **Hook:** `src/widgets/youtube/useWatchLater.js` — fetch every 30 min
+- **Hook:** `app/widgets/youtube/useWatchLater.js` — fetch every 30 min
 
 ### OPML Import (RSS Enhancement)
-- **Parser:** `src/widgets/rss/opmlParser.js` — uses `DOMParser` (native, zero deps)
+- **Parser:** `app/widgets/rss/opmlParser.js` — uses `DOMParser` (native, zero deps)
 - **Import flow:** File picker OR paste text → parse → preview → confirm → merge
 - **Merge:** Skip feeds whose URL already exists. Deduplicate within OPML.
 - **UI:** Inline panel inside RSS settings (NOT a separate modal). Checkboxes for each feed.
 - **Edge cases:** Empty OPML, nested folders (flatten), invalid URLs (flag with ⚠️)
 
 ### Website Blocker
-- **Engine:** `src/utilities/siteBlocker.js` — CRUD + `chrome.declarativeNetRequest` dynamic rules
+- **Engine:** `app/utilities/siteBlocker.js` — CRUD + `chrome.declarativeNetRequest` dynamic rules
 - **Rule IDs:** Start at 1000 (avoid collisions). Map rule ID → domain in storage.
 - **Blocked page:** `public/blocked.html` — static page, matches Undistracted Me aesthetic
 - **Popup integration:** Add "Block [domain]" to `CurrentTabBookmark.jsx`
@@ -102,12 +102,12 @@ All Google API features share `useGoogleAccountStore`:
 
 ### Enriched Pomodoro
 - **Progress ring:** `ProgressRing.jsx` — SVG circle with `stroke-dasharray` animation
-  - Consider making it a shared component: `src/components/ui/ProgressRing.jsx`
+  - Consider making it a shared component: `app/components/ui/ProgressRing.jsx`
   - Reusable for Countdown widget, LookAway timer
 - **Sound:** Add `public/sounds/chime.mp3` — play on timer end via existing audio pattern
 - **History:** `usePomodoroHistory.js` — localStorage, max 500 sessions, trim oldest
 - **Stats:** Streak (consecutive days), today's minutes, weekly bar chart (CSS-only)
-- **Break messages:** Reuse `src/data/lookawayMessages.js` — one source for break content
+- **Break messages:** Reuse `app/data/lookawayMessages.js` — one source for break content
 - **Rain sounds:** Reuse `api/audio/rain.js` — already implemented, just add toggle
 
 ---
@@ -131,18 +131,18 @@ All Google API features share `useGoogleAccountStore`:
 ---
 
 ## 5. File Naming & Organization
-- New widgets: `src/widgets/<name>/config.js`, `Widget.jsx`, `Settings.jsx`, `use<Thing>.js`
-- New utilities: `src/utilities/<name>.js`
-- Shared hooks (used by >1 widget): `src/hooks/use<Thing>.js` or co-located in a widget if primarily that widget's domain
-- New shared UI: `src/components/ui/<Name>.jsx`
-- New settings sections: `src/components/settings/<Name>.jsx`
-- Widget registration: Always add to `WIDGET_REGISTRY` in `src/widgets/index.js`
+- New widgets: `app/widgets/<name>/config.js`, `Widget.jsx`, `Settings.jsx`, `use<Thing>.js`
+- New utilities: `app/utilities/<name>.js`
+- Shared hooks (used by >1 widget): `app/hooks/use<Thing>.js` or co-located in a widget if primarily that widget's domain
+- New shared UI: `app/components/ui/<Name>.jsx`
+- New settings sections: `app/components/settings/<Name>.jsx`
+- Widget registration: Always add to `WIDGET_REGISTRY` in `app/widgets/index.js`
 
 ---
 
 ## 6. Build Considerations
-- New Google scopes → add to `src/utilities/googleAuth.js` scope list (`youtube.readonly` for YouTube)
-- New data files → add to `src/data/` (e.g. `currencies.js` for Expense Tracker)
+- New Google scopes → add to `app/utilities/googleAuth.js` scope list (`youtube.readonly` for YouTube)
+- New data files → add to `app/data/` (e.g. `currencies.js` for Expense Tracker)
 - New permissions → add to `public/manifest.json`
 - New static pages → add to `vite.config.ts` build input
 - New sounds → add to `public/sounds/`

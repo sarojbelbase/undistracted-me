@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/syncMerge.js (pure LWW element-set merge).
+ * Unit tests for app/utilities/syncMerge.js (pure LWW element-set merge).
  */
 
 import { describe, it, expect } from 'vitest';
@@ -11,7 +11,7 @@ import {
   elementSetToArray,
   mapToElementSet,
   elementSetToObject,
-} from '../../../src/utilities/syncMerge';
+} from '../../../app/utilities/syncMerge';
 
 describe('itemKey', () => {
   it('prefers id, then url, then name', () => {

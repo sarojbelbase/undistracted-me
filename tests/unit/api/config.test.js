@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { assertOrigin, assertStrictOrigin, corsHeaders, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../functions/_config.js';
+import { assertOrigin, assertStrictOrigin, corsHeaders, PRIVATE_HOST_RE, ALLOWED_ORIGINS } from '../../../api/_config.js';
 import { makeReq, ORIGINS } from './helpers.js';
 
 describe('ALLOWED_ORIGINS regex', () => {

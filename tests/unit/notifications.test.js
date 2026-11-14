@@ -1,5 +1,5 @@
 /**
- * Tests for src/constants/notifications.js — buildNotification countdown copy.
+ * Tests for app/constants/notifications.js — buildNotification countdown copy.
  *
  * Locks in the react-guru fix: the widget always sends an explicit body
  * ("…is starting" for calendar events, "Countdown complete" for custom
@@ -7,7 +7,7 @@
  * discarding it via a content heuristic.
  */
 import { describe, it, expect } from 'vitest';
-import { buildNotification } from '../../src/constants/notifications.js';
+import { buildNotification } from '../../app/constants/notifications.js';
 
 describe('buildNotification — countdown', () => {
   it('renders the "…is starting" body for calendar events', () => {

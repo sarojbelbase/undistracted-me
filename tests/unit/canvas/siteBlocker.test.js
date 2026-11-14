@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/siteBlocker.js
+ * Unit tests for app/utilities/siteBlocker.js
  *
  * Covers:
  *  - extractDomain: protocol stripping, www removal, never-block protocols/domains
@@ -17,7 +17,7 @@ import {
   unblockSite,
   isBlocked,
   getBlockedSites,
-} from '../../../src/utilities/siteBlocker';
+} from '../../../app/utilities/siteBlocker';
 
 // ─── Chrome mock state ──────────────────────────────────────────────────────
 

@@ -35,8 +35,8 @@ Rows marked **—** below are archived and will not load.
 | `react-state-management` | ✅ | Zustand stores, persist middleware, store boundaries |
 | `vercel-react-best-practices` | ✅ | Re-render/perf review, memoization, data fetching |
 | `vercel-composition-patterns` | ✅ | Component APIs, compound components, prop-drilling fixes |
-| `web-component-design` | ✅ | Shared `src/components/ui/` primitives |
-| `modern-javascript-patterns` | ✅ | Refactors across `src/utilities`, hooks, stores |
+| `web-component-design` | ✅ | Shared `app/components/ui/` primitives |
+| `modern-javascript-patterns` | ✅ | Refactors across `app/utilities`, hooks, stores |
 | `typescript-advanced-types` | ◐ | `vite.config.ts`, typed helpers |
 | `responsive-design` | ✅ | Widget grid breakpoints, Focus Mode zones |
 | `interaction-design` | ✅ | Micro-interactions, hover/press states, feedback |
@@ -58,7 +58,7 @@ Rows marked **—** below are archived and will not load.
 | `design-system-patterns` | ✅ | `--w-*` tokens, theming, light/dark infrastructure |
 | `visual-design-foundations` | ✅ | Typography scale, color contrast, spacing |
 | `svg-animations` | ✅ | `WeatherAtmosphere`, LookAway orbs, path animation |
-| `svg-illustration` | ✅ | Custom icons in `src/assets/svg/` |
+| `svg-illustration` | ✅ | Custom icons in `app/assets/svg/` |
 | `web-motion-design` | ✅ | Odometer clock, crossfades, panel entrance |
 | `animation-performance` | ✅ | Jank/frame-budget debugging on animations |
 | `motion-designer` | ◐ | Designing new motion specs |
@@ -151,7 +151,7 @@ Rows marked **—** below are archived and will not load.
 
 | Skill | | Use when |
 |---|---|---|
-| `nodejs-backend-patterns` | ◐ | `functions/` Cloudflare Pages Functions |
+| `nodejs-backend-patterns` | ◐ | `api/` Cloudflare Pages Functions |
 | `api-design-principles` | ◐ | New `/api/*` endpoints, CORS, error shapes |
 | `openapi-spec-generation` | ◐ | Documenting the API |
 | `github-actions-templates` | ◐ | `.github/workflows/*` (build, deploy-api, deploy-landing) |

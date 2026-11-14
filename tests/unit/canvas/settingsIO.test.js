@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/settingsIO.js
+ * Tests for app/widgets/settingsIO.js
  *
  * What can go wrong:
  *  – importSettings with a valid settings object should restore every key and
@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { exportSettings, importSettings, resetSettings } from '../../../src/widgets/settingsIO';
+import { exportSettings, importSettings, resetSettings } from '../../../app/widgets/settingsIO';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Global mocks — prevent real DOM mutation + reload
@@ -386,7 +386,7 @@ describe('export/import filtering', () => {
 // importFromFile — DOM file input creation
 // ────────────────────────────────────────────────────────────────────────────
 
-import { importFromFile } from '../../../src/widgets/settingsIO';
+import { importFromFile } from '../../../app/widgets/settingsIO';
 
 describe('importFromFile', () => {
   it('creates a file input and clicks it', () => {

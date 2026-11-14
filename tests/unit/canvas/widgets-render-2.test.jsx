@@ -9,13 +9,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
-import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
+import { useWidgetInstancesStore } from '../../../app/store/useWidgetInstancesStore';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Events Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as EventsWidget } from '../../../src/widgets/events/Widget';
+import { Widget as EventsWidget } from '../../../app/widgets/events/Widget';
 
 describe('EventsWidget — empty state', () => {
   beforeEach(() => {
@@ -65,7 +65,7 @@ describe('EventsWidget — with events', () => {
 // Bookmarks Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as BookmarksWidget } from '../../../src/widgets/bookmark/Widget';
+import { Widget as BookmarksWidget } from '../../../app/widgets/bookmark/Widget';
 
 describe('BookmarksWidget', () => {
   beforeEach(() => {
@@ -125,7 +125,7 @@ describe('BookmarksWidget', () => {
 // Weather Widget — shows "no API key" or "no location" state
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as WeatherWidget } from '../../../src/widgets/weather/Widget';
+import { Widget as WeatherWidget } from '../../../app/widgets/weather/Widget';
 
 describe('WeatherWidget', () => {
   beforeEach(() => {
@@ -152,7 +152,7 @@ describe('WeatherWidget', () => {
 // WidgetCatalog — modal listing available widgets
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { WidgetCatalog } from '../../../src/widgets/WidgetCatalog';
+import { WidgetCatalog } from '../../../app/widgets/WidgetCatalog';
 
 describe('WidgetCatalog', () => {
   beforeEach(() => {
@@ -183,7 +183,7 @@ describe('WidgetCatalog', () => {
 // BaseWidget — covers menu/modal toggle code paths
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { BaseWidget } from '../../../src/widgets/BaseWidget';
+import { BaseWidget } from '../../../app/widgets/BaseWidget';
 
 describe('BaseWidget', () => {
   it('renders children', () => {
@@ -205,7 +205,7 @@ describe('BaseWidget', () => {
 // BaseSettingsModal
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { BaseSettingsModal } from '../../../src/widgets/BaseSettingsModal';
+import { BaseSettingsModal } from '../../../app/widgets/BaseSettingsModal';
 
 describe('BaseSettingsModal', () => {
   it('renders title and content', () => {

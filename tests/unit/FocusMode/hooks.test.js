@@ -10,18 +10,18 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 
 // ─── Module mocks (hoisted before imports by Vitest) ─────────────────────────
 
-vi.mock('../../../src/widgets/weather/utils.jsx', () => ({
+vi.mock('../../../app/widgets/weather/utils.jsx', () => ({
   API_KEY: 'test-key',
   fetchOpenMeteo: vi.fn(),
   parseWeather: vi.fn(),
 }));
 
-vi.mock('../../../src/widgets/stock/utils', () => ({
+vi.mock('../../../app/widgets/stock/utils', () => ({
   fetchChart: vi.fn(),
   DEFAULT_SYMBOLS: [],
 }));
 
-vi.mock('../../../src/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/unsplash', () => ({
   getCachedPhotoSync: vi.fn(),
   getCurrentPhoto: vi.fn(),
   rotatePhoto: vi.fn(),
@@ -30,26 +30,26 @@ vi.mock('../../../src/utilities/unsplash', () => ({
   setCurrentPhotoId: vi.fn(),
 }));
 
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useWidgetInstancesStore: vi.fn(),
 }));
 
-vi.mock('../../../src/store/useLocationStore', () => ({
+vi.mock('../../../app/store/useLocationStore', () => ({
   useLocationStore: vi.fn(),
 }));
 
 // useFocusWeather delegates to the shared useWeather hook.
-vi.mock('../../../src/hooks/useWeather', () => ({
+vi.mock('../../../app/hooks/useWeather', () => ({
   useWeather: vi.fn(),
 }));
 
 // useFocusStocks re-exports useStocks, which depends on the shared DataHub.
-vi.mock('../../../src/hooks/useDataHub', () => ({
+vi.mock('../../../app/hooks/useDataHub', () => ({
   useDataHub: vi.fn(),
 }));
 
 // Prevent heavy spotify utils import chain from loading
-vi.mock('../../../src/widgets/spotify/utils', () => ({
+vi.mock('../../../app/widgets/spotify/utils', () => ({
   getCurrentPlayback: vi.fn(),
   isSpotifyConnected: vi.fn(() => false),
   setPlayPause: vi.fn(),
@@ -62,9 +62,9 @@ vi.mock('../../../src/widgets/spotify/utils', () => ({
 import {
   fetchOpenMeteo,
   parseWeather,
-} from '../../../src/widgets/weather/utils.jsx';
+} from '../../../app/widgets/weather/utils.jsx';
 
-import { fetchChart } from '../../../src/widgets/stock/utils';
+import { fetchChart } from '../../../app/widgets/stock/utils';
 
 import {
   getCachedPhotoSync,
@@ -73,12 +73,12 @@ import {
   jumpToPhotoById,
   getPhotoLibrary,
   setCurrentPhotoId,
-} from '../../../src/utilities/unsplash';
+} from '../../../app/utilities/unsplash';
 
-import { useWidgetInstancesStore } from '../../../src/store';
-import { useLocationStore } from '../../../src/store/useLocationStore';
-import { useWeather } from '../../../src/hooks/useWeather';
-import { useDataHub } from '../../../src/hooks/useDataHub';
+import { useWidgetInstancesStore } from '../../../app/store';
+import { useLocationStore } from '../../../app/store/useLocationStore';
+import { useWeather } from '../../../app/hooks/useWeather';
+import { useDataHub } from '../../../app/hooks/useDataHub';
 
 // ─── Import hooks under test ──────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ import {
   useFocusStocks,
   useFocusPhoto,
   useFocusTimezones,
-} from '../../../src/components/FocusMode/hooks.js';
+} from '../../../app/components/FocusMode/hooks.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

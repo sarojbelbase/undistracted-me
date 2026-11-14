@@ -17,14 +17,14 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
-import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
+import { useWidgetInstancesStore } from '../../../app/store/useWidgetInstancesStore';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pomodoro Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as PomodoroWidget } from '../../../src/widgets/pomodoro/Widget';
-import { PRESETS } from '../../../src/widgets/pomodoro/utils';
+import { Widget as PomodoroWidget } from '../../../app/widgets/pomodoro/Widget';
+import { PRESETS } from '../../../app/widgets/pomodoro/utils';
 
 // Silence chrome.runtime.sendMessage that Pomodoro calls when done
 vi.stubGlobal('chrome', undefined);
@@ -112,7 +112,7 @@ describe('PomodoroWidget — timer phase', () => {
 // Notes Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as NotesWidget } from '../../../src/widgets/notes/Widget';
+import { Widget as NotesWidget } from '../../../app/widgets/notes/Widget';
 
 describe('NotesWidget', () => {
   beforeEach(() => {
@@ -175,7 +175,7 @@ describe('NotesWidget', () => {
 // Countdown Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as CountdownWidget } from '../../../src/widgets/countdown/Widget';
+import { Widget as CountdownWidget } from '../../../app/widgets/countdown/Widget';
 
 describe('CountdownWidget — empty state', () => {
   beforeEach(() => {

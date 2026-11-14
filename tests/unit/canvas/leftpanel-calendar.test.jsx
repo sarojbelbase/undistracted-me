@@ -9,7 +9,7 @@ import { render, screen } from '@testing-library/react';
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
 // Stub useSettingsStore to avoid Zustand in jsdom
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = { mode: 'dark', accent: 'Default', language: 'en' };
     return selector ? selector(state) : state;
@@ -22,14 +22,14 @@ vi.mock('../../../src/store', () => ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LeftPanel was removed in the Focus Mode redesign — its pomodoro/event/stock/
-// spotify cards now live in src/components/FocusMode/zones/*.
+// spotify cards now live in app/components/FocusMode/zones/*.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Calendar Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as CalendarWidget } from '../../../src/widgets/calendar/Widget';
+import { Widget as CalendarWidget } from '../../../app/widgets/calendar/Widget';
 
 describe('CalendarWidget', () => {
   beforeEach(() => {

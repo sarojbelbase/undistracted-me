@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { makeReq, ORIGINS } from './helpers.js';
-import { onRequest } from '../../../functions/favicon.js';
+import { onRequest } from '../../../api/favicon.js';
 
 const allowedOrigin = ORIGINS.production;
 

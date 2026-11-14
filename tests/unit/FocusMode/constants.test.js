@@ -2,18 +2,18 @@
  * Unit tests for shared Focus Mode helper functions.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readPomodoro } from '../../../src/widgets/pomodoro/utils.js';
+import { readPomodoro } from '../../../app/widgets/pomodoro/utils.js';
 import {
   getNextEventToShow,
   getTimeUntilEvent,
   formatEventStartTime,
-} from '../../../src/widgets/events/utils.js';
+} from '../../../app/widgets/events/utils.js';
 import {
   getGregorianDateParts,
   getBikramSambatDateParts,
   ENGLISH_DAYS,
   GREGORIAN_MONTHS,
-} from '../../../src/utilities/index.js';
+} from '../../../app/utilities/index.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

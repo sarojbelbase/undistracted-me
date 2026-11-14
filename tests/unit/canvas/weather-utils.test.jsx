@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/weather/utils.jsx
+ * Tests for app/widgets/weather/utils.jsx
  * Covers: getWeatherIcon (all code ranges), parseWeather, fetchWeatherByCoords,
  *         getCoords.
  */
@@ -15,7 +15,7 @@ import {
   wmoDescription,
   readWeatherCache,
   writeWeatherCache,
-} from "../../../src/widgets/weather/utils.jsx";
+} from "../../../app/widgets/weather/utils.jsx";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -261,7 +261,7 @@ describe("fetchOpenMeteo", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// getCoords was removed — geolocation moved to src/store/useLocationStore.js.
+// getCoords was removed — geolocation moved to app/store/useLocationStore.js.
 // See useLocationStore.refresh() for the current browser geolocation pipeline.
 // ─────────────────────────────────────────────────────────────────────────────
 

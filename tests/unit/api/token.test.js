@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { makeReq, makeContext, ORIGINS } from './helpers.js';
-import { onRequest } from '../../../functions/auth/google/token.js';
+import { onRequest } from '../../../api/auth/google/token.js';
 
 const CLIENT_ID = 'client-id-123.apps.googleusercontent.com';
 const CLIENT_SECRET = 'GOCSPX-secret';

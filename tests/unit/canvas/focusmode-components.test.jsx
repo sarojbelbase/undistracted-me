@@ -13,7 +13,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
 // WorldClocksPanel uses onClockTick (sharedClock) — mock it so no real timer fires
-vi.mock('../../../src/utilities/sharedClock', () => ({
+vi.mock('../../../app/utilities/sharedClock', () => ({
   onClockTick: vi.fn((fn) => { fn(); return () => { }; }),
 }));
 
@@ -21,7 +21,7 @@ vi.mock('../../../src/utilities/sharedClock', () => ({
 // DigitRoller
 // ─────────────────────────────────────────────────────────────────────────────
 
-import DigitRoller from '../../../src/components/FocusMode/panels/Clock';
+import DigitRoller from '../../../app/components/FocusMode/panels/Clock';
 
 describe('DigitRoller', () => {
   it('renders the digit character', () => {
@@ -49,7 +49,7 @@ describe('DigitRoller', () => {
 // ClockDisplay
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Clock as ClockDisplay } from '../../../src/components/FocusMode/panels/Clock';
+import { Clock as ClockDisplay } from '../../../app/components/FocusMode/panels/Clock';
 
 const make24hParts = (time = '14:30') => ({ time, period: '' });
 const make12hParts = (time = '02:30', period = 'PM') => ({ time, period });
@@ -98,7 +98,7 @@ describe('ClockDisplay', () => {
 // GreetingDisplay
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Greetings as GreetingDisplay } from '../../../src/components/FocusMode/panels/Greetings';
+import { Greetings as GreetingDisplay } from '../../../app/components/FocusMode/panels/Greetings';
 
 describe('GreetingDisplay', () => {
   const greetParts = {
@@ -134,6 +134,6 @@ describe('GreetingDisplay', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WorldClocksPanel and TopBar were removed in the Focus Mode redesign — clock
-// world-times moved into zones (src/components/FocusMode/zones/*) and the
+// world-times moved into zones (app/components/FocusMode/zones/*) and the
 // top-bar controls into TopZone.jsx.
 // ─────────────────────────────────────────────────────────────────────────────

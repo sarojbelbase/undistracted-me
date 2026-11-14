@@ -17,7 +17,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { parseHolidaysFromWikitext } from '../functions/_holidays.js';
+import { parseHolidaysFromWikitext } from '../api/_holidays.js';
 import { buildInternationalHolidays } from './international-holidays.mjs';
 
 const WIKI_URL =

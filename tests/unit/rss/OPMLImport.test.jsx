@@ -19,7 +19,7 @@ vi.mock('react-bootstrap-icons', function () {
   };
 });
 
-import { OPMLImport } from '../../../src/widgets/rss/OPMLImport';
+import { OPMLImport } from '../../../app/widgets/rss/OPMLImport';
 
 function renderOPML(props) {
   const merged = { onFileSelected: vi.fn(), ...props };

@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/syncEngine.js (transport-agnostic merge)
+ * Unit tests for app/utilities/syncEngine.js (transport-agnostic merge)
  *
  * Covers:
  *  - whole-key last-write-wins for object keys (settings)
@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import syncEngine from '../../../src/utilities/syncEngine';
+import syncEngine from '../../../app/utilities/syncEngine';
 
 const SCHEMA_VERSION = 3;
 
@@ -22,7 +22,7 @@ const SCHEMA_VERSION = 3;
 
 const state = vi.hoisted(() => ({ gistContent: null }));
 
-vi.mock('../../../src/utilities/syncTransport', () => ({
+vi.mock('../../../app/utilities/syncTransport', () => ({
   SYNC_SCHEMA_VERSION: 3,
   syncTransport: {
     isConnected: () => true,

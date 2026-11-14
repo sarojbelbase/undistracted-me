@@ -25,7 +25,7 @@
     "default_popup": "entries/popup.html"
   },
   "background": {
-    "service_worker": "src/bg.js"
+    "service_worker": "app/bg.js"
   },
   "chrome_url_overrides": {
     "newtab": "entries/index.html"
@@ -83,7 +83,7 @@
         "*://*.youtube.com/*"
       ],
       "js": [
-        "src/utilities/media.js"
+        "app/utilities/media.js"
       ],
       "run_at": "document_idle"
     }

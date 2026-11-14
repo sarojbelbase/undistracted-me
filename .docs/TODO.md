@@ -57,7 +57,7 @@
 - [x] **RightZone** — World clocks; reads Zustand `useWidgetInstancesStore` directly via `useFocusTimezones()`
 - [x] **BottomZone** — greeting text
 - [x] **BottomRightZone** — Google Tasks collapsible pill (bottom-right, z22)
-- [x] **BackgroundPicker** — shared component in `src/components/ui/`; 4 modes: default, curated (Unsplash library), custom (URL), orb (7 palettes)
+- [x] **BackgroundPicker** — shared component in `app/components/ui/`; 4 modes: default, curated (Unsplash library), custom (URL), orb (7 palettes)
 - [x] **Focus Mode Search Bar** — `focusSearchBar` toggle; full-screen dialog with web autocomplete (Google/DDG), top sites, history (`fm_search_history`, max 12)
 - [x] **Focus Mode Tasks panel** — `focusTasks` toggle; `useFocusTasks()` optimistic CRUD via Google Tasks API; account dialog
 - [x] **Focus Mode Settings** (`dialog/Settings.jsx`) — dateFormat, clockFormat, Search Bar toggle, Tasks toggle, Backgrounds button
@@ -96,7 +96,7 @@
 - [x] Media session relay (`chromeSessions` map, up to 3 sessions)
 
 ### Media Session
-- [x] `src/utilities/media.js` — content script injected into SoundCloud pages; detects playback via `navigator.mediaSession` + `<audio>/<video>` fallback
+- [x] `app/utilities/media.js` — content script injected into SoundCloud pages; detects playback via `navigator.mediaSession` + `<audio>/<video>` fallback
 - [x] SW `chromeSessions` in-memory map (max 3 sessions); `GET_CHROME_MEDIA` / `CHROME_MEDIA_ACTION` / `MEDIA_SESSION_UPDATE` / `MEDIA_SESSION_CLEAR` messages
 - [x] Spotify widget: `ChromeMediaStrip` — stacked player for non-active browser sessions (YouTube, SoundCloud, Apple Music, etc.)
 
@@ -110,7 +110,7 @@
 - [x] **Cross-device Sync** — `chrome.storage.sync` layer that mirrors settings, widget instances, events, and bookmarks across all signed-in Chrome instances. Last-write-wins with per-key timestamps; sync status badge ("Synced 2m ago"). Opt-out toggle in General settings.
   > _Feasibility: Very High — chrome.storage.sync is built-in; 100KB / 512-item limit is ample for settings + widget list + events. Doesn't sync ephemeral data (weather cache, Unsplash, RSS items)._
 
-- [ ] **YouTube Watch Later Widget** — Shows the user's Watch Later playlist via YouTube Data API v3. `youtube.readonly` scope. Thumbnail cards with duration badge, title, channel name. Click to watch. Reuses `useGoogleAccountStore`. New widget under `src/widgets/youtube/`.
+- [ ] **YouTube Watch Later Widget** — Shows the user's Watch Later playlist via YouTube Data API v3. `youtube.readonly` scope. Thumbnail cards with duration badge, title, channel name. Click to watch. Reuses `useGoogleAccountStore`. New widget under `app/widgets/youtube/`.
   > _Feasibility: High — API is straightforward; Watch Later playlist ID is always `WL`. Thumbnail-rich card layout matches existing media widget patterns._
 
 - [x] **OPML Import for RSS** — Import feeds from OPML files (standard RSS feed exchange format). Two methods: file picker + paste text. Parses with built-in `DOMParser`. Preview parsed feeds before import, merge with existing (skip duplicates). Add to existing RSS widget Settings.
@@ -122,7 +122,7 @@
 - [x] **Enriched Pomodoro** — Phase 1: sound chime on timer end, circular progress ring during timer. Phase 2: auto-start breaks (5/10/15 min), session notes, rain-sound toggle (reuses `api/audio/rain.js`).
   > _Feasibility: Very High — Incremental on existing pomodoro widget. Sound already wired (`api/audio/`). Stats stored in localStorage with same pattern as events._
 
-- [x] **Expense Tracker Widget** — Simple 3-second expense logging: amount → category → done. Weekly summary with CSS bar breakdown by category. All world currencies (~50, curated), locale-aware formatting via `Intl.NumberFormat`. Export to CSV/JSON. Persists to localStorage, cap 500 entries. New widget under `src/widgets/expense/`.
+- [x] **Expense Tracker Widget** — Simple 3-second expense logging: amount → category → done. Weekly summary with CSS bar breakdown by category. All world currencies (~50, curated), locale-aware formatting via `Intl.NumberFormat`. Export to CSV/JSON. Persists to localStorage, cap 500 entries. New widget under `app/widgets/expense/`.
   > _Feasibility: Very High — Zero dependencies; `Intl.NumberFormat` is native. Same localStorage pattern as Events/Pomodoro. Emoji category icons — no SVG work._
 
 ### Testing & DX

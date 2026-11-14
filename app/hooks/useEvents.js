@@ -1,0 +1,309 @@
+/**
+ * Canonical hook location: app/hooks/useEvents.js
+ *
+ * Shared hooks for the local event store and Google Calendar integration.
+ * See widgets/useEvents.js (re-export stub) for historical context.
+ */
+import { useState, useEffect, useCallback, useReducer, useRef } from "react";
+import {
+  getCalendarEvents,
+  isCalendarConnected,
+  loadCachedGcalEvents,
+  hasCachedGcalEvents,
+  getGoogleProfile,
+  loadCachedProfile,
+  loadGcalSyncedAt,
+} from "../utilities/googleCalendar";
+import { sendToServiceWorker } from "../utilities/chrome";
+import { STORAGE_KEYS } from "../constants/storageKeys";
+import { GOOGLE_ACCOUNT_CHANGED } from "../store/useGoogleAccountStore";
+
+const STORAGE_KEY = STORAGE_KEYS.EVENTS;
+const SYNC_EVENT = "widget_events_changed";
+
+const load = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const save = (events) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  } catch { 
+    console.warn("Failed to save events to localStorage");
+   }
+  sendToServiceWorker({ type: "EVENTS_UPDATED", events });
+};
+
+// Module-level cache — shared across all useEvents instances
+let cache = load();
+
+// Module-level subscriber set — only ONE event listener exists globally,
+// no matter how many widgets call useEvents().  Each instance gets its own
+// rerender callback stored in the Set; the single listener iterates them all.
+const subscribers = new Set();
+
+const broadcast = () => {
+  cache = load();
+  // Batch all subscriber re-renders into a single animation frame so
+  // multiple rapid event changes (e.g. bulk import, calendar sync) don't
+  // cause N sequential synchronous re-renders blocking the main thread.
+  // On low-RAM machines with slow storage (eMMC), the JSON.parse inside
+  // load() can take 5–15ms — doing it once per frame instead of once per
+  // event mutation is a significant win.
+  if (broadcast._rafId) return; // already scheduled — coalesce
+  broadcast._rafId = requestAnimationFrame(() => {
+    broadcast._rafId = null;
+    subscribers.forEach((fn) => fn());
+  });
+};
+broadcast._rafId = null;
+
+// One-shot init: register the single global listeners (runs once at module load)
+if (typeof globalThis !== "undefined") {
+  globalThis.addEventListener(SYNC_EVENT, broadcast);
+  globalThis.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) broadcast();
+  });
+}
+
+// Returns [events, addEvent, removeEvent] — all components stay in sync via SYNC_EVENT
+export const useEvents = () => {
+  const [, forceRerender] = useReducer((c) => c + 1, 0);
+
+  useEffect(() => {
+    subscribers.add(forceRerender);
+    return () => subscribers.delete(forceRerender);
+  }, []);
+
+  const addEvent = useCallback((event) => {
+    cache = [...cache, { ...event, id: event.id ?? Date.now() }];
+    save(cache);
+    broadcast();
+  }, []);
+
+  const removeEvent = useCallback((id) => {
+    cache = cache.filter((e) => e.id !== id);
+    save(cache);
+    broadcast();
+  }, []);
+
+  const updateEvent = useCallback((id, patch) => {
+    cache = cache.map((e) => (e.id === id ? { ...e, ...patch, id } : e));
+    save(cache);
+    broadcast();
+  }, []);
+
+  return [cache, addEvent, removeEvent, updateEvent];
+};
+
+// event shape: { id, title, startDate, startTime, endDate, endTime }
+// dates: 'YYYY-MM-DD', times: 'HH:MM' (24h)
+
+export const formatEventTime = (event) => {
+  const fmt = (date, time) => {
+    if (!date) return null;
+    const d = new Date(`${date}T${time || "00:00"}`);
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+  };
+  const s = fmt(event.startDate, event.startTime);
+  const e = fmt(event.endDate, event.endTime);
+  if (s && e) return `${s} – ${e}`;
+  if (s) return s;
+  return "";
+};
+
+export const eventStartDate = (event) => {
+  if (!event.startDate) return null;
+  return new Date(`${event.startDate}T${event.startTime || "00:00"}`);
+};
+
+// ─── Google Calendar hook ────────────────────────────────────────────────────
+
+// Module-level in-flight dedup: if multiple hook instances call fetchCalendarOnce()
+// concurrently they all await the same Promise rather than firing duplicate requests.
+// Keyed by interactive flag so an interactive sign-in doesn't collide with a background sync.
+let _gcalInflight = null;
+let _gcalInflightInteractive = null;
+
+const fetchCalendarOnce = (interactive = false) => {
+  if (interactive) {
+    if (_gcalInflightInteractive) return _gcalInflightInteractive;
+    _gcalInflightInteractive = getCalendarEvents(true).finally(() => {
+      _gcalInflightInteractive = null;
+    });
+    return _gcalInflightInteractive;
+  }
+  if (_gcalInflight) return _gcalInflight;
+  _gcalInflight = getCalendarEvents(false).finally(() => {
+    _gcalInflight = null;
+  });
+  return _gcalInflight;
+};
+
+export const useGoogleCalendar = () => {
+  const [gcalEvents, setGcalEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [connected, setConnected] = useState(() => hasCachedGcalEvents());
+  const [error, setError] = useState(null);
+  const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
+  const fetchedRef = useRef(false);
+  // Tracks mount state so async callbacks (refresh/connect) never setState on an
+  // unmounted tree — a remount of Focus Mode/Events mid-fetch would otherwise
+  // clobber the new instance's state via the `finally { setLoading(false) }`.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadCachedGcalEvents().then((cached) => {
+      if (!cancelled && cached.length > 0) setGcalEvents(cached);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Background sync — non-interactive, never triggers OAuth UI
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { events, changed } = await fetchCalendarOnce(false);
+      if (!mountedRef.current) return;
+      setConnected(true);
+      setError(null);
+      setSyncedAt(loadGcalSyncedAt());
+      if (changed) setGcalEvents(events);
+    } catch {
+      if (!mountedRef.current) return;
+      const cached = await loadCachedGcalEvents();
+      if (!mountedRef.current) return;
+      if (cached.length > 0) {
+        setConnected(true);
+      } else {
+        setConnected(false);
+      }
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, []);
+
+  // Explicit user-initiated sign-in — interactive, shows OAuth UI
+  const connect = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { events, changed } = await fetchCalendarOnce(true);
+      if (!mountedRef.current) return;
+      setConnected(true);
+      setError(null);
+      setSyncedAt(loadGcalSyncedAt());
+      if (changed) setGcalEvents(events);
+    } catch (err) {
+      if (!mountedRef.current) return;
+      const cached = await loadCachedGcalEvents();
+      if (!mountedRef.current) return;
+      if (cached.length > 0) {
+        setConnected(true);
+      } else {
+        setConnected(false);
+        let msg = "Could not connect. Try again.";
+        if (
+          err.message?.includes("403") ||
+          err.message?.includes("SERVICE_DISABLED")
+        ) {
+          msg = "Calendar API not enabled. Check your Google Cloud Console.";
+        } else if (
+          err.message?.includes("bad client id") ||
+          err.message?.includes("OAuth2")
+        ) {
+          msg =
+            "Sign-in failed: extension not configured for OAuth. Contact the developer.";
+        }
+        setError(msg);
+      }
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    if (hasCachedGcalEvents()) {
+      setConnected(true);
+      refresh();
+      return;
+    }
+    isCalendarConnected().then((yes) => {
+      if (yes) refresh();
+    });
+  }, [refresh]);
+
+  // No page-side polling interval. Calendar updates are SW-driven: the
+  // background service worker pre-fetches `gcal_events_cache` every 30 min and
+  // we pick it up live via chrome.storage.onChanged. This mirrors the DataHub
+  // pattern used by stocks/weather/rss (GCal keeps its own PII cache key).
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.storage?.onChanged) return;
+    const listener = (changes, area) => {
+      if (area !== "local") return;
+      const change = changes[STORAGE_KEYS.GCAL_CACHE];
+      if (!change || !Array.isArray(change.newValue)) return;
+      setGcalEvents(change.newValue);
+      setConnected(true);
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
+  }, []);
+
+  // React to global auth events so the widget resets immediately on disconnect
+  // without needing a page reload.
+  useEffect(() => {
+    const handler = ({ detail }) => {
+      if (!detail?.connected) {
+        setConnected(false);
+        setGcalEvents([]);
+        setError(null);
+      } else if (detail?.connected) {
+        // Re-check on reconnect
+        refresh();
+      }
+    };
+    globalThis.addEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+    return () =>
+      globalThis.removeEventListener(GOOGLE_ACCOUNT_CHANGED, handler);
+  }, [refresh]);
+
+  return { gcalEvents, loading, connected, error, syncedAt, refresh, connect };
+};
+
+export const useGoogleProfile = () => {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadCachedProfile().then((p) => {
+      if (!cancelled && p) setProfile(p);
+    });
+    getGoogleProfile().then((p) => {
+      if (!cancelled && p) setProfile(p);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return profile;
+};

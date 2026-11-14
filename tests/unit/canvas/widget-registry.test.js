@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/index.js — WIDGET_REGISTRY and WIDGET_TYPES
+ * Tests for app/widgets/index.js — WIDGET_REGISTRY and WIDGET_TYPES
  *
  * What can go wrong:
  *  – A widget config typo (e.g. type: 'clokc') means WidgetGrid's renderWidget()
@@ -17,13 +17,13 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Prevent store init from loading WIDGET_REGISTRY via circular import
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
-import { WIDGET_REGISTRY, WIDGET_TYPES } from '../../../src/widgets/index.js';
+import { WIDGET_REGISTRY, WIDGET_TYPES } from '../../../app/widgets/index.js';
 
 // ────────────────────────────────────────────────────────────────────────────
 // WIDGET_TYPES

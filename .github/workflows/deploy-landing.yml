@@ -1,10 +1,10 @@
-name: Deploy Landing Page
+name: Deploy Landing
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - main
-      - 'feature/*'
     paths:
       - 'landing/**'
       - '.github/workflows/deploy-landing.yml'
@@ -17,11 +17,9 @@ jobs:
       deployments: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
         working-directory: landing
@@ -36,4 +34,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy landing/dist --project-name=undistracted-me-landing --branch=feature/vite-migration-redesign
+          command: pages deploy landing/dist --project-name=undistracted-me-landing --branch=main

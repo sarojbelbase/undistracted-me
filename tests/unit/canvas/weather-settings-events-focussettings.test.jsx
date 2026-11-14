@@ -50,14 +50,14 @@ vi.mock('react-bootstrap-icons', () => ({
 }));
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // Mock BaseWidget for clean renders
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget">
       {children}
@@ -66,7 +66,7 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock googleCalendar (imported by useEvents)
-vi.mock('../../../src/utilities/googleCalendar', () => ({
+vi.mock('../../../app/utilities/googleCalendar', () => ({
   loadCachedGcalEvents: vi.fn(() => []),
   clearGcalCache: vi.fn(),
   loadCachedProfile: vi.fn(() => null),
@@ -80,7 +80,7 @@ vi.mock('../../../src/utilities/googleCalendar', () => ({
 // Mock useEvents to return controllable state
 const mockAddEvent = vi.fn();
 const mockRemoveEvent = vi.fn();
-vi.mock('../../../src/hooks/useEvents', () => ({
+vi.mock('../../../app/hooks/useEvents', () => ({
   useEvents: vi.fn(() => [[], mockAddEvent, mockRemoveEvent]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], loading: false, connected: false, syncedAt: null, refresh: vi.fn() })),
   useGoogleProfile: vi.fn(() => null),
@@ -88,7 +88,7 @@ vi.mock('../../../src/hooks/useEvents', () => ({
 }));
 
 // Mock events utils
-vi.mock('../../../src/widgets/events/utils', async (importOriginal) => {
+vi.mock('../../../app/widgets/events/utils', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -102,7 +102,7 @@ vi.mock('../../../src/widgets/events/utils', async (importOriginal) => {
 });
 
 // Mock CreateModal and AllEventsModal to avoid heavy dependencies
-vi.mock('../../../src/widgets/events/CreateModal', () => ({
+vi.mock('../../../app/widgets/events/CreateModal', () => ({
   CreateModal: ({ onSave, onClose }) => (
     <div data-testid="create-modal">
       <button onClick={() => { onSave({ title: 'Test', startDate: '2025-07-01', startTime: '', endDate: '', endTime: '' }); onClose(); }}>Save</button>
@@ -111,7 +111,7 @@ vi.mock('../../../src/widgets/events/CreateModal', () => ({
   ),
 }));
 
-vi.mock('../../../src/widgets/events/AllEventsModal', () => ({
+vi.mock('../../../app/widgets/events/AllEventsModal', () => ({
   AllEventsModal: ({ onClose }) => (
     <div data-testid="all-events-modal">
       <button onClick={onClose}>Close</button>
@@ -120,7 +120,7 @@ vi.mock('../../../src/widgets/events/AllEventsModal', () => ({
 }));
 
 // Mock store
-vi.mock('../../../src/store', () => ({
+vi.mock('../../../app/store', () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = {
       dateFormat: 'gregorian', clockFormat: '24h', accent: '#6366f1',
@@ -133,7 +133,7 @@ vi.mock('../../../src/store', () => ({
 }));
 
 // Mock unsplash
-vi.mock('../../../src/utilities/unsplash', async (importOriginal) => {
+vi.mock('../../../app/utilities/unsplash', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -148,7 +148,7 @@ vi.mock('../../../src/utilities/unsplash', async (importOriginal) => {
 });
 
 // Mock theme
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [
     { name: 'indigo', value: '#6366f1' },
     { name: 'blue', value: '#3b82f6' },
@@ -156,14 +156,14 @@ vi.mock('../../../src/theme', () => ({
 }));
 
 // Mock constants
-vi.mock('../../../src/constants/settings', () => ({
+vi.mock('../../../app/constants/settings', () => ({
   LANGUAGES: { en: 'en', ne: 'ne' },
 }));
 
-import { useEvents, useGoogleCalendar } from '../../../src/hooks/useEvents';
-import { Widget as EventsWidget } from '../../../src/widgets/events/Widget';
-import { Settings as WeatherSettings } from '../../../src/widgets/weather/Settings';
-import { FocusModeSettings } from '../../../src/components/FocusMode/Settings';
+import { useEvents, useGoogleCalendar } from '../../../app/hooks/useEvents';
+import { Widget as EventsWidget } from '../../../app/widgets/events/Widget';
+import { Settings as WeatherSettings } from '../../../app/widgets/weather/Settings';
+import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Weather Settings

@@ -1,5 +1,5 @@
 /**
- * Tests for src/constants/storageKeys.js — STORAGE_KEYS registry
+ * Tests for app/constants/storageKeys.js — STORAGE_KEYS registry
  *
  * What can go wrong:
  *  – A key typo in a component (e.g. STORAGE_KEYS.SETTINGS vs the raw string)
@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { STORAGE_KEYS } from '../../../src/constants/storageKeys';
+import { STORAGE_KEYS } from '../../../app/constants/storageKeys';
 
 describe('STORAGE_KEYS', () => {
   it('is frozen', () => {

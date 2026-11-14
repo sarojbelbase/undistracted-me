@@ -18,7 +18,7 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 import {
   convertThisNumberToNepali,
   getTimeZoneAwareDayJsInstance,
-} from '../../../src/utilities/index';
+} from '../../../app/utilities/index';
 
 describe('utilities/index.js — main functions', () => {
   it('convertThisNumberToNepali converts 0-9 digits', () => {
@@ -87,7 +87,7 @@ vi.mock('react-bootstrap-icons', () => ({
 }));
 
 // Mock BaseWidget for pomodoro tests
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, settingsContent, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget">
       {children}
@@ -96,7 +96,7 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock useWidgetSettings for notes
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn((id, defaults) => {
     const [settings, setSettings] = React.useState(defaults);
     const updateSetting = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
@@ -105,7 +105,7 @@ vi.mock('../../../src/widgets/useWidgetSettings', () => ({
 }));
 
 // Mock theme for notes
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [
     { name: 'Default', hex: null, fg: '#fff' },
     { name: 'indigo', hex: '#6366f1', fg: '#fff' },
@@ -113,8 +113,8 @@ vi.mock('../../../src/theme', () => ({
   ],
 }));
 
-import { Widget as PomodoroWidget } from '../../../src/widgets/pomodoro/Widget';
-import { PRESETS } from '../../../src/widgets/pomodoro/utils';
+import { Widget as PomodoroWidget } from '../../../app/widgets/pomodoro/Widget';
+import { PRESETS } from '../../../app/widgets/pomodoro/utils';
 
 describe('PomodoroWidget — timer controls', () => {
   beforeEach(() => {
@@ -231,7 +231,7 @@ describe('PomodoroWidget — timer controls', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 3) Notes Widget — expand modal
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as NotesWidget } from '../../../src/widgets/notes/Widget';
+import { Widget as NotesWidget } from '../../../app/widgets/notes/Widget';
 
 describe('NotesWidget — expand modal', () => {
   beforeEach(() => localStorage.clear());
@@ -290,7 +290,7 @@ describe('NotesWidget — expand modal', () => {
 // 4) Calendar Settings.jsx (50%)
 // ─────────────────────────────────────────────────────────────────────────────
 // Calendar/DateToday Settings use SegmentedControl (not RadioGroup)
-vi.mock('../../../src/components/ui/SegmentedControl', () => ({
+vi.mock('../../../app/components/ui/SegmentedControl', () => ({
   SegmentedControl: ({ label, options, value, onChange }) => (
     <div data-testid="radio-group">
       <span>{label}</span>
@@ -310,12 +310,12 @@ vi.mock('../../../src/components/ui/SegmentedControl', () => ({
   ),
 }));
 
-vi.mock('../../../src/constants', async (importOriginal) => {
+vi.mock('../../../app/constants', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, LANGUAGES: { en: 'en', ne: 'ne' } };
 });
 
-import { Settings as CalendarSettings } from '../../../src/widgets/calendar/Settings';
+import { Settings as CalendarSettings } from '../../../app/widgets/calendar/Settings';
 
 describe('Calendar Settings', () => {
   it('renders without crashing', () => {
@@ -356,7 +356,7 @@ describe('Calendar Settings', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 5) dateToday/Settings.jsx (50% — real component with RadioGroup)
 // ─────────────────────────────────────────────────────────────────────────────
-import { Settings as DateTodaySettings } from '../../../src/widgets/dateToday/Settings';
+import { Settings as DateTodaySettings } from '../../../app/widgets/dateToday/Settings';
 
 describe('dateToday Settings', () => {
   it('renders without crashing', () => {

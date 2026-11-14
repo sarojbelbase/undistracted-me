@@ -13,7 +13,7 @@ examples/new_ones
 .vercel
 .wrangler
 .env*.local
-src/assets/backgrounds/
+app/assets/backgrounds/
 builds
 .DS_Store
 store-assets

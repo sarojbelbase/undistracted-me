@@ -43,7 +43,7 @@ Complete reference for every widget and the shared widget infrastructure.
 
 ### BaseWidget
 
-**File:** `src/widgets/BaseWidget.jsx`
+**File:** `app/widgets/BaseWidget.jsx`
 
 The root card wrapper rendered around every widget. Uses `forwardRef` so `WidgetGrid` can attach a `ResizeObserver`.
 
@@ -69,11 +69,11 @@ The root card wrapper rendered around every widget. Uses `forwardRef` so `Widget
 
 ### BaseSettingsModal
 
-**File:** `src/widgets/BaseSettingsModal.jsx`
+**File:** `app/widgets/BaseSettingsModal.jsx`
 
 A thin wrapper around the shared `Modal` UI component. All settings panels are passed as `children`.
 
-```src/widgets/BaseSettingsModal.jsx#L1-5
+```app/widgets/BaseSettingsModal.jsx#L1-5
 import { Modal } from '../components/ui/Modal';
 
 export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width = 'w-80' }) => (
@@ -87,7 +87,7 @@ export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width
 
 ### WidgetGrid
 
-**File:** `src/widgets/WidgetGrid.jsx`
+**File:** `app/widgets/WidgetGrid.jsx`
 
 Hosts all widget instances using `react-grid-layout`'s `<Responsive>` grid.
 
@@ -106,7 +106,7 @@ Hosts all widget instances using `react-grid-layout`'s `<Responsive>` grid.
 
 ### WidgetCatalog
 
-**File:** `src/widgets/WidgetCatalog.jsx`
+**File:** `app/widgets/WidgetCatalog.jsx`
 
 A slide-in drawer panel (portalled to `document.body`) for adding/removing widget instances.
 
@@ -121,9 +121,9 @@ A slide-in drawer panel (portalled to `document.body`) for adding/removing widge
 
 ### useWidgetSettings
 
-**File:** `src/widgets/useWidgetSettings.js`
+**File:** `app/widgets/useWidgetSettings.js`
 
-```src/widgets/useWidgetSettings.js#L1-45
+```app/widgets/useWidgetSettings.js#L1-45
 // API:
 const [settings, updateSetting] = useWidgetSettings('clock', { format: '24h' });
 updateSetting('format', '12h');
@@ -138,7 +138,7 @@ updateSetting('format', '12h');
 
 ### settingsIO
 
-**File:** `src/widgets/settingsIO.js`
+**File:** `app/widgets/settingsIO.js`
 
 Provides three functions used by the **Data tab** in Global Settings:
 
@@ -154,11 +154,11 @@ The exported JSON wraps everything under `{ undistracted_me: { ...allKeys }, exp
 
 ### useEvents (re-export)
 
-**File:** `src/widgets/useEvents.js`
+**File:** `app/widgets/useEvents.js`
 
-```src/widgets/useEvents.js#L1-8
+```app/widgets/useEvents.js#L1-8
 /**
- * @deprecated Import from 'src/hooks/useEvents' instead.
+ * @deprecated Import from 'app/hooks/useEvents' instead.
  * This re-export exists so existing `from '../useEvents'` paths keep working.
  */
 export {
@@ -167,7 +167,7 @@ export {
 } from '../hooks/useEvents';
 ```
 
-The actual implementations live in `src/hooks/useEvents.js`. All widgets that need local events or Google Calendar data import from this path (or `../useEvents` from within the widget folder, which resolves here).
+The actual implementations live in `app/hooks/useEvents.js`. All widgets that need local events or Google Calendar data import from this path (or `../useEvents` from within the widget folder, which resolves here).
 
 **`useEvents()`** returns `[localEvents, addEvent, removeEvent]` — reads from `useWidgetInstancesStore`.
 
@@ -177,7 +177,7 @@ The actual implementations live in `src/hooks/useEvents.js`. All widgets that ne
 
 ### WIDGET_REGISTRY & WIDGET_TYPES
 
-**File:** `src/widgets/index.js`
+**File:** `app/widgets/index.js`
 
 `WIDGET_TYPES` is a frozen enum of type strings, e.g. `WIDGET_TYPES.CLOCK = 'clock'`.
 
@@ -206,11 +206,11 @@ clock/
 
 **Key implementation details:**
 
-- Uses `onClockTick(fn)` from `src/utilities/sharedClock.js` (leader-election via Web Locks + BroadcastChannel) for second-aligned updates. This means all widgets share a single tick source with zero drift.
+- Uses `onClockTick(fn)` from `app/utilities/sharedClock.js` (leader-election via Web Locks + BroadcastChannel) for second-aligned updates. This means all widgets share a single tick source with zero drift.
 - `getTimeParts(format)` returns `{ time, period, greeting }`. The greeting object has `{ prefix, label }` (e.g. `"Good"`, `"morning"`).
 - Extra timezone clocks use `dayjs().tz(ianaStr)` via `getTimeInZone(tz, format)`. Timezones are stored as IANA strings.
 - Up to **2 extra clocks** supported. A small dot-counter (●○ / ●● / ○○) shows the slot usage in Settings.
-- The timezone picker groups timezones by region (`TZ_REGIONS`) when no search query; falls back to a flat filtered list. Data comes from `src/data/timezones.js`.
+- The timezone picker groups timezones by region (`TZ_REGIONS`) when no search query; falls back to a flat filtered list. Data comes from `app/data/timezones.js`.
 - Main clock font size scales with `clamp(3rem, 6vw, 4.25rem)` (shrinks to `4vw` when extra clocks are present).
 
 **Settings:** `format: '24h'|'12h'`, `timezones: string[]` (IANA, max 2).
@@ -234,7 +234,7 @@ dateToday/
 
 **Key implementation details:**
 
-- `getDateParts(language)` returns `{ weekday, month, day, year }`. For BS, it calls `convertEnglishToNepali(y, m, d)` from `src/utilities` (the core Nepali calendar conversion library) and maps the BS month number to `NEPALI_MONTH_NAMES[]`.
+- `getDateParts(language)` returns `{ weekday, month, day, year }`. For BS, it calls `convertEnglishToNepali(y, m, d)` from `app/utilities` (the core Nepali calendar conversion library) and maps the BS month number to `NEPALI_MONTH_NAMES[]`.
 - Uses `getTimeZoneAwareDayJsInstance()` to read the current date in the configured timezone.
 - Updates via `setInterval(update, 60_000)` (every minute) — not on `onClockTick` since sub-minute updates are unnecessary.
 - Day number rendered at `clamp(4rem, 9vw, 7rem)` — the dominant visual element.
@@ -295,7 +295,7 @@ countdown/
 - **Pin system**: `STORAGE_KEYS.countdownPinned(id)` stores `{ type: 'custom'|'event', id|eventId }` per widget instance. If the pinned target is in the past (and non-repeating), the pin is auto-cleared.
 - **Auto-target resolution** (`resolveTarget`): Complex priority chain — pinned custom → pinned event → nearest event → nearest custom. Falls back to showing the most imminent of either pool.
 - **Repeat modes**: `none | weekly | monthly | yearly`. `getNextOccurrence` advances the base date in a `while (next <= now)` loop until the next future occurrence.
-- **Notifications**: `sendNotification` (via `notifyUser` from `src/utilities/chrome`) fires once per calendar day per countdown. Keyed in `STORAGE_KEYS.COUNTDOWN_NOTIFIED` (`{ [id]: 'YYYY-MM-DD' }`). Old entries pruned on each write.
+- **Notifications**: `sendNotification` (via `notifyUser` from `app/utilities/chrome`) fires once per calendar day per countdown. Keyed in `STORAGE_KEYS.COUNTDOWN_NOTIFIED` (`{ [id]: 'YYYY-MM-DD' }`). Old entries pruned on each write.
 - **Live countdown**: Driven by `onClockTick`. Uses a tier system: months → days → hours → minutes display (`monthsTier`, `daysTier`, `hoursTier`, `minsTier`).
 - **Title font size** scales with title length via `getTitleFontSize(len)`.
 - Custom countdowns created via `AddCountdown.jsx` are stored as `Event` objects with `_fromCountdown: true` flag, so they don't pollute the Events widget.
@@ -389,8 +389,8 @@ weather/
 - **Cache**: `readWeatherCache(cacheKey, unit)` / `writeWeatherCache(...)` in `localStorage['weather_cache_v1']`. Cache key includes coords so it naturally invalidates on VPN switch. Fresh if < 30 min old.
 - **Forecast logic** (`parseForecast`): 4-case analysis of the next 12h hourly data. Returns `{ description, code, hours, type }` where `type` is one of `'clearing' | 'incoming' | 'persist'`.
 - **PrecipBars**: Mini horizontal bar chart (5px bars, height proportional to `pop%`) shown alongside clearing/incoming forecasts. Each bar is an accessible `<button>` with a Popup tooltip.
-- **Weather quips**: `getWeatherQuip(forecast, weather, opts)` from `src/data/weatherQuips.js` — returns a witty one-liner based on conditions.
-- **WeatherAtmosphere**: Animated canvas/CSS component (`src/components/ui/WeatherAtmosphere.jsx`) shown in Expressive mode. Hoverable area in top-right reveals atmosphere label via Popup.
+- **Weather quips**: `getWeatherQuip(forecast, weather, opts)` from `app/data/weatherQuips.js` — returns a witty one-liner based on conditions.
+- **WeatherAtmosphere**: Animated canvas/CSS component (`app/components/ui/WeatherAtmosphere.jsx`) shown in Expressive mode. Hoverable area in top-right reveals atmosphere label via Popup.
 - Location search in Settings debounces at 350 ms, calls Open-Meteo geocoding API, sorts results by Haversine distance from the user's current location, renders a portalled dropdown.
 - Legacy `style === 'simple'` is normalised to `'minimal'` on read.
 - `API_KEY = null` exported from `utils.jsx` — kept so lingering imports don't crash.
@@ -443,12 +443,12 @@ notes/
 bookmarks/
   Widget.jsx — main component + BookmarkSettings inline panel
   config.js
-  utils.js   — re-exports from src/utilities/favicon.js
+  utils.js   — re-exports from app/utilities/favicon.js
 ```
 
 **Key implementation details:**
 
-- `utils.js` is a **pure re-export** from `src/utilities/favicon.js` for backward compatibility. All real favicon utilities live there.
+- `utils.js` is a **pure re-export** from `app/utilities/favicon.js` for backward compatibility. All real favicon utilities live there.
 - **Icon modes**: `'favicon'` (uses `FaviconIcon` component which tries multiple favicon services with fallback chain) vs `'letter'` (generates a coloured circle with the first letter).
 - **Background colour**: In `favicon` mode, `FaviconIcon`'s `onColor` callback fires with an extracted dominant colour; this is passed as `cardStyle.backgroundColor` to `BaseWidget` so the entire widget card tints to match the site's brand.
 - In `letter` mode, the background is set to `var(--w-accent)` immediately (no async extraction needed).
@@ -615,7 +615,7 @@ occasions/
 
 - `computeUpcoming(raw)`: enriches entries with `{ nextDate, daysAway }`, deduplicates by `(name, type, month, day)` (prevents overlap between Google Contacts + manual), sorts by `daysAway` ascending, slices to max 3.
 - `nextOccurrence(month, day)` returns the same month/day this year if still in the future, else next year. Year-independent (no stored birth year needed).
-- **Google Contacts sync**: calls `getContactBirthdays(interactive)` from `src/utilities/googleContacts.js`. Results cached in `chrome.storage.local`. `loadCachedContacts()` is async; called on mount and after `GOOGLE_ACCOUNT_CHANGED` event.
+- **Google Contacts sync**: calls `getContactBirthdays(interactive)` from `app/utilities/googleContacts.js`. Results cached in `chrome.storage.local`. `loadCachedContacts()` is async; called on mount and after `GOOGLE_ACCOUNT_CHANGED` event.
 - `avatarColor(name)`: deterministic hash of the name string → index into `AVATAR_PALETTE` (8 warm/earthy colour pairs).
 - **Hero row** (index 0): highlighted with accent-tinted background, accent-coloured left bar, and accent-coloured name text.
 - `DaysChip`: Today → accent fill + "🎉"; Tomorrow → muted chip; ≤7 days → accent text; further → gray text.
@@ -642,8 +642,8 @@ dailys/
 **Key implementation details:**
 
 - `getDailyIndex(len) = floor(Date.now() / 86_400_000) % len` — produces a stable index that changes exactly at UTC midnight.
-- **Quote data**: `src/data/quotes.js` (static bundled array of `{ text, author, category }`).
-- **Fact data**: `src/data/facts.js` (static bundled array of `{ text, category }`).
+- **Quote data**: `app/data/quotes.js` (static bundled array of `{ text, author, category }`).
+- **Fact data**: `app/data/facts.js` (static bundled array of `{ text, category }`).
 - **Joke data** (`useDailyJoke`): Fetches `https://icanhazdadjoke.com/` once per day. Response cached in `localStorage['dailys_joke_cache']` as `{ date: 'YYYY-MM-DD', joke }`. Subsequent loads are instant. Timeout is 6 seconds (`AbortSignal.timeout(6000)`). `User-Agent` header set to avoid 403.
 - Three fallback messages for the joke fetch failure, also cycled daily.
 - All three modes include an accent-colored `category` chip.
@@ -697,7 +697,7 @@ rss/
 
 Every widget exports a default config object from its `config.js`:
 
-```src/widgets/clock/config.js#L1-14
+```app/widgets/clock/config.js#L1-14
 {
   type: string,          // unique type key (used as WIDGET_TYPES value)
   title: string,         // display name in WidgetCatalog
@@ -745,19 +745,19 @@ Every widget exports a default config object from its `config.js`:
 ## Cross-cutting Patterns
 
 ### 1. `onClockTick` — Zero-drift updates
-Widgets that update on the second (`Clock`, `Countdown`, `Pomodoro`) or minute (`Progress`, `DateToday`) use `onClockTick(fn)` from `src/utilities/sharedClock.js`. A Web Locks leader-election mechanism picks one tab to hold the lock and broadcast second-aligned ticks via `BroadcastChannel`. All other tabs receive ticks without running their own intervals.
+Widgets that update on the second (`Clock`, `Countdown`, `Pomodoro`) or minute (`Progress`, `DateToday`) use `onClockTick(fn)` from `app/utilities/sharedClock.js`. A Web Locks leader-election mechanism picks one tab to hold the lock and broadcast second-aligned ticks via `BroadcastChannel`. All other tabs receive ticks without running their own intervals.
 
 ### 2. Popup — Portal tooltip positioning
-The shared `Popup` component (`src/components/ui/Popup.jsx`) uses a two-phase mount: first render at an off-screen position to measure its own size, then flip above/below and clamp to viewport edges. Used by Calendar day tooltips, BookmarkCard hover, Weather precip bars, and Quick Access tiles.
+The shared `Popup` component (`app/components/ui/Popup.jsx`) uses a two-phase mount: first render at an off-screen position to measure its own size, then flip above/below and clamp to viewport edges. Used by Calendar day tooltips, BookmarkCard hover, Weather precip bars, and Quick Access tiles.
 
 ### 3. `useAgeLabel(timestamp)` — "synced 2 min ago"
-`src/hooks/useAgeLabel.js` wraps `humanizeAge` from `src/utilities/index.js`. Used by Events, Occasions, and Stock to show a human-readable sync age. Updates every 30 seconds.
+`app/hooks/useAgeLabel.js` wraps `humanizeAge` from `app/utilities/index.js`. Used by Events, Occasions, and Stock to show a human-readable sync age. Updates every 30 seconds.
 
 ### 4. Settings always via `useWidgetSettings(id, defaults)`
 Every widget reads and writes its own settings through this hook. The `id` is the widget instance UUID — supporting multiple independent instances of the same widget type with separate settings.
 
 ### 5. `IntegrationRow` — OAuth integration cards
-`src/components/ui/IntegrationRow.jsx` is a standardised connect/disconnect row used in Settings panels for Google Calendar (Events), Google Contacts (Occasions), and Spotify (Media). The actual connect/disconnect logic opens `AccountsDialog` via `useUIStore`.
+`app/components/ui/IntegrationRow.jsx` is a standardised connect/disconnect row used in Settings panels for Google Calendar (Events), Google Contacts (Occasions), and Spotify (Media). The actual connect/disconnect logic opens `AccountsDialog` via `useUIStore`.
 
 ### 6. Dual-mode: Preset + Custom
 Both RSS and Stock follow the pattern of offering curated preset options (preset feeds / NEPSE top companies) while also allowing fully custom user-defined options (JSON upload / symbol search).

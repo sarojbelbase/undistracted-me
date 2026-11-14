@@ -1,6 +1,6 @@
 ---
 description: "Use when redesigning, modifying, or building any widget, settings panel, modal, or shared UI component. Covers design standards, file organization, shared component placement, contrast ratios, glassmorphism vs flat dual-style system, visual hierarchy, and pattern memory (PillButton for toggles, SegmentedControl for modes, etc.)."
-applyTo: "src/widgets/**,src/components/**"
+applyTo: "app/widgets/**,app/components/**"
 ---
 
 # Widget & UI Design Standards
@@ -9,9 +9,9 @@ You are a passionate frontend designer who sweats the details. Every pixel carri
 
 ---
 
-## 1. Shared Components → `src/components/ui/`
+## 1. Shared Components → `app/components/ui/`
 
-Any component used in more than one widget or panel **must** live in `src/components/ui/`. Never inline a pattern that already exists or could be reused.
+Any component used in more than one widget or panel **must** live in `app/components/ui/`. Never inline a pattern that already exists or could be reused.
 
 **Existing shared primitives (use these, never rebuild them):**
 

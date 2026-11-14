@@ -13,43 +13,43 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: [
-        'functions/**',
-        'src/components/LookAway/**',
-        'src/components/FocusMode/**',
-        'src/widgets/**',
-        'src/store/**',
-        'src/theme.js',
-        'src/constants/**',
-        'src/utilities/**',
+        'api/**',
+        'app/components/LookAway/**',
+        'app/components/FocusMode/**',
+        'app/widgets/**',
+        'app/store/**',
+        'app/theme.js',
+        'app/constants/**',
+        'app/utilities/**',
       ],
       exclude: [
         '**/useWidgetInstances.js.bak',
         // Chrome extension APIs — not available in jsdom
-        'src/utilities/chrome.js',
+        'app/utilities/chrome.js',
         // OAuth / Google API — require real browser auth flows + network
-        'src/utilities/googleAuth.js',
-        'src/utilities/googleContacts.js',
+        'app/utilities/googleAuth.js',
+        'app/utilities/googleContacts.js',
         // Media capture — requires camera/microphone hardware
-        'src/utilities/media.js',
+        'app/utilities/media.js',
         // Complex canvas+fetch browser APIs (favicon generation)
-        'src/utilities/favicon.js',
+        'app/utilities/favicon.js',
         // matchMedia API dependency
-        'src/utilities/useAutoTheme.js',
+        'app/utilities/useAutoTheme.js',
         // Deprecated re-export shims — no testable logic
-        'src/utilities/useAgeLabel.js',
-        'src/widgets/useEvents.js',
-        'src/store/index.js',
-        'src/constants/settings.js',
+        'app/utilities/useAgeLabel.js',
+        'app/widgets/useEvents.js',
+        'app/store/index.js',
+        'app/constants/settings.js',
         // Widget registry metadata — pure constant objects, no logic
         '**/config.js',
         // Complex Spotify OAuth + media control (Spotify API connectivity required)
-        'src/widgets/spotify/**',
+        'app/widgets/spotify/**',
         // Occasions widget — complex date-based calendar widget, low priority
-        'src/widgets/occasions/**',
+        'app/widgets/occasions/**',
         // Quick Access widget — minimal logic, external URL handling
-        'src/widgets/quickAccess/**',
+        'app/widgets/quickAccess/**',
         // Bookmarks utils is a re-export façade for the excluded favicon.js
-        'src/widgets/bookmarks/utils.js',
+        'app/widgets/bookmarks/utils.js',
       ],
       reporter: ['text', 'json-summary'],
       reportOnFailure: true,

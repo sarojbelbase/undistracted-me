@@ -1,5 +1,5 @@
 /**
- * Tests for shorthandFromUrl in src/utilities/index.js
+ * Tests for shorthandFromUrl in app/utilities/index.js
  *
  * Covers:
  *  - stripping `www` (existing behaviour)
@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { shorthandFromUrl } from '../../../src/utilities/index';
+import { shorthandFromUrl } from '../../../app/utilities/index';
 
 describe('shorthandFromUrl', () => {
   it('strips www', () => {

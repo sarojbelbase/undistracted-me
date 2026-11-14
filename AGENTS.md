@@ -10,7 +10,7 @@ Dashboard (draggable widget grid).
 
 - **Stack**: React 19 · Vite 8 · `@crxjs/vite-plugin` · Tailwind CSS v4 ·
   Zustand (+ `persist`) · react-grid-layout · Lexical · dayjs · Preact (legacy)
-- **Backend**: Cloudflare Pages Functions in `functions/` → `api.undistracted.me`
+- **Backend**: Cloudflare Pages Functions in `api/` → `api.undistracted.me`
 - **Landing**: Astro site in `landing/` → `undistracted.me`
 - **Tests**: Vitest (unit) + Playwright (E2E)
 - **Package manager**: **Bun** — use `bun`, not `npm`/`yarn`
@@ -68,8 +68,8 @@ Custom subagents live in `.opencode/agents/`: `react-guru`,
 - **StrictMode safety**: never mutate state inside `setX(prev => …)` when you
   also dispatch events (double-invoke bug).
 - **Per-breakpoint layouts**: persist `allLayouts` from `onLayoutChange`.
-- **Widgets**: register in `src/widgets/index.js` (`WIDGET_TYPES`,
-  `WIDGET_REGISTRY`) and add a folder under `src/widgets/<name>/`.
+- **Widgets**: register in `app/widgets/index.js` (`WIDGET_TYPES`,
+  `WIDGET_REGISTRY`) and add a folder under `app/widgets/<name>/`.
 
 ## Before saying "done"
 

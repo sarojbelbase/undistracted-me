@@ -60,14 +60,14 @@ vi.mock('react-bootstrap-icons', async (importOriginal) => {
 });
 
 // Prevent store init crash (circular dep via widget registry)
-vi.mock('../../../src/store/useWidgetInstancesStore', () => ({
+vi.mock('../../../app/store/useWidgetInstancesStore', () => ({
   useWidgetInstancesStore: vi.fn((selector) =>
     typeof selector === 'function' ? selector({ instances: [], widgetSettings: {} }) : undefined
   ),
 }));
 
 // Mock BaseWidget
-vi.mock('../../../src/widgets/BaseWidget', () => ({
+vi.mock('../../../app/widgets/BaseWidget', () => ({
   BaseWidget: React.forwardRef(({ children, className, settingsContent, cardStyle, onRemove }, ref) => (
     <div ref={ref} data-testid="base-widget" style={cardStyle}>
       {children}
@@ -81,12 +81,12 @@ vi.mock('../../../src/widgets/BaseWidget', () => ({
 }));
 
 // Mock useWidgetSettings
-vi.mock('../../../src/widgets/useWidgetSettings', () => ({
+vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn((id, defaults) => [defaults, vi.fn()]),
 }));
 
 // Mock theme for notes widget
-vi.mock('../../../src/theme', () => ({
+vi.mock('../../../app/theme', () => ({
   ACCENT_COLORS: [
     { name: 'Default', hex: null },
     { name: 'indigo', hex: '#6366f1' },
@@ -96,14 +96,14 @@ vi.mock('../../../src/theme', () => ({
 }));
 
 // Mock events/useEvents for countdown
-vi.mock('../../../src/widgets/useEvents', () => ({
+vi.mock('../../../app/widgets/useEvents', () => ({
   useEvents: vi.fn(() => [[], vi.fn(), vi.fn()]),
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
 // Mock countdown utils — override only the deterministic bits; keep the rest of
 // the module real so a newly imported helper doesn't break the suite.
-vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
+vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -123,11 +123,11 @@ vi.mock('../../../src/widgets/countdown/utils', async (importOriginal) => {
 });
 
 // Mock events utils
-vi.mock('../../../src/widgets/events/utils', () => ({
+vi.mock('../../../app/widgets/events/utils', () => ({
   todayStr: () => '2025-07-01',
 }));
 
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Spotify Utils (localStorage-based)
@@ -139,7 +139,7 @@ import {
   getSpotifyProfile,
   fetchAndCacheProfile,
   SPOTIFY_CLIENT_ID,
-} from '../../../src/widgets/media/utils';
+} from '../../../app/widgets/media/utils';
 
 const TOKEN_KEY = 'spotify_tokens';
 const PROFILE_KEY = 'spotify_profile';
@@ -212,7 +212,7 @@ describe('Spotify Utils — media/utils', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Notes Widget
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as NotesWidget } from '../../../src/widgets/notes/Widget';
+import { Widget as NotesWidget } from '../../../app/widgets/notes/Widget';
 
 describe('Notes Widget', () => {
   beforeEach(() => {
@@ -262,7 +262,7 @@ describe('Notes Widget', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Countdown Widget
 // ─────────────────────────────────────────────────────────────────────────────
-import { Widget as CountdownWidget } from '../../../src/widgets/countdown/Widget';
+import { Widget as CountdownWidget } from '../../../app/widgets/countdown/Widget';
 
 describe('Countdown Widget', () => {
   beforeEach(() => {

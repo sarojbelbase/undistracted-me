@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getUtcOffset } from '../../../src/widgets/clock/utils';
+import { getUtcOffset } from '../../../app/widgets/clock/utils';
 
 afterEach(() => vi.useRealTimers());
 

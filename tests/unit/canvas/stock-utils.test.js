@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/stock/utils.js
+ * Tests for app/widgets/stock/utils.js
  * Covers: fetchChart, fetchCompanies, priceStats, fmtPrice, fmtOHL,
  *         fmtVolume, humanizeAge, buildSparklinePaths, lttb (via buildSparklinePaths)
  */
@@ -14,7 +14,7 @@ import {
   fmtVolume,
   humanizeAge,
   buildSparklinePaths,
-} from '../../../src/widgets/stock/utils';
+} from '../../../app/widgets/stock/utils';
 
 afterEach(() => vi.restoreAllMocks());
 

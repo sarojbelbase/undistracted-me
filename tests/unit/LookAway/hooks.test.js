@@ -11,7 +11,7 @@ import { renderHook, act } from '@testing-library/react';
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
-} from '../../../src/components/LookAway/hooks.js';
+} from '../../../app/components/LookAway/hooks.js';
 
 // ─── Test double builder ──────────────────────────────────────────────────────
 

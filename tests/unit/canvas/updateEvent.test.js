@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useEvents } from '../../../src/hooks/useEvents';
+import { useEvents } from '../../../app/hooks/useEvents';
 
 vi.stubGlobal('chrome', undefined);
 

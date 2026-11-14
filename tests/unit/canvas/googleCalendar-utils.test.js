@@ -1,5 +1,5 @@
 /**
- * Tests for src/utilities/googleCalendar.js
+ * Tests for app/utilities/googleCalendar.js
  *
  * Uses vi.resetModules() + dynamic imports in beforeEach to reset
  * module-level memory caches (_eventsMemCache, _profileMemCache) between tests.
@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 const chromeMockStorage = {};
 
-// The unified OAuth token storage key used by src/utilities/googleAuth.js.
+// The unified OAuth token storage key used by app/utilities/googleAuth.js.
 const TOKEN_KEY = "google_tokens";
 
 function seedValidToken(accessToken = "valid-token") {
@@ -55,7 +55,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   setupChromeMock();
   vi.resetModules();
-  const mod = await import("../../../src/utilities/googleCalendar.js");
+  const mod = await import("../../../app/utilities/googleCalendar.js");
   ({
     loadCachedGcalEvents, clearGcalCache, loadCachedProfile,
     getGoogleProfile, getCalendarEvents, isCalendarConnected, disconnectCalendar

@@ -22,10 +22,10 @@ re-render or a flash of the wrong background for a frame or two, then settles.
 ### Where
 
 Every widget card applies a frosted-glass effect in
-`src/widgets/BaseWidget.jsx` (and every modal/panel via `--card-blur`):
+`app/widgets/BaseWidget.jsx` (and every modal/panel via `--card-blur`):
 
 ```scss
-/* src/styles/_tokens.scss */
+/* app/styles/_tokens.scss */
 --card-bg: rgba(255, 255, 255, 0.44);
 --card-blur: blur(28px) saturate(180%);
 --card-shadow:
@@ -36,7 +36,7 @@ Every widget card applies a frosted-glass effect in
 
 `backdrop-filter` is applied on the card body in `BaseWidget.jsx:124` plus the
 three-dots button (`:152`) and the resize handle (`:196`). The same token drives
-Focus Mode cards (`src/components/FocusMode/theme.jsx` → `FM_CARD_BLUR`) and
+Focus Mode cards (`app/components/FocusMode/theme.jsx` → `FM_CARD_BLUR`) and
 modals/panels/popovers throughout.
 
 ### Root cause
@@ -106,8 +106,8 @@ rather than visual inspection.
 Kept `backdrop-filter` and the original frosted look; reduced the blur radius
 from `blur(28px)` → `blur(20px)` (at the `animation-performance` skill's 20px
 jank threshold, not below) in all glass profiles — `--card-blur` (glass
-light/dark) and `--fm-card-blur` (focus) in `src/theme/profiles.js`, plus the
-default in `src/styles/_tokens.scss`. Saturation/brightness/contrast unchanged.
+light/dark) and `--fm-card-blur` (focus) in `app/theme/profiles.js`, plus the
+default in `app/styles/_tokens.scss`. Saturation/brightness/contrast unchanged.
 
 A gradient edge-fade (Josh Comeau's "flickering top" mask) was tried and
 **reverted** — it visibly changed the card look, which wasn't an acceptable

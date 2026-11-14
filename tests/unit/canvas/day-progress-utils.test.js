@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/dayProgress/utils.js
+ * Tests for app/widgets/dayProgress/utils.js
  *
  * What can go wrong:
  *  – getDayProgress divides by 24*60. If someone changes TOTAL_DOTS to a
@@ -14,7 +14,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 // The dayProgress widget API is getProgress(period, calendar)
 // period: 'day'|'week'|'month'|'year'  calendar: 'ad'|'bs'
-import { getProgress, PERIOD_TYPES, CALENDAR_TYPES, DEFAULT_PERIOD, DEFAULT_CALENDAR } from '../../../src/widgets/progress/utils';
+import { getProgress, PERIOD_TYPES, CALENDAR_TYPES, DEFAULT_PERIOD, DEFAULT_CALENDAR } from '../../../app/widgets/progress/utils';
 
 afterEach(() => vi.useRealTimers());
 

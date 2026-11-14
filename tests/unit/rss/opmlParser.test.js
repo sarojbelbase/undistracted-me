@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseOPML, looksLikeOPML } from '../../../src/widgets/rss/opmlParser';
+import { parseOPML, looksLikeOPML } from '../../../app/widgets/rss/opmlParser';
 
 // ─── Sample OPML fixtures ────────────────────────────────────────────────────
 

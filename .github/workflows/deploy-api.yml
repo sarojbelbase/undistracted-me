@@ -1,13 +1,12 @@
-name: Deploy API to Cloudflare Pages
+name: Deploy API
 
 on:
   workflow_dispatch: {}
   push:
     branches:
       - main
-      - 'feature/*'
     paths:
-      - 'functions/**'
+      - 'api/**'
       - 'pages-api/**'
       - 'wrangler.toml'
       - '.github/workflows/deploy-api.yml'
@@ -20,18 +19,16 @@ jobs:
       deployments: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
 
       # Cloudflare Pages Functions must live in <output>/functions. The repo
-      # keeps them in /functions, so stage a copy into pages-api before upload.
+      # keeps them in /api, so stage a copy into pages-api before upload.
       - name: Stage Functions into pages-api
         run: |
           rm -rf pages-api/functions
-          cp -r functions pages-api/functions
+          cp -r api pages-api/functions
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -41,4 +38,4 @@ jobs:
           # `--commit-message` is intentionally omitted: a multi-line commit
           # message body breaks wrangler's argument parsing. `--commit-hash`
           # already identifies the deployment.
-          command: pages deploy pages-api --project-name=undistracted-me-api --branch=feature/vite-migration-redesign --commit-hash=${{ github.sha }}
+          command: pages deploy pages-api --project-name=undistracted-me-api --branch=main --commit-hash=${{ github.sha }}

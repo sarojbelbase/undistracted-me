@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/noteText.js (pure note-text helpers)
+ * Unit tests for app/utilities/noteText.js (pure note-text helpers)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -9,7 +9,7 @@ import {
   noteLabel,
   migrateNotes,
   makeNoteId,
-} from '../../../src/utilities/noteText';
+} from '../../../app/utilities/noteText';
 
 describe('splitNote', () => {
   it('splits title and body on the first newline', () => {

@@ -1,6 +1,6 @@
 # Notes Sync via Private Gists — Implementation Plan
 
-> **Status:** Superseded — notes now sync as per-note files in Google Drive `appDataFolder` (via `src/utilities/syncTransport.js`), not private gists. This plan is kept for historical reference; the merge/reconcile design was carried over to `src/utilities/notesSync.js`.
+> **Status:** Superseded — notes now sync as per-note files in Google Drive `appDataFolder` (via `app/utilities/syncTransport.js`), not private gists. This plan is kept for historical reference; the merge/reconcile design was carried over to `app/utilities/notesSync.js`.
 > **Depends on:** ~~GitHub OAuth device flow + gist transport~~ → Google OAuth `drive.appdata` (shipped with the Drive migration)
 > **Scope:** Sync each Notes-widget note as its own file in the hidden Drive app-data folder, separate from the settings/config file. The config file keeps a `note_id → fileId` index so notes stay discoverable and identifiable across devices.
 
@@ -134,7 +134,7 @@ This is **non-secret** (like `github_gist_id`) — it only needs the gist id + l
 
 ## 3. Sync Engine Changes
 
-Add a dedicated module `src/utilities/notesSync.js` (or extend `syncEngine.js`) that
+Add a dedicated module `app/utilities/notesSync.js` (or extend `syncEngine.js`) that
 orchestrates note gists. Reuse `githubAuth` for the token, gist headers, and
 `User-Agent`.
 
@@ -189,7 +189,7 @@ setNotesIndex(map, ts)
 
 ## 4. Notes Widget Changes
 
-`src/widgets/notes/Widget.jsx`:
+`app/widgets/notes/Widget.jsx`:
 
 - Load settings via `resolveSettings` (already migrates `{ text }` → `{ notes, idx }`).
   Extend it to also migrate `string[]` → `{ id, text }[]`.
@@ -199,7 +199,7 @@ setNotesIndex(map, ts)
 - `handleTitleChange` / `handleBodyChange` / `handleWidgetTextChange` continue to
   produce `text = "title\nbody"`; after `persist`, call `notesSync.onNoteChanged(id, text)`.
 
-`src/constants/defaults.js` — the demo/seed notes gain ids on write (no source change
+`app/constants/defaults.js` — the demo/seed notes gain ids on write (no source change
 needed if migration is lazy).
 
 ---
@@ -258,12 +258,12 @@ needed if migration is lazy).
 ## 9. File Structure
 
 ```
-src/utilities/notesSync.js          # note gist CRUD + index maintenance (new)
-src/utilities/syncEngine.js         # add notes_index to SYNC_MAP + pull/push hooks
-src/constants/urls.js               # (reuse GITHUB_GISTS_API)
-src/constants/storageKeys.js        # add NOTES_GIST_INDEX = "notes_gist_index"
-src/constants/defaults.js           # note defaults (no shape change; lazy ids)
-src/widgets/notes/Widget.jsx        # stable ids + onNoteChanged/delete hooks
+app/utilities/notesSync.js          # note gist CRUD + index maintenance (new)
+app/utilities/syncEngine.js         # add notes_index to SYNC_MAP + pull/push hooks
+app/constants/urls.js               # (reuse GITHUB_GISTS_API)
+app/constants/storageKeys.js        # add NOTES_GIST_INDEX = "notes_gist_index"
+app/constants/defaults.js           # note defaults (no shape change; lazy ids)
+app/widgets/notes/Widget.jsx        # stable ids + onNoteChanged/delete hooks
 tests/unit/canvas/notesSync.test.js # (new) note gist CRUD + LWW + migration
 tests/unit/canvas/syncEngine.test.js# notes_index round-trip
 ```

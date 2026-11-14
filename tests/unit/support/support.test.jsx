@@ -8,8 +8,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { useSupportStore, triggerSupportNudge } from '../../../src/store/useSupportStore';
-import { SupportDialog } from '../../../src/components/SupportDialog';
+import { useSupportStore, triggerSupportNudge } from '../../../app/store/useSupportStore';
+import { SupportDialog } from '../../../app/components/SupportDialog';
 
 const resetStore = () => useSupportStore.setState({ open: false, reason: null });
 

@@ -1,5 +1,5 @@
 /**
- * Data integrity tests for src/data/bikramSambatCalendar.js
+ * Data integrity tests for app/data/bikramSambatCalendar.js
  *
  * These tests are your early-warning system against the class of bugs that
  * previously required an extension update:
@@ -20,7 +20,7 @@ import {
   NEPALI_YEARS_AND_DAYS_IN_MONTHS,
   BS_TABLE_START_YEAR,
   BS_TABLE_END_YEAR,
-} from '../../../src/data/bikramSambatCalendar';
+} from '../../../app/data/bikramSambatCalendar';
 
 // ── Structural invariants ────────────────────────────────────────────────────
 
@@ -177,7 +177,7 @@ describe('convertEnglishToNepali integration', () => {
   let convertEnglishToNepali;
 
   beforeAll(async () => {
-    const mod = await import('../../../src/utilities/index.js');
+    const mod = await import('../../../app/utilities/index.js');
     convertEnglishToNepali = mod.convertEnglishToNepali;
   });
 

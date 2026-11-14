@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   APP_SETTINGS_DEFAULTS as D,
-} from '../../../src/constants/defaults';
+} from '../../../app/constants/defaults';
 
 describe('APP_SETTINGS_DEFAULTS — first-install appearance', () => {
   it('uses the Latte accent by default', () => {

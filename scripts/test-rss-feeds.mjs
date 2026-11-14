@@ -10,7 +10,7 @@
  *   node scripts/test-rss-feeds.mjs
  */
 
-import { PRESET_FEEDS, PRESET_CATEGORIES } from '../src/widgets/rss/feeds.js';
+import { PRESET_FEEDS, PRESET_CATEGORIES } from '../app/widgets/rss/feeds.js';
 
 const TIMEOUT_MS = 10_000;
 const UA = 'Mozilla/5.0 (compatible; UndistractedMe/1.0)';
@@ -87,7 +87,7 @@ console.log(bold('  Summary'));
 console.log(`  ${green(`${pass.length} passed`)}  ${fail.length ? red(`${fail.length} failed`) : dim('0 failed')}`);
 
 if (fail.length) {
-  console.log(bold('\n  Dead feeds (remove or replace in src/widgets/rss/feeds.js):'));
+  console.log(bold('\n  Dead feeds (remove or replace in app/widgets/rss/feeds.js):'));
   for (const r of fail) {
     console.log(`  ${red('✗')} ${r.id.padEnd(12)} ${r.label}  ${dim(r.url)}`);
     console.log(`       ${yellow(r.reason)}`);

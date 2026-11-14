@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/utilities/notesSync.js (per-note file sync)
+ * Unit tests for app/utilities/notesSync.js (per-note file sync)
  *
  * syncEngine and syncTransport are mocked so the tests exercise notesSync's own
  * logic: index maintenance, note file CRUD, and last-write-wins reconcile.
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../src/utilities/syncEngineFacade', () => ({
+vi.mock('../../../app/utilities/syncEngineFacade', () => ({
   default: {
     isSyncEnabled: () => mocks.isSyncEnabled(),
     registerSyncHook: (fn) => {
@@ -28,7 +28,7 @@ vi.mock('../../../src/utilities/syncEngineFacade', () => ({
   },
 }));
 
-vi.mock('../../../src/utilities/syncTransport', () => {
+vi.mock('../../../app/utilities/syncTransport', () => {
   const transport = {
     isConnected: () => true,
     readNote: async (fileId) => (mocks.noteFiles[fileId] ? { ...mocks.noteFiles[fileId] } : null),
@@ -44,8 +44,8 @@ vi.mock('../../../src/utilities/syncTransport', () => {
   return { syncTransport: transport, default: transport };
 });
 
-import notesSync from '../../../src/utilities/notesSync';
-import { STORAGE_KEYS } from '../../../src/constants/storageKeys';
+import notesSync from '../../../app/utilities/notesSync';
+import { STORAGE_KEYS } from '../../../app/constants/storageKeys';
 
 const NOTES_KEY = STORAGE_KEYS.widgetSettings('notes');
 

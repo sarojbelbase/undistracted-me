@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/events/utils.js
+ * Tests for app/widgets/events/utils.js
  *
  * What can go wrong:
  *  – bucketLabel: if two dates are compared as strings without proper padding
@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { todayStr } from '../../../src/utilities';
+import { todayStr } from '../../../app/utilities';
 import {
   isPast,
   getDateOffset,
@@ -29,7 +29,7 @@ import {
   EMPTY_FORM,
   DATE_CHIPS,
   DURATION_PILLS,
-} from '../../../src/widgets/events/utils';
+} from '../../../app/widgets/events/utils';
 
 afterEach(() => vi.useRealTimers());
 

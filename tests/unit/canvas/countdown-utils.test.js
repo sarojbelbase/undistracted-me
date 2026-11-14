@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/countdown/utils.js
+ * Tests for app/widgets/countdown/utils.js
  *
  * What can go wrong:
  *  – formatCountdown uses Math.ceil for totalSeconds but floor for days/hours/minutes.
@@ -21,7 +21,7 @@ import {
   getNextOccurrence,
   formatCountdown,
   formatTargetDate,
-} from '../../../src/widgets/countdown/utils';
+} from '../../../app/widgets/countdown/utils';
 
 afterEach(() => vi.useRealTimers());
 

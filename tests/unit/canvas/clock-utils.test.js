@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/clock/utils.js
+ * Tests for app/widgets/clock/utils.js
  *
  * What can go wrong:
  *  – getGreeting picks the wrong greeting bucket: a user at 6am sees "nothing
@@ -20,7 +20,7 @@ import {
   getGreeting,
   getTimeParts,
   getTimeInZone,
-} from '../../../src/widgets/clock/utils';
+} from '../../../app/widgets/clock/utils';
 
 afterEach(() => vi.useRealTimers());
 

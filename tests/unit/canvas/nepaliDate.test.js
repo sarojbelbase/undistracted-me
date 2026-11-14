@@ -8,9 +8,9 @@
  *  – Out-of-range / invalid BS dates throw instead of returning null.
  */
 import { describe, it, expect } from 'vitest';
-import { bsToAd } from '../../../src/utilities/nepaliDate';
-import { convertEnglishToNepali } from '../../../src/utilities/index';
-import { parseHolidaysFromWikitext } from '../../../functions/_holidays.js';
+import { bsToAd } from '../../../app/utilities/nepaliDate';
+import { convertEnglishToNepali } from '../../../app/utilities/index';
+import { parseHolidaysFromWikitext } from '../../../api/_holidays.js';
 
 describe('bsToAd', () => {
   it('matches the anchor (BS 2000 Poush 17 = 1944-01-01)', () => {

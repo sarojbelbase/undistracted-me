@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { LookAway } from '../../../src/components/LookAway/index.jsx';
+import { LookAway } from '../../../app/components/LookAway/index.jsx';
 
 // The 7 RGB triplets used to colour the orbs / ring
 const ORB_PALETTES = [

@@ -18,19 +18,19 @@ globalThis.ResizeObserver = class {
 
 // ── Mock heavy dependencies ────────────────────────────────────────────────
 
-vi.mock("../../../src/store", () => ({
+vi.mock("../../../app/store", () => ({
   useSettingsStore: vi.fn((selector) => {
     const state = { cardStyle: "glass", accent: "Matte Black" };
     return selector ? selector(state) : state;
   }),
 }));
 
-vi.mock("../../../src/utilities/unsplash", () => ({
+vi.mock("../../../app/utilities/unsplash", () => ({
   getBgSource: vi.fn(() => "default"),
   setBgSource: vi.fn(),
 }));
 
-vi.mock("../../../src/components/FocusMode/hooks", () => ({
+vi.mock("../../../app/components/FocusMode/hooks", () => ({
   useFocusPhoto: vi.fn(() => ({
     photo: null, slotA: null, slotB: null, activeSlot: "a", rotate: vi.fn(),
   })),
@@ -39,24 +39,24 @@ vi.mock("../../../src/components/FocusMode/hooks", () => ({
   useCenterOnDark: vi.fn(() => ({ clock: false, search: false, greet: false })),
 }));
 
-vi.mock("../../../src/components/FocusMode/theme", () => ({
+vi.mock("../../../app/components/FocusMode/theme", () => ({
   getFMCardVars: vi.fn(() => ({})),
   FM_ORB_BG: "#000",
 }));
 
-vi.mock("../../../src/constants/accents", () => ({
+vi.mock("../../../app/constants/accents", () => ({
   getFMAccentVars: vi.fn(() => ({})),
 }));
 
-vi.mock("../../../src/constants/orbPalettes", () => ({
+vi.mock("../../../app/constants/orbPalettes", () => ({
   getOrbRgbById: vi.fn(() => "255,255,255"),
 }));
 
-vi.mock("../../../src/components/ui/OrbBackground", () => ({
+vi.mock("../../../app/components/ui/OrbBackground", () => ({
   OrbBackground: () => <div data-testid="orb-background" />,
 }));
 
-vi.mock("../../../src/components/FocusMode/config", () => ({
+vi.mock("../../../app/components/FocusMode/config", () => ({
   ZONES: {
     top: { enable: true },
     center: { enable: true },
@@ -67,30 +67,30 @@ vi.mock("../../../src/components/FocusMode/config", () => ({
   },
 }));
 
-vi.mock("../../../src/components/FocusMode/zones/TopZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/TopZone", () => ({
   TopZone: ({ onExit }) => (
     <div data-testid="top-zone">
       <button data-testid="exit-btn" onClick={onExit}>Exit</button>
     </div>
   ),
 }));
-vi.mock("../../../src/components/FocusMode/zones/CenterZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/CenterZone", () => ({
   CenterZone: () => <div data-testid="center-zone" />,
 }));
-vi.mock("../../../src/components/FocusMode/zones/BottomZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/BottomZone", () => ({
   BottomZone: () => <div data-testid="bottom-zone" />,
 }));
-vi.mock("../../../src/components/FocusMode/zones/LeftZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/LeftZone", () => ({
   LeftZone: () => <div data-testid="left-zone" />,
 }));
-vi.mock("../../../src/components/FocusMode/zones/RightZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/RightZone", () => ({
   RightZone: () => <div data-testid="right-zone" />,
 }));
-vi.mock("../../../src/components/FocusMode/zones/BottomRightZone", () => ({
+vi.mock("../../../app/components/FocusMode/zones/BottomRightZone", () => ({
   BottomRightZone: () => <div data-testid="bottom-right-zone" />,
 }));
 
-import { FocusMode } from "../../../src/components/FocusMode/index";
+import { FocusMode } from "../../../app/components/FocusMode/index";
 
 describe("FocusMode", () => {
   let onExit;

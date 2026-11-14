@@ -1,5 +1,5 @@
 /**
- * Tests for src/theme.js
+ * Tests for app/theme.js
  *
  * Strategy: Think "what could silently break in production?"
  *
@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ACCENT_COLORS, applyTheme } from '../../../src/theme';
+import { ACCENT_COLORS, applyTheme } from '../../../app/theme';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Helpers

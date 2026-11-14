@@ -1,5 +1,5 @@
 /**
- * Tests for src/utilities/sunTime.js
+ * Tests for app/utilities/sunTime.js
  * Pure-computation functions: getSunTimes, getEffectiveMode,
  * getCachedCoords, getCachedCoordsSource, computeAutoMode.
  */
@@ -12,7 +12,7 @@ import {
   getCachedCoords,
   getCachedCoordsSource,
   computeAutoMode,
-} from '../../../src/utilities/sunTime';
+} from '../../../app/utilities/sunTime';
 
 beforeEach(() => {
   localStorage.clear();

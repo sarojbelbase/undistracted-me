@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/useWidgetSettings.js
+ * Tests for app/widgets/useWidgetSettings.js
  *
  * What can go wrong:
  *  – If the storageKey is wrong (e.g. widgetSettings_clock vs widgetSettings-clock)
@@ -16,8 +16,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useWidgetSettings } from '../../../src/widgets/useWidgetSettings';
-import { useWidgetInstancesStore } from '../../../src/store/useWidgetInstancesStore';
+import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
+import { useWidgetInstancesStore } from '../../../app/store/useWidgetInstancesStore';
 
 // Reset both localStorage and the Zustand store between tests
 beforeEach(() => {

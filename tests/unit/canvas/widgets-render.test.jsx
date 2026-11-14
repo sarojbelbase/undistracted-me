@@ -23,7 +23,7 @@ global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } }
 
 // sharedClock registers a real setInterval at module-level (leader election).
 // In tests, mock it so no real interval is registered and the worker can exit.
-vi.mock('../../../src/utilities/sharedClock', () => ({
+vi.mock('../../../app/utilities/sharedClock', () => ({
   onClockTick: vi.fn((fn) => {
     fn(); // call immediately, like the real implementation
     return () => { }; // no-op cleanup
@@ -34,7 +34,7 @@ vi.mock('../../../src/utilities/sharedClock', () => ({
 // Dailys Widget (formerly Facts)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as DailysWidget } from '../../../src/widgets/dailys/Widget';
+import { Widget as DailysWidget } from '../../../app/widgets/dailys/Widget';
 
 describe('DailysWidget', () => {
   it('renders without crashing', () => {
@@ -51,7 +51,7 @@ describe('DailysWidget', () => {
 // Day Progress Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as DayProgressWidget } from '../../../src/widgets/progress/Widget';
+import { Widget as DayProgressWidget } from '../../../app/widgets/progress/Widget';
 
 describe('DayProgressWidget', () => {
   beforeEach(() => {
@@ -93,7 +93,7 @@ describe('DayProgressWidget', () => {
 // DateToday Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as DateTodayWidget } from '../../../src/widgets/dateToday/Widget';
+import { Widget as DateTodayWidget } from '../../../app/widgets/dateToday/Widget';
 
 describe('DateTodayWidget', () => {
   beforeEach(() => {
@@ -137,7 +137,7 @@ describe('DateTodayWidget', () => {
 // Clock Widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Widget as ClockWidget } from '../../../src/widgets/clock/Widget';
+import { Widget as ClockWidget } from '../../../app/widgets/clock/Widget';
 
 // ClockWidget uses onClockTick (mocked above) — no fake timers needed.
 // Real timers are used so vi.setSystemTime doesn't interact with dayjs.tz().

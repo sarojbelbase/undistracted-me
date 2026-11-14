@@ -57,7 +57,7 @@ For every audit, work through all seven areas below. For each finding, report:
 - Verify Spotify PKCE flow is used instead of implicit flow  
 - Check that tokens are not logged to `console.*`
 
-### 3. Content Script Security (`src/utilities/media.js`, `src/media-cs.js`)
+### 3. Content Script Security (`app/utilities/media.js`, `app/media-cs.js`)
 - Review content scripts for DOM XSS sinks (`innerHTML`, `outerHTML`, `document.write`, `eval`)
 - Check `postMessage` listeners for origin validation
 - Verify content scripts do not expose extension internals to page scripts
@@ -74,7 +74,7 @@ For every audit, work through all seven areas below. For each finding, report:
 - Audit every `fetch()` call: is the URL user-controlled or fixed?
 - Check that user-supplied URLs are validated before fetching (weather widget, unsplash, stock widgets)
 - Verify `host_permissions` entries match exactly what is fetched — no unnecessary wildcards
-- Review `src/utilities/unsplash.js`, `src/utilities/googleCalendar.js`, `src/widgets/stock/`, `src/widgets/weather/` for SSRF patterns
+- Review `app/utilities/unsplash.js`, `app/utilities/googleCalendar.js`, `app/widgets/stock/`, `app/widgets/weather/` for SSRF patterns
 
 ### 6. MV3 Policy Compliance (Chrome Web Store)
 - No remotely-hosted code (`importScripts` from CDN, `eval`, dynamic `<script src>`)
@@ -95,8 +95,8 @@ For every audit, work through all seven areas below. For each finding, report:
 
 1. Start by reading `public/manifest.json` fully to map the attack surface
 2. Search for all permission-sensitive patterns: `localStorage`, `fetch`, `eval`, `innerHTML`, `postMessage`, `chrome.storage`
-3. Trace OAuth flows in `src/widgets/spotify/` and `src/utilities/googleCalendar.js`
-4. Review content scripts in `src/utilities/media.js`
+3. Trace OAuth flows in `app/widgets/spotify/` and `app/utilities/googleCalendar.js`
+4. Review content scripts in `app/utilities/media.js`
 5. Build a prioritized list of findings, Critical first
 6. For each finding, propose a specific code fix where possible
 

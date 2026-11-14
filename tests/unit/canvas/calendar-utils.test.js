@@ -1,5 +1,5 @@
 /**
- * Tests for src/widgets/calendar/utils.js
+ * Tests for app/widgets/calendar/utils.js
  *
  * What can go wrong:
  *  – buildCalendarData('ad') must insert the correct offset blanks at the start
@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { buildCalendarData, buildEventDateSet, WEEK_DAYS, AD_MONTH_NAMES } from '../../../src/widgets/calendar/utils';
+import { buildCalendarData, buildEventDateSet, WEEK_DAYS, AD_MONTH_NAMES } from '../../../app/widgets/calendar/utils';
 
 afterEach(() => vi.useRealTimers());
 

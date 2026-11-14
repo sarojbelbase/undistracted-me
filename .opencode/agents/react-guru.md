@@ -142,5 +142,5 @@ When doing a code review, structure output as:
 - Event listeners added in `useEffect` without `removeEventListener` cleanup
 - Zustand selectors returning new objects/arrays every render (`const { a, b } = useStore()` from a computed object)
 - Context values that change reference on every render (object literals in `value={}`)
-- Child components re-rendering because parent passes inline functions/objects as props without memoization
+- Child components re-rendering because parent passes inline api/objects as props without memoization
 - Barrel `index.js` files that re-export everything (circular import risk, poor tree-shaking)
