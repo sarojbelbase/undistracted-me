@@ -1,0 +1,22 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cloud.umami.is https://gateway.umami.is https://api.undistracted.me https://ipapi.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Link: </sitemap-index.xml>; rel="sitemap", </llms.txt>; rel="alternate"; type="text/plain", </.well-known/api-catalog>; rel="api-catalog", </schemamap.xml>; rel="schemamap", </.well-known/ard.json>; rel="ard"
+  No-Vary-Search: key-order, params=("utm_source" "utm_medium" "utm_campaign" "utm_content" "utm_term")
+
+/.well-known/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600
+
+/.well-known/api-catalog
+  Content-Type: application/linkset+json
+
+/schema/*
+  Content-Type: application/ld+json
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -15,46 +15,54 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install
 
+      # VITE_GOOGLE_CLIENT_ID and VITE_SPOTIFY_CLIENT_ID must be configured as
+      # repo secrets (Settings → Secrets and variables → Actions).
+      # No client-side API key any more — endpoints are gated by Origin +
+      # Cloudflare bot protection.
       - name: Build for Firefox
         if: matrix.browser == 'firefox'
-        run: npm run build && npm run build:firefox
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+        run: bun run build:firefox
 
       - name: Build for Chrome
         if: matrix.browser == 'chrome'
-        run: npm run build && npm run build:chrome
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+        run: bun run build:chrome
 
       - name: Rename Firefox zip
         if: matrix.browser == 'firefox'
         run: |
           version=$(jq -r .version package.json)
-          mv web-ext-artifacts/*.zip undistracted_me_firefox_v${version}.zip
+          mv builds/*.zip undistracted_me_firefox_v${version}.zip
 
       - name: Rename Chrome zip
         if: matrix.browser == 'chrome'
         run: |
           version=$(jq -r .version package.json)
-          mv dist.zip undistracted_me_chrome_v${version}.zip
+          mv builds/chrome.zip undistracted_me_chrome_v${version}.zip
 
       - name: Upload Firefox Release Asset
         if: matrix.browser == 'firefox'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
           path: undistracted_me_firefox_v*.zip
 
       - name: Upload Chrome Release Asset
         if: matrix.browser == 'chrome'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
           path: undistracted_me_chrome_v*.zip
@@ -64,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Firefox build artifact
         uses: actions/download-artifact@v4
@@ -79,7 +87,7 @@ jobs:
           path: ./chrome
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             firefox/*.zip

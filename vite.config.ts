@@ -1,0 +1,449 @@
+import { defineConfig, loadEnv, type Plugin } from "vite";
+import preact from "@preact/preset-vite";
+import { crx } from "@crxjs/vite-plugin";
+import manifest from "./public/manifest.json" with { type: "json" };
+
+/**
+ * Dev-only: intercepts GET /favicon?domain=...&sz=... and does a
+ * server-side waterfall (Google → DuckDuckGo → Icon Horse) so the browser
+ * never sees individual-service 404s in the console.
+ */
+const faviconWaterfall = (): Plugin => ({
+  name: "favicon-waterfall",
+  configureServer(server) {
+    // Mounted at the root and matched explicitly: mounting at "/favicon" would
+    // also capture real static assets (`/favicon/lotus48.png`, used by the
+    // manifest and the HTML) and 400 them in dev.
+    server.middlewares.use(async (req, res, next) => {
+      if (req.method !== "GET") return next();
+      const rawUrl = req.url ?? "";
+      const path = rawUrl.split("?")[0];
+      if (path !== "/favicon" && path !== "/favicon/") return next();
+      const qs = rawUrl.split("?")[1] ?? "";
+      const params = new URLSearchParams(qs);
+      const domain = params.get("domain") ?? "";
+      const sz = params.get("sz") ?? "64";
+      if (!domain) {
+        res.statusCode = 400;
+        res.end();
+        return;
+      }
+      // Don't proxy private/local hostnames to external favicon services
+      if (
+        /^localhost$|^\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$/.test(
+          domain,
+        )
+      ) {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+
+      const services = [
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=${sz}`,
+        `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+        `https://icon.horse/icon/${domain}`,
+      ];
+
+      for (const url of services) {
+        try {
+          const upstream = await fetch(url);
+          if (upstream.ok) {
+            const buf = Buffer.from(await upstream.arrayBuffer());
+            res.setHeader(
+              "Content-Type",
+              upstream.headers.get("content-type") ?? "image/png",
+            );
+            res.setHeader("Cache-Control", "public, max-age=86400");
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.end(buf);
+            return;
+          }
+        } catch {
+          /* try next */
+        }
+      }
+
+      res.statusCode = 204;
+      res.end();
+    });
+  },
+});
+
+/**
+ * Dev-only: rewrites any /*.html request to /entries/*.html so every
+ * CRXJS entry point is accessible at the root without the /entries/ prefix.
+ *
+ *   /index.html   → /entries/index.html
+ *   /popup.html   → /entries/popup.html
+ *   /blocked.html → /entries/blocked.html
+ *   /              → /entries/index.html
+ */
+const rootRedirect = (): Plugin => ({
+  name: "root-redirect",
+  configureServer(server) {
+    server.middlewares.use("/", (req, res, next) => {
+      if (req.method !== "GET") return next();
+      const url = req.url ?? "";
+      // / → index
+      if (url === "/") {
+        res.writeHead(302, { Location: "/entries/index.html" });
+        res.end();
+        return;
+      }
+      // /anything.html → /entries/anything.html
+      if (url.endsWith(".html") && !url.startsWith("/entries/")) {
+        res.writeHead(302, { Location: `/entries${url}` });
+        res.end();
+        return;
+      }
+      next();
+    });
+  },
+});
+
+/** Reads the full request body as a parsed JSON object. */
+const readBody = (
+  req: import("node:http").IncomingMessage,
+): Promise<Record<string, string>> =>
+  new Promise((resolve) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (c: Buffer) => chunks.push(c));
+    req.on("end", () =>
+      resolve(JSON.parse(Buffer.concat(chunks).toString() || "{}")),
+    );
+  });
+
+/**
+ * Dev-only: proxies POST /auth/google/token to Google's token endpoint,
+ * injecting the client secret from the local .env file so it never touches
+ * the client bundle.  Mirrors the logic of auth/google/token.js exactly.
+ */
+const googleTokenProxy = (): Plugin => ({
+  name: "google-token-proxy",
+  configureServer(server) {
+    server.middlewares.use("/auth/google/token", async (req, res, next) => {
+      if (req.method === "OPTIONS") {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+      if (req.method !== "POST") return next();
+
+      // Vite exposes only VITE_* vars to the client; non-prefixed vars from .env
+      // (e.g. GOOGLE_CLIENT_SECRET) are loaded here via loadEnv so the local
+      // proxy can inject the secret without it ever entering the bundle.
+      const env = loadEnv(server.config.mode, server.config.root, "");
+      const clientId = process.env.GOOGLE_CLIENT_ID ?? env.GOOGLE_CLIENT_ID ?? "";
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? env.GOOGLE_CLIENT_SECRET ?? "";
+      if (!clientId || !clientSecret) {
+        res.statusCode = 503;
+        res.end(
+          JSON.stringify({ error: "Google OAuth not configured — check .env" }),
+        );
+        return;
+      }
+
+      const parsed = await readBody(req);
+      const grantType = parsed.grant_type || "authorization_code";
+
+      const params = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: grantType,
+      });
+      if (grantType === "refresh_token") {
+        if (!parsed.refresh_token) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: "refresh_token required" }));
+          return;
+        }
+        params.set("refresh_token", parsed.refresh_token);
+      } else {
+        const { code, code_verifier, redirect_uri } = parsed;
+        if (!code || !code_verifier || !redirect_uri) {
+          res.statusCode = 400;
+          res.end(
+            JSON.stringify({
+              error: "code, code_verifier and redirect_uri are required",
+            }),
+          );
+          return;
+        }
+        params.set("code", code);
+        params.set("code_verifier", code_verifier);
+        params.set("redirect_uri", redirect_uri);
+      }
+
+      const upstream = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params,
+      });
+      const data = await upstream.json();
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.statusCode = upstream.status;
+      res.end(
+        JSON.stringify(
+          upstream.ok
+            ? {
+              access_token: data.access_token,
+              refresh_token: data.refresh_token ?? null,
+              expires_in: data.expires_in,
+            }
+            : {
+              error:
+                data.error_description ||
+                data.error ||
+                "token_exchange_failed",
+            },
+        ),
+      );
+    });
+  },
+});
+
+// ── RSS dev proxy ─────────────────────────────────────────────────────────────
+
+const RSS_SOURCE_NAMES: Record<string, string> = {
+  "news.ycombinator.com": "Hacker News",
+  "hnrss.org": "Hacker News",
+  "feeds.bbci.co.uk": "BBC",
+  "ekantipur.com": "Kantipur",
+  "myrepublica.nagariknetwork.com": "Republica",
+  "kathmandupost.com": "Kathmandu Post",
+  "rss.nytimes.com": "NYT",
+  "feeds.theguardian.com": "The Guardian",
+  "aljazeera.com": "Al Jazeera",
+  "npr.org": "NPR",
+  "feeds.arstechnica.com": "Ars Technica",
+  "techcrunch.com": "TechCrunch",
+  "wired.com": "Wired",
+  "theverge.com": "The Verge",
+  "rss.dw.com": "DW",
+  "feeds.reuters.com": "Reuters",
+};
+
+function rssSourceName(feedUrl: string): string {
+  try {
+    const hostname = new URL(feedUrl).hostname.replace(/^www\./, "");
+    return RSS_SOURCE_NAMES[hostname] || hostname;
+  } catch {
+    return "";
+  }
+}
+
+function decodeEntities(str: string): string {
+  if (!str) return str;
+  return str
+    .replaceAll(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(+n))
+    .replaceAll(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(Number.parseInt(h, 16)))
+    .replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"').replaceAll("&apos;", "'").replaceAll("&nbsp;", "\u00a0");
+}
+
+
+/**
+ * Dev-only: proxies /suggest?client=chrome&q=... to suggestqueries.google.com
+ * and /suggest/ddg?q=... to duckduckgo.com server-side, bypassing CORS.
+ * In the real extension, host_permissions handles this natively.
+ */
+const suggestProxy = (): Plugin => ({
+  name: "suggest-proxy",
+  configureServer(server) {
+    server.middlewares.use("/suggest", async (req, res) => {
+      if (req.method !== "GET") {
+        res.statusCode = 405;
+        res.end();
+        return;
+      }
+      const qs = (req.url ?? "").split("?")[1] ?? "";
+      const params = new URLSearchParams(qs);
+      const q = params.get("q") ?? "";
+      const client = params.get("client") ?? "chrome";
+      const ds = params.get("ds") ?? "";
+
+      let upstream: string;
+      if (ds) {
+        upstream = `https://suggestqueries.google.com/complete/search?client=${client}&ds=${ds}&q=${encodeURIComponent(q)}`;
+      } else if (client === "ddg") {
+        upstream = `https://duckduckgo.com/ac/?type=list&q=${encodeURIComponent(q)}`;
+      } else {
+        upstream = `https://suggestqueries.google.com/complete/search?client=${client}&q=${encodeURIComponent(q)}`;
+      }
+
+      try {
+        const r = await fetch(upstream, {
+          headers: { "User-Agent": "Mozilla/5.0" },
+        });
+        let text = await r.text();
+        // Google returns JSONP (window.google.ac.h([...])) when called from non-browser agents.
+        // Strip the wrapper so the client always receives plain JSON.
+        const jsonpMatch = /^window\.google\.ac\.h\((.+)\)$/s.exec(text);
+        if (jsonpMatch) text = jsonpMatch[1];
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.statusCode = r.status;
+        res.end(text);
+      } catch (e) {
+        console.error("Suggest proxy error:", e);
+        res.statusCode = 502;
+        res.end("[]");
+      }
+    });
+  },
+});
+
+/**
+ * Dev-only: proxies GET /rss/feed?url=... using rss-parser.
+ * Mirrors rss/feed.js exactly.
+ */
+const rssProxy = (): Plugin => ({
+  name: "rss-proxy",
+  configureServer(server) {
+    server.middlewares.use("/rss/feed", async (req, res) => {
+      if (req.method !== "GET") { res.statusCode = 405; res.end(); return; }
+      const qs = (req.url ?? "").split("?")[1] ?? "";
+      const url = decodeURIComponent(new URLSearchParams(qs).get("url") ?? "");
+      if (!url.startsWith("http")) { res.statusCode = 400; res.end('{"items":[]}'); return; }
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { default: Parser } = await import("rss-parser") as any;
+        const parser = new Parser({
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; UndistractedMe/1.0)" },
+          timeout: 10000,
+          customFields: {
+            item: [["dc:creator", "creator"]],
+          },
+        });
+        const feed = await parser.parseURL(url);
+        const src = rssSourceName(url) || feed.title || "";
+        const items = (feed.items as Record<string, unknown>[])
+          .filter((item) => item.title)
+          .slice(0, 50)
+          .map((item) => ({
+            title: decodeEntities((item.title as string) || ""),
+            link: (item.link as string) || (item.guid as string) || "",
+            pubDate: (item.pubDate as string) || "",
+            isoDate: (item.isoDate as string) || "",
+            source: decodeEntities((item.creator as string) || (item.author as string) || src),
+          }));
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.end(JSON.stringify({ items, fetchedAt: new Date().toISOString() }));
+      } catch {
+        res.statusCode = 502;
+        res.end('{"items":[],"error":"fetch_failed"}');
+      }
+    });
+  },
+});
+
+export default defineConfig(({ mode }) => {
+  // Cloned so the crx plugin can mutate it without touching the source file.
+  // OAuth now uses a single "Web application" client (VITE_GOOGLE_CLIENT_ID) via
+  // launchWebAuthFlow + PKCE, so there is no per-browser manifest oauth2 block
+  // to inject (that block was only ever used by chrome.identity.getAuthToken).
+  const dynamicManifest = structuredClone(manifest);
+
+  return {
+    // ── Preact runtime — alias React → preact/compat so existing React code runs
+    // on the smaller Preact runtime. `react-dom/client` (createRoot) is NOT
+    // covered by @preact/preset-vite's built-in aliases, so we keep these here
+    // and disable the preset's own aliasing (reactAliasesEnabled: false) below.
+    resolve: {
+      alias: {
+        react: "preact/compat",
+        "react-dom": "preact/compat",
+        "react-dom/client": "preact/compat/client",
+        "react/jsx-runtime": "preact/jsx-runtime",
+      },
+    },
+    plugins: [
+      preact({ reactAliasesEnabled: false }),
+      // @ts-ignore
+      crx({ manifest: dynamicManifest }),
+      faviconWaterfall(),
+      rootRedirect(),
+      googleTokenProxy(),
+      suggestProxy(),
+      rssProxy(),
+    ],
+    // ── Production defines ─────────────────────────────────────────────────────
+    // Vite sets NODE_ENV=production on build, but making it explicit ensures
+    // React's dead-code elimination (propTypes, StrictMode checks, DEV warnings)
+    // fully tree-shakes in every downstream bundler pass.
+    //
+    // __REACT_DEVTOOLS_GLOBAL_HOOK__ = { isDisabled: true } is the official
+    // React mechanism to prevent DevTools registration entirely in production.
+    // Without it, React registers a ~60-line initializer unconditionally on every
+    // page load — ~2–4ms of wasted work on every new-tab open.
+    define: mode === "production"
+      ? {
+        "process.env.NODE_ENV": JSON.stringify("production"),
+        "__REACT_DEVTOOLS_GLOBAL_HOOK__": "({ isDisabled: true })",
+      }
+      : {
+        "process.env.NODE_ENV": JSON.stringify("development"),
+      },
+    build: {
+      // Target modern Chrome/Firefox versions to allow native ES2022+ syntax
+      // (optional chaining, nullish coalescing, class fields, logical assignment)
+      // to pass through without polyfill transforms — real bundle size saving.
+      target: ['chrome120', 'firefox128'],
+      // Strip console.warn/console.error in extension production builds.
+      // console.error is kept for real runtime errors; warn is dev-only noise.
+      minify: "esbuild",
+      esbuild: {
+        // Drop debugger statements and strip development-only console noise.
+        drop: ["debugger"],
+        pure: ["console.log", "console.warn", "console.debug", "console.info"],
+      },
+      rollupOptions: {
+        input: {
+          index: 'entries/index.html',
+          popup: 'entries/popup.html',
+          blocked: 'entries/blocked.html',
+        },
+        output: {
+          manualChunks(id: string) {
+            // ── Vendor libs ──────────────────────────────────────────────
+            if (id.includes("node_modules/react-grid-layout"))
+              return "grid";
+            if (id.includes("node_modules/react-bootstrap-icons"))
+              return "icons";
+            if (id.includes("node_modules/dayjs")) return "datetime";
+            if (id.includes("node_modules/zustand")) return "store";
+            if (
+              id.includes("node_modules/lexical") ||
+              id.includes("node_modules/@lexical")
+            )
+              return "editor";
+          },
+        },
+      },
+    },
+    server: {
+      port: 3000,
+      cors: true,
+      proxy: {
+        "/np-api": {
+          target: "https://nepalipaisa.com",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/np-api/, "/api"),
+        },
+        "/ml-api": {
+          target: "https://www.merolagani.com",
+          changeOrigin: true,
+          rewrite: (path) =>
+            path.replace(/^\/ml-api/, "/handlers/TechnicalChartHandler.ashx"),
+        },
+      },
+    },
+  };
+});

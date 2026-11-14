@@ -1,0 +1,374 @@
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { BaseWidget } from '../BaseWidget';
+import { useWidgetSettings } from '../useWidgetSettings';
+import { Settings } from './Settings';
+import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
+import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
+import config from './config';
+import { useStocks } from './useStocks';
+import { useAgeLabel } from '../../hooks/useAgeLabel';
+import { TooltipBtn } from '../../components/ui/TooltipBtn';
+
+const DEFAULT_STOCK_SETTINGS = WIDGET_SETTINGS_DEFAULTS.stock;
+
+// ── Skeleton bone ──────────────────────────────────────────────────────────────
+const Bone = ({ width, height = '0.9rem', className = '' }) => (
+  <div
+    className={`stk-bone ${className}`}
+    style={{ width, height }}
+  />
+);
+
+const StockSingleSkeleton = () => (
+  <div className="flex flex-col gap-2 px-3 pt-1 pb-2">
+    <Bone width="5rem" height="1.7rem" />
+    <Bone width="3.5rem" height="0.75rem" />
+    <div className="flex gap-3 mt-1">
+      <Bone width="2rem" height="0.65rem" />
+      <Bone width="2rem" height="0.65rem" />
+      <Bone width="2rem" height="0.65rem" />
+    </div>
+  </div>
+);
+
+const StockListSkeleton = ({ count }) => (
+  <div className="flex flex-col flex-1">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className={`flex items-center justify-between px-3 py-2 animate-pulse${i < count - 1 ? ' stk-row--divider' : ''}`}
+      >
+        <div className="flex flex-col gap-1">
+          <Bone width="3rem" height="0.65rem" />
+          <Bone width="2.5rem" height="0.8rem" />
+        </div>
+        <Bone width="2.5rem" height="0.65rem" />
+      </div>
+    ))}
+  </div>
+);
+
+const DIR_COLOR = {
+  up: 'var(--w-success)',
+  down: 'var(--w-danger)',
+  flat: 'var(--w-ink-4)',
+};
+
+// Sparkline — bleeds edge-to-edge at the bottom of the card.
+// When `dead` is true it renders a flat baseline along the bottom edge.
+const Sparkline = ({ prices, dir, dead = false }) => {
+  const svgRef = useRef(null);
+  const [vw, setVw] = useState(200);
+  const VH = 56;
+  const color = dead ? 'var(--w-ink-5)' : DIR_COLOR[dir];
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const obs = new ResizeObserver(([entry]) => {
+      setVw(entry.contentRect.width || 200);
+    });
+    obs.observe(svgRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // When dead: flat line sitting at the bottom, area is just a sliver
+  const baseY = VH - 1;
+  const deadLine = `M0,${baseY} L${vw},${baseY}`;
+  const deadArea = `${deadLine} L${vw},${VH} L0,${VH} Z`;
+
+  const { line, area } = dead ? { line: deadLine, area: deadArea } : buildSparklinePaths(prices, vw, VH);
+  const gradId = `sg-${dead ? 'dead' : dir}`;
+
+  return (
+    <svg
+      ref={svgRef}
+      width="100%"
+      height={VH}
+      viewBox={`0 0 ${vw} ${VH}`}
+      preserveAspectRatio="none"
+      overflow="visible"
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={dead ? 0.06 : 0.25} />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      {area && <path d={area} fill={`url(#${gradId})`} />}
+      {line && (
+        <path
+          d={line}
+          fill="none"
+          stroke={color}
+          strokeWidth={dead ? 1 : 1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray={dead ? '3 4' : undefined}
+          opacity={dead ? 0.35 : 1}
+        />
+      )}
+    </svg>
+  );
+};
+
+// Compact row used in list view (2–3 symbols) — 2-line layout so symbol never truncates
+const StockRow = ({ sym, data, isLast }) => {
+  const inkMuted = 'var(--w-ink-5)';
+  const isDead = !data;
+  const stats = data ? priceStats(data) : null;
+  const color = stats ? DIR_COLOR[stats.dir] : inkMuted;
+
+  return (
+    <div
+      className={`stk-row${isLast ? '' : ' stk-row--divider'}`}
+    >
+      {/* Left: symbol on top, price below */}
+      <div className="stk-row__left">
+        <span className={`stk-row__symbol${isDead ? ' stk-row__symbol--dead' : ' stk-row__symbol--live'}`}>
+          {sym}
+        </span>
+        <span className={`stk-row__price${isDead ? ' stk-row__price--dead' : ' stk-row__price--live'}`}>
+          {data ? fmtPrice(data.ltp) : '—'}
+        </span>
+      </div>
+
+      {/* Right: direction arrow + percentage */}
+      <div
+        className="stk-row__right"
+        style={{ color: isDead ? inkMuted : color }}
+      >
+        <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor" className={isDead ? 'stk-row__arrow-icon--dead' : 'stk-row__arrow-icon'}>
+          {!isDead && stats?.dir === 'up'
+            ? <polygon points="4,0 8,8 0,8" />
+            : !isDead && stats?.dir === 'down'
+              ? <polygon points="0,0 8,0 4,8" />
+              : <rect x="0" y="3" width="8" height="2" rx="1" />
+          }
+        </svg>
+        <span className="stk-row__pct">
+          {isDead ? '—' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_STOCK_SETTINGS);
+  const { symbols = [] } = settings;
+
+  // Shared stocks hook — serves chart data from the shared DataHub.
+  // Same hook used by Focus Mode, so data is shared across contexts.
+  const { stocks, refresh, updatedAt } = useStocks();
+
+  // Derive chartMap + loading from the shared hook output
+  const { chartMap, loading } = useMemo(() => {
+    const map = {};
+    let anyLoading = false;
+    for (const s of stocks) {
+      if (s.data === null) { anyLoading = true; map[s.sym] = null; }
+      else if (s.data === 'error') { map[s.sym] = null; }
+      else { map[s.sym] = s.data; }
+    }
+    return { chartMap: map, loading: anyLoading };
+  }, [stocks]);
+
+  // Refresh timestamp comes straight from the DataHub (stamped when the data
+  // was actually fetched), not "when this component first painted it". This
+  // keeps the age label honest ("15m ago" for SW-prefetched data, not "just now").
+  const hasData = stocks.some((s) => s.data && s.data !== 'error');
+  const refreshedAt = hasData ? updatedAt : null;
+
+  const ageLabel = useAgeLabel(refreshedAt);
+
+  // "No data + fetch failed" state: configured symbols exist, nothing loaded,
+  // and the last refresh errored. Show a Retry affordance instead of a stale
+  // age label (refreshedAt is only set once real data arrives and is never
+  // cleared, so a later failure would otherwise keep showing "32m ago").
+  const showRetry = symbols.length > 0 && !loading && !hasData;
+
+  const cardRef = useRef(null);
+  const [cardWidth, setCardWidth] = useState(200);
+
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const obs = new ResizeObserver(([entry]) => setCardWidth(entry.contentRect.width || 200));
+    obs.observe(cardRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // Show the skeleton until the first batch of real data has arrived. Covers
+  // both the pre-hook frame (stocks still `[]`) and the in-flight fetch
+  // (stocks entries with `data === null`).
+  const isFirstLoad = symbols.length > 0 && !refreshedAt && (loading || stocks.length === 0);
+  const isSingle = symbols.length <= 1;
+  const primarySym = symbols[0];
+  const chart = isSingle ? (chartMap[primarySym] ?? null) : null;
+  const stats = chart ? priceStats(chart) : null;
+  const isDead = loading || !primarySym || (isSingle && !chart);
+  const color = stats ? DIR_COLOR[stats.dir] : 'var(--w-ink-3)';
+  const narrow = cardWidth < 155;
+  const inkMuted = 'var(--w-ink-5)';
+
+  // Scale price font down for large numbers so they never clip
+  const digits = chart ? Math.floor(chart.ltp).toString().length : 3;
+  const priceSize = digits >= 6 ? '1.05rem'
+    : digits >= 5 ? '1.2rem'
+      : narrow ? '1.35rem'
+        : 'clamp(1.35rem, 3.5vw, 1.85rem)';
+
+  const ohlSize = '0.65rem';
+
+  const settingsContent = (onClose) => (
+    <Settings symbols={symbols} onChange={updateSetting} onClose={onClose} />
+  );
+
+  // Refresh button + age label — always inline for minimal vertical footprint
+  const RefreshBtn = (
+    <div className="flex items-center gap-1.5">
+      {showRetry ? (
+        <button
+          type="button"
+          className="stk-retry-label"
+          onClick={refresh}
+          aria-label="Retry loading stocks"
+        >
+          Retry
+        </button>
+      ) : (
+        ageLabel && (
+          <span className="stk-age-label">{ageLabel}</span>
+        )
+      )}
+      <TooltipBtn
+        tooltip={showRetry ? 'Retry' : ageLabel ? `Refresh (updated ${ageLabel})` : 'Refresh'}
+        onClick={refresh}
+        disabled={loading}
+        aria-label={showRetry ? 'Retry' : ageLabel ? `Refresh (last updated ${ageLabel})` : 'Refresh'}
+        className={`flex items-center justify-center rounded-full transition-opacity hover:opacity-70 active:opacity-40 ${loading ? 'animate-spin' : ''}`}
+        style={{ color: inkMuted }}
+      >
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M13.5 8a5.5 5.5 0 1 1-1.07-3.3" />
+          <polyline points="12 2 13.5 4.7 10.8 5.5" />
+        </svg>
+      </TooltipBtn>
+    </div>
+  );
+
+  // ── List view (2–3 symbols) ──────────────────────────────────────────────────
+  if (!isSingle) {
+    return (
+      <BaseWidget
+        ref={cardRef}
+        className="flex flex-col overflow-hidden"
+        settingsContent={settingsContent}
+        settingsTitle={config.title}
+        onRemove={onRemove}
+      >
+        <div className="flex items-center justify-between px-3 pt-2 pb-1 shrink-0">
+          <span className="stk-list-header-label">{symbols.length >= 2 ? 'Watchlist' : 'Stock'}</span>
+          {RefreshBtn}
+        </div>
+        <div className="flex flex-col flex-1">
+          {isFirstLoad ? (
+            <StockListSkeleton count={symbols.length} />
+          ) : symbols.map((sym, i) => (
+            <StockRow
+              key={sym}
+              sym={sym}
+              data={loading ? null : chartMap[sym]}
+              isLast={i === symbols.length - 1}
+            />
+          ))}
+        </div>
+      </BaseWidget>
+    );
+  }
+
+  // ── Single-stock view (sparkline graph) ──────────────────────────────────────
+  return (
+    <BaseWidget
+      ref={cardRef}
+      className="flex flex-col overflow-hidden"
+      settingsContent={settingsContent}
+      settingsTitle={config.title}
+      onRemove={onRemove}
+    >
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between px-3 pt-3 pb-1 shrink-0">
+        <span
+          className={`stk-header-symbol${isDead ? ' stk-header-symbol--dead' : ' stk-header-symbol--live'}`}
+        >
+          {primarySym || '—'}
+        </span>
+        {RefreshBtn}
+      </div>
+
+      {/* ── Body — natural height, never flex-stretched ── */}
+      <div className="shrink-0 px-3 pb-0">
+        {isFirstLoad ? (
+          <StockSingleSkeleton />
+        ) : (
+          <>
+            {/* Price */}
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span
+                className="font-semibold leading-none tabular-nums transition-colors duration-300"
+                style={{
+                  fontSize: priceSize,
+                  color: isDead ? inkMuted : 'var(--w-ink-1)',
+                }}
+              >
+                {chart ? fmtPrice(chart.ltp) : '—'}
+              </span>
+            </div>
+
+            {/* Change row */}
+            <div className="flex items-center gap-1.5 mt-1" style={{ color: isDead ? inkMuted : color, transition: 'color 0.3s' }}>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: isDead ? 0.3 : 1 }}>
+                {!isDead && stats?.dir === 'up'
+                  ? <polygon points="4,0 8,8 0,8" />
+                  : !isDead && stats?.dir === 'down'
+                    ? <polygon points="0,0 8,0 4,8" />
+                    : <rect x="0" y="3" width="8" height="2" rx="1" />
+                }
+              </svg>
+              <span className="text-xs font-semibold tabular-nums">
+                {isDead ? '0.00' : `${stats?.change > 0 ? '+' : ''}${fmtPrice(stats?.change)}`}
+              </span>
+              <span className="text-[10px] font-medium tabular-nums" style={{ opacity: isDead ? 0.4 : 1 }}>
+                ({isDead ? '0.00%' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`})
+              </span>
+            </div>
+
+            {/* O / H / L — always visible in single-stock view */}
+            <div className="grid grid-cols-3 items-baseline gap-x-2 mt-1.5">
+              {[
+                { label: 'O', val: chart?.open },
+                { label: 'H', val: chart?.high },
+                { label: 'L', val: chart?.low },
+              ].map(({ label, val }) => (
+                <div key={label} className="flex items-baseline gap-0.5">
+                  <span className="font-medium shrink-0" style={{ fontSize: ohlSize, color: inkMuted }}>{label}</span>
+                  <span className="tabular-nums shrink-0 transition-colors duration-300" style={{ fontSize: ohlSize, color: isDead ? inkMuted : 'var(--w-ink-3)' }}>
+                    {val != null ? fmtOHL(val) : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Elastic gap — fills available space when card is tall, collapses to 0 when short */}
+      <div className="flex-1 min-h-0" />
+
+      {/* ── Sparkline — always rendered at full height, never clipped ── */}
+      <div className="shrink-0" style={{ lineHeight: 0 }}>
+        <Sparkline prices={chart?.prices ?? []} dir={stats?.dir ?? 'flat'} dead={isDead} />
+      </div>
+    </BaseWidget>
+  );
+};
+

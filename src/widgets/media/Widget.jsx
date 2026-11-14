@@ -1,0 +1,120 @@
+import { useState, useEffect } from 'react';
+import { MusicNoteBeamed } from 'react-bootstrap-icons';
+import { BaseWidget } from '../BaseWidget';
+import { SPOTIFY_CLIENT_ID, isSpotifyConnected } from './utils';
+import { useChromeMedia } from './hooks/useChromeMedia';
+import { useChromeSessionManager } from './hooks/useChromeSessionManager';
+import { useSpotifyPlayback } from './hooks/useSpotifyPlayback';
+import { resolveColors, selectActiveSession } from './hooks/mediaHelpers';
+import { useUIStore } from '../../store/useUIStore';
+import { ChromeMediaPlayer } from './ChromeMediaPlayer';
+import { SpotifyPlayer } from './SpotifyPlayer';
+import { SpotifySettings } from './Settings';
+
+export const Widget = ({ onRemove }) => {
+  const [connected, setConnected] = useState(() => isSpotifyConnected());
+
+  const {
+    track, trackAnimKey, albumColor,
+    pending: spotifyPending, skipPending: spotifySkipPending,
+    handlePlayPause, handleNext, handlePrev,
+  } = useSpotifyPlayback(connected, setConnected);
+
+  const { sessions: chromeMediaSessions } = useChromeMedia();
+
+  const {
+    albumColors: chromeAlbumColors,
+    pendingTabId: chromePendingTabId,
+    skipPending: chromeSkipPending,
+    trackAnimKey: chromeTrackAnimKey,
+    setTrackAnimKey: setChromeTrackAnimKey,
+    prevTrackIdRef: prevChromeTrackIdRef,
+    playPause: handleChromePlayPause,
+    skipNext: handleChromeNext,
+    skipPrev: handleChromePrev,
+  } = useChromeSessionManager(chromeMediaSessions);
+
+  const activeSession = selectActiveSession(chromeMediaSessions);
+
+  useEffect(() => {
+    if (!activeSession) return;
+    const id = (activeSession.title ?? '') + (activeSession.artist ?? '');
+    if (id !== prevChromeTrackIdRef.current) { prevChromeTrackIdRef.current = id; setChromeTrackAnimKey(k => k + 1); }
+  }, [activeSession?.title, activeSession?.artist]);
+
+  const activeChromeColor = activeSession ? (chromeAlbumColors[activeSession.tabId] ?? null) : null;
+  const chromeHasBg = !!activeSession?.artwork && !!activeChromeColor;
+  const { bgStyle: chromeBgStyle, ink: chromeInk, mute: chromeMute, btnBg: chromeBtnBg, btnBorder: chromeBtnBorder } = resolveColors(activeChromeColor, chromeHasBg);
+
+  const hasBg = !!track?.albumArt;
+  const { bgStyle, ink: inkColor, mute: muteColor, btnBg, btnBorder } = resolveColors(albumColor, hasBg);
+
+  // Function form so the settings content receives `onClose` — lets the connect
+  // CTA close the Media modal before opening the Accounts dialog (no stacked dialogs).
+  const settingsPanel = (onClose) => <SpotifySettings onClose={onClose} />;
+
+  // Not set up
+  if (!SPOTIFY_CLIENT_ID && !chromeMediaSessions.length) {
+    return (
+      <BaseWidget className="p-4 flex flex-col items-center justify-center gap-2" onRemove={onRemove}>
+        <MusicNoteBeamed size={28} className="opacity-20" />
+        <p className="w-muted text-center text-xs">Set <code className="font-mono">SPOTIFY_CLIENT_ID</code><br />in media/utils.js</p>
+      </BaseWidget>
+    );
+  }
+
+  // Not connected
+  if (!connected && !chromeMediaSessions.length) {
+    return (
+      <BaseWidget className="p-4 flex flex-col items-center justify-center gap-3" onRemove={onRemove} settingsContent={settingsPanel} settingsTitle="Media">
+        <MusicNoteBeamed size={22} style={{ color: 'var(--w-ink-6)', opacity: 0.4 }} />
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <p className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Nothing playing</p>
+          <p className="text-[10.5px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>Open YouTube or SoundCloud in any tab</p>
+          <button
+            type="button"
+            onClick={() => useUIStore.getState().openAccountsDialog()}
+            className="text-[10.5px] font-semibold rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
+            style={{ padding: '5px 12px', border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+          >
+            Connect Spotify
+          </button>
+        </div>
+      </BaseWidget>
+    );
+  }
+
+  // Connected, nothing playing
+  if (connected && !track && !chromeMediaSessions.length) {
+    return (
+      <BaseWidget className="p-4 flex flex-col items-center justify-center gap-2" cardStyle={bgStyle} settingsContent={settingsPanel} settingsTitle="Media" onRemove={onRemove}>
+        <MusicNoteBeamed size={28} style={{ color: muteColor }} />
+        <p className="text-center text-xs" style={{ color: muteColor }}>Nothing playing</p>
+      </BaseWidget>
+    );
+  }
+
+  // Chrome media fallback — also takes over when Spotify is connected but idle
+  // (is_playing: false), so a stale last-played track can't mask live browser
+  // media (SoundCloud, YouTube, etc.).
+  if ((!connected || !track?.isPlaying) && chromeMediaSessions.length) {
+    return <ChromeMediaPlayer
+      onRemove={onRemove} settingsPanel={settingsPanel}
+      chromeBgStyle={chromeBgStyle} chromeInk={chromeInk} chromeMute={chromeMute}
+      chromeBtnBg={chromeBtnBg} chromeBtnBorder={chromeBtnBorder}
+      chromeTrackAnimKey={chromeTrackAnimKey} activeSession={activeSession}
+      chromePendingTabId={chromePendingTabId} chromeSkipPending={chromeSkipPending}
+      handleChromePlayPause={handleChromePlayPause}
+      handleChromeNext={handleChromeNext} handleChromePrev={handleChromePrev}
+    />;
+  }
+
+  return <SpotifyPlayer
+    onRemove={onRemove} settingsPanel={settingsPanel}
+    bgStyle={bgStyle} inkColor={inkColor} muteColor={muteColor}
+    btnBg={btnBg} btnBorder={btnBorder} hasBg={hasBg}
+    track={track} trackAnimKey={trackAnimKey}
+    spotifyPending={spotifyPending} spotifySkipPending={spotifySkipPending}
+    handlePlayPause={handlePlayPause} handleNext={handleNext} handlePrev={handlePrev}
+  />;
+};

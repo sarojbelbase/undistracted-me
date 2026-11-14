@@ -1,0 +1,158 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Entrance ────────────────────────────────────────────────────────── */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Spinner ───────────────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Icon pop (success / error) ──────────────────────────────────── */
+@keyframes icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  65% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Checkmark path draw ────────────────────────────────────────── */
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── Card ──────────────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 44px 52px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.06),
+    0 8px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: card-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  min-width: 260px;
+}
+
+/* ── Icon slot ───────────────────────────────────────────────────── */
+.icon-slot {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+}
+
+.icon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Default: only spinner visible */
+.check,
+.error-x {
+  opacity: 0;
+}
+
+.spinner {
+  animation: spin 0.85s linear infinite;
+}
+
+/* ── Success state ────────────────────────────────────────────────── */
+.state-success .spinner {
+  opacity: 0;
+  animation: none;
+}
+
+.state-success .check {
+  opacity: 1;
+}
+
+.state-success .check-bg {
+  animation: icon-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.state-success .check-path {
+  animation: check-draw 0.38s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Error state ──────────────────────────────────────────────────── */
+.state-error .spinner {
+  opacity: 0;
+  animation: none;
+}
+
+.state-error .error-x {
+  opacity: 1;
+}
+
+.state-error .error-bg,
+.state-error path {
+  animation: icon-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Text ──────────────────────────────────────────────────────────── */
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.022em;
+  transition: color 0.2s ease;
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: #6e6e73;
+  letter-spacing: -0.008em;
+  transition: color 0.2s ease;
+}
+
+.state-error .title {
+  color: #ff3b30;
+}

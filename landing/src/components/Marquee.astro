@@ -1,0 +1,29 @@
+---
+const items = [
+  { icon: "instagram", n: 3, label: "3 new followers" },
+  { icon: "gmail", n: 14, label: "14 unread" },
+  { icon: "youtube", n: 12, label: "New video: you'll love this" },
+  { icon: "whatsapp", n: 8, label: "8 new messages" },
+  { icon: "x", n: 5, label: "Trending now" },
+  { icon: "discord", n: 9, label: "@everyone sale ends tonight" },
+  { icon: "facebook", n: 2, label: "Memories: see what happened today" },
+  { icon: "tiktok", n: 9, label: "Your feed is waiting" },
+  { icon: "reddit", n: 4, label: "Trending: you won't believe this" },
+];
+// duplicate for a seamless loop
+const loop = [...items, ...items];
+---
+
+<div class="marq" aria-hidden="true">
+  <div>
+    {loop.map((item, i) => (
+      <span class="np">
+        <span class="ap">
+          <svg class="ic"><use href={`#i-${item.icon}`} /></svg>
+          <i>{item.n}</i>
+        </span>
+        {item.label}
+      </span>
+    ))}
+  </div>
+</div>

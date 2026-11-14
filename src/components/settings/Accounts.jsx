@@ -1,0 +1,154 @@
+/**
+ * Accounts — Inline Google + Spotify account management.
+ * Self-contained: no AccountsDialog dependency.
+ * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { AccountCard } from '../ui/AccountCard';
+import { useGoogleAccountStore } from '../../store/useGoogleAccountStore';
+import { GoogleIcon, SpotifyIcon } from '../../assets/brand/icons';
+import {
+  SPOTIFY_CLIENT_ID,
+  connectSpotify,
+  disconnectSpotify,
+  isSpotifyConnected,
+  fetchAndCacheProfile as fetchSpotifyProfile,
+  getSpotifyProfile,
+} from '../../widgets/media/utils';
+import { friendlyError } from '../../utilities/index';
+
+// Event key shared with media/Widget.jsx for Spotify connect/disconnect sync.
+const SPOTIFY_ACCOUNT_CHANGED = 'spotify_account_changed';
+
+const GOOGLE_SCOPES = ['Calendar events', 'Contact birthdays', 'Task management', 'Cross-device sync'];
+const SPOTIFY_SCOPES = ['Playback control', 'Currently playing', 'Skip & pause'];
+
+// ─── Spotify tier label ───────────────────────────────────────────────────────
+
+const spotifySubtitle = (profile) => {
+  if (!profile) return null;
+  const tier = profile.product;
+  if (tier === 'premium') return 'Spotify Premium';
+  if (tier === 'free' || tier === 'open') return 'Spotify Free';
+  return profile.name ?? null;
+};
+
+// ─── Spotify section ──────────────────────────────────────────────────────────
+
+const SpotifySection = () => {
+  const [connected, setConnected] = useState(() => isSpotifyConnected());
+  const [profile, setProfile] = useState(null);
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (connected) getSpotifyProfile().then(p => { if (p) setProfile(p); });
+  }, [connected]);
+
+  const handleConnect = useCallback(async () => {
+    if (!SPOTIFY_CLIENT_ID) {
+      setError('Spotify client ID not configured.');
+      return;
+    }
+    setConnecting(true);
+    setError(null);
+    try {
+      await connectSpotify();
+      const p = await fetchSpotifyProfile();
+      setConnected(true);
+      if (p) setProfile(p);
+      globalThis.dispatchEvent(new CustomEvent(SPOTIFY_ACCOUNT_CHANGED, { detail: { connected: true, profile: p } }));
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setConnecting(false);
+    }
+  }, []);
+
+  const handleDisconnect = useCallback(() => {
+    disconnectSpotify();
+    setConnected(false);
+    setProfile(null);
+    globalThis.dispatchEvent(new CustomEvent(SPOTIFY_ACCOUNT_CHANGED, { detail: { connected: false, profile: null } }));
+  }, []);
+
+  if (!SPOTIFY_CLIENT_ID) return null;
+
+  // Normalise profile: Spotify uses `avatar`, AccountCard expects `picture`
+  const normalisedProfile = profile ? { ...profile, picture: profile.avatar ?? null } : null;
+
+  return (
+    <AccountCard
+      icon={<SpotifyIcon size={18} />}
+      serviceName="Spotify"
+      scopes={SPOTIFY_SCOPES}
+      connected={connected}
+      connecting={connecting}
+      error={error}
+      profile={normalisedProfile}
+      profileSubtitle={spotifySubtitle(profile)}
+      connectLabel="Connect Spotify"
+      onConnect={handleConnect}
+      onDisconnect={handleDisconnect}
+    />
+  );
+};
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
+export const Accounts = () => {
+  // Narrow selectors — the Google store flips `connecting`/`error`/`initialized`
+  // frequently; subscribing to the whole store re-rendered the panel each time.
+  const connected = useGoogleAccountStore((s) => s.connected);
+  const connecting = useGoogleAccountStore((s) => s.connecting);
+  const error = useGoogleAccountStore((s) => s.error);
+  const profile = useGoogleAccountStore((s) => s.profile);
+  const connect = useGoogleAccountStore((s) => s.connect);
+  const disconnect = useGoogleAccountStore((s) => s.disconnect);
+
+  return (
+    <div className="flex flex-col gap-6">
+
+      {/* ── Google Workspace ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase"
+            style={{ color: 'var(--w-ink-4)' }}
+          >
+            Google Workspace
+          </span>
+          <div className="flex-1 h-px" style={{ background: 'var(--w-divider)' }} />
+        </div>
+        <AccountCard
+          icon={<GoogleIcon size={18} />}
+          serviceName="Google"
+          scopes={GOOGLE_SCOPES}
+          connected={connected}
+          connecting={connecting}
+          error={error}
+          profile={profile}
+          connectLabel="Connect with Google"
+          onConnect={connect}
+          onDisconnect={disconnect}
+        />
+      </div>
+
+      {/* ── Media ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase"
+            style={{ color: 'var(--w-ink-4)' }}
+          >
+            Media
+          </span>
+          <div className="flex-1 h-px" style={{ background: 'var(--w-divider)' }} />
+        </div>
+        <SpotifySection />
+      </div>
+
+    </div>
+  );
+};

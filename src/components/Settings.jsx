@@ -1,43 +1,207 @@
-import React from 'react';
-import { LANGUAGES, SHOW_MITI_IN_ICON } from '../constants/settings';
+/**
+ * Settings — tabbed settings modal for Canvas mode.
+ *
+ * Tabs: General · Appearance · Accounts · Data
+ *
+ * Props:
+ *   onClose            () => void
+ *   initialTab         'general' | 'appearance' | 'accounts'
+ *   onPreviewLookAway  () => void   — closes modal + shows look-away overlay
+ */
 
-const SettingsOption = ({ id, label, value, options, onChange }) => (
-  <div className={`${id}-area`}>
-    <label htmlFor={`${id}-select`} className={`${id}-label`}>{label}</label>
-    <select id={`${id}-select`} value={value} onChange={onChange}>
-      {Object.keys(options).map((key) => (
-        <option key={key} value={options[key]}>
-          {key}
-        </option>
-      ))}
-    </select>
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
+import { Modal } from './ui/Modal';
+import { Appearance } from './settings/Appearance';
+import { General } from './settings/General';
+import { Accounts } from './settings/Accounts';
+import { Data } from './settings/Data';
+import { CANVAS_DIVIDER } from '../theme/canvas';
+import { DEFAULT_SETTINGS_TAB } from '../hooks/useSettingsPanel';
+import { AppearanceIcon } from '../assets/svg/AppearanceIcon';
+import { GearCogIcon } from '../assets/svg/GearCogIcon';
+import { AccountPersonIcon } from '../assets/svg/AccountPersonIcon';
+import { GearFillIcon } from '../assets/svg/GearFillIcon';
+
+// ─── Tab definitions ──────────────────────────────────────────────────────────
+
+const TABS = [
+  {
+    id: 'general',
+    label: 'General',
+    icon: (active) => <GearCogIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+  {
+    id: 'appearance',
+    label: 'Appearance',
+    icon: (active) => <AppearanceIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+  {
+    id: 'accounts',
+    label: 'Accounts',
+    icon: (active) => <AccountPersonIcon color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+  {
+    id: 'data',
+    label: 'Data',
+    icon: (active) => <CloudArrowUpFill size={13} color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+];
+
+// ─── Tab bar ──────────────────────────────────────────────────────────────────
+
+const TabBar = ({ active, onChange }) => (
+  <div
+    role="tablist"
+    aria-label="Settings sections"
+    style={{
+      display: 'flex',
+      gap: 2,
+      padding: '0 10px',
+      background: 'transparent',
+      borderBottom: `1px solid ${CANVAS_DIVIDER}`,
+    }}
+  >
+    {TABS.map(tab => {
+      const isActive = tab.id === active;
+      return (
+        <button
+          key={tab.id}
+          role="tab"
+          type="button"
+          aria-selected={isActive}
+          aria-controls={`settings-panel-${tab.id}`}
+          onClick={() => onChange(tab.id)}
+          style={{
+            flex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            padding: '10px 4px 9px',
+            borderRadius: 0, border: 'none', cursor: 'pointer',
+            fontSize: 11,
+            fontWeight: isActive ? 700 : 600,
+            color: isActive ? 'var(--w-accent)' : 'var(--w-ink-3)',
+            background: 'transparent',
+            borderBottom: isActive ? `2px solid var(--w-accent)` : '2px solid transparent',
+            marginBottom: -1,
+            transition: 'all 0.15s ease',
+            outline: 'none',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--w-ink-1)'; }}
+          onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--w-ink-3)'; }}
+        >
+          {tab.icon(isActive)}
+          <span>{tab.label}</span>
+        </button>
+      );
+    })}
   </div>
 );
 
-export const Settings = ({ language, setLanguage, showMitiInIcon, setShowMitiInIcon, closeSettings }) => {
-  const handleChange = (setter, storageKey) => (e) => {
-    const value = e.target.value;
-    setter(value);
-    localStorage.setItem(storageKey, value);
-    closeSettings();
-  };
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export const Settings = ({
+  onClose,
+  initialTab = DEFAULT_SETTINGS_TAB,
+  onPreviewLookAway,
+}) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const scrollRef = useRef(null);
+  const [showScrollFade, setShowScrollFade] = useState(false);
+
+  // Show a bottom fade only when the tab body is scrollable AND not yet at the
+  // bottom — a subtle affordance that content continues below the fold.
+  const updateScrollFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const canScroll = el.scrollHeight > el.clientHeight + 4;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+    setShowScrollFade(canScroll && !atBottom);
+  }, []);
+
+  useEffect(() => {
+    // Re-measure after the tab body renders (layout may not be settled yet).
+    const id = requestAnimationFrame(updateScrollFade);
+    return () => cancelAnimationFrame(id);
+  }, [activeTab, updateScrollFade]);
 
   return (
-    <div className="settings-popup visible">
-      <SettingsOption
-        id="language"
-        label="Language:"
-        value={language}
-        options={LANGUAGES}
-        onChange={handleChange(setLanguage, 'language')}
-      />
-      <SettingsOption
-        id="badge"
-        label="Show Miti In Badge:"
-        value={showMitiInIcon}
-        options={SHOW_MITI_IN_ICON}
-        onChange={handleChange(setShowMitiInIcon, 'showMitiInIcon')}
-      />
-    </div>
+    <Modal
+      onClose={onClose}
+      ariaLabel="Canvas settings"
+      style={{ width: 460 }}
+    >
+      {/* ── Header ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '16px 16px 14px',
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: 'color-mix(in srgb, var(--w-accent) 12%, transparent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <GearFillIcon size={18} color="var(--w-accent)" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--w-ink-1)', lineHeight: '1.2' }}>
+            Settings
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--w-ink-4)', marginTop: 2 }}>
+            Customize your canvas experience
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close settings"
+          style={{
+            flexShrink: 0, width: 26, height: 26,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--card-border)',
+            borderRadius: '50%', cursor: 'pointer',
+            color: 'var(--w-ink-3)',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--card-bg)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--panel-bg)'; }}
+        >
+          <XLg size={10} />
+        </button>
+      </div>
+
+      {/* ── Tab bar ── */}
+      <TabBar active={activeTab} onChange={setActiveTab} />
+
+      {/* ── Tab content ── */}
+      <div style={{ position: 'relative', height: 360, flexShrink: 0 }}>
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollFade}
+          id={`settings-panel-${activeTab}`}
+          role="tabpanel"
+          aria-label={TABS.find(t => t.id === activeTab)?.label}
+          style={{ padding: '18px 20px 28px', overflowY: 'auto', height: '100%' }}
+        >
+          {activeTab === 'appearance' && <Appearance />}
+          {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
+          {activeTab === 'accounts' && <Accounts />}
+          {activeTab === 'data' && <Data onNavigateToAccounts={() => setActiveTab('accounts')} />}
+        </div>
+        {showScrollFade && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, height: 44,
+              pointerEvents: 'none',
+              background: 'linear-gradient(to bottom, transparent, var(--card-bg))',
+              transition: 'opacity 0.2s ease',
+            }}
+          />
+        )}
+      </div>
+    </Modal>
   );
 };

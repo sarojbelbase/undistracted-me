@@ -1,0 +1,156 @@
+# Cross-Device Sync — Architecture & Edge-Case Handling
+
+> **Status:** Superseded (transport) — cross-device sync now uses **Google Drive `appDataFolder`**, not GitHub gists. See [`google-drive-sync.md`](./google-drive-sync.md) and [`src/utilities/syncTransport.js`](../src/utilities/syncTransport.js). The **merge logic** (LWW element sets, tombstones, schema versioning) described below is unchanged and still accurate — only the transport (gist vs Drive file) differs.
+> **Applies to:** `src/utilities/syncEngine.js`, `src/utilities/syncTransport.js`, `src/utilities/notesSync.js`
+
+This document explains how the current sync works, the edge cases it does and does
+not handle, and the target architecture. It answers, concretely, the four questions:
+first-time pull/push, key update vs config override, multi-device behaviour, and
+local versioning.
+
+---
+
+## 1. How it works today (the mechanics)
+
+### Transport
+One **private gist** holds one file `undistracted-me-sync.json`:
+
+```json
+{ "v": 1, "deviceId": "dev_…", "updatedAt": 1699999999999,
+  "keys": { "<localKey>": { "v": <value>, "t": <epochMs> } } }
+```
+
+`keys` is a map of syncable keys, each with a value `v` and a last-write timestamp `t`.
+
+### The four questions, answered
+
+**Q1 — "Does sync pull or push on first time?"**
+
+`enableSync()` (runs on connect and on app load) does **pull first, then push**:
+
+1. `pullFromSync()` reads the gist; for each key where `remote.t > local.t`,
+   the remote value overwrites the local value (`local.t` starts at 0 on a fresh
+   device, so *remote always wins* on first contact for any key that exists remotely).
+2. `pushAll()` then compares local vs remote and pushes any key whose value differs.
+
+So first time is **remote-wins for pre-existing keys, local-pushes for keys the
+remote doesn't have**. This means: if *two* devices already hold *different* data for
+the same key (e.g. different bookmarks) and the second device connects, the second
+device's local data for that key is **silently discarded** (remote wins). This is the
+"first-time clobber" edge case — see §3.
+
+**Q2 — "Does it update keys, or override the whole config?"**
+
+Both, at the wrong granularity in places:
+
+- `notes_index` → merged **per entry** (union of `note_id`s, newer `updatedAt` wins).
+- `widget_events`, `widget_bookmarks`, `countdown_pinned` → **whole array** replaced
+  by whichever side has the newer `t`. Concurrent edits to *different* items lose one
+  side entirely.
+- `undistracted_settings`, `widget_instances` → **whole object** replaced. Concurrent
+  edits to *different fields* (e.g. accent on A, language on B) lose one side.
+
+**Q3 — "How do multiple devices work?"**
+
+**They don't, reliably — there is a critical bug.** The gist id is stored in
+`localStorage` (`github_gist_id`), which is **per-device**. On the second device,
+`ensureGist()` sees no cached id and **creates a brand-new gist**. The two devices
+therefore each have their own gist and never see each other's data.
+
+Fix (§4.1): after connect, **discover** the existing gist by listing the user's gists
+and matching `description === "Undistracted Me Sync"` + `undistracted-me-sync.json`.
+
+**Q4 — "Can we account for a version number locally?"**
+
+Not yet. The gist has a `v` field but nothing reads it, and local storage has no sync
+schema version. Fix (§4.2): add `GIST_SCHEMA_VERSION`, store it in the gist *and* in a
+local `sync_version` key, and run a migration hook when they mismatch.
+
+---
+
+## 2. Edge cases (deep)
+
+| # | Edge case | Current behaviour | Target |
+|---|-----------|-------------------|--------|
+| 1 | Second device connects | Creates a separate gist (broken) | Discover existing gist |
+| 2 | First connect, both devices have conflicting data for one key | Remote wins, local discarded | Per-item / per-field merge |
+| 3 | Concurrent edits to different fields (settings / widgets) | Whole-object LWW loses one | Field/instance-level merge |
+| 4 | Concurrent edits to different items (events / bookmarks) | Whole-array LWW loses one | Per-item union + LWW |
+| 5 | Delete on A, edit on B (same key) | B's newer `t` re-adds deleted item | Tombstones (already done for notes) |
+| 6 | Clock skew between devices | `Date.now()` biased | Logical clock or documented limitation |
+| 7 | Schema changes over releases | No migration path | `v` check + local `sync_version` migration |
+| 8 | Duplicate sync gists (race / reconnect) | Divergence | Adopt oldest match on discovery |
+| 9 | Gist deleted on GitHub | 404 → treated as "no remote", next push re-creates | Recreate + re-push local (acceptable) |
+| 10 | Multiple notes-widget instances | Only default instance synced | Document limitation (v1) |
+| 11 | Remote written by a *newer* app version | Silently parsed as-is | Refuse/skip + warn |
+
+---
+
+## 3. Target architecture
+
+### Principle: converge on a shared state, never lose data silently
+
+- **Gist = transport.** One config gist (settings/index), plus per-note gists.
+- **Merge is the unit of correctness.** Pulls and pushes both *merge*, they never
+  *replace*. Last-write-wins is applied at the **finest granularity the data allows**:
+  - arrays of identified items → union by `id`, LWW per item
+  - objects → LWW per field / per instance
+- **Deletes are first-class** via tombstones (a `{ id, deletedAt }` that survives sync).
+- **Versioning** is explicit on both the gist and local storage.
+
+### Concurrency model
+
+- **Sync windows:** daily auto-sync + manual "Sync now", 5-min throttle after a
+  successful sync. Never continuous.
+- **LWW clock:** `updatedAt` per item (edit time), not per push. Clock skew accepted as
+  a documented limitation for v1 (a Lamport clock is a possible later upgrade).
+- **Idempotent writes:** a sync that changes nothing performs zero GitHub writes.
+
+---
+
+## 4. Phased tasks
+
+### Phase 1 — Multi-device correctness (foundational) ✅ done
+- [x] **Task 1.1 — Gist discovery.** `ensureGist` lists the user's gists and adopts the
+  existing sync gist (match description + filename, prefer oldest); verifies a cached id
+  and rediscovers on 404; creates only when nothing is found.
+- [x] **Task 1.2 — Schema versioning.** `GIST_SCHEMA_VERSION` written into the gist `v`
+  and a local `sync_version`; `migrateSync(fromVersion)` runs on enable; pull refuses a
+  newer-schema gist.
+
+### Phase 2 — Merge granularity (data safety) ✅ done
+- [x] **Task 2.1 — Per-item merge for arrays.** events/bookmarks/countdown are now a
+  *LWW element set* (`{ items: { id → { v, t } }, deleted: { id → deletedAt } }`) — union
+  by identity, per-item LWW, `id`/`url`/`name` as the stable key. See `syncMerge.js`.
+- [x] **Task 2.3 — Generalize tombstones.** Deletions are tombstones that survive sync
+  and beat stale writes (no resurrection).
+- [x] **Task 2.2 — Field/instance merge for objects.** settings → per-field LWW;
+  widget_instances → per-instance + per-widget-setting LWW (notes settings excluded and
+  preserved locally).
+- [x] **Phantom-key fix.** `widget_bookmarks` → `um_bookmarks`, `countdown_pinned` →
+  `countdown_events` (the sync keys pointed at non-existent localStorage keys).
+
+### Phase 3 — Robustness & UX ✅ done
+- [x] **Task 3.1 — Conflict surfacing.** "Sync now" reports "Merged N changes from other
+  devices" (via `forceSync().pullCount`).
+- [x] **Task 3.2 — Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
+  limitation; a Lamport clock is a possible later upgrade.
+- [x] **Task 3.3 — Duplicate-gist cleanup.** Discovery deletes duplicate sync gists
+  (best-effort), adopting the oldest.
+
+---
+
+## 5. Risks & mitigations
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Gist list rate limits (unauthenticated 60/h vs auth 5000/h) | Low (auth token) | List only on connect/reconnect, not per sync |
+| Duplicate gist created by a connect race | Med | Deterministic "oldest wins" + Phase 3.3 cleanup |
+| Per-item merge requires stable ids + timestamps on all items | Med | Add ids/`updatedAt` lazily during Phase 2 migration |
+| Clock skew | Med | Document; logical clock in Phase 3 |
+| Notes multi-instance out of scope | Low | Documented limitation |
+
+## 6. Open questions
+- Should silent LWW be replaced with user-facing conflict resolution, or is silent
+  merge + a status note enough? (Phase 3.1)
+- Do we add a Lamport/logical clock now or accept clock skew for v1? (Phase 3.2)

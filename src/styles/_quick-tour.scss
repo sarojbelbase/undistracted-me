@@ -1,0 +1,257 @@
+// ─── Quick Tour — Onboarding overlay styles ───────────────────────────────────
+// Two-step dialog shown once per major version.
+// All dynamic values (per-feature colors, JS animation states) stay inline in JSX.
+
+// ─── Overlay ──────────────────────────────────────────────────────────────────
+
+.qt-overlay {
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: qt-fade-in 320ms ease forwards;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+.qt-card {
+  max-width: 520px;
+  background: var(--w-page-bg);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.38), 0 4px 12px rgba(0, 0, 0, 0.18);
+
+  &--enter {
+    animation: qt-card-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+}
+
+.qt-content {
+  min-height: 370px;
+  display: flex;
+  flex-direction: column;
+}
+
+.qt-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+// ─── Dismiss button ───────────────────────────────────────────────────────────
+
+.qt-dismiss-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--w-ink-4);
+}
+
+// ─── Step 1 — Brand mark ──────────────────────────────────────────────────────
+
+.qt-brand-icon {
+  background: var(--w-accent);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--w-accent) 36%, transparent);
+  position: relative;
+
+  // Mask the lotus PNG with accent-fg so it adapts to any accent (light or dark)
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    background-color: var(--w-accent-fg);
+    opacity: 0.92;
+    -webkit-mask: url('/favicon/lotus48.png') center / 26px 26px no-repeat;
+    mask: url('/favicon/lotus48.png') center / 26px 26px no-repeat;
+  }
+}
+
+.qt-brand-lotus {
+  display: none; // replaced by ::after mask
+}
+
+// ─── Step 1 — Headlines ───────────────────────────────────────────────────────
+
+.qt-headline {
+  color: var(--w-ink-1);
+}
+
+.qt-subtitle {
+  color: var(--w-ink-4);
+}
+
+// ─── Step 1 — Focus Mode card ─────────────────────────────────────────────────
+
+.qt-focus-card {
+  background: rgba(14, 14, 18, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+  color: #fff; // base for all descendant text
+}
+
+.qt-focus-icon-box {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+// Subdued elements only set color (no background) — linter skips contrast check
+.qt-focus-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.qt-focus-date {
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.1em;
+}
+
+.qt-focus-clock {
+  font-variant-numeric: tabular-nums;
+}
+
+// inherits #fff from card
+.qt-focus-colon {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.qt-focus-desc {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+// Chip inherits white text from .qt-focus-card — no color needed here
+.qt-focus-chip {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+// ─── Step 1 — Canvas Mode card ────────────────────────────────────────────────
+
+.qt-canvas-card {
+  background: var(--w-surface);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.qt-canvas-icon-box {
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.qt-canvas-icon {
+  color: var(--w-ink-3);
+}
+
+.qt-canvas-name {
+  color: var(--w-ink-1);
+}
+
+.qt-canvas-desc {
+  color: var(--w-ink-4);
+}
+
+.qt-canvas-chip {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--w-ink-3);
+}
+
+// Canvas mock widget grid cells
+.qt-canvas-mock-tall {
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.qt-canvas-mock-short {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+// ─── Step 2 — Features grid ───────────────────────────────────────────────────
+
+.qt-s2-heading {
+  color: var(--w-ink-1);
+}
+
+.qt-s2-subtitle {
+  color: var(--w-ink-4);
+}
+
+.qt-feature-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.qt-feature-title {
+  color: var(--w-ink-2);
+}
+
+.qt-feature-desc {
+  color: var(--w-ink-4);
+}
+
+// ─── Dark mode overrides ──────────────────────────────────────────────────────
+
+[data-mode="dark"] {
+  .qt-card {
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .qt-footer {
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .qt-dismiss-btn {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .qt-canvas-card {
+    border-color: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .qt-canvas-icon-box {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .qt-canvas-chip {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .qt-canvas-mock-tall {
+    background: rgba(255, 255, 255, 0.13);
+  }
+
+  .qt-canvas-mock-short {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .qt-feature-card {
+    background: var(--w-surface);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+// ─── Footer buttons ───────────────────────────────────────────────────────────
+
+.qt-skip-btn,
+.qt-back-btn {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.qt-skip-btn {
+  color: var(--w-ink-4);
+}
+
+.qt-back-btn {
+  color: var(--w-ink-3);
+}
+
+.qt-dot {
+  height: 6px;
+  border: none;
+  padding: 0;
+}
+
+.qt-cta-btn {
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  border: none;
+}

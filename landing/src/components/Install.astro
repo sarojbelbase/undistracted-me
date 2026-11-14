@@ -1,0 +1,32 @@
+---
+import reachLeft from "../assets/design/reach-left.webp";
+import reachRight from "../assets/design/reach-right.webp";
+import Stats from "./Stats.astro";
+import { site } from "../data/site.js";
+---
+
+<section class="sec white reach" id="install">
+  <div class="wide">
+    <img class="mul hand hl" src={reachLeft.src} alt="A hand reaching in from the left." loading="lazy" decoding="async" />
+    <div class="ask">
+      <h2>Take it. It's free.</h2>
+      <p class="note2">Install in seconds. Keep your focus for hours.</p>
+      <div class="ctas">
+        <a class="bb pri" data-slot="1" data-kind="bb" href={site.chromeUrl}>
+          <svg class="ic"><use href="#i-chrome" /></svg>
+          <span class="lb"><small>Add it to</small>Chrome</span>
+        </a>
+        <a class="bb" data-slot="2" data-kind="bb" href={site.firefoxUrl}>
+          <svg class="ic"><use href="#i-firefox" /></svg>
+          <span class="lb"><small>Get it for</small>Firefox</span>
+        </a>
+        <a class="bb" data-slot="3" data-kind="bb" href={site.webAppUrl}>
+          <svg class="ic"><use href="#i-web" /></svg>
+          <span class="lb"><small>Or try the</small>Web app</span>
+        </a>
+      </div>
+      <Stats />
+    </div>
+    <img class="mul hand hr" src={reachRight.src} alt="A hand reaching in from the right." loading="lazy" decoding="async" />
+  </div>
+</section>

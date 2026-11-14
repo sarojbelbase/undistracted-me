@@ -1,0 +1,241 @@
+/**
+ * useSearchCore — shared search logic for CommandPalette and FocusMode SearchBar.
+ *
+ * Manages: engine selection, debounced autocomplete suggestions, URL detection,
+ * open-tab results, and navigation/search actions.
+ *
+ * Options:
+ *   debounceMs      number   — debounce delay for suggestion fetching (default 220)
+ *   withHistory     boolean  — include localStorage history in suggestions
+ *   fetchSuggestions boolean — whether to hit the suggest API (default true)
+ */
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  ENGINES,
+  SEARCH_ENGINE_KEY,
+  cycleEngine,
+  detectUrl,
+} from "../utilities/searchEngines";
+
+const HISTORY_KEY = "fm_search_history";
+const MAX_HISTORY = 12;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const getStoredEngine = () => {
+  try {
+    const id = localStorage.getItem(SEARCH_ENGINE_KEY);
+    return ENGINES.find((e) => e.id === id) ?? ENGINES[0];
+  } catch {
+    return ENGINES[0];
+  }
+};
+
+const getHistory = () => {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const pushHistory = (query) => {
+  if (!query?.trim()) return;
+  try {
+    const prev = getHistory().filter((h) => h !== query);
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify([query, ...prev].slice(0, MAX_HISTORY)),
+    );
+  } catch {}
+};
+
+const IS_DEV = typeof location !== "undefined" && location.hostname === "localhost";
+
+// In dev the browser CORS-blocks direct suggest endpoints (suggestqueries.google.com /
+// ac.duckduckgo.com). Route through the Vite `/suggest` proxy instead; in the
+// packaged extension, host_permissions allow the direct URL.
+function suggestUrl(engine) {
+  if (!engine.suggest) return null;
+  if (!IS_DEV) return engine.suggest;
+  const u = new URL(engine.suggest);
+  // DuckDuckGo's suggest URL has no `client` query param, so detect it by
+  // hostname rather than relying on a `client=ddg` marker that never appears.
+  if (/duckduckgo\.com/i.test(u.hostname)) return "/suggest?client=ddg&q=";
+  const client = u.searchParams.get("client") || "chrome";
+  const ds = u.searchParams.get("ds") || "";
+  if (ds) return `/suggest?client=${client}&ds=${ds}&q=`;
+  return `/suggest?client=${client}&q=`;
+}
+
+async function fetchSuggestionsFor(engine, query, signal) {
+  if (!engine.suggest || !query.trim()) return [];
+  try {
+    const base = suggestUrl(engine);
+    if (!base) return [];
+    const res = await fetch(`${base}${encodeURIComponent(query)}`, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    let raw = [];
+    if (Array.isArray(data) && Array.isArray(data[1])) {
+      // Google/YouTube flat: ["query", ["s1","s2"]], or nested: ["query", [["s1",0,[...]], ...]]
+      // DDG type=list: ["query", ["s1","s2"]]
+      raw = data[1].map((item) => (typeof item === "string" ? item : item?.[0]));
+    } else if (
+      Array.isArray(data) &&
+      data.length > 0 &&
+      typeof data[0] === "object" &&
+      data[0]?.phrase
+    ) {
+      raw = data.map((d) => d.phrase); // DDG legacy: [{ phrase: "..." }, ...]
+    }
+    return raw.filter((s) => typeof s === "string").slice(0, 6);
+  } catch {
+    return [];
+  }
+}
+
+async function getOpenTabs(query) {
+  const api = globalThis.chrome?.tabs;
+  if (!api) return [];
+  try {
+    const tabs = await new Promise((resolve) => api.query({}, resolve));
+    const q = query.toLowerCase();
+    return (tabs ?? [])
+      .filter(
+        (t) =>
+          t.title?.toLowerCase().includes(q) ||
+          t.url?.toLowerCase().includes(q),
+      )
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export function useSearchCore({
+  debounceMs = 220,
+  withHistory = false,
+  fetchSuggestions: doFetchSuggestions = true,
+} = {}) {
+  const [engine, setEngine] = useState(getStoredEngine);
+  const [engineId, setEngineId] = useState(() => getStoredEngine().id);
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [tabResults, setTabResults] = useState([]);
+  const [urlTarget, setUrlTarget] = useState(null);
+  const [hasQuery, setHasQuery] = useState(false);
+
+  const skipRef = useRef(false);
+  const timerRef = useRef(null);
+  const acRef = useRef(null);
+
+  // Detect URL and mark hasQuery on every query change
+  useEffect(() => {
+    const q = query.trim();
+    setHasQuery(!!q);
+    setUrlTarget(detectUrl(q));
+  }, [query]);
+
+  // Debounced suggestions + tab fetch
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    // Abort any in-flight fetch from the previous debounce cycle
+    acRef.current?.abort();
+
+    const q = query.trim();
+
+    if (!q) {
+      // Empty query: show history (if enabled) and clear tabs
+      setTabResults([]);
+      if (withHistory) {
+        setSuggestions(getHistory());
+      } else {
+        setSuggestions([]);
+      }
+      return;
+    }
+
+    if (skipRef.current) {
+      skipRef.current = false;
+      return;
+    }
+
+    timerRef.current = setTimeout(async () => {
+      acRef.current = new AbortController();
+      const signal = acRef.current.signal;
+      const [suggs, tabs] = await Promise.all([
+        doFetchSuggestions
+          ? fetchSuggestionsFor(engine, q, signal)
+          : Promise.resolve([]),
+        getOpenTabs(q),
+      ]);
+
+      let finalSuggs = suggs;
+      if (withHistory) {
+        const hist = getHistory().filter(
+          (h) => h.toLowerCase().includes(q.toLowerCase()) && h !== q,
+        );
+        finalSuggs = [...hist, ...suggs.filter((s) => !hist.includes(s))].slice(
+          0,
+          6,
+        );
+      }
+
+      setSuggestions(finalSuggs);
+      setTabResults(tabs);
+    }, debounceMs);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      // Abort the in-flight suggestion fetch on cleanup, not just the next effect
+      // cycle — otherwise a fetch resolving after unmount keeps running.
+      acRef.current?.abort();
+    };
+  }, [query, engine, debounceMs, withHistory, doFetchSuggestions]);
+
+  const handleCycleEngine = useCallback(() => {
+    const nextId = cycleEngine(engineId);
+    const nextEngine = ENGINES.find((e) => e.id === nextId) ?? ENGINES[0];
+    setEngineId(nextId);
+    setEngine(nextEngine);
+  }, [engineId]);
+
+  const navigate = useCallback((url) => {
+    globalThis.open(url, "_self");
+  }, []);
+
+  const search = useCallback(
+    (q) => {
+      const term = (q ?? query).trim();
+      if (!term) return;
+      pushHistory(term);
+      globalThis.open(engine.url + encodeURIComponent(term), "_self");
+    },
+    [query, engine],
+  );
+
+  /** Call before manually setting query via arrow nav to skip the debounce fetch. */
+  const skipNextFetch = useCallback(() => {
+    skipRef.current = true;
+  }, []);
+
+  return {
+    query,
+    setQuery,
+    engineId,
+    engine,
+    handleCycleEngine,
+    suggestions,
+    setSuggestions,
+    tabResults,
+    urlTarget,
+    hasQuery,
+    navigate,
+    search,
+    skipNextFetch,
+  };
+}

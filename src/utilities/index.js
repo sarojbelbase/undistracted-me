@@ -1,17 +1,13 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
+import { NUMBER_MAPPING, MONTH_NAMES } from "../constants";
 import {
-    MONTH_NAMES,
-    MONTH_NAMES_IN_NEPALI,
     NEPALI_YEARS_AND_DAYS_IN_MONTHS,
-    NUMBER_MAPPING,
-    DATE_TODAY_FORMATS,
-    LANGUAGES,
-    ENGLISH_MONTH_NAMES,
-    DAY_NAMES,
-    LIVE_CLOCK_FORMATS
-} from "../constants";
+    BS_TABLE_START_YEAR,
+    BS_TABLE_END_YEAR,
+} from '../data/bikramSambatCalendar';
+import { humanizeTime } from './humanizeTime';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -19,90 +15,251 @@ dayjs.extend(timezone);
 const BASE_YEAR = 1944;
 const BASE_NEPALI_DAY = 16;
 const BASE_NEPALI_MONTH = 9;
-const BASE_NEPALI_YEAR = 2000;
+const BASE_NEPALI_YEAR = BS_TABLE_START_YEAR;
+// Approximate English year cap: the table ends at BS_TABLE_END_YEAR which
+// starts around mid-April of (BS_TABLE_END_YEAR - 57) AD.
+const MAX_ENGLISH_YEAR = BS_TABLE_END_YEAR - 57;
 const DAYS_IN_MONTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const LEAP_YEAR_DAYS_IN_MONTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 
-const isValidDate = (year, month, day) => year >= 1944 && year <= 2033 && month >= 1 && month <= 12 && day >= 1 && day <= 31;
+const isValidDate = (year, month, day) => year >= BASE_YEAR && year <= MAX_ENGLISH_YEAR && month >= 1 && month <= 12 && day >= 1 && day <= 31;
 
-const padZero = (i) => i < 10 ? `0${i}` : i;
+// Pure-function memo — one entry per unique (yy, mm, dd) triple.
+// The new-tab page calls convertEnglishToNepali every second with today's date,
+// so even a trivial cache eliminates ~86 400 redundant algorithm runs per day.
+const _nepaliDateCache = new Map();
 
 const convertEnglishToNepali = (yy, mm, dd) => {
+    const cacheKey = `${yy}|${mm}|${dd}`;
+    const cached = _nepaliDateCache.get(cacheKey);
+    if (cached !== undefined) return cached;
+
     if (!isValidDate(yy, mm, dd)) return "Invalid date!";
 
+    // ── English day count ───────────────────────────────────────────────────
+    // Count total days elapsed from 1944-01-01 (BASE_YEAR) to the input date.
+    // Use direct 365/366 addition — avoids per-year array reduce + allocation.
     let totalEnglishDays = 0;
     for (let year = BASE_YEAR; year < yy; year++) {
-        totalEnglishDays += (isLeapYear(year) ? LEAP_YEAR_DAYS_IN_MONTHS : DAYS_IN_MONTHS).reduce((sum, days) => sum + days, 0);
+        totalEnglishDays += isLeapYear(year) ? 366 : 365;
     }
-    totalEnglishDays += (isLeapYear(yy) ? LEAP_YEAR_DAYS_IN_MONTHS : DAYS_IN_MONTHS).slice(0, mm - 1).reduce((sum, days) => sum + days, 0);
+    // Accumulate elapsed months via index loop — avoids .slice() allocation.
+    const monthDays = isLeapYear(yy) ? LEAP_YEAR_DAYS_IN_MONTHS : DAYS_IN_MONTHS;
+    for (let m = 0; m < mm - 1; m++) {
+        totalEnglishDays += monthDays[m];
+    }
     totalEnglishDays += dd;
 
+    // ── BS calendar advance ─────────────────────────────────────────────────
+    // Advance from BS base (year 2000, month 9, day 16) by month-by-month
+    // jumps instead of one-day-at-a-time.  Worst-case iterations drop from
+    // ~30 000 (day loop over ~82 years) to ~984 (12 months × ~82 years).
     let nepaliYear = BASE_NEPALI_YEAR;
     let nepaliMonth = BASE_NEPALI_MONTH;
     let nepaliDay = BASE_NEPALI_DAY;
-    let nepaliDayOfWeek = 6;  // Sunday
 
-    while (totalEnglishDays > 0) {
-        const daysInCurrentNepaliMonth = NEPALI_YEARS_AND_DAYS_IN_MONTHS[nepaliYear - BASE_NEPALI_YEAR][nepaliMonth];
-        nepaliDay++;
-        nepaliDayOfWeek = (nepaliDayOfWeek + 1) % 7;
+    // Step 1: exhaust the partial starting BS month in a single subtraction.
+    const daysInStartMonth = NEPALI_YEARS_AND_DAYS_IN_MONTHS[nepaliYear][nepaliMonth - 1];
+    const daysRemainingInStartMonth = daysInStartMonth - nepaliDay;
 
-        if (nepaliDay > daysInCurrentNepaliMonth) {
-            nepaliMonth++;
-            nepaliDay = 1;
-        }
-
-        if (nepaliMonth > 12) {
-            nepaliYear++;
-            nepaliMonth = 1;
-        }
-
-        totalEnglishDays--;
+    if (totalEnglishDays <= daysRemainingInStartMonth) {
+        // Target is still within the starting partial month — done.
+        nepaliDay += totalEnglishDays;
+        const result = `${nepaliYear} ${nepaliMonth} ${nepaliDay}`;
+        _nepaliDateCache.set(cacheKey, result);
+        return result;
     }
 
-    return `${nepaliYear} ${nepaliMonth} ${nepaliDay}`;
+    // Step 2: skip past the partial starting month, then advance full months.
+    totalEnglishDays -= daysRemainingInStartMonth + 1;
+    nepaliMonth++;
+    nepaliDay = 1;
+    if (nepaliMonth > 12) { nepaliYear++; nepaliMonth = 1; }
+
+    while (totalEnglishDays > 0) {
+        const dm = NEPALI_YEARS_AND_DAYS_IN_MONTHS[nepaliYear][nepaliMonth - 1];
+        if (totalEnglishDays < dm) {
+            nepaliDay = 1 + totalEnglishDays;
+            break;
+        }
+        totalEnglishDays -= dm;
+        nepaliMonth++;
+        if (nepaliMonth > 12) { nepaliYear++; nepaliMonth = 1; }
+    }
+
+    const result = `${nepaliYear} ${nepaliMonth} ${nepaliDay}`;
+    _nepaliDateCache.set(cacheKey, result);
+    return result;
 }
 
-const convertThisNumberToNepali = (theNumber) => theNumber.toString().split('').map(digit => NUMBER_MAPPING[digit]).join('');
+// Pre-built lookup for numbers 0–32 (covers all day/month/year-digit values used in the
+// date widget). Falls back to the char-by-char path for larger numbers (years).
+const _numToNepaliCache = {};
+const convertThisNumberToNepali = (theNumber) => {
+    if (_numToNepaliCache[theNumber] !== undefined) return _numToNepaliCache[theNumber];
+    const result = String(theNumber).split('').map(digit => NUMBER_MAPPING[digit]).join('');
+    if (theNumber >= 0 && theNumber <= 32) _numToNepaliCache[theNumber] = result;
+    return result;
+};
 
 const getTimeZoneAwareDayJsInstance = () => dayjs().tz('Asia/Kathmandu');
 
-const getNepaliMitiInSelectedLanguage = (language) => {
-    const dayJsInstance = getTimeZoneAwareDayJsInstance();
-    const [year, month, day] = dayJsInstance.format('YYYY M D').split(' ').map(Number);
-    const [_nepaliYear, nepaliMonth, nepaliDay] = convertEnglishToNepali(year, month, day).split(' '); // eslint-disable-line
+export const ENGLISH_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const GREGORIAN_MONTHS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+];
 
-    const formattedMonth = language === LANGUAGES.ne ? MONTH_NAMES_IN_NEPALI[nepaliMonth - 1] : MONTH_NAMES[nepaliMonth - 1];
-    const formattedDay = language === LANGUAGES.ne ? convertThisNumberToNepali(padZero(nepaliDay)) : padZero(nepaliDay);
+/** Returns { dow, month, day, year } for today in the Gregorian calendar. */
+export const getGregorianDateParts = () => {
+    const now = getTimeZoneAwareDayJsInstance();
+    return { dow: ENGLISH_DAYS[now.day()], month: GREGORIAN_MONTHS[now.month()], day: now.date(), year: now.year() };
+};
 
-    return `${formattedMonth} ${formattedDay}`;
-}
-
-const getLiveClockInSelectedLanguage = (language) => {
-    const [hours, minutes, seconds] = getTimeZoneAwareDayJsInstance().format(LIVE_CLOCK_FORMATS[language]).split(' ');
-
-    const formatTime = (time) => language === LANGUAGES.ne ? convertThisNumberToNepali(time) : time;
-
-    return `${formatTime(hours)}.${formatTime(minutes)}.${formatTime(seconds)}`;
-}
-
-const getDateTodayInSelectedLanguage = (language) => {
-    const dayJsInstance = getTimeZoneAwareDayJsInstance();
-    const [month, day, weekDay] = dayJsInstance.format(DATE_TODAY_FORMATS[language]).split(' ');
-
-    const formattedMonth = language === LANGUAGES.ne ? ENGLISH_MONTH_NAMES[month - 1] : month;
-    const formattedDay = language === LANGUAGES.ne ? convertThisNumberToNepali(day) : day;
-    const formattedWeekDay = language === LANGUAGES.ne ? DAY_NAMES[weekDay] : weekDay;
-
-    return `${formattedMonth} ${formattedDay}, ${formattedWeekDay}`;
-}
+/** Returns { dow, month, day, year } for today in the Bikram Sambat calendar. */
+export const getBikramSambatDateParts = () => {
+    const now = getTimeZoneAwareDayJsInstance();
+    const [year, month, day] = now.format('YYYY M D').split(' ').map(Number);
+    const result = convertEnglishToNepali(year, month, day);
+    if (result === 'Invalid date!') return { dow: ENGLISH_DAYS[now.day()], month: '—', day: 0, year: 0 };
+    const [ny, nm, nd] = result.split(' ').map(Number);
+    return { dow: ENGLISH_DAYS[now.day()], month: MONTH_NAMES[nm - 1], day: nd, year: ny };
+};
 
 export {
+    convertEnglishToNepali,
     convertThisNumberToNepali,
     getTimeZoneAwareDayJsInstance,
-    getNepaliMitiInSelectedLanguage,
-    getLiveClockInSelectedLanguage,
-    getDateTodayInSelectedLanguage
+    todayStr,
+    toLocalDateStr,
+    humanizeAge,
+    makeUid,
 };
+
+// Re-export unified humanizer
+export { humanizeTime } from './humanizeTime';
+
+/** Returns today's date as a YYYY-MM-DD string (local time). */
+function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Formats a Date object as a YYYY-MM-DD string in local time.
+ * Prefer this over d.toISOString().slice(0,10) which gives UTC — wrong for
+ * anyone east of UTC at midnight (e.g. Nepal UTC+5:45 shows yesterday).
+ */
+function toLocalDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Format a timestamp (ms) as a human-readable age string.
+ * e.g. "just now", "3m ago", "2h ago", "1d ago"
+ * Returns null when ts is falsy.
+ * Delegates to humanizeTime — single source of truth.
+ */
+function humanizeAge(ts) {
+    if (!ts) return null;
+    const { compact } = humanizeTime(new Date(ts), { now: Date.now() });
+    return compact;
+}
+
+/**
+ * Generates a short unique ID with an optional prefix.
+ * e.g. makeUid('cd') → "cd_1712345678901_3f2a"
+ */
+function makeUid(prefix = '') {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const suffix = `${Date.now()}_${buf[0].toString(36)}`;
+    return prefix ? `${prefix}_${suffix}` : suffix;
+}
+
+/**
+ * Leading subdomain labels that don't identify the underlying service. When
+ * they precede a real domain + TLD (e.g. `app.rigohr.com`), they are skipped so
+ * the shorthand shows the actual site name ("Rigohr", not "App"). Deliberately
+ * excludes meaningful labels like `mail` (mail.google.com → "Mail") and `docs`
+ * (docs.google.com → "Docs").
+ */
+const GENERIC_SUBDOMAINS = new Set([
+    'www', 'app', 'web', 'm', 'mobile', 'my', 'go', 'login', 'auth', 'api',
+    'dev', 'staging', 'beta', 'secure', 'portal',
+]);
+
+/**
+ * Extract a human-readable shorthand from a URL.
+ *   https://www.github.com/saroj  →  "Github"
+ *   https://app.rigohr.com/       →  "Rigohr"
+ *   https://mail.google.com/      →  "Mail"
+ *   not-a-url                     →  "N" (first-letter fallback)
+ */
+export function shorthandFromUrl(url) {
+    try {
+        const labels = new URL(url).hostname.toLowerCase().split('.');
+        // Only skip a leading label when a real domain + TLD remain (≥ 3
+        // labels) — for `app.com`, `app` IS the domain, so keep it.
+        let idx = 0;
+        while (labels.length - idx > 2 && GENERIC_SUBDOMAINS.has(labels[idx])) {
+            idx++;
+        }
+        const part = labels[idx] || labels[0];
+        return part.charAt(0).toUpperCase() + part.slice(1);
+    } catch {
+        return (url || '?').charAt(0).toUpperCase();
+    }
+}
+
+/**
+ * Maps a raw error to a user-facing message.
+ * Handles known OAuth, network, and API error patterns.
+ */
+
+/** Shared check — are we running inside a Chrome/Firefox extension? */
+// Re-exported from a dependency-free leaf so the service worker can import it
+// without pulling dayjs + the calendar table into the MV3 bundle.
+export { isExtension } from './isExtension';
+
+/**
+ * Fetch the browser's top sites, cross-browser (Chrome + Firefox).
+ *
+ * Firefox exposes `browser.topSites.get()` (Promise) and, under the `chrome`
+ * namespace, also supports callbacks. Chrome's `chrome.topSites.get()` is
+ * callback-based before Chrome 96 and Promise-based after. This helper accepts
+ * either shape and resolves to an array (never rejects).
+ */
+export const getTopSites = async () => {
+    const api = globalThis.chrome?.topSites || globalThis.browser?.topSites;
+    if (!api) return [];
+    try {
+        // Promise style — Firefox (browser.topSites / chrome.topSites) and Chrome 96+.
+        const sites = await api.get();
+        return Array.isArray(sites) ? sites : [];
+    } catch {
+        // Callback-only APIs (Chrome 88–95) reject a bare get() call — retry with a callback.
+        return new Promise((resolve) => {
+            try {
+                api.get((sites) => resolve(Array.isArray(sites) ? sites : []));
+            } catch {
+                resolve([]);
+            }
+        });
+    }
+};
+
+export function friendlyError(err) {
+    const msg = err?.message || '';
+    if (!msg) return 'Something went wrong. Please try again.';
+    if (/failed to fetch|network|networkerror/i.test(msg)) return 'Network error — check your connection.';
+    if (/popup_closed|user_cancelled|cancelled|Sign-in cancelled/i.test(msg)) return 'Sign-in was cancelled.';
+    if (/popup.*blocked|blocked.*popup/i.test(msg)) return 'Pop-up was blocked — allow pop-ups for this site and try again.';
+    if (/invalid_grant/i.test(msg)) return 'Your session expired. Please sign in again.';
+    if (/authorization page could not be loaded/i.test(msg)) return "The sign-in page couldn't load. Make sure your extension's redirect URI is registered with the provider, then try again.";
+    if (/not_authenticated|not authenticated/i.test(msg)) return 'Please sign in to Google first.';
+    if (/interrupted|no authorization code/i.test(msg)) return 'Sign-in was interrupted. Please try again.';
+    return msg;
+}

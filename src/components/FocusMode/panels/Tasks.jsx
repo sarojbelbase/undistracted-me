@@ -1,0 +1,534 @@
+/**
+ * Tasks panel — Google Tasks integration for Focus Mode.
+ *
+ * States:
+ *   • Collapsed pill — shows remaining count, springs open on click.
+ *   • Expanded panel — task list (connected) or connect CTA (not connected).
+ */
+import { useState, useRef, useEffect } from 'react';
+import {
+  FM_CARD_BG, FM_CARD_BORDER, FM_CARD_BLUR, FM_CARD_SHADOW,
+  FM_SURFACE, FM_SURFACE_2, FM_BORDER, FM_DIVIDER,
+  FM_INK_1, FM_INK_2, FM_INK_4,
+  FM_SUCCESS, FM_SUCCESS_BG, FM_SUCCESS_BORDER,
+  FM_TOGGLE_OFF_BG,
+  getTokens,
+} from '../theme';
+import { CloseIcon } from '../../../assets/svg/CloseIcon';
+import { TrashIcon } from '../../../assets/svg/TrashIcon';
+import { Input } from '../../ui/Input';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+// All surface tokens reference FM_* constants — always dark glass, never CSS vars.
+
+const PANEL_BG = FM_CARD_BG;
+const PILL_BG = FM_CARD_BG;
+const INPUT_BG = FM_SURFACE;
+const HOVER_BG = FM_SURFACE;
+const SECTION_BORDER = `1px solid ${FM_DIVIDER}`;
+const OUTER_BORDER = `1px solid ${FM_CARD_BORDER}`;
+const DIM = FM_INK_4;
+const MED = FM_INK_2;
+const BRIGHT = FM_INK_1;
+const ACCENT = 'var(--w-accent)';
+const ACCENT_FG = 'var(--w-accent-fg)';
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+const IconRefresh = ({ spinning }) => (
+  <svg
+    width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+    style={{ transition: 'transform 0.6s ease', transform: spinning ? 'rotate(360deg)' : 'none' }}
+  >
+    <path
+      d="M12.5 7A5.5 5.5 0 1 1 9.5 2.14"
+      stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"
+    />
+    <path d="M9.5 1v3.5H13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconGoogle = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+  </svg>
+);
+
+// ─── Checkbox ─────────────────────────────────────────────────────────────────
+
+const Checkbox = ({ checked, onChange }) => (
+  <label style={{ display: 'flex', alignItems: 'center', flexShrink: 0, cursor: 'pointer', lineHeight: 0 }}>
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+    />
+    <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <rect
+        x="1" y="1" width="16" height="16" rx="4.5"
+        stroke={checked ? ACCENT : FM_BORDER}
+        strokeWidth="1.5"
+        fill={checked ? ACCENT : 'transparent'}
+        style={{ transition: 'stroke 0.15s, fill 0.15s' }}
+      />
+      {checked && (
+        <path
+          d="M5 9l3 3 5-5"
+          stroke={ACCENT_FG}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  </label>
+);
+
+// ─── Task row ─────────────────────────────────────────────────────────────────
+
+const TaskRow = ({ task, onToggle, onEdit, onDelete }) => {
+  const [hovered, setHovered] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(task.title);
+  const inputRef = useRef(null);
+
+  useEffect(() => { setDraft(task.title); }, [task.title]);
+
+  const commitEdit = () => {
+    setEditing(false);
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== task.title) onEdit(task.id, trimmed);
+    else setDraft(task.title);
+  };
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  return (
+    <li
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '7px 14px',
+        background: hovered ? HOVER_BG : 'transparent',
+        transition: 'background 0.10s',
+        listStyle: 'none',
+      }}
+    >
+      <Checkbox checked={task.completed} onChange={() => onToggle(task.id)} />
+
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commitEdit}
+          onKeyDown={e => {
+            if (e.key === 'Enter') commitEdit();
+            if (e.key === 'Escape') { setEditing(false); setDraft(task.title); }
+          }}
+          style={{
+            flex: 1,
+            background: FM_SURFACE_2,
+            border: `1px solid ${FM_BORDER}`,
+            borderRadius: 5,
+            color: BRIGHT,
+            fontSize: 12.5,
+            padding: '2px 7px',
+            outline: 'none',
+            minWidth: 0,
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          tabIndex={task.completed ? -1 : 0}
+          onDoubleClick={() => !task.completed && setEditing(true)}
+          onKeyDown={e => { if ((e.key === 'Enter' || e.key === 'F2') && !task.completed) setEditing(true); }}
+          title={task.completed ? undefined : 'Double-click or press Enter to edit'}
+          style={{
+            flex: 1,
+            fontSize: 12.5,
+            lineHeight: '1.45',
+            color: task.completed ? DIM : MED,
+            textDecoration: task.completed ? 'line-through' : 'none',
+            textDecorationColor: FM_BORDER,
+            transition: 'color 0.15s',
+            userSelect: 'none',
+            cursor: task.completed ? 'default' : 'text',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            textAlign: 'left',
+          }}
+        >
+          {task.title}
+        </button>
+      )}
+
+      <button
+        onClick={() => onDelete(task.id)}
+        aria-label={`Delete task`}
+        style={{
+          flexShrink: 0,
+          width: 22, height: 22,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'none', border: 'none',
+          borderRadius: 5,
+          cursor: 'pointer',
+          color: FM_INK_4,
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 0.12s',
+          padding: 0,
+        }}
+      >
+        <TrashIcon />
+      </button>
+    </li>
+  );
+};
+
+// ─── Add task input ───────────────────────────────────────────────────────────
+
+const AddTaskInput = ({ onAdd, centerOnDark = true }) => {
+  const [value, setValue] = useState('');
+  const [focused, setFocused] = useState(false);
+  const t = getTokens(centerOnDark);
+
+  const commit = () => {
+    if (value.trim()) { onAdd(value.trim()); setValue(''); }
+  };
+
+  return (
+    <div style={{ padding: '8px 10px 10px', borderTop: SECTION_BORDER }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 10px',
+          borderRadius: 9,
+          background: focused ? t.pillBgFocused : t.pillBg,
+          border: `1px solid ${focused ? t.pillBorderFoc : t.pillBorder}`,
+          transition: 'background 0.15s, border-color 0.15s',
+        }}
+      >
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.45 }}>
+          <path d="M6 1v10M1 6h10" stroke={t.iconStroke} strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <Input
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') commit(); }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="New task…"
+          className="fm-taskinput"
+          style={{
+            color: t.textColor,
+            WebkitTextFillColor: t.textColor,
+            caretColor: t.caret,
+            fontSize: 13,
+          }}
+        />
+        <style>{`.fm-taskinput::placeholder { color: ${t.placeholder}; }`}</style>
+        {value.trim() && (
+          <button
+            onClick={commit}
+            style={{
+              flexShrink: 0,
+              background: ACCENT,
+              color: ACCENT_FG,
+              border: 'none',
+              borderRadius: 6,
+              padding: '2px 9px',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+            }}
+          >
+            Add
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Skeleton rows ────────────────────────────────────────────────────────────
+
+const SkeletonRow = ({ width = '70%' }) => (
+  <li style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', listStyle: 'none' }}>
+    <div style={{ width: 17, height: 17, borderRadius: 4.5, background: FM_SURFACE_2, flexShrink: 0 }} />
+    <div style={{ height: 10, borderRadius: 5, background: FM_SURFACE_2, width }} />
+  </li>
+);
+
+const SkeletonPanel = () => (
+  <div style={{
+    position: 'absolute', bottom: 'calc(100% + 10px)', right: 0,
+    width: 300, borderRadius: 14, background: PANEL_BG,
+    backdropFilter: FM_CARD_BLUR,
+    WebkitBackdropFilter: FM_CARD_BLUR,
+    border: OUTER_BORDER,
+    boxShadow: FM_CARD_SHADOW,
+    overflow: 'hidden',
+    animation: 'panelCardIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
+  }}>
+    <div style={{ padding: '11px 12px 10px', borderBottom: SECTION_BORDER }}>
+      <div style={{ height: 9, width: 40, borderRadius: 4, background: FM_SURFACE_2 }} />
+    </div>
+    <ul style={{ margin: 0, padding: '4px 0', listStyle: 'none' }}>
+      <SkeletonRow width="72%" />
+      <SkeletonRow width="55%" />
+      <SkeletonRow width="63%" />
+    </ul>
+  </div>
+);
+
+// ─── Pill label ───────────────────────────────────────────────────────────────
+
+function pillLabel(remaining, loading, total) {
+  if (loading) return '…';
+  if (remaining === 0) return total > 0 ? 'All done' : '0 tasks';
+  return `${remaining} task${remaining === 1 ? '' : 's'}`;
+}
+
+// ─── Main export ─────────────────────────────────────────────────────────────
+
+export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add, toggle, edit, remove, reload, centerOnDark = true }) => {
+  const [open, setOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const panelRef = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Hide entirely once we know the user isn't connected — no CTA flash
+  if (hasAttempted && !gtasksConnected) return null;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await reload();
+    setTimeout(() => setRefreshing(false), 500);
+  };
+
+  const pending = tasks.filter(tt => !tt.completed);
+  const completed = tasks.filter(tt => tt.completed);
+  const remaining = pending.length;
+  const allDone = !loading && gtasksConnected && pending.length === 0 && completed.length > 0;
+
+  return (
+    <div ref={panelRef} style={{ position: 'relative', display: 'inline-block' }}>
+
+      {/* ── Expanded panel ───────────────────────────────────────────── */}
+      {open && (!hasAttempted || loading) && <SkeletonPanel />}
+      {open && hasAttempted && !loading && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 10px)',
+            right: 0,
+            width: 300,
+            maxHeight: 440,
+            borderRadius: 14,
+            background: PANEL_BG,
+            backdropFilter: FM_CARD_BLUR,
+            WebkitBackdropFilter: FM_CARD_BLUR,
+            border: OUTER_BORDER,
+            boxShadow: FM_CARD_SHADOW,
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'panelCardIn 0.22s cubic-bezier(0.16,1,0.3,1) both',
+            overflow: 'hidden',
+          }}
+        >
+          {/* ── Header ── */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '11px 12px 10px',
+              borderBottom: SECTION_BORDER,
+            }}
+          >
+            <span style={{ flex: 1, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: DIM }}>
+              Tasks
+            </span>
+
+            {gtasksConnected && !loading && tasks.length > 0 && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: '1px 7px',
+                  borderRadius: 99,
+                  background: remaining > 0 ? FM_SURFACE : FM_SUCCESS_BG,
+                  color: remaining > 0 ? MED : FM_SUCCESS,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {remaining > 0 ? `${remaining} left` : '✓ done'}
+              </span>
+            )}
+
+            {/* Refresh — only when connected */}
+            {gtasksConnected && (
+              <button
+                onClick={handleRefresh}
+                aria-label="Refresh tasks"
+                disabled={refreshing || loading}
+                style={{
+                  width: 26, height: 26,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'none', border: 'none', borderRadius: 6,
+                  cursor: refreshing || loading ? 'default' : 'pointer',
+                  color: DIM, padding: 0, transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { if (!refreshing && !loading) e.currentTarget.style.color = MED; }}
+                onMouseLeave={e => { e.currentTarget.style.color = DIM; }}
+              >
+                <IconRefresh spinning={refreshing || loading} />
+              </button>
+            )}
+
+            {/* Info / settings — removed from header; accessible via FocusMode Settings */}
+
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Close tasks"
+              style={{
+                width: 26, height: 26,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'none', border: 'none', borderRadius: 6,
+                cursor: 'pointer', color: DIM, padding: 0, transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = MED; }}
+              onMouseLeave={e => { e.currentTarget.style.color = DIM; }}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+
+          {/* ── Body ── */}
+          <>
+            <ul style={{ flex: 1, overflowY: 'auto', margin: 0, padding: '4px 0', listStyle: 'none' }}>
+              {loading && (
+                <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
+                  Loading…
+                </li>
+              )}
+
+              {!loading && tasks.length === 0 && (
+                <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
+                  No tasks yet — add one below.
+                </li>
+              )}
+
+              {!loading && pending.map(task => (
+                <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
+              ))}
+
+              {!loading && completed.length > 0 && (
+                <>
+                  <li aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 4px', listStyle: 'none' }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: DIM }}>
+                      Completed
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: FM_DIVIDER }} />
+                    <span style={{ fontSize: 9.5, color: DIM }}>{completed.length}</span>
+                  </li>
+                  {completed.map(task => (
+                    <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={edit} onDelete={remove} />
+                  ))}
+                </>
+              )}
+            </ul>
+
+            <AddTaskInput onAdd={add} centerOnDark={centerOnDark} />
+          </>
+        </div>
+      )}
+
+      {/* ── Collapsed pill ───────────────────────────────────────────── */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        aria-label="Toggle tasks panel"
+        aria-expanded={open}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '7px 13px',
+          borderRadius: 999,
+          background: PILL_BG,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: allDone
+            ? `1px solid ${FM_SUCCESS_BORDER}`
+            : `1px solid ${FM_CARD_BORDER}`,
+          color: BRIGHT,
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 2px 18px rgba(0,0,0,0.40)',
+          transition: 'border-color 0.3s',
+          whiteSpace: 'nowrap',
+          letterSpacing: '0.01em',
+        }}
+      >
+        {allDone ? (
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <circle cx="7" cy="7" r="6" fill={FM_SUCCESS_BG} stroke={FM_SUCCESS_BORDER} strokeWidth="1.2" />
+            <path d="M4.5 7l2 2 3-3" stroke={FM_SUCCESS} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <circle cx="7" cy="7" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" />
+            <path d="M4.5 7l2 2 3-3" stroke={FM_INK_2} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+
+        {(() => {
+          if (!hasAttempted || loading) {
+            return <span style={{ display: 'inline-block', width: 52, height: 10, borderRadius: 5, background: FM_TOGGLE_OFF_BG, verticalAlign: 'middle' }} />;
+          }
+          const pillColor = allDone ? FM_SUCCESS : MED;
+          return <span style={{ color: pillColor }}>{pillLabel(remaining, false, tasks.length)}</span>;
+        })()}
+
+        <svg
+          width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true"
+          style={{
+            opacity: 0.38,
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.2s ease',
+            flexShrink: 0,
+          }}
+        >
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
+  );
+};

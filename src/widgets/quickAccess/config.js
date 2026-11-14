@@ -1,0 +1,20 @@
+export default {
+  type: 'quickAccess',
+  title: 'Quick Access',
+  category: 'tools',
+  icon: 'Grid3x3GapFill',
+  description: 'Top visited sites dock',
+  enabled: true,
+  platforms: {
+    extension: { supported: true },
+    web: { supported: false, limitations: ['Requires chrome.topSites API'] },
+    phone: { supported: false, limitations: ['Requires browser topSites API'] },
+  },
+  x: 24, y: 16, w: 10, h: 4,
+  breakpoints: {
+    md: { x: 32, y: 0, w: 8, h: 4 },
+    sm: { x: 8, y: 10, w: 16, h: 5 },
+    xs: { x: 0, y: 22, w: 16, h: 6 },
+    xxs: { x: 0, y: 56, w: 8, h: 8 },
+  },
+};

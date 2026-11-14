@@ -1,0 +1,385 @@
+// ─── Top zone ─────────────────────────────────────────────────────────────────
+//
+// Renders two layers:
+//   1. TopBar      — back button (left) + fullscreen + settings (right)
+//   2. InfoStrip   — weather + date, absolutely centered between the two buttons
+//
+// They are split so InfoStrip can be `pointerEvents: none` while TopBar buttons
+// remain interactive.
+
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import {
+  GearFill,
+  ArrowsFullscreen,
+  FullscreenExit,
+} from "react-bootstrap-icons";
+import { RainNoiseIcon } from "../../../assets/svg/RainNoiseIcon";
+import { getWeatherIcon } from "../../../widgets/weather/utils.jsx";
+import { useSettingsStore } from "../../../store";
+import { onClockTick } from "../../../utilities/sharedClock";
+import {
+  getGregorianDateParts,
+  getBikramSambatDateParts,
+} from "../../../utilities";
+import { useFocusWeather } from "../hooks";
+import { ZONES } from "../config";
+import { TooltipBtn } from "../../ui/TooltipBtn";
+import {
+  FM_CARD_BG,
+  FM_CARD_BLUR,
+  FM_CARD_BORDER,
+  FM_SURFACE_2,
+  FM_INK_1,
+  FM_INK_2,
+  FM_INK_4,
+  FM_INK_3,
+  FM_BORDER,
+} from "../theme";
+import { useRainStream } from "../../../hooks/useRainStream";
+import { ChevronLeftIcon } from '../../../assets/svg/ChevronLeftIcon';
+
+const TOP = ZONES.top.items;
+
+// ── Info strip (weather + date) ───────────────────────────────────────────────
+
+const ITEM_RENDERERS = {
+  weatherIcon: (weather) =>
+    weather ? (
+      <div
+        key="weatherIcon"
+        style={{
+          filter: "brightness(0) invert(1)",
+          opacity: 0.65,
+          display: "flex",
+          alignItems: "center",
+          marginRight: 6,
+        }}
+      >
+        {getWeatherIcon(weather.code, weather.isDay, 14)}
+      </div>
+    ) : null,
+  weatherTemp: (weather) =>
+    weather ? (
+      <React.Fragment key="weatherTemp">
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: FM_INK_2,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {weather.temperature}°{weather.unit === "imperial" ? "F" : "C"}
+        </span>
+        <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>
+          ·
+        </span>
+      </React.Fragment>
+    ) : null,
+  date: (_, dateParts) => (
+    <span
+      key="date"
+      style={{
+        fontSize: 15,
+        fontWeight: 700,
+        letterSpacing: "0.01em",
+        color: FM_INK_2,
+      }}
+    >
+      {dateParts.dow}, {dateParts.month} {dateParts.day}
+    </span>
+  ),
+  year: (_, dateParts) => (
+    <span
+      key="year"
+      className="fm-topbar-year"
+      style={{ fontSize: 13, fontWeight: 600, color: FM_INK_3, marginLeft: 7 }}
+    >
+      {dateParts.year}
+    </span>
+  ),
+  screenTime: () => <ScreenTime key="screenTime" />,
+};
+
+// ── Screen time (digital wellbeing) ────────────────────────────────────────────
+//
+// Reads browser start time from chrome.storage.local (set by bg.js via
+// chrome.runtime.onStartup / onInstalled). This is real Chrome browser uptime,
+// not a per-tab or per-component timer.
+
+const BROWSER_START_KEY = 'um_browser_start_time';
+
+const isExtension = typeof chrome !== 'undefined' && chrome?.storage?.local;
+
+/** Reads browser start time — chrome.storage in extension, Date.now() in dev. */
+const getStartTime = async () => {
+  if (isExtension) {
+    const result = await chrome.storage.local.get(BROWSER_START_KEY);
+    return result?.[BROWSER_START_KEY] || Date.now();
+  }
+  // Dev mode — always start from page load (no chrome.runtime.onStartup to reset)
+  return Date.now();
+};
+
+const ScreenTime = () => {
+  const [startTime, setStartTime] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+  const lastMinuteRef = useRef(-1);
+
+  useEffect(() => {
+    getStartTime().then((ts) => {
+      setStartTime(ts);
+      setElapsed(Math.floor((Date.now() - ts) / 1000));
+    });
+  }, []);
+
+  const tick = useCallback(() => {
+    if (!startTime) return;
+    // The label shows whole minutes/hours — only re-render when the minute flips.
+    const minute = Math.floor((Date.now() - startTime) / 60000);
+    if (minute === lastMinuteRef.current) return;
+    lastMinuteRef.current = minute;
+    setElapsed(Math.floor((Date.now() - startTime) / 1000));
+  }, [startTime]);
+
+  useEffect(() => onClockTick(tick), [tick]);
+
+  if (!startTime || elapsed < 60) return null;
+
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const label = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const tooltip = `${label} since browser started`;
+
+  return (
+    <TooltipBtn
+      tooltip={tooltip}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'default',
+        pointerEvents: 'auto',
+      }}
+    >
+      <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>·</span>
+      <span
+        style={{ fontSize: 14, fontWeight: 600, color: FM_INK_4, letterSpacing: "-0.01em" }}
+      >
+        {label}
+      </span>
+    </TooltipBtn>
+  );
+};
+
+const InfoStrip = ({ weather, dateParts }) => {
+  const nodes = Object.entries(TOP)
+    .filter(([, cfg]) => cfg.enable)
+    .sort(([, a], [, b]) => a.order - b.order)
+    .map(([key]) => ITEM_RENDERERS[key]?.(weather, dateParts))
+    .filter(Boolean);
+
+  if (!nodes.length) return null;
+
+  return (
+    <div
+      className="fm-topbar-center"
+      style={{
+        zIndex: 31,
+        top: "calc(1.25rem + 2px)",
+        pointerEvents: "none",
+        userSelect: "none",
+      }}
+    >
+      {nodes}
+    </div>
+  );
+};
+
+
+// ── Nav bar ───────────────────────────────────────────────────────────────────
+
+const FADE_DURATION_MS = 3000;
+
+const NavBar = ({
+  onExit,
+  isFullscreen,
+  toggleFullscreen,
+  uiVisible,
+  onOpenSettings,
+  settingsOpen,
+}) => {
+  // Derived from the parent's settings-dialog state so it always resets when the
+  // dialog closes (previously a local flag that was only ever set to true).
+  const settingsActive = settingsOpen;
+
+  const [rainHovered, setRainHovered] = useState(false);
+  const { toggle: toggleRain, isPlaying: isPlayingRain, audioRef } = useRainStream(FADE_DURATION_MS);
+
+  // ── Settings click-outside ───────────────────────────────────────────────────
+  return (
+    <div
+      role="toolbar"
+      aria-label="Navigation"
+      className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 pt-5"
+      style={{
+        zIndex: 30,
+        opacity: uiVisible ? 1 : 0,
+        transition: "opacity 0.7s ease",
+        pointerEvents: uiVisible ? "auto" : "none",
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Back button */}
+      <TooltipBtn
+        onClick={onExit}
+        className="flex items-center gap-1.5 rounded-full focus:outline-none fm-topbar-ctrl"
+        style={{
+          padding: "9px 12px 9px 11px",
+          background: FM_CARD_BG,
+          border: `1px solid ${FM_CARD_BORDER}`,
+          backdropFilter: FM_CARD_BLUR,
+          WebkitBackdropFilter: FM_CARD_BLUR,
+        }}
+        tooltip={settingsActive ? null : "Back to Canvas"}
+      >
+        <ChevronLeftIcon size={13} color={FM_INK_1} />
+        <span
+          className="text-[10px] font-semibold tracking-wide select-none"
+          style={{ color: FM_INK_1 }}
+        >
+          Canvas
+        </span>
+      </TooltipBtn>
+
+      {/* Hidden audio element — always mounted so ref is stable */}
+      <audio ref={audioRef} loop preload="metadata" style={{ display: "none" }} />
+
+      {/* Right pill: rain toggle · fullscreen · settings */}
+      <div
+        className="flex items-center rounded-full fm-topbar-ctrl"
+        style={{
+          background: FM_CARD_BG,
+          border: `1px solid ${FM_CARD_BORDER}`,
+          backdropFilter: FM_CARD_BLUR,
+          WebkitBackdropFilter: FM_CARD_BLUR,
+        }}
+      >
+        {/* Rain & white-noise toggle — TooltipBtn with appearance:none + React-driven bg */}
+        <TooltipBtn
+          tooltip={isPlayingRain ? "Fade out rain & noise" : "Rain & white noise"}
+          onClick={toggleRain}
+          onMouseEnter={() => setRainHovered(true)}
+          onMouseLeave={() => setRainHovered(false)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0.625rem",
+            borderRadius: "9999px",
+            background: rainHovered ? FM_SURFACE_2 : "transparent",
+            border: "none",
+            outline: "none",
+            WebkitTapHighlightColor: "transparent",
+            WebkitAppearance: "none",
+            appearance: "none",
+            cursor: "pointer",
+            transition: "background 0.15s",
+          }}
+        >
+          <RainNoiseIcon active={isPlayingRain} fadeDurationMs={FADE_DURATION_MS} />
+        </TooltipBtn>
+
+        <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
+
+        <TooltipBtn
+          onClick={toggleFullscreen}
+          className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
+          tooltip={(() => {
+            if (settingsActive) return null;
+            return isFullscreen ? "Exit fullscreen" : "Fullscreen — keeps screen awake";
+          })()}
+        >
+          {isFullscreen
+            ? <FullscreenExit size={16} color={FM_INK_1} />
+            : <ArrowsFullscreen size={16} color={FM_INK_1} />}
+        </TooltipBtn>
+
+        <div className="w-px h-3.5 shrink-0" style={{ background: FM_BORDER }} />
+
+        <TooltipBtn
+          onClick={() => {
+            onOpenSettings?.('general');
+          }}
+          className="group p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
+          tooltip={settingsActive ? null : "Settings"}
+        >
+          <GearFill
+            size={16}
+            color={settingsActive ? "var(--w-accent)" : FM_INK_1}
+            className="transition-transform duration-300 group-hover:rotate-90"
+          />
+        </TooltipBtn>
+      </div>
+    </div>
+  );
+};
+
+// ── Top zone export ───────────────────────────────────────────────────────────
+
+export const TopZone = ({
+  onExit,
+  isFullscreen,
+  toggleFullscreen,
+  uiVisible,
+  onOpenSettings,
+  settingsOpen,
+}) => {
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const weather = useFocusWeather();
+  const [dateParts, setDateParts] = useState(() =>
+    dateFormat === "gregorian"
+      ? getGregorianDateParts()
+      : getBikramSambatDateParts(),
+  );
+  const update = useCallback(() => {
+    setDateParts((prev) => {
+      const next =
+        dateFormat === "gregorian"
+          ? getGregorianDateParts()
+          : getBikramSambatDateParts();
+      // The date changes once a day but the clock ticks every second. Skip the
+      // re-render (and the NavBar/InfoStrip subtree it drags in) when unchanged.
+      if (
+        prev &&
+        prev.dow === next.dow &&
+        prev.month === next.month &&
+        prev.day === next.day &&
+        prev.year === next.year
+      ) return prev;
+      return next;
+    });
+  }, [dateFormat]);
+  useEffect(() => onClockTick(update), [update]);
+
+  return (
+    <>
+      <NavBar
+        onExit={onExit}
+        isFullscreen={isFullscreen}
+        toggleFullscreen={toggleFullscreen}
+        uiVisible={uiVisible}
+        onOpenSettings={onOpenSettings}
+        settingsOpen={settingsOpen}
+      />
+      <InfoStrip weather={weather} dateParts={dateParts} />
+    </>
+  );
+};

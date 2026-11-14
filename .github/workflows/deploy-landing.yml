@@ -1,0 +1,46 @@
+name: Deploy Landing to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+    paths:
+      - 'landing/**'
+      - '.github/workflows/deploy-landing.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+
+      - name: Install dependencies
+        working-directory: landing
+        run: npm ci
+
+      - name: Build landing
+        working-directory: landing
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 8daf806d18c057c542bd141fce6ca034
+          command: pages deploy landing/dist --project-name=undistracted-me-landing --branch=feature/vite-migration-redesign

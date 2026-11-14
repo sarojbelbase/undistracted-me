@@ -1,0 +1,111 @@
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import {
+  buildFaviconSources,
+  extractColorFromUrl,
+  faviconCache,
+  cacheFavicon,
+  getHostname,
+  getDefaultName,
+} from '../../utilities/favicon';
+import { FAVICON_TEXT_SHADOW } from '../../theme/canvas';
+
+/**
+ * Unified favicon component used by bookmarks and quickAccess widgets.
+ *
+ * Props:
+ *   url        {string}   — full or protocol-relative URL
+ *   size       {number}   — pixel dimension for the image (default 40)
+ *   onColor    {fn}       — called with dominant brand color extracted from the image
+ *   onSettled  {fn}       — called when image loads OR falls back to letter (quickAccess shimmer)
+ *   iconMode   {string}   — 'favicon' (default) | 'letter' (bookmarks letter mode)
+ */
+export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'favicon' }) => {
+  const hostname = getHostname(url);
+  const [idx, setIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const sources = useMemo(() => buildFaviconSources(url, size), [url, size]);
+  const letter = getDefaultName(url).charAt(0).toUpperCase();
+  const imgRef = useRef(null);
+
+  useEffect(() => { setIdx(0); setLoaded(false); }, [url]);
+
+  // Letter mode — no network fetch; design-system accent colour.
+  if (iconMode === 'letter') {
+    return (
+      <span
+        className="font-black select-none"
+        style={{
+          fontSize: Math.round(size * 0.58) + 'px',
+          color: 'var(--w-accent-fg)',
+          lineHeight: 1,
+          letterSpacing: '-0.02em',
+          textShadow: FAVICON_TEXT_SHADOW,
+        }}
+      >
+        {letter}
+      </span>
+    );
+  }
+
+  const src = sources[idx];
+
+  // Letter fallback — all network sources exhausted.
+  if (src === '') {
+    return <LetterFallback hostname={hostname} letter={letter} size={size} onSettled={onSettled} />;
+  }
+
+  const handleLoaded = useCallback((imgEl) => {
+    setLoaded(true);
+    cacheFavicon(hostname, src);
+    onSettled?.();
+    if (onColor) extractColorFromUrl(imgEl.src, onColor);
+  }, [hostname, src, onSettled, onColor]);
+
+  // Images served from the HTTP cache can fire their native `load` event before
+  // React/Preact attaches `onLoad`, so `onLoad` never runs and the icon stays a
+  // shimmer forever. Re-check `img.complete` on mount / src change and reveal.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && !loaded && img.complete && img.naturalWidth > 0) {
+      handleLoaded(img);
+    }
+  }, [src, loaded, handleLoaded]);
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      {!loaded && (
+        <div
+          className="absolute inset-0 rounded-lg animate-pulse"
+          style={{ backgroundColor: 'var(--panel-bg)' }}
+        />
+      )}
+      <img
+        ref={imgRef}
+        key={src}
+        src={src}
+        alt=""
+        style={{ width: size, height: size, opacity: loaded ? 1 : 0, transition: 'opacity 0.15s' }}
+        className="rounded-lg object-contain"
+        onLoad={(e) => handleLoaded(e.currentTarget)}
+        onError={() => setIdx((i) => i + 1)}
+      />
+    </div>
+  );
+};
+
+// Separated so the useEffect for onSettled fires correctly without inline render side-effects.
+const LetterFallback = ({ hostname, letter, size, onSettled }) => {
+  useEffect(() => {
+    if (!faviconCache.has(hostname)) cacheFavicon(hostname, '');
+    onSettled?.();
+  }, [hostname, onSettled]);
+
+  return (
+    <span
+      className="font-bold select-none"
+      style={{ fontSize: Math.round(size * 0.5) + 'px', color: 'var(--w-ink-2)', lineHeight: 1 }}
+    >
+      {letter}
+    </span>
+  );
+};

@@ -1,0 +1,54 @@
+---
+import Wordmark from "./Wordmark.astro";
+import { site } from "../data/site.js";
+
+const cols = [
+  {
+    h: "Product",
+    links: [
+      { href: "#features", label: "Features" },
+      { href: "#themes", label: "Themes" },
+      { href: "#focus", label: "Focus Mode" },
+      { href: "#privacy", label: "Privacy" },
+      { href: "#supporters", label: "Supporters" },
+      { href: "#faq", label: "FAQ" },
+    ],
+  },
+  {
+    h: "Install",
+    links: [
+      { href: site.chromeUrl, label: "Chrome Web Store", external: true },
+      { href: site.firefoxUrl, label: "Firefox Add-ons", external: true },
+      { href: site.webAppUrl, label: "Web app", external: true },
+    ],
+  },
+  {
+    h: "Links",
+    links: [
+      { href: "#support", label: "Support" },
+      { href: site.formsUrl, label: "Report a bug", external: true },
+      { href: site.formsUrl, label: "Suggest a feature", external: true },
+      { href: site.url, label: "Website", external: true },
+      { href: site.githubUrl, label: "GitHub", external: true },
+    ],
+  },
+];
+---
+
+<footer class="dark foot">
+  <div>
+    <a class="logo" href="#top" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <p>Your new tab, minus the noise. A calm dashboard with Focus Mode, quiet widgets and everything you need in one place.</p>
+  </div>
+
+  {cols.map((col) => (
+    <div>
+      <h4>{col.h}</h4>
+      {col.links.map((l) => (
+        <a href={l.href} rel={l.external ? "noopener" : undefined} target={l.external ? "_blank" : undefined}>{l.label}</a>
+      ))}
+    </div>
+  ))}
+
+  <p class="legal">Made with ♥ in Nepal. © 2026 Undistracted Me. MIT license.</p>
+</footer>

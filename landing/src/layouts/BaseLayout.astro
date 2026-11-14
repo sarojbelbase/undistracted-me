@@ -1,0 +1,71 @@
+---
+import Seo from "@jdevalk/astro-seo-graph/Seo.astro";
+import { site } from "../data/site.js";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  graph?: Record<string, unknown> | null;
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  graph = null,
+} = Astro.props;
+
+const fontsUrl =
+  "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Fraunces:ital,opsz,wght@1,9..144,500..800&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Seo
+      title={title}
+      description={description}
+      canonical={site.url}
+      ogType="website"
+      ogImage={site.ogImage}
+      ogImageAlt="Undistracted Me — a calm new tab dashboard with a Nepali calendar, Focus Mode and quiet widgets."
+      ogImageWidth={1200}
+      ogImageHeight={630}
+      siteName={site.name}
+      locale="en_US"
+      twitter={{ card: "summary_large_image" }}
+      graph={graph}
+      extraLinks={[
+        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
+        { rel: "privacy-policy", href: site.privacyUrl },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
+        { rel: "preconnect", href: "https://cloud.umami.is" },
+        { rel: "stylesheet", href: fontsUrl },
+      ]}
+      extraMeta={[
+        { name: "theme-color", content: "#f7f7f7" },
+        { name: "color-scheme", content: "light" },
+      ]}
+    />
+
+    <!-- Umami Web Analytics -->
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="c2b2368b-72f8-4771-b615-f78ce2c2168c"
+    ></script>
+
+    <script is:inline>
+      // JS-gated reveal/motion: elements start hidden only when JS runs.
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

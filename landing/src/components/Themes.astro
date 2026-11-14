@@ -1,0 +1,35 @@
+---
+import themePaper from "../assets/design/theme-paper.webp";
+import themeGlass from "../assets/design/theme-glass.webp";
+import themeComic from "../assets/design/theme-comic.webp";
+import themeDark from "../assets/design/theme-dark.webp";
+
+const themes = [
+  { name: "Paper", n: "01 / 04", text: "Warm cream cards with a paper grain.", alt: "The Paper theme: warm cream cards.", image: themePaper },
+  { name: "Glass", n: "02 / 04", text: "Frosted, translucent and light.", alt: "The Glass theme: frosted translucent cards.", image: themeGlass },
+  { name: "Comic", n: "03 / 04", text: "Bold outlines and hard pop-art shadows.", alt: "The Comic theme: bold outlined cards with hard shadows.", image: themeComic },
+  { name: "Dark", n: "04 / 04", text: "Deep and restful for the evening.", alt: "The Dark theme: deep blue translucent cards.", image: themeDark },
+];
+---
+
+<section class="sec cream themes" id="themes" style="padding-top:0">
+  <h2>Paper. Glass. Comic. Dark.</h2>
+  <p class="sub">Three hand-tuned widget surfaces, a warm paper grain, a frosted glass and a bold pop-art panel, so your new tab feels like yours.</p>
+  <div class="swatches">
+    {themes.map((t) => (
+      <figure>
+        <img src={t.image.src} alt={t.alt} loading="lazy" decoding="async" />
+        <figcaption>
+          <div class="th-row">
+            <span class="th-t">{t.name}</span>
+            <span class="th-n">{t.n}</span>
+          </div>
+          <p>{t.text}</p>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+  <p class="note">
+    <b>Sunrise to sunset, automatically.</b> Set your location and it flips between light and dark on its own: bright parchment during the day, a restful pine at night. No toggle, no thought.
+  </p>
+</section>

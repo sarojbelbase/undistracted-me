@@ -1,0 +1,94 @@
+// ─── Center zone ──────────────────────────────────────────────────────────────
+//
+// Renders the clock, greeting text, and optional search bar.
+// Clock + greeting are pushed to upper-center; search bar floats below.
+// Owns its own clock-tick subscription; receives only `centerOnDark` from the
+// parent (background-dependent, cannot be self-determined here).
+
+import { useState, useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { getTimeParts } from '../../../widgets/clock/utils';
+import { onClockTick } from '../../../utilities/sharedClock';
+import { useSettingsStore } from '../../../store';
+import { Clock } from '../panels/Clock';
+import { SearchBar } from '../panels/SearchBar';
+import { ZONES } from '../config';
+
+const CENTER = ZONES.center.items;
+
+// Pre-sorted key list — computed once at module load so the 1Hz clock tick
+// does not re-sort the two-entry list on every render.
+const ORDERED_CENTER_KEYS = Object.entries(CENTER)
+  .filter(([, cfg]) => cfg.enable)
+  .sort(([, a], [, b]) => a.order - b.order)
+  .map(([key]) => key);
+
+// Renderers defined outside the component to avoid lint "component inside component" warning.
+// Each factory receives the current render context and returns a keyed JSX node (or null).
+const renderClock = (parts, clockOnDark, showSearch) => (
+  <div key="clock" className="select-none pointer-events-none" style={{ display: 'flex', justifyContent: 'center' }}>
+    <Clock parts={parts} centerOnDark={clockOnDark} compact={showSearch} />
+  </div>
+);
+
+const renderSearchBar = (searchOnDark, showSearch) => showSearch ? (
+  <div key="searchBar" className="pointer-events-auto">
+    <SearchBar centerOnDark={searchOnDark} />
+  </div>
+) : null;
+
+export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDark = true }) => {
+  const { clockFormat, focusSearchBar } = useSettingsStore(
+    useShallow(s => ({ clockFormat: s.clockFormat || '24h', focusSearchBar: s.focusSearchBar ?? true })),
+  );
+  const [parts, setParts] = useState(() => getTimeParts(clockFormat));
+  // Gate on actual change — the clock shows HH:MM (no seconds), so the value
+  // only flips once a minute. Without this guard CenterZone (Clock + SearchBar)
+  // re-rendered 60×/minute.
+  const update = useCallback(() => {
+    setParts((prev) => {
+      const next = getTimeParts(clockFormat);
+      if (
+        prev &&
+        prev.time === next.time &&
+        prev.period === next.period &&
+        prev.greeting?.label === next.greeting?.label
+      ) return prev;
+      return next;
+    });
+  }, [clockFormat]);
+  useEffect(() => onClockTick(update), [update]);
+
+  const showSearch = CENTER.searchBar.enable && focusSearchBar;
+
+  const orderedItems = ORDERED_CENTER_KEYS
+    .map(key => {
+      if (key === 'clock') return renderClock(parts, clockOnDark, showSearch);
+      if (key === 'searchBar') return renderSearchBar(searchOnDark, showSearch);
+      return null;
+    })
+    .filter(Boolean);
+
+  return (
+    <>
+      {/* ── Main column: clock + optional search bar ────────────────── */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center"
+        style={{ zIndex: 25, pointerEvents: 'none' }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 'min(600px, 90vw)',
+            padding: '0 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'clamp(14px, 2vh, 22px)',
+          }}
+        >
+          {orderedItems}
+        </div>
+      </div>
+    </>
+  );
+};
