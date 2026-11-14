@@ -796,11 +796,8 @@ export const Widget = ({ id = "weather", onRemove }) => {
   // Normalise legacy 'simple' value to 'minimal'
   const style =
     settings.style === "simple" ? "minimal" : (settings.style ?? "minimal");
-  const [weather, setWeather] = useState(null);
-  const [forecast, setForecast] = useState(null);
-  const [aqi, setAqi] = useState(null);
-  // Tracks the unit the currently-displayed `weather` was fetched in, so a
-  // °C↔°F switch can convert the stale value on the fly instead of briefly
+  // Tracks the unit the currently-displayed payload was fetched in, so a °C↔°F
+  // switch can convert the stale value on the fly instead of briefly
   // mislabelling it (e.g. showing "16°F" while the imperial fetch is in flight).
   const weatherUnitRef = useRef(unit);
   const [locationDenied, setLocationDenied] = useState(false);
@@ -840,39 +837,34 @@ export const Widget = ({ id = "weather", onRemove }) => {
     refreshKey,
   });
 
-  // Sync hook output to widget state (allows the rest of the widget to read from
-  // weather/forecast/aqi as before without changing any rendering code).
+  // Track the unit the currently-displayed payload was fetched in, so a °C↔°F
+  // switch can convert the stale value on the fly while the refetch is in flight.
   useEffect(() => {
-    setWeather(hookWeather);
-    weatherUnitRef.current = unit; // the unit this payload was fetched in
+    weatherUnitRef.current = unit;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hookWeather]);
-  useEffect(() => { setForecast(hookForecast); }, [hookForecast]);
-  useEffect(() => { setAqi(hookAqi); }, [hookAqi]);
 
   // Convert the stale payload to the target unit while a unit switch is still
   // fetching, so the displayed temperature is always correct for the label.
   const displayWeather = useMemo(() => {
-    if (!weather) return null;
+    if (!hookWeather) return null;
     const from = weatherUnitRef.current;
-    if (from === unit) return weather;
+    if (from === unit) return hookWeather;
     const toF = (c) => Math.round((c * 9) / 5 + 32);
     const toC = (f) => Math.round(((f - 32) * 5) / 9);
     const conv = from === "metric" ? toF : toC;
     return {
-      ...weather,
-      temperature: conv(weather.temperature),
-      feelsLike: weather.feelsLike != null ? conv(weather.feelsLike) : null,
+      ...hookWeather,
+      temperature: conv(hookWeather.temperature),
+      feelsLike: hookWeather.feelsLike != null ? conv(hookWeather.feelsLike) : null,
     };
-  }, [weather, unit]);
+  }, [hookWeather, unit]);
 
-  // Location-denied detection
+  // Location-denied detection — useWeather now clears its own output when coords
+  // go null, so this only needs to drive the denied flag.
   useEffect(() => {
     if (!location && (geoSource === "default" || geoLat == null)) {
       setLocationDenied(geoSource === "default");
-      setWeather(null);
-      setForecast(null);
-      setAqi(null);
     } else {
       setLocationDenied(false);
     }
@@ -892,7 +884,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
 
   const unitLabel = unit === "imperial" ? "F" : "C";
 
-  const quip = getWeatherQuip(forecast, displayWeather, {
+  const quip = getWeatherQuip(hookForecast, displayWeather, {
     windGust: displayWeather?.windGust ?? 0,
   });
 
@@ -928,8 +920,8 @@ export const Widget = ({ id = "weather", onRemove }) => {
     cityShort,
     atmoAnchor,
     setAtmoAnchor,
-    forecast,
-    aqi,
+    forecast: hookForecast,
+    aqi: hookAqi,
     showAQI,
     sunTimes,
     sunEvent,

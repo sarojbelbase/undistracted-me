@@ -62,6 +62,9 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
 
   useEffect(() => {
     if (lat == null || lon == null) {
+      setWeather(null);
+      setForecast(null);
+      setAqi(null);
       setLoading(false);
       return;
     }
