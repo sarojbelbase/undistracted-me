@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Undistracted Me — New Tab",
-  "version": "4.0.0",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkRaqrXERzV7BV2wl/wX2E6lKeLAR3xdbO+gs+5K5IzhLwB7AqZqGY6R35rA5uFy25L4Qqn1DoosZCdr8Dwt1P3yJ/ClLVK6igqyOWti19vr7bXR9RoTwDcty75KM3YQTTDdW70H20A25W6lGdoa0UV8VcUY7FKT6NAN1hGB+ldWIMesryVFTUfokA4/6qKuSnVyhkNqbh6qyu5hk4t+ula/iMw2ONhwoZ5oQEscKbANd4+KFFJXnL5QifVbfjtf+wfrF1EGAd9wUwjDENhDwroIcVr9mwit5JbcyTVoaGnZnXNEYQrFp505D3TwrwXuzi37kHGzLq3V+mz0lCem+ewIDAQAB",
+  "version": "4.0.1",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjWKY54inmu1TFsyKcSGCaI7oJ9cPbOLJ+70HYLjHcQOk2ePUksfxRaSxytIT0davFFNEn3TrUfTPPuDID87IIqM3MVAc6bbjQTPSJWA+S7bf/MscD7UcQmbxn+mGCjQrfDYeMeICyWJeofsj4oxj8WHA8kCTw51sTmIHTPuUk744TQL+z0svW3vAVFWLqbVyxISZ143cDLF/FFQUubyDf08Ul6FNqLD1Uu54gOZh74xIyis7ILxW/rvn1RUghgz3SRgWXrAPqdkNL6x6Aioy1eDY+C5rJk2p5tgNQFe7GjWInStOMxDiUFlQk09BhFwVdL5/WGHolxLunD05HCHVvQIDAQAB",
   "author": {
     "email": "hello@undistracted.me"
   },

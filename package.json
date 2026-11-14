@@ -1,6 +1,6 @@
 {
 	"name": "undistracted-me",
-	"version": "4.0.0",
+	"version": "4.0.1",
 	"description": "A chrome/firefox extension to show distraction free nepali date on your new tab.",
 	"main": "index.js",
 	"repository": "https://github.com/sarojbelbase/undistracted-me",
@@ -14,6 +14,7 @@
 		"start:firefox": "vite build && bun scripts/patch-manifest-firefox.mjs && web-ext run --source-dir ./dist-firefox/",
 		"build:firefox": "vite build && bun scripts/patch-manifest-firefox.mjs && web-ext build --source-dir ./dist-firefox/ --artifacts-dir builds --overwrite-dest",
 		"build:chrome": "vite build && mkdir -p builds && zip -r builds/chrome.zip dist",
+		"publish:firefox": "bun run build:firefox && bun scripts/publish-firefox.mjs listed",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"test:unit": "vitest run --config vitest.config.ts",
@@ -48,6 +49,7 @@
 		"@testing-library/react": "^16.3.3",
 		"@testing-library/user-event": "^14.6.10",
 		"@vitest/coverage-v8": "^5.1.0",
+		"chrome-webstore-upload": "^6.0.1",
 		"esbuild": "^0.28.2",
 		"jsdom": "~31.0.1",
 		"postcss": "^8.5.33",
