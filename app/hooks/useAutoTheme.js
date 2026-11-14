@@ -34,7 +34,14 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   return 60 * 60 * 1000;
 };
 
-export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) => {
+export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle, opts = {}) => {
+  // `apply: false` turns this into a pure mode-reader — resolves 'auto' to the
+  // effective light/dark (and keeps it fresh) WITHOUT calling applyTheme or
+  // duplicating the document-level theme side effect. The Appearance settings
+  // panel uses this to tint accent swatches while App.jsx stays the single
+  // place that actually applies the theme.
+  const shouldApply = opts.apply !== false;
+
   // Read location + sun data from the centralized store
   const { lat, lon, sunrise, sunset } = useLocationStore(
     useShallow((s) => ({
@@ -62,7 +69,7 @@ export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.car
 
     const applyEffective = (effective) => {
       setEffectiveMode(effective);
-      applyTheme(accent, effective, cardStyle);
+      if (shouldApply) applyTheme(accent, effective, cardStyle);
     };
 
     const computeAndSchedule = () => {

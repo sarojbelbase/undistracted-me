@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 
 /**
  * useSwipeToNavigate — shared horizontal drag-to-navigate gesture used by the
@@ -50,9 +50,14 @@ export function useSwipeToNavigate({ onNext, onPrev }) {
     [onNext, onPrev],
   );
 
+  const handlers = useMemo(
+    () => ({ onPointerDown, onPointerMove, onPointerUp }),
+    [onPointerDown, onPointerMove, onPointerUp],
+  );
+
   return {
     dragX,
     releasing,
-    handlers: { onPointerDown, onPointerMove, onPointerUp },
+    handlers,
   };
 }

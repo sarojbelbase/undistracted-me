@@ -44,8 +44,9 @@ export const Appearance = () => {
   const setCanvasBg = useSettingsStore((s) => s.setCanvasBg);
 
   // Canonical auto-mode resolution — resolves 'auto' to the effective light/dark
-  // so the accent swatches use the correct tone even during the day.
-  const effectiveMode = useAutoTheme(mode, accent, cardStyle);
+  // so the accent swatches use the correct tone even during the day. Reads only
+  // (`apply: false`); App.jsx is the single place that applies the theme.
+  const effectiveMode = useAutoTheme(mode, accent, cardStyle, { apply: false });
 
   const bgType = canvasBg?.type ?? APP_SETTINGS_DEFAULTS.canvasBg.type;
 

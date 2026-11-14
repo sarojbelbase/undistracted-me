@@ -29,6 +29,14 @@ export function useRainStream(fadeDurationMs = 3000) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [ready, setReady] = useState(false);   // true once src is set on the element
   const audioRef = useRef(null);
+  // State mirror of the mounted <audio> element so the position-persistence
+  // effect re-runs when the node is swapped (pomodoro PICK ↔ TIMER branches each
+  // mount their own <audio>). Exposed as a callback ref for `ref={audioRef}`.
+  const [audioEl, setAudioEl] = useState(null);
+  const setAudioRef = useCallback((el) => {
+    audioRef.current = el;
+    setAudioEl(el);
+  }, []);
   const fadeRafRef = useRef(null);
   // Tracks the URL already applied to the <audio> element so a fresh URL from
   // the API revalidation can replace a stale cached URL instead of being ignored.
@@ -125,7 +133,7 @@ export function useRainStream(fadeDurationMs = 3000) {
       audio.removeEventListener("ended", persistNow);
       document.removeEventListener("visibilitychange", persistNow);
     };
-  }, [ready]);
+  }, [ready, audioEl]);
 
   // 3. Save position on unmount
   useEffect(() => {
@@ -210,5 +218,5 @@ export function useRainStream(fadeDurationMs = 3000) {
     });
   }, [ready, fadeVolume]);
 
-  return { toggle, play, pause, isPlaying, audioRef, ready };
+  return { toggle, play, pause, isPlaying, audioRef: setAudioRef, ready };
 }

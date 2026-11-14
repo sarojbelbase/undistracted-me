@@ -189,7 +189,6 @@ export const Widget = ({ id, onRemove }) => {
     if (!notifKey || totalSeconds > 0 || target?.mode === "since") return;
     if (wasNotified(notifKey)) return;
     markNotified(notifKey);
-
     if (target.isEvent) {
       sendNotification(
         target.title,
@@ -211,7 +210,7 @@ export const Widget = ({ id, onRemove }) => {
     if (pinned?.type === "event") {
       pinClearRef.current = setTimeout(() => setPin(null), 10_000);
     }
-  }, [notifKey, totalSeconds === 0]);
+  }, [notifKey, totalSeconds, target, pinned, custom]);
 
   // ── Compute display values ──────────────────────────────────────────────────
   const activeTarget = resolveActiveTarget(

@@ -147,50 +147,61 @@ export const Widget = ({ id, onRemove }) => {
     [updateSetting],
   );
 
+  // Latest-list mirror so the change handlers can read the current notes without
+  // depending on `localNotes` — avoids recreating the LexicalEditor onChange
+  // callbacks (and re-rendering the editor) on every keystroke.
+  const localNotesRef = useRef(localNotes);
+  useEffect(() => {
+    localNotesRef.current = localNotes;
+  }, [localNotes]);
+
   const handleTitleChange = useCallback(
     (e) => {
       const val = e.target.value.replaceAll("\n", "");
-      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const notes = localNotesRef.current;
+      const cur = notes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
       const { bodyText: prevBody } = splitNote(cur.text);
       const newText = mergeNote(val, prevBody);
-      const next = [...localNotes];
+      const next = [...notes];
       next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
       setLocalNotes(next);
       persist(next);
       notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, localNotes, persist],
+    [localIdx, persist],
   );
 
   // Called by LexicalEditor whenever the body markdown changes
   const handleBodyChange = useCallback(
     (md) => {
-      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const notes = localNotesRef.current;
+      const cur = notes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
       const { titleLine: prevTitle } = splitNote(cur.text);
       const newText = mergeNote(prevTitle, md);
-      const next = [...localNotes];
+      const next = [...notes];
       next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
       setLocalNotes(next);
       persist(next);
       notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, localNotes, persist],
+    [localIdx, persist],
   );
 
   // Widget card textarea — preserves the title (first line), updates body only
   const handleWidgetTextChange = useCallback(
     (e) => {
       const val = e.target.value;
-      const cur = localNotes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
+      const notes = localNotesRef.current;
+      const cur = notes[localIdx] ?? { id: "", text: "", updatedAt: 0 };
       const { titleLine: prevTitle } = splitNote(cur.text);
       const newText = mergeNote(prevTitle, val);
-      const next = [...localNotes];
+      const next = [...notes];
       next[localIdx] = { ...cur, text: newText, updatedAt: Date.now() };
       setLocalNotes(next);
       persist(next);
       notesSync.onNoteChanged(cur.id, newText);
     },
-    [localIdx, localNotes, persist],
+    [localIdx, persist],
   );
 
   // ── Navigation ────────────────────────────────────────────────────────────────

@@ -185,11 +185,20 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   // ── Compute week geometry ──────────────────────────────────────────────────
   const totalWeeks = Math.ceil(calendarData.days.length / 7);
 
-  // When data loads for the current month, anchor startWeek so today is visible
+  // When data loads for the current month, anchor startWeek so today is visible.
+  // Guarded by anchoredOffsetRef so the hourly rebuild (which regenerates the same
+  // month's data and changes `calendarData`'s reference) does NOT re-anchor and
+  // silently snap the user's week paging back to today.
+  const anchoredOffsetRef = useRef(null);
   useEffect(() => {
-    if (monthOffset !== 0) return;
+    if (monthOffset !== 0) {
+      anchoredOffsetRef.current = null;
+      return;
+    }
     const todayIdx = calendarData.days.findIndex(d => d.isCurrent);
     if (todayIdx < 0) return;
+    if (anchoredOffsetRef.current === 0) return; // already anchored this month
+    anchoredOffsetRef.current = 0;
     const todayWeek = Math.floor(todayIdx / 7);
     // Show today's week as the first row, unless it's the very last week
     // (then show second-to-last week as first row so today is in row 2)
