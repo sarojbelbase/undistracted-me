@@ -1,0 +1,19 @@
+---
+import { faq } from "../data/faq.js";
+---
+
+<section class="sec white faq" id="faq">
+  <h2>Frequently asked.</h2>
+  {faq.map((item) => (
+    <details>
+      <summary>
+        <span>{item.q}</span>
+        <svg class="fq" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path class="v" d="M11 5h2v14h-2z" />
+          <path d="M5 11h14v2H5z" />
+        </svg>
+      </summary>
+      <p set:html={item.a} />
+    </details>
+  ))}
+</section>

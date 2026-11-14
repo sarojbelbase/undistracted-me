@@ -1,0 +1,35 @@
+---
+import heroUnplug from "../assets/design/hero-unplug.webp";
+import { site } from "../data/site.js";
+---
+
+<header class="hero" id="top">
+  <div class="fig">
+    <img
+      src={heroUnplug.src}
+      alt="A hand pulling a plug from its cord, with yellow sparks flying."
+      fetchpriority="high"
+      decoding="async"
+    />
+  </div>
+
+  <div class="hcopy">
+    <h1>
+      <span class="hl"><span style="--i:0">Unplug</span></span>
+      <span class="hl"><span style="--i:1">the</span></span>
+      <span class="hl"><span style="--i:2">noise.</span></span>
+    </h1>
+    <p class="lead">A new tab that asks nothing of you. Undistracted Me puts a clock, a calendar and a few quiet widgets in one place, so you never get lost.</p>
+    <div class="cta">
+      <a class="btn pulse" data-slot="1" data-kind="btn" href={site.chromeUrl}>
+        <svg class="ic"><use href="#i-chrome" /></svg>
+        <span class="lb">Add to Chrome</span>
+      </a>
+      <a class="btn ghost" data-slot="2" data-kind="btn" href={site.firefoxUrl}>
+        <svg class="ic"><use href="#i-firefox" /></svg>
+        <span class="lb">Get it for Firefox</span>
+      </a>
+    </div>
+    <p class="meta">No account required. Works offline. MIT licensed. Made in Nepal.</p>
+  </div>
+</header>

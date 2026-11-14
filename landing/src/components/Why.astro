@@ -1,0 +1,37 @@
+---
+import chess from "../assets/design/chess.webp";
+
+const apps = [
+  { n: 3, t: 0.06, icon: "instagram", style: "left:2%;top:6%" },
+  { n: 12, t: 0.13, icon: "youtube", style: "left:38%;top:0" },
+  { n: 8, t: 0.2, icon: "whatsapp", style: "left:72%;top:14%" },
+  { n: 14, t: 0.27, icon: "gmail", style: "left:12%;top:56%" },
+  { n: 5, t: 0.34, icon: "x", style: "left:46%;top:50%" },
+  { n: 9, t: 0.41, icon: "discord", style: "left:78%;top:58%" },
+];
+---
+
+<section class="why" id="why">
+  <div class="why-pin">
+    <h2 class="why-h">
+      <span class="w">Every</span> <span class="w">app</span> <span class="w">wanted</span>{" "}
+      <span class="w">my</span> <span class="w">next</span> <span class="w">move.</span>
+    </h2>
+    <p class="why-p">I made Undistracted Me because every other app was built to help me, and every one of them left me more distracted. I'd open one to check something and the game began: a badge, a feed, a suggestion.</p>
+    <div class="apps" aria-hidden="true">
+      {apps.map((a) => (
+        <div class="app" data-n={a.n} data-t={a.t} style={a.style}>
+          <svg class="ic"><use href={`#i-${a.icon}`} /></svg>
+          <i>0</i>
+        </div>
+      ))}
+    </div>
+    <img
+      class="mul why-chess"
+      src={chess.src}
+      alt="A hand moving a black queen among chess pieces."
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+</section>

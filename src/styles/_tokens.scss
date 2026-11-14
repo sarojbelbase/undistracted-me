@@ -1,0 +1,71 @@
+// ─── CSS Design Tokens ─────────────────────────────────────────────────────────
+// These are the fallback :root values. Runtime, applyTheme() in theme.js
+// overwrites them based on the user's mode/accent/cardStyle selections.
+// Keeping them here ensures zero flash on the very first paint and gives a
+// single-file reference for every custom property the app uses.
+
+:root {
+  // ── Page background ──────────────────────────────────────────────────────
+  --w-page-bg: #ebebeb;
+  --gradient: linear-gradient(
+    #131416,
+    #202125,
+    #18191b,
+    #121315,
+    #1c1d21,
+    #141517,
+    #161719
+  );
+  --white: #e1e0e4;
+
+  // ── Ink scale (light mode defaults — must match LIGHT_TOKENS in theme.js) ─
+  --w-ink-1: #111111; // 18.4:1 AAA — headlines, strong labels
+  --w-ink-2: #222222; // 14.5:1 AAA — display numbers (clock, large date)
+  --w-ink-3: #3d3d3d; //  9.4:1 AAA — bold value text in title/sub pairs
+  --w-ink-4: #4d4d4d; //  7.7:1 AA  — medium context, captions
+  --w-ink-5: #666666; //  5.7:1 AA  — soft/muted labels
+  --w-ink-6: #8a8a8a; //  3.4:1     — inactive / decorative
+
+  // ── Surface scale ────────────────────────────────────────────────────────
+  --w-surface: #f5f5f5;
+  --w-surface-2: #f0f0f0;
+  --w-surface-3: #e8e8e8; // tertiary — icon skeletons
+
+  // ── Border & semantic ────────────────────────────────────────────────────
+  --w-border: #e0e0e0;
+  --w-divider: rgba(0, 0, 0, 0.1);
+  --w-danger: #ef4444;
+  --w-success: #22c55e;
+
+  // ── Semantic icon colours ──────────────────────────────────────────────
+  --w-sunrise: #f59e0b;
+  --w-sunset: #8b5cf6;
+
+  // ── Accent ───────────────────────────────────────────────────────────────
+  --w-accent: #111827;
+  --w-accent-fg: #ffffff;
+  --w-accent-rgb: 17, 24, 39;
+
+  // ── Widget Catalog danger tokens ─────────────────────────────────────────
+  --wc-danger-fg: #fca5a5;
+  --wc-danger-fg-hover: #fecaca;
+  --wc-danger-bg: rgba(192, 57, 43, 0.14);
+
+  // ── Card surface tokens (glass defaults, overwritten by applyTheme) ──────
+  --card-bg: rgba(255, 255, 255, 0.44);
+  --card-border: rgba(0, 0, 0, 0.09);
+  --card-border-width: 1px;
+  --card-radius: 1rem;
+  --card-blur: blur(28px) saturate(180%);
+  --card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 32px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
+  // Texture layers: overridden to the 3-layer grain stack in comic mode.
+  --card-texture: none;
+  --card-texture-size: auto;
+  --modal-bg: #f5f5f5;
+  --modal-shadow: 0 8px 40px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.07);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.1);
+  --modal-overlay-blur: blur(10px) saturate(150%);
+  --panel-bg: rgba(255, 255, 255, 0.55);
+}

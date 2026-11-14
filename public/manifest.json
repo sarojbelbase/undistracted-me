@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Undistracted Me",
-  "version": "2.3.2",
-  "author": "Saroj Belbase",
-  "description": "Replaces your new tabs with a distraction free nepali date.",
+  "name": "Undistracted Me — New Tab",
+  "version": "4.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkRaqrXERzV7BV2wl/wX2E6lKeLAR3xdbO+gs+5K5IzhLwB7AqZqGY6R35rA5uFy25L4Qqn1DoosZCdr8Dwt1P3yJ/ClLVK6igqyOWti19vr7bXR9RoTwDcty75KM3YQTTDdW70H20A25W6lGdoa0UV8VcUY7FKT6NAN1hGB+ldWIMesryVFTUfokA4/6qKuSnVyhkNqbh6qyu5hk4t+ula/iMw2ONhwoZ5oQEscKbANd4+KFFJXnL5QifVbfjtf+wfrF1EGAd9wUwjDENhDwroIcVr9mwit5JbcyTVoaGnZnXNEYQrFp505D3TwrwXuzi37kHGzLq3V+mz0lCem+ewIDAQAB",
+  "author": {
+    "email": "hello@undistracted.me"
+  },
+  "description": "Undistracted Me is a distraction-free new tab: Nepali calendar, Focus Mode, and 30+ quiet widgets. No account, works offline.",
   "icons": {
     "16": "favicon/lotus16.png",
     "32": "favicon/lotus32.png",
@@ -18,15 +21,83 @@
       "32": "favicon/lotus32.png",
       "128": "favicon/lotus128.png"
     },
-    "default_title": "Undistracted Me"
+    "default_title": "New Tab Page",
+    "default_popup": "entries/popup.html"
+  },
+  "background": {
+    "service_worker": "src/bg.js"
   },
   "chrome_url_overrides": {
-    "newtab": "index.html"
+    "newtab": "entries/index.html"
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}"
+      "id": "{1071d037-0f17-4c92-b06c-704050d2e2c3}",
+      "strict_min_version": "128.0"
     }
   },
-  "homepage_url": "https://whatsthemiti.sarojbelbase.com.np"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; object-src 'none';"
+  },
+  "homepage_url": "https://undistracted.me",
+  "permissions": [
+    "identity",
+    "storage",
+    "geolocation",
+    "topSites",
+    "notifications",
+    "alarms",
+    "idle",
+    "tabs",
+    "scripting",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "https://app.undistracted.me/*",
+    "https://api.undistracted.me/*",
+    "https://api.spotify.com/*",
+    "https://accounts.spotify.com/*",
+    "*://*.youtube.com/*",
+    "*://*.soundcloud.com/*",
+    "https://nepalipaisa.com/*",
+    "https://www.merolagani.com/*",
+    "https://people.googleapis.com/*",
+    "https://www.googleapis.com/*",
+    "https://tasks.googleapis.com/*",
+    "https://oauth2.googleapis.com/*",
+    "https://content.googleapis.com/*",
+    "https://suggestqueries.google.com/*",
+    "https://ac.duckduckgo.com/*",
+    "https://api.open-meteo.com/*",
+    "https://air-quality-api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*",
+    "https://nominatim.openstreetmap.org/*",
+    "https://icanhazdadjoke.com/*",
+    "https://ipapi.co/*",
+    "https://freeipapi.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.soundcloud.com/*",
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "src/utilities/media.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "entries/blocked.html",
+        "assets/blocked*.js",
+        "assets/blocked*.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

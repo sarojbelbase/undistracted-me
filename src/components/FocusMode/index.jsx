@@ -1,0 +1,334 @@
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  Suspense,
+  lazy,
+} from "react";
+import bgImage from "../../assets/img/bg.webp";
+import {
+  useFocusPhoto,
+  useFocusTasks,
+  useWakeLock,
+  useCenterOnDark,
+} from "./hooks";
+import {
+  getBgSource,
+  setBgSource as persistBgSource,
+} from "../../utilities/unsplash";
+import { useSettingsStore } from "../../store";
+import { useShallow } from "zustand/react/shallow";
+import { getFMCardVars } from "./theme";
+import { getFMAccentVars } from "../../constants/accents";
+import { APP_SETTINGS_DEFAULTS } from "../../constants/defaults";
+import { TopZone } from "./zones/TopZone";
+import { CenterZone } from "./zones/CenterZone";
+import { BottomZone } from "./zones/BottomZone";
+import { LeftZone } from "./zones/LeftZone";
+import { RightZone } from "./zones/RightZone";
+import { BottomRightZone } from "./zones/BottomRightZone";
+import { ZONES } from "./config";
+
+// Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
+const FocusModeSettings = lazy(() =>
+  import("./Settings").then((m) => ({ default: m.FocusModeSettings })),
+);
+
+// ─── Background localStorage helpers ─────────────────────────────────────────
+const CUSTOM_URL_KEY = "fm_custom_bg_url";
+const getCustomBgUrl = () => {
+  try {
+    return localStorage.getItem(CUSTOM_URL_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+const persistCustomUrl = (url) => {
+  try {
+    if (url) localStorage.setItem(CUSTOM_URL_KEY, url);
+    else localStorage.removeItem(CUSTOM_URL_KEY);
+  } catch {}
+};
+
+const FG_MASK =
+  "linear-gradient(to bottom, transparent 0%, transparent 64%, rgba(0,0,0,0.5) 78%, black 100%)";
+
+function FocusBgLayer({
+  bgSource,
+  slotA,
+  slotB,
+  activeSlot,
+  customBgUrl,
+}) {
+  const bgStyle = {
+    position: "absolute",
+    inset: 0,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+
+  let fgBgImage;
+  if (activeSlot === "a") {
+    fgBgImage = slotA ? `url(${slotA})` : undefined;
+  } else {
+    fgBgImage = slotB ? `url(${slotB})` : undefined;
+  }
+
+  let activeBg = null;
+  if (bgSource === "custom") activeBg = customBgUrl || bgImage;
+  else if (bgSource === "default") activeBg = bgImage;
+
+  return (
+    <>
+      {bgSource === "curated" && (
+        <>
+          <div
+            style={{
+              ...bgStyle,
+              zIndex: 0,
+              backgroundImage: slotA ? `url(${slotA})` : `url(${bgImage})`,
+              opacity: activeSlot === "a" ? 1 : 0,
+              transition: "opacity 2.5s ease",
+            }}
+          />
+          <div
+            style={{
+              ...bgStyle,
+              zIndex: 1,
+              backgroundImage: slotB ? `url(${slotB})` : "none",
+              opacity: activeSlot === "b" ? 1 : 0,
+              transition: "opacity 2.5s ease",
+            }}
+          />
+        </>
+      )}
+      {bgSource !== "curated" && activeBg && (
+        <div
+          style={{ ...bgStyle, zIndex: 0, backgroundImage: `url(${activeBg})` }}
+        />
+      )}
+      {bgSource === "curated" && (slotA || slotB) && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 15,
+            pointerEvents: "none",
+            backgroundImage: fgBgImage,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            WebkitMaskImage: FG_MASK,
+            maskImage: FG_MASK,
+            opacity: 0.6,
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+export const FocusMode = ({ onExit }) => {
+  // ── Background ──────────────────────────────────────────────────────────────
+  const [bgSource, setBgSource] = useState(() => getBgSource());
+  const [customBgUrl, setCustomBgUrl] = useState(() => getCustomBgUrl());
+  const { photo, slotA, slotB, activeSlot, rotate } = useFocusPhoto();
+
+  // Re-read the wallpaper when cross-device sync pulls a new focus-mode
+  // background while Focus Mode is open. `focus_mode_changed` is dispatched by
+  // the sync engine after it merges a remote `focus_mode` into localStorage.
+  useEffect(() => {
+    const onFocusModeChanged = () => {
+      setBgSource(getBgSource());
+      setCustomBgUrl(getCustomBgUrl());
+    };
+    globalThis.addEventListener("focus_mode_changed", onFocusModeChanged);
+    return () =>
+      globalThis.removeEventListener("focus_mode_changed", onFocusModeChanged);
+  }, []);
+  // Card surface style (glass vs flat) — both are always dark-tinted.
+  const { cardStyle, accent } = useSettingsStore(
+    useShallow((s) => ({
+      cardStyle: s.cardStyle,
+      accent: s.accent,
+    })),
+  );
+  const effectiveCardStyle = cardStyle || APP_SETTINGS_DEFAULTS.cardStyle;
+
+  const {
+    clock: clockDark,
+    search: searchDark,
+    greet: greetDark,
+  } = useCenterOnDark(slotA, slotB, activeSlot);
+  // Non-curated sources are always dark — prevents white-shadow flash.
+  const effectiveClockDark = bgSource === "curated" ? clockDark : true;
+  // The search pill is photo-adaptive (translucent glass) only in glass mode.
+  // Paper and comic render the pill as a solid dark surface (see _paper.scss /
+  // _comic.scss `:has(> #fm-search)`), so its text must stay light even over a
+  // bright photo — otherwise a light search zone flips the text to black-on-dark.
+  const searchAdaptsToPhoto =
+    bgSource === "curated" && effectiveCardStyle === "glass";
+  const effectiveSearchDark = searchAdaptsToPhoto ? searchDark : true;
+  const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
+
+  // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [uiVisible, setUiVisible] = useState(true);
+  const hideTimerRef = useRef(null);
+  useWakeLock(isFullscreen);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const resetHideTimer = useCallback(() => {
+    setUiVisible(true);
+    clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setUiVisible(false), 3000);
+  }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setUiVisible(true);
+      clearTimeout(hideTimerRef.current);
+      return;
+    }
+    let rafId;
+    const onMove = () => {
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          resetHideTimer();
+          rafId = null;
+        });
+      }
+    };
+    globalThis.addEventListener("mousemove", onMove);
+    globalThis.addEventListener("mousedown", resetHideTimer);
+    resetHideTimer();
+    return () => {
+      globalThis.removeEventListener("mousemove", onMove);
+      globalThis.removeEventListener("mousedown", resetHideTimer);
+      clearTimeout(hideTimerRef.current);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isFullscreen, resetHideTimer]);
+
+  const toggleFullscreen = useCallback(() => {
+    // Surface failures instead of silently swallowing them (a rejected
+    // requestFullscreen in an iframe/headless context otherwise looks like a
+    // dead button with no way to diagnose it).
+    if (document.fullscreenElement) {
+      const p = document.exitFullscreen();
+      if (p?.catch) p.catch((err) => console.warn('[focus] exitFullscreen failed:', err));
+    } else {
+      const p = document.documentElement.requestFullscreen?.();
+      if (p?.catch) p.catch((err) => console.warn('[focus] requestFullscreen failed:', err));
+    }
+  }, []);
+
+  // ── Google auth (shared state for Tasks panel) ──────────────────
+  const taskState = useFocusTasks();
+
+  // ── Escape key ─────────────────────────────────────────────────────────────
+  const [settingsTab, setSettingsTab] = useState(null); // null = closed, else tab id
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape" && settingsTab === null) onExit();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onExit, settingsTab]);
+
+  // ── Background source change ────────────────────────────────────────────────
+  const handleBgChange = useCallback((source, customUrl) => {
+    persistBgSource(source);
+    setBgSource(source);
+    if (customUrl !== undefined) {
+      setCustomBgUrl(customUrl);
+      persistCustomUrl(customUrl);
+    } else if (source !== "custom") {
+      setCustomBgUrl(null);
+      persistCustomUrl(null);
+    }
+  }, []);
+
+  const photoColor = photo?.color || "#18191b";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 overflow-hidden fm-root"
+      style={{
+        backgroundColor: photoColor,
+        ...getFMCardVars(effectiveCardStyle),
+        ...getFMAccentVars(accent),
+      }}
+    >
+      <FocusBgLayer
+        bgSource={bgSource}
+        slotA={slotA}
+        slotB={slotB}
+        activeSlot={activeSlot}
+        customBgUrl={customBgUrl}
+      />
+
+      {/* Cinematic vignette */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.5) 100%), linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, transparent 28%, transparent 62%, rgba(0,0,0,0.42) 100%)",
+        }}
+      />
+
+      {ZONES.center.enable && (
+        <CenterZone
+          clockOnDark={effectiveClockDark}
+          searchOnDark={effectiveSearchDark}
+          greetOnDark={effectiveClockDark}
+        />
+      )}
+      {ZONES.bottom.enable && <BottomZone greetOnDark={effectiveGreetDark} />}
+      {ZONES.right.enable && <RightZone centerOnDark={effectiveClockDark} />}
+      {ZONES.left.enable && <LeftZone />}
+      {ZONES.bottomRight?.enable && (
+        <BottomRightZone
+          taskState={taskState}
+          centerOnDark={effectiveClockDark}
+        />
+      )}
+      {ZONES.top.enable && (
+        <TopZone
+          onExit={onExit}
+          isFullscreen={isFullscreen}
+          toggleFullscreen={toggleFullscreen}
+          uiVisible={uiVisible}
+          onOpenSettings={(tab) => setSettingsTab(tab ?? "search")}
+          settingsOpen={settingsTab !== null}
+        />
+      )}
+
+      {settingsTab !== null && (
+        <Suspense fallback={null}>
+          <FocusModeSettings
+            onClose={() => setSettingsTab(null)}
+            initialTab={settingsTab}
+            bgSource={bgSource}
+            bgCustomUrl={bgSource === "custom" ? customBgUrl : null}
+            bgPhotoUrl={
+              bgSource === "curated"
+                ? photo?.regular || photo?.url || null
+                : null
+            }
+            onBgApply={(type, opts = {}) => handleBgChange(type, opts.url)}
+            onBgRotate={rotate}
+          />
+        </Suspense>
+      )}
+    </div>
+  );
+};

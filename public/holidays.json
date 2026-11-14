@@ -1,0 +1,1200 @@
+{
+  "generatedAt": "2026-11-03T12:26:01.401Z",
+  "holidays": [
+    {
+      "date": "2024-04-13",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-05-28",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-09-19",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-11",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-17",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-18",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-19",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-20",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-21",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-10-22",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-07",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-08",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-09",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-10",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-11",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-11-14",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2024-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-01-14",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-01-29",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-02-06",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-03-06",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-03-09",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-03-20",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-03-21",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-04-14",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-05-29",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-09-19",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-11",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-17",
+      "name": "Fulpati",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-18",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-19",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-20",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-21",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-22",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-10-23",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-08",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-09",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-10",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-11",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-12",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-11-15",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2025-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-01-01",
+      "name": "New Year's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-01-15",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-01-30",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-02-07",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-02-14",
+      "name": "Valentine's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-03-06",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-03-08",
+      "name": "International Women's Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-03-09",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-03-17",
+      "name": "Saint Patrick's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-03-20",
+      "name": "International Day of Happiness",
+      "kind": "international"
+    },
+    {
+      "date": "2026-03-21",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-03-22",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-04-01",
+      "name": "April Fools' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-04-07",
+      "name": "World Health Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-04-22",
+      "name": "Earth Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "International Workers' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-05-29",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-06-01",
+      "name": "International Children's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-06-05",
+      "name": "World Environment Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-06-21",
+      "name": "International Day of Yoga",
+      "kind": "international"
+    },
+    {
+      "date": "2026-08-12",
+      "name": "International Youth Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-09-19",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-09-21",
+      "name": "International Day of Peace",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-01",
+      "name": "International Day of Older Persons",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-05",
+      "name": "World Teachers' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-10",
+      "name": "World Mental Health Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-11",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-16",
+      "name": "World Food Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-17",
+      "name": "Fulpati",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-18",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-19",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-20",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-21",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-22",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-23",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-10-24",
+      "name": "United Nations Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-10-31",
+      "name": "Halloween",
+      "kind": "international"
+    },
+    {
+      "date": "2026-11-01",
+      "name": "All Saints' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-11-08",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-09",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-10",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-11",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-12",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-13",
+      "name": "World Kindness Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-11-15",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-11-20",
+      "name": "Universal Children's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-12-01",
+      "name": "World AIDS Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-12-10",
+      "name": "Human Rights Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-12-24",
+      "name": "Christmas Eve",
+      "kind": "international"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-12-26",
+      "name": "Boxing Day",
+      "kind": "international"
+    },
+    {
+      "date": "2026-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2026-12-31",
+      "name": "New Year's Eve",
+      "kind": "international"
+    },
+    {
+      "date": "2027-01-01",
+      "name": "New Year's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-01-15",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-01-30",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-02-07",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-02-14",
+      "name": "Valentine's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-03-06",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-03-08",
+      "name": "International Women's Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-03-09",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-03-17",
+      "name": "Saint Patrick's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-03-20",
+      "name": "International Day of Happiness",
+      "kind": "international"
+    },
+    {
+      "date": "2027-03-21",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-03-22",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-04-01",
+      "name": "April Fools' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-04-07",
+      "name": "World Health Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-04-14",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-04-22",
+      "name": "Earth Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-05-01",
+      "name": "International Workers' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-05-29",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-06-01",
+      "name": "International Children's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-06-05",
+      "name": "World Environment Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-06-21",
+      "name": "International Day of Yoga",
+      "kind": "international"
+    },
+    {
+      "date": "2027-08-12",
+      "name": "International Youth Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-09-19",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-09-21",
+      "name": "International Day of Peace",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-01",
+      "name": "International Day of Older Persons",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-05",
+      "name": "World Teachers' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-10",
+      "name": "World Mental Health Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-11",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-16",
+      "name": "World Food Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-17",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-18",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-19",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-20",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-21",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-22",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-10-24",
+      "name": "United Nations Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-10-31",
+      "name": "Halloween",
+      "kind": "international"
+    },
+    {
+      "date": "2027-11-01",
+      "name": "All Saints' Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-11-07",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-08",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-09",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-10",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-11",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-13",
+      "name": "World Kindness Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-11-14",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-11-20",
+      "name": "Universal Children's Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-12-01",
+      "name": "World AIDS Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-12-10",
+      "name": "Human Rights Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-12-24",
+      "name": "Christmas Eve",
+      "kind": "international"
+    },
+    {
+      "date": "2027-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-12-26",
+      "name": "Boxing Day",
+      "kind": "international"
+    },
+    {
+      "date": "2027-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2027-12-31",
+      "name": "New Year's Eve",
+      "kind": "international"
+    },
+    {
+      "date": "2028-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-01-14",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-01-29",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-02-06",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-03-05",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-03-08",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-03-20",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-03-21",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-04-13",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-05-28",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-09-18",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-10",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-16",
+      "name": "Fulpati",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-17",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-18",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-19",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-20",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-21",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-10-22",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-07",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-08",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-09",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-10",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-11",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-11-14",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2028-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-01-14",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-01-29",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-02-06",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-03-06",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-03-09",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-03-21",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-03-22",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-04-14",
+      "name": "Nepali New Year",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-05-28",
+      "name": "Republic Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-08-28",
+      "name": "Raksha Bandhan",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-09-04",
+      "name": "Krishna Janmashtami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-09-19",
+      "name": "Constitution Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-11",
+      "name": "Ghatasthapana",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-17",
+      "name": "Maha Asthami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-18",
+      "name": "Dashain Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-19",
+      "name": "Maha Navami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-20",
+      "name": "Vijayadashami",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-21",
+      "name": "Yekadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-10-22",
+      "name": "Duwadashi",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-07",
+      "name": "Laxmi Puja",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-08",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-09",
+      "name": "Mha Puja and  Govardhan Puja Nepal Sambat new year.",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-10",
+      "name": "Bhaitika",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-11",
+      "name": "Tihar Holiday",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-11-14",
+      "name": "Chhath Parwa",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-12-24",
+      "name": "Yomari Punhi and Jyapu Diwas",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-12-25",
+      "name": "Christmas Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2029-12-30",
+      "name": "Tamu Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-01-11",
+      "name": "Prithvi Jayanti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-01-14",
+      "name": "Maghe Sankranti",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-01-29",
+      "name": "Martyrs' Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-02-06",
+      "name": "Sonam Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-02-19",
+      "name": "Democracy Day",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-03-06",
+      "name": "Maha Shivaratri",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-03-09",
+      "name": "Gyalpo Lhosar",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-03-21",
+      "name": "Fagu Purnima",
+      "kind": "nepali"
+    },
+    {
+      "date": "2030-03-22",
+      "name": "In Tarai Region",
+      "kind": "nepali"
+    }
+  ]
+}

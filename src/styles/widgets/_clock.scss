@@ -1,0 +1,72 @@
+// ─── Clock Widget ────────────────────────────────────────────────────────────
+// BEM: .clk-*
+
+@use 'common' as *;
+
+// ── Main time display ────────────────────────────────────────────────────────
+
+.clk-main-time {
+  @include tabular-nums;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.clk-period {
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+  color: var(--w-ink-4);
+}
+
+// ── Extra timezone section ───────────────────────────────────────────────────
+
+.clk-tz-section {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+
+  &--single {
+    justify-content: center;
+  }
+
+  &--multi {
+    justify-content: space-evenly;
+  }
+}
+
+.clk-tz-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.clk-tz-time-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.125rem;
+}
+
+.clk-tz-time {
+  @include tabular-nums;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--w-ink-2);
+}
+
+.clk-tz-period {
+  font-weight: 600;
+  font-size: 0.55rem;
+  color: var(--w-ink-4);
+}
+
+.clk-tz-label {
+  @include text-truncate;
+  text-align: center;
+  line-height: 1.25;
+  font-weight: 500;
+  font-size: 0.68rem;
+  color: var(--w-ink-4);
+  max-width: 5rem;
+}

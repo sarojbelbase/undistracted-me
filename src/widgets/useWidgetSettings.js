@@ -1,0 +1,46 @@
+import { useCallback, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
+
+/**
+ * Reads and writes per-widget settings from the Zustand widget instances store.
+ *
+ * API is identical to the previous localStorage-direct version so all widget
+ * components are unchanged:
+ *
+ *   const [settings, updateSetting] = useWidgetSettings('clock', { format: '24h' });
+ *   updateSetting('format', '12h');
+ *
+ * Migration: on first load, settings are read from existing `widgetSettings_*`
+ * localStorage keys via the store's `merge` function — so no user data is lost.
+ * The legacy localStorage key is also kept in sync on every write so Playwright
+ * tests that seed / read it directly continue to work.
+ */
+export const useWidgetSettings = (widgetId, defaults) => {
+  // Stabilise defaults reference so the selector doesn't create new arrays/objects
+  // on every store tick — prevents cross-widget re-render cascades.
+  const defaultsRef = useRef(defaults);
+  if (defaultsRef.current !== defaults) defaultsRef.current = defaults;
+
+  // Read — shallow-compare the merged settings object so only real changes cause re-renders
+  const settings = useWidgetInstancesStore(
+    useShallow((s) => {
+      const stored = s.widgetSettings[widgetId];
+      const d = defaultsRef.current;
+      // Return a shallow copy in the fallback (not `d` itself) so callers can't
+      // mutate the shared module-level default object by reference.
+      return stored ? { ...d, ...stored } : { ...d };
+    }),
+  );
+
+  const updateWidgetSetting = useWidgetInstancesStore(
+    (s) => s.updateWidgetSetting,
+  );
+
+  const updateSetting = useCallback(
+    (key, value) => updateWidgetSetting(widgetId, key, value),
+    [updateWidgetSetting, widgetId],
+  );
+
+  return [settings, updateSetting];
+};

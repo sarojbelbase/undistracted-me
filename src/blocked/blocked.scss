@@ -1,0 +1,156 @@
+/* ── Orb animations (same keyframes as _animations.scss in the main app) ──── */
+
+@keyframes lookaway-orb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lookaway-orb-counter {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes lookaway-bloom {
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes lookaway-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+/* ── Layout classes ────────────────────────────────────────────────────────── */
+
+/* ── Center column — the entire content stack ─────────────────────────────── */
+.blocked-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 40px;
+  max-width: 520px;
+  animation: lookaway-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Domain label — refined but clearly visible ──────────────────────────── */
+.blocked-domain-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin: 0 0 48px;
+  user-select: none;
+}
+
+/* ── Hero message title — the undisputed focal point ──────────────────────── */
+.blocked-hero {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin: 0 0 16px;
+  user-select: none;
+  max-width: 440px;
+}
+
+/* ── Supporting message — the depth, the why ──────────────────────────────── */
+.blocked-sub {
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.72;
+  max-width: 360px;
+  margin: 0 0 48px;
+  user-select: none;
+}
+
+/* ── Timer — clean, prominent, the anchor ─────────────────────────────────── */
+.blocked-timer {
+  font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 16px;
+  user-select: none;
+}
+
+/* ── Redirecting message — subtle, small, with a breathing dot ────────────── */
+.blocked-redirecting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin: 0 0 16px;
+  user-select: none;
+}
+
+.blocked-redirecting::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blocked-dot-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes blocked-dot-pulse {
+
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Progress bar — subtle horizontal track under the timer ───────────────── */
+.blocked-progress-track {
+  width: 120px;
+  height: 3px;
+  background: rgba(127, 127, 127, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.blocked-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1.05s linear;
+}

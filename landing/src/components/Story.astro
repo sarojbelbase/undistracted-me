@@ -1,0 +1,61 @@
+---
+import story1 from "../assets/design/story-1.webp";
+import story2 from "../assets/design/story-2.webp";
+import story3 from "../assets/design/story-3.webp";
+import story4 from "../assets/design/story-4.webp";
+
+const steps = [
+  {
+    meta: "01 / 04",
+    title: "I'd open a tab to check one thing.",
+    text: "Then the headlines started.",
+    image: story1,
+    alt: "A browser tab crowded with headlines and notifications.",
+    on: true,
+  },
+  {
+    meta: "02 / 04",
+    title: "And lose track of what I was doing.",
+    text: "My context, the thing I sat down to finish, dissolved into everything else on the screen.",
+    image: story2,
+    alt: "A cluttered screen pulling focus away from the task at hand.",
+    on: false,
+  },
+  {
+    meta: "03 / 04",
+    title: "Help turned into weight.",
+    text: "Every tool meant to lighten the day added one more thing to carry.",
+    image: story3,
+    alt: "A person weighed down by too many apps and alerts.",
+    on: false,
+  },
+  {
+    meta: "04 / 04",
+    title: "So I built a tab that carries it all, quietly.",
+    text: "One place for the clock, the calendar and the few things I need. Nothing to get lost in.",
+    image: story4,
+    alt: "A calm new-tab dashboard with a clock, calendar and a few quiet widgets.",
+    on: false,
+  },
+];
+---
+
+<section class="story" id="story">
+  <div class="stage" aria-hidden="true">
+    {steps.map((s) => (
+      <img class={s.on ? "on" : undefined} src={s.image.src} alt={s.alt} loading="lazy" decoding="async" />
+    ))}
+    <ol class="dots">
+      {steps.map((s) => <li class={s.on ? "on" : undefined}></li>)}
+    </ol>
+  </div>
+  <div>
+    {steps.map((s, i) => (
+      <article class="step" data-i={i}>
+        <span class="meta">{s.meta}</span>
+        <h2>{s.title}</h2>
+        <p>{s.text}</p>
+      </article>
+    ))}
+  </div>
+</section>

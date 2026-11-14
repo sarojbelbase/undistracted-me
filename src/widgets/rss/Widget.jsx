@@ -1,0 +1,674 @@
+/**
+ * RSS News Widget
+ *
+ * Two presentation modes:
+ *  • Spotlight – full-bleed cinematic card, one story at a time, auto-advances every 20 s.
+ *                Swipe left/right (or drag) to navigate manually.
+ *                Image feeds: dark-scrim overlay, white typography.
+ *                No-image feeds: rich accent-gradient background, white typography.
+ *
+ *  • Digest   – compact numbered headline list, scrollable, accent left-bar on hover.
+ */
+
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { BaseWidget } from "../BaseWidget";
+import { useWidgetSettings } from "../useWidgetSettings";
+import { useRssMulti } from "./useRssMulti";
+import { Settings } from "./Settings";
+import { relativeTime, PRESET_FEEDS, DEFAULT_ACTIVE_IDS } from "./utils";
+import { AUTO_ADVANCE_MS } from "./constants";
+import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
+import { useAgeLabel } from "../../hooks/useAgeLabel";
+import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
+import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
+import { Broadcast, Rss } from "react-bootstrap-icons";
+import { RefreshIcon } from '../../assets/svg/RefreshIcon';
+import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
+import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
+import { Divider } from '../../components/ui/Divider';
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const Bone = ({ w, h = "0.6875rem" }) => (
+  <div
+    className="rss-bone animate-pulse"
+    style={{ width: w, height: h }}
+  />
+);
+
+const SkeletonRow = ({ isLast = false }) => (
+  <div className={`rss-skeleton-row${isLast ? " rss-skeleton-row--last" : ""}`}>
+    <div className="rss-skeleton-row__lines">
+      <Bone w="91%" h="0.72rem" />
+      <Bone w="65%" h="0.72rem" />
+    </div>
+    <div className="rss-skeleton-row__meta">
+      <Bone w="5rem" h="0.5rem" />
+    </div>
+  </div>
+);
+
+// ─── Brief mode — headline row ────────────────────────────────────────────────
+
+const HeadlineRow = ({ item, isLast = false }) => {
+  const time = item.isoDate ? relativeTime(item.isoDate) : "";
+
+  return (
+    <button
+      type="button"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={() => { if (item.link && /^https?:\/\//.test(item.link)) window.open(item.link, "_blank", "noopener"); }}
+      className={`rss-headline-row${isLast ? " rss-headline-row--last" : ""}`}
+    >
+      <div className="rss-headline-row__body">
+        {/* Source · time */}
+        {(item.source || time) && (
+          <div className="rss-headline-row__meta">
+            {item.source && (
+              <span className="rss-headline-row__source">
+                {item.source}
+              </span>
+            )}
+            {item.source && time && (
+              <span className="rss-headline-row__dot">·</span>
+            )}
+            {time && (
+              <span className="rss-headline-row__time">
+                {time}
+              </span>
+            )}
+          </div>
+        )}
+        {/* Title */}
+        <p className="rss-headline-row__title">
+          {item.title}
+        </p>
+      </div>
+    </button>
+  );
+};
+
+// ─── Marquee mode — single full-bleed story card ──────────────────────────────
+
+const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext }) => {
+  const [navHovered, setNavHovered] = useState(false);
+  const time = item?.isoDate ? relativeTime(item.isoDate) : "";
+
+  // Measure actual card pixel dimensions for the layout engine.
+  const cardRef = useRef(null);
+  const [area, setArea] = useState({ w: 262, h: 160 });
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      // Reserve: padding (10+14=24) + source-row (~22) + top-gap (5) + nav-row (~26) + safety (5) = ~82
+      // The +5 top-gap matches the paddingTop on the title block below.
+      setArea({ w: Math.max(100, width - 24), h: Math.max(60, height - 82) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // ── Source pill overflow ──────────────────────────────────────────────────
+  // The pill is capped at a share of the row. If the feed label is longer than
+  // that, it ellipsizes at rest and marquees its full text on hover/focus —
+  // never pushing the refresh button or timestamp out of the row.
+  const pillRef = useRef(null);
+  const pillTextRef = useRef(null);
+  const [pillShift, setPillShift] = useState(0);
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    const text = pillTextRef.current;
+    if (!pill || !text) {
+      setPillShift(0);
+      return;
+    }
+    const measure = () => {
+      const shift = text.scrollWidth - text.clientWidth;
+      setPillShift(shift > 1 ? shift : 0);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(pill);
+    return () => ro.disconnect();
+  }, [item?.source]);
+
+  // ── Gesture (drag to navigate) ────────────────────────────────────────────
+  const { dragX, releasing, handlers } = useSwipeToNavigate({ onNext, onPrev });
+
+  if (!item) return null;
+
+  // Direction-aware text drift — background stays static, only text animates
+  const textAnim = direction === "prev" ? "rss-text-in-prev" : "rss-text-in-next";
+
+  return (
+    <article
+      ref={cardRef}
+      className="absolute inset-0 select-none rss-marquee"
+      style={{
+        transform: dragX ? `translateX(${dragX}px) rotate(${dragX * 0.01}deg)` : "none",
+        transition: releasing ? "transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)" : "none",
+      }}
+      onPointerDown={handlers.onPointerDown}
+      onPointerMove={handlers.onPointerMove}
+      onPointerUp={handlers.onPointerUp}
+      onMouseEnter={() => setNavHovered(true)}
+      onMouseLeave={() => setNavHovered(false)}
+      aria-label={item.title}
+    >
+      {/* ── Rich gradient background (text-only, no images) ──────────────── */}
+      <div className="rss-marquee-bg">
+        {/* Deep ink base */}
+        <div className="rss-marquee-bg__ink" />
+        {/* Editorial highlight — top-left warm glow */}
+        <div className="rss-marquee-bg__glow" />
+        {/* Accent color pulse — driven by CSS var (theme-aware) */}
+        <div className="rss-marquee-bg__accent" />
+      </div>
+
+      {/* ── Full-height flex column: source/time top · title fills below ── */}
+      <div className="rss-marquee__content">
+
+        {/* Top row: source pill · [refresh] · time */}
+        <div
+          className="rss-marquee__top-row"
+          style={{ animation: `${textAnim} 0.3s ease-out both` }}
+        >
+          {item.source && (
+            <span
+              ref={pillRef}
+              className={`rss-marquee__source-pill${pillShift > 0 ? " rss-marquee__source-pill--scroll" : ""}`}
+              style={{
+                "--rss-source-shift": `${pillShift}px`,
+                "--rss-source-dur": `${Math.max(4, pillShift / 18)}s`,
+              }}
+              title={item.source}
+              tabIndex={pillShift > 0 ? 0 : undefined}
+              aria-label={item.source}
+            >
+              <span ref={pillTextRef} className="rss-marquee__source-pill-text">
+                {item.source}
+              </span>
+            </span>
+          )}
+
+          {/* Spacer */}
+          <div className="rss-marquee__spacer" />
+
+          {/* Refresh button */}
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onRefresh(); }}
+            aria-label="Refresh feed"
+            className="rss-marquee__refresh-btn"
+          >
+            <RefreshIcon size={10} spinning={isLoading} />
+          </button>
+
+          {/* Timestamp */}
+          {time && (
+            <span className="rss-marquee__time">{time}</span>
+          )}
+        </div>
+
+        {/* Title block — fills the remaining space, title anchored top, nav pinned bottom */}
+        <div
+          className="rss-marquee__title-block"
+          style={{ animation: `${textAnim} 0.35s 0.06s ease-out both` }}
+        >
+          <ExpressiveTitle
+            title={item.title || ""}
+            areaWidth={area.w}
+            areaHeight={area.h}
+            marginBottom={total > 1 ? 4 : 0}
+            bodyColor="#e4e4e4ff"
+            onClick={(e) => { e.stopPropagation(); if (item.link && /^https?:\/\//.test(item.link)) window.open(item.link, "_blank", "noopener"); }}
+          />
+
+          {/* ── Dot nav + arrow buttons row — pinned to bottom via margin-top:auto ── */}
+          {total > 1 && (
+            <div
+              className="rss-marquee__nav-row"
+              onClick={(e) => e.stopPropagation()}
+              role="toolbar"
+            >
+              {/* ← Prev */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                aria-label="Previous story"
+                style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer", color: "#fff",
+                  opacity: navHovered ? 1 : 0,
+                  transition: "opacity 0.25s ease, background 0.15s",
+                  pointerEvents: navHovered ? "auto" : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              >
+                <ChevronLeftIcon size={11} color="white" />
+              </button>
+
+              {/* ── Smooth sliding dot indicator ──
+                   All background dots are uniform and static.
+                   A single white circle slides via translateX — one animation,
+                   Material You easing, GPU-composited, zero jank. */}
+              {(() => {
+                const DOT = 4;      // background dot diameter
+                const IND = 6;      // sliding indicator diameter
+                const GAP = 6;      // gap between dots
+                const STRIDE = DOT + GAP; // 11px per slot
+                const MAX = 5;
+                const half = Math.floor(MAX / 2);
+                const start = Math.max(0, Math.min(index - half, total - MAX));
+                const end = Math.min(total, start + MAX);
+                const count = end - start;
+                const activeK = index - start; // 0-based position within window
+                // Edge dots (hint more content off-screen) get lower opacity
+                const dotOpacity = (k) => {
+                  const dotIdx = start + k;
+                  const isEdge = (dotIdx === start && start > 0) || (dotIdx === end - 1 && end < total);
+                  return isEdge ? 0.18 : 0.28;
+                };
+                return (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: GAP,
+                      // fixed height ensures the absolute indicator never shifts layout
+                      height: IND,
+                    }}
+                  >
+                    {/* Static background dots */}
+                    {Array.from({ length: count }, (_, k) => (
+                      <div
+                        key={start + k}
+                        style={{
+                          width: DOT,
+                          height: DOT,
+                          borderRadius: '50%',
+                          background: `rgba(255,255,255,${dotOpacity(k)})`,
+                          flexShrink: 0,
+                          // subtle fade when edge dots appear/disappear
+                          transition: 'background 0.3s ease',
+                        }}
+                      />
+                    ))}
+
+                    {/* Sliding indicator — single element, single animation */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        width: IND,
+                        height: IND,
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.95)',
+                        // center on the first dot's center, then slide to active
+                        top: '50%',
+                        left: (DOT - IND) / 2, // = -1.5 → centers on dot 0
+                        transform: `translateY(-50%) translateX(${activeK * STRIDE}px)`,
+                        // Smooth slide: Material You standard easing
+                        transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)',
+                        pointerEvents: 'none',
+                        // Subtle ring — marks position without blooming
+                        boxShadow: '0 0 0 1.5px rgba(255,255,255,0.08)',
+                      }}
+                    />
+                  </div>
+                );
+              })()}
+
+              {/* → Next */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onNext(); }}
+                aria-label="Next story"
+                style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer", color: "#fff",
+                  opacity: navHovered ? 1 : 0,
+                  transition: "opacity 0.25s ease, background 0.15s",
+                  pointerEvents: navHovered ? "auto" : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              >
+                <ChevronRightIcon size={11} color="white" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+};
+
+
+// ─── Marquee skeleton ─────────────────────────────────────────────────────────
+
+const MarqueeSkeleton = () => (
+  <div className="absolute inset-0 rss-marquee-skeleton">
+    {/* Headlight sweep — bright band travelling across the accent, on top of
+        the scrim + bones (mimics a spotlight sweeping over the card). */}
+    <div className="rss-marquee-skeleton__sweep" aria-hidden="true" />
+    {/* Source pill placeholder */}
+    <div style={{ position: "absolute", top: 10, left: 11, display: "flex", gap: 4 }}>
+      <div className="rounded" style={{ width: 48, height: 8, background: "rgba(255,255,255,0.22)" }} />
+      <div className="rounded" style={{ width: 28, height: 8, background: "rgba(255,255,255,0.14)" }} />
+    </div>
+    {/* Title line placeholders */}
+    <div style={{ position: "absolute", bottom: 18, left: 11, right: 11 }}>
+      <div className="rounded mb-2" style={{ height: 14, width: "92%", background: "rgba(255,255,255,0.2)" }} />
+      <div className="rounded mb-2" style={{ height: 14, width: "78%", background: "rgba(255,255,255,0.14)" }} />
+      <div className="rounded" style={{ height: 14, width: "40%", background: "rgba(255,255,255,0.1)" }} />
+    </div>
+  </div>
+);
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+const EmptyState = ({ sourceMode, absolute = false }) => (
+  <div className={`flex flex-col items-center justify-center gap-3 p-5 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
+    <div
+      style={{
+        width: 40, height: 40, borderRadius: "50%",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.04)",
+        border: "1px solid rgba(0,0,0,0.07)",
+      }}
+    >
+      <Broadcast size={18} style={{ color: "var(--w-ink-5)", opacity: 0.5 }} aria-hidden />
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--w-ink-3)" }}>
+        No headlines yet
+      </p>
+      <p style={{ fontSize: "0.6875rem", color: "var(--w-ink-5)", lineHeight: 1.5, maxWidth: 180 }}>
+        {sourceMode === "custom"
+          ? "Import an OPML file with your feed URLs to get started"
+          : "Select at least one source from Settings"}
+      </p>
+    </div>
+  </div>
+);
+
+const ErrorState = ({ onRetry, absolute = false }) => (
+  <div className={`flex flex-col items-center justify-center gap-2 p-4 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
+    <Rss size={20} style={{ color: "var(--w-ink-5)", opacity: 0.5 }} aria-hidden />
+    <p className="w-muted font-semibold">Couldn't load feed</p>
+    <button
+      onClick={onRetry}
+      onMouseDown={(e) => e.stopPropagation()}
+      className="w-caption font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+      style={{ background: "var(--w-surface-2)", color: "var(--w-ink-3)", border: "1px solid var(--w-divider)", cursor: "pointer" }}
+    >
+      Retry
+    </button>
+  </div>
+);
+
+// ─── Widget ───────────────────────────────────────────────────────────────────
+
+export const Widget = ({ id, onRemove }) => {
+  const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.rss);
+
+  // Migrate legacy single feedId setting → activeFeedIds
+  const rawActive = settings.activeFeedIds;
+  let activeFeedIds;
+  if (Array.isArray(rawActive) && rawActive.length > 0) {
+    activeFeedIds = rawActive;
+  } else if (settings.feedId) {
+    activeFeedIds = [settings.feedId];
+  } else {
+    activeFeedIds = DEFAULT_ACTIVE_IDS;
+  }
+
+  const customFeeds = (settings.customFeeds ?? []).map((f) =>
+    typeof f.active === "boolean" ? f : { ...f, active: true }
+  );
+  const viewMode = settings.viewMode ?? "marquee";
+  const sourceMode = settings.sourceMode ?? (customFeeds.length > 0 ? "custom" : "presets");
+
+  // Mutually exclusive: only use presets OR custom, never both
+  const activePresetFeeds = PRESET_FEEDS.filter((p) => activeFeedIds.includes(p.id));
+  const activeCustomFeeds = customFeeds.filter((f) => f.active !== false);
+  const allActiveFeeds = sourceMode === "custom"
+    ? activeCustomFeeds.map((f) => ({ label: f.label, url: f.url }))
+    : activePresetFeeds.map((p) => ({ label: p.label, url: p.url }));
+
+  // Always use multiResult — useRss (single-feed) was removed as it ran a full
+  // fetch+state+interval cycle for a result that was never read.
+  const { items, loading, error, refreshedAt, refresh } = useRssMulti(allActiveFeeds);
+  const ageLabel = useAgeLabel(refreshedAt);
+
+  // Sync feed config to SW whenever active feeds change
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.runtime) return;
+    const feeds = allActiveFeeds.map(({ label, url }) => ({ label, url }));
+    chrome.runtime.sendMessage({ type: "RSS_CONFIG_SYNC", feeds }).catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(allActiveFeeds)]);
+
+  // Marquee navigation state
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [navDirection, setNavDirection] = useState("next"); // for swipe animation
+  const sentinelRef = useRef(null);
+
+  // ── Item ordering ────────────────────────────────────────────────────────────
+  // `items` is already sorted newest-first by useRssMulti. We preserve that
+  // order exactly (never re-order) and only jump to index 0 when the newest
+  // headline's link *actually changes* — i.e. genuinely new content arrived.
+  //
+  // The old "seen-links" logic bubbled any previously-unseen link to the front,
+  // so a back-dated or newly-discovered item (e.g. 3 days old) could leapfrog a
+  // genuinely fresh one (14 min old). Keeping the date-sorted order guarantees
+  // the newest story is always first and the display never flips backward.
+  const [orderedItems, setOrderedItems] = useState([]);
+  const prevNewestLinkRef = useRef(null);
+
+  useEffect(() => {
+    if (!items.length) {
+      setOrderedItems([]);
+      prevNewestLinkRef.current = null;
+      return;
+    }
+    const newestLink = items[0]?.link;
+    const isNewestNew = !!newestLink && newestLink !== prevNewestLinkRef.current;
+    // Cap at 100 items — no user scrolls through more in a tiny widget card.
+    setOrderedItems(items.slice(0, 100));
+    if (isNewestNew) {
+      setCurrentIndex(0); // jump to newest
+      setNavDirection("next");
+    }
+    prevNewestLinkRef.current = newestLink;
+  }, [items]);
+
+  const displayItems = orderedItems.slice(0, visibleCount);
+  const hasMore = orderedItems.length > visibleCount;
+  const showSkeleton = loading && orderedItems.length === 0;
+  const showError = !!error && !showSkeleton;
+
+  const feedCount = allActiveFeeds.length;
+  const feedWord = feedCount === 1 ? "feed" : "feeds";
+  // Digest header is narrower — use a compact variant without story count
+  const digestLabel = feedCount === 1
+    ? allActiveFeeds[0]?.label ?? '1 feed'
+    : `${feedCount} ${feedWord}`;
+
+  // Reset state when active feeds change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setVisibleCount(10);
+    setNavDirection("next");
+    prevNewestLinkRef.current = null;
+    setOrderedItems([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(activeFeedIds), sourceMode]);
+
+  // Clamp index when items load/shrink
+  useEffect(() => {
+    if (displayItems.length > 0 && currentIndex >= displayItems.length) setCurrentIndex(0);
+  }, [displayItems.length, currentIndex]);
+
+  // Auto-advance for Marquee
+  useEffect(() => {
+    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError) return;
+    const timer = setTimeout(() => {
+      const next = (currentIndex + 1) % displayItems.length;
+      if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
+      setNavDirection("next");
+      setCurrentIndex(next);
+    }, AUTO_ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [currentIndex, viewMode, displayItems.length, showSkeleton, showError, hasMore]);
+
+  const goNext = useCallback(() => {
+    setNavDirection("next");
+    setCurrentIndex((i) => {
+      const next = (i + 1) % displayItems.length;
+      if (i >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
+      return next;
+    });
+  }, [displayItems.length, hasMore]);
+
+  const goPrev = useCallback(() => {
+    setNavDirection("prev");
+    setCurrentIndex((i) => (i - 1 + displayItems.length) % displayItems.length);
+  }, [displayItems.length]);
+
+  // Brief mode: IntersectionObserver on sentinel to load more
+  useEffect(() => {
+    if (viewMode !== "brief" || !sentinelRef.current) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore) setVisibleCount((c) => c + 10); },
+      { threshold: 0.1 },
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [viewMode, hasMore, visibleCount]);
+
+  const settingsContent = (onClose) => (
+    <Settings
+      activeFeedIds={activeFeedIds}
+      onChangeActiveFeedIds={(v) => updateSetting("activeFeedIds", v)}
+      customFeeds={customFeeds}
+      onChangeCustomFeeds={(v) => updateSetting("customFeeds", v)}
+      sourceMode={sourceMode}
+      onChangeSourceMode={(v) => updateSetting("sourceMode", v)}
+      viewMode={viewMode}
+      onChangeViewMode={(v) => updateSetting("viewMode", v)}
+      onClose={onClose}
+    />
+  );
+
+  // ── Spotlight mode ──────────────────────────────────────────────────────────
+  if (viewMode === "marquee") {
+    return (
+      <BaseWidget
+        className="relative overflow-hidden"
+        settingsContent={settingsContent}
+        settingsTitle="News Feed"
+        modalWidth="w-96"
+        onRemove={onRemove}
+      >
+        {showSkeleton && <MarqueeSkeleton />}
+        {showError && <ErrorState onRetry={refresh} absolute />}
+        {!showSkeleton && !showError && displayItems.length > 0 && (
+          <MarqueeCard
+            key={`${currentIndex}-${navDirection}`}
+            item={displayItems[currentIndex]}
+            index={currentIndex}
+            total={displayItems.length}
+            direction={navDirection}
+            onRefresh={refresh}
+            isLoading={loading}
+            onNext={goNext}
+            onPrev={goPrev}
+          />
+        )}
+        {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
+          <EmptyState sourceMode={sourceMode} absolute />
+        )}
+      </BaseWidget>
+    );
+  }
+
+  // ── Digest mode ──────────────────────────────────────────────────────────────
+  return (
+    <BaseWidget
+      className="flex flex-col overflow-hidden"
+      settingsContent={settingsContent}
+      settingsTitle="News Feed" modalWidth="w-96" onRemove={onRemove}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-2 shrink-0">
+        <Broadcast size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} aria-hidden="true" />
+        <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
+          {digestLabel}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {ageLabel && (
+            <span className="w-caption" style={{ color: "var(--w-ink-5)" }}>{ageLabel}</span>
+          )}
+          <button
+            onClick={refresh}
+            onMouseDown={(e) => e.stopPropagation()}
+            disabled={loading}
+            aria-label={ageLabel ? `Refresh (last updated ${ageLabel})` : "Refresh feed"}
+            className="flex items-center justify-center p-0.5 rounded transition-opacity hover:opacity-70 active:opacity-40"
+            style={{ color: "var(--w-ink-5)", background: "none", border: "none", cursor: "pointer" }}
+          >
+            <RefreshIcon size={12} spinning={loading} />
+          </button>
+        </div>
+      </div>
+      <Divider />
+
+      {/* Body */}
+      <div
+        className="flex-1 flex flex-col min-h-0 overflow-y-auto"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {showError && <ErrorState onRetry={refresh} />}
+
+        {showSkeleton && (
+          <>{[0, 1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} isLast={i === 5} />)}</>
+        )}
+
+        {!showSkeleton && !showError && displayItems.map((item, i) => (
+          <HeadlineRow
+            key={item.link || `${item.title}-${i}`}
+            item={item}
+            isLast={i === displayItems.length - 1 && !hasMore}
+          />
+        ))}
+
+        {/* Sentinel — triggers next batch when scrolled into view */}
+        {!showSkeleton && !showError && hasMore && (
+          <div ref={sentinelRef} style={{ height: 1, flexShrink: 0 }} aria-hidden="true" />
+        )}
+
+        {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
+          <EmptyState sourceMode={sourceMode} />
+        )}
+      </div>
+    </BaseWidget>
+  );
+};

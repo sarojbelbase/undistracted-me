@@ -1,0 +1,41 @@
+---
+import Wordmark from "./Wordmark.astro";
+import { site } from "../data/site.js";
+
+const nav = [
+  { href: "#features", label: "Features" },
+  { href: "#themes", label: "Themes" },
+  { href: "#focus", label: "Focus" },
+  { href: "#privacy", label: "Privacy" },
+  { href: "#support", label: "Support" },
+];
+
+const mobileNav = [...nav, { href: "#faq", label: "FAQ" }];
+---
+
+<nav id="nav">
+  <a class="logo" href="#top" aria-label="Undistracted Me — home"><Wordmark /></a>
+  <div class="l">
+    {nav.map((item) => (
+      <a class="hide" href={item.href}>{item.label}</a>
+    ))}
+    <a class="pill" data-slot="nav" href={site.chromeUrl}>Install free</a>
+    <button
+      class="menu"
+      id="menu"
+      type="button"
+      aria-expanded="false"
+      aria-controls="mnav"
+      aria-label="Open menu"
+    >
+      <span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mnav" id="mnav" hidden>
+  {mobileNav.map((item, i) => (
+    <a style={`--i:${i}`} href={item.href}>{item.label}</a>
+  ))}
+  <a class="mcta" style={`--i:${mobileNav.length}`} data-slot="nav" href={site.chromeUrl}>Install free</a>
+</div>

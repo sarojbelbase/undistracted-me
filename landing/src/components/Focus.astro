@@ -1,0 +1,27 @@
+---
+import focusMode from "../assets/screenshots/focus_mode.webp";
+
+const checks = [
+  "Fullscreen, distraction-free zen view",
+  "Pomodoro timer built in",
+  "Ambient rain and white noise, one tap",
+  "Tasks from Google Tasks, kept front and center",
+];
+---
+
+<section class="sec dark two focus" id="focus">
+  <div>
+    <h2>Enter Focus Mode. Leave it all behind.</h2>
+    <p>Hit the toggle and your whole screen becomes a single, calm surface: the clock, a place for your notes, and your tasks. No tabs, no feeds, no badges.</p>
+    <ul class="checks">
+      {checks.map((c) => <li>{c}</li>)}
+    </ul>
+  </div>
+
+  <div class="demo" role="group" aria-label="A preview of Focus Mode">
+    <div class="demo-bar" aria-hidden="true"><i></i><i></i><i></i><span>New Tab</span></div>
+    <div class="demo-screen">
+      <img class="demo-shot" src={focusMode.src} alt="Focus Mode: a giant clock and a search bar on a dark screen." loading="lazy" decoding="async" />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,103 @@
+@use 'config' as c;
+
+// ─── React Grid Layout ────────────────────────────────────────────────────────
+// No transitions at all — widgets appear in place instantly
+.react-grid-item,
+.react-grid-item.cssTransforms,
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.react-grid-placeholder,
+.react-grid-item.resizing {
+  cursor: default;
+  transition: none !important;
+  -webkit-transition: none !important;
+}
+
+// Mobile scroll fix: DraggableCore registers a non-passive touchstart listener
+// on every .react-grid-item unconditionally (even when disabled). Browsers see
+// a non-passive listener and delay scroll gesture recognition while waiting for
+// JS — making touch-scroll feel broken. Setting touch-action: pan-y bypasses
+// the JS listener entirely for vertical gestures: the browser handles vertical
+// pan as scroll immediately without waiting for JS.
+//
+// In arrange mode (#fullscreen[data-arrange="true"]), we flip to touch-action:none
+// so DraggableCore can own vertical gestures for drag-to-reorder.
+.react-grid-item {
+  touch-action: pan-y !important;
+}
+
+#fullscreen[data-arrange="true"] .react-grid-item {
+  touch-action: none !important;
+}
+
+
+// Drag placeholder: accent-tinted ghost silhouette at the drop target
+.react-grid-placeholder {
+  background: rgba(var(--w-accent-rgb), 0.07) !important;
+  border: 2px dashed rgba(var(--w-accent-rgb), 0.35) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+// Ghost drag: flying widget becomes translucent + desaturated so the drop
+// target placeholder reads clearly against the full-opacity resting widgets.
+.react-grid-item.react-draggable-dragging>* {
+  opacity: 0.38 !important;
+  filter: grayscale(0.6) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
+  cursor: grabbing !important;
+}
+
+// Hide options button while dragging
+.react-draggable-dragging .absolute.z-20 {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+// Ghost notch during drag — semi-transparent
+.react-draggable-dragging .widget-drag-handle {
+  opacity: 0.35 !important;
+  cursor: grabbing !important;
+}
+
+.react-grid-item:active {
+  cursor: default;
+}
+
+.widget-drag-handle {
+  cursor: grab;
+}
+
+.widget-drag-handle:active {
+  cursor: grabbing;
+}
+
+.react-resizable-handle {
+  display: none !important;
+}
+
+// ── Dark mode overrides ───────────────────────────────────────────────────────
+
+[data-mode="dark"] {
+  .react-grid-item.react-draggable-dragging>* {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .react-grid-placeholder {
+    background: rgba(var(--w-accent-rgb), 0.1) !important;
+    border-color: rgba(var(--w-accent-rgb), 0.4) !important;
+  }
+}
+
+// ── Drag dot overlay (arrange mode) ──────────────────────────────────────────
+
+.drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.18) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
+}
+
+[data-mode="dark"] .drag-dot-overlay {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
+}
