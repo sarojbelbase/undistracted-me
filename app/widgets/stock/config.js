@@ -3,7 +3,7 @@ export default {
   title: 'Stock',
   category: 'info',
   icon: 'GraphUpArrow',
-  description: 'NEPSE stock watchlist',
+  description: 'NEPSE & international stock watchlist',
   enabled: true,
   platforms: {
     extension: { supported: true },

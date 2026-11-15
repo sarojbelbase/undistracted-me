@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { XLg, Search } from 'react-bootstrap-icons';
-import { fetchCompanies } from './utils';
+import { fetchCompanies, searchInternational, displaySymbol, INTL_PREFIX } from './utils';
 import { Input } from '../../components/ui/Input';
 import { TooltipBtn } from '../../components/ui/TooltipBtn';
 
 /**
  * Skeleton rows that mirror the real company row shape (bold symbol on the
- * left, truncated company name on the right) shown while `fetchCompanies` is
+ * left, truncated company name on the right) shown while a symbol list is
  * in flight — replacing the previous plain "Loading…" text.
  */
 const CompanyListSkeleton = () => (
@@ -30,19 +30,30 @@ const CompanyListSkeleton = () => (
   </div>
 );
 
+const MARKET_TABS = [
+  { id: 'nepse', label: 'NEPSE' },
+  { id: 'intl', label: 'International' },
+];
+
 /**
  * Stock selector content — rendered inside BaseSettingsModal.
- * Supports selecting up to 3 symbols.
+ * Supports selecting up to 3 symbols, mixing NEPSE tickers and international
+ * tickers (the latter stored with an `INTL:` prefix).
  * onClose is injected by BaseWidget when settingsContent is a function.
  */
 export const Settings = ({ symbols = [], onChange, onClose }) => {
+  const [market, setMarket] = useState('nepse');
   const [companies, setCompanies] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
+  const [intlResults, setIntlResults] = useState(null);
+  const [intlLoading, setIntlLoading] = useState(false);
+  const [intlError, setIntlError] = useState(null);
   const inputRef = useRef(null);
   const loadedRef = useRef(false);
 
+  // Load NEPSE companies once, lazily.
   useEffect(() => {
     if (loadedRef.current) return;
     loadedRef.current = true;
@@ -53,21 +64,58 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
       .finally(() => setLoading(false));
   }, []);
 
+  // Debounced international search — runs when the International tab is active
+  // and the query is non-empty.
+  useEffect(() => {
+    if (market !== 'intl') return;
+    const q = query.trim();
+    if (!q) {
+      setIntlResults(null);
+      setIntlError(null);
+      setIntlLoading(false);
+      return;
+    }
+    setIntlLoading(true);
+    setIntlError(null);
+    const t = setTimeout(() => {
+      searchInternational(q)
+        .then(setIntlResults)
+        .catch(() => setIntlError('Could not search international stocks.'))
+        .finally(() => setIntlLoading(false));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [market, query]);
+
   // Auto-focus the search input when the modal opens
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
   }, []);
 
-  const top20 = companies ? companies.slice(0, 20) : [];
-  const filtered = companies && query.trim()
-    ? companies
-      .filter((c) => {
-        const q = query.toLowerCase();
-        return c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
-      })
-      .slice(0, 20)
-    : top20;
+  // ── Rows for the active market ──────────────────────────────────────────────
+  // International rows carry their full storage symbol (`INTL:AAPL`), NEPSE
+  // rows stay bare (`NABIL`). Both render via displaySymbol().
+  const intlRows = (intlResults ?? []).map((r) => ({
+    symbol: `${INTL_PREFIX}${r.symbol}`,
+    name: r.name,
+    exchange: r.exchange,
+  }));
+  const nepseTop = companies ? companies.slice(0, 20) : [];
+  const rows = market === 'intl' ? intlRows : nepseTop;
+
+  const filtered = market === 'intl'
+    ? rows
+    : companies && query.trim()
+      ? companies
+        .filter((c) => {
+          const q = query.toLowerCase();
+          return c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
+        })
+        .slice(0, 20)
+      : rows;
+
+  const listLoading = market === 'intl' ? intlLoading : loading;
+  const listError = market === 'intl' ? intlError : error;
 
   const toggle = (sym) => {
     if (symbols.includes(sym)) {
@@ -83,6 +131,35 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
 
   return (
     <>
+      {/* Market tabs */}
+      <div
+        className="flex gap-1 p-0.5 rounded-lg mb-3"
+        style={{ background: 'color-mix(in srgb, var(--w-ink-1) 6%, transparent)' }}
+        role="tablist"
+        aria-label="Stock market"
+      >
+        {MARKET_TABS.map((t) => {
+          const active = market === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setMarket(t.id)}
+              className="flex-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-colors cursor-pointer"
+              style={
+                active
+                  ? { background: 'color-mix(in srgb, var(--w-accent) 14%, transparent)', color: 'var(--w-accent)' }
+                  : { color: 'var(--w-ink-4)' }
+              }
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Section label */}
       <div className="flex items-baseline justify-between pb-2">
         <span className="w-label">Select Stocks</span>
@@ -98,7 +175,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
               className="flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg text-[10px] font-semibold"
               style={{ background: 'color-mix(in srgb, var(--w-accent) 8%, transparent)', color: 'var(--w-accent)' }}
             >
-              {sym}
+              {displaySymbol(sym)}
               <TooltipBtn
                 onClick={() => remove(sym)}
                 className="w-4 h-4 flex items-center justify-center rounded-full transition-opacity hover:opacity-70 cursor-pointer"
@@ -119,7 +196,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
           id="stock-search"
           name="stock-search"
           type="text"
-          placeholder="Search symbol or name…"
+          placeholder={market === 'intl' ? 'Search international stocks…' : 'Search symbol or name…'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           icon={<Search size={13} />}
@@ -128,11 +205,16 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
 
       {/* List — bleeds to modal edges so buttons span full width */}
       <div className="pb-1 -mx-4">
-        {loading && <CompanyListSkeleton />}
-        {error && (
-          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-danger)' }} aria-live="polite" role="alert">{error}</p>
+        {listLoading && <CompanyListSkeleton />}
+        {listError && (
+          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-danger)' }} aria-live="polite" role="alert">{listError}</p>
         )}
-        {!loading && !error && query.trim() && filtered.length === 0 && (
+        {!listLoading && !listError && market === 'intl' && !query.trim() && (
+          <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>
+            Search by company name or ticker (e.g. “Apple”, “TSLA”).
+          </p>
+        )}
+        {!listLoading && !listError && query.trim() && filtered.length === 0 && (
           <p className="text-xs px-4 py-2" style={{ color: 'var(--w-ink-4)' }}>No results</p>
         )}
         {filtered.map((c) => {
@@ -150,8 +232,13 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
                   : { color: 'var(--w-ink-1)' }
               }
             >
-              <span className="text-xs font-bold w-14 shrink-0">{c.symbol}</span>
-              <span className="text-xs truncate flex-1" style={{ color: isSelected ? 'var(--w-accent)' : 'var(--w-ink-4)' }}>{c.name}</span>
+              <span className="text-xs font-bold w-14 shrink-0">{displaySymbol(c.symbol)}</span>
+              <span className="text-xs truncate flex-1" style={{ color: isSelected ? 'var(--w-accent)' : 'var(--w-ink-4)' }}>
+                {c.name}
+              </span>
+              {c.exchange && (
+                <span className="text-[9px] shrink-0" style={{ color: 'var(--w-ink-5)' }}>{c.exchange}</span>
+              )}
               {isSelected && (
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                   <polyline points="2,6 5,9 10,3" />
@@ -164,4 +251,3 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
     </>
   );
 };
-

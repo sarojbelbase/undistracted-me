@@ -1,9 +1,18 @@
-import { MEROLAGANI_CHART_API, NEPALI_PAISA_COMPANIES_API } from '../../constants/urls.js';
+import { MEROLAGANI_CHART_API, NEPALI_PAISA_COMPANIES_API, INTL_CHART_API, INTL_SEARCH_API } from '../../constants/urls.js';
 import { API_BASE_URL } from '../../constants/env.js';
 
 // Default watchlist now lives in constants/defaults.js (single source of truth).
 // Re-exported here so existing import paths keep working.
 export { DEFAULT_SYMBOLS } from '../../constants/defaults.js';
+
+// ── International symbol handling ─────────────────────────────────────────────
+// International symbols are namespaced with an `INTL:` prefix so they never
+// collide with NEPSE tickers (which are bare symbols like `NABIL`). The prefix
+// is stripped before any network call and re-added only for storage/identity.
+export const INTL_PREFIX = 'INTL:';
+export const isIntlSymbol = (sym) => typeof sym === 'string' && sym.startsWith(INTL_PREFIX);
+export const intlTicker = (sym) => (isIntlSymbol(sym) ? sym.slice(INTL_PREFIX.length) : sym);
+export const displaySymbol = (sym) => intlTicker(sym);
 
 // In dev (localhost) requests go through the Vite proxy to avoid CORS.
 // In production (web app) requests go through the backend API (api.undistracted.me).
@@ -63,6 +72,33 @@ export async function fetchCompanies() {
 }
 
 /**
+ * Search international stocks via the backend proxy (Yahoo Finance).
+ * Returns [{ symbol, name, exchange }].
+ */
+export async function searchInternational(query) {
+  const url = `${INTL_SEARCH_API}?q=${encodeURIComponent(query.trim())}`;
+  const res = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(8000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return json?.quotes ?? [];
+}
+
+/**
+ * Fetch international chart data via the backend proxy (Yahoo Finance).
+ * The backend already normalizes to
+ *   { prices, ltp, prevClose, open, high, low, volume }
+ * so this is a straight pass-through. Returns the object, or null when the
+ * backend had no usable candles.
+ */
+export async function fetchIntlChart(ticker) {
+  const url = `${INTL_CHART_API}?symbol=${encodeURIComponent(ticker)}`;
+  const res = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(8000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return Array.isArray(json?.prices) && json.prices.length >= 2 ? json : null;
+}
+
+/**
  * Fetch chart data for a symbol from merolagani.com.
  *
  * Single call returns 90 days of daily OHLCV candles.
@@ -74,6 +110,7 @@ export async function fetchCompanies() {
  * Returns { prices, ltp, prevClose, open, high, low } or null.
  */
 export async function fetchChart(symbol) {
+  if (isIntlSymbol(symbol)) return fetchIntlChart(intlTicker(symbol));
   const res = await fetch(chartUrl(symbol), {
     method: 'GET',
     signal: AbortSignal.timeout(8000),

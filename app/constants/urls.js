@@ -53,6 +53,14 @@ export const FREEIPAPI_GEO_URL = 'https://free.freeipapi.com/api/v1/json';
 /** Mero Lagani — OHLCV chart data for NEPSE-listed stocks. */
 export const MEROLAGANI_CHART_API = 'https://www.merolagani.com/handlers/TechnicalChartHandler.ashx';
 
+// ── International stock market ────────────────────────────────────────────────
+
+/** Backend proxy for Yahoo Finance chart data (CORS-safe, symbol-agnostic). */
+export const INTL_CHART_API = `${API_BASE_URL}/stocks/intl-chart`;
+
+/** Backend proxy for Yahoo Finance symbol search. */
+export const INTL_SEARCH_API = `${API_BASE_URL}/stocks/intl-search`;
+
 // ── Google APIs ───────────────────────────────────────────────────────────────
 
 /** Google OAuth2 authorization endpoint (PKCE / web flow). */

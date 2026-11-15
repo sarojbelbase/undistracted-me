@@ -178,6 +178,9 @@ vi.mock('../../../app/widgets/stock/utils', () => ({
     { symbol: 'NIC', name: 'NIC Asia Bank' },
   ])),
   fetchStockPrices: vi.fn(() => Promise.resolve({})),
+  displaySymbol: vi.fn(v => v),
+  searchInternational: vi.fn(() => Promise.resolve([])),
+  INTL_PREFIX: 'INTL:',
 }));
 
 // Mock widget registry  

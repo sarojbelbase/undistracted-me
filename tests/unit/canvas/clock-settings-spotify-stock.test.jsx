@@ -76,6 +76,9 @@ vi.mock('../../../app/widgets/stock/utils', () => ({
   fmtOHL: vi.fn(v => (v != null ? String(v) : '—')),
   fmtVolume: vi.fn(v => (v != null ? String(v) : '—')),
   humanizeAge: vi.fn(() => 'just now'),
+  displaySymbol: vi.fn(v => v),
+  searchInternational: vi.fn(() => Promise.resolve([])),
+  INTL_PREFIX: 'INTL:',
 }));
 
 // The stock widget reads chart data from the shared useStocks hook (DataHub).

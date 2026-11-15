@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
-import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL } from './utils';
+import { buildSparklinePaths, priceStats, fmtPrice, fmtOHL, displaySymbol } from './utils';
 import { WIDGET_SETTINGS_DEFAULTS } from '../../constants/defaults.js';
 import config from './config';
 import { useStocks } from './useStocks';
@@ -125,7 +125,7 @@ const StockRow = ({ sym, data, isLast }) => {
       {/* Left: symbol on top, price below */}
       <div className="stk-row__left">
         <span className={`stk-row__symbol${isDead ? ' stk-row__symbol--dead' : ' stk-row__symbol--live'}`}>
-          {sym}
+          {displaySymbol(sym)}
         </span>
         <span className={`stk-row__price${isDead ? ' stk-row__price--dead' : ' stk-row__price--live'}`}>
           {data ? fmtPrice(data.ltp) : '—'}
@@ -300,7 +300,7 @@ export const Widget = ({ id, onRemove }) => {
         <span
           className={`stk-header-symbol${isDead ? ' stk-header-symbol--dead' : ' stk-header-symbol--live'}`}
         >
-          {primarySym || '—'}
+          {displaySymbol(primarySym) || '—'}
         </span>
         {RefreshBtn}
       </div>

@@ -1,5 +1,5 @@
 import { FOCUS_THEME, FM_STOCK_UP, FM_STOCK_DOWN, FM_STOCK_UP_BG, FM_STOCK_DOWN_BG } from '../theme';
-import { priceStats, fmtPrice } from '../../../widgets/stock/utils';
+import { priceStats, fmtPrice, displaySymbol } from '../../../widgets/stock/utils';
 
 const SHIMMER = {
   background: 'linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 75%)',
@@ -30,7 +30,7 @@ export const StockPanel = ({ stocks }) => {
           const changeArrowDown = !isUp && isDown ? '↓' : '';
           return (
             <div key={sym} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--w-accent)', letterSpacing: '0.06em' }}>{sym}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--w-accent)', letterSpacing: '0.06em' }}>{displaySymbol(sym)}</span>
               {data === null ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <div style={{ ...SHIMMER, width: 44, height: 10 }} />

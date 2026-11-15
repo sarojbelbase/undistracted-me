@@ -19,6 +19,9 @@ vi.mock('../../../app/widgets/weather/utils.jsx', () => ({
 vi.mock('../../../app/widgets/stock/utils', () => ({
   fetchChart: vi.fn(),
   DEFAULT_SYMBOLS: [],
+  displaySymbol: vi.fn(v => v),
+  searchInternational: vi.fn(() => Promise.resolve([])),
+  INTL_PREFIX: 'INTL:',
 }));
 
 vi.mock('../../../app/utilities/unsplash', () => ({

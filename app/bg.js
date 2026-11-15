@@ -11,6 +11,7 @@ import {
   OPEN_METEO_WEATHER_API,
   OPEN_METEO_AQI_API,
   MEROLAGANI_CHART_API,
+  INTL_CHART_API,
   RSS_FEED_PROXY_URL,
   GCAL_EVENTS_API,
 } from './constants/urls.js';
@@ -570,6 +571,18 @@ async function runStocksPrefetch() {
 
     const results = await Promise.allSettled(
       symbols.map(async (sym) => {
+        // International symbols (INTL:) go through the backend proxy (Yahoo),
+        // which returns the same normalized shape as the merolagani path below.
+        if (sym.startsWith('INTL:')) {
+          const ticker = sym.slice('INTL:'.length);
+          const url = `${INTL_CHART_API}?symbol=${encodeURIComponent(ticker)}`;
+          const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!Array.isArray(data?.prices) || data.prices.length < 2) return { sym, data: null };
+          return { sym, data };
+        }
+
         const url = `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(sym)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
         const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
