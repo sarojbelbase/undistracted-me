@@ -3,6 +3,14 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { getPlatform, PLATFORMS, API_BASE_URL } from './constants/env';
 
+// ── Tab title ──────────────────────────────────────────────────────────────────
+// The extension replaces the browser's native new-tab page, so its tab title
+// reads "New Tab" (matching Chrome/Firefox). The web app keeps the
+// "Undistracted Me" title already set in entries/index.html.
+if (getPlatform() === PLATFORMS.EXTENSION) {
+  document.title = 'New Tab';
+}
+
 // ── Auto-hide scrollbars ──────────────────────────────────────────────────────
 // Add .is-scrolling to any element while it's scrolling; remove 1s after it stops.
 // CSS makes the thumb transparent by default and visible only with that class.
