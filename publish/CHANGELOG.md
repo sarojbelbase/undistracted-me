@@ -9,6 +9,8 @@ Release history for the store listings. Keep the latest at the top.
 - **New**: international stock support — search and track stocks on global
   exchanges (via Yahoo Finance) alongside NEPSE. Add international tickers from
   the Stock widget's new "International" tab.
+- The extension new-tab page title now reads "New Tab" (matching the browser's
+  native new-tab page) instead of "Undistracted Me".
 
 ## 4.0.1 — 2026-11-14
 
