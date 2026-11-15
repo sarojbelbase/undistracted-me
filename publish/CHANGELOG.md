@@ -4,6 +4,12 @@ Release history for the store listings. Keep the latest at the top.
 
 ---
 
+## 4.0.2 — 2026-11-15
+
+- **New**: international stock support — search and track stocks on global
+  exchanges (via Yahoo Finance) alongside NEPSE. Add international tickers from
+  the Stock widget's new "International" tab.
+
 ## 4.0.1 — 2026-11-14
 
 - **Chrome**: corrected the manifest `key` so the built package derives the same

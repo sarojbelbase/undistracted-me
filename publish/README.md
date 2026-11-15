@@ -21,7 +21,7 @@ credentials, and store-ready images.
 > the manifest `icons` field (`public/favicon/lotus*.png`) — no separate icon
 > upload is needed.
 
-## Current status — v4.0.1
+## Current status — v4.0.2
 
 - **Firefox AMO**: published (listed) via CLI. Signed xpi →
   `builds/undistracted_me-4.0.1.xpi`. Listed submissions go through human
