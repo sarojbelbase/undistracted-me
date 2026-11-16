@@ -17,6 +17,7 @@ export const site = {
   webAppUrl: "https://app.undistracted.me",
   githubUrl: "https://github.com/sarojbelbase/undistracted-me",
   formsUrl: "https://forms.gle/7vf4VGrB9Loz8hB76",
+  email: "hello@undistracted.me",
   momoUrl: "https://buymemomo.com/sarojbelbase",
   social: {
     reddit: "https://www.reddit.com/r/Nepal/comments/ggyzev/undistracted_me_a_nepali_extension_for_your/",

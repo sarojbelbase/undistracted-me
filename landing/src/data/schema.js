@@ -39,6 +39,15 @@ export function buildSchemaGraph() {
         },
         sameAs: [site.githubUrl, site.chromeUrl, site.firefoxUrl, site.social.reddit],
         founder: { "@id": `${site.url}/#author` },
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: site.email,
+        },
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "NP",
+        },
       },
       {
         "@type": "WebSite",

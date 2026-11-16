@@ -18,6 +18,12 @@ import { site } from "../data/site.js";
       <a class="btn" href="/">Back to the homepage</a>
       <a class="btn ghost" href={site.chromeUrl}>Get the extension</a>
     </div>
+    <nav class="nf-agents" aria-label="Machine-readable resources">
+      <a href="/sitemap.xml">sitemap.xml</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/schemamap.xml">schemamap.xml</a>
+      <a href="/schema/page.json">schema/page.json</a>
+    </nav>
   </main>
 </BaseLayout>
 
@@ -55,6 +61,19 @@ import { site } from "../data/site.js";
     align-items: center;
     gap: 0.9rem 1rem;
     margin-top: var(--s4);
+  }
+  .nf-agents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+    margin-top: var(--s4);
+    font-size: 0.85rem;
+    color: var(--mute);
+  }
+  .nf-agents a {
+    color: var(--mute);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   @media (max-width: 600px) {
     .nf {
