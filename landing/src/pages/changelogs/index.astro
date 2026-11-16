@@ -47,10 +47,7 @@ const graph = {
 <BaseLayout title={title} description={description} canonical={`${site.url}/changelogs/`} graph={graph}>
   <header class="chlog-head">
     <a class="logo" href="/" aria-label="Undistracted Me — home"><Wordmark /></a>
-    <nav class="chlog-head-links">
-      <a href="/">Home</a>
-      <a class="pill" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
-    </nav>
+    <a class="chlog-install" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
   </header>
 
   <main id="main">
@@ -163,17 +160,16 @@ const graph = {
     border-bottom: 1px solid rgba(11, 11, 11, 0.08);
   }
   .chlog-head .logo svg { height: 1.55rem; width: auto; display: block; }
-  .chlog-head-links { display: flex; align-items: center; gap: 1.2rem; font: 600 0.95rem var(--sans); }
-  .chlog-head-links a { text-decoration: none; }
-  .chlog-head-links .pill {
+  .chlog-install {
     background: var(--ink);
     color: var(--white);
     padding: 0.65rem 1rem;
     border-radius: 0.35rem;
+    font: 600 0.95rem var(--sans);
     text-decoration: none;
     transition: background 0.3s, color 0.3s;
   }
-  .chlog-head-links .pill:hover { background: var(--sun); color: var(--ink); }
+  .chlog-install:hover { background: var(--sun); color: var(--ink); }
 
   .chlog-wrap { max-width: 72rem; margin: 0 auto; }
 
@@ -258,6 +254,5 @@ const graph = {
     .chlog-entry-meta { position: static; flex-direction: row; align-items: baseline; gap: 0.6rem; text-align: left; padding-right: 0; }
     .chlog-gallery { grid-template-columns: 1fr; }
     .chlog-milestones li { grid-template-columns: 1fr; gap: 0.25rem; }
-    .chlog-head-links a:not(.pill) { display: none; }
   }
 </style>
