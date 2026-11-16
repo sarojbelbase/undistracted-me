@@ -9,6 +9,8 @@ on:
       - 'app/**'
       - 'public/**'
       - 'entries/**'
+      - 'scripts/**'
+      - 'app-functions/**'
       - 'package.json'
       - 'vite.config.ts'
       - '_headers'
@@ -37,12 +39,24 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_CF_BEACON_TOKEN: ${{ secrets.VITE_CF_BEACON_TOKEN }}
 
+      - name: Inject SEO JSON-LD
+        run: bun scripts/inject-seo.mjs
+
       - name: Copy headers and redirects
         run: cp _headers _redirects dist/
+
+      # wrangler `pages deploy` resolves Pages Functions at ./functions (the
+      # repo root), NOT <output>/functions. The web app keeps its single
+      # Function in ./app-functions, so stage it into ./functions before upload.
+      - name: Stage Pages Functions
+        run: |
+          rm -rf functions
+          mkdir -p functions
+          cp -r app-functions/* functions/
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy dist --project-name=undistracted-me-app --branch=main
+          command: pages deploy dist --project-name=undistracted-me-app --branch=main --commit-hash=${{ github.sha }} --commit-dirty=true

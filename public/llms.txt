@@ -1,0 +1,17 @@
+# Undistracted Me
+
+> Undistracted Me is a free, open-source new tab for Chrome and Firefox: a calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. Works offline, no account needed.
+
+## Pages
+
+- [Web app](https://app.undistracted.me/): The dashboard web app — open it in any browser.
+- [Landing site](https://undistracted.me): Product overview, FAQ, and download links.
+
+## Install
+
+- [Chrome Web Store](https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
+
+## Source
+
+- [GitHub](https://github.com/sarojbelbase/undistracted-me): Open-source repository (MIT license).
