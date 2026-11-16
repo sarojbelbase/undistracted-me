@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { injectSeo } from './seo.mjs';
+import { injectSeo, unhideSsrContent } from './seo.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const target = resolve(__dirname, '..', 'dist', 'entries', 'index.html');
@@ -22,11 +22,11 @@ if (!existsSync(target)) {
 }
 
 const html = readFileSync(target, 'utf8');
-const out = injectSeo(html);
+const out = unhideSsrContent(injectSeo(html));
 
 if (out === html) {
-  console.log('inject-seo: JSON-LD already present, no change.');
+  console.log('inject-seo: nothing to change (JSON-LD + SSR content already ready).');
 } else {
   writeFileSync(target, out, 'utf8');
-  console.log('inject-seo: injected JSON-LD into dist/entries/index.html');
+  console.log('inject-seo: injected JSON-LD and unhid SSR content in dist/entries/index.html');
 }

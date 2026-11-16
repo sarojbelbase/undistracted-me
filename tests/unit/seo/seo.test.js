@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildSchemaGraph, injectSeo } from '../../../scripts/seo.mjs';
+import { buildSchemaGraph, injectSeo, unhideSsrContent } from '../../../scripts/seo.mjs';
 
 // Tests run from the repo root (see `test:unit` in package.json), so cwd is
 // reliable. `import.meta.url` is not a `file:` URL under Vitest's jsdom env.
@@ -23,7 +23,9 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
           'Organization',
           'WebSite',
           'WebApplication',
+          'WebPage',
           'FAQPage',
+          'BreadcrumbList',
         ]),
       );
     });
@@ -75,6 +77,55 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
       )[1];
       const parsed = JSON.parse(jsonText);
       expect(parsed['@context']).toBe('https://schema.org');
+    });
+
+    describe('unhideSsrContent', () => {
+      const stripTags = (html) =>
+        html
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      it('removes `hidden` and lifts the <noscript> style to a regular <style>', () => {
+        const html = [
+          '<!DOCTYPE html><html><head></head><body>',
+          '<!-- the <noscript> style reveals content when scripting is disabled -->',
+          '<noscript><style>#ssr-content[hidden]{display:block}</style></noscript>',
+          '<div id="ssr-content" hidden><h1>Hi</h1></div>',
+          '<div id="root"></div>',
+          '</body></html>',
+        ].join('');
+        const out = unhideSsrContent(html);
+        expect(out).toContain('<div id="ssr-content">');
+        expect(out).not.toContain('<div id="ssr-content" hidden');
+        // Real <noscript> wrapper is gone, but the comment that merely *mentions*
+        // `<noscript>` is preserved untouched.
+        expect(out).not.toMatch(/<noscript>\s*<style>/);
+        expect(out).toContain('<!-- the <noscript> style');
+        expect(out).toContain('<style>');
+      });
+
+      it('is idempotent once content is already visible', () => {
+        const visible = '<div id="ssr-content"><h1>Hi</h1></div>';
+        expect(unhideSsrContent(visible)).toBe(visible);
+      });
+
+      it('throws on non-string input', () => {
+        expect(() => unhideSsrContent(null)).toThrow(TypeError);
+      });
+
+      it('exposes a visible H1 and 500+ chars of text in the real web-app HTML', () => {
+        const src = read('entries/index.html');
+        const out = unhideSsrContent(injectSeo(src));
+        expect(out).not.toContain('id="ssr-content" hidden');
+        expect(out).not.toMatch(/<noscript>\s*<style>/);
+        expect(out).toContain('application/ld+json');
+        const text = stripTags(out);
+        expect(text).toContain('Undistracted Me');
+        expect(text.length).toBeGreaterThanOrEqual(500);
+      });
     });
   });
 

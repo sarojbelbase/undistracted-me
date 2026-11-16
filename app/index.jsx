@@ -3,6 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { getPlatform, PLATFORMS, API_BASE_URL } from './constants/env';
 
+// ── Remove the server-rendered fallback (web app only) ───────────────────────
+// entries/index.html ships an SSR content block for crawlers/no-JS users. On the
+// web app that block is made visible in raw HTML (by scripts/inject-seo.mjs) so
+// AI agents can read it; we drop it as soon as JS runs so React mounts cleanly
+// with no duplicate content. The extension never unhides it, so this is a no-op
+// there.
+if (getPlatform() !== PLATFORMS.EXTENSION) {
+  document.getElementById('ssr-content')?.remove();
+}
+
 // ── Tab title ──────────────────────────────────────────────────────────────────
 // The extension replaces the browser's native new-tab page, so its tab title
 // reads "New Tab" (matching Chrome/Firefox). The web app keeps the

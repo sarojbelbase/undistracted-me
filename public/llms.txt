@@ -5,7 +5,7 @@
 ## Pages
 
 - [Web app](https://app.undistracted.me/): The dashboard web app — open it in any browser.
-- [Landing site](https://undistracted.me): Product overview, FAQ, and download links.
+- [Landing site](https://undistracted.me/): Product overview, FAQ, and download links.
 
 ## Install
 

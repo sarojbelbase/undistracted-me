@@ -100,6 +100,22 @@ export function buildSchemaGraph() {
         inLanguage: 'en',
       },
       {
+        '@type': 'WebPage',
+        '@id': `${s.url}/#webpage`,
+        name: s.name,
+        url: s.url,
+        description: s.description,
+        inLanguage: 'en',
+        isPartOf: { '@id': `${s.url}/#website` },
+        about: { '@id': `${s.url}/#app` },
+        author: { '@id': `${s.url}/#author` },
+        dateModified: s.lastModified,
+        primaryImageOfPage: {
+          '@type': 'ImageObject',
+          url: s.image,
+        },
+      },
+      {
         '@type': 'WebApplication',
         '@id': `${s.url}/#app`,
         name: s.name,
@@ -151,6 +167,18 @@ export function buildSchemaGraph() {
           },
         ],
       },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${s.url}/#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: s.url,
+          },
+        ],
+      },
     ],
   };
 }
@@ -173,4 +201,35 @@ export function injectSeo(html) {
   const json = JSON.stringify(buildSchemaGraph()).replace(/</g, '\\u003c');
   const tag = `<script type="application/ld+json">${json}</script>`;
   return html.replace('</head>', `${tag}\n  </head>`);
+}
+
+/**
+ * Make the server-rendered fallback visible in the raw HTML, for crawlers and
+ * AI agents that read markup without executing JavaScript.
+ *
+ * The shared entries/index.html hides this content behind a `hidden` attribute
+ * so the extension new tab shows no flash of duplicate content. For the web app
+ * we (a) drop `hidden` and (b) lift the reveal <style> out of <noscript> so the
+ * content keeps its typography while visible. app/index.jsx then removes the
+ * node once React mounts, so human visitors only ever see the real app.
+ *
+ * Idempotent: returns the input unchanged if #ssr-content is already visible.
+ */
+export function unhideSsrContent(html) {
+  if (typeof html !== 'string') {
+    throw new TypeError('unhideSsrContent: html must be a string');
+  }
+  const ssrOpen = '<div id="ssr-content" hidden>';
+  if (!html.includes(ssrOpen)) {
+    return html; // already visible
+  }
+  const unhidden = html.replace(ssrOpen, '<div id="ssr-content">');
+  // Match the real <noscript> wrapper — the one that wraps a <style> block —
+  // not the literal "<noscript>" mentioned inside the HTML comment above it.
+  const noscript = /<noscript>\s*(<style>[\s\S]*?<\/style>)\s*<\/noscript>/;
+  const match = noscript.exec(unhidden);
+  if (!match) {
+    throw new Error('unhideSsrContent: could not find <noscript> reveal block');
+  }
+  return unhidden.replace(match[0], match[1].trim());
 }
