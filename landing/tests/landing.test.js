@@ -44,3 +44,36 @@ describe("llms.txt sections", () => {
     });
   });
 });
+
+describe("schema type breadth", () => {
+  const graph = buildSchemaGraph();
+  const nodes = graph["@graph"];
+  const types = nodes.map((n) => n["@type"]);
+
+  it("includes content + navigation schema types, not only entities/FAQ", () => {
+    expect(types).toContain("Article");
+    expect(types).toContain("BreadcrumbList");
+    // Breadth: entities + WebSite + SoftwareApplication + WebPage + FAQ + content.
+    expect(types.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("links the Article back to the author, org, app and webpage", () => {
+    const article = nodes.find((n) => n["@type"] === "Article");
+    expect(article.headline).toBeTruthy();
+    expect(article.author["@id"]).toBe(`${site.url}/#author`);
+    expect(article.publisher["@id"]).toBe(`${site.url}/#org`);
+    expect(article.about["@id"]).toBe(`${site.url}/#app`);
+    expect(article.mainEntityOfPage["@id"]).toBe(`${site.url}/#webpage`);
+    expect(article.datePublished).toBeTruthy();
+    expect(article.articleBody.length).toBeGreaterThan(100);
+  });
+
+  it("emits a BreadcrumbList rooted at Home", () => {
+    const breadcrumb = nodes.find((n) => n["@type"] === "BreadcrumbList");
+    expect(breadcrumb.itemListElement).toHaveLength(1);
+    const [home] = breadcrumb.itemListElement;
+    expect(home.position).toBe(1);
+    expect(home.name).toBe("Home");
+    expect(home.item).toBe(site.url);
+  });
+});

@@ -132,6 +132,34 @@ export function buildSchemaGraph() {
           },
         })),
       },
+      {
+        "@type": "Article",
+        "@id": `${site.url}/#story`,
+        headline: "Why I built Undistracted Me",
+        description:
+          "The origin story behind Undistracted Me — a new tab built to quiet the noise.",
+        inLanguage: "en",
+        author: { "@id": `${site.url}/#author` },
+        publisher: { "@id": `${site.url}/#org` },
+        datePublished: site.lastUpdated,
+        dateModified: site.lastUpdated,
+        mainEntityOfPage: { "@id": `${site.url}/#webpage` },
+        about: { "@id": `${site.url}/#app` },
+        articleBody:
+          "I'd open a tab to check one thing. Then the headlines started.\n\nAnd I'd lose track of what I was doing — my context, the thing I sat down to finish, dissolved into everything else on the screen.\n\nHelp turned into weight: every tool meant to lighten the day added one more thing to carry.\n\nSo I built a tab that carries it all, quietly. One place for the clock, the calendar and the few things I need. Nothing to get lost in.",
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${site.url}/#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: site.url,
+          },
+        ],
+      },
     ],
   };
 }
