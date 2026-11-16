@@ -7,6 +7,7 @@ import {
   EnvelopeFill,
   QuestionCircle,
   Heart,
+  JournalText,
 } from "react-bootstrap-icons";
 import {
   LANDING_URL,
@@ -14,6 +15,7 @@ import {
   FEEDBACK_FORM_URL,
   SUPPORT_URL,
   MOMO_URL,
+  CHANGELOG_URL,
 } from "../../constants/urls";
 import { APP_VERSION } from "../../constants/version";
 
@@ -80,6 +82,7 @@ export const About = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <LinkRow icon={<Globe2 size={14} />} label="Website" href={LANDING_URL} />
       <LinkRow icon={<Github size={14} />} label="GitHub" href={GITHUB_URL} />
+      <LinkRow icon={<JournalText size={14} />} label="Changelog" href={CHANGELOG_URL} />
       <LinkRow icon={<EnvelopeFill size={14} />} label="Feedback" href={FEEDBACK_FORM_URL} />
       <LinkRow icon={<QuestionCircle size={14} />} label="Support" href={SUPPORT_URL} />
     </div>

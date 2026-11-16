@@ -34,6 +34,9 @@ export const GITHUB_URL = 'https://github.com/sarojbelbase/undistracted-me';
 /** Landing site home. */
 export const LANDING_URL = LANDING_BASE_URL;
 
+/** Landing site changelog (release notes). */
+export const CHANGELOG_URL = `${LANDING_BASE_URL}/changelogs/`;
+
 /** Chrome Web Store listing. */
 export const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef';
 

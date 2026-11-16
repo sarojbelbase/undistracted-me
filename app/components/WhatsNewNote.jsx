@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { XLg } from "react-bootstrap-icons";
 import { useSettingsStore } from "../store/useSettingsStore";
 import { LATEST_VERSION, CHANGELOG } from "../constants/whatsNew";
+import { CHANGELOG_URL } from "../constants/urls";
 
 export function WhatsNewNote() {
   const whatsNewSeenVersion = useSettingsStore((s) => s.whatsNewSeenVersion);
@@ -119,6 +120,22 @@ export function WhatsNewNote() {
             </li>
           ))}
         </ul>
+
+        <a
+          href={CHANGELOG_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={dismiss}
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--w-accent)",
+            textDecoration: "none",
+            cursor: "pointer",
+          }}
+        >
+          View full changelog →
+        </a>
       </div>
     </div>,
     document.body,
