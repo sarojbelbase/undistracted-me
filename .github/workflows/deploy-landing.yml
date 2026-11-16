@@ -29,9 +29,18 @@ jobs:
         working-directory: landing
         run: bun run build
 
+      # wrangler `pages deploy` resolves Pages Functions at ./functions (the
+      # repo root), NOT <output>/functions. The landing keeps its Function in
+      # ./landing/functions-src, so stage it into ./functions before upload.
+      - name: Stage Pages Functions
+        run: |
+          rm -rf functions
+          mkdir -p functions
+          cp -r landing/functions-src/* functions/
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
-          command: pages deploy landing/dist --project-name=undistracted-me-landing --branch=main
+          command: pages deploy landing/dist --project-name=undistracted-me-landing --branch=main --commit-hash=${{ github.sha }} --commit-dirty=true
