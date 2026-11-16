@@ -12,6 +12,7 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
   describe('scripts/seo.mjs', () => {
     const graph = buildSchemaGraph();
     const org = graph['@graph'].find((n) => n['@type'] === 'Organization');
+    const person = graph['@graph'].find((n) => n['@type'] === 'Person');
     const faq = graph['@graph'].find((n) => n['@type'] === 'FAQPage');
 
     it('emits entity identity + content schema types', () => {
@@ -31,6 +32,7 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
       expect(org.name).toBe('Undistracted Me');
       expect(org.url).toBe('https://app.undistracted.me');
       expect(org.logo).toMatch(/favicon\.png$/);
+      expect(org.image).toBe('https://app.undistracted.me/og.png');
       expect(org.contactPoint).toMatchObject({
         '@type': 'ContactPoint',
         email: 'hello@undistracted.me',
@@ -40,7 +42,19 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
     it('Organization links 3+ authoritative profiles via sameAs', () => {
       expect(org.sameAs.length).toBeGreaterThanOrEqual(3);
       expect(org.sameAs).toContain('https://github.com/sarojbelbase/undistracted-me');
+      expect(org.sameAs).toContain('https://github.com/sarojbelbase');
+      expect(org.sameAs).toContain('https://linkedin.com/in/sarojbelbase');
+      expect(org.sameAs).toContain('https://twitter.com/whoisevensaroj');
+      expect(org.sameAs).toContain('https://instagram.com/whoisevensaroj');
+      expect(org.sameAs).toContain('https://www.youtube.com/@whoevenissaroj');
+      expect(org.sameAs).toContain('https://sarojbelbase.com.np/');
       expect(org.sameAs.some((u) => u.includes('linkedin.com'))).toBe(true);
+    });
+
+    it('Person links its own social profiles via sameAs', () => {
+      expect(person.sameAs).toContain('https://github.com/sarojbelbase');
+      expect(person.sameAs).toContain('https://linkedin.com/in/sarojbelbase');
+      expect(person.sameAs).toContain('https://twitter.com/whoisevensaroj');
     });
 
     it('FAQPage exposes answer content', () => {
@@ -93,6 +107,14 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
       expect(html).toContain('/llms.txt');
       expect(html).toContain('noindex');
     });
+
+    it('og.png is a committed 1200x630 PNG for social sharing', () => {
+      const png = readFileSync(join(repoRoot, 'public/og.png'));
+      const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+      expect(png.subarray(0, 8).equals(sig)).toBe(true);
+      expect(png.readUInt32BE(16)).toBe(1200); // IHDR width
+      expect(png.readUInt32BE(20)).toBe(630); // IHDR height
+    });
   });
 
   describe('entries/index.html (shared home page)', () => {
@@ -112,6 +134,9 @@ describe('app.undistracted.me agent-readiness (SEO)', () => {
       expect(html).toContain('property="og:title"');
       expect(html).toContain('property="og:image"');
       expect(html).toContain('name="twitter:card"');
+      expect(html).toContain(
+        'content="https://app.undistracted.me/og.png"',
+      );
     });
 
     it('contains no inline JSON-LD (injected at deploy time only)', () => {

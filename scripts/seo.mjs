@@ -31,20 +31,35 @@ export const APP_SEO = {
     'https://www.linkedin.com/posts/sarojbelbase_chromestore-share-6667725433678778368-c04V',
     'https://www.linkedin.com/posts/sarojbelbase_firefox-chrome-share-6665168217478168576-BuQo',
   ],
+  profiles: [
+    'https://github.com/sarojbelbase',
+    'https://linkedin.com/in/sarojbelbase',
+    'https://twitter.com/whoisevensaroj',
+    'https://instagram.com/whoisevensaroj',
+    'https://www.youtube.com/@whoevenissaroj',
+    'https://sarojbelbase.com.np/',
+  ],
+  image: `${BASE_URL}/og.png`,
   softwareVersion: '4.0.2',
   lastModified: '2026-11-16',
 };
 
 export function buildSchemaGraph() {
   const s = APP_SEO;
-  const sameAs = [
-    s.githubUrl,
-    s.author.url,
-    s.chromeUrl,
-    s.firefoxUrl,
-    s.redditUrl,
-    ...s.linkedinPosts,
-  ];
+  const sameAs = Array.from(
+    new Set([
+      s.githubUrl,
+      s.author.url,
+      ...s.profiles,
+      s.chromeUrl,
+      s.firefoxUrl,
+      s.redditUrl,
+      ...s.linkedinPosts,
+    ]),
+  );
+  const authorSameAs = Array.from(
+    new Set([s.author.url, ...s.profiles, ...s.linkedinPosts]),
+  );
 
   return {
     '@context': 'https://schema.org',
@@ -54,7 +69,7 @@ export function buildSchemaGraph() {
         '@id': `${s.url}/#author`,
         name: s.author.name,
         url: s.author.url,
-        sameAs: [s.author.url, ...s.linkedinPosts],
+        sameAs: authorSameAs,
         jobTitle: 'Creator',
       },
       {
@@ -63,6 +78,7 @@ export function buildSchemaGraph() {
         name: s.name,
         url: s.url,
         logo: s.logo,
+        image: s.image,
         description: s.description,
         email: s.email,
         contactPoint: {
@@ -78,6 +94,7 @@ export function buildSchemaGraph() {
         '@id': `${s.url}/#website`,
         name: s.name,
         url: s.url,
+        image: s.image,
         description: s.description,
         publisher: { '@id': `${s.url}/#org` },
         inLanguage: 'en',

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --ink: #0b0b0b;
+      --cream: #f4f1ec;
+      --mute: #8a8880;
+      --sun: #f6b414;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+    }
+    body {
+      background: var(--ink);
+      color: var(--cream);
+      font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* soft gold halo behind the mark */
+    .halo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -58%);
+      width: 560px;
+      height: 560px;
+      background: radial-gradient(circle, rgba(246, 180, 20, 0.20), rgba(246, 180, 20, 0) 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    /* white lotus silhouette (source glyph is black; brightness(0) invert(1)
+       recolors it predictably without needing to inspect the mark) */
+    .lotus {
+      width: 176px;
+      height: 176px;
+      filter: brightness(0) invert(1);
+      opacity: 0.96;
+      position: relative;
+      margin-bottom: 26px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 96px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #f7f7f7;
+    }
+    .tagline {
+      margin: 22px 0 0;
+      font-size: 27px;
+      line-height: 1.35;
+      font-weight: 600;
+      color: #cfccc4;
+      max-width: 760px;
+    }
+    .divider {
+      width: 64px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--sun);
+      margin: 26px 0 22px;
+    }
+    .sub {
+      margin: 0;
+      font-family: "SFMono-Regular", ui-monospace, "DM Mono", Menlo, monospace;
+      font-size: 17px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .foot {
+      position: absolute;
+      bottom: 26px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 15px;
+      letter-spacing: 0.05em;
+      color: #6a6964;
+    }
+  </style>
+</head>
+<body>
+  <div class="halo"></div>
+  <img class="lotus" src="../public/favicon/lotus512.png" alt="" />
+  <h1>Undistracted Me</h1>
+  <p class="tagline">A calm, distraction-free new tab for Chrome &amp; Firefox — free, open source, works offline.</p>
+  <div class="divider"></div>
+  <p class="sub">Nepali calendar · Focus Mode · 30+ quiet widgets</p>
+  <p class="foot">app.undistracted.me</p>
+</body>
+</html>
