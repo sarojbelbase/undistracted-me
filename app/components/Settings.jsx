@@ -136,7 +136,7 @@ export const Settings = ({
     <Modal
       onClose={onClose}
       ariaLabel="Canvas settings"
-      style={{ width: 460 }}
+      style={{ width: 520, maxWidth: "calc(100vw - 32px)" }}
     >
       {/* ── Header ── */}
       <div style={{
