@@ -17,6 +17,12 @@ export const llmsSections = [
         title: "Homepage",
         description: site.description,
       },
+      {
+        url: `${site.url}/changelogs/`,
+        title: "Changelog",
+        description:
+          "The release history of Undistracted Me, from the first Nepali-calendar new tab in 2020 to the Focus Mode rewrite.",
+      },
     ],
   },
   {

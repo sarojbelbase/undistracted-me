@@ -6,6 +6,7 @@ import { site } from "../data/site.js";
 // reflects real git history rather than CI checkout timestamps.
 const PAGES = [
   { url: `${site.url}/`, file: "src/pages/index.astro" },
+  { url: `${site.url}/changelogs/`, file: "src/pages/changelogs/index.astro" },
   { url: `${site.url}/pp-and-tos`, file: "public/pp-and-tos.html" },
   { url: `${site.url}/momentum-alternative/`, file: "src/pages/momentum-alternative.astro" },
   { url: `${site.url}/tabliss-alternative/`, file: "src/pages/tabliss-alternative.astro" },
