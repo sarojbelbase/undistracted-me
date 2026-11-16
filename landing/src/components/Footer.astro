@@ -2,6 +2,12 @@
 import Wordmark from "./Wordmark.astro";
 import { site } from "../data/site.js";
 
+// Anchor links (e.g. "#features") only resolve on the homepage. On any other
+// page — /changelogs, the comparison pages, 404 — point them at the homepage
+// section instead, so "#supporters" becomes "/#supporters" and still lands.
+const isHome = Astro.url.pathname === "/" || Astro.url.pathname === "/index.html";
+const anchor = (href) => (isHome ? href : `/${href}`);
+
 const cols = [
   {
     h: "Product",
@@ -55,7 +61,7 @@ const cols = [
 
 <footer class="dark foot">
   <div>
-    <a class="logo" href="#top" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <a class="logo" href={anchor("#top")} aria-label="Undistracted Me — home"><Wordmark /></a>
     <p>Your new tab, minus the noise. A calm dashboard with Focus Mode, quiet widgets and everything you need in one place.</p>
   </div>
 
@@ -63,7 +69,7 @@ const cols = [
     <div>
       <h3>{col.h}</h3>
       {col.links.map((l) => (
-        <a href={l.href} rel={l.external ? "noopener" : undefined} target={l.external ? "_blank" : undefined}>{l.label}</a>
+        <a href={l.href.startsWith("#") ? anchor(l.href) : l.href} rel={l.external ? "noopener" : undefined} target={l.external ? "_blank" : undefined}>{l.label}</a>
       ))}
     </div>
   ))}
