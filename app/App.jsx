@@ -17,6 +17,7 @@ import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
 import { useGoogleAccountStore } from "./store/useGoogleAccountStore";
 import { useUIStore } from "./store/useUIStore";
 import { triggerSupportNudge, useSupportStore } from "./store/useSupportStore";
+import { useReviewPromptStore } from "./components/ReviewPrompt/reviewPromptStore";
 import { useShallow } from "zustand/react/shallow";
 import { useAutoTheme } from "./hooks/useAutoTheme";
 import { useLocation } from "./hooks/useLocation";
@@ -29,6 +30,7 @@ import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
 import syncEngine from "./utilities/syncEngineFacade";
 import { initSyncRefresh } from "./utilities/syncRefresh";
 import bgImage from "./assets/img/bg.webp";
+import { WhatsNewNote } from "./components/WhatsNewNote";
 
 // ── On-demand lazy components ────────────────────────────────────────────────
 
@@ -64,6 +66,10 @@ const CommandPalette = lazy(() =>
 
 const QuickTour = lazy(() =>
   import("./components/QuickTour").then((m) => ({ default: m.QuickTour })),
+);
+
+const ReviewPrompt = lazy(() =>
+  import("./components/ReviewPrompt").then((m) => ({ default: m.ReviewPrompt })),
 );
 // WidgetCatalog renders at App level (not inside ControlCluster) so keep its
 // lazy import here; the preloader is passed down as a prop.
@@ -206,6 +212,7 @@ const App = () => {
   const canvasBg = useSettingsStore((s) => s.canvasBg);
   // Gate the lazy support-dialog chunk: only load it when a nudge first opens.
   const supportOpen = useSupportStore((s) => s.open);
+  const reviewPromptOpen = useReviewPromptStore((s) => s.open);
   const instances = useWidgetInstancesStore((s) => s.instances);
   const addInstance = useWidgetInstancesStore((s) => s.addInstance);
   const removeInstance = useWidgetInstancesStore((s) => s.removeInstance);
@@ -232,6 +239,11 @@ const App = () => {
   // ── Seed default widgets on fresh install / after reset ──────────────────────
   useEffect(() => {
     seedWidgetInstancesIfEmpty();
+  }, []);
+
+  // ── Review prompt — check once on mount (users already past the threshold) ──
+  useEffect(() => {
+    useReviewPromptStore.getState().maybeShowOnMount();
   }, []);
 
   // ── Theme ───────────────────────────────────────────────────────────────────
@@ -419,6 +431,16 @@ const App = () => {
       <Suspense fallback={null}>
         <QuickTour />
       </Suspense>
+
+      {/* What's new — small one-time note for returning users after an update */}
+      <WhatsNewNote />
+
+      {/* Review prompt — one-time, shown after 10 focus sessions */}
+      {reviewPromptOpen && (
+        <Suspense fallback={null}>
+          <ReviewPrompt />
+        </Suspense>
+      )}
 
       {/* Support dialog — dependency-injected; opens on a completion trigger.
           Lazy-loaded so its chunk isn't fetched until the first nudge. */}

@@ -6,7 +6,7 @@
  * one canonical place to update an endpoint if it ever changes.
  */
 
-import { PRODUCTION_BASE_URL, API_BASE_URL } from './env.js';
+import { PRODUCTION_BASE_URL, API_BASE_URL, LANDING_BASE_URL } from './env.js';
 
 // ── Own APIs ──────────────────────────────────────────────────────────────────
 
@@ -30,6 +30,21 @@ export const MOMO_URL = 'https://buymemomo.com/sarojbelbase';
 
 /** Project repository — GitHub star link in the support nudge. */
 export const GITHUB_URL = 'https://github.com/sarojbelbase/undistracted-me';
+
+/** Landing site home. */
+export const LANDING_URL = LANDING_BASE_URL;
+
+/** Chrome Web Store listing. */
+export const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef';
+
+/** Firefox Add-ons listing. */
+export const FIREFOX_ADDONS_URL = 'https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/';
+
+/** Feedback form (Google Forms). */
+export const FEEDBACK_FORM_URL = 'https://forms.gle/7vf4VGrB9Loz8hB76';
+
+/** Landing site support section. */
+export const SUPPORT_URL = `${LANDING_BASE_URL}/#support`;
 
 // ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
 

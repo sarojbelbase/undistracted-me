@@ -2,6 +2,7 @@ import { MAX_HISTORY, HISTORY_STORAGE_KEY, SESSION_TYPE, PHASE } from './constan
 import { playChime, playBreakChime } from './chime';
 import { sendToServiceWorker } from '../../utilities/chrome';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
+import { useReviewPromptStore } from '../../components/ReviewPrompt/reviewPromptStore';
 
 // Re-export PRESETS so Focus Mode (panels/Pomodoro.jsx) doesn't break.
 // New code should import from './constants' directly.
@@ -128,6 +129,14 @@ export const saveSession = (session) => {
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
   } catch {
     // Storage full or unavailable — degrade silently
+  }
+  // After a completed focus session, tick the review-prompt counter.
+  if (session.type === SESSION_TYPE.FOCUS) {
+    try {
+      useReviewPromptStore.getState().recordFocusSession();
+    } catch {
+      /* ignore */
+    }
   }
 };
 

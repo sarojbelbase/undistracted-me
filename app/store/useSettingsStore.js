@@ -77,6 +77,8 @@ const fromLegacy = () => {
           stored.state.notificationTypes ?? DEFAULT_NOTIFICATION_TYPES,
         quickTourSeenVersion:
           stored.state.quickTourSeenVersion ?? D.quickTourSeenVersion,
+        whatsNewSeenVersion:
+          stored.state.whatsNewSeenVersion ?? D.whatsNewSeenVersion,
         syncEnabled: stored.state.syncEnabled ?? D.syncEnabled,
       };
   } catch {
@@ -98,6 +100,7 @@ const fromLegacy = () => {
     notificationsEnabled: D.notificationsEnabled,
     notificationTypes: DEFAULT_NOTIFICATION_TYPES,
     quickTourSeenVersion: D.quickTourSeenVersion,
+    whatsNewSeenVersion: D.whatsNewSeenVersion,
     syncEnabled: D.syncEnabled,
   };
 };
@@ -133,6 +136,12 @@ export const useSettingsStore = create(
 
       /** Re-show the quick tour on next mount by resetting the seen version. */
       resetQuickTourSeen: () => set({ quickTourSeenVersion: null }),
+
+      /** Mark the current "What's new" note as seen (persisted). */
+      markWhatsNewSeen: (version) => set({ whatsNewSeenVersion: version }),
+
+      /** Re-show the "What's new" note on next mount. */
+      resetWhatsNewSeen: () => set({ whatsNewSeenVersion: null }),
 
       /** Clock time format shown in Focus Mode: '24h' | '12h' */
       setClockFormat: (clockFormat) => set({ clockFormat }),

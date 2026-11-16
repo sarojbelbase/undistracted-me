@@ -1,222 +1,271 @@
 /**
- * QuickTour — Two-step onboarding overlay shown once per major version.
+ * QuickTour — three-step first-run welcome overlay.
  *
- * Gating logic:
- *   Show when  → useSettingsStore.quickTourSeenVersion !== TOUR_VERSION
- *   Dismiss by → markQuickTourSeen(TOUR_VERSION) — persisted in Zustand, never shown again for this version
- *   Next ver   → bump TOUR_VERSION to '4.0.0' when ready
+ * Steps:
+ *   1. Pick a theme  → accent + light/auto/dark (applied live)
+ *   2. Pick 3 widgets → replace the seeded dashboard with the chosen three
+ *   3. Try Focus Mode → jump straight in, or finish to the dashboard
+ *
+ * Gating: shown only on the very first run (quickTourSeenVersion === null).
+ * Dismissing writes markQuickTourSeen(TOUR_VERSION) so it never re-appears.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
-  Fullscreen,
-  Grid3x3GapFill,
-  SearchHeartFill,
-  UiChecksGrid,
-  EyeFill,
-  MusicNoteList,
-  CalendarEventFill,
   SunFill,
+  MoonFill,
+  CircleHalf,
+  CheckLg,
+  Fullscreen,
   ArrowRight,
   ArrowLeft,
-} from 'react-bootstrap-icons';
-import { useSettingsStore } from '../../store/useSettingsStore';
+} from "react-bootstrap-icons";
+import { useSettingsStore } from "../../store/useSettingsStore";
+import { useWidgetInstancesStore } from "../../store/useWidgetInstancesStore";
+import { useUIStore } from "../../store/useUIStore";
+import { ACCENT_COLORS } from "../../theme";
+import { WIDGET_REGISTRY } from "../../widgets";
+import { CURRENT_PLATFORM } from "../../constants/env";
+import { WIDGET_EMPTY_STATES } from "../../constants/widgetEmptyStates";
+import { APP_VERSION } from "../../constants/version";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOUR_VERSION = '4.0.0';
+const TOUR_VERSION = APP_VERSION;
+const MAX_WIDGETS = 3;
+const RECOMMENDED_WIDGETS = ["clock", "pomodoro", "notes"];
 
-// ─── Feature grid data ────────────────────────────────────────────────────────
+const isSupportedOnPlatform = (widget) => {
+  const p = widget.platforms?.[CURRENT_PLATFORM];
+  return !p || p.supported !== false;
+};
 
-const FEATURES = [
-  {
-    Icon: UiChecksGrid,
-    title: '15+ Widgets',
-    desc: 'Clock, weather, notes, stocks and more. Move anywhere.',
-    color: '#6366f1',
-  },
-  {
-    Icon: SearchHeartFill,
-    title: 'Smart Search',
-    desc: 'Search from Focus Mode. Google, Duck Duck Go.',
-    color: '#ec4899',
-  },
-  {
-    Icon: EyeFill,
-    title: 'Look Away',
-    desc: 'Dims your screen every configured mins. Forces a real break.',
-    color: '#10b981',
-  },
-  {
-    Icon: MusicNoteList,
-    title: 'Spotify',
-    desc: 'See what is playing. Skip tracks. No tab switching.',
-    color: '#1db954',
-  },
-  {
-    Icon: CalendarEventFill,
-    title: 'Google Sync',
-    desc: 'Calendar, tasks, contacts and birthdays. Never miss an event.',
-    color: '#f59e0b',
-  },
-  {
-    Icon: SunFill,
-    title: 'Auto Theme',
-    desc: 'Light at sunrise. Dark at sunset. Zero config.',
-    color: '#f97316',
-  },
-];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-/** Step 1 — Mode overview */
-const Step1 = () => (
-  <div className="flex flex-col items-center gap-4 text-center">
-    {/* Brand mark */}
-    <div className="flex flex-col items-center gap-2">
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center qt-brand-icon">
-        <img
-          src="/favicon/lotus48.png"
-          width={26}
-          height={26}
-          alt=""
-          className="qt-brand-lotus"
-        />
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-[23px] font-bold tracking-tight leading-tight qt-headline">
-          Your new tab, undistracted.
-        </h1>
-        <p className="text-[12.5px] leading-snug qt-subtitle">
-          Focus Mode or Canvas Mode. Switch anytime.
-        </p>
-      </div>
-    </div>
-
-    {/* Mode cards */}
-    <div className="grid grid-cols-2 gap-3 w-full">
-      {/* Focus Mode */}
-      <div className="flex flex-col gap-2 p-3 rounded-2xl text-left qt-focus-card">
-        <div className="flex flex-col gap-1">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center qt-focus-icon-box">
-            <Fullscreen size={13} className="qt-focus-icon" />
-          </div>
-          {/* Mock clock with Nepali date */}
-          <div className="flex flex-col gap-0 mt-1">
-            <p className="text-[8px] font-semibold tracking-widest uppercase qt-focus-date">
-              Baisakh 28
-            </p>
-            <div className="flex items-end gap-0.5">
-              <span className="text-[22px] font-bold leading-none tracking-tighter qt-focus-clock">12</span>
-              <span className="text-[15px] font-light leading-none mb-0.5 qt-focus-colon">:</span>
-              <span className="text-[22px] font-bold leading-none tracking-tighter qt-focus-clock">34</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-0">
-          <p className="text-[11.5px] font-semibold">Focus Mode</p>
-          <p className="text-[10px] leading-snug qt-focus-desc">
-            Full screen. Clock front and center. No noise.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {['Ambient Clock', 'Rain Sounds', 'Live Panels'].map(t => (
-            <span key={t} className="text-[9.5px] px-1.5 py-0.5 rounded-md font-medium qt-focus-chip">
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Canvas Mode */}
-      <div className="flex flex-col gap-2 p-3 rounded-2xl text-left qt-canvas-card">
-        <div className="flex flex-col gap-1">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center qt-canvas-icon-box">
-            <Grid3x3GapFill size={13} className="qt-canvas-icon" />
-          </div>
-          {/* Mini widget grid mockup */}
-          <div className="grid grid-cols-3 gap-1 mt-1.5">
-            {[0, 1, 2, 3, 4, 5].map(i => (
-              <div
-                key={i}
-                className={`rounded-md ${i % 3 === 0 ? 'qt-canvas-mock-tall' : 'qt-canvas-mock-short'}`}
-                style={{ height: i === 0 || i === 3 ? 17 : 11 }}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-0">
-          <p className="text-[11.5px] font-semibold qt-canvas-name">Canvas</p>
-          <p className="text-[10px] leading-snug qt-canvas-desc">
-            Widgets you arrange. Info you actually care about.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {['15+ Widgets', 'Drag & Drop', 'Custom Wallpapers'].map(t => (
-            <span key={t} className="text-[9.5px] px-1.5 py-0.5 rounded-md font-medium qt-canvas-chip">
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
+const PICKABLE_WIDGETS = WIDGET_REGISTRY.filter(
+  (w) => w.enabled && isSupportedOnPlatform(w),
 );
 
-/** Step 2 — Features showcase */
-const Step2 = () => (
-  <div className="flex flex-col gap-4 flex-1">
-    <div className="text-center flex flex-col gap-1">
+// ─── Steps ────────────────────────────────────────────────────────────────────
+
+/** Step 0 — pick a theme */
+const StepTheme = ({ mode, setMode, accent, setAccent }) => {
+  const isDark = mode === "dark";
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="text-center flex flex-col gap-1">
+        <h2 className="text-[21px] font-bold tracking-tight qt-s2-heading">
+          Make it yours.
+        </h2>
+        <p className="text-[12.5px] qt-s2-subtitle">
+          Pick a theme to start — you can change this anytime.
+        </p>
+      </div>
+
+      {/* Mode */}
+      <div
+        className="flex rounded-xl p-1 gap-1"
+        style={{ background: "var(--panel-bg)", border: "1px solid var(--card-border)" }}
+      >
+        {[
+          { id: "light", label: "Light", icon: <SunFill size={12} /> },
+          { id: "auto", label: "Auto", icon: <CircleHalf size={12} /> },
+          { id: "dark", label: "Dark", icon: <MoonFill size={12} /> },
+        ].map(({ id, label, icon }) => {
+          const selected = mode === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setMode(id)}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "8px 0",
+                borderRadius: 9,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                transition: "all 0.15s ease",
+                background: selected ? "var(--w-accent)" : "transparent",
+                color: selected ? "var(--w-accent-fg)" : "var(--w-ink-3)",
+              }}
+            >
+              {icon}
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Accent */}
+      <div>
+        <p
+          className="text-[10px] font-bold tracking-widest uppercase mb-2"
+          style={{ color: "var(--w-ink-3)" }}
+        >
+          Accent colour
+        </p>
+        <div className="flex flex-wrap gap-2.5">
+          {ACCENT_COLORS.map((color) => {
+            const swatchHex = isDark ? (color.darkHex ?? color.hex) : color.hex;
+            const selected = accent === color.name;
+            return (
+              <button
+                key={color.name}
+                type="button"
+                title={color.name}
+                aria-label={color.name}
+                aria-pressed={selected}
+                onClick={() => setAccent(color.name)}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  border: "none",
+                  padding: 0,
+                  backgroundColor: swatchHex,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: selected
+                    ? "0 0 0 2px var(--w-page-bg), 0 0 0 4px var(--w-accent)"
+                    : "none",
+                  transition: "all 0.15s ease",
+                  flexShrink: 0,
+                }}
+              >
+                {selected && (
+                  <CheckLg
+                    size={13}
+                    style={{ color: isDark ? (color.darkFg ?? color.fg) : color.fg }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** Step 1 — pick 3 widgets */
+const StepWidgets = ({ selected, toggleWidget }) => {
+  const full = selected.length >= MAX_WIDGETS;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="text-center flex flex-col gap-1">
+        <h2 className="text-[21px] font-bold tracking-tight qt-s2-heading">
+          Choose your first three widgets.
+        </h2>
+        <p className="text-[12.5px] qt-s2-subtitle">
+          {full
+            ? `${selected.length} of ${MAX_WIDGETS} selected — deselect one to swap.`
+            : `Pick ${MAX_WIDGETS} to start — you can add more later.`}
+        </p>
+      </div>
+
+      <div
+        className="grid grid-cols-2 gap-2 overflow-y-auto"
+        style={{ maxHeight: 240, paddingRight: 4 }}
+      >
+        {PICKABLE_WIDGETS.map((w) => {
+          const isSelected = selected.includes(w.type);
+          const disabled = !isSelected && full;
+          return (
+            <button
+              key={w.type}
+              type="button"
+              onClick={() => toggleWidget(w.type)}
+              disabled={disabled}
+              aria-pressed={isSelected}
+              style={{
+                textAlign: "left",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: `1px solid ${isSelected ? "var(--w-accent)" : "var(--card-border)"}`,
+                background: isSelected
+                  ? "color-mix(in srgb, var(--w-accent) 12%, transparent)"
+                  : "var(--panel-bg)",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                transition: "all 0.15s ease",
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--w-ink-1)" }}>
+                {w.title}
+              </span>
+              <span style={{ fontSize: 10.5, lineHeight: 1.35, color: "var(--w-ink-4)" }}>
+                {WIDGET_EMPTY_STATES[w.type] ?? w.description}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/** Step 2 — try Focus Mode */
+const StepFocus = ({ onTryFocusMode }) => (
+  <div className="flex flex-col items-center gap-4 text-center">
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+        style={{ background: "color-mix(in srgb, var(--w-accent) 14%, transparent)" }}
+      >
+        <Fullscreen size={22} style={{ color: "var(--w-accent)" }} />
+      </div>
       <h2 className="text-[21px] font-bold tracking-tight qt-s2-heading">
-        Built to keep you undistracted.
+        You're all set.
       </h2>
-      <p className="text-[12.5px] qt-s2-subtitle">
-        No distractions, just the features that actually help.
+      <p className="text-[12.5px] qt-s2-subtitle max-w-[320px]">
+        Focus Mode turns your new tab into a full-screen clock with a Pomodoro
+        timer, rain sounds and your tasks. Try it now, or explore your dashboard
+        first.
       </p>
     </div>
 
-    <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3">
-      {FEATURES.map(({ Icon, title, desc, color }) => (
-        <div key={title} className="flex flex-col items-center justify-center gap-1 p-3 text-center rounded-xl qt-feature-card">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: `${color}18`, border: `1px solid ${color}22` }}
-          >
-            <Icon size={14} style={{ color }} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-[11px] font-semibold leading-tight qt-feature-title">{title}</p>
-            <p className="text-[9.5px] font-semibold leading-snug tracking-tighter qt-feature-desc">{desc}</p>
-          </div>
-        </div>
-      ))}
-    </div>
+    <button
+      type="button"
+      onClick={onTryFocusMode}
+      className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold cursor-pointer transition-opacity hover:opacity-90 qt-cta-btn"
+    >
+      Enter Focus Mode
+      <ArrowRight size={13} />
+    </button>
   </div>
 );
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function QuickTour() {
-  const quickTourSeenVersion = useSettingsStore(s => s.quickTourSeenVersion);
-  const markQuickTourSeen = useSettingsStore(s => s.markQuickTourSeen);
+  const quickTourSeenVersion = useSettingsStore((s) => s.quickTourSeenVersion);
+  const markQuickTourSeen = useSettingsStore((s) => s.markQuickTourSeen);
+  const mode = useSettingsStore((s) => s.mode);
+  const setMode = useSettingsStore((s) => s.setMode);
+  const accent = useSettingsStore((s) => s.accent);
+  const setAccent = useSettingsStore((s) => s.setAccent);
+  const restoreInstances = useWidgetInstancesStore((s) => s.restoreInstances);
+  const requestFocusMode = useUIStore((s) => s.requestFocusMode);
 
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   // Animate step change: 'idle' | 'out' | 'in'
-  const [stepAnim, setStepAnim] = useState('idle');
+  const [stepAnim, setStepAnim] = useState("idle");
+  const [selected, setSelected] = useState(RECOMMENDED_WIDGETS);
 
-  const shouldShow = quickTourSeenVersion !== TOUR_VERSION;
+  const shouldShow = quickTourSeenVersion === null;
 
-  // Declared BEFORE the effects below — the keyboard listener's dependency array
-  // references these, and referencing a `const` before its declaration throws a
-  // temporal-dead-zone ReferenceError ("Cannot access 'dismiss' before
-  // initialization").
   const dismiss = useCallback(() => {
     setExiting(true);
     setTimeout(() => {
@@ -226,67 +275,114 @@ export function QuickTour() {
   }, [markQuickTourSeen]);
 
   const goToStep = useCallback((next) => {
-    setStepAnim('out');
+    setStepAnim("out");
     setTimeout(() => {
       setStep(next);
-      setStepAnim('in');
-      setTimeout(() => setStepAnim('idle'), 220);
+      setStepAnim("in");
+      setTimeout(() => setStepAnim("idle"), 220);
     }, 180);
   }, []);
+
+  const toggleWidget = useCallback((type) => {
+    setSelected((prev) => {
+      if (prev.includes(type)) return prev.filter((t) => t !== type);
+      if (prev.length >= MAX_WIDGETS) return prev;
+      return [...prev, type];
+    });
+  }, []);
+
+  const applyWidgets = useCallback(
+    (types) => {
+      restoreInstances(types.map((type) => ({ id: type, type })));
+    },
+    [restoreInstances],
+  );
+
+  const nextFromStep1 = useCallback(() => {
+    applyWidgets(selected);
+    goToStep(2);
+  }, [applyWidgets, selected, goToStep]);
+
+  const tryFocusMode = useCallback(() => {
+    requestFocusMode();
+    dismiss();
+  }, [requestFocusMode, dismiss]);
 
   // Mount after a short delay so the app renders first (smooth experience)
   useEffect(() => {
     if (!shouldShow) return;
-    const t = setTimeout(() => { setVisible(true); setExiting(false); }, 600);
+    const t = setTimeout(() => {
+      setVisible(true);
+      setExiting(false);
+    }, 600);
     return () => clearTimeout(t);
   }, [shouldShow]);
 
-  // ESC to dismiss, arrow keys to navigate between the two steps
+  // ESC to dismiss, arrow keys to navigate between the three steps
   useEffect(() => {
     if (!visible) return;
     const handler = (e) => {
-      if (e.key === 'Escape') { dismiss(); return; }
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { if (step === 0) goToStep(1); return; }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { if (step === 1) goToStep(0); return; }
+      if (e.key === "Escape") {
+        dismiss();
+        return;
+      }
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        if (step === 0) goToStep(1);
+        else if (step === 1) nextFromStep1();
+        return;
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        if (step > 0) goToStep(step - 1);
+        return;
+      }
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [visible, step, dismiss, goToStep]); // eslint-disable-line react-hooks/exhaustive-deps
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [visible, step, dismiss, goToStep, nextFromStep1]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shouldShow || !visible) return null;
 
-  const isLast = step === 1;
+  const isLast = step === 2;
 
-  let stepTransform = 'translateY(0)';
-  if (stepAnim === 'out') stepTransform = 'translateY(6px)';
-  else if (stepAnim === 'in') stepTransform = 'translateY(-4px)';
+  let stepTransform = "translateY(0)";
+  if (stepAnim === "out") stepTransform = "translateY(6px)";
+  else if (stepAnim === "in") stepTransform = "translateY(-4px)";
 
   const stepStyle = {
-    opacity: stepAnim === 'out' ? 0 : 1,
+    opacity: stepAnim === "out" ? 0 : 1,
     transform: stepTransform,
-    transition: 'opacity 180ms ease, transform 180ms ease',
+    transition: "opacity 180ms ease, transform 180ms ease",
   };
 
   const cardStyle = exiting
-    ? { opacity: 0, transform: 'scale(0.97) translateY(8px)', transition: 'all 280ms cubic-bezier(0.4,0,1,1)' }
-    : { opacity: 1, transform: 'scale(1) translateY(0)', transition: 'all 0ms' };
+    ? {
+        opacity: 0,
+        transform: "scale(0.97) translateY(8px)",
+        transition: "all 280ms cubic-bezier(0.4,0,1,1)",
+      }
+    : { opacity: 1, transform: "scale(1) translateY(0)", transition: "all 0ms" };
 
   return createPortal(
     <dialog
       open
       aria-label="Quick Tour"
-      onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) dismiss();
+      }}
       className="fixed inset-0 m-0 max-w-none max-h-none border-0 flex items-center justify-center p-0 z-9999 qt-overlay"
     >
       {/* Card */}
       <div
-        className={`relative flex flex-col w-full mx-4 rounded-2xl overflow-hidden qt-card ${exiting ? '' : 'qt-card--enter'}`}
+        className={`relative flex flex-col w-full mx-4 rounded-2xl overflow-hidden qt-card ${exiting ? "" : "qt-card--enter"}`}
         style={cardStyle}
       >
-
         {/* Step content — min-height locks card size between steps */}
         <div className="px-6 pt-6 pb-2 qt-content" style={stepStyle}>
-          {step === 0 ? <Step1 /> : <Step2 />}
+          {step === 0 && (
+            <StepTheme mode={mode} setMode={setMode} accent={accent} setAccent={setAccent} />
+          )}
+          {step === 1 && <StepWidgets selected={selected} toggleWidget={toggleWidget} />}
+          {step === 2 && <StepFocus onTryFocusMode={tryFocusMode} />}
         </div>
 
         {/* Footer */}
@@ -303,7 +399,7 @@ export function QuickTour() {
           ) : (
             <button
               type="button"
-              onClick={() => goToStep(0)}
+              onClick={() => goToStep(step - 1)}
               className="flex items-center gap-1.5 text-[12px] font-medium cursor-pointer transition-opacity hover:opacity-70 select-none qt-back-btn"
             >
               <ArrowLeft size={12} />
@@ -313,7 +409,7 @@ export function QuickTour() {
 
           {/* Step dots */}
           <div className="flex items-center gap-1.5">
-            {[0, 1].map(i => (
+            {[0, 1, 2].map((i) => (
               <button
                 key={i}
                 type="button"
@@ -322,7 +418,7 @@ export function QuickTour() {
                 className="transition-all rounded-full cursor-pointer qt-dot"
                 style={{
                   width: i === step ? 16 : 6,
-                  background: i === step ? 'var(--w-accent)' : 'var(--w-border)',
+                  background: i === step ? "var(--w-accent)" : "var(--w-border)",
                 }}
               />
             ))}
@@ -341,10 +437,10 @@ export function QuickTour() {
           ) : (
             <button
               type="button"
-              onClick={() => goToStep(1)}
+              onClick={() => (step === 0 ? goToStep(1) : nextFromStep1())}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-opacity hover:opacity-90 select-none qt-cta-btn"
             >
-              What's inside
+              Next
               <ArrowRight size={12} />
             </button>
           )}

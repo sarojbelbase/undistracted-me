@@ -11,12 +11,13 @@
 
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { XLg, CloudArrowUpFill } from 'react-bootstrap-icons';
+import { XLg, CloudArrowUpFill, InfoCircleFill } from 'react-bootstrap-icons';
 import { Modal } from './ui/Modal';
 import { Appearance } from './settings/Appearance';
 import { General } from './settings/General';
 import { Accounts } from './settings/Accounts';
 import { Data } from './settings/Data';
+import { About } from './settings/About';
 import { CANVAS_DIVIDER } from '../theme/canvas';
 import { DEFAULT_SETTINGS_TAB } from '../hooks/useSettingsPanel';
 import { AppearanceIcon } from '../assets/svg/AppearanceIcon';
@@ -46,6 +47,11 @@ const TABS = [
     id: 'data',
     label: 'Data',
     icon: (active) => <CloudArrowUpFill size={13} color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
+  },
+  {
+    id: 'about',
+    label: 'About',
+    icon: (active) => <InfoCircleFill size={13} color={active ? 'var(--w-accent)' : 'var(--w-ink-3)'} />,
   },
 ];
 
@@ -189,6 +195,7 @@ export const Settings = ({
           {activeTab === 'general' && <General onPreviewLookAway={onPreviewLookAway} />}
           {activeTab === 'accounts' && <Accounts />}
           {activeTab === 'data' && <Data onNavigateToAccounts={() => setActiveTab('accounts')} />}
+          {activeTab === 'about' && <About />}
         </div>
         {showScrollFade && (
           <div

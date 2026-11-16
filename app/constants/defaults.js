@@ -38,6 +38,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   },
   notificationsEnabled: true,
   quickTourSeenVersion: null,
+  whatsNewSeenVersion: null,
   syncEnabled: false,
 
   // Focus Mode
