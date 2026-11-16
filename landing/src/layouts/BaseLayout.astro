@@ -64,6 +64,38 @@ const fontsUrl =
       data-website-id="c2b2368b-72f8-4771-b615-f78ce2c2168c"
     ></script>
 
+    <!-- Track every link & button click with Umami so we can see what visitors
+         do next — and, combined with UTM tags, which post sent them. One
+         delegated listener covers every anchor and button automatically.
+         Prefers an explicit data-umami-event name, then the element's
+         accessible label (aria-label, or visible text with screen-reader-only
+         text stripped). No-op until Umami's deferred script loads. -->
+    <script is:inline>
+      function umamiEvent(name, data) {
+        if (typeof window.umami === "undefined" || typeof window.umami.track !== "function") return;
+        window.umami.track(name, data);
+      }
+      function labelOf(el) {
+        const aria = el.getAttribute("aria-label");
+        if (aria) return aria.replace(/\s+/g, " ").trim();
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll(".sr").forEach((n) => n.remove());
+        return (clone.textContent || "").replace(/\s+/g, " ").trim();
+      }
+      document.addEventListener(
+        "click",
+        (e) => {
+          const el = e.target.closest("a[href], button");
+          if (!el) return;
+          const name = (el.dataset.umamiEvent || labelOf(el)).slice(0, 80);
+          if (!name) return;
+          const url = el.getAttribute("href");
+          umamiEvent(name, url ? { url } : undefined);
+        },
+        true,
+      );
+    </script>
+
     <script is:inline>
       // JS-gated reveal/motion: elements start hidden only when JS runs.
       document.documentElement.classList.add("js");
