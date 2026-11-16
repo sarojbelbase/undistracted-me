@@ -1,10 +1,9 @@
 /**
- * QuickTour — three-step first-run welcome overlay.
+ * QuickTour — two-step first-run welcome overlay.
  *
  * Steps:
- *   1. Pick a theme  → accent + light/auto/dark (applied live)
- *   2. Pick 3 widgets → replace the seeded dashboard with the chosen three
- *   3. Try Focus Mode → jump straight in, or finish to the dashboard
+ *   1. Pick a theme → accent + light/auto/dark (applied live)
+ *   2. Try Focus Mode → jump straight in, or finish to the dashboard
  *
  * Gating: shown only on the very first run (quickTourSeenVersion === null).
  * Dismissing writes markQuickTourSeen(TOUR_VERSION) so it never re-appears.
@@ -22,28 +21,13 @@ import {
   ArrowLeft,
 } from "react-bootstrap-icons";
 import { useSettingsStore } from "../../store/useSettingsStore";
-import { useWidgetInstancesStore } from "../../store/useWidgetInstancesStore";
 import { useUIStore } from "../../store/useUIStore";
 import { ACCENT_COLORS } from "../../theme";
-import { WIDGET_REGISTRY } from "../../widgets";
-import { CURRENT_PLATFORM } from "../../constants/env";
-import { WIDGET_EMPTY_STATES } from "../../constants/widgetEmptyStates";
 import { APP_VERSION } from "../../constants/version";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOUR_VERSION = APP_VERSION;
-const MAX_WIDGETS = 3;
-const RECOMMENDED_WIDGETS = ["clock", "pomodoro", "notes"];
-
-const isSupportedOnPlatform = (widget) => {
-  const p = widget.platforms?.[CURRENT_PLATFORM];
-  return !p || p.supported !== false;
-};
-
-const PICKABLE_WIDGETS = WIDGET_REGISTRY.filter(
-  (w) => w.enabled && isSupportedOnPlatform(w),
-);
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
@@ -154,67 +138,7 @@ const StepTheme = ({ mode, setMode, accent, setAccent }) => {
   );
 };
 
-/** Step 1 — pick 3 widgets */
-const StepWidgets = ({ selected, toggleWidget }) => {
-  const full = selected.length >= MAX_WIDGETS;
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="text-center flex flex-col gap-1">
-        <h2 className="text-[21px] font-bold tracking-tight qt-s2-heading">
-          Choose your first three widgets.
-        </h2>
-        <p className="text-[12.5px] qt-s2-subtitle">
-          {full
-            ? `${selected.length} of ${MAX_WIDGETS} selected — deselect one to swap.`
-            : `Pick ${MAX_WIDGETS} to start — you can add more later.`}
-        </p>
-      </div>
-
-      <div
-        className="grid grid-cols-2 gap-2 overflow-y-auto"
-        style={{ maxHeight: 240, paddingRight: 4 }}
-      >
-        {PICKABLE_WIDGETS.map((w) => {
-          const isSelected = selected.includes(w.type);
-          const disabled = !isSelected && full;
-          return (
-            <button
-              key={w.type}
-              type="button"
-              onClick={() => toggleWidget(w.type)}
-              disabled={disabled}
-              aria-pressed={isSelected}
-              style={{
-                textAlign: "left",
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: `1px solid ${isSelected ? "var(--w-accent)" : "var(--card-border)"}`,
-                background: isSelected
-                  ? "color-mix(in srgb, var(--w-accent) 12%, transparent)"
-                  : "var(--panel-bg)",
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.5 : 1,
-                transition: "all 0.15s ease",
-              }}
-            >
-              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--w-ink-1)" }}>
-                {w.title}
-              </span>
-              <span style={{ fontSize: 10.5, lineHeight: 1.35, color: "var(--w-ink-4)" }}>
-                {WIDGET_EMPTY_STATES[w.type] ?? w.description}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-/** Step 2 — try Focus Mode */
+/** Step 1 — try Focus Mode */
 const StepFocus = ({ onTryFocusMode }) => (
   <div className="flex flex-col items-center gap-4 text-center">
     <div className="flex flex-col items-center gap-2">
@@ -254,7 +178,6 @@ export function QuickTour() {
   const setMode = useSettingsStore((s) => s.setMode);
   const accent = useSettingsStore((s) => s.accent);
   const setAccent = useSettingsStore((s) => s.setAccent);
-  const restoreInstances = useWidgetInstancesStore((s) => s.restoreInstances);
   const requestFocusMode = useUIStore((s) => s.requestFocusMode);
 
   const [step, setStep] = useState(0);
@@ -262,7 +185,6 @@ export function QuickTour() {
   const [exiting, setExiting] = useState(false);
   // Animate step change: 'idle' | 'out' | 'in'
   const [stepAnim, setStepAnim] = useState("idle");
-  const [selected, setSelected] = useState(RECOMMENDED_WIDGETS);
 
   const shouldShow = quickTourSeenVersion === null;
 
@@ -283,26 +205,6 @@ export function QuickTour() {
     }, 180);
   }, []);
 
-  const toggleWidget = useCallback((type) => {
-    setSelected((prev) => {
-      if (prev.includes(type)) return prev.filter((t) => t !== type);
-      if (prev.length >= MAX_WIDGETS) return prev;
-      return [...prev, type];
-    });
-  }, []);
-
-  const applyWidgets = useCallback(
-    (types) => {
-      restoreInstances(types.map((type) => ({ id: type, type })));
-    },
-    [restoreInstances],
-  );
-
-  const nextFromStep1 = useCallback(() => {
-    applyWidgets(selected);
-    goToStep(2);
-  }, [applyWidgets, selected, goToStep]);
-
   const tryFocusMode = useCallback(() => {
     requestFocusMode();
     dismiss();
@@ -318,7 +220,7 @@ export function QuickTour() {
     return () => clearTimeout(t);
   }, [shouldShow]);
 
-  // ESC to dismiss, arrow keys to navigate between the three steps
+  // ESC to dismiss, arrow keys to navigate between the two steps
   useEffect(() => {
     if (!visible) return;
     const handler = (e) => {
@@ -328,7 +230,6 @@ export function QuickTour() {
       }
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         if (step === 0) goToStep(1);
-        else if (step === 1) nextFromStep1();
         return;
       }
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
@@ -338,11 +239,11 @@ export function QuickTour() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [visible, step, dismiss, goToStep, nextFromStep1]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visible, step, dismiss, goToStep]);
 
   if (!shouldShow || !visible) return null;
 
-  const isLast = step === 2;
+  const isLast = step === 1;
 
   let stepTransform = "translateY(0)";
   if (stepAnim === "out") stepTransform = "translateY(6px)";
@@ -381,8 +282,7 @@ export function QuickTour() {
           {step === 0 && (
             <StepTheme mode={mode} setMode={setMode} accent={accent} setAccent={setAccent} />
           )}
-          {step === 1 && <StepWidgets selected={selected} toggleWidget={toggleWidget} />}
-          {step === 2 && <StepFocus onTryFocusMode={tryFocusMode} />}
+          {step === 1 && <StepFocus onTryFocusMode={tryFocusMode} />}
         </div>
 
         {/* Footer */}
@@ -409,7 +309,7 @@ export function QuickTour() {
 
           {/* Step dots */}
           <div className="flex items-center gap-1.5">
-            {[0, 1, 2].map((i) => (
+            {[0, 1].map((i) => (
               <button
                 key={i}
                 type="button"
@@ -437,7 +337,7 @@ export function QuickTour() {
           ) : (
             <button
               type="button"
-              onClick={() => (step === 0 ? goToStep(1) : nextFromStep1())}
+              onClick={() => goToStep(1)}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-opacity hover:opacity-90 select-none qt-cta-btn"
             >
               Next

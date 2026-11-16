@@ -10,7 +10,7 @@ export const CHANGELOG = [
   {
     version: APP_VERSION,
     notes: [
-      "A new first-run welcome — pick your theme and your first three widgets.",
+      "A new first-run welcome — pick your theme and jump into Focus Mode.",
       "An About panel, plus a review prompt after 10 focus sessions.",
     ],
   },
