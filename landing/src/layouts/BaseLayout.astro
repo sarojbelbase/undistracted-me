@@ -7,12 +7,14 @@ interface Props {
   title?: string;
   description?: string;
   graph?: Record<string, unknown> | null;
+  canonical?: string;
 }
 
 const {
   title = site.title,
   description = site.description,
   graph = null,
+  canonical = site.url,
 } = Astro.props;
 
 const fontsUrl =
@@ -27,7 +29,7 @@ const fontsUrl =
     <Seo
       title={title}
       description={description}
-      canonical={site.url}
+      canonical={canonical}
       ogType="website"
       ogImage={site.ogImage}
       ogImageAlt="Undistracted Me — a calm new tab dashboard with a Nepali calendar, Focus Mode and quiet widgets."

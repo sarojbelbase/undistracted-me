@@ -1,9 +1,9 @@
 export const site = {
   name: "Undistracted Me",
   url: "https://undistracted.me",
-  title: "Undistracted Me - New Tab Page | Unplug The Noise",
+  title: "Undistracted Me: Free Focus New Tab with Pomodoro, Tasks & Widgets",
   description:
-    "Undistracted Me is a free, open-source new tab for Chrome and Firefox: calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. Works offline.",
+    "Free, open-source new tab for Chrome and Firefox with Focus Mode, Pomodoro, ambient sounds, Google Tasks and quiet widgets. No account, works offline. Includes a Nepali (BS) calendar and NEPSE watchlist.",
   // Bump this whenever the landing page content materially changes.
   lastUpdated: "2026-11-13",
   author: {

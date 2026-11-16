@@ -359,3 +359,28 @@ nav.open{color:#f4f3ef}
 @media(max-width:360px){.tiers{grid-template-columns:1fr}}
 @media(hover:none){.cell:hover{transform:none;box-shadow:none}.btn:hover,.bb:hover,.chip:hover{translate:none}}
 @media(prefers-reduced-motion:reduce){.menu span,.mnav a{transition:none}.chip{transition:none}}
+
+/* ── Comparison pages (alternatives) ─────────────────────────────────────── */
+.alt-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:calc(env(safe-area-inset-top,0px) + 1rem) var(--pad);background:var(--cream) var(--tc);border-bottom:1px solid rgba(11,11,11,.08)}
+.alt-head .logo svg{height:1.55rem;width:auto;display:block}
+.alt-head .btn{flex:0 0 auto}
+.alt-wrap{max-width:72rem;margin:0 auto}
+.alt-hero h1{font-size:clamp(2.8rem,7vw,5.5rem)}
+.alt-hero .sublead{font-size:1.35rem;max-width:40rem;margin-top:var(--s2);font-weight:600}
+.alt-hero .alt-wrap>p{max-width:40rem;font-size:1.1rem;color:#3d3d3a}
+.alt-hero .alt-wrap>p+p{margin-top:var(--s2)}
+.alt-cmp h2,.alt-diff h2,.alt-when h2,.alt-cta h2{font-size:var(--h2c);margin-bottom:var(--s3)}
+.alt-diff p{max-width:40rem}
+.alt-diff p+p{margin-top:var(--s2)}
+.table-wrap{overflow-x:auto;margin-top:var(--s3)}
+.cmp-table{width:100%;border-collapse:collapse;min-width:36rem}
+.cmp-table th,.cmp-table td{padding:.95rem 1.1rem;text-align:left;vertical-align:top;border-bottom:1px solid rgba(11,11,11,.16)}
+.cmp-table thead th{font:800 1rem var(--head);letter-spacing:-.02em;border-bottom:2px solid var(--ink)}
+.cmp-table thead th:first-child{color:var(--mute)}
+.cmp-table tbody th{font:600 .95rem var(--sans);color:var(--mute);white-space:nowrap;width:1%}
+.cmp-table td{font-size:1.02rem}
+.cmp-table td.us{background:rgba(246,180,20,.09);font-weight:600}
+.alt-when .when{margin-top:var(--s3);padding:1.1rem 1.25rem;border-left:3px solid var(--sun);background:rgba(11,11,11,.03);border-radius:0 var(--r) var(--r) 0;max-width:46rem;font-size:1.1rem}
+.alt-when .meta{margin-top:var(--s3);max-width:46rem}
+.alt-cta p{max-width:40rem;color:#3d3d3a}
+@media(max-width:600px){.alt-head{flex-wrap:wrap}.cmp-table{min-width:30rem}}

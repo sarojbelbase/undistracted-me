@@ -7,6 +7,9 @@ import { site } from "../data/site.js";
 const PAGES = [
   { url: `${site.url}/`, file: "src/pages/index.astro" },
   { url: `${site.url}/pp-and-tos`, file: "public/pp-and-tos.html" },
+  { url: `${site.url}/momentum-alternative/`, file: "src/pages/momentum-alternative.astro" },
+  { url: `${site.url}/tabliss-alternative/`, file: "src/pages/tabliss-alternative.astro" },
+  { url: `${site.url}/bonjourr-alternative/`, file: "src/pages/bonjourr-alternative.astro" },
 ];
 
 /**

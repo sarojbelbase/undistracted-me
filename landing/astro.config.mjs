@@ -15,7 +15,13 @@ export default defineConfig({
       validateH1: true,
       validateUniqueMetadata: true,
       validateImageAlt: true,
-      validateMetadataLength: true,
+      validateMetadataLength: {
+        // The title and meta description are longer than the library defaults
+        // on purpose (they pack in the key features); keep them SERP-friendly
+        // but allow the intended length.
+        title: { min: 30, max: 70 },
+        description: { min: 70, max: 210 },
+      },
       validateInternalLinks: {
         skip: (href) => href.startsWith('/api/') || href.startsWith('https://app.undistracted.me') || href.startsWith('https://api.undistracted.me') || href.startsWith('/llms.txt'),
       },

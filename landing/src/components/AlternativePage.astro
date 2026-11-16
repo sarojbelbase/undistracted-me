@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sprite from "./Sprite.astro";
+import Wordmark from "./Wordmark.astro";
+import Footer from "./Footer.astro";
+import { site } from "../data/site.js";
+import { ours, getAlternative } from "../data/alternatives.js";
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const alt = getAlternative(slug);
+
+const rows = [
+  ["Price", alt.comparison.price, ours.price],
+  ["Account needed", alt.comparison.account, ours.account],
+  ["Open source", alt.comparison.openSource, ours.openSource],
+  ["Pomodoro", alt.comparison.pomodoro, ours.pomodoro],
+  ["Ambient sounds", alt.comparison.ambient, ours.ambient],
+  ["Task integration", alt.comparison.tasks, ours.tasks],
+  ["Widgets", alt.comparison.widgets, ours.widgets],
+];
+---
+
+<BaseLayout
+  title={alt.title}
+  description={alt.description}
+  canonical={`${site.url}/${slug}-alternative/`}
+>
+  <Sprite />
+
+  <header class="alt-head">
+    <a class="logo" href="/" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <a class="btn" href={site.chromeUrl} rel="noopener" target="_blank">
+      <svg class="ic"><use href="#i-chrome" /></svg>
+      <span>Add to Chrome</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="sec cream alt-hero">
+      <div class="alt-wrap">
+        <h1>{alt.h1}</h1>
+        <p class="sublead">{alt.subline}</p>
+        {alt.intro.map((p) => <p>{p}</p>)}
+        <div class="cta">
+          <a class="btn pulse" href={site.chromeUrl} rel="noopener" target="_blank">
+            <svg class="ic"><use href="#i-chrome" /></svg>
+            <span>Add to Chrome</span>
+          </a>
+          <a class="btn ghost" href={site.firefoxUrl} rel="noopener" target="_blank">
+            <svg class="ic"><use href="#i-firefox" /></svg>
+            <span>Get it for Firefox</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec white alt-cmp">
+      <div class="alt-wrap">
+        <h2>How {alt.name} and Undistracted Me compare</h2>
+        <div class="table-wrap">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th scope="col"><span class="sr">Feature</span></th>
+                <th scope="col">{alt.name}</th>
+                <th scope="col">Undistracted Me</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([label, them, us]) => (
+                <tr>
+                  <th scope="row">{label}</th>
+                  <td>{them}</td>
+                  <td class="us">{us}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec cream alt-diff">
+      <div class="alt-wrap">
+        <h2>Where they differ</h2>
+        {alt.differences.map((p) => <p>{p}</p>)}
+      </div>
+    </section>
+
+    <section class="sec white alt-when">
+      <div class="alt-wrap">
+        <h2>When to choose {alt.name} instead</h2>
+        <p class="when">{alt.whenToChoose}</p>
+        <p class="meta">
+          Comparison facts about {alt.name} are checked against its public site;
+          everything about Undistracted Me reflects this repo as it stands today.
+        </p>
+      </div>
+    </section>
+
+    <section class="sec cream alt-cta">
+      <div class="alt-wrap">
+        <h2>A new tab that asks nothing of you.</h2>
+        <p>Free, open source, no account. Focus Mode, Pomodoro, ambient sounds and quiet widgets — all built in.</p>
+        <div class="cta">
+          <a class="btn pulse" href={site.chromeUrl} rel="noopener" target="_blank">
+            <svg class="ic"><use href="#i-chrome" /></svg>
+            <span>Add to Chrome</span>
+          </a>
+          <a class="btn ghost" href="/" rel="noopener">
+            <span>See the full tour</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>

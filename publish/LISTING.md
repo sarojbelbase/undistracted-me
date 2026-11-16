@@ -11,29 +11,40 @@ the store APIs do not set name / description / category / screenshots.
 
 | Field | Value |
 |---|---|
-| Name | `Undistracted Me — New Tab` |
+| Name | `Undistracted Me: Focus New Tab with Pomodoro & Widgets` |
 | Category | **Productivity** |
 | Developer website | `https://undistracted.me` |
 | Privacy policy URL | `https://undistracted.me/pp-and-tos` |
-| Short description | `Undistracted Me is a distraction-free new tab: Nepali calendar, Focus Mode, and 30+ quiet widgets. No account, works offline.` (125 chars) |
+| Short description | `Free, open-source new tab with Focus Mode, Pomodoro, ambient sounds, Google Tasks & quiet widgets. No account, no tracking.` (123 chars) |
 
 ### Detailed description
 
 ```
-Undistracted Me replaces your new tab with a calm, distraction-free dashboard — so the first thing you see is quiet, not noise.
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard — so the first thing you see is quiet, not noise. Open a new tab to start a Pomodoro timer, play ambient sounds, or drop into Focus Mode, a full-screen cinematic clock built for deep work — and your Google Tasks are right there so you never lose your place.
 
 ✦ What's inside
-• Nepali calendar (Bikram Sambat) alongside the Gregorian date, with Nepal's festivals and tithis woven in
-• Focus Mode — a full-screen cinematic clock with optional rain sounds for deep work
-• 30+ quiet widgets, all optional and drag-and-drop: notes, expenses, countdowns, NEPSE stocks, weather, Pomodoro, world clock, media controls, RSS news, daily quote/joke/fact, and more
-• Quick access to your top sites and bookmarks
+• Focus Mode — a full-screen cinematic clock with optional rain and ambient sounds
+• Pomodoro timer — focus and break sessions that keep you in a rhythm
+• Google Tasks — see and check off your to-dos without leaving the new tab
+• Quiet widgets — notes, weather, calendar, world clock, media controls, RSS news, daily quote, and more, all optional and drag-and-drop
+• Themes — light, dark, and auto modes with accent colors
+• Quick access — your top sites and bookmarks, one click away
 
-✦ Why Undistracted Me
-• No account, no ads, no tracking — your data stays on your device
-• Works offline
-• Free and open source (MIT), made in Nepal
+✦ Private by design
+• No account required — nothing to sign up for
+• No analytics, no ads, no tracking
+• Google and Spotify tokens are stored only on your device
+• Minimal permissions — each is used only for a feature you turn on
+• Free and open source (MIT)
 
-Install in seconds. Keep your focus for hours.
+✦ For Nepali users
+• Bikram Sambat (Nepali) calendar with festivals and tithis alongside the Gregorian date
+• NEPSE stock watchlist
+
+Undistracted Me → https://undistracted.me
+Web app → https://app.undistracted.me
+Source code → https://github.com/sarojbelbase/undistracted-me
+Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
 ```
 
 ### Screenshots + promo tiles
@@ -55,8 +66,44 @@ requirement). Promo tiles are **440×280** and **1400×560**.
 
 ## Firefox AMO (addons.mozilla.org)
 
-Same **name**, **summary** (short description), and **detailed description** as
-above. Category → **Productivity**.
+Category → **Productivity**.
+
+### Summary (short description)
+
+```
+Free, open-source new tab with Focus Mode, Pomodoro, ambient sounds, Google Tasks & quiet widgets. No account, no tracking.
+```
+
+### Description
+
+```
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard — the first thing you see is quiet, not noise. Open a new tab to start a Pomodoro timer, play ambient sounds, or drop into Focus Mode, a full-screen cinematic clock built for deep work — and your Google Tasks are right there.
+
+✦ What's inside
+• Focus Mode — a full-screen cinematic clock with optional ambient sounds
+• Pomodoro timer — focus and break sessions that keep you in a rhythm
+• Google Tasks — check off to-dos without leaving the new tab
+• Quiet widgets — notes, weather, calendar, world clock, media controls, and more, all optional and drag-and-drop
+• Themes — light, dark, and auto modes with accent colors
+• Quick access — top sites and bookmarks
+
+✦ Private by design
+• No account, no analytics, no ads, no tracking
+• Google and Spotify tokens stay on your device
+• Minimal permissions, used only for the features you enable
+• Free and open source (MIT)
+
+✦ For Nepali users
+• Bikram Sambat (Nepali) calendar with festivals and tithis
+• NEPSE stock watchlist
+
+Undistracted Me → https://undistracted.me
+Web app → https://app.undistracted.me
+Source code → https://github.com/sarojbelbase/undistracted-me
+Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
+```
+
+### Screenshots
 
 | Field | File (in `firefox/`) |
 |---|---|
@@ -66,3 +113,17 @@ above. Category → **Productivity**.
   `public/manifest.json` `browser_specific_settings.gecko.id`, so uploads land
   as version updates to this same listing.
 - AMO does not use the Chrome promo tiles; screenshots only.
+
+---
+
+## Screenshot captions
+
+Five themed captions (max 8 words each) for the store screenshot slots.
+
+| Theme | Caption |
+|---|---|
+| Focus Mode | Full-screen cinematic clock for deep focus |
+| Pomodoro + sounds | Pomodoro timer with rain and ambient sounds |
+| Widgets | Quiet, drag-and-drop widgets for a calm dashboard |
+| Themes | Light, dark, and auto themes with accent colors |
+| Privacy | No account, no tracking, your data stays local |
