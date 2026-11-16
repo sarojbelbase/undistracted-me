@@ -28,4 +28,5 @@ export const site = {
     ],
   },
   privacyUrl: "/pp-and-tos",
+  changelogUrl: "/changelogs/",
 };

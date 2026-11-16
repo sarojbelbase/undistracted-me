@@ -1,0 +1,263 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Wordmark from "../../components/Wordmark.astro";
+import Footer from "../../components/Footer.astro";
+import { site } from "../../data/site.js";
+import { changelog, origin, latestVersion } from "../../data/changelog.js";
+
+const title = "Changelog & Release Notes — Undistracted Me";
+const description =
+  "The release history of Undistracted Me: from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode and dashboard rewrite. Every version, what changed, and why.";
+
+const graph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": `${site.url}/changelogs/#page`,
+      url: `${site.url}/changelogs/`,
+      name: title,
+      description,
+      inLanguage: "en",
+      isPartOf: { "@id": `${site.url}/#website` },
+      about: { "@id": `${site.url}/#app` },
+      author: { "@id": `${site.url}/#author` },
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: changelog.map((r, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: `${r.version} — ${r.title}`,
+          url: `${site.url}/changelogs/#${r.version.slice(1)}`,
+        })),
+      },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${site.url}/changelogs/#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+        { "@type": "ListItem", position: 2, name: "Changelog", item: `${site.url}/changelogs/` },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout title={title} description={description} canonical={`${site.url}/changelogs/`} graph={graph}>
+  <header class="chlog-head">
+    <a class="logo" href="/" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <nav class="chlog-head-links">
+      <a href="/">Home</a>
+      <a class="pill" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="chlog-hero">
+      <div class="chlog-wrap">
+        <p class="chlog-kicker">Release notes</p>
+        <h1>Changelog</h1>
+        <p class="chlog-sub">
+          Every version of Undistracted Me, from the first Nepali-calendar new tab
+          in 2020 to the Focus Mode rewrite. What shipped, what broke, and what we
+          decided along the way — documented for the record.
+        </p>
+        <p class="chlog-latest">Latest release: <strong>{latestVersion}</strong></p>
+      </div>
+    </section>
+
+    <!-- Origin -->
+    <section class="chlog-origin" id="origin">
+      <div class="chlog-wrap">
+        <div class="chlog-origin-grid">
+          <div class="chlog-origin-copy">
+            <p class="chlog-ver">{origin.version}</p>
+            <h2>{origin.title}</h2>
+            {origin.paragraphs.map((p) => <p>{p}</p>)}
+          </div>
+          <figure class="chlog-origin-fig">
+            <img src={origin.image.src.src ?? origin.image.src} alt={origin.image.alt} loading="lazy" decoding="async" />
+            <figcaption>{origin.image.caption}</figcaption>
+          </figure>
+        </div>
+        <ul class="chlog-milestones">
+          {origin.milestones.map((m) => (
+            <li>
+              <strong>{m.label}</strong>
+              <span>{m.text}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="chlog-list">
+      <div class="chlog-wrap">
+        <ol class="chlog-timeline">
+          {changelog.map((r) => (
+            <li id={r.version.slice(1)}>
+              <article class="chlog-entry">
+                <header class="chlog-entry-meta">
+                  <span class="chlog-ver">{r.version}</span>
+                  <time class="chlog-date" datetime={r.released}>{r.released}</time>
+                </header>
+                <div class="chlog-entry-body">
+                  <h2>{r.title}</h2>
+                  <p class="chlog-blurb">{r.blurb}</p>
+
+                  {r.highlights.map((h) => (
+                    <div class="chlog-group">
+                      {h.group && <h3>{h.group}</h3>}
+                      <ul>
+                        {h.items.map((it) => <li>{it}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+
+                  {r.images && (
+                    <div class="chlog-gallery">
+                      {r.images.map((img) => (
+                        <figure>
+                          <img src={img.src.src ?? img.src} alt={img.alt} loading="lazy" decoding="async" />
+                          {img.caption && <figcaption>{img.caption}</figcaption>}
+                        </figure>
+                      ))}
+                    </div>
+                  )}
+
+                  {r.image && (
+                    <figure class="chlog-fig">
+                      <img src={r.image.src.src ?? r.image.src} alt={r.image.alt} loading="lazy" decoding="async" />
+                      {r.image.caption && <figcaption>{r.image.caption}</figcaption>}
+                    </figure>
+                  )}
+
+                  {r.diff && (
+                    <a class="chlog-diff" href={r.diff} rel="noopener" target="_blank">
+                      View the full diff
+                    </a>
+                  )}
+                </div>
+              </article>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .chlog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 1rem) var(--pad);
+    background: var(--cream) var(--tc);
+    border-bottom: 1px solid rgba(11, 11, 11, 0.08);
+  }
+  .chlog-head .logo svg { height: 1.55rem; width: auto; display: block; }
+  .chlog-head-links { display: flex; align-items: center; gap: 1.2rem; font: 600 0.95rem var(--sans); }
+  .chlog-head-links a { text-decoration: none; }
+  .chlog-head-links .pill {
+    background: var(--ink);
+    color: var(--white);
+    padding: 0.65rem 1rem;
+    border-radius: 0.35rem;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .chlog-head-links .pill:hover { background: var(--sun); color: var(--ink); }
+
+  .chlog-wrap { max-width: 72rem; margin: 0 auto; }
+
+  /* Hero */
+  .chlog-hero { padding: calc(var(--sec) * 1.1) var(--pad); background: var(--cream) var(--tc); }
+  .chlog-kicker {
+    font: 400 1.2rem/1 var(--caps);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin: 0;
+  }
+  .chlog-hero h1 { font-size: clamp(3rem, 8vw, 6.5rem); margin-top: 0.4rem; }
+  .chlog-sub { max-width: 46rem; font-size: 1.15rem; color: #3d3d3a; margin-top: var(--s2); }
+  .chlog-latest { margin-top: var(--s3); font: 500 0.85rem var(--mono); color: var(--mute); }
+  .chlog-latest strong { color: var(--ink); }
+
+  /* Origin */
+  .chlog-origin { padding: var(--sec) var(--pad); background: var(--ink); color: #f4f3ef; }
+  .chlog-origin .chlog-ver { color: var(--sun); }
+  .chlog-origin h2 { font-size: clamp(2.4rem, 5vw, 4.5rem); margin: 0.4rem 0 var(--s2); }
+  .chlog-origin-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--g); align-items: center; }
+  .chlog-origin-copy p { color: #c9c8c3; max-width: 40rem; }
+  .chlog-origin-copy p + p { margin-top: var(--s2); }
+  .chlog-origin-fig { margin: 0; }
+  .chlog-origin-fig img { width: 100%; border-radius: var(--r); border: 1px solid #2a2a2a; }
+  .chlog-origin-fig figcaption { margin-top: 0.6rem; font: 500 0.78rem var(--mono); color: #9a9a96; }
+  .chlog-milestones { list-style: none; padding: 0; margin: var(--s4) 0 0; border-top: 1px solid #2a2a2a; }
+  .chlog-milestones li { display: grid; grid-template-columns: 11rem 1fr; gap: var(--s2); padding: 1rem 0; border-bottom: 1px solid #2a2a2a; align-items: baseline; }
+  .chlog-milestones strong { font: 600 0.85rem var(--mono); color: var(--sun); letter-spacing: 0.02em; }
+  .chlog-milestones span { color: #c9c8c3; font-size: 1rem; }
+
+  /* Timeline */
+  .chlog-list { padding: var(--sec) var(--pad); background: var(--white) var(--tw); }
+  .chlog-timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+  .chlog-timeline::before {
+    content: "";
+    position: absolute;
+    left: 11.5rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(11, 11, 11, 0.14);
+  }
+  .chlog-timeline > li { position: relative; padding: 0 0 var(--s4) 0; }
+  .chlog-entry { display: grid; grid-template-columns: 11.5rem 1fr; gap: var(--s3); }
+  .chlog-entry-meta { position: sticky; top: calc(var(--nav) + 1rem); align-self: start; display: flex; flex-direction: column; gap: 0.25rem; text-align: right; padding-right: var(--s3); }
+  .chlog-ver {
+    font: 400 1.5rem/1 var(--caps);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .chlog-date { font: 500 0.78rem var(--mono); color: var(--mute); }
+  .chlog-entry-body h2 { font-size: clamp(1.7rem, 2.8vw, 2.4rem); margin: 0 0 0.6rem; }
+  .chlog-blurb { max-width: 40rem; color: #3d3d3a; font-size: 1.05rem; }
+  .chlog-group { margin-top: var(--s2); }
+  .chlog-group h3 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+  }
+  .chlog-group ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+  .chlog-group li { font-size: 1rem; color: #3d3d3a; }
+  .chlog-group li::marker { color: var(--sun); }
+  .chlog-fig { margin: var(--s3) 0 0; max-width: 40rem; }
+  .chlog-fig img { width: 100%; border-radius: var(--r); border: 1px solid rgba(11, 11, 11, 0.14); }
+  .chlog-fig figcaption { margin-top: 0.5rem; font: 500 0.78rem var(--mono); color: var(--mute); }
+  .chlog-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); margin-top: var(--s3); max-width: 52rem; }
+  .chlog-gallery figure { margin: 0; }
+  .chlog-gallery img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: var(--r); border: 1px solid rgba(11, 11, 11, 0.14); }
+  .chlog-gallery figcaption { margin-top: 0.45rem; font: 500 0.75rem var(--mono); color: var(--mute); }
+  .chlog-diff { display: inline-block; margin-top: var(--s3); font: 600 0.9rem var(--sans); color: var(--ink); text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 2px; text-underline-offset: 0.3em; }
+
+  @media (max-width: 800px) {
+    .chlog-origin-grid { grid-template-columns: 1fr; }
+    .chlog-timeline::before { left: 0; }
+    .chlog-entry { grid-template-columns: 1fr; }
+    .chlog-entry-meta { position: static; flex-direction: row; align-items: baseline; gap: 0.6rem; text-align: left; padding-right: 0; }
+    .chlog-gallery { grid-template-columns: 1fr; }
+    .chlog-milestones li { grid-template-columns: 1fr; gap: 0.25rem; }
+    .chlog-head-links a:not(.pill) { display: none; }
+  }
+</style>
