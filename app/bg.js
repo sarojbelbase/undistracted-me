@@ -18,7 +18,14 @@ import {
 import { buildNotification } from './constants/notifications.js';
 import { initSiteBlocker } from './utilities/siteBlocker.js';
 import { writeEntry } from './data/dataHub.js';
-import { setupPocketContextMenu, handlePocketSave, POCKET_MENU_ID } from './widgets/pocket/contextMenu.js';
+import {
+  setupPocketContextMenu,
+  handlePocketSave,
+  getMenus,
+  POCKET_MENU_ID,
+  POCKET_FOLDER_DEFAULT_ID,
+  POCKET_FOLDER_PREFIX,
+} from './widgets/pocket/contextMenu.js';
 import { softDelete as pocketSoftDelete, whenHydrated, flush } from './widgets/pocket/pocketStore.js';
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
@@ -942,10 +949,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (handler) return handler(msg, sender, sendResponse);
 });
 
-// Pocket context menu — save the click info on right-click.
-chrome.contextMenus?.onClicked?.addListener((info, tab) => {
-  if (info.menuItemId !== POCKET_MENU_ID) return;
-  handlePocketSave(info, tab);
+// Pocket context menu — save the click info on right-click, routing the
+// selected folder (if any) so the save is filed correctly.
+getMenus()?.onClicked?.addListener((info, tab) => {
+  const id = info.menuItemId;
+  if (id === POCKET_MENU_ID) {
+    handlePocketSave(info, tab);
+  } else if (id === POCKET_FOLDER_DEFAULT_ID) {
+    handlePocketSave(info, tab, null);
+  } else if (typeof id === "string" && id.startsWith(POCKET_FOLDER_PREFIX)) {
+    handlePocketSave(info, tab, id.slice(POCKET_FOLDER_PREFIX.length));
+  }
 });
 
 // Clear stored Chrome media state when the source tab is closed.

@@ -27,6 +27,7 @@ const DEFAULT_META = Object.freeze({
   syncEnabled: false,
   lastSyncAt: null,
   driveFileId: null,
+  seededFolders: false,
   prefs: { defaultTab: "recent", showFavicons: true, compactCount: 4 },
 });
 
@@ -41,7 +42,6 @@ let snapshot = null; // { items, folders, meta, hydrated }
 const listeners = new Set();
 let writeChain = Promise.resolve();
 let persistTimer = null;
-let pendingSelfWrites = 0; // count of our own storage.set echoes yet to arrive
 
 // ---------------------------------------------------------------------------
 // Internal plumbing
@@ -116,7 +116,6 @@ function readRemote() {
 function persistAll(s) {
   if (hasChromeStorage) {
     // Single storage.set for all three keys → exactly one onChanged echo.
-    pendingSelfWrites += 1;
     writeChain = writeChain.then(
       () =>
         new Promise((resolve) => {
@@ -162,18 +161,13 @@ function attachStorageListener() {
   if (hasChromeStorage) {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== "local") return;
-      const keys = ALL_KEYS.filter((k) => changes[k]);
-      if (keys.length === 0) return;
-      // Skip our own write's echo (persistAll → one storage.set → one event).
-      // Re-reading would emit a second snapshot with fresh array identities
-      // and force derived lists to recompute twice per mutation.
-      if (pendingSelfWrites > 0) {
-        pendingSelfWrites -= 1;
-        return;
-      }
-      readRemote().then((next) => {
-        setSnapshot({ ...next, hydrated: true });
-      });
+      const s = snapshot ?? EMPTY;
+      let next = s;
+      if (changes[POCKET_KEYS.items]) next = { ...next, items: changes[POCKET_KEYS.items].newValue ?? [] };
+      if (changes[POCKET_KEYS.folders]) next = { ...next, folders: changes[POCKET_KEYS.folders].newValue ?? [] };
+      if (changes[POCKET_KEYS.meta]) next = { ...next, meta: mergeMeta(changes[POCKET_KEYS.meta].newValue) };
+      if (next === s) return;
+      setSnapshot({ ...next, hydrated: true });
     });
   } else if (hasWindow) {
     window.addEventListener("storage", (e) => {
@@ -189,8 +183,9 @@ function attachStorageListener() {
 
 function hydrate() {
   readRemote().then((next) => {
-    // First run: seed starter folders.
-    if (!Array.isArray(next.folders) || next.folders.length === 0) {
+    // Seed starter folders once, on first run only. If the user has since
+    // deleted every folder, leave them deleted (don't resurrect starters).
+    if (!next.meta.seededFolders && (!Array.isArray(next.folders) || next.folders.length === 0)) {
       const t = now();
       next.folders = STARTER_FOLDERS.map((f, i) => ({
         id: crypto.randomUUID(),
@@ -201,9 +196,12 @@ function hydrate() {
         updatedAt: t,
         deletedAt: null,
       }));
+      next.meta = { ...next.meta, seededFolders: true };
+      setSnapshot({ ...next, hydrated: true });
+      schedulePersist(); // persist only the seeded folders
+      return;
     }
     setSnapshot({ ...next, hydrated: true });
-    schedulePersist();
   });
 }
 

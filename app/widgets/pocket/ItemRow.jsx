@@ -17,7 +17,8 @@ import {
 
 import { usePocket } from "./usePocket";
 import { PocketMenu } from "./PocketMenu";
-import { LetterTile } from "./LetterTile";
+import { FaviconIcon } from "../../components/ui/FaviconIcon";
+import { TooltipBtn } from "../../components/ui/TooltipBtn";
 import {
   createFolder,
   setItemFolders,
@@ -50,23 +51,6 @@ function isHttpUrl(s) {
 function openUrl(url) {
   if (!isHttpUrl(url)) return;
   window.open(url, "_blank", "noopener,noreferrer");
-}
-
-function Tile({ item, size = 28 }) {
-  const [errored, setErrored] = useState(false);
-  if (item.favicon && isHttpUrl(item.favicon) && !errored) {
-    return (
-      <img
-        src={item.favicon}
-        alt=""
-        width={size}
-        height={size}
-        style={{ width: size, height: size, borderRadius: 8, objectFit: "contain", flexShrink: 0 }}
-        onError={() => setErrored(true)}
-      />
-    );
-  }
-  return <LetterTile text={item.host || item.text || ""} size={size} />;
 }
 
 function FoldersContent({ item, onClose }) {
@@ -207,10 +191,13 @@ const expandedStyle = {
 };
 
 /**
- * ItemRow — renders one save in its collapsed/expanded states with the
- * copy / open source / folders / change-type / delete action bar.
+ * ItemRow — renders one save in its collapsed/expanded states.
+ *
+ * `full` (expand mode) shows the complete action bar: Copy · Open source ·
+ * Folders · Change type · Delete. In widget mode the bar is trimmed to the
+ * essentials (Copy · Delete) so the card stays calm and uncluttered.
  */
-export function ItemRow({ item, isNew = false, showFavicons = true }) {
+export function ItemRow({ item, isNew = false, showFavicons = true, full = false }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [undoVisible, setUndoVisible] = useState(false);
@@ -316,7 +303,7 @@ export function ItemRow({ item, isNew = false, showFavicons = true }) {
         </div>
       ) : item.kind === "link" ? (
         <>
-          {showFavicons && <Tile item={item} />}
+          {showFavicons && <FaviconIcon url={item.text} size={28} />}
           <div className="flex-1 min-w-0">
             <div
               className="truncate"
@@ -394,9 +381,17 @@ export function ItemRow({ item, isNew = false, showFavicons = true }) {
       )}
 
       <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="pocket-icon-btn pocket-row-hover" aria-label="Copy" onClick={doCopy}>
+        <TooltipBtn
+          tooltip="Copy"
+          className="pocket-icon-btn pocket-row-hover"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            doCopy();
+          }}
+        >
           {copied ? <Check2 size={13} /> : <Copy size={13} />}
-        </button>
+        </TooltipBtn>
         <span
           className="pocket-chevron"
           style={{ transform: expanded ? "rotate(180deg)" : "none" }}
@@ -411,20 +406,24 @@ export function ItemRow({ item, isNew = false, showFavicons = true }) {
             {copied ? <Check2 size={12} /> : <Copy size={12} />}
             {copied ? "Copied" : "Copy"}
           </button>
-          {item.sourceUrl && (
+          {full && item.sourceUrl && (
             <button type="button" className="pocket-action-btn" onClick={() => openUrl(item.sourceUrl)}>
               <BoxArrowUpRight size={12} />
               Open source
             </button>
           )}
-          <button type="button" className="pocket-action-btn" onClick={openMenu("folders")}>
-            <Folder2 size={12} />
-            Folders
-          </button>
-          <button type="button" className="pocket-action-btn" onClick={openMenu("type")}>
-            <Icon size={12} />
-            Change type
-          </button>
+          {full && (
+            <button type="button" className="pocket-action-btn" onClick={openMenu("folders")}>
+              <Folder2 size={12} />
+              Folders
+            </button>
+          )}
+          {full && (
+            <button type="button" className="pocket-action-btn" onClick={openMenu("type")}>
+              <Icon size={12} />
+              Change type
+            </button>
+          )}
           <button type="button" className="pocket-action-btn pocket-action-btn--danger" onClick={doDelete}>
             <XLg size={12} />
             Delete

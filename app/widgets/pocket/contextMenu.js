@@ -1,42 +1,151 @@
 /**
  * Pocket — service-worker side of the context-menu save flow.
  *
- * Creates the single "Add to Undistracted Me" context menu (contexts
- * selection | link | page), classifies + cleans + dedupes + stores the save
- * through pocketStore, then gives feedback via an injected toast (or an action
- * badge fallback on restricted pages).
+ * Creates the "Add to Pocket" context menu (contexts selection | link | page)
+ * with a Bitwarden-style submenu: a top "Default" entry (no folder) followed by
+ * every user folder. Selecting a folder files the save into it.
+ *
+ * The menu is rebuilt whenever folders change (create/rename/delete from the
+ * widget, or the SW's own first-run seed), so the submenu always mirrors the
+ * folder list. classifies + cleans + dedupes + stores the save through
+ * pocketStore, then gives feedback via an injected toast (or an action badge
+ * fallback on restricted pages).
  *
  * Kept in its own module so bg.js only wires up two small call sites.
  */
 
 import { classifyKind, cleanText, cleanUrl, hostFromUrl } from "./utils";
-import { addItem, flush, whenHydrated } from "./pocketStore";
+import { POCKET_KEYS } from "./constants";
+import { addItem, flush, whenHydrated, getSnapshot } from "./pocketStore";
 
 export const POCKET_MENU_ID = "pocket-save";
-export const POCKET_MENU_TITLE = "Add to Undistracted Me";
+export const POCKET_MENU_TITLE = "Add to Pocket";
+export const POCKET_FOLDER_DEFAULT_ID = "pocket-folder-default";
+export const POCKET_FOLDER_PREFIX = "pocket-folder:";
+
+const CONTEXTS = ["selection", "link", "page"];
+
+/**
+ * Resolve the context-menus API across browsers. Chrome exposes
+ * `chrome.contextMenus`; Firefox exposes `browser.menus` / `chrome.menus`
+ * (its manifest patch renames the `contextMenus` permission to `menus`).
+ */
+export function getMenus() {
+  return (
+    globalThis.chrome?.contextMenus ??
+    globalThis.chrome?.menus ??
+    globalThis.browser?.contextMenus ??
+    globalThis.browser?.menus ??
+    null
+  );
+}
+
+function hasMenus() {
+  const m = getMenus();
+  return !!m && typeof m.create === "function" && typeof m.removeAll === "function";
+}
 
 function isHttpUrl(url) {
   return /^https?:\/\//i.test(url || "");
 }
 
-function hasContextMenus() {
-  return typeof chrome !== "undefined" && chrome.contextMenus;
+// --- Menu construction ----------------------------------------------------
+
+let rebuildTimer = null;
+
+/** Stable signature of a folder list, used to skip no-op rebuilds. */
+function foldersSignature(folders) {
+  return (folders || [])
+    .map((f) => `${f.id}:${f.name}`)
+    .join("|");
+}
+
+/** Drop soft-deleted folders and order by `order`. */
+function normalizeFolders(folders) {
+  return (folders || [])
+    .filter((f) => !f.deletedAt)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+/** Signature of the menu as last built, so no-op writes don't churn the menu. */
+let lastBuiltSig = null;
+
+/**
+ * Rebuild the full menu tree (debounced): parent → "Default" → separator →
+ * folders. Accepts an explicit folder list (from a storage change) so it works
+ * even before the SW's snapshot is hydrated; falls back to the hydrated
+ * snapshot otherwise.
+ */
+function buildMenu(folders) {
+  if (rebuildTimer) clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(() => {
+    rebuildTimer = null;
+    if (!hasMenus()) return;
+    const api = getMenus();
+    const list = normalizeFolders(folders ?? getSnapshot().folders);
+    lastBuiltSig = foldersSignature(list);
+
+    api.removeAll(() => {
+      api.create({ id: POCKET_MENU_ID, title: POCKET_MENU_TITLE, contexts: CONTEXTS });
+      api.create({
+        id: POCKET_FOLDER_DEFAULT_ID,
+        parentId: POCKET_MENU_ID,
+        title: "Default",
+        contexts: CONTEXTS,
+      });
+      if (list.length > 0) {
+        api.create({
+          id: `${POCKET_MENU_ID}-sep`,
+          parentId: POCKET_MENU_ID,
+          type: "separator",
+          contexts: CONTEXTS,
+        });
+        for (const f of list) {
+          api.create({
+            id: `${POCKET_FOLDER_PREFIX}${f.id}`,
+            parentId: POCKET_MENU_ID,
+            title: f.name,
+            contexts: CONTEXTS,
+          });
+        }
+      }
+    });
+  }, 80);
 }
 
 /**
- * Register the context menu. Idempotent: removes any existing item first so
- * re-running on install/startup never leaves duplicates.
+ * Rebuild the submenu whenever folders actually change, from any context (the
+ * widget on a new-tab page, another tab, or the SW's own first-run seed).
+ *
+ * Registered at module top level so it survives service-worker restarts. The
+ * previous approach wired this through a one-time pocketStore.subscribe() in
+ * setupPocketContextMenu(), which only ran on install/startup — Chrome suspends
+ * the SW after ~30s idle, and the subscribe was lost on the next wake, so
+ * folders created later never appeared in the submenu. A top-level listener
+ * re-registers on every wake.
  */
-export function setupPocketContextMenu() {
-  if (!hasContextMenus()) return;
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: POCKET_MENU_ID,
-      title: POCKET_MENU_TITLE,
-      contexts: ["selection", "link", "page"],
-    });
+if (typeof chrome !== "undefined" && chrome.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") return;
+    const foldersChange = changes[POCKET_KEYS.folders];
+    if (!foldersChange) return;
+    const next = normalizeFolders(foldersChange.newValue);
+    if (foldersSignature(next) === lastBuiltSig) return;
+    buildMenu(next);
   });
 }
+
+/**
+ * Register the context menu on install/startup. Waits for hydration so the
+ * initial build reflects the persisted folder list, then builds the tree.
+ */
+export async function setupPocketContextMenu() {
+  if (!hasMenus()) return;
+  await whenHydrated();
+  buildMenu();
+}
+
+// --- Save flow ------------------------------------------------------------
 
 /**
  * Read the live selection via scripting.executeScript so line breaks and
@@ -166,16 +275,19 @@ function injectToast(tabId, message, undoId) {
 }
 
 /**
- * Save the click info as a Pocket item. Called from chrome.contextMenus.onClicked.
- * Selection wins over link/page. Returns { status: "added" | "duplicate" | "empty" }.
+ * Save the click info as a Pocket item. Called from the context-menus onClicked
+ * listener. Selection wins over link/page. `folderId` (when set) files the save
+ * into that folder; otherwise the save is left unfiled.
+ * Returns { status: "added" | "duplicate" | "empty" }.
  */
-export async function handlePocketSave(info, tab) {
+export async function handlePocketSave(info, tab, folderId = null) {
   const t = Date.now();
   const pageUrl = tab?.url || info.pageUrl || "";
   const pageTitle = tab?.title || "";
   const favicon = isHttpUrl(tab?.favIconUrl) ? tab?.favIconUrl : "";
   const sourceUrl = isHttpUrl(pageUrl) ? pageUrl : "";
   const sourceHost = sourceUrl ? hostFromUrl(sourceUrl) : "";
+  const folderIds = folderId ? [folderId] : [];
 
   const hasSelection =
     typeof info.selectionText === "string" && info.selectionText.trim() !== "";
@@ -206,7 +318,7 @@ export async function handlePocketSave(info, tab) {
       host: sourceHost,
       sourceUrl,
       favicon,
-      folderIds: [],
+      folderIds,
       createdAt: t,
       updatedAt: t,
       deletedAt: null,
@@ -222,7 +334,7 @@ export async function handlePocketSave(info, tab) {
       host: hostFromUrl(url),
       sourceUrl: "",
       favicon,
-      folderIds: [],
+      folderIds,
       createdAt: t,
       updatedAt: t,
       deletedAt: null,
@@ -237,7 +349,7 @@ export async function handlePocketSave(info, tab) {
       host: sourceHost,
       sourceUrl: "",
       favicon,
-      folderIds: [],
+      folderIds,
       createdAt: t,
       updatedAt: t,
       deletedAt: null,

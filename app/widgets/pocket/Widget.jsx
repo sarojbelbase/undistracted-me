@@ -13,13 +13,17 @@ import {
 
 import { BaseWidget } from "../BaseWidget";
 import { Modal } from "../../components/ui/Modal";
+import { Divider } from "../../components/ui/Divider";
+import { TooltipBtn } from "../../components/ui/TooltipBtn";
+import { PillButton } from "../../components/ui/PillButton";
+import { TintedChip } from "../../components/ui/TintedChip";
+import { Input } from "../../components/ui/Input";
 import { PocketIcon } from "../../assets/svg/PocketIcon";
 import { ItemRow } from "./ItemRow";
 import { LetterTile } from "./LetterTile";
 import { Settings } from "./Settings";
-import { PocketMenu } from "./PocketMenu";
 import { usePocket } from "./usePocket";
-import { addItem, createFolder, updatePrefs } from "./pocketStore";
+import { addItem, createFolder } from "./pocketStore";
 import {
   classifyKind,
   cleanText,
@@ -51,29 +55,12 @@ function groupIntoBuckets(list) {
     .map((b) => ({ key: b, label: TIME_BUCKET_LABELS[b], items: map.get(b) }));
 }
 
-function Highlight({ text, query }) {
-  if (!query) return text;
-  const q = query.trim();
-  if (!q) return text;
-  const lower = text.toLowerCase();
-  const ql = q.toLowerCase();
-  const parts = [];
-  let i = 0;
-  let idx = lower.indexOf(ql);
-  while (idx !== -1) {
-    if (idx > i) parts.push(text.slice(i, idx));
-    parts.push(<mark key={idx} className="pocket-mark">{text.slice(idx, idx + q.length)}</mark>);
-    i = idx + q.length;
-    idx = lower.indexOf(ql, i);
-  }
-  if (i < text.length) parts.push(text.slice(i));
-  return parts.length ? parts : text;
-}
-
 /**
- * Widget — the Pocket text-saving widget (Phase 1, local only).
- * Recent / All / Sites tabs, type + folder chips, search, quick-add,
- * expanded two-pane view, empty states, export/import and theme support.
+ * Widget — Pocket, the text-saving widget (Phase 1, local only).
+ *
+ * Widget mode is deliberately calm and minimal: header + tabs + a type-only
+ * filter row + list + quick-add. Organization (folders, change type, open
+ * source) lives in the expanded two-pane Library so the card stays uncluttered.
  */
 export const Widget = ({ id, onRemove }) => {
   const { items, folders, meta, hydrated } = usePocket();
@@ -93,7 +80,6 @@ export const Widget = ({ id, onRemove }) => {
   const [openSites, setOpenSites] = useState(() => new Set());
   const [highlightId, setHighlightId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [filterMenu, setFilterMenu] = useState(null);
   const [copiedWordId, setCopiedWordId] = useState(null);
 
   const prevFirstId = useRef(null);
@@ -102,7 +88,7 @@ export const Widget = ({ id, onRemove }) => {
   const searchRef = useRef(null);
   const wordCopyTimer = useRef(null);
 
-  // Track container width for responsive (compact/regular/wide).
+  // Track container width for responsive (compact/regular).
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return undefined;
@@ -111,7 +97,6 @@ export const Widget = ({ id, onRemove }) => {
     return () => ro.disconnect();
   }, []);
 
-  // Clear the word-copy feedback timer on unmount.
   useEffect(() => () => clearTimeout(wordCopyTimer.current), []);
 
   // Apply the "Default tab" pref once hydrated.
@@ -152,10 +137,7 @@ export const Widget = ({ id, onRemove }) => {
 
   const sites = useMemo(() => groupBySite(byFilter), [byFilter]);
 
-  const folderById = useMemo(
-    () => new Map(folders.map((f) => [f.id, f])),
-    [folders],
-  );
+  const folderById = useMemo(() => new Map(folders.map((f) => [f.id, f])), [folders]);
 
   const kindCounts = useMemo(() => {
     const m = new Map();
@@ -230,7 +212,7 @@ export const Widget = ({ id, onRemove }) => {
 
   // --- tabs (ARIA tabs pattern: roving tabindex + arrow-key nav) -----------
   const PANEL_ID = "pocket-tabpanel";
-  const tabId = (id) => `pocket-tab-${id}`;
+  const tabId = (t) => `pocket-tab-${t}`;
 
   const onTablistKey = (e) => {
     const idx = TABS.findIndex((t) => t.id === tab);
@@ -282,7 +264,7 @@ export const Widget = ({ id, onRemove }) => {
     if (compact) return null;
     return (
       <div className="pocket-quickadd">
-        <PlusLg size={13} style={{ color: "var(--w-ink-4)", flexShrink: 0 }} />
+        <PlusLg size={13} style={{ color: "var(--w-ink-4)", flexShrink: 0, marginTop: 2 }} />
         <textarea
           rows={1}
           value={quickAdd}
@@ -297,20 +279,6 @@ export const Widget = ({ id, onRemove }) => {
           aria-label="Quick add"
           className="pocket-quickadd__input"
         />
-      </div>
-    );
-  };
-
-  const renderFooter = () => {
-    if (compact) return null;
-    return (
-      <div className="pocket-footer">
-        <span className="w-caption" style={{ color: "var(--w-ink-5)" }}>
-          Local only
-        </span>
-        <span className="w-caption" style={{ color: "var(--w-ink-5)" }}>
-          {totalCount} saved
-        </span>
       </div>
     );
   };
@@ -347,39 +315,46 @@ export const Widget = ({ id, onRemove }) => {
         </div>
       );
     }
-    // First-run empty state
+    // First-run empty state (§7)
     return (
       <div className="pocket-empty pocket-empty--first">
-        <PocketIcon size={20} style={{ color: "var(--w-ink-4)" }} />
+        <PocketIcon size={22} style={{ color: "var(--w-ink-4)" }} />
         <span className="w-heading" style={{ color: "var(--w-ink-1)" }}>
           Your pocket is empty.
         </span>
-        <span className="w-body" style={{ color: "var(--w-ink-4)", textAlign: "center" }}>
-          Select text on any page, right-click, and choose Add to Undistracted Me.
+        <span className="w-body" style={{ color: "var(--w-ink-4)", maxWidth: 220 }}>
+          Select text on any page, right-click, and choose Add to Pocket.
         </span>
-        <div className="pocket-steps">
-          <span className="pocket-step">1 · Select</span>
-          <span className="pocket-step">2 · Right-click</span>
-          <span className="pocket-step">3 · Saved</span>
+        <div className="pocket-steps" role="list">
+          <span className="pocket-step" role="listitem">Select</span>
+          <span className="pocket-step" role="listitem">Right-click</span>
+          <span className="pocket-step" role="listitem">Saved</span>
         </div>
+        <span className="pocket-quickadd__label">Or paste something here.</span>
         {renderQuickAdd()}
       </div>
     );
   };
 
-  const renderRow = (it) => (
-    <ItemRow key={it.id} item={it} isNew={it.id === highlightId} showFavicons={meta?.prefs?.showFavicons !== false} />
+  const renderRow = (full) => (it) => (
+    <ItemRow
+      key={it.id}
+      item={it}
+      isNew={it.id === highlightId}
+      showFavicons={meta?.prefs?.showFavicons !== false}
+      full={full}
+    />
   );
 
-  const renderFlat = (list, withBuckets = true) => {
-    if (!withBuckets) return <div role="list">{list.map(renderRow)}</div>;
+  const renderFlat = (list, withBuckets = true, full = false) => {
+    if (!withBuckets) return <div role="list">{list.map(renderRow(full))}</div>;
     const buckets = groupIntoBuckets(list);
     return (
       <div role="list">
         {buckets.map((b) => (
           <div key={b.key}>
             <div className="pocket-time-label">{b.label}</div>
-            {b.items.map(renderRow)}
+            {b.items.map(renderRow(full))}
           </div>
         ))}
       </div>
@@ -413,15 +388,7 @@ export const Widget = ({ id, onRemove }) => {
     </div>
   );
 
-  const renderSearchResults = () => (
-    <div role="list">
-      {searched.map((it) => (
-        <ItemRow key={it.id} item={it} isNew={it.id === highlightId} showFavicons={meta?.prefs?.showFavicons !== false} />
-      ))}
-    </div>
-  );
-
-  const renderSites = () => {
+  const renderSites = (full = false) => {
     if (siteView) {
       const siteItems = byFilter.filter((i) => (i.host || "") === siteView);
       return (
@@ -433,7 +400,7 @@ export const Widget = ({ id, onRemove }) => {
             <ChevronRight size={12} style={{ color: "var(--w-ink-5)" }} />
             <span className="w-caption">{siteView}</span>
           </div>
-          {siteItems.length === 0 ? renderEmpty() : renderFlat(siteItems)}
+          {siteItems.length === 0 ? renderEmpty() : renderFlat(siteItems, true, full)}
         </div>
       );
     }
@@ -472,11 +439,13 @@ export const Widget = ({ id, onRemove }) => {
               </button>
               {open && (
                 <div>
-                  <div role="list">{visibleItems.map(renderRow)}</div>
+                  <div role="list">{visibleItems.map(renderRow(full))}</div>
                   {g.items.length > 5 && (
-                    <button type="button" className="pocket-view-all" onClick={() => setSiteView(g.host)}>
-                      View all {g.items.length}
-                    </button>
+                    <div className="px-3 py-1.5">
+                      <TintedChip size="sm" onClick={() => setSiteView(g.host)}>
+                        View all {g.items.length}
+                      </TintedChip>
+                    </div>
                   )}
                 </div>
               )}
@@ -487,31 +456,35 @@ export const Widget = ({ id, onRemove }) => {
     );
   };
 
-  const renderBody = () => {
+  const renderBody = (full = false) => {
+    if (!hydrated) return null; // avoid flashing "empty" before storage hydrates
     if (searched) {
-      return searched.length === 0 ? renderEmpty() : renderSearchResults();
+      return searched.length === 0 ? renderEmpty() : (
+        <div role="list">{searched.map(renderRow(full))}</div>
+      );
     }
-    if (tab === "sites") return renderSites();
+    if (tab === "sites") return renderSites(full);
 
     let list;
     if (isWordCloud) {
       list = renderWordCloud(byFilter);
     } else if (tab === "recent") {
       const recent = byFilter.slice(0, RECENT_LIMIT);
-      list = recent.length === 0 ? renderEmpty() : renderFlat(recent);
+      list = recent.length === 0 ? renderEmpty() : renderFlat(recent, true, full);
     } else {
-      // All — paginated
       const paged = byFilter.slice(0, visible);
       list =
         paged.length === 0 ? (
           renderEmpty()
         ) : (
           <>
-            {renderFlat(paged)}
+            {renderFlat(paged, true, full)}
             {byFilter.length > visible && (
-              <button type="button" className="pocket-view-all" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
-                Load more
-              </button>
+              <div className="px-3 py-1.5">
+                <TintedChip size="sm" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+                  Load more
+                </TintedChip>
+              </div>
             )}
           </>
         );
@@ -520,163 +493,99 @@ export const Widget = ({ id, onRemove }) => {
   };
 
   const renderChips = () => (
-    <div className="pocket-chips" role="list" aria-label="Filter">
-      <button
-        type="button"
-        aria-pressed={!filter}
-        className={`pocket-chip ${!filter ? "pocket-chip--active" : ""}`}
-        onClick={() => pickFilter(null)}
-      >
+    <div className="pocket-chip-row" role="list" aria-label="Filter">
+      <PillButton active={!filter} tinted onClick={() => pickFilter(null)}>
         All
-      </button>
+      </PillButton>
       {CHIP_KINDS.map((k) => (
-        <button
+        <PillButton
           key={k}
-          type="button"
-          aria-pressed={filter?.type === "kind" && filter.value === k}
-          className={`pocket-chip ${filter?.type === "kind" && filter.value === k ? "pocket-chip--active" : ""}`}
+          active={filter?.type === "kind" && filter.value === k}
+          tinted
           onClick={() => pickFilter({ type: "kind", value: k })}
         >
           {KIND_META[k].label}
-        </button>
+        </PillButton>
       ))}
-      <span aria-hidden="true" className="pocket-chip-divider" />
-      {folders
-        .filter((f) => !f.deletedAt)
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        .map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            aria-pressed={filter?.type === "folder" && filter.value === f.id}
-            className={`pocket-chip ${filter?.type === "folder" && filter.value === f.id ? "pocket-chip--active" : ""}`}
-            onClick={() => pickFilter({ type: "folder", value: f.id })}
-          >
-            <span
-              aria-hidden="true"
-              style={{ width: 7, height: 7, borderRadius: 2, background: FOLDER_COLOR_MAP[f.color] || FOLDER_COLOR_MAP.slate }}
-            />
-            {f.name}
-          </button>
-        ))}
-      {creatingFolder ? (
-        <input
-          autoFocus
-          value={newFolderName}
-          onChange={(e) => setNewFolderName(e.target.value)}
-          onKeyDown={onNewFolderKey}
-          onBlur={() => setCreatingFolder(false)}
-          placeholder="Folder name"
-          className="pocket-chip-input"
-        />
-      ) : (
-        <button type="button" className="pocket-chip pocket-chip--new" onClick={() => setCreatingFolder(true)}>
-          <FolderPlus size={12} />
-          New folder
-        </button>
-      )}
     </div>
   );
 
   const header = (
-    <div className="pocket-header">
-      <div className="flex items-center gap-1.5 min-w-0">
-        <PocketIcon size={14} style={{ color: "var(--w-accent)", flexShrink: 0 }} />
-        <span className="w-label font-semibold truncate" style={{ color: "var(--w-ink-2)" }}>
-          Pocket
-        </span>
+    <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-2 shrink-0">
+      <PocketIcon size={14} style={{ color: "var(--w-accent)", flexShrink: 0 }} />
+      <span className="w-label font-semibold flex-1 truncate" style={{ color: "var(--w-ink-2)" }}>
+        Pocket
+      </span>
+      {!compact && (
         <span className="w-caption" style={{ color: "var(--w-ink-5)" }}>
           {totalCount}
         </span>
-      </div>
-      <div className="flex items-center gap-0.5">
+      )}
+      <div className="flex items-center gap-0.5 shrink-0">
         {!compact && (
-          <button
-            type="button"
+          <TooltipBtn
+            tooltip="Search"
             className="pocket-icon-btn"
-            aria-label="Search"
             onClick={() => {
               setSearchOpen((v) => !v);
               if (!searchOpen) requestAnimationFrame(() => searchRef.current?.focus());
             }}
           >
             <Search size={13} />
-          </button>
+          </TooltipBtn>
         )}
-        <button
-          type="button"
+        <TooltipBtn
+          tooltip="Add"
           className="pocket-icon-btn"
-          aria-label="Quick add"
           onClick={() => {
-            const input = cardRef.current?.querySelector(".pocket-quickadd__input");
-            input?.focus();
+            if (compact) {
+              setExpanded(true);
+            } else {
+              cardRef.current?.querySelector(".pocket-quickadd__input")?.focus();
+            }
           }}
         >
           <PlusLg size={13} />
-        </button>
+        </TooltipBtn>
         {!compact && (
-          <button type="button" className="pocket-icon-btn" aria-label="Expand" onClick={() => setExpanded(true)}>
+          <TooltipBtn tooltip="Expand" className="pocket-icon-btn" onClick={() => setExpanded(true)}>
             <ArrowsFullscreen size={13} />
-          </button>
+          </TooltipBtn>
         )}
       </div>
     </div>
   );
 
   const searchBar = searchOpen && (
-    <div className="pocket-search">
-      <Search size={13} style={{ color: "var(--w-ink-4)", flexShrink: 0 }} />
-      <input
+    <div className="px-3 pb-2 shrink-0">
+      <Input
+        pill
         ref={searchRef}
+        icon={<Search size={13} />}
+        suffix={
+          query ? (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={clearSearch}
+              className="flex items-center justify-center rounded"
+              style={{ width: 20, height: 20, color: "var(--w-ink-4)", cursor: "pointer", border: "none", background: "transparent" }}
+            >
+              <XLg size={12} />
+            </button>
+          ) : null
+        }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === "Escape" && clearSearch()}
-        placeholder="Search text, title, site or folder…"
+        placeholder="Search text, title, site or folder"
         aria-label="Search Pocket"
-        className="pocket-search__input"
       />
-      {query && (
-        <button type="button" className="pocket-icon-btn" aria-label="Clear search" onClick={clearSearch}>
-          <XLg size={12} />
-        </button>
-      )}
     </div>
-  );
-
-  const chipRow = compact ? (
-    <div className="pocket-chips">
-      <button
-        type="button"
-        className="pocket-chip"
-        onClick={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          setFilterMenu({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
-        }}
-      >
-        {filter ? (filter.type === "kind" ? KIND_META[filter.value].label : folderById.get(filter.value)?.name || "Folder") : "All types"}
-        <ChevronDown size={11} />
-      </button>
-      {filterMenu && (
-        <PocketMenu anchor={filterMenu} onClose={() => setFilterMenu(null)}>
-          <div className="pocket-menu" style={{ minWidth: 150 }}>
-            <button type="button" className="pocket-menu-item" onClick={() => { pickFilter(null); setFilterMenu(null); }}>
-              All types
-            </button>
-            {KINDS.map((k) => (
-              <button key={k} type="button" className="pocket-menu-item" onClick={() => { pickFilter({ type: "kind", value: k }); setFilterMenu(null); }}>
-                {KIND_META[k].label}
-              </button>
-            ))}
-          </div>
-        </PocketMenu>
-      )}
-    </div>
-  ) : (
-    renderChips()
   );
 
   const expandedContent = (
-    <div className="pocket-expanded" role="dialog" aria-label="Pocket library">
+    <div className="pocket-expanded">
       <div className="pocket-rail">
         <span className="pocket-rail__title">Library</span>
         <button
@@ -726,29 +635,52 @@ export const Widget = ({ id, onRemove }) => {
               </button>
             );
           })}
-        <button type="button" className="pocket-rail-item pocket-rail-item--new" onClick={() => setCreatingFolder(true)}>
-          <FolderPlus size={12} />
-          <span>New folder</span>
-        </button>
+        {creatingFolder ? (
+          <input
+            autoFocus
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={onNewFolderKey}
+            onBlur={() => setCreatingFolder(false)}
+            placeholder="Folder name"
+            className="pocket-inline-input"
+            style={{ margin: "4px 8px" }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="pocket-rail-item pocket-rail-item--new"
+            onClick={() => setCreatingFolder(true)}
+          >
+            <FolderPlus size={12} />
+            <span>New folder</span>
+          </button>
+        )}
       </div>
       <div className="pocket-main">
         <div className="pocket-main__top">
-          <div className="pocket-search pocket-search--inline">
-            <Search size={13} style={{ color: "var(--w-ink-4)", flexShrink: 0 }} />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && clearSearch()}
-              placeholder="Search Pocket…"
-              aria-label="Search Pocket"
-              className="pocket-search__input"
-            />
-            {query && (
-              <button type="button" className="pocket-icon-btn" aria-label="Clear search" onClick={clearSearch}>
-                <XLg size={12} />
-              </button>
-            )}
-          </div>
+          <Input
+            pill
+            icon={<Search size={13} />}
+            suffix={
+              query ? (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={clearSearch}
+                  className="flex items-center justify-center rounded"
+                  style={{ width: 20, height: 20, color: "var(--w-ink-4)", cursor: "pointer", border: "none", background: "transparent" }}
+                >
+                  <XLg size={12} />
+                </button>
+              ) : null
+            }
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Escape" && clearSearch()}
+            placeholder="Search Pocket"
+            aria-label="Search Pocket"
+          />
           {renderTabs()}
         </div>
         <div
@@ -757,7 +689,7 @@ export const Widget = ({ id, onRemove }) => {
           id={PANEL_ID}
           aria-labelledby={tabId(tab)}
         >
-          {renderBody()}
+          {renderBody(true)}
         </div>
       </div>
     </div>
@@ -774,21 +706,21 @@ export const Widget = ({ id, onRemove }) => {
     >
       <div ref={cardRef} className="pocket-root" onKeyDown={onRootKey}>
         {header}
+        <Divider />
         {searchBar}
         {!expanded && (
           <>
             {renderTabs()}
-            {chipRow}
+            {!compact && renderChips()}
             <div
               className="pocket-list"
               role="tabpanel"
               id={PANEL_ID}
               aria-labelledby={tabId(tab)}
             >
-              {renderBody()}
+              {renderBody(false)}
             </div>
             {renderQuickAdd()}
-            {renderFooter()}
           </>
         )}
       </div>

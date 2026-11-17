@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 // Pocket widget — text-saving. Consumes theme tokens only; no hardcoded
 // colors/radii/shadows/spacing. 4px spacing base, 32px min tap targets.
+// Chips/tabs/icon-buttons/dividers come from the shared ui/ primitives.
 // ---------------------------------------------------------------------------
 
 .pocket-root {
@@ -13,16 +14,7 @@
   position: relative;
 }
 
-// --- Header ---------------------------------------------------------------
-
-.pocket-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px 8px 14px;
-  flex-shrink: 0;
-}
+// --- Icon button (used by TooltipBtn) -------------------------------------
 
 .pocket-icon-btn {
   display: inline-flex;
@@ -98,112 +90,21 @@
   background: var(--w-accent);
 }
 
-// --- Filter chips ---------------------------------------------------------
+// --- Filter chips row (children are shared PillButton) --------------------
 
-.pocket-chips {
+.pocket-chip-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px 6px;
+  padding: 2px 12px 8px;
   overflow-x: auto;
   scrollbar-width: none;
   flex-shrink: 0;
-  -webkit-mask-image: linear-gradient(to right, #000 90%, transparent 100%);
-  mask-image: linear-gradient(to right, #000 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
 }
-.pocket-chips::-webkit-scrollbar {
+.pocket-chip-row::-webkit-scrollbar {
   display: none;
-}
-
-.pocket-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  min-height: 32px;
-  border-radius: 999px;
-  border: 1px solid var(--card-border);
-  background: transparent;
-  color: var(--w-ink-3);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
-}
-.pocket-chip:hover {
-  background: var(--w-surface-2);
-}
-.pocket-chip:focus-visible {
-  outline: 2px solid var(--w-accent);
-  outline-offset: 2px;
-}
-.pocket-chip--active {
-  background: color-mix(in srgb, var(--w-accent) 12%, transparent);
-  color: var(--w-accent);
-  border-color: color-mix(in srgb, var(--w-accent) 32%, transparent);
-}
-.pocket-chip--new {
-  color: var(--w-accent);
-  border-style: dashed;
-}
-
-.pocket-chip-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--w-divider);
-  flex-shrink: 0;
-  margin: 0 2px;
-}
-
-.pocket-chip-input {
-  border: 1px solid var(--w-accent);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--w-ink-1);
-  font-size: 0.6875rem;
-  padding: 4px 10px;
-  width: 116px;
-  flex-shrink: 0;
-}
-.pocket-chip-input:focus {
-  outline: none;
-}
-
-// --- Search ---------------------------------------------------------------
-
-.pocket-search {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 12px 6px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: var(--panel-bg);
-  border: 1px solid var(--card-border);
-  flex-shrink: 0;
-}
-.pocket-search--inline {
-  margin: 0;
-  flex: 1;
-  max-width: 340px;
-}
-
-.pocket-search__input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--w-ink-1);
-  font-size: 0.8125rem;
-  caret-color: var(--w-accent);
-}
-.pocket-search__input:focus {
-  outline: none;
-}
-.pocket-search__input::placeholder {
-  color: var(--w-ink-5);
 }
 
 // --- List -----------------------------------------------------------------
@@ -455,6 +356,12 @@
   background: var(--panel-bg);
   border: 1px solid var(--card-border);
   flex-shrink: 0;
+  align-self: stretch;
+}
+.pocket-quickadd__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--w-ink-4);
 }
 .pocket-quickadd__input {
   flex: 1;
@@ -473,16 +380,6 @@
 }
 .pocket-quickadd__input::placeholder {
   color: var(--w-ink-5);
-}
-
-// --- Footer ---------------------------------------------------------------
-
-.pocket-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 14px 8px;
-  flex-shrink: 0;
 }
 
 // --- Word cloud -----------------------------------------------------------
@@ -518,15 +415,6 @@
   border-color: color-mix(in srgb, var(--w-accent) 32%, transparent);
 }
 
-// --- Search highlight -----------------------------------------------------
-
-.pocket-mark {
-  background: color-mix(in srgb, var(--w-accent) 22%, transparent);
-  color: var(--w-ink-1);
-  border-radius: 3px;
-  padding: 0 1px;
-}
-
 // --- Sites accordion ------------------------------------------------------
 
 .pocket-site-header {
@@ -547,22 +435,6 @@
 .pocket-site-header:focus-visible {
   outline: 2px solid var(--w-accent);
   outline-offset: -2px;
-}
-
-.pocket-view-all {
-  display: block;
-  width: 100%;
-  padding: 7px 14px;
-  border: none;
-  background: transparent;
-  color: var(--w-accent);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-}
-.pocket-view-all:hover {
-  text-decoration: underline;
 }
 
 .pocket-breadcrumb {
@@ -700,7 +572,6 @@
   .pocket-toast,
   .pocket-chevron,
   .pocket-icon-btn,
-  .pocket-chip,
   .pocket-tab,
   .pocket-row,
   .pocket-action-btn,
