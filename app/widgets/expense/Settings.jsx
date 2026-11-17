@@ -4,6 +4,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { CURRENCIES } from '../../data/currencies';
 import { DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
 
@@ -170,9 +171,8 @@ export const ExpenseSettings = ({ id, onClose }) => {
       {/* ── Currency ──────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1.5">
         <span className="w-label">Currency</span>
-        <select
+        <Select
           id="exp-currency"
-          className="exp-settings__select"
           value={currency}
           onChange={(e) => setCurrency(e.target.value)}
         >
@@ -181,7 +181,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
               {c.name} ({c.symbol} {c.code})
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* ── Time Range ────────────────────────────────────────────────── */}

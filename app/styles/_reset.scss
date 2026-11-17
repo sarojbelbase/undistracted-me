@@ -39,7 +39,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 // Dark mode: native inputs default to dark surface when not using data-ui-input
 [data-mode="dark"] input:not([data-ui-input]):not(.notes-title),
 [data-mode="dark"] textarea:not(.notes-textarea),
-[data-mode="dark"] select {
+[data-mode="dark"] select:not([data-ui-input]) {
   background-color: var(--w-surface-2) !important;
   color: var(--w-ink-1) !important;
   border-color: var(--w-border) !important;
