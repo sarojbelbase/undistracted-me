@@ -97,6 +97,11 @@ export const WIDGET_SETTINGS_DEFAULTS = Object.freeze({
     monthBudget: "",
     yearBudget: "",
   },
+  pocket: {
+    defaultTab: "recent", // "recent" | "all" | "sites"
+    showFavicons: true,
+    compactCount: 4,
+  },
 });
 
 // ─── Notification type registry ───────────────────────────────────────────────

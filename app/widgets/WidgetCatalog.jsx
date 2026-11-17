@@ -16,6 +16,7 @@ import {
 import { WIDGET_REGISTRY } from './index';
 import { CURRENT_PLATFORM } from '../constants/env';
 import { MOMO_URL } from '../constants/urls';
+import { PocketIcon } from '../assets/svg/PocketIcon';
 
 // ─── Widget icon registry ─────────────────────────────────────────────────────
 // config.js files store the icon as a STRING name (not a React component) so the
@@ -40,6 +41,7 @@ const WIDGET_ICONS = {
   Rss,
   GraphUpArrow,
   CloudSunFill,
+  PocketIcon,
 };
 
 const resolveWidgetIcon = (name) => WIDGET_ICONS[name] ?? App;

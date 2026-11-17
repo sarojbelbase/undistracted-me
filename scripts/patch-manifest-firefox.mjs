@@ -92,9 +92,12 @@ if (manifest.author && typeof manifest.author === 'object') {
   manifest.author = manifest.author.email ?? 'Saroj Belbase';
 }
 
-// 4. Remove Chrome-only permissions
+// 4. Remove Chrome-only permissions + rename `contextMenus` → `menus` (Firefox
+//    uses `menus` as the canonical permission name for the context-menu API).
 if (manifest.permissions) {
-  manifest.permissions = manifest.permissions.filter((p) => p !== 'favicon');
+  manifest.permissions = manifest.permissions
+    .filter((p) => p !== 'favicon')
+    .map((p) => (p === 'contextMenus' ? 'menus' : p));
 }
 
 // 5. Remove Chrome-only top-level keys

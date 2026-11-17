@@ -18,6 +18,8 @@ import {
 import { buildNotification } from './constants/notifications.js';
 import { initSiteBlocker } from './utilities/siteBlocker.js';
 import { writeEntry } from './data/dataHub.js';
+import { setupPocketContextMenu, handlePocketSave, POCKET_MENU_ID } from './widgets/pocket/contextMenu.js';
+import { softDelete as pocketSoftDelete, whenHydrated, flush } from './widgets/pocket/pocketStore.js';
 
 // ─── Alarm names ──────────────────────────────────────────────────────────────
 const ALARM_TICK = "UM_TICK"; // fires every 1 min for event reminders
@@ -263,6 +265,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_STOCKS, { periodInMinutes: 15 });
   injectMediaScript();
   initSiteBlocker();
+  setupPocketContextMenu();
   chrome.storage.local.set({ um_browser_start_time: Date.now() });
 });
 
@@ -270,6 +273,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // or the extension is reloaded while tabs are already open.
 chrome.runtime.onStartup.addListener(() => {
   injectMediaScript();
+  setupPocketContextMenu();
   chrome.storage.local.set({ um_browser_start_time: Date.now() });
 });
 
@@ -895,6 +899,14 @@ async function _validateAndSendSessions(candidates, sendResponse) {
   sendResponse(valid);
 }
 
+// Undo a context-menu save: the toast's Undo un-saves (soft-deletes) the just
+// added item. Await hydration and flush so the write survives an SW suspend.
+async function handlePocketUndo(id) {
+  await whenHydrated();
+  pocketSoftDelete(id);
+  await flush();
+}
+
 // Message handler dispatch table
 const MESSAGE_HANDLERS = {
   POMODORO_DONE: (msg) => handlePomodoroDone(msg),
@@ -922,11 +934,18 @@ const MESSAGE_HANDLERS = {
   PREFETCH_SYNC: (msg) => { if (msg.lat && msg.lon) handlePrefetchSync(msg); },
   RSS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.feeds)) { chrome.storage.local.set({ rss_feed_config: msg.feeds }); runRssPrefetch(); } },
   STOCKS_CONFIG_SYNC: (msg) => { if (Array.isArray(msg.symbols)) { chrome.storage.local.set({ stocks_config: msg.symbols }); runStocksPrefetch(); } },
+  POCKET_UNDO: (msg) => { if (msg.id) handlePocketUndo(msg.id); },
 };
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const handler = MESSAGE_HANDLERS[msg.type];
   if (handler) return handler(msg, sender, sendResponse);
+});
+
+// Pocket context menu — save the click info on right-click.
+chrome.contextMenus?.onClicked?.addListener((info, tab) => {
+  if (info.menuItemId !== POCKET_MENU_ID) return;
+  handlePocketSave(info, tab);
 });
 
 // Clear stored Chrome media state when the source tab is closed.

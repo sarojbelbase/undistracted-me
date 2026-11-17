@@ -43,6 +43,8 @@
   "permissions": [
     "identity",
     "storage",
+    "activeTab",
+    "contextMenus",
     "geolocation",
     "topSites",
     "notifications",

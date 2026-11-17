@@ -15,6 +15,7 @@ import { Widget as OccasionsWidget } from "./occasions/Widget";
 import { Widget as DailysWidget } from "./dailys/Widget";
 import { Widget as RssWidget } from "./rss/Widget";
 import { Widget as ExpenseWidget } from "./expense/Widget";
+import { Widget as PocketWidget } from "./pocket/Widget";
 
 /**
  * Eager component registry: widget type → React component.
@@ -47,4 +48,5 @@ export const WIDGET_COMPONENTS = {
   dailys: DailysWidget,
   rss: RssWidget,
   expense: ExpenseWidget,
+  pocket: PocketWidget,
 };

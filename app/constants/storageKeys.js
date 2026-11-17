@@ -62,6 +62,11 @@ export const STORAGE_KEYS = Object.freeze({
   /** Per-feed RSS cache key. */
   rssCache: (feedId) => `rss_cache_${feedId}`,
 
+  // ── Pocket (text saves) ────────────────────────────────────────────────
+  POCKET_ITEMS: "pocket:items",
+  POCKET_FOLDERS: "pocket:folders",
+  POCKET_META: "pocket:meta",
+
   // ── SW pre-fetch cache (chrome.storage.local) ──────────────────────────
   // Written by bg.js, read by weather widget on mount.
   WEATHER_SW_CACHE: "weather_sw_cache",

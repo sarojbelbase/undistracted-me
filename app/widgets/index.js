@@ -15,6 +15,7 @@ import occasionsConfig from "./occasions/config";
 import dailysConfig from "./dailys/config";
 import rssConfig from "./rss/config";
 import expenseConfig from "./expense/config";
+import pocketConfig from "./pocket/config";
 
 /**
  * WIDGET_REGISTRY — assembled from each widget's config.js.
@@ -42,6 +43,7 @@ export const WIDGET_REGISTRY = [
   dailysConfig,
   rssConfig,
   expenseConfig,
+  pocketConfig,
 ];
 
 /**
