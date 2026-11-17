@@ -19,8 +19,7 @@ export function ParagraphBody({ item, clamp, expanded, variant = "list", onToggl
       <div
         className="pocket-prose"
         style={{
-          fontSize: "0.875rem",
-          lineHeight: 1.55,
+          fontSize: "0.9375rem",
           ...(expanded ? expandedStyle : { ...clampStyle(clamp), ...fade }),
         }}
       >

@@ -2,10 +2,11 @@ import { XLg } from "react-bootstrap-icons";
 import { IconButton } from "./IconButton";
 
 /**
- * WidgetHeaderFull — the defacto header for a widget's *expanded* view. Mirrors
- * WidgetHeader's icon/title/count sizing on the left (so the card and its
- * expanded view read as the same surface), and puts a small set of actions plus
- * a single dismiss (✕) on the right — nothing more.
+ * WidgetHeaderFull — the defacto header for a widget's *expanded* view. Same
+ * structure as WidgetHeader but at a slightly larger scale (16px icon, 14px
+ * title, 12px action gap) so the expanded surface reads as a step up from the
+ * card. Puts a small set of actions plus a single dismiss (✕) on the right —
+ * nothing more.
  *
  * The host controls the panel width via the Modal's className (e.g. Pocket's
  * `.pocket-modal-shell`). Keeping width here instead of on the header lets any
@@ -25,16 +26,16 @@ export const WidgetHeaderFull = ({ icon, title, count, leading, actions = [], on
   <header className={`widget-header-full ${className}`}>
     <div className="widget-header-full__left">
       {leading}
-      <span className="widget-header__icon" aria-hidden="true">
+      <span className="widget-header-full__icon" aria-hidden="true">
         {icon}
       </span>
-      <span className="widget-header__title">{title}</span>
-      {count != null && count !== "" && <span className="widget-header__count">{count}</span>}
+      <span className="widget-header-full__title">{title}</span>
+      {count != null && count !== "" && <span className="widget-header-full__count">{count}</span>}
     </div>
     <div className="widget-header-full__actions">
       {actions}
-      <IconButton label="Close" size="sm" onClick={onClose}>
-        <XLg size={14} />
+      <IconButton label="Close" onClick={onClose}>
+        <XLg size={15} />
       </IconButton>
     </div>
   </header>

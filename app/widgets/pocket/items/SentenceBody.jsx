@@ -17,8 +17,7 @@ export function SentenceBody({ item, clamp, expanded }) {
       <div
         className="pocket-prose min-w-0 flex-1"
         style={{
-          fontSize: "0.875rem",
-          lineHeight: 1.55,
+          fontSize: "0.9375rem",
           ...(expanded ? expandedStyle : clampStyle(clamp)),
         }}
       >

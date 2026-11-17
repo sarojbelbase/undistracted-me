@@ -361,14 +361,41 @@
 .widget-header-full__left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
+}
+
+.widget-header-full__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--w-accent);
+  flex-shrink: 0;
+}
+
+.widget-header-full__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--w-ink-2);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.widget-header-full__count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--w-ink-5);
+  flex-shrink: 0;
 }
 
 .widget-header-full__actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   flex-shrink: 0;
 }
 

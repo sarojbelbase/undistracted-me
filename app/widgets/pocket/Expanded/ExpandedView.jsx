@@ -125,7 +125,7 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
     <div className="pocket-modal">
       <WidgetHeaderFull
         className="pocket-modal__head"
-        icon={<PocketIcon size={14} />}
+        icon={<PocketIcon size={16} />}
         title="Pocket"
         count={total}
         leading={
@@ -136,8 +136,8 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
         }
         onClose={onClose}
         actions={[
-          <Button key="add" variant="primary" size="sm" onClick={onAdd}>
-            <PlusLg size={12} />
+          <Button key="add" variant="primary" size="md" onClick={onAdd}>
+            <PlusLg size={13} />
             Add
           </Button>,
         ]}
