@@ -76,6 +76,9 @@ Custom subagents live in `.opencode/agents/`: `react-guru`,
 - **Per-breakpoint layouts**: persist `allLayouts` from `onLayoutChange`.
 - **Widgets**: register in `app/widgets/index.js` (`WIDGET_TYPES`,
   `WIDGET_REGISTRY`) and add a folder under `app/widgets/<name>/`.
+- **Add dialogs**: any "Add …" / "Edit …" dialog must inherit the shared
+  `app/components/ui/AddDialogHeader` (accent icon tile + title + subtitle + ✕).
+  Do not hand-roll dialog headers.
 
 ## Before saying "done"
 

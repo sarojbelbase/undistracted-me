@@ -5,11 +5,11 @@
  * all live here so they can be tested in isolation.
  */
 
-import { MAX_TEXT_LENGTH, MAX_FOLDER_NAME_LENGTH } from "./constants";
+import { MAX_TEXT_LENGTH, MAX_FOLDER_NAME_LENGTH, FOLDER_COLORS } from "./constants";
 
 const TRACKING_PARAMS = new Set(["fbclid", "gclid", "mc_cid", "igshid"]);
 
-const VALID_KINDS = new Set(["link", "word", "sentence", "paragraph", "code"]);
+const VALID_KINDS = new Set(["link", "sentence", "paragraph", "code"]);
 
 // Each marker contributes at most 1 to the code-likeness score (presence, not
 // occurrence count), so a short snippet with a couple of signals qualifies
@@ -50,17 +50,8 @@ export function isSingleHttpUrl(text) {
   }
 }
 
-/** True when text is exactly one word (hyphens/apostrophes allowed), ≤40 chars. */
-export function isSingleWord(text) {
-  return (
-    text.length <= 40 &&
-    /^[\p{L}\p{N}'’\-]+$/u.test(text) &&
-    /\p{L}/u.test(text)
-  );
-}
-
 /**
- * classifyKind(text, context) → "link" | "word" | "sentence" | "paragraph" | "code"
+ * classifyKind(text, context) → "link" | "sentence" | "paragraph" | "code"
  * context: { fromLink, fromPage, codeContext } — hints from the save origin.
  */
 export function classifyKind(text, context = {}) {
@@ -73,7 +64,6 @@ export function classifyKind(text, context = {}) {
   ) {
     return "code";
   }
-  if (isSingleWord(t)) return "word";
   if (!t.includes("\n") && t.length <= 280) return "sentence";
   return "paragraph";
 }
@@ -106,15 +96,14 @@ export function cleanText(text) {
   return { text: t, truncated };
 }
 
-/** Canonical form for dedupe. Words are case-insensitive; everything else is trim-only. */
-export function normalizeText(text, kind) {
-  const t = (text ?? "").trim();
-  return kind === "word" ? t.toLowerCase() : t;
+/** Canonical form for dedupe (trim-only). */
+export function normalizeText(text) {
+  return (text ?? "").trim();
 }
 
 /** Stable dedupe key: kind + normalized text. */
 export function dedupeKey(item) {
-  return `${item.kind}\u0000${normalizeText(item.text, item.kind)}`;
+  return `${item.kind}\u0000${normalizeText(item.text)}`;
 }
 
 /**
@@ -127,6 +116,99 @@ export function findDuplicate(items, item) {
     if (!it.deletedAt && dedupeKey(it) === key) return it;
   }
   return null;
+}
+
+/** True when a host is an IP, localhost, or empty — where a globe beats a letter. */
+export function isIpOrLocalHost(host) {
+  const h = (host || "").trim();
+  if (!h) return true;
+  if (h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "0.0.0.0") return true;
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(h);
+}
+
+/**
+ * Next folder color — rotate through the non-grey swatches. Returns the first
+ * palette color not currently in use by a live folder, else cycles by count.
+ * Never returns "slate" (the grey swatch).
+ */
+export function nextFolderColor(folders) {
+  const palette = FOLDER_COLORS.filter((c) => c.id !== "slate");
+  const live = (folders || []).filter((f) => !f.deletedAt);
+  for (const c of palette) {
+    if (!live.some((f) => f.color === c.id)) return c.id;
+  }
+  return palette[live.length % palette.length].id;
+}
+
+/**
+ * Group a host's items by page (sourceUrl). Items without a sourceUrl (pasted
+ * text) are collected in `ungrouped`. `multiPage` is true when there are 2+
+ * distinct pages, which is the only time sub-headings are shown.
+ */
+export function groupByPage(items) {
+  const pages = new Map();
+  const ungrouped = [];
+  for (const it of items) {
+    if (it.deletedAt) continue;
+    const key = it.sourceUrl || "";
+    if (!key) {
+      ungrouped.push(it);
+      continue;
+    }
+    if (!pages.has(key)) pages.set(key, []);
+    pages.get(key).push(it);
+  }
+  const list = [...pages.entries()]
+    .map(([pageUrl, list]) => ({
+      pageUrl,
+      title: (list.find((i) => i.title) || {}).title || "",
+      items: list.sort((a, b) => b.updatedAt - a.updatedAt),
+      latest: Math.max(...list.map((i) => i.updatedAt)),
+    }))
+    .sort((a, b) => b.latest - a.latest);
+  return { pages: list, ungrouped, multiPage: list.length >= 2 };
+}
+
+/** Absolute date for the Details block: "Tue, 17 Nov · 09:12". */
+export function formatSavedDate(ts) {
+  const d = new Date(ts);
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-US", { month: "short" });
+  const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${weekday}, ${day} ${month} · ${time}`;
+}
+
+/** Truncate a long string with an ellipsis in the middle (host + path). */
+export function middleEllipsis(str, max = 40) {
+  const s = str || "";
+  if (s.length <= max) return s;
+  const head = Math.ceil((max - 1) / 2);
+  const tail = Math.floor((max - 1) / 2);
+  return `${s.slice(0, head)}…${s.slice(s.length - tail)}`;
+}
+
+/** Best-effort language label for a code block header. Defaults to "Code". */
+export function detectLanguage(text) {
+  const t = (text || "").trim();
+  if (!t) return "Code";
+  const first = (t.split("\n")[0] || "").trim();
+  if (/<\/?[a-zA-Z][^>]*>/.test(t)) return "HTML";
+  if (/^\s*[{[]/.test(t) && /:\s*/.test(t)) return "JSON";
+  if (/^(#include|int\s+main|using\s+namespace)/.test(first)) return "C++";
+  if (/^(def|class)\s/.test(first)) return "Python";
+  if (/^(public\s+class|package\s)/.test(first)) return "Java";
+  if (/\b(function|const|let|var|=>|export|import)\b/.test(t)) return "JavaScript";
+  return "Code";
+}
+
+/** True when a live folder already uses `name` (case-insensitive). */
+export function folderNameTaken(folders, name, exceptId = null) {
+  const n = (name || "").trim().toLowerCase();
+  if (!n) return false;
+  return (folders || []).some(
+    (f) => !f.deletedAt && f.id !== exceptId && (f.name || "").trim().toLowerCase() === n,
+  );
 }
 
 /** Lowercase host key ("www." stripped; "" if none). */

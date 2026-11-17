@@ -6,7 +6,6 @@ import { describe, it, expect } from 'vitest';
 import {
   codeLikeness,
   isSingleHttpUrl,
-  isSingleWord,
   classifyKind,
   cleanUrl,
   cleanText,
@@ -62,10 +61,10 @@ describe('classifyKind', () => {
     expect(classifyKind('a + b', { codeContext: true })).toBe('code');
   });
 
-  it('classifies a single word (<= 40 chars)', () => {
-    expect(classifyKind('serendipity')).toBe('word');
-    expect(classifyKind("don't")).toBe('word');
-    expect(classifyKind('well-known')).toBe('word');
+  it('classifies a single word as a sentence', () => {
+    expect(classifyKind('serendipity')).toBe('sentence');
+    expect(classifyKind("don't")).toBe('sentence');
+    expect(classifyKind('well-known')).toBe('sentence');
   });
 
   it('classifies a short single-line as sentence', () => {
@@ -94,14 +93,12 @@ describe('codeLikeness', () => {
   });
 });
 
-describe('isSingleWord', () => {
-  it('accepts hyphens and apostrophes', () => {
-    expect(isSingleWord("don't")).toBe(true);
-    expect(isSingleWord('well-known')).toBe(true);
+describe('isSingleHttpUrl', () => {
+  it('detects a bare URL', () => {
+    expect(isSingleHttpUrl('https://react.dev')).toBe(true);
   });
-  it('rejects spaces and over-long words', () => {
-    expect(isSingleWord('two words')).toBe(false);
-    expect(isSingleWord('x'.repeat(41))).toBe(false);
+  it('rejects URLs with surrounding whitespace', () => {
+    expect(isSingleHttpUrl(' https://react.dev ')).toBe(false);
   });
 });
 
@@ -141,27 +138,26 @@ describe('cleanText', () => {
 });
 
 describe('normalizeText / dedupeKey / findDuplicate', () => {
-  it('normalizes words case-insensitively', () => {
-    expect(normalizeText('Hello', 'word')).toBe('hello');
-    expect(normalizeText('  Keep case  ', 'sentence')).toBe('Keep case');
+  it('trims text for normalization', () => {
+    expect(normalizeText('  Keep case  ')).toBe('Keep case');
   });
 
   it('dedupes on kind + normalized text', () => {
-    const a = item({ kind: 'word', text: 'Hello', id: 'a' });
-    const b = item({ kind: 'word', text: 'hello', id: 'b' });
+    const a = item({ kind: 'paragraph', text: 'Hello world', id: 'a' });
+    const b = item({ kind: 'paragraph', text: 'Hello world', id: 'b' });
     expect(dedupeKey(a)).toBe(dedupeKey(b));
     expect(findDuplicate([a], b)?.id).toBe('a');
   });
 
   it('does not dedupe across kinds', () => {
-    const a = item({ kind: 'word', text: 'hello', id: 'a' });
+    const a = item({ kind: 'paragraph', text: 'hello', id: 'a' });
     const b = item({ kind: 'sentence', text: 'hello', id: 'b' });
     expect(findDuplicate([a], b)).toBeNull();
   });
 
   it('skips deleted items when finding duplicates', () => {
-    const a = item({ kind: 'word', text: 'hello', id: 'a', deletedAt: 10 });
-    const b = item({ kind: 'word', text: 'hello', id: 'b' });
+    const a = item({ kind: 'paragraph', text: 'hello', id: 'a', deletedAt: 10 });
+    const b = item({ kind: 'paragraph', text: 'hello', id: 'b' });
     expect(findDuplicate([a], b)).toBeNull();
   });
 });

@@ -21,6 +21,7 @@
 @use "animations"; // All @keyframes
 @use "scrollbars"; // Global thin auto-hiding scrollbar + .no-scrollbar
 @use "react-grid"; // .react-grid-*, drag handles, placeholder
+@use "ui"; // .um-* shared UI primitives (Button, IconButton, ActionMenu, Snackbar, EmptyState)
 @use "widget-catalog"; // .wc-* drawer panel
 @use "focus-mode"; // .fm-* Focus Mode layout
 @use "look-away"; // .la-* Look Away overlay

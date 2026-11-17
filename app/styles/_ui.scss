@@ -1,0 +1,471 @@
+// ─── Shared UI primitives ─────────────────────────────────────────────────────
+// Styles for the app/components/ui primitives: Button, IconButton, ActionMenu,
+// Snackbar, EmptyState. All colors reference CSS custom properties so they adapt
+// to light/dark, accent, and card-style (paper/glass/comic) automatically.
+
+// ── Button ──────────────────────────────────────────────────────────────────
+
+.um-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, opacity 0.14s ease;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.um-btn--md {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.um-btn--sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.um-btn--primary {
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  border: 1px solid transparent;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+}
+
+.um-btn--secondary {
+  background: var(--panel-bg);
+  color: var(--w-ink-2);
+  border: 1px solid var(--card-border);
+
+  &:hover:not(:disabled) { background: var(--w-surface-2); }
+}
+
+.um-btn--ghost {
+  background: transparent;
+  color: var(--w-ink-3);
+  border: 1px solid transparent;
+
+  &:hover:not(:disabled) {
+    background: var(--w-surface-2);
+    color: var(--w-ink-1);
+  }
+}
+
+.um-btn--danger {
+  background: transparent;
+  color: var(--w-danger);
+  border: 1px solid var(--w-danger-border);
+
+  &:hover:not(:disabled) { background: var(--w-danger-bg); }
+}
+
+@media (pointer: coarse) {
+  .um-btn { min-height: 44px; }
+}
+
+// ── Icon button ─────────────────────────────────────────────────────────────
+
+.um-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--w-ink-3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--w-ink-1) 6%, transparent);
+    color: var(--w-ink-1);
+  }
+
+  &:active {
+    background: color-mix(in srgb, var(--w-ink-1) 10%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: 2px;
+  }
+}
+
+.um-icon-btn--sm {
+  width: 28px;
+  height: 28px;
+}
+
+// Filled, circular accent button — the primary action (matches Expense's add).
+.um-icon-btn--accent {
+  border-radius: 14px;
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+
+  &:hover {
+    background: var(--w-accent);
+    color: var(--w-accent-fg);
+    opacity: 0.88;
+  }
+
+  &:active {
+    opacity: 0.76;
+    transform: scale(0.94);
+  }
+}
+
+@media (pointer: coarse) {
+  .um-icon-btn,
+  .um-icon-btn--sm {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 720px) {
+  .um-icon-btn,
+  .um-icon-btn--sm {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+// ── Action menu ─────────────────────────────────────────────────────────────
+
+.um-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 168px;
+}
+
+.um-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  min-height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--w-ink-2);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.14s ease;
+
+  &:hover { background: var(--w-surface-2); }
+
+  &--sub {
+    padding-left: 22px;
+  }
+
+  &--danger {
+    color: var(--w-danger);
+
+    &:hover { background: var(--w-danger-bg); }
+  }
+}
+
+.um-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  flex-shrink: 0;
+  color: var(--w-ink-4);
+}
+
+.um-menu__item--danger .um-menu__icon { color: var(--w-danger); }
+
+.um-menu__label-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.um-menu__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 3px;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--w-ink-5);
+}
+
+.um-menu__divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--w-divider);
+}
+
+// ── Snackbar ────────────────────────────────────────────────────────────────
+
+.um-snackbar-stack {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.um-snackbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--card-border-width, 1px) solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--w-ink-1);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  pointer-events: auto;
+  animation: um-snackbar-in 0.18s ease-out;
+}
+
+.um-snackbar__action {
+  border: none;
+  background: transparent;
+  color: var(--w-accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 5px;
+
+  &:hover { text-decoration: underline; }
+}
+
+@keyframes um-snackbar-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ── Empty state ─────────────────────────────────────────────────────────────
+
+.um-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+// ── Visually hidden (screen-reader only) live region ────────────────────────
+
+.um-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ── Widget header ───────────────────────────────────────────────────────────
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.widget-header__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--w-accent);
+  flex-shrink: 0;
+}
+
+.widget-header__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--w-ink-2);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.widget-header__count {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--w-ink-5);
+  flex-shrink: 0;
+}
+
+.widget-header__spacer {
+  flex: 1;
+}
+
+.widget-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// ── Widget header (full / expanded) ──────────────────────────────────────────
+
+.widget-header-full {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.widget-header-full__left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.widget-header-full__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+// ── Add dialog header (shared across every "Add/Edit …" dialog) ──────────────
+
+.add-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+}
+
+.add-dialog-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.add-dialog-header__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--w-accent);
+  color: var(--w-accent-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-dialog-header__text {
+  min-width: 0;
+}
+
+.add-dialog-header__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--w-ink-3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.add-dialog-header__close:hover {
+  background: color-mix(in srgb, var(--w-ink-1) 6%, transparent);
+  color: var(--w-ink-1);
+}
+.add-dialog-header__close:focus-visible {
+  outline: 2px solid var(--w-accent);
+  outline-offset: 2px;
+}
+
+// ── Scroll fade (cutout) ────────────────────────────────────────────────────
+
+.scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.scroll-fade--bottom {
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--card-bg) 55%, transparent) 45%,
+    var(--card-bg)
+  );
+}
+
+.scroll-fade--top {
+  top: 0;
+  background: linear-gradient(
+    to top,
+    transparent,
+    color-mix(in srgb, var(--card-bg) 55%, transparent) 45%,
+    var(--card-bg)
+  );
+}
+
+// ── Motion preference ───────────────────────────────────────────────────────
+
+@media (prefers-reduced-motion: reduce) {
+  .um-snackbar,
+  .um-btn,
+  .um-icon-btn,
+  .um-menu__item {
+    animation: none;
+    transition: none;
+  }
+}

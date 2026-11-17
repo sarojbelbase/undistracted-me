@@ -26,6 +26,7 @@ import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 import { Divider } from '../../components/ui/Divider';
+import { ScrollFade } from '../../components/ui/ScrollFade';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -616,7 +617,7 @@ export const Widget = ({ id, onRemove }) => {
   // ── Digest mode ──────────────────────────────────────────────────────────────
   return (
     <BaseWidget
-      className="flex flex-col overflow-hidden"
+      className="relative flex flex-col overflow-hidden"
       settingsContent={settingsContent}
       settingsTitle="News Feed" modalWidth="w-96" onRemove={onRemove}
     >
@@ -672,6 +673,7 @@ export const Widget = ({ id, onRemove }) => {
           <EmptyState sourceMode={sourceMode} />
         )}
       </div>
+      <ScrollFade />
     </BaseWidget>
   );
 };

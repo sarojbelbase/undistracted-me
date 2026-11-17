@@ -13,6 +13,7 @@ import {
   mergeStates,
   sanitizeImport,
   hostFromUrl,
+  nextFolderColor,
 } from "./utils";
 
 const hasChromeStorage =
@@ -28,7 +29,19 @@ const DEFAULT_META = Object.freeze({
   lastSyncAt: null,
   driveFileId: null,
   seededFolders: false,
-  prefs: { defaultTab: "recent", showFavicons: true, compactCount: 4 },
+  prefs: {
+    groupBy: "date", // "date" | "website"
+    density: "comfortable", // "comfortable" | "compact"
+    showSiteIcons: true,
+    previewLength: "medium", // "short" | "medium" | "long"
+    wrapCode: false,
+    widgetItems: 5, // 3 | 5 | 8 | 10
+    pageNotice: true,
+    askOnPaste: true,
+    cleanLinks: true,
+    skipDuplicates: true,
+    defaultFolderId: null,
+  },
 });
 
 const EMPTY = Object.freeze({
@@ -63,13 +76,50 @@ function emit() {
 
 // Deep-merge stored meta over defaults so newly-added pref keys survive for
 // users with older stored meta (prefs are replaced wholesale, not shallow-merged).
+// migratePrefs maps the Phase-1 pref keys to their Phase-2 names:
+//   defaultTab "sites" → groupBy "website", anything else → "date"
+//   showFavicons       → showSiteIcons
+//   compactCount       → widgetItems
+function migratePrefs(prefs) {
+  const next = { ...prefs };
+  if (next.defaultTab != null) {
+    next.groupBy = next.defaultTab === "sites" ? "website" : "date";
+    delete next.defaultTab;
+  }
+  if (next.showFavicons != null) {
+    next.showSiteIcons = !!next.showFavicons;
+    delete next.showFavicons;
+  }
+  if (next.compactCount != null) {
+    next.widgetItems = next.compactCount;
+    delete next.compactCount;
+  }
+  return next;
+}
+
 function mergeMeta(raw) {
   if (!raw || typeof raw !== "object") return DEFAULT_META;
   return {
     ...DEFAULT_META,
     ...raw,
-    prefs: { ...DEFAULT_META.prefs, ...(raw.prefs || {}) },
+    prefs: migratePrefs({ ...DEFAULT_META.prefs, ...(raw.prefs || {}) }),
   };
+}
+
+// The "word" kind was removed (taxonomy is now link / sentence / paragraph /
+// code). Coerce any legacy "word" save to "sentence" on read so old data keeps
+// rendering in the correct body instead of falling through to the code branch.
+function coerceLegacyKinds(items) {
+  if (!Array.isArray(items)) return items;
+  let changed = false;
+  const next = items.map((i) => {
+    if (i && i.kind === "word") {
+      changed = true;
+      return { ...i, kind: "sentence" };
+    }
+    return i;
+  });
+  return changed ? next : items;
 }
 
 function readLocal() {
@@ -82,7 +132,7 @@ function readLocal() {
     const items = read(POCKET_KEYS.items, []);
     const folders = read(POCKET_KEYS.folders, []);
     const meta = mergeMeta(read(POCKET_KEYS.meta, null));
-    return { items, folders, meta };
+    return { items: coerceLegacyKinds(items), folders, meta };
   } catch {
     return { items: [], folders: [], meta: DEFAULT_META };
   }
@@ -108,7 +158,7 @@ function readRemote() {
         ? res[POCKET_KEYS.folders]
         : [];
       const meta = mergeMeta(res?.[POCKET_KEYS.meta]);
-      resolve({ items, folders, meta });
+      resolve({ items: coerceLegacyKinds(items), folders, meta });
     });
   });
 }
@@ -245,19 +295,23 @@ export async function flush() {
 // --- Items ---------------------------------------------------------------
 
 /**
- * addItem(item) → { status: "added" | "duplicate", item }
- * Dedupes on kind + normalized text (words case-insensitive). On duplicate,
- * moves the existing item to the top and refreshes updatedAt.
+ * addItem(item, opts?) → { status: "added" | "duplicate", item }
+ * Dedupes on kind + normalized (trimmed) text unless opts.skipDuplicates is
+ * false. On duplicate, moves the existing item to the top and refreshes
+ * updatedAt.
  */
-export function addItem(item) {
+export function addItem(item, opts = {}) {
   const s = getSnapshot();
-  const dup = findDuplicate(s.items, item);
-  if (dup) {
-    const rest = s.items.filter((i) => i.id !== dup.id);
-    const updated = { ...dup, updatedAt: item.updatedAt };
-    setSnapshot({ ...s, items: [updated, ...rest] });
-    schedulePersist();
-    return { status: "duplicate", item: updated };
+  const skipDuplicates = opts.skipDuplicates !== false;
+  if (skipDuplicates) {
+    const dup = findDuplicate(s.items, item);
+    if (dup) {
+      const rest = s.items.filter((i) => i.id !== dup.id);
+      const updated = { ...dup, updatedAt: item.updatedAt };
+      setSnapshot({ ...s, items: [updated, ...rest] });
+      schedulePersist();
+      return { status: "duplicate", item: updated };
+    }
   }
   setSnapshot({ ...s, items: [item, ...s.items] });
   schedulePersist();
@@ -303,14 +357,14 @@ export function clearAll() {
 
 // --- Folders -------------------------------------------------------------
 
-export function createFolder(name, color = "slate") {
+export function createFolder(name, color) {
   const s = getSnapshot();
   const t = now();
   const maxOrder = s.folders.reduce((m, f) => Math.max(m, f.order ?? 0), -1);
   const folder = {
     id: crypto.randomUUID(),
     name: name.trim(),
-    color,
+    color: color || nextFolderColor(s.folders),
     order: maxOrder + 1,
     createdAt: t,
     updatedAt: t,
@@ -364,6 +418,12 @@ export function setItemFolders(id, folderIds) {
 
 // --- Meta / prefs --------------------------------------------------------
 
+/** Current prefs, merged over defaults (safe to read pre-hydration). */
+export function getPrefs() {
+  const s = getSnapshot();
+  return { ...DEFAULT_META.prefs, ...(s.meta?.prefs || {}) };
+}
+
 export function updatePrefs(patch) {
   const s = getSnapshot();
   const prefs = { ...s.meta.prefs, ...patch };
@@ -383,13 +443,17 @@ export function exportJson() {
   );
 }
 
-/** importJson(json) → { added, updated } — validates, sanitizes, merges via mergeStates. */
+/** importJson(json) → { added, updated } | { error } — validates, sanitizes, merges via mergeStates. */
 export function importJson(json) {
   let data;
   try {
     data = typeof json === "string" ? JSON.parse(json) : json;
   } catch {
     return { error: "Invalid JSON" };
+  }
+  // A Pocket export always carries an items and/or folders array.
+  if (!data || typeof data !== "object" || (!Array.isArray(data.items) && !Array.isArray(data.folders))) {
+    return { error: "Not a Pocket export" };
   }
   const incoming = sanitizeImport(data);
   const s = getSnapshot();

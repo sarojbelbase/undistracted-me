@@ -17,8 +17,9 @@
  * widgets re-read their data.
  */
 import { useState } from 'react';
-import { XLg, CalendarEvent, HourglassSplit, PersonHeart } from 'react-bootstrap-icons';
+import { CalendarEvent, HourglassSplit, PersonHeart } from 'react-bootstrap-icons';
 import { Modal } from './Modal';
+import { AddDialogHeader } from './AddDialogHeader';
 import { useEvents } from '../../hooks/useEvents';
 import { addManualBirthday, updateManualBirthday } from '../../utilities/googleContacts';
 import { loadCustom, saveCustom } from '../../widgets/countdown/utils';
@@ -155,37 +156,17 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
     onClose();
   };
 
-  const iconStyle = {
-    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-    background: 'var(--w-accent)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  };
-
   const slideClass = slideDir === null ? '' : (slideDir >= 0 ? 'fm-form-slide-next' : 'fm-form-slide-prev');
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={title}>
-      {/* Header — matches the standard Add* dialogs (icon + title + subtitle) */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={iconStyle}>
-            <meta.Icon size={14} style={{ color: 'var(--w-accent-fg)' }} />
-          </div>
-          <div>
-            <div className="w-heading" style={{ fontSize: '15px' }}>{title}</div>
-            <div className="w-caption" style={{ marginTop: 1 }}>{subtitle}</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0 transition-colors btn-close cursor-pointer focus:outline-none"
-          style={{ color: 'var(--w-ink-3)' }}
-        >
-          <XLg size={11} />
-        </button>
-      </div>
+      {/* Header — shared with every Add/Edit dialog (see AddDialogHeader) */}
+      <AddDialogHeader
+        icon={<meta.Icon size={14} style={{ color: 'var(--w-accent-fg)' }} />}
+        title={title}
+        subtitle={subtitle}
+        onClose={onClose}
+      />
 
       {/* Type selector */}
       <div style={{ padding: '0 20px 12px', display: 'flex', alignItems: 'center' }}>

@@ -35,6 +35,28 @@ const RGL_PADDING = Object.fromEntries(
   BP_SPECS.map((s) => [s.name, [WIDGETGRID_X_MARGIN, s.padding]]),
 );
 
+const BP_NAMES = BP_SPECS.map((s) => s.name);
+
+// Structural equality across every breakpoint's layout items (i, x, y, w, h).
+// Must compare ALL breakpoints — not just lg — because a drag at md/sm/xs/xxs
+// only mutates that breakpoint's array; an lg-only compare would treat the
+// change as "unchanged", discard it, and the layout would revert on reload.
+function layoutsEqual(a, b) {
+  for (const bp of BP_NAMES) {
+    const la = a[bp] || [];
+    const lb = b[bp] || [];
+    if (la.length !== lb.length) return false;
+    for (let i = 0; i < la.length; i++) {
+      const x = la[i];
+      const y = lb[i];
+      if (!y || x.i !== y.i || x.x !== y.x || x.y !== y.y || x.w !== y.w || x.h !== y.h) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 function quantizeWidth(width) {
   const { cols, margin } =
     BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS.at(-1);
@@ -212,24 +234,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const handleLayoutChange = useCallback((current, allLayouts) => {
     setLayouts((prev) => {
       const next = { ...prev, ...allLayouts };
-      // Fast structural compare — avoids serialising the full array to strings.
-      // Only check the fields that affect persistence (i, x, y, w, h).
-      const prevLg = prev.lg || [];
-      const nextLg = next.lg || [];
-      if (prevLg.length === nextLg.length) {
-        const unchanged = nextLg.every((item, idx) => {
-          const old = prevLg[idx];
-          return (
-            old &&
-            old.i === item.i &&
-            old.x === item.x &&
-            old.y === item.y &&
-            old.w === item.w &&
-            old.h === item.h
-          );
-        });
-        if (unchanged) return prev;
-      }
+      // Fast structural compare across all breakpoints — avoids re-rendering
+      // (and returning a new object) when nothing actually changed, but keeps
+      // every breakpoint's real changes.
+      if (layoutsEqual(prev, next)) return prev;
       // Persist is deferred to onDragStop — avoids per-pixel synchronous I/O
       // during drag which causes jank on low-RAM machines with slow storage.
       return next;

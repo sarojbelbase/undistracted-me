@@ -16,7 +16,7 @@
 
 import { classifyKind, cleanText, cleanUrl, hostFromUrl } from "./utils";
 import { POCKET_KEYS } from "./constants";
-import { addItem, flush, whenHydrated, getSnapshot } from "./pocketStore";
+import { addItem, flush, getPrefs, whenHydrated, getSnapshot } from "./pocketStore";
 
 export const POCKET_MENU_ID = "pocket-save";
 export const POCKET_MENU_TITLE = "Add to Pocket";
@@ -277,17 +277,24 @@ function injectToast(tabId, message, undoId) {
 /**
  * Save the click info as a Pocket item. Called from the context-menus onClicked
  * listener. Selection wins over link/page. `folderId` (when set) files the save
- * into that folder; otherwise the save is left unfiled.
- * Returns { status: "added" | "duplicate" | "empty" }.
+ * into that folder; when null, the save goes to the user's default folder (or
+ * stays unfiled when none is set).
+ *
+ * Honors the user's prefs: cleanLinks (strip tracking), skipDuplicates (dedupe)
+ * and pageNotice (injected toast). Returns { status: "added" | "duplicate" | "empty" }.
  */
 export async function handlePocketSave(info, tab, folderId = null) {
+  const prefs = getPrefs();
   const t = Date.now();
   const pageUrl = tab?.url || info.pageUrl || "";
   const pageTitle = tab?.title || "";
   const favicon = isHttpUrl(tab?.favIconUrl) ? tab?.favIconUrl : "";
   const sourceUrl = isHttpUrl(pageUrl) ? pageUrl : "";
   const sourceHost = sourceUrl ? hostFromUrl(sourceUrl) : "";
-  const folderIds = folderId ? [folderId] : [];
+
+  // A "Default" save (folderId null) files into the user's default folder.
+  const resolvedFolderId = folderId || prefs.defaultFolderId || null;
+  const folderIds = resolvedFolderId ? [resolvedFolderId] : [];
 
   const hasSelection =
     typeof info.selectionText === "string" && info.selectionText.trim() !== "";
@@ -324,7 +331,7 @@ export async function handlePocketSave(info, tab, folderId = null) {
       deletedAt: null,
     };
   } else if (info.linkUrl) {
-    const url = cleanUrl(info.linkUrl);
+    const url = prefs.cleanLinks !== false ? cleanUrl(info.linkUrl) : info.linkUrl;
     if (!url) return { status: "empty" };
     item = {
       id: crypto.randomUUID(),
@@ -341,12 +348,13 @@ export async function handlePocketSave(info, tab, folderId = null) {
     };
   } else {
     if (!sourceUrl) return { status: "empty" };
+    const url = prefs.cleanLinks !== false ? cleanUrl(sourceUrl) : sourceUrl;
     item = {
       id: crypto.randomUUID(),
       kind: "link",
-      text: sourceUrl,
+      text: url,
       title: pageTitle || "",
-      host: sourceHost,
+      host: hostFromUrl(url),
       sourceUrl: "",
       favicon,
       folderIds,
@@ -357,8 +365,10 @@ export async function handlePocketSave(info, tab, folderId = null) {
   }
 
   await whenHydrated();
-  const res = addItem(item);
+  const res = addItem(item, { skipDuplicates: prefs.skipDuplicates !== false });
   await flush();
+
+  if (prefs.pageNotice === false) return res;
 
   if (res.status === "duplicate") {
     injectToast(tab?.id, "Already in your Pocket");

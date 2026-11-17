@@ -1,251 +1,61 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  BoxArrowUpRight,
-  Check2,
-  ChevronDown,
-  ChevronRight,
-  CodeSlash,
-  Copy,
-  Folder2,
-  Link45deg,
-  PlusLg,
-  Quote,
-  TextLeft,
-  Type,
-  XLg,
-} from "react-bootstrap-icons";
-
+import { BoxArrowUpRight, Check2, Copy, TextLeft, Trash, XLg } from "react-bootstrap-icons";
+import { Button } from "../../components/ui/Button";
+import { IconButton } from "../../components/ui/IconButton";
+import { KIND_ICONS } from "./kindIcons";
 import { usePocket } from "./usePocket";
-import { PocketMenu } from "./PocketMenu";
-import { FaviconIcon } from "../../components/ui/FaviconIcon";
-import { TooltipBtn } from "../../components/ui/TooltipBtn";
-import {
-  createFolder,
-  setItemFolders,
-  softDelete,
-  updateItem,
-} from "./pocketStore";
-import { FOLDER_COLOR_MAP, KINDS, KIND_META } from "./constants";
+import { setItemFolders } from "./pocketStore";
+import { copyText, openUrl, openItemSource } from "./actions";
+import { previewClamp } from "./previewLines";
+import { formatSavedDate, middleEllipsis } from "./utils";
 import { humanizeAge } from "../../utilities";
-
-const KIND_ICON = {
-  link: Link45deg,
-  word: Type,
-  sentence: Quote,
-  paragraph: TextLeft,
-  code: CodeSlash,
-};
-
-const MONO =
-  "ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace";
-
-function copyText(text) {
-  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
-  return Promise.reject(new Error("clipboard unavailable"));
-}
-
-function isHttpUrl(s) {
-  return /^https?:\/\//i.test(s || "");
-}
-
-function openUrl(url) {
-  if (!isHttpUrl(url)) return;
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
-function FoldersContent({ item, onClose }) {
-  const { folders } = usePocket();
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("");
-  const active = new Set(item.folderIds || []);
-
-  const toggle = (id) => {
-    const next = active.has(id)
-      ? [...active].filter((x) => x !== id)
-      : [...active, id];
-    setItemFolders(item.id, next);
-  };
-
-  const doCreate = () => {
-    const trimmed = name.trim();
-    if (!trimmed) return setCreating(false);
-    const folder = createFolder(trimmed);
-    setItemFolders(item.id, [...active, folder.id]);
-    setName("");
-    setCreating(false);
-  };
-
-  const visibleFolders = folders
-    .filter((f) => !f.deletedAt)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-  return (
-    <div className="pocket-menu" style={{ minWidth: 190 }}>
-      <div className="flex items-center justify-between px-1.5 py-0.5">
-        <span className="w-label font-semibold" style={{ color: "var(--w-ink-2)" }}>
-          Folders
-        </span>
-        <button type="button" className="pocket-icon-btn" aria-label="Close" onClick={onClose}>
-          <XLg size={12} />
-        </button>
-      </div>
-      <div className="pocket-menu-list">
-        {visibleFolders.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            role="checkbox"
-            aria-checked={active.has(f.id)}
-            className="pocket-menu-item"
-            onClick={() => toggle(f.id)}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 3,
-                background: FOLDER_COLOR_MAP[f.color] || FOLDER_COLOR_MAP.slate,
-                flexShrink: 0,
-              }}
-            />
-            <span className="flex-1 truncate text-left">{f.name}</span>
-            {active.has(f.id) && (
-              <Check2 size={13} style={{ color: "var(--w-accent)" }} />
-            )}
-          </button>
-        ))}
-        {visibleFolders.length === 0 && !creating && (
-          <div className="w-muted py-1">No folders yet</div>
-        )}
-      </div>
-      {creating ? (
-        <div className="flex items-center gap-1 px-1.5 py-1">
-          <input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") doCreate();
-              if (e.key === "Escape") setCreating(false);
-            }}
-            placeholder="Folder name"
-            className="pocket-inline-input"
-            style={{ flex: 1 }}
-          />
-          <button type="button" className="pocket-icon-btn" aria-label="Create folder" onClick={doCreate}>
-            <Check2 size={14} />
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="pocket-menu-item"
-          style={{ color: "var(--w-accent)" }}
-          onClick={() => setCreating(true)}
-        >
-          <PlusLg size={12} />
-          <span>New folder…</span>
-        </button>
-      )}
-    </div>
-  );
-}
-
-function TypeContent({ item, onClose }) {
-  return (
-    <div className="pocket-menu" style={{ minWidth: 150 }}>
-      <div className="w-label font-semibold px-1.5 py-0.5" style={{ color: "var(--w-ink-2)" }}>
-        Change type
-      </div>
-      {KINDS.map((k) => (
-        <button
-          key={k}
-          type="button"
-          className="pocket-menu-item"
-          style={item.kind === k ? { color: "var(--w-accent)" } : undefined}
-          onClick={() => {
-            updateItem(item.id, { kind: k });
-            onClose();
-          }}
-        >
-          {item.kind === k ? <Check2 size={13} /> : <span style={{ width: 13 }} />}
-          <span>{KIND_META[k].label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-const clampStyle = (n) => ({
-  display: "-webkit-box",
-  WebkitLineClamp: n,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-});
-
-const expandedStyle = {
-  maxHeight: 240,
-  overflowY: "auto",
-  paddingRight: 2,
-};
+import { KIND_META, FOLDER_COLOR_MAP } from "./constants";
+import { LinkBody } from "./items/LinkBody";
+import { SentenceBody } from "./items/SentenceBody";
+import { ParagraphBody } from "./items/ParagraphBody";
+import { CodeBody } from "./items/CodeBody";
+import { SiteTile } from "./items/SiteTile";
+import { RowActions, deleteWithUndo } from "./RowActions";
+import { FolderPicker } from "./FolderPicker";
 
 /**
- * ItemRow — renders one save in its collapsed/expanded states.
+ * ItemRow — the shell for one save: layout, click handling, expanded state.
  *
- * `full` (expand mode) shows the complete action bar: Copy · Open source ·
- * Folders · Change type · Delete. In widget mode the bar is trimmed to the
- * essentials (Copy · Delete) so the card stays calm and uncluttered.
+ * variant: "widget" (small card — compact uniform row, no site icons, hover
+ * actions, click opens the expanded view) | "list" (expanded view — the rich
+ * per-kind entry design with an expandable Details block).
  */
-export function ItemRow({ item, isNew = false, showFavicons = true, full = false }) {
+export function ItemRow({
+  item,
+  isNew = false,
+  variant = "list",
+  showSiteIcons = true,
+  showKind = false,
+  inWebsiteGroup = false,
+  previewLength = "medium",
+  wrapCode = false,
+  onOpen,
+}) {
+  if (variant === "widget") {
+    return <WidgetRow item={item} isNew={isNew} onOpen={onOpen} />;
+  }
+
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [undoVisible, setUndoVisible] = useState(false);
-  const [menu, setMenu] = useState(null); // { anchor, kind: "folders" | "type" }
   const copiedTimer = useRef(null);
-  const undoTimer = useRef(null);
 
-  useEffect(
-    () => () => {
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-      if (undoTimer.current) clearTimeout(undoTimer.current);
-    },
-    [],
-  );
-
-  const Icon = KIND_ICON[item.kind] || TextLeft;
-  const age = humanizeAge(item.updatedAt) || "";
   const isLink = item.kind === "link";
 
-  const doCopy = (e) => {
-    e?.stopPropagation();
-    copyText(item.text).then(() => {
-      setCopied(true);
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-      copiedTimer.current = setTimeout(() => setCopied(false), 1200);
-    });
-  };
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
 
-  const doDelete = (e) => {
-    e?.stopPropagation();
-    setExpanded(false);
-    setUndoVisible(true);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    // Defer the soft-delete so the inline "Deleted - Undo" row stays mounted
-    // for the 5s window; cancelling the timer (Undo) keeps the item.
-    undoTimer.current = setTimeout(() => softDelete(item.id), 5000);
-  };
-
-  const doUndo = (e) => {
-    e?.stopPropagation();
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    setUndoVisible(false);
-  };
-
-  const openMenu = (kind) => (e) => {
-    e.stopPropagation();
-    const r = e.currentTarget.getBoundingClientRect();
-    setMenu({ anchor: { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height }, kind });
+  const doCopy = () => {
+    copyText(item.text)
+      .then(() => {
+        setCopied(true);
+        if (copiedTimer.current) clearTimeout(copiedTimer.current);
+        copiedTimer.current = setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {});
   };
 
   const handleClick = () => {
@@ -254,193 +64,298 @@ export function ItemRow({ item, isNew = false, showFavicons = true, full = false
   };
 
   const handleKey = (e) => {
+    // Only react when the row itself is focused — not a descendant button
+    // (More actions, Copy, Open link), whose own activation must win.
+    if (e.target !== e.currentTarget) return;
     if (e.key === "Enter") {
       e.preventDefault();
       handleClick();
+    } else if (e.key === " " && !isLink) {
+      e.preventDefault();
+      setExpanded((v) => !v);
     } else if (e.key === "c" && !e.metaKey && !e.ctrlKey && !e.altKey) {
       e.preventDefault();
       doCopy();
+    } else if (e.key === "o" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      if (isLink) openUrl(item.text);
+      else if (item.sourceUrl) openUrl(item.sourceUrl);
     } else if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
-      doDelete(e);
+      deleteWithUndo(item);
     }
   };
 
-  if (undoVisible) {
-    return (
-      <div className="pocket-row pocket-row--deleted" role="listitem">
-        <span className="w-caption" style={{ color: "var(--w-ink-4)" }}>
-          Deleted
-        </span>
-        <button type="button" className="pocket-undo-btn" onClick={doUndo}>
-          Undo
-        </button>
-      </div>
+  const clamp = previewClamp(item.kind, previewLength);
+
+  let body;
+  if (isLink) body = <LinkBody item={item} showSiteIcons={showSiteIcons} />;
+  else if (item.kind === "sentence") body = <SentenceBody item={item} clamp={clamp} expanded={expanded} />;
+  else if (item.kind === "paragraph") {
+    body = (
+      <ParagraphBody
+        item={item}
+        clamp={clamp}
+        expanded={expanded}
+        variant={variant}
+        onToggle={() => setExpanded((v) => !v)}
+      />
+    );
+  } else {
+    body = (
+      <CodeBody
+        item={item}
+        clamp={clamp}
+        expanded={expanded}
+        variant={variant}
+        wrapCode={wrapCode}
+        copied={copied}
+        onCopy={(e) => {
+          e.stopPropagation();
+          doCopy();
+        }}
+        onToggle={() => setExpanded((v) => !v)}
+      />
     );
   }
+
+  const showDetails = variant === "list" && expanded && !isLink;
 
   return (
     <div
       role="listitem"
       tabIndex={0}
       aria-expanded={isLink ? undefined : expanded}
-      className={`pocket-row ${isNew ? "pocket-row--new" : ""}`}
+      className={`pocket-item ${isNew ? "pocket-item--new" : ""}`}
       onClick={handleClick}
       onKeyDown={handleKey}
     >
-      {item.kind === "word" ? (
-        <div className="flex-1 min-w-0">
-          <div
-            className="truncate"
-            style={{ fontSize: "1.075rem", fontWeight: 600, color: "var(--w-ink-1)" }}
-          >
-            {item.text}
-          </div>
-          <div className="w-caption truncate">
-            {item.host ? `from ${item.host}` : "No website"}
-            {age ? ` · ${age}` : ""}
-          </div>
+      <div className="pocket-row">
+        <div className="pocket-row__main">
+          {body}
+          {!isLink && (
+            <SourceLine
+              item={item}
+              showSiteIcons={showSiteIcons}
+              showKind={showKind}
+              inWebsiteGroup={inWebsiteGroup}
+            />
+          )}
         </div>
-      ) : item.kind === "link" ? (
-        <>
-          {showFavicons && <FaviconIcon url={item.text} size={28} />}
-          <div className="flex-1 min-w-0">
-            <div
-              className="truncate"
-              style={{ fontSize: "0.8125rem", fontWeight: 500, color: "var(--w-ink-1)" }}
-            >
-              {item.title || item.text}
-            </div>
-            <div className="w-caption truncate">{item.host || item.text}</div>
-          </div>
-        </>
-      ) : item.kind === "code" ? (
-        <div className="flex-1 min-w-0">
-          <pre
-            className="pocket-code"
-            style={{
-              fontFamily: MONO,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              ...(expanded ? expandedStyle : clampStyle(4)),
-            }}
-          >
-            {item.text}
-          </pre>
-          <div className="w-caption truncate" style={{ marginTop: 4 }}>
-            {item.host ? `${item.host} · ` : ""}
-            {age}
-          </div>
-        </div>
-      ) : item.kind === "sentence" ? (
-        <div className="flex-1 min-w-0" style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-          <span
-            aria-hidden="true"
-            style={{ width: 2, borderRadius: 1, flexShrink: 0, background: "var(--w-accent)" }}
-          />
-          <div className="min-w-0 flex-1">
-            <div
-              style={{
-                color: "var(--w-ink-1)",
-                fontSize: "0.8125rem",
-                lineHeight: 1.5,
-                ...(expanded ? expandedStyle : clampStyle(2)),
-              }}
-            >
-              {item.text}
-            </div>
-            <div className="w-caption truncate">
-              {item.host ? `${item.host} · ` : ""}
-              {age}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 min-w-0">
-          <div
-            style={{
-              color: "var(--w-ink-1)",
-              fontSize: "0.8125rem",
-              lineHeight: 1.5,
-              ...(expanded
-                ? expandedStyle
-                : {
-                    ...clampStyle(3),
-                    WebkitMaskImage: "linear-gradient(to bottom, #000 78%, transparent 100%)",
-                    maskImage: "linear-gradient(to bottom, #000 78%, transparent 100%)",
-                  }),
-            }}
-          >
-            {item.text}
-          </div>
-          <div className="w-caption truncate">
-            {item.host ? `${item.host} · ` : ""}
-            {age}
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-        <TooltipBtn
-          tooltip="Copy"
-          className="pocket-icon-btn pocket-row-hover"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            doCopy();
-          }}
-        >
-          {copied ? <Check2 size={13} /> : <Copy size={13} />}
-        </TooltipBtn>
-        <span
-          className="pocket-chevron"
-          style={{ transform: expanded ? "rotate(180deg)" : "none" }}
-        >
-          {isLink ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
-        </span>
+        <RowActions item={item} copied={copied} onCopy={doCopy} />
       </div>
 
-      {expanded && (
-        <div className="pocket-row__actions" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="pocket-action-btn" onClick={doCopy}>
-            {copied ? <Check2 size={12} /> : <Copy size={12} />}
-            {copied ? "Copied" : "Copy"}
-          </button>
-          {full && item.sourceUrl && (
-            <button type="button" className="pocket-action-btn" onClick={() => openUrl(item.sourceUrl)}>
+      <span className="um-sr-only" role="status">
+        {copied ? "Copied" : ""}
+      </span>
+
+      {showDetails && <Details item={item} />}
+    </div>
+  );
+}
+
+/**
+ * WidgetRow — the compact, uniform row used on the small card face. Content
+ * first (single ellipsized line), a leading accent-tinted kind-glyph tile, and
+ * a quiet meta line beneath. No site icons. Actions are revealed only on hover.
+ * Every kind shares the same height and structure.
+ *
+ * Click: text rows open the expanded view; links open the link.
+ */
+function WidgetRow({ item, isNew, onOpen }) {
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef(null);
+  const isLink = item.kind === "link";
+  const age = humanizeAge(item.updatedAt) || "";
+  const host = item.host || "";
+  const content = isLink ? item.title || item.host || item.text : item.text;
+  const mono = item.kind === "code";
+  const serif = item.kind === "sentence" || item.kind === "paragraph";
+  const KindIcon = KIND_ICONS[item.kind] || TextLeft;
+
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+
+  const doCopy = () => {
+    copyText(item.text)
+      .then(() => {
+        setCopied(true);
+        if (copiedTimer.current) clearTimeout(copiedTimer.current);
+        copiedTimer.current = setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {});
+  };
+
+  const activate = () => {
+    if (isLink) openUrl(item.text);
+    else onOpen?.();
+  };
+
+  const onKey = (e) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      activate();
+    } else if (e.key === "c" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      doCopy();
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      deleteWithUndo(item);
+    }
+  };
+
+  return (
+    <div
+      role="listitem"
+      tabIndex={0}
+      className={`pocket-item pocket-widget-item ${isNew ? "pocket-item--new" : ""}`}
+      onClick={activate}
+      onKeyDown={onKey}
+    >
+      <span className="pocket-widget-item__tile" aria-hidden="true">
+        <KindIcon size={12} />
+      </span>
+
+      <div className="pocket-widget-item__main">
+        <div
+          className={`pocket-widget-item__text ${mono ? "pocket-widget-item__text--mono" : serif ? "pocket-widget-item__text--serif" : ""}`}
+          title={item.text}
+        >
+          {content}
+        </div>
+        <div className="pocket-widget-item__meta">
+          {host && <span className="pocket-widget-item__host">{host}</span>}
+          {host && age && <span className="pocket-widget-item__dot">·</span>}
+          {age && <span className="pocket-widget-item__time">{age}</span>}
+        </div>
+      </div>
+
+      <div className="pocket-widget-item__actions" onClick={(e) => e.stopPropagation()}>
+        {isLink ? (
+          <>
+            <IconButton label="Open link" size="sm" onClick={(e) => { e.stopPropagation(); openUrl(item.text); }}>
               <BoxArrowUpRight size={12} />
-              Open source
-            </button>
-          )}
-          {full && (
-            <button type="button" className="pocket-action-btn" onClick={openMenu("folders")}>
-              <Folder2 size={12} />
-              Folders
-            </button>
-          )}
-          {full && (
-            <button type="button" className="pocket-action-btn" onClick={openMenu("type")}>
-              <Icon size={12} />
-              Change type
-            </button>
-          )}
-          <button type="button" className="pocket-action-btn pocket-action-btn--danger" onClick={doDelete}>
-            <XLg size={12} />
-            Delete
-          </button>
+            </IconButton>
+            <IconButton label="Copy link" size="sm" onClick={(e) => { e.stopPropagation(); doCopy(); }}>
+              {copied ? <Check2 size={12} /> : <Copy size={12} />}
+            </IconButton>
+            <IconButton label="Delete" size="sm" onClick={(e) => { e.stopPropagation(); deleteWithUndo(item); }}>
+              <Trash size={12} />
+            </IconButton>
+          </>
+        ) : (
+          <>
+            <IconButton label={copied ? "Copied" : "Copy"} size="sm" onClick={(e) => { e.stopPropagation(); doCopy(); }}>
+              {copied ? <Check2 size={12} /> : <Copy size={12} />}
+            </IconButton>
+            <IconButton label="Delete" size="sm" onClick={(e) => { e.stopPropagation(); deleteWithUndo(item); }}>
+              <Trash size={12} />
+            </IconButton>
+          </>
+        )}
+      </div>
+
+      <span className="um-sr-only" role="status">
+        {copied ? "Copied" : ""}
+      </span>
+    </div>
+  );
+}
+
+function SourceLine({ item, showSiteIcons, showKind, inWebsiteGroup }) {
+  const host = item.host || "";
+  const age = humanizeAge(item.updatedAt) || "";
+  const parts = [];
+  if (!inWebsiteGroup && host) parts.push(host);
+  if (!inWebsiteGroup && item.kind === "paragraph" && item.title && item.title !== host) {
+    parts.push(item.title);
+  }
+  if (showKind) parts.push(KIND_META[item.kind].singular);
+  if (age) parts.push(age);
+  // title attribute: full URL + absolute date (hover)
+  const title = [item.sourceUrl || "", formatSavedDate(item.updatedAt)].filter(Boolean).join(" · ");
+
+  return (
+    <div className="pocket-row__meta" title={title}>
+      {!inWebsiteGroup && <SiteTile url={item.sourceUrl || ""} host={host} size={14} showFavicon={showSiteIcons} />}
+      <span className="pocket-row__meta-text truncate">{parts.join(" · ") || "No website"}</span>
+    </div>
+  );
+}
+
+function Details({ item }) {
+  const { folders } = usePocket();
+  const [folderAnchor, setFolderAnchor] = useState(null);
+  const folderById = new Map(folders.map((f) => [f.id, f]));
+  const hasSource = !!item.sourceUrl;
+
+  const openFolderPicker = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setFolderAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
+  };
+
+  return (
+    <div className="pocket-details" onClick={(e) => e.stopPropagation()}>
+      {hasSource && (
+        <div className="pocket-details__source">
+          <span className="w-label" style={{ color: "var(--w-ink-4)" }}>Source</span>
+          <a
+            href={item.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="pocket-details__link"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {item.title || item.host || item.sourceUrl}
+          </a>
+          <div className="w-caption truncate" title={item.sourceUrl} style={{ color: "var(--w-ink-4)" }}>
+            {middleEllipsis(item.sourceUrl)}
+          </div>
         </div>
       )}
 
-      {menu && menu.kind === "folders" && (
-        <PocketMenu anchor={menu.anchor} onClose={() => setMenu(null)}>
-          <FoldersContent item={item} onClose={() => setMenu(null)} />
-        </PocketMenu>
+      {hasSource && (
+        <div className="flex gap-2">
+          <Button variant="primary" size="sm" onClick={() => openItemSource(item)}>
+            Open at quote
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => openUrl(item.sourceUrl)}>
+            Open page
+          </Button>
+        </div>
       )}
-      {menu && menu.kind === "type" && (
-        <PocketMenu anchor={menu.anchor} onClose={() => setMenu(null)}>
-          <TypeContent item={item} onClose={() => setMenu(null)} />
-        </PocketMenu>
-      )}
+
+      <div className="pocket-details__folders">
+        {(item.folderIds || []).map((fid) => {
+          const f = folderById.get(fid);
+          if (!f) return null;
+          return (
+            <button
+              key={fid}
+              type="button"
+              className="pocket-folder-chip"
+              onClick={() => setItemFolders(item.id, (item.folderIds || []).filter((x) => x !== fid))}
+            >
+              <span
+                aria-hidden="true"
+                style={{ width: 8, height: 8, borderRadius: 2, background: FOLDER_COLOR_MAP[f.color] || FOLDER_COLOR_MAP.slate }}
+              />
+              <span className="truncate">{f.name}</span>
+              <XLg size={10} aria-hidden="true" />
+            </button>
+          );
+        })}
+        <button type="button" className="pocket-text-btn" onClick={openFolderPicker}>
+          Add to folder
+        </button>
+      </div>
+
+      <div className="pocket-details__saved">
+        <span className="w-label" style={{ color: "var(--w-ink-4)" }}>Saved</span>
+        <span className="w-caption">{formatSavedDate(item.createdAt)} · {KIND_META[item.kind].singular}</span>
+      </div>
+
+      {folderAnchor && <FolderPicker anchor={folderAnchor} item={item} onClose={() => setFolderAnchor(null)} />}
     </div>
   );
 }

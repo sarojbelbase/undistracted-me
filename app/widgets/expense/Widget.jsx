@@ -7,7 +7,8 @@ import { formatAmount, getCurrencySymbol } from '../../data/currencies';
 import { ExpenseSettings } from './Settings';
 import { RecentExpensesModal } from './RecentExpensesModal';
 import { AddExpenseModal } from './AddExpenseModal';
-import { Popup } from '../../components/ui/Popup';
+import { WidgetHeader } from '../../components/ui/WidgetHeader';
+import { IconButton } from '../../components/ui/IconButton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,7 +57,6 @@ export const Widget = ({ id, onRemove }) => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [recentModalOpen, setRecentModalOpen] = useState(false);
-  const [tooltip, setTooltip] = useState({ anchor: null, label: '' });
 
   // Budget math
   const pct = budget && budget > 0 ? Math.round((summary.total / budget) * 100) : 0;
@@ -134,41 +134,25 @@ export const Widget = ({ id, onRemove }) => {
         settingsTitle="Expense Settings"
       >
         <div className="exp-card">
-          {/* ── Recents icon (top-right) ────────────────────────────── */}
-          {/* ── Header: icon + title | recents + add ────────────────── */}
-          <div className="exp-card__header">
-            <div className="exp-card__header-left">
-              <WalletFill className="exp-card__header-icon" />
-              <span className="exp-card__header-title">Expenses</span>
-            </div>
-            <div className="exp-card__header-actions">
-              <button
-                type="button"
-                onClick={() => setRecentModalOpen(true)}
-                onMouseEnter={(e) => setTooltip({ anchor: e.currentTarget.getBoundingClientRect(), label: 'Recent expenses' })}
-                onMouseLeave={() => setTooltip({ anchor: null, label: '' })}
-                className="exp-card__action-btn"
-                aria-label="Recent expenses"
-              >
+          {/* ── Header: icon + title | recents + add (shared WidgetHeader) ── */}
+          <WidgetHeader
+            icon={<WalletFill size={14} />}
+            title="Expenses"
+            actions={[
+              <IconButton key="recent" label="Recent expenses" size="sm" onClick={() => setRecentModalOpen(true)}>
                 <ListUl size={14} />
-              </button>
-              <button
-                type="button"
+              </IconButton>,
+              <IconButton
+                key="add"
+                label="Add expense"
+                size="sm"
+                accent
                 onClick={() => { setEditingExpense(null); setAddModalOpen(true); }}
-                onMouseEnter={(e) => setTooltip({ anchor: e.currentTarget.getBoundingClientRect(), label: 'Add expense' })}
-                onMouseLeave={() => setTooltip({ anchor: null, label: '' })}
-                className="exp-card__action-btn exp-card__action-btn--add"
-                aria-label="Add expense"
               >
                 <PlusLg size={14} />
-              </button>
-              <Popup anchor={tooltip.anchor} preferAbove className="p-2 gap-1 max-w-40">
-                <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--w-ink-2)', whiteSpace: 'nowrap' }}>
-                  {tooltip.label}
-                </span>
-              </Popup>
-            </div>
-          </div>
+              </IconButton>,
+            ]}
+          />
           {/* ── Hero (amount + period grouped) ─────────────────────── */}
           <div ref={heroRef} className="exp-card__hero">
             <span

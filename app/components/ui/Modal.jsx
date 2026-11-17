@@ -38,9 +38,14 @@ export const Modal = ({
   // useEffect is async in Preact, so an Escape pressed immediately after the
   // modal opens (before the effect flushes) would be missed — the modal would
   // render visibly but ignore the first ESC. useLayoutEffect closes that window.
+  // Only the topmost open dialog closes on Escape, so a menu/modal stacked on
+  // top of this one is dismissed first (§4: Esc closes the topmost layer).
   useLayoutEffect(() => {
     const handler = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      const dialogs = document.querySelectorAll("dialog[open]");
+      const top = dialogs[dialogs.length - 1];
+      if (dialogRef.current && top === dialogRef.current) onClose();
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
