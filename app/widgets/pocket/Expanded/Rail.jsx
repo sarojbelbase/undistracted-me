@@ -13,7 +13,7 @@ import { ActionMenu } from "../../../components/ui/ActionMenu";
 import { ConfirmButton } from "../../../components/ui/ConfirmButton";
 import { KIND_ICONS } from "../kindIcons";
 import { usePocket } from "../usePocket";
-import { createFolder, updateFolder, deleteFolder } from "../pocketStore";
+import { createFolder, updateFolder, deleteFolder, updatePrefs } from "../pocketStore";
 import { countByFolder, countByKind, liveFolders, totalCount } from "../selectors";
 import { folderNameTaken } from "../utils";
 import { FOLDER_COLORS, FOLDER_COLOR_MAP, KINDS, KIND_META, MAX_FOLDER_NAME_LENGTH } from "../constants";
@@ -26,13 +26,19 @@ import { FOLDER_COLORS, FOLDER_COLOR_MAP, KINDS, KIND_META, MAX_FOLDER_NAME_LENG
  * pins the Pocket settings at the bottom. The rail scrolls on its own.
  */
 export function Rail({ filter, onPick, onOpenSettings }) {
-  const { items, folders } = usePocket();
+  const { items, folders, meta } = usePocket();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
   const [error, setError] = useState("");
-  const [foldersOpen, setFoldersOpen] = useState(false);
+  // Folders section: open by default (no auto-fold), remembered across sessions.
+  const [foldersOpen, setFoldersOpen] = useState(meta?.prefs?.foldersOpen !== false);
+
+  const applyFoldersOpen = (value) => {
+    setFoldersOpen(value);
+    updatePrefs({ foldersOpen: value });
+  };
 
   const total = totalCount(items);
   const kindCounts = countByKind(items);
@@ -52,7 +58,7 @@ export function Rail({ filter, onPick, onOpenSettings }) {
     createFolder(name);
     setNewName("");
     setCreating(false);
-    setFoldersOpen(true);
+    applyFoldersOpen(true);
     setError("");
   };
 
@@ -106,7 +112,7 @@ export function Rail({ filter, onPick, onOpenSettings }) {
         type="button"
         className="pocket-rail__title pocket-rail__title--btn"
         aria-expanded={foldersOpen}
-        onClick={() => setFoldersOpen((v) => !v)}
+        onClick={() => applyFoldersOpen(!foldersOpen)}
       >
         Folders
         <span className="pocket-rail__title-count">{live.length}</span>
@@ -203,7 +209,7 @@ export function Rail({ filter, onPick, onOpenSettings }) {
           className="pocket-rail-item pocket-rail-item--new"
           onClick={() => {
             setCreating(true);
-            setFoldersOpen(true);
+            applyFoldersOpen(true);
             setError("");
           }}
         >

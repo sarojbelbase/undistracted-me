@@ -46,22 +46,11 @@ export const MAX_TEXT_LENGTH = 20000;
 export const MAX_FOLDER_NAME_LENGTH = 24;
 export const PAGE_SIZE = 50; // "Load more" at 50 per page
 
-// ─── Grouping / density / preview option arrays (Section 10) ────────────────
+// ─── Grouping / preview option arrays (Section 10) ─────────────────────────
 
 export const GROUP_BY_OPTIONS = Object.freeze([
   { label: "Date", value: "date" },
   { label: "Website", value: "website" },
-]);
-
-export const DENSITY_OPTIONS = Object.freeze([
-  { label: "Comfortable", value: "comfortable" },
-  { label: "Compact", value: "compact" },
-]);
-
-export const PREVIEW_LENGTH_OPTIONS = Object.freeze([
-  { label: "Short", value: "short" },
-  { label: "Medium", value: "medium" },
-  { label: "Long", value: "long" },
 ]);
 
 // Lines shown before "Show more" per kind, per preview length.
@@ -80,8 +69,7 @@ export const WIDGET_CLAMPS = Object.freeze({
   code: 3,
 });
 
-export const WIDGET_ITEMS_OPTIONS = Object.freeze([3, 5, 8, 10]);
-export const DEFAULT_WIDGET_ITEMS = 5;
+export const DEFAULT_WIDGET_ITEMS = 10; // always show the 10 newest saves
 
 // A character counter appears past this threshold, capping at MAX_TEXT_LENGTH.
 export const CHAR_COUNTER_THRESHOLD = 15000;
@@ -100,6 +88,10 @@ export const EMPTY_COPY = Object.freeze({
   all: {
     title: "Nothing saved yet.",
     text: "Select text on any page, right-click, and choose Add to Undistracted Me.",
+  },
+  widget: {
+    title: "Nothing saved yet",
+    text: "Select text on any page and Add to Pocket.",
   },
   link: {
     title: "No links yet.",

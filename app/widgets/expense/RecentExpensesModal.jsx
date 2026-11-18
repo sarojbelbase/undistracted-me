@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { XLg, WalletFill, Trash3Fill, PencilFill, ChevronDown, ChevronRight, ChevronLeft } from 'react-bootstrap-icons';
+import { WalletFill, Trash3Fill, PencilFill, ChevronDown, ChevronRight, ChevronLeft } from 'react-bootstrap-icons';
 import { Modal } from '../../components/ui/Modal';
+import { WidgetHeaderFull } from '../../components/ui/WidgetHeaderFull';
 import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { formatAmount } from '../../data/currencies';
 import { getCategoryInfo, getCatColor } from './useExpenses';
@@ -264,23 +265,15 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
   const filterTotal = filteredExpenses.reduce((s, e) => s + e.amount, 0);
 
   return (
-    <Modal onClose={onClose} className="w-full max-w-100 max-h-[70vh] flex flex-col" ariaLabel="Recent Expenses">
+    <Modal onClose={onClose} className="w-full max-w-104 max-h-[70vh] flex flex-col" ariaLabel="Recent Expenses">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-4 shrink-0 exp-modal__header">
-        <div>
-          <p className="text-[15px] font-semibold exp-modal__title">Recent Expenses</p>
-          <p className="text-[11px] font-semibold mt-0.5 exp-modal__subtitle">
-            {expenses.length} expense{expenses.length === 1 ? '' : 's'}
-          </p>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer exp-modal__close-btn"
-          aria-label="Close"
-        >
-          <XLg size={13} />
-        </button>
-      </div>
+      <WidgetHeaderFull
+        className="exp-modal__header"
+        icon={<WalletFill size={16} />}
+        title="Recent Expenses"
+        count={expenses.length}
+        onClose={onClose}
+      />
 
       {/* Sparkline card with period navigator */}
       {hasAny && budget && (

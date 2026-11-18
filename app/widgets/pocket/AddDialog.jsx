@@ -9,7 +9,7 @@ import { usePocket } from "./usePocket";
 import { saveText } from "./save";
 import { classifyKind } from "./utils";
 import { liveFolders } from "./selectors";
-import { CHAR_COUNTER_THRESHOLD, KINDS, KIND_META, MAX_TEXT_LENGTH } from "./constants";
+import { CHAR_COUNTER_THRESHOLD, FOLDER_COLOR_MAP, KINDS, KIND_META, MAX_TEXT_LENGTH } from "./constants";
 
 const MAX_ROWS = 6;
 
@@ -26,7 +26,7 @@ export function AddDialog({ initialText = "", onClose }) {
   const [text, setText] = useState(initialText || "");
   const [kind, setKind] = useState(() => classifyKind(initialText || "", {}));
   const [kindTouched, setKindTouched] = useState(false);
-  const [folderId, setFolderId] = useState(prefs.defaultFolderId || "");
+  const [folderId, setFolderId] = useState(""); // "" = Default, resolved at save
   const taRef = useRef(null);
 
   const canSave = text.trim().length > 0;
@@ -100,12 +100,13 @@ export function AddDialog({ initialText = "", onClose }) {
 
         <div className="flex flex-col gap-1.5">
           <span className="w-label" style={{ color: "var(--w-ink-3)" }}>Save As</span>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex gap-1.5">
             {KINDS.map((k) => (
               <PillButton
                 key={k}
+                variant="chip"
                 active={kind === k}
-                tinted
+                className="flex-1 py-1.5"
                 onClick={() => {
                   setKind(k);
                   setKindTouched(true);
@@ -115,23 +116,21 @@ export function AddDialog({ initialText = "", onClose }) {
               </PillButton>
             ))}
           </div>
-          {!kindTouched && (
-            <span className="w-caption" style={{ color: "var(--w-ink-4)" }}>
-              Detected automatically. Change it if it’s wrong.
-            </span>
-          )}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="w-label" style={{ color: "var(--w-ink-3)" }}>Folder (Optional)</span>
-          <Select value={folderId} onChange={(e) => setFolderId(e.target.value)} aria-label="Folder">
-            <option value="">No folder</option>
-            {liveFolders(folders)
-              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-              .map((f) => (
-                <option key={f.id} value={f.id}>{f.name}</option>
-              ))}
-          </Select>
+          <span className="w-label" style={{ color: "var(--w-ink-3)" }}>Folder</span>
+          <Select
+            value={folderId}
+            onChange={setFolderId}
+            ariaLabel="Folder"
+            options={[
+              { value: "", label: "Default" },
+              ...liveFolders(folders)
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((f) => ({ value: f.id, label: f.name, color: FOLDER_COLOR_MAP[f.color] })),
+            ]}
+          />
         </div>
       </div>
 

@@ -65,9 +65,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  color: var(--w-ink-4);
+  color: var(--w-ink-3);
   letter-spacing: 0.02em;
 }
 
@@ -91,7 +91,7 @@
   white-space: nowrap;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--w-ink-1);
+  color: var(--w-ink-2);
   line-height: 1.4;
 }
 
@@ -101,7 +101,7 @@
 }
 
 .pocket-widget-item__text--serif {
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-family: "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -271,7 +271,7 @@
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-weight: 500;
   line-height: 1.6;
-  color: var(--w-ink-1);
+  color: var(--w-ink-2);
 }
 
 // Quiet source line (site icon + host + time)

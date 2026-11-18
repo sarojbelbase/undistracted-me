@@ -29,7 +29,7 @@ export function LinkBody({ item, showSiteIcons }) {
         <div
           className="w-body font-semibold truncate"
           title={item.text}
-          style={{ color: "var(--w-ink-1)" }}
+          style={{ color: "var(--w-ink-2)" }}
         >
           {title}
         </div>

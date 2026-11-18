@@ -218,6 +218,132 @@
   background: var(--w-divider);
 }
 
+// ── Select (custom dropdown trigger) ─────────────────────────────────────────
+
+.um-select {
+  &:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: 2px;
+  }
+}
+
+// ── DataTransfer (shared Import/Export block) ───────────────────────────────
+
+.um-dt__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.um-dt__info {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 9999px;
+  color: var(--w-ink-5);
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--w-ink-1) 8%, transparent);
+  }
+}
+
+.um-dt__tooltip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 13rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  background: var(--card-bg);
+  color: var(--w-ink-2);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+}
+
+.um-dt__error {
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: var(--w-danger-bg);
+  color: var(--w-danger);
+}
+
+.um-dt__callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--w-accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w-accent) 12%, transparent);
+}
+
+.um-dt__callout-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--w-accent);
+}
+
+.um-dt__callout-text {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--w-ink-3);
+}
+
+.um-dt__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--w-ink-1) 3%, transparent);
+}
+
+.um-dt__sample {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--w-accent);
+  cursor: pointer;
+  transition: opacity 0.14s ease;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.um-dt__pipe {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--w-ink-5);
+}
+
+.um-dt__file {
+  display: none;
+}
+
 // ── Snackbar ────────────────────────────────────────────────────────────────
 
 .um-snackbar-stack {
@@ -285,6 +411,27 @@
   gap: 8px;
   padding: 28px 20px;
   text-align: center;
+
+  // Quieter, more spacious variant for cramped widget faces.
+  &--sm {
+    gap: 10px;
+    padding: 24px 16px;
+  }
+
+  &__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--w-ink-2);
+  }
+
+  &__text {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--w-ink-4);
+    max-width: 220px;
+    margin: 0;
+  }
 }
 
 // ── Visually hidden (screen-reader only) live region ────────────────────────

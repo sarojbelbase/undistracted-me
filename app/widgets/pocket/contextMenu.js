@@ -375,7 +375,12 @@ export async function handlePocketSave(info, tab, folderId = null) {
   } else if (truncated) {
     injectToast(tab?.id, "Saved (trimmed to 20,000 characters)", item.id);
   } else {
-    injectToast(tab?.id, "Saved to Pocket", item.id);
+    // Name the folder when the save landed somewhere other than the default.
+    const folderName =
+      resolvedFolderId && resolvedFolderId !== prefs.defaultFolderId
+        ? getSnapshot().folders.find((f) => f.id === resolvedFolderId)?.name
+        : null;
+    injectToast(tab?.id, folderName ? `Saved to ${folderName} folder` : "Saved to Pocket", item.id);
   }
 
   return res;

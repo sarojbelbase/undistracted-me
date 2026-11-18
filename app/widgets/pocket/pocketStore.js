@@ -35,12 +35,13 @@ const DEFAULT_META = Object.freeze({
     showSiteIcons: true,
     previewLength: "medium", // "short" | "medium" | "long"
     wrapCode: false,
-    widgetItems: 5, // 3 | 5 | 8 | 10
+    widgetItems: 10,
     pageNotice: true,
     askOnPaste: true,
     cleanLinks: true,
     skipDuplicates: true,
     defaultFolderId: null,
+    foldersOpen: true, // rail Folders section starts open (remembered)
   },
 });
 

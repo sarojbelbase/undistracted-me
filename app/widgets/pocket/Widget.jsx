@@ -137,8 +137,9 @@ export const Widget = ({ id, onRemove }) => {
 
   const empty = (
     <EmptyState
-      title={EMPTY_COPY.all.title}
-      text={EMPTY_COPY.all.text}
+      size="sm"
+      title={EMPTY_COPY.widget.title}
+      text={EMPTY_COPY.widget.text}
       action={
         <Button variant="primary" size="sm" onClick={() => openAdd()}>
           Add or paste

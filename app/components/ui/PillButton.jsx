@@ -18,6 +18,7 @@ export const PillButton = ({
   tinted = false,
   accent = false,
   onClick,
+  className = "",
   children,
 }) => {
   const cardStyle = useSettingsStore((s) => s.cardStyle);
@@ -85,7 +86,7 @@ export const PillButton = ({
       type="button"
       onClick={onClick}
       onMouseDown={(e) => e.stopPropagation()}
-      className={`px-2.5 py-0.5 ${shape} text-xs font-medium transition-all cursor-pointer`}
+      className={`px-2.5 py-0.5 ${shape} text-xs font-medium transition-all cursor-pointer ${className}`}
       style={activeStyle}
     >
       {children}

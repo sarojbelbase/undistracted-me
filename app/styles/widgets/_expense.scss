@@ -331,21 +331,8 @@
 // ── Recent Expenses Modal ────────────────────────────────────────────────────
 
 .exp-modal__header {
-  border-bottom: 1px solid var(--card-border);
-}
-
-.exp-modal__title {
-  color: var(--w-ink-1);
-}
-
-.exp-modal__subtitle {
-  color: var(--w-ink-4);
-}
-
-.exp-modal__close-btn {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--w-ink-3);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--w-divider);
 }
 
 .exp-modal__empty-icon {
@@ -523,83 +510,6 @@
 
 .exp-modal__period-total {
   color: var(--w-ink-4);
-}
-
-// ── Settings: Data section ───────────────────────────────────────────────────
-
-.exp-data__import-btn {
-  background: color-mix(in srgb, var(--w-accent) 12%, transparent);
-  color: var(--w-accent);
-  border: none;
-
-  &:hover {
-    opacity: 0.85;
-  }
-}
-
-.exp-data__export-btn {
-  background: transparent;
-  color: var(--w-ink-3);
-  border: 1px solid color-mix(in srgb, var(--w-ink-1) 10%, transparent);
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--w-ink-1) 15%, transparent);
-  }
-}
-
-.exp-data__callout {
-  background: color-mix(in srgb, var(--w-accent) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--w-accent) 12%, transparent);
-}
-
-.exp-data__callout-icon {
-  color: var(--w-accent);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.exp-data__callout-text {
-  color: var(--w-ink-3);
-}
-
-.exp-data__footer {
-  background: color-mix(in srgb, var(--w-ink-1) 3%, transparent);
-}
-
-.exp-data__sample-btn {
-  color: var(--w-accent);
-  background: none;
-  border: none;
-  padding: 0;
-
-  &:hover {
-    opacity: 0.7;
-  }
-}
-
-.exp-data__pipe {
-  color: var(--w-ink-5);
-}
-
-.exp-data__file-input {
-  display: none;
-}
-
-.exp-disclaimer__trigger {
-  color: var(--w-ink-5);
-  display: inline-flex;
-  width: 18px;
-  height: 18px;
-
-  &:hover {
-    background: color-mix(in srgb, var(--w-ink-1) 8%, transparent);
-  }
-}
-
-.exp-disclaimer__tooltip {
-  background: var(--card-bg);
-  color: var(--w-ink-2);
-  border: 1px solid var(--card-border);
 }
 
 // ── Add Expense modal ────────────────────────────────────────────────────────

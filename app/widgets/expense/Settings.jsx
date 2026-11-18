@@ -1,10 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
-import { Download, Upload, InfoCircle, Trash3Fill, FileEarmarkText } from 'react-bootstrap-icons';
+import { useCallback, useState } from 'react';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { DataTransfer } from '../../components/ui/DataTransfer';
+import { SettingsField } from '../../components/ui/SettingsSection';
 import { CURRENCIES } from '../../data/currencies';
 import { DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
 
@@ -44,7 +44,6 @@ function parseCSVLine(line) {
 export const ExpenseSettings = ({ id, onClose }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_EXPENSE_SETTINGS);
 
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [importError, setImportError] = useState(null);
 
   const currency = settings.currency ?? 'USD';
@@ -78,10 +77,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
     } catch { /* ignore */ }
   };
 
-  const importRef = useRef(null);
-
-  const handleImportCSV = (e) => {
-    const file = e.target.files?.[0];
+  const handleImportCSV = (file) => {
     if (!file) return;
     file.text().then((text) => {
       try {
@@ -126,7 +122,6 @@ export const ExpenseSettings = ({ id, onClose }) => {
     }).catch(() => {
       setImportError('Failed to read CSV file.');
     });
-    e.target.value = ''; // reset so same file can be re-imported
   };
 
   // Dummy month-wise CSV for testing
@@ -169,20 +164,17 @@ export const ExpenseSettings = ({ id, onClose }) => {
     <div className="flex flex-col gap-4 p-1">
 
       {/* ── Currency ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-1.5">
-        <span className="w-label">Currency</span>
+      <SettingsField label="Currency">
         <Select
-          id="exp-currency"
           value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-        >
-          {CURRENCIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name} ({c.symbol} {c.code})
-            </option>
-          ))}
-        </Select>
-      </div>
+          onChange={setCurrency}
+          ariaLabel="Currency"
+          options={CURRENCIES.map((c) => ({
+            value: c.code,
+            label: `${c.name} (${c.symbol} ${c.code})`,
+          }))}
+        />
+      </SettingsField>
 
       {/* ── Time Range ────────────────────────────────────────────────── */}
       <SegmentedControl
@@ -193,10 +185,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
       />
 
       {/* ── Budget ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-1.5">
-        <span className="w-label">
-          Budget ({RANGE_CONFIG[timeRange]?.label ?? 'Weekly'})
-        </span>
+      <SettingsField label={`Budget (${RANGE_CONFIG[timeRange]?.label ?? 'Weekly'})`}>
         <Input pill
           type="number"
           min="0"
@@ -206,91 +195,24 @@ export const ExpenseSettings = ({ id, onClose }) => {
           onChange={(e) => setBudget(e.target.value)}
           wrapperStyle={{ height: 36 }}
         />
-      </div>
+      </SettingsField>
 
       {/* ── Data ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2.5">
-        <div className="flex items-center justify-between">
-          <span className="w-label">Data</span>
-          <button
-            type="button"
-            className="relative exp-disclaimer-tip"
-            style={{ display: 'inline-flex' }}
-            onMouseEnter={() => setShowDisclaimer(true)}
-            onMouseLeave={() => setShowDisclaimer(false)}
-            aria-label="Import info"
-          >
-            <span className="cursor-pointer rounded-full flex items-center justify-center transition-colors exp-disclaimer__trigger">
-              <InfoCircle size={13} />
-            </span>
-            {showDisclaimer && (
-              <div className="absolute right-0 top-full mt-1.5 w-52 rounded-lg px-3 py-2 text-[10px] font-medium leading-relaxed shadow-lg z-20 exp-disclaimer-tip exp-disclaimer__tooltip">
-                Importing a CSV will replace all existing expenses. Export first to keep a backup.
-              </div>
-            )}
-          </button>
-        </div>
-
-        {/* Import / Export row */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => importRef.current?.click()}
-            className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg font-semibold text-[12px] cursor-pointer transition-opacity exp-data__import-btn"
-          >
-            <Upload size={12} />
-            Import CSV
-          </button>
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg font-semibold text-[12px] cursor-pointer transition-all exp-data__export-btn"
-          >
-            <Download size={12} />
-            Export CSV
-          </button>
-        </div>
-
-        {/* Import error feedback */}
-        {importError && (
-          <div className="rounded-lg px-3 py-2 text-[10px] font-medium leading-relaxed" style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}>
-            {importError}
-          </div>
-        )}
-
-        {/* Guidance callout */}
-        <div className="rounded-lg px-3 py-2.5 flex items-start gap-2 exp-data__callout">
-          <InfoCircle size={13} className="exp-data__callout-icon" />
-          <p className="text-[10px] font-medium leading-relaxed exp-data__callout-text">
-            Import from other budget trackers, digital wallets or banking apps. Download a sample CSV from below to see the expected format.
-          </p>
-        </div>
-
-        {/* Footer actions */}
-        <div className="flex items-center justify-center rounded-lg px-4 py-2 gap-4 exp-data__footer">
-          <button
-            type="button"
-            onClick={handleSampleCSV}
-            className="flex items-center gap-1.5 text-[11px] font-semibold cursor-pointer transition-opacity exp-data__sample-btn"
-          >
-            <FileEarmarkText size={11} />
-            Sample CSV
-          </button>
-          <span className="text-[11px] font-medium exp-data__pipe">|</span>
-          <ConfirmButton onConfirm={handleClearAll} label="Clear all expenses" danger className="text-[11px] font-semibold">
-            <Trash3Fill size={10} />
-            Clear All
-          </ConfirmButton>
-        </div>
-
-        <input
-          ref={importRef}
-          type="file"
-          accept=".csv"
-          onChange={handleImportCSV}
-          className="exp-data__file-input"
-        />
-      </div>
+      <DataTransfer
+        title="Data"
+        infoTooltip="Importing a CSV will replace all existing expenses. Export first to keep a backup."
+        importLabel="Import CSV"
+        exportLabel="Export CSV"
+        accept=".csv"
+        onImport={handleImportCSV}
+        onExport={handleExportCSV}
+        importError={importError}
+        note="Import from other budget trackers, digital wallets or banking apps. Download a sample CSV from below to see the expected format."
+        sampleLabel="Sample CSV"
+        onSample={handleSampleCSV}
+        clearLabel="Clear all expenses"
+        onClear={handleClearAll}
+      />
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { ClockHistory } from 'react-bootstrap-icons';
 import { useWidgetSettings } from '../useWidgetSettings';
-import { Toggle } from '../../components/ui/Toggle';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { SettingsSection, SettingsField, SettingsToggleRow } from '../../components/ui/SettingsSection';
 import { BREAK_OPTIONS, DEFAULT_SETTINGS } from './constants';
 import { loadHistory, getStreak, getTodayMinutes, getWeeklyStats } from './utils';
 
@@ -56,62 +56,38 @@ export const PomodoroSettings = ({ id }) => {
     <div className="flex flex-col gap-4 p-1">
 
       {/* ── Timer ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2.5">
-        <span className="w-label">Timer</span>
-
-        {/* End-of-session chime */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>End-of-session chime</span>
-            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
-              Plays a notification sound when the timer completes
-            </p>
-          </div>
-          <Toggle checked={soundEnabled} onChange={toggleSound} ariaLabel="End-of-session chime" />
-        </div>
-
-        {/* Rain sounds */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>Ambient rain</span>
-            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
-              Looping rain audio to help you focus
-            </p>
-          </div>
-          <Toggle checked={rainSound} onChange={toggleRain} ariaLabel="Ambient rain" />
-        </div>
-      </div>
+      <SettingsSection title="Timer">
+        <SettingsToggleRow
+          label="End-of-session chime"
+          hint="Plays a notification sound when the timer completes"
+          checked={soundEnabled}
+          onChange={toggleSound}
+          ariaLabel="End-of-session chime"
+        />
+        <SettingsToggleRow
+          label="Ambient rain"
+          hint="Looping rain audio to help you focus"
+          checked={rainSound}
+          onChange={toggleRain}
+          ariaLabel="Ambient rain"
+        />
+      </SettingsSection>
 
       {/* ── Divider ────────────────────────────────────────────────── */}
       <div style={{ height: 1, background: 'var(--w-divider)' }} />
 
       {/* ── Breaks ─────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2.5">
-        <span className="w-label">Breaks</span>
-
-        {/* Auto-break toggle */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <span className="w-body" style={{ color: 'var(--w-ink-2)', fontWeight: 600 }}>Auto-start break after session</span>
-            <p style={{ fontSize: '10.5px', color: 'var(--w-ink-5)', marginTop: 1, lineHeight: 1.4 }}>
-              Automatically begins a break timer when focus ends
-            </p>
-          </div>
-          <Toggle checked={autoBreak} onChange={toggleAutoBreak} ariaLabel="Auto-start break after session" />
-        </div>
+      <SettingsSection title="Breaks">
+        <SettingsToggleRow
+          label="Auto-start break after session"
+          hint="Automatically begins a break timer when focus ends"
+          checked={autoBreak}
+          onChange={toggleAutoBreak}
+          ariaLabel="Auto-start break after session"
+        />
 
         {/* Break duration */}
-        <div className="flex flex-col gap-1.5">
-          <span
-            className="w-body"
-            style={{
-              color: 'var(--w-ink-3)',
-              opacity: autoBreak ? 1 : 0.35,
-              fontSize: '0.6875rem',
-            }}
-          >
-            Break duration
-          </span>
+        <SettingsField label="Break duration">
           <div style={{ opacity: autoBreak ? 1 : 0.35, pointerEvents: autoBreak ? 'auto' : 'none', transition: 'opacity 0.2s ease' }}>
             <SegmentedControl
               options={BREAK_OPTIONS.map((o) => ({ label: o.label, value: o.mins }))}
@@ -119,8 +95,8 @@ export const PomodoroSettings = ({ id }) => {
               onChange={setBreakDuration}
             />
           </div>
-        </div>
-      </div>
+        </SettingsField>
+      </SettingsSection>
 
       {/* ── Divider ────────────────────────────────────────────────── */}
       <div style={{ height: 1, background: 'var(--w-divider)' }} />
