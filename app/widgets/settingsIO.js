@@ -1,5 +1,4 @@
 import { useSettingsStore } from "../store/useSettingsStore";
-import { applyFirstRunDefaultsToStorage } from "../utilities/applyFirstRunDefaults";
 
 /** Check whether a localStorage key belongs to the app. */
 const APP_KEY_PREFIXES = [
@@ -220,8 +219,7 @@ export const importFromFile = (onError) => {
 /** Clear every localStorage key and reload.
  *  Preserves quickTourSeenVersion so the onboarding tour is not shown again.
  *  Also signs out connected accounts (Google/Spotify) — their tokens live in
- *  chrome.storage.local / sessionStorage, outside the localStorage sweep below.
- *  Re-applies first-run widget defaults so the dashboard starts populated. */
+ *  chrome.storage.local / sessionStorage, outside the localStorage sweep below. */
 export const resetSettings = () => {
   // Preserve tour seen status — user has already completed onboarding.
   const tourVersion = useSettingsStore.getState().quickTourSeenVersion;
@@ -269,7 +267,5 @@ export const resetSettings = () => {
       }),
     );
   }
-  // Re-populate widget data with first-run defaults.
-  applyFirstRunDefaultsToStorage();
   globalThis.location.reload();
 };

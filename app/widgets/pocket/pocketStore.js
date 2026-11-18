@@ -7,7 +7,7 @@
  * Pure logic (classifyKind, dedupe, search, grouping, merge) lives in utils.js.
  */
 
-import { POCKET_KEYS, STARTER_FOLDERS } from "./constants";
+import { POCKET_KEYS } from "./constants";
 import {
   findDuplicate,
   mergeStates,
@@ -28,7 +28,6 @@ const DEFAULT_META = Object.freeze({
   syncEnabled: false,
   lastSyncAt: null,
   driveFileId: null,
-  seededFolders: false,
   prefs: {
     groupBy: "date", // "date" | "website"
     density: "comfortable", // "comfortable" | "compact"
@@ -234,24 +233,6 @@ function attachStorageListener() {
 
 function hydrate() {
   readRemote().then((next) => {
-    // Seed starter folders once, on first run only. If the user has since
-    // deleted every folder, leave them deleted (don't resurrect starters).
-    if (!next.meta.seededFolders && (!Array.isArray(next.folders) || next.folders.length === 0)) {
-      const t = now();
-      next.folders = STARTER_FOLDERS.map((f, i) => ({
-        id: crypto.randomUUID(),
-        name: f.name,
-        color: f.color,
-        order: i,
-        createdAt: t,
-        updatedAt: t,
-        deletedAt: null,
-      }));
-      next.meta = { ...next.meta, seededFolders: true };
-      setSnapshot({ ...next, hydrated: true });
-      schedulePersist(); // persist only the seeded folders
-      return;
-    }
     setSnapshot({ ...next, hydrated: true });
   });
 }

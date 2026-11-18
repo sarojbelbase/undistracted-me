@@ -16,13 +16,6 @@ export const KIND_META = Object.freeze({
   code: { label: "Code", singular: "Code" },
 });
 
-// Starter user folders (first run only). Normal: renamable, deletable.
-export const STARTER_FOLDERS = Object.freeze([
-  { name: "Read later", color: "blue" },
-  { name: "Quotes", color: "amber" },
-  { name: "Ideas", color: "violet" },
-]);
-
 // 6 muted folder swatches. Used as small color dots; readable in light + dark.
 // "slate" is the grey swatch — new folders never default to it (§2 P2).
 export const FOLDER_COLORS = Object.freeze([

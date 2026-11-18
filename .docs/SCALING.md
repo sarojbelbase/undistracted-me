@@ -141,7 +141,7 @@ Implementation details:
   }
   ```
   Selecting a pack seeds `useWidgetInstancesStore` the same way
-  `app/store/seedWidgetInstances.js` + `applyFirstRunDefaults.js` already do,
+  `app/store/seedWidgetInstances.js` already does,
   and sets the countdown templates / RSS OPML for the Developer + Nepal packs
   (reusing the existing Nepali sample OPML in `rss/opmlParser.js`).
 - **Location** — call `useLocationStore.getState().refresh()` (or, if the user

@@ -128,7 +128,7 @@ test('web_clipper · Pocket widget', async ({ page }) => {
         { id: 'fi', name: 'Ideas', color: 'violet', order: 2, createdAt: t, updatedAt: t, deletedAt: null },
       ]),
     );
-    localStorage.setItem('pocket:meta', JSON.stringify({ schema: 1, seededFolders: true }));
+    localStorage.setItem('pocket:meta', JSON.stringify({ schema: 1 }));
   }, {
     mode: 'light',
     accent: 'Blueberry',

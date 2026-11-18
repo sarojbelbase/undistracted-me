@@ -16,10 +16,7 @@
  *   • WIDGET_SETTINGS_DEFAULTS — per-widget-type default settings
  *   • NOTIFICATION_TYPES       — notification type registry + enabled defaults
  *   • Widget constants          — default symbols, periods, categories, etc.
- *   • DEMO_*                   — first-run seed content (Quick Tour / reset)
  */
-
-import { MOMO_URL } from './urls.js';
 
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
 
@@ -150,33 +147,3 @@ export const DEFAULT_CATEGORIES = [
   { id: "entertainment", label: "Entertainment", description: "Movies, games, concerts, hobbies" },
   { id: "other", label: "Other", description: "Anything else that doesn't fit above" },
 ];
-
-// ─── First-run demo content (Quick Tour seed / reset) ─────────────────────────
-
-/** Occasions — stored in localStorage 'birthdays_manual'. */
-export const DEMO_OCCASIONS = Object.freeze([
-  { id: "demo_suman_birthday", name: "Suman", type: "birthday", month: 4, day: 8, _source: "manual" },
-  { id: "demo_parents_anniversary", name: "Mom & Dad", type: "anniversary", month: 1, day: 15, _source: "manual" },
-  { id: "demo_extension_released", name: "Extension Released", type: "special", month: 5, day: 17, _source: "manual" },
-]);
-
-/** Countdown events — stored in localStorage 'countdown_events'. */
-export const DEMO_COUNTDOWN_EVENTS = Object.freeze([
-  { id: "demo_salary", title: "Salary Day", targetDate: null, targetTime: "17:00", repeat: "monthly" },
-  { id: "demo_vacation", title: "Vacation", targetDate: "2027-12-20", targetTime: "", repeat: "yearly" },
-]);
-
-/** Calendar events — stored in localStorage 'widget_events'. */
-export const DEMO_EVENTS = Object.freeze([
-  { id: "demo_release", title: "Extension Released", startDate: "2027-05-17", startTime: "", endDate: "", endTime: "" },
-  { id: "demo_linkedin", title: "LinkedIn Post", startDate: "2027-05-18", startTime: "10:00", endDate: "", endTime: "" },
-  { id: "demo_reel", title: "Instagram Reel", startDate: "2027-05-19", startTime: "14:00", endDate: "", endTime: "" },
-  { id: "demo_trekking", title: "Plan Another Trekking", startDate: "2027-05-01", startTime: "", endDate: "", endTime: "" },
-]);
-
-/** Bookmark widget settings — written to widgetSettings['bookmark']. */
-export const DEMO_BOOKMARK_SETTINGS = Object.freeze({
-  url: MOMO_URL,
-  name: "Buy Me Momo",
-  iconMode: "favicon",
-});
