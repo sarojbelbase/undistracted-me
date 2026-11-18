@@ -76,10 +76,3 @@ export const removeBookmark = (url) => {
   saveBookmarks(next);
   return next;
 };
-
-/**
- * Check if a URL is already bookmarked.
- */
-export const isBookmarked = (url) => {
-  return loadBookmarks().some((b) => b.url === url);
-};

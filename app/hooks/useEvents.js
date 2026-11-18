@@ -120,11 +120,6 @@ export const formatEventTime = (event) => {
   return "";
 };
 
-export const eventStartDate = (event) => {
-  if (!event.startDate) return null;
-  return new Date(`${event.startDate}T${event.startTime || "00:00"}`);
-};
-
 // ─── Google Calendar hook ────────────────────────────────────────────────────
 
 // Module-level in-flight dedup: if multiple hook instances call fetchCalendarOnce()

@@ -219,17 +219,6 @@ export const isBlocked = (urlOrDomain) => {
   return site.blockedUntil > Date.now();
 };
 
-/** Get remaining time for a blocked domain (ms). Returns Infinity for infinite blocks, null if not blocked. */
-export const getRemainingTime = (urlOrDomain) => {
-  const domain = extractDomain(urlOrDomain);
-  if (!domain) return null;
-  const site = readBlockedSites().find(s => s.domain === domain);
-  if (!site) return null;
-  if (site.infinite) return Infinity;
-  const remaining = site.blockedUntil - Date.now();
-  return remaining > 0 ? remaining : null;
-};
-
 /** Get the full list of blocked domains with their remaining time. */
 export const getBlockedSites = () => {
   const now = Date.now();
@@ -243,15 +232,6 @@ export const getBlockedSites = () => {
 };
 
 export const canBlock = (urlOrDomain) => extractDomain(urlOrDomain) !== null;
-
-export const importBlockedSites = async (domains, durationMinutes) => {
-  const cleaned = domains.map(extractDomain).filter(Boolean);
-  const blockedUntil = Date.now() + (durationMinutes || 30) * 60 * 1000;
-  const updated = cleaned.map(domain => ({ domain, blockedUntil }));
-  writeBlockedSites(updated);
-  await updateDynamicRules(cleaned);
-  return updated;
-};
 
 export const clearBlockedSites = async () => {
   writeBlockedSites([]);

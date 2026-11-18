@@ -119,9 +119,6 @@ export const CLOCK_TIMEZONE_DIVIDER = "var(--w-divider)";
 /** Inset shadow on the circular traffic-light control buttons */
 export const NOTES_BUTTON_SHADOW = "inset 0 0 0 0.5px rgba(0,0,0,0.18)";
 
-/** Symbol icon color on hovered traffic-light buttons */
-export const NOTES_ICON_COLOR = "rgba(0,0,0,0.55)";
-
 // ── FaviconIcon widget ────────────────────────────────────────────────────────
 /** Text-shadow for the letter-mode favicon fallback */
 export const FAVICON_TEXT_SHADOW = "0 1px 4px rgba(0,0,0,0.18)";
@@ -135,23 +132,3 @@ export const OCCASION_ANNIVERSARY_COLOR = "#e05c8a";
 
 /** Special / other (star) — warm amber gold */
 export const OCCASION_SPECIAL_COLOR = "#f59e0b";
-
-// ── Convenience objects (for spreading into style props) ─────────────────────
-
-/**
- * Full input style for dark-context bare inputs (Input component).
- * Spread into the inner <input> element's style prop.
- */
-export const CANVAS_INPUT_DARK_STYLE = {
-  color: "rgba(255,255,255,0.88)",
-  WebkitTextFillColor: "rgba(255,255,255,0.88)",
-};
-
-/**
- * Convenience object for modal cancel buttons.
- * Works on any canvas surface (glass or flat, light or dark).
- */
-export const CANVAS_CANCEL_BTN_STYLE = {
-  border: `1px solid ${CANVAS_BORDER_SOFT}`,
-  background: "transparent",
-};

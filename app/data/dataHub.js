@@ -182,7 +182,3 @@ export function removeEntry(namespace) {
   });
   return writeChain;
 }
-
-export function isFresh(updatedAt, ttlMs) {
-  return typeof updatedAt === "number" && Date.now() - updatedAt < ttlMs;
-}

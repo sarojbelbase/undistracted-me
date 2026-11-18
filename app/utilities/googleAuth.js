@@ -51,16 +51,6 @@ export function isGoogleAuthAvailable() {
   return !!CLIENT_ID;
 }
 
-/**
- * Returns the extension's OAuth redirect URL (chrome.identity.getRedirectURL()).
- * Useful to display in Settings so the developer can register it in Google Cloud
- * Console without computing the hash manually. Null in website mode.
- */
-export function getGoogleRedirectUrl() {
-  if (typeof chrome === 'undefined' || !chrome.identity?.getRedirectURL) return null; // eslint-disable-line no-undef
-  return chrome.identity.getRedirectURL(); // eslint-disable-line no-undef
-}
-
 // ─── Token storage (chrome.storage.local ↔ sessionStorage) ────────────────────
 
 async function readStoredToken() {
