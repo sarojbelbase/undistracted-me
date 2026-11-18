@@ -1,12 +1,15 @@
 /**
- * QuickTour — two-step first-run welcome overlay.
+ * QuickTour — first-run setup flow (actionable onboarding).
  *
  * Steps:
- *   1. Welcome → brand + the two modes (Focus Mode / Canvas), side by side
- *   2. Features → a 6-card grid of the headline features
+ *   0. Welcome  → brand + the two modes (Focus Mode / Canvas)
+ *   1. Pack     → pick a starter pack (Minimal / Student / Developer / Nepal)
+ *   2. Location → set your location (auto-detect or keep default)
+ *   3. Block    → one-click social-media block preset
+ *   4. Task     → add one "thing" for today
  *
+ * "Finish" applies the pack, the social block and the task, then dismisses.
  * Gating: shown only on the very first run (quickTourSeenVersion === null).
- * Dismissing writes markQuickTourSeen(TOUR_VERSION) so it never re-appears.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,69 +17,29 @@ import { createPortal } from 'react-dom';
 import {
   Fullscreen,
   Grid3x3GapFill,
-  UiChecksGrid,
-  AlarmFill,
-  CloudRainFill,
-  Calendar2DateFill,
-  CalendarEventFill,
-  EyeFill,
   ArrowRight,
   ArrowLeft,
 } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store/useSettingsStore';
+import { useLocationStore } from '../../store/useLocationStore';
 import { APP_VERSION } from '../../constants/version';
-
-// ─── Constants ────────────────────────────────────────────────────────────────
+import {
+  PACK_LIST,
+  applyPack,
+  blockSocialDefaults,
+  addTaskToday,
+  SOCIAL_BLOCK_DEFAULTS,
+} from '../../utilities/packs';
 
 const TOUR_VERSION = APP_VERSION;
 
-// ─── Feature grid data ────────────────────────────────────────────────────────
+// Step count for the dot indicator.
+const STEP_COUNT = 5;
 
-const FEATURES = [
-  {
-    Icon: UiChecksGrid,
-    title: '17 Widgets',
-    desc: 'Clock, calendar, notes, stocks, news and more.',
-    color: '#6366f1',
-  },
-  {
-    Icon: AlarmFill,
-    title: 'Pomodoro',
-    desc: 'Focus timer with breaks, built in.',
-    color: '#ef4444',
-  },
-  {
-    Icon: CloudRainFill,
-    title: 'Ambient Sounds',
-    desc: 'Rain and white noise, one tap.',
-    color: '#0ea5e9',
-  },
-  {
-    Icon: Calendar2DateFill,
-    title: 'Nepali Calendar',
-    desc: 'Bikram Sambat + Gregorian, side by side.',
-    color: '#f59e0b',
-  },
-  {
-    Icon: CalendarEventFill,
-    title: 'Google Sync',
-    desc: 'Calendar, tasks and contacts, on device.',
-    color: '#10b981',
-  },
-  {
-    Icon: EyeFill,
-    title: 'Look Away',
-    desc: 'Dims your screen on a schedule.',
-    color: '#8b5cf6',
-  },
-];
+// ─── Step 0 — Welcome ─────────────────────────────────────────────────────────
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-/** Step 0 — mode overview */
 const StepWelcome = () => (
   <div className="flex flex-col items-center gap-4 text-center">
-    {/* Brand mark */}
     <div className="flex flex-col items-center gap-2">
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center qt-brand-icon">
         <img
@@ -97,15 +60,12 @@ const StepWelcome = () => (
       </div>
     </div>
 
-    {/* Mode cards */}
     <div className="grid grid-cols-2 gap-3 w-full">
-      {/* Focus Mode */}
       <div className="flex flex-col gap-2 p-3 rounded-2xl text-left qt-focus-card">
         <div className="flex flex-col gap-1">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center qt-focus-icon-box">
             <Fullscreen size={13} className="qt-focus-icon" />
           </div>
-          {/* Mock clock with Nepali date */}
           <div className="flex flex-col gap-0 mt-1">
             <p className="text-[8px] font-semibold tracking-widest uppercase qt-focus-date">
               Baisakh 28
@@ -117,16 +77,14 @@ const StepWelcome = () => (
             </div>
           </div>
         </div>
-
         <div className="flex flex-col gap-0">
           <p className="text-[11.5px] font-semibold">Focus Mode</p>
           <p className="text-[10px] leading-snug qt-focus-desc">
             Full screen. Clock front and center. No noise.
           </p>
         </div>
-
         <div className="flex flex-wrap gap-1">
-          {['Pomodoro', 'Rain Sounds', 'Google Tasks'].map(t => (
+          {['Pomodoro', 'Rain Sounds', 'Google Tasks'].map((t) => (
             <span key={t} className="text-[9.5px] px-1.5 py-0.5 rounded-md font-medium qt-focus-chip">
               {t}
             </span>
@@ -134,15 +92,13 @@ const StepWelcome = () => (
         </div>
       </div>
 
-      {/* Canvas Mode */}
       <div className="flex flex-col gap-2 p-3 rounded-2xl text-left qt-canvas-card">
         <div className="flex flex-col gap-1">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center qt-canvas-icon-box">
             <Grid3x3GapFill size={13} className="qt-canvas-icon" />
           </div>
-          {/* Mini widget grid mockup */}
           <div className="grid grid-cols-3 gap-1 mt-1.5">
-            {[0, 1, 2, 3, 4, 5].map(i => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 className={`rounded-md ${i % 3 === 0 ? 'qt-canvas-mock-tall' : 'qt-canvas-mock-short'}`}
@@ -151,16 +107,14 @@ const StepWelcome = () => (
             ))}
           </div>
         </div>
-
         <div className="flex flex-col gap-0">
           <p className="text-[11.5px] font-semibold qt-canvas-name">Canvas</p>
           <p className="text-[10px] leading-snug qt-canvas-desc">
             Widgets you arrange. Info you actually care about.
           </p>
         </div>
-
         <div className="flex flex-wrap gap-1">
-          {['17 Widgets', 'Drag & Drop', 'Nepali Calendar'].map(t => (
+          {['17 Widgets', 'Drag & Drop', 'Nepali Calendar'].map((t) => (
             <span key={t} className="text-[9.5px] px-1.5 py-0.5 rounded-md font-medium qt-canvas-chip">
               {t}
             </span>
@@ -171,48 +125,170 @@ const StepWelcome = () => (
   </div>
 );
 
-/** Step 1 — features showcase */
-const StepFeatures = () => (
+// ─── Step 1 — Pack picker ─────────────────────────────────────────────────────
+
+const PACK_EMOJI = { minimal: '🌿', student: '🎓', developer: '⌨️', nepal: '🏔️' };
+
+const StepPack = ({ selected, onSelect }) => (
   <div className="flex flex-col gap-4 flex-1">
     <div className="text-center flex flex-col gap-1">
-      <h2 className="text-[21px] font-bold tracking-tight qt-s2-heading">
-        Built to keep you undistracted.
+      <h2 className="text-[21px] font-bold tracking-tight qt-headline">
+        Pick your starting point.
       </h2>
-      <p className="text-[12.5px] qt-s2-subtitle">
-        Everything optional, nothing pulling you in.
+      <p className="text-[12.5px] qt-subtitle">
+        A few widgets tuned to how you work. Change anything later.
       </p>
     </div>
 
-    <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-3">
-      {FEATURES.map(({ Icon, title, desc, color }) => (
-        <div key={title} className="flex flex-col items-center justify-center gap-1 p-3 text-center rounded-xl qt-feature-card">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: `${color}18`, border: `1px solid ${color}22` }}
+    <div className="grid grid-cols-2 gap-3">
+      {PACK_LIST.map((p) => {
+        const active = selected === p.id;
+        return (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onSelect(p.id)}
+            aria-pressed={active}
+            className={`qt-pack-card ${active ? 'qt-pack-card--selected' : ''} flex flex-col items-start gap-1.5 p-3 rounded-2xl text-left cursor-pointer`}
           >
-            <Icon size={14} style={{ color }} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-[11px] font-semibold leading-tight qt-feature-title">{title}</p>
-            <p className="text-[9.5px] font-semibold leading-snug tracking-tighter qt-feature-desc">{desc}</p>
-          </div>
-        </div>
+            <span className="text-[20px] leading-none" aria-hidden="true">
+              {PACK_EMOJI[p.id] || '✨'}
+            </span>
+            <span className="flex flex-col gap-0">
+              <span className="text-[13px] font-semibold qt-headline">{p.label}</span>
+              <span className="text-[10.5px] leading-snug qt-subtitle">{p.tagline}</span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+// ─── Step 2 — Location ────────────────────────────────────────────────────────
+
+const StepLocation = ({ onDetect }) => {
+  const city = useLocationStore((s) => s.city);
+  const status = useLocationStore((s) => s.status);
+  const busy = status === 'loading';
+
+  return (
+    <div className="flex flex-col gap-4 flex-1 items-center justify-center text-center">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-[21px] font-bold tracking-tight qt-headline">
+          Where are you?
+        </h2>
+        <p className="text-[12.5px] qt-subtitle">
+          Drives weather, sunrise and the auto theme. Nothing is sent anywhere.
+        </p>
+      </div>
+
+      <div className="qt-loc-card flex flex-col items-center gap-2 px-5 py-4 rounded-2xl w-full max-w-[280px]">
+        <span className="text-[22px]" aria-hidden="true">📍</span>
+        <p className="text-[13px] font-semibold qt-headline">
+          {busy ? 'Detecting…' : city || 'Not set yet'}
+        </p>
+        <button
+          type="button"
+          onClick={onDetect}
+          disabled={busy}
+          className="qt-loc-btn px-3.5 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer disabled:opacity-60"
+        >
+          {busy ? 'Detecting…' : city ? 'Refresh location' : 'Use my location'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── Step 3 — Social block preset ─────────────────────────────────────────────
+
+const StepBlock = ({ enabled, onToggle }) => (
+  <div className="flex flex-col gap-4 flex-1 items-center justify-center text-center">
+    <div className="flex flex-col gap-1">
+      <h2 className="text-[21px] font-bold tracking-tight qt-headline">
+        Block the usual suspects.
+      </h2>
+      <p className="text-[12.5px] qt-subtitle">
+        A gentle 30-minute timer. Your blocklist never leaves this device.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={() => onToggle(!enabled)}
+      className={`qt-social-toggle flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer ${enabled ? 'qt-social-toggle--on' : ''}`}
+    >
+      <span className="text-[18px]" aria-hidden="true">🛡️</span>
+      <span className="flex flex-col items-start text-left">
+        <span className="text-[13px] font-semibold qt-headline">Block social media</span>
+        <span className="text-[10.5px] qt-subtitle">for 30 minutes</span>
+      </span>
+      <span
+        className="qt-social-switch ml-auto shrink-0"
+        aria-hidden="true"
+      >
+        <span />
+      </span>
+    </button>
+
+    <div className="flex flex-wrap justify-center gap-1.5">
+      {SOCIAL_BLOCK_DEFAULTS.map((d) => (
+        <span key={d} className="qt-social-chip text-[10px] px-2 py-0.5 rounded-full">
+          {d}
+        </span>
       ))}
     </div>
   </div>
 );
 
+// ─── Step 4 — One task ────────────────────────────────────────────────────────
+
+const StepTask = ({ value, onChange, onSubmit }) => {
+  const submit = (e) => {
+    e.preventDefault();
+    onSubmit();
+  };
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-4 flex-1 items-center justify-center text-center">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-[21px] font-bold tracking-tight qt-headline">
+          What's the one thing today?
+        </h2>
+        <p className="text-[12.5px] qt-subtitle">
+          Just one. It'll be waiting on your dashboard.
+        </p>
+      </div>
+
+      <input
+        autoFocus
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="e.g. Finish the proposal draft"
+        aria-label="One thing for today"
+        className="qt-task-input w-full max-w-[320px] px-4 py-3 rounded-xl text-[13px] outline-none"
+      />
+      <p className="text-[10.5px] qt-subtitle">Press Enter to finish. You can skip this.</p>
+    </form>
+  );
+};
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function QuickTour() {
-  const quickTourSeenVersion = useSettingsStore(s => s.quickTourSeenVersion);
-  const markQuickTourSeen = useSettingsStore(s => s.markQuickTourSeen);
+  const quickTourSeenVersion = useSettingsStore((s) => s.quickTourSeenVersion);
+  const markQuickTourSeen = useSettingsStore((s) => s.markQuickTourSeen);
 
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
-  // Animate step change: 'idle' | 'out' | 'in'
   const [stepAnim, setStepAnim] = useState('idle');
+
+  const [selectedPack, setSelectedPack] = useState('minimal');
+  const [blockSocials, setBlockSocials] = useState(true);
+  const [taskText, setTaskText] = useState('');
 
   const shouldShow = quickTourSeenVersion === null;
 
@@ -224,6 +300,21 @@ export function QuickTour() {
     }, 280);
   }, [markQuickTourSeen]);
 
+  const finish = useCallback(() => {
+    if (selectedPack) applyPack(selectedPack);
+    if (blockSocials) blockSocialDefaults();
+    if (taskText.trim()) addTaskToday(taskText);
+    dismiss();
+  }, [selectedPack, blockSocials, taskText, dismiss]);
+
+  const detectLocation = useCallback(() => {
+    try {
+      useLocationStore.getState().refresh();
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const goToStep = useCallback((next) => {
     setStepAnim('out');
     setTimeout(() => {
@@ -233,6 +324,14 @@ export function QuickTour() {
     }, 180);
   }, []);
 
+  const next = useCallback(() => {
+    if (step === STEP_COUNT - 1) {
+      finish();
+      return;
+    }
+    goToStep(step + 1);
+  }, [step, finish, goToStep]);
+
   // Mount after a short delay so the app renders first (smooth experience)
   useEffect(() => {
     if (!shouldShow) return;
@@ -240,13 +339,13 @@ export function QuickTour() {
     return () => clearTimeout(t);
   }, [shouldShow]);
 
-  // ESC to dismiss, arrow keys to navigate between the two steps
+  // ESC to dismiss, arrow keys to navigate between steps.
   useEffect(() => {
     if (!visible) return;
     const handler = (e) => {
       if (e.key === 'Escape') { dismiss(); return; }
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { if (step === 0) goToStep(1); return; }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { if (step === 1) goToStep(0); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { if (step < STEP_COUNT - 1) goToStep(step + 1); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { if (step > 0) goToStep(step - 1); return; }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -254,7 +353,7 @@ export function QuickTour() {
 
   if (!shouldShow || !visible) return null;
 
-  const isLast = step === 1;
+  const isLast = step === STEP_COUNT - 1;
 
   let stepTransform = 'translateY(0)';
   if (stepAnim === 'out') stepTransform = 'translateY(6px)';
@@ -277,19 +376,21 @@ export function QuickTour() {
       onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
       className="fixed inset-0 m-0 max-w-none max-h-none border-0 flex items-center justify-center p-0 z-9999 qt-overlay"
     >
-      {/* Card */}
       <div
         className={`relative flex flex-col w-full mx-4 rounded-2xl overflow-hidden qt-card ${exiting ? '' : 'qt-card--enter'}`}
         style={cardStyle}
       >
-        {/* Step content — min-height locks card size between steps */}
         <div className="px-6 pt-6 pb-2 qt-content" style={stepStyle}>
-          {step === 0 ? <StepWelcome /> : <StepFeatures />}
+          {step === 0 && <StepWelcome />}
+          {step === 1 && <StepPack selected={selectedPack} onSelect={setSelectedPack} />}
+          {step === 2 && <StepLocation onDetect={detectLocation} />}
+          {step === 3 && <StepBlock enabled={blockSocials} onToggle={setBlockSocials} />}
+          {step === 4 && (
+            <StepTask value={taskText} onChange={setTaskText} onSubmit={finish} />
+          )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 qt-footer">
-          {/* Back / Skip */}
           {step === 0 ? (
             <button
               type="button"
@@ -301,7 +402,7 @@ export function QuickTour() {
           ) : (
             <button
               type="button"
-              onClick={() => goToStep(0)}
+              onClick={() => goToStep(step - 1)}
               className="flex items-center gap-1.5 text-[12px] font-medium cursor-pointer transition-opacity hover:opacity-70 select-none qt-back-btn"
             >
               <ArrowLeft size={12} />
@@ -309,9 +410,8 @@ export function QuickTour() {
             </button>
           )}
 
-          {/* Step dots */}
           <div className="flex items-center gap-1.5">
-            {[0, 1].map(i => (
+            {Array.from({ length: STEP_COUNT }).map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -326,26 +426,14 @@ export function QuickTour() {
             ))}
           </div>
 
-          {/* Next / Finish */}
-          {isLast ? (
-            <button
-              type="button"
-              onClick={dismiss}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-opacity hover:opacity-90 select-none qt-cta-btn"
-            >
-              Get started
-              <ArrowRight size={12} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => goToStep(1)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-opacity hover:opacity-90 select-none qt-cta-btn"
-            >
-              What's inside
-              <ArrowRight size={12} />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={next}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-opacity hover:opacity-90 select-none qt-cta-btn"
+          >
+            {isLast ? 'Finish' : 'Continue'}
+            <ArrowRight size={12} />
+          </button>
         </div>
       </div>
     </dialog>,
