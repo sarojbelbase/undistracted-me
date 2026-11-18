@@ -80,33 +80,3 @@ export const POCKET_KEYS = Object.freeze({
   folders: "pocket:folders",
   meta: "pocket:meta",
 });
-
-// ─── Empty-state copy (Section 11) ──────────────────────────────────────────
-// One title, one sentence, at most one action button. No numbered steps.
-
-export const EMPTY_COPY = Object.freeze({
-  all: {
-    title: "Nothing saved yet.",
-    text: "Select text on any page, right-click, and choose Add to Undistracted Me.",
-  },
-  widget: {
-    title: "Nothing saved yet",
-    text: "Select text on any page and Add to Pocket.",
-  },
-  link: {
-    title: "No links yet.",
-    text: "Right-click a link or a page and choose Add to Undistracted Me.",
-  },
-  sentence: {
-    title: "No sentences yet.",
-    text: "Select a sentence on any page and choose Add to Undistracted Me.",
-  },
-  paragraph: {
-    title: "No paragraphs yet.",
-    text: "Select a few sentences on any page and choose Add to Undistracted Me.",
-  },
-  code: {
-    title: "No code yet.",
-    text: "Select code on any page and choose Add to Undistracted Me.",
-  },
-});

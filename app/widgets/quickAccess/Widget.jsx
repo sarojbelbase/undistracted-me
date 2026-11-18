@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { BaseWidget } from "../BaseWidget";
+import { Grid3x3GapFill } from "react-bootstrap-icons";
 import { FaviconIcon } from "../../components/ui/FaviconIcon";
 import { faviconCache, getHostname } from "../../utilities/favicon";
 import { shorthandFromUrl, getTopSites } from "../../utilities/index";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { EMPTY_STATES } from "../../constants/emptyStates";
 
 const MAX_TILES = 5;
 
@@ -68,11 +71,10 @@ export const Widget = ({ id, onRemove }) => {
   const isUnsupported = typeof chrome === 'undefined' && typeof globalThis.browser === 'undefined';
 
   if (isUnsupported || !topSites.length) {
+    const copy = isUnsupported ? EMPTY_STATES.quickAccess.unsupported : EMPTY_STATES.quickAccess.empty;
     return (
       <BaseWidget className="justify-center items-center" onRemove={onRemove}>
-        <span style={{ fontSize: '11px', color: 'var(--w-ink-5)' }}>
-          {isUnsupported ? 'Not supported outside the extension' : 'No top sites available'}
-        </span>
+        <EmptyState icon={<Grid3x3GapFill size={18} />} size="sm" title={copy.title} text={copy.text} />
       </BaseWidget>
     );
   }

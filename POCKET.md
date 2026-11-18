@@ -25,7 +25,7 @@ Rules:
 
 ## 1. Product in one paragraph
 
-Pocket is where small, text-only things go so you don't lose them: a link, a blog URL, a word, a sentence, a paragraph, a code snippet. Right-click anything on a page, choose "Add to Undistracted Me", and it lands in the Pocket widget on the new tab, auto-sorted by type and by website, and optionally filed into folders you create. Think Instagram's Save with collections, but for text, and calm.
+Pocket is where small, text-only things go so you don't lose them: a link, a blog URL, a word, a sentence, a paragraph, a code snippet. Right-click anything on a page, choose "Add to Pocket", and it lands in the Pocket widget on the new tab, auto-sorted by type and by website, and optionally filed into folders you create. Think Instagram's Save with collections, but for text, and calm.
 
 Job to be done: "When I come across something worth keeping while reading or working, let me save it in one gesture without leaving the page, and let me find it again in seconds."
 
@@ -46,7 +46,7 @@ Phase 3 (do NOT build; just keep the data model compatible): folder submenu insi
 
 ## 3. Saving flow (service worker)
 
-3.1 Context menu: ONE item. id "pocket-save", title exactly "Add to Undistracted Me", contexts ["selection","link","page"]. Never register image, video or audio contexts. Create it on install/startup the way each browser requires (Chrome contextMenus, Firefox menus/contextMenus). No submenus.
+3.1 Context menu: ONE item. id "pocket-save", title exactly "Add to Pocket", contexts ["selection","link","page"]. Never register image, video or audio contexts. Create it on install/startup the way each browser requires (Chrome contextMenus, Firefox menus/contextMenus). No submenus.
 
 3.2 What gets saved:
 - Selection: the selected text. Prefer window.getSelection().toString() via scripting.executeScript (activeTab) so line breaks and indentation survive (important for code). Fall back to info.selectionText.
@@ -189,7 +189,7 @@ Intent wireframes (not pixel-perfect):
 
 ## 7. Copy (calm, sentence case, no exclamation marks, no emoji)
 
-- Empty (first run): title "Your pocket is empty." Body: "Select text on any page, right-click, and choose Add to Undistracted Me." Show three tiny steps: Select, Right-click, Saved. Below it, the quick-add input labeled "Or paste something here."
+- Empty (first run): title "Your pocket is empty." Body: "Select text on any page, right-click, and choose Add to Pocket." Show three tiny steps: Select, Right-click, Saved. Below it, the quick-add input labeled "Or paste something here."
 - Empty folder: "Nothing in {folder} yet. Use Folders on any save to add it."
 - No search results: "Nothing matches "{query}"." with a "Clear search" link.
 - Toasts: "Saved to Pocket" / "Already in your Pocket" / "Saved (trimmed to 20,000 characters)".

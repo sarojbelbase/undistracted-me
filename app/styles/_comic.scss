@@ -54,11 +54,10 @@
   }
 
   // Period — AM/PM, secondary units
-  // Uppercase tracking + weight = rubber-stamp look beside the display number.
+  // Keep sentence-case like paper/glass; no forced uppercase.
   .w-period {
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   // Level 5 — Body text
@@ -69,7 +68,7 @@
   }
 
   // Level 6 & 7 — Captions and labels
-  // Uppercase + wide tracking = typewriter metadata / stamps.
+  // Caption keeps a touch of tracking; labels stay sentence-case for readability.
   .w-caption {
     font-weight: 600;
     letter-spacing: 0.03em;
@@ -77,8 +76,7 @@
 
   .w-label {
     font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   // Muted / empty-state copy

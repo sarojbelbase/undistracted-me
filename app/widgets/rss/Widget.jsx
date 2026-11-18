@@ -22,6 +22,8 @@ import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
 import { Broadcast, Rss } from "react-bootstrap-icons";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { EMPTY_STATES } from "../../constants/emptyStates";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
 import { ChevronLeftIcon } from '../../assets/svg/ChevronLeftIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
@@ -382,32 +384,7 @@ const MarqueeSkeleton = () => (
   </div>
 );
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
-
-const EmptyState = ({ sourceMode, absolute = false }) => (
-  <div className={`flex flex-col items-center justify-center gap-3 p-5 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
-    <div
-      style={{
-        width: 40, height: 40, borderRadius: "50%",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.04)",
-        border: "1px solid rgba(0,0,0,0.07)",
-      }}
-    >
-      <Broadcast size={18} style={{ color: "var(--w-ink-5)", opacity: 0.5 }} aria-hidden />
-    </div>
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--w-ink-3)" }}>
-        No headlines yet
-      </p>
-      <p style={{ fontSize: "0.6875rem", color: "var(--w-ink-5)", lineHeight: 1.5, maxWidth: 180 }}>
-        {sourceMode === "custom"
-          ? "Import an OPML file with your feed URLs to get started"
-          : "Select at least one source from Settings"}
-      </p>
-    </div>
-  </div>
-);
+// ─── Error state ─────────────────────────────────────────────────────────────
 
 const ErrorState = ({ onRetry, absolute = false }) => (
   <div className={`flex flex-col items-center justify-center gap-2 p-4 text-center ${absolute ? "absolute inset-0" : "flex-1"}`}>
@@ -608,7 +585,14 @@ export const Widget = ({ id, onRemove }) => {
           />
         )}
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
-          <EmptyState sourceMode={sourceMode} absolute />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <EmptyState
+              size="sm"
+              icon={<Broadcast size={18} />}
+              title={EMPTY_STATES.rss.default.title}
+              text={sourceMode === "custom" ? EMPTY_STATES.rss.custom.text : EMPTY_STATES.rss.default.text}
+            />
+          </div>
         )}
       </BaseWidget>
     );
@@ -670,7 +654,14 @@ export const Widget = ({ id, onRemove }) => {
         )}
 
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
-          <EmptyState sourceMode={sourceMode} />
+          <div className="flex-1 flex items-center justify-center min-h-0">
+            <EmptyState
+              size="sm"
+              icon={<Broadcast size={18} />}
+              title={EMPTY_STATES.rss.default.title}
+              text={sourceMode === "custom" ? EMPTY_STATES.rss.custom.text : EMPTY_STATES.rss.default.text}
+            />
+          </div>
         )}
       </div>
       <ScrollFade />

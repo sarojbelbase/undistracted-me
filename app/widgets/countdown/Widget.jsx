@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
-import { HourglassSplit, XLg } from "react-bootstrap-icons";
+import { XLg, HourglassSplit } from "react-bootstrap-icons";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { EMPTY_STATES } from "../../constants/emptyStates";
 import { BaseWidget } from "../BaseWidget";
 import { useEvents, useGoogleCalendar } from "../../hooks/useEvents";
 import { todayStr } from "../../utilities";
@@ -438,15 +440,13 @@ export const Widget = ({ id, onRemove }) => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center">
-          <HourglassSplit
-            size={28}
-            style={{ color: "var(--w-ink-4)" }}
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          <EmptyState
+            size="sm"
+            icon={<HourglassSplit size={18} />}
+            title={EMPTY_STATES.countdown.empty.title}
+            text={EMPTY_STATES.countdown.empty.text}
           />
-          <p className="w-muted text-sm">No countdowns yet.</p>
-          <p className="text-xs" style={{ color: "var(--w-ink-4)" }}>
-            Add events or open settings to create one.
-          </p>
         </div>
       )}
     </BaseWidget>

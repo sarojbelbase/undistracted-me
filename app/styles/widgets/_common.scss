@@ -115,7 +115,7 @@
 
 // ── Empty state — centred flex column ─────────────────────────────────────────
 //
-// Used by: events (.evt-empty), occasions (.occ-empty), countdown (partial)
+// Used by: countdown (.cdn-empty-state, via empty-state-card)
 
 @mixin empty-state {
   display: flex;

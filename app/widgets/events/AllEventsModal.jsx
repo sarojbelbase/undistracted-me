@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { EMPTY_STATES } from '../../constants/emptyStates';
 import { bucketLabel, isPast } from './utils';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
@@ -61,11 +63,12 @@ export const AllEventsModal = ({ events, onClose, onRemove }) => {
       {/* Event list */}
       <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-6">
         {!hasAny && (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <CalendarEvent size={32} style={{ color: 'var(--w-ink-4)', opacity: 0.5 }} />
-            <p className="text-[12px] font-semibold" style={{ color: 'var(--w-ink-4)' }}>
-              No upcoming events.<br />Hit + to create one.
-            </p>
+          <div className="flex flex-1 items-center justify-center min-h-0">
+            <EmptyState
+              icon={<CalendarEvent size={22} />}
+              title={EMPTY_STATES.events.empty.title}
+              text={EMPTY_STATES.events.empty.text}
+            />
           </div>
         )}
 

@@ -25,19 +25,6 @@
   color: var(--w-ink-4);
 }
 
-// ── Empty state ──────────────────────────────────────────────────────────────
-
-.evt-empty {
-  @include empty-state;
-  flex: 1;
-  gap: 0.5rem;
-}
-
-.evt-empty__icon {
-  color: var(--w-ink-4);
-  opacity: 0.5;
-}
-
 // ── Add button (accent circle) ───────────────────────────────────────────────
 
 .evt-add-btn {

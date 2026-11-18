@@ -15,7 +15,8 @@ import { loadSourceSerif } from "../../utilities/loadSourceSerif";
 import { usePocket } from "./usePocket";
 import { saveText } from "./save";
 import { sortedItems, totalCount } from "./selectors";
-import { DEFAULT_WIDGET_ITEMS, EMPTY_COPY } from "./constants";
+import { DEFAULT_WIDGET_ITEMS } from "./constants";
+import { EMPTY_STATES } from "../../constants/emptyStates";
 import { ItemRow } from "./ItemRow";
 import { SkeletonRows } from "./Skeleton";
 import { AddDialog } from "./AddDialog";
@@ -138,8 +139,9 @@ export const Widget = ({ id, onRemove }) => {
   const empty = (
     <EmptyState
       size="sm"
-      title={EMPTY_COPY.widget.title}
-      text={EMPTY_COPY.widget.text}
+      icon={<PocketIcon size={18} />}
+      title={EMPTY_STATES.pocket.widget.title}
+      text={EMPTY_STATES.pocket.widget.text}
       action={
         <Button variant="primary" size="sm" onClick={() => openAdd()}>
           Add or paste

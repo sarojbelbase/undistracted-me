@@ -6,6 +6,8 @@ import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { formatAmount } from '../../data/currencies';
 import { getCategoryInfo, getCatColor } from './useExpenses';
 import { MONTHS, formatDate, getPeriodBounds, getPeriodLabel } from './dates';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { EMPTY_STATES } from '../../constants/emptyStates';
 
 // ─── Sparkline data helpers ──────────────────────────────────────────────────
 
@@ -317,19 +319,18 @@ export const RecentExpensesModal = ({ expenses, currency, budget, timeRange, onC
       {/* Body */}
       <div className="overflow-y-auto flex-1 px-5 py-2 flex flex-col gap-1">
         {!hasAny && (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <WalletFill size={28} className="exp-modal__empty-icon" />
-            <p className="text-[12px] font-semibold exp-modal__empty-text">
-              No expenses yet.<br />Add one below.
-            </p>
+          <div className="flex flex-1 items-center justify-center min-h-0">
+            <EmptyState
+              icon={<WalletFill size={22} />}
+              title={EMPTY_STATES.expense.empty.title}
+              text={EMPTY_STATES.expense.empty.text}
+            />
           </div>
         )}
 
         {hasAny && !hasFiltered && (
-          <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <p className="text-[12px] font-semibold exp-modal__empty-text">
-              No expenses in this {timeRange}.
-            </p>
+          <div className="flex flex-1 items-center justify-center min-h-0">
+            <EmptyState icon={<WalletFill size={22} />} title={`No expenses in this ${timeRange}.`} />
           </div>
         )}
 

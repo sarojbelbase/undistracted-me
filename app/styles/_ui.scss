@@ -412,10 +412,17 @@
   padding: 28px 20px;
   text-align: center;
 
-  // Quieter, more spacious variant for cramped widget faces.
+  // Quieter, more compact variant for cramped widget faces.
   &--sm {
-    gap: 10px;
-    padding: 24px 16px;
+    gap: 6px;
+    padding: 12px 12px;
+
+    // Smaller glyph so icon + title + text + action all fit a short card.
+    .um-empty__icon {
+      width: 32px;
+      height: 32px;
+      margin-bottom: 0;
+    }
   }
 
   &__title {
@@ -431,6 +438,25 @@
     color: var(--w-ink-4);
     max-width: 220px;
     margin: 0;
+    // Cap the sentence at two lines so it can't push the action out of a
+    // short card face.
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+    color: var(--w-ink-5);
+    background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--w-ink-1) 8%, transparent);
   }
 }
 

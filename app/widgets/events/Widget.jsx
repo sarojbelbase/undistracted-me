@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { PlusLg, CalendarEvent, ArrowRight } from 'react-bootstrap-icons';
+import { PlusLg, ArrowRight, CalendarEvent } from 'react-bootstrap-icons';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { EMPTY_STATES } from '../../constants/emptyStates';
 
 const EventSkeleton = () => (
   <div className="evt-skeleton">
@@ -107,11 +109,13 @@ export const Widget = ({ onRemove }) => {
         {loading && upcomingEvents.length === 0 ? (
           <EventSkeleton />
         ) : upcomingEvents.length === 0 ? (
-          <div className="evt-empty">
-            <CalendarEvent size={24} className="evt-empty__icon" />
-            <p className="w-muted font-semibold">
-              No upcoming events
-            </p>
+          <div className="flex-1 flex items-center justify-center min-h-0">
+            <EmptyState
+              size="sm"
+              icon={<CalendarEvent size={18} />}
+              title={EMPTY_STATES.events.empty.title}
+              text={EMPTY_STATES.events.empty.text}
+            />
           </div>
         ) : (
           <div className="flex-1 flex flex-col gap-3.5">

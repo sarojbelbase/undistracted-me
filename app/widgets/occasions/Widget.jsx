@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
-import { PersonHeart, BalloonFill, HeartFill, StarFill, XLg } from 'react-bootstrap-icons';
+import { BalloonFill, HeartFill, StarFill, XLg, PersonHeart } from 'react-bootstrap-icons';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { EMPTY_STATES } from '../../constants/emptyStates';
 import { BaseWidget } from '../BaseWidget';
 import {
   getContactBirthdays,
@@ -100,53 +102,6 @@ const TypeIcon = ({ type, size = 11 }) => {
   if (type === 'other') return <StarFill size={size} style={{ ...style, color: OCCASION_SPECIAL_COLOR }} />;
   return <BalloonFill size={size} style={{ ...style, color: 'var(--w-accent)' }} />;
 };
-
-// ─── Empty / unauthenticated states ──────────────────────────────────────────
-
-const ConnectPrompt = ({ onConnect, onAdd }) => (
-  <div className="occ-prompt">
-    <PersonHeart size={24} className="occ-prompt__icon" />
-    <div className="flex flex-col items-center gap-1.5">
-      <p className="occ-prompt__title">No occasions yet</p>
-      <p className="occ-prompt__hint">
-        Connect Google Contacts to sync birthdays or add them manually.
-      </p>
-    </div>
-    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-      <button
-        type="button"
-        onClick={onConnect}
-        style={{
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontSize: 11.5, fontWeight: 600, border: 'none',
-          background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-        }}
-      >
-        Connect Contacts
-      </button>
-      <button
-        type="button"
-        onClick={onAdd}
-        style={{
-          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-          fontSize: 11.5, fontWeight: 600,
-          background: 'transparent', color: 'var(--w-ink-3)',
-          border: '1px solid var(--card-border)',
-        }}
-      >
-        Add manually
-      </button>
-    </div>
-  </div>
-);
-
-const EmptyState = () => (
-  <div className="occ-empty">
-    <span className="occ-empty__emoji">🎊</span>
-    <p className="w-muted font-semibold">Nothing coming up</p>
-    <p className="w-muted">No birthdays in your contacts</p>
-  </div>
-);
 
 // ─── Regular list row ─────────────────────────────────────────────────────────
 
@@ -305,13 +260,57 @@ export const Widget = ({ id, onRemove }) => {
 
   // ── Content ──────────────────────────────────────────────────────────────
   function renderContent() {
-    if (!connected && manual.length === 0) return (
-      <ConnectPrompt
-        onConnect={openAccountsDialog}
-        onAdd={() => setShowAddModal(true)}
-      />
-    );
-    if (upcoming.length === 0) return <EmptyState />;
+    if (!connected && manual.length === 0) {
+      return (
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          <EmptyState
+            size="sm"
+            icon={<PersonHeart size={18} />}
+            title={EMPTY_STATES.occasions.unconnected.title}
+            text={EMPTY_STATES.occasions.unconnected.text}
+            action={
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 220 }}>
+                <button
+                  type="button"
+                  onClick={openAccountsDialog}
+                  style={{
+                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', width: '100%',
+                    fontSize: 11.5, fontWeight: 600, border: 'none',
+                    background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
+                  }}
+                >
+                  Connect Contacts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(true)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', width: '100%',
+                    fontSize: 11.5, fontWeight: 600,
+                    background: 'transparent', color: 'var(--w-ink-3)',
+                    border: '1px solid var(--card-border)',
+                  }}
+                >
+                  Add manually
+                </button>
+              </div>
+            }
+          />
+        </div>
+      );
+    }
+    if (upcoming.length === 0) {
+      return (
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          <EmptyState
+            size="sm"
+            icon={<BalloonFill size={18} />}
+            title={EMPTY_STATES.occasions.empty.title}
+            text={EMPTY_STATES.occasions.empty.text}
+          />
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         {/* Render all rows; hero gets a tinted background highlight */}

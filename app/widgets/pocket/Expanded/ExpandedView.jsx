@@ -8,7 +8,8 @@ import { usePocket } from "../usePocket";
 import { updatePrefs } from "../pocketStore";
 import { filterItems, totalCount } from "../selectors";
 import { searchItems } from "../utils";
-import { EMPTY_COPY, KIND_META, PAGE_SIZE } from "../constants";
+import { KIND_META, PAGE_SIZE } from "../constants";
+import { EMPTY_STATES } from "../../../constants/emptyStates";
 import { ScrollFade } from "../../../components/ui/ScrollFade";
 import { SkeletonRows } from "../Skeleton";
 import { Rail } from "./Rail";
@@ -96,11 +97,12 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
         />
       );
     }
-    const copy = filter == null ? EMPTY_COPY.all : filter.type === "kind" ? EMPTY_COPY[filter.value] : null;
+    const copy = filter == null ? EMPTY_STATES.pocket.all : filter.type === "kind" ? EMPTY_STATES.pocket[filter.value] : null;
     if (filter?.type === "folder") {
       const folder = folders.find((f) => f.id === filter.value);
       return (
         <EmptyState
+          icon={<PocketIcon size={22} />}
           title={`${folder?.name || "Folder"} is empty.`}
           text="Open More actions on any save and choose Add to Folder."
         />
@@ -108,8 +110,9 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
     }
     return (
       <EmptyState
-        title={copy?.title || EMPTY_COPY.all.title}
-        text={copy?.text || EMPTY_COPY.all.text}
+        icon={<PocketIcon size={22} />}
+        title={copy?.title || EMPTY_STATES.pocket.all.title}
+        text={copy?.text || EMPTY_STATES.pocket.all.text}
         action={
           filter == null ? (
             <Button variant="primary" size="sm" onClick={onAdd}>

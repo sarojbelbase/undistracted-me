@@ -10,6 +10,8 @@ import { useUIStore } from '../../store/useUIStore';
 import { ChromeMediaPlayer } from './ChromeMediaPlayer';
 import { SpotifyPlayer } from './SpotifyPlayer';
 import { SpotifySettings } from './Settings';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { EMPTY_STATES } from '../../constants/emptyStates';
 
 export const Widget = ({ onRemove }) => {
   const [connected, setConnected] = useState(() => isSpotifyConnected());
@@ -66,20 +68,23 @@ export const Widget = ({ onRemove }) => {
   // Not connected
   if (!connected && !chromeMediaSessions.length) {
     return (
-      <BaseWidget className="p-4 flex flex-col items-center justify-center gap-3" onRemove={onRemove} settingsContent={settingsPanel} settingsTitle="Media">
-        <MusicNoteBeamed size={22} style={{ color: 'var(--w-ink-6)', opacity: 0.4 }} />
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <p className="text-[11px] font-semibold" style={{ color: 'var(--w-ink-3)' }}>Nothing playing</p>
-          <p className="text-[10.5px] leading-snug" style={{ color: 'var(--w-ink-5)' }}>Open YouTube or SoundCloud in any tab</p>
-          <button
-            type="button"
-            onClick={() => useUIStore.getState().openAccountsDialog()}
-            className="text-[10.5px] font-semibold rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
-            style={{ padding: '5px 12px', border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            Connect Spotify
-          </button>
-        </div>
+      <BaseWidget className="flex flex-col items-center justify-center" onRemove={onRemove} settingsContent={settingsPanel} settingsTitle="Media">
+        <EmptyState
+          size="sm"
+          icon={<MusicNoteBeamed size={18} />}
+          title={EMPTY_STATES.media.empty.title}
+          text={EMPTY_STATES.media.empty.text}
+          action={
+            <button
+              type="button"
+              onClick={() => useUIStore.getState().openAccountsDialog()}
+              className="text-[10.5px] font-semibold rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
+              style={{ padding: '5px 12px', border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
+            >
+              Connect Spotify
+            </button>
+          }
+        />
       </BaseWidget>
     );
   }

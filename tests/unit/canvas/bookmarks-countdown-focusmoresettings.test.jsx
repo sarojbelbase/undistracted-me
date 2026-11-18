@@ -452,8 +452,8 @@ describe('Countdown Widget — additional coverage', () => {
     vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
     vi.mocked(formatCountdown).mockReturnValue({ days: 0, hours: 0, minutes: 0, totalSeconds: 0 });
     render(<CountdownWidget onRemove={vi.fn()} />);
-    // Empty state says "No countdowns yet."
-    expect(screen.getByText('No countdowns yet.')).toBeTruthy();
+    // Empty state says "No countdowns yet"
+    expect(screen.getByText('No countdowns yet')).toBeTruthy();
   });
 
   it('uses hours when the countdown is under a day', () => {
