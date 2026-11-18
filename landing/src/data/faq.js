@@ -10,6 +10,14 @@ export const faq = [
     a: "Yes. There's no account to sign in to, so install and go. Widgets that pull from the internet, like weather, stocks, news and your Google data, need a connection to refresh.",
   },
   {
+    q: "Can it block distracting sites?",
+    a: "Yes. Block any site for a set time or permanently, right from Settings. Blocking runs through the browser's own declarative rules, needs no broad \"read all sites\" permission, and your blocklist never leaves your device.",
+  },
+  {
+    q: "What is the web clipper?",
+    a: "It's a save-for-later tool built into your new tab. Select text on any page, right-click and choose \"Add to Pocket\", and it lands on your new tab — sorted by type and website, with folders, search and offline access. Text only, stored only on your device.",
+  },
+  {
     q: "What data does it collect?",
     a: "None that identifies you: no account, no tracking and no analytics. Google integrations keep their tokens on your device, not on a server.",
   },

@@ -11,6 +11,8 @@ const PAGES = [
   { url: `${site.url}/momentum-alternative/`, file: "src/pages/momentum-alternative.astro" },
   { url: `${site.url}/tabliss-alternative/`, file: "src/pages/tabliss-alternative.astro" },
   { url: `${site.url}/bonjourr-alternative/`, file: "src/pages/bonjourr-alternative.astro" },
+  { url: `${site.url}/blocksite-alternative/`, file: "src/pages/blocksite-alternative.astro" },
+  { url: `${site.url}/stayfocusd-alternative/`, file: "src/pages/stayfocusd-alternative.astro" },
 ];
 
 /**

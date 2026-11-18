@@ -15,12 +15,20 @@ the store APIs do not set name / description / category / screenshots.
 | Category | **Productivity** |
 | Developer website | `https://undistracted.me` |
 | Privacy policy URL | `https://undistracted.me/pp-and-tos` |
-| Short description | `Free, open-source new tab with Focus Mode, Pomodoro, ambient sounds, Google Tasks & quiet widgets. No account, no tracking.` (123 chars) |
+| Short description | `Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account, no tracking.` (109 chars) |
 
 ### Detailed description
 
 ```
-Undistracted Me replaces your new tab with a calm, distraction-free dashboard — so the first thing you see is quiet, not noise. Open a new tab to start a Pomodoro timer, play ambient sounds, or drop into Focus Mode, a full-screen cinematic clock built for deep work — and your Google Tasks are right there so you never lose your place.
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard — so the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work — with your Google Tasks right there.
+
+✦ Block what distracts you
+• Site blocking — block any site for a set time or permanently, from Settings
+• Private by design — your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
+
+✦ Clip what you find
+• Web clipper — select text on any page, right-click "Add to Pocket", and it lands on your new tab
+• Auto-sorted by type and website, with folders, search and offline access
 
 ✦ What's inside
 • Focus Mode — a full-screen cinematic clock with optional rain and ambient sounds
@@ -51,11 +59,11 @@ Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
 
 | Field | File (in `chrome/`) |
 |---|---|
-| Screenshot 1 | `screenshots/01_dashboard_light.png` |
-| Screenshot 2 | `screenshots/02_dashboard_dark.png` |
+| Screenshot 1 | `screenshots/01_site_blocking.png` |
+| Screenshot 2 | `screenshots/02_web_clipper.png` |
 | Screenshot 3 | `screenshots/03_focus_mode.png` |
-| Screenshot 4 | `screenshots/04_quick_tour_step1.png` |
-| Screenshot 5 | `screenshots/05_quick_tour_step2.png` |
+| Screenshot 4 | `screenshots/04_dashboard_light.png` |
+| Screenshot 5 | `screenshots/05_dashboard_dark.png` |
 | Small promo tile (440×280) | `promo/small_promo_440x280.png` |
 | Marquee (1400×560, optional) | `promo/marquee_1400x560.png` |
 
@@ -71,13 +79,21 @@ Category → **Productivity**.
 ### Summary (short description)
 
 ```
-Free, open-source new tab with Focus Mode, Pomodoro, ambient sounds, Google Tasks & quiet widgets. No account, no tracking.
+Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account, no tracking.
 ```
 
 ### Description
 
 ```
-Undistracted Me replaces your new tab with a calm, distraction-free dashboard — the first thing you see is quiet, not noise. Open a new tab to start a Pomodoro timer, play ambient sounds, or drop into Focus Mode, a full-screen cinematic clock built for deep work — and your Google Tasks are right there.
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard — the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work — with your Google Tasks right there.
+
+✦ Block what distracts you
+• Site blocking — block any site for a set time or permanently, from Settings
+• Private by design — your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
+
+✦ Clip what you find
+• Web clipper — select text on any page, right-click "Add to Pocket", and it lands on your new tab
+• Auto-sorted by type and website, with folders, search and offline access
 
 ✦ What's inside
 • Focus Mode — a full-screen cinematic clock with optional ambient sounds
@@ -107,7 +123,11 @@ Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
 
 | Field | File (in `firefox/`) |
 |---|---|
-| Screenshot 1–5 | `screenshots/01…05_*.png` (1280×800, 24-bit PNG) |
+| Screenshot 1 | `screenshots/01_site_blocking.png` |
+| Screenshot 2 | `screenshots/02_web_clipper.png` |
+| Screenshot 3 | `screenshots/03_focus_mode.png` |
+| Screenshot 4 | `screenshots/04_dashboard_light.png` |
+| Screenshot 5 | `screenshots/05_dashboard_dark.png` |
 
 - Extension ID (gecko): `{1071d037-0f17-4c92-b06c-704050d2e2c3}` — pinned in
   `public/manifest.json` `browser_specific_settings.gecko.id`, so uploads land
@@ -118,12 +138,14 @@ Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
 
 ## Screenshot captions
 
-Five themed captions (max 8 words each) for the store screenshot slots.
+Five themed captions (max 8 words each) for the store screenshot slots, leading
+with the two headline features. Captured via
+`tests/playwright/specs/store-screenshots.spec.js`.
 
 | Theme | Caption |
 |---|---|
+| Site blocking | Block any site for a timer or always |
+| Web clipper | Clip and save text from any page |
 | Focus Mode | Full-screen cinematic clock for deep focus |
-| Pomodoro + sounds | Pomodoro timer with rain and ambient sounds |
-| Widgets | Quiet, drag-and-drop widgets for a calm dashboard |
-| Themes | Light, dark, and auto themes with accent colors |
-| Privacy | No account, no tracking, your data stays local |
+| Dashboard (light) | A calm dashboard of quiet widgets |
+| Dashboard (dark) | Light, dark, and auto themes |

@@ -1,9 +1,9 @@
 export const site = {
   name: "Undistracted Me",
   url: "https://undistracted.me",
-  title: "Undistracted Me: Free Focus New Tab with Pomodoro, Tasks & Widgets",
+  title: "Undistracted Me: Site Blocker, Web Clipper & Focus New Tab",
   description:
-    "Free, open-source new tab for Chrome and Firefox with Focus Mode, Pomodoro, ambient sounds, Google Tasks and quiet widgets. No account, works offline. Includes a Nepali (BS) calendar and NEPSE watchlist.",
+    "Free, open-source new tab that blocks distracting sites and clips what you find, plus Focus Mode, Pomodoro, tasks and widgets. No account, works offline. Nepali (BS) calendar and NEPSE included.",
   // Bump this whenever the landing page content materially changes.
   lastUpdated: "2026-11-13",
   author: {

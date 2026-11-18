@@ -62,4 +62,39 @@ export const llmsSections = [
       },
     ],
   },
+  {
+    name: "4. Compare",
+    links: [
+      {
+        url: `${site.url}/blocksite-alternative/`,
+        title: "vs BlockSite",
+        description:
+          "Undistracted Me vs BlockSite: a free, open-source site blocker plus focus new tab.",
+      },
+      {
+        url: `${site.url}/stayfocusd-alternative/`,
+        title: "vs StayFocusd",
+        description:
+          "Undistracted Me vs StayFocusd: free, open-source blocking plus a web clipper and focus tools.",
+      },
+      {
+        url: `${site.url}/momentum-alternative/`,
+        title: "vs Momentum",
+        description:
+          "Undistracted Me vs Momentum: free, open-source focus new tab.",
+      },
+      {
+        url: `${site.url}/tabliss-alternative/`,
+        title: "vs Tabliss",
+        description:
+          "Undistracted Me vs Tabliss: Pomodoro, ambient sounds and Google Tasks built in.",
+      },
+      {
+        url: `${site.url}/bonjourr-alternative/`,
+        title: "vs Bonjourr",
+        description:
+          "Undistracted Me vs Bonjourr: ambient sounds, Google Tasks and a bigger widget grid.",
+      },
+    ],
+  },
 ];

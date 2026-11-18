@@ -71,8 +71,8 @@ export function buildSchemaGraph() {
         isAccessibleForFree: true,
         inLanguage: "en",
         keywords:
-          "pomodoro, google tasks, ambient sounds, focus timer, nepali calendar, bikram sambat, nepali date, new tab extension, chrome extension, firefox addon, focus mode, distraction free, nepali patro",
-        featureList: widgets.map((w) => w.title),
+          "pomodoro, google tasks, ambient sounds, focus timer, nepali calendar, bikram sambat, nepali date, new tab extension, chrome extension, firefox addon, focus mode, distraction free, nepali patro, site blocker, block distracting sites, web clipper, save for later, pocket alternative",
+        featureList: [...widgets.map((w) => w.title), "Site blocking", "Web clipper"],
         author: { "@id": `${site.url}/#author` },
         publisher: { "@id": `${site.url}/#org` },
         offers: [
