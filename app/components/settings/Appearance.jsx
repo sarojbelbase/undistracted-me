@@ -1,14 +1,18 @@
 /**
  * Appearance — Theme, Accent colour, and Widget Style settings.
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
+ *
+ * All multi-option selectors use the shared <SegmentedControl> component
+ * (the `.um-seg` raised-pill style used app-wide, e.g. Pocket "Group by").
  */
 
-import { SunFill, MoonFill, CircleHalf, CheckLg } from 'react-bootstrap-icons';
+import { CheckLg } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store';
 import { ACCENT_COLORS } from '../../theme';
 import { CARD_STYLES } from '../../constants/cardStyles';
 import { APP_SETTINGS_DEFAULTS } from '../../constants/defaults';
 import { TooltipBtn } from '../ui/TooltipBtn';
+import { SegmentedControl } from '../ui/SegmentedControl';
 import { useAutoTheme } from '../../hooks/useAutoTheme';
 import { CanvasBackgroundPicker } from './CanvasBackgroundPicker';
 import { Toggle } from '../ui/Toggle';
@@ -22,17 +26,11 @@ const SectionLabel = ({ children }) => (
   </p>
 );
 
-const Segment = ({ children, style = {} }) => (
-  <div style={{
-    display: 'flex', gap: 3, padding: 3,
-    borderRadius: 11,
-    background: 'var(--panel-bg)',
-    border: '1px solid var(--card-border)',
-    ...style,
-  }}>
-    {children}
-  </div>
-);
+const THEME_OPTIONS = [
+  { label: 'Light', value: 'light' },
+  { label: 'Auto', value: 'auto' },
+  { label: 'Dark', value: 'dark' },
+];
 
 export const Appearance = () => {
   // Narrow selectors — avoid re-rendering the whole panel on any single change.
@@ -61,47 +59,35 @@ export const Appearance = () => {
     setCanvasBg({ ...(canvasBg ?? APP_SETTINGS_DEFAULTS.canvasBg), type });
 
   const backgroundOptions = [
-    { id: 'solid', label: 'Solid', hint: 'Accent tint' },
-    { id: 'orb', label: 'Motion', hint: 'Animated orb' },
-    { id: 'photo', label: 'Photos', hint: 'Curated gallery' },
-    { id: 'custom', label: 'Custom URL', hint: 'Your image' },
+    { id: 'solid', label: 'Solid' },
+    { id: 'orb', label: 'Motion' },
+    { id: 'photo', label: 'Photos' },
+    { id: 'custom', label: 'Custom URL' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+      {/* ── Theme ── */}
+      <div>
+        <SectionLabel>Theme</SectionLabel>
+        <SegmentedControl
+          ariaLabel="Theme"
+          options={THEME_OPTIONS}
+          value={mode}
+          onChange={setMode}
+        />
+      </div>
+
       {/* ── Widget Style ── */}
       <div>
         <SectionLabel>Widget Style</SectionLabel>
-        <Segment>
-          {CARD_STYLES.map(({ id, label, hint }) => {
-            const selected = cardStyle === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setCardStyle(id)}
-                style={{
-                  flex: 1,
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                  padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  textAlign: 'left', transition: 'all 0.15s ease',
-                  background: selected ? 'var(--w-accent)' : 'transparent',
-                }}
-              >
-                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-2)' }}>
-                  {label}
-                </span>
-                <span style={{
-                  fontSize: 10, lineHeight: '1.3',
-                  color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {hint}
-                </span>
-              </button>
-            );
-          })}
-        </Segment>
+        <SegmentedControl
+          ariaLabel="Widget Style"
+          options={CARD_STYLES.map(({ id, label }) => ({ label, value: id }))}
+          value={cardStyle}
+          onChange={setCardStyle}
+        />
       </div>
 
       {/* ── Widget Focus ── */}
@@ -125,77 +111,6 @@ export const Appearance = () => {
         </div>
       </div>
 
-      {/* ── Background ── */}
-      <div>
-        <SectionLabel>Background</SectionLabel>
-        <Segment>
-          {backgroundOptions.map(({ id, label, hint }) => {
-            const selected = bgType === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setType(id)}
-                style={{
-                  flex: 1,
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                  padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  textAlign: 'left', transition: 'all 0.15s ease',
-                  background: selected ? 'var(--w-accent)' : 'transparent',
-                }}
-              >
-                <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-2)' }}>
-                  {label}
-                </span>
-                <span style={{
-                  fontSize: 10, lineHeight: '1.3',
-                  color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {hint}
-                </span>
-              </button>
-            );
-          })}
-        </Segment>
-        {(bgType === 'photo' || bgType === 'custom') && (
-          <div style={{ marginTop: 12 }}>
-            <CanvasBackgroundPicker type={bgType} value={canvasBg} onChange={setCanvasBg} />
-          </div>
-        )}
-      </div>
-
-      {/* ── Theme ── */}
-      <div>
-        <SectionLabel>Theme</SectionLabel>
-        <Segment>
-          {[
-            { id: 'light', label: 'Light', icon: <SunFill size={11} /> },
-            { id: 'auto', label: 'Auto', icon: <CircleHalf size={11} /> },
-            { id: 'dark', label: 'Dark', icon: <MoonFill size={11} /> },
-          ].map(({ id, label, icon }) => {
-            const selected = mode === id;
-            return (
-              <TooltipBtn
-                key={id}
-                tooltip={id === 'auto' ? 'Follows sunrise & sunset at your location' : undefined}
-                aria-label={label}
-                onClick={() => setMode(id)}
-                style={{
-                  flex: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  padding: '7px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600, transition: 'all 0.15s ease',
-                  background: selected ? 'var(--w-accent)' : 'transparent',
-                  color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                }}
-              >
-                {icon}{label}
-              </TooltipBtn>
-            );
-          })}
-        </Segment>
-      </div>
-
       {/* ── Accent ── */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -213,7 +128,7 @@ export const Appearance = () => {
                 tooltip={color.name}
                 onClick={() => setAccent(color.name)}
                 style={{
-                  width: 26, height: 26, borderRadius: '50%', border: 'none', padding: 0,
+                  width: 27, height: 27, borderRadius: '50%', border: 'none', padding: 0,
                   backgroundColor: swatchHex,
                   boxShadow: selected ? 'inset 0 0 0 99px rgba(0,0,0,0.22)' : 'none',
                   cursor: 'pointer',
@@ -227,6 +142,22 @@ export const Appearance = () => {
             );
           })}
         </div>
+      </div>
+
+      {/* ── Background ── */}
+      <div>
+        <SectionLabel>Background</SectionLabel>
+        <SegmentedControl
+          ariaLabel="Background"
+          options={backgroundOptions.map(({ id, label }) => ({ label, value: id }))}
+          value={bgType}
+          onChange={setType}
+        />
+        {(bgType === 'photo' || bgType === 'custom') && (
+          <div style={{ marginTop: 12 }}>
+            <CanvasBackgroundPicker type={bgType} value={canvasBg} onChange={setCanvasBg} />
+          </div>
+        )}
       </div>
 
     </div>

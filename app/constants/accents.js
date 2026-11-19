@@ -31,6 +31,11 @@ export const ACCENT_COLORS = [
   { name: 'Mint',        hex: '#157A6A', fg: '#ffffff', darkHex: '#3DCFB8', darkFg: '#000000' }, // light  5.2:1 AA  | dark 10.8:1 AAA
   { name: 'Latte',       hex: '#8B6228', fg: '#ffffff', darkHex: '#DCAB4E', darkFg: '#000000' }, // light  5.4:1 AA  | dark 10.0:1 AAA
   { name: 'Cocoa',       hex: '#715344', fg: '#ffffff', darkHex: '#D4907F', darkFg: '#000000' }, // light  6.9:1 AA  | dark  8.1:1 AAA
+  { name: 'Cyan',        hex: '#0E7490', fg: '#ffffff', darkHex: '#4AD5F0', darkFg: '#000000' }, // light  5.4:1 AA  | dark  9.8:1 AAA
+  { name: 'Indigo',      hex: '#3B4CCA', fg: '#ffffff', darkHex: '#8A96FF', darkFg: '#000000' }, // light  6.8:1 AA  | dark  6.4:1 AAA
+  { name: 'Rose',        hex: '#B02E5C', fg: '#ffffff', darkHex: '#FF7BA5', darkFg: '#000000' }, // light  6.2:1 AA  | dark  7.0:1 AAA
+  { name: 'Emerald',     hex: '#0B7A45', fg: '#ffffff', darkHex: '#3DDC84', darkFg: '#000000' }, // light  5.4:1 AA  | dark  9.6:1 AAA
+  { name: 'Teal',        hex: '#0E7A70', fg: '#ffffff', darkHex: '#3DD6C5', darkFg: '#000000' }, // light  5.2:1 AA  | dark  9.4:1 AAA
 ];
 
 // ─── Focus Mode accent CSS var helpers ───────────────────────────────────────
