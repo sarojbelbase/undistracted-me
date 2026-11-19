@@ -80,8 +80,8 @@ describe('ACCENT_COLORS catalogue', () => {
     expect(def.hex).toBe('#111111');
   });
 
-  it('Banana and Latte use near-white fg', () => {
-    const accents = ['Banana', 'Latte'];
+  it('Banana and Cocoa use near-white fg', () => {
+    const accents = ['Banana', 'Cocoa'];
     accents.forEach((name) => {
       const a = ACCENT_COLORS.find((x) => x.name === name);
       if (a) expect(a.fg).toBe('#ffffff');

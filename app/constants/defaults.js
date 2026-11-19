@@ -21,7 +21,7 @@
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
 
 export const APP_SETTINGS_DEFAULTS = Object.freeze({
-  accent: "Latte",
+  accent: "Cocoa",
   mode: "light",
   defaultView: "canvas",
   dateFormat: "gregorian",

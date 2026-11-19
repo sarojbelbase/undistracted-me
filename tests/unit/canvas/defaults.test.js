@@ -9,8 +9,8 @@ import {
 } from '../../../app/constants/defaults';
 
 describe('APP_SETTINGS_DEFAULTS — first-install appearance', () => {
-  it('uses the Latte accent by default', () => {
-    expect(D.accent).toBe('Latte');
+  it('uses the Cocoa accent by default', () => {
+    expect(D.accent).toBe('Cocoa');
   });
 
   it('defaults to light theme', () => {
