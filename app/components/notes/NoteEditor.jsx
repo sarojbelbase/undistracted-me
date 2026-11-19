@@ -1,4 +1,4 @@
-import { useRef, useEffect, lazy, Suspense } from "react";
+import { useRef, useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronLeft,
@@ -12,9 +12,104 @@ import {
 } from "react-bootstrap-icons";
 import { ConfirmButton } from "../ui/ConfirmButton";
 import { TooltipBtn } from "../ui/TooltipBtn";
+import { useFocusWeather } from "../../hooks/useFocusWeather";
+import { getWeatherIcon } from "../../widgets/weather/utils.jsx";
+import { useSettingsStore } from "../../store";
+import { onClockTick } from "../../utilities/sharedClock";
+import { getTimeParts } from "../../widgets/clock/utils";
+import {
+  getGregorianDateParts,
+  getBikramSambatDateParts,
+} from "../../utilities";
 
 // Only fetched the first time the full-screen editor mounts.
 const LexicalEditor = lazy(() => import("../../widgets/notes/LexicalEditor"));
+
+// ─── Note Mode ambient strip (weather + clock + date, centered top bar) ──────
+// Weather always leads, then clock, then date — separated by spacing (no dots),
+// matching Focus Mode's weather-first arrangement.
+
+const computeNoteClock = (clockFormat, dateFormat) => {
+  const { time, period } = getTimeParts(clockFormat || "24h");
+  const dp =
+    dateFormat === "gregorian"
+      ? getGregorianDateParts()
+      : getBikramSambatDateParts();
+  return {
+    time,
+    period,
+    dow: dp.dow,
+    month: dp.month,
+    day: dp.day,
+    year: dp.year,
+    dayKey: `${dp.year}|${dp.month}|${dp.day}`,
+  };
+};
+
+const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
+  const weather = useFocusWeather();
+  const [state, setState] = useState(() => computeNoteClock(clockFormat, dateFormat));
+
+  // onClockTick fires every second; only re-render when the minute or the day
+  // actually rolls over.
+  const update = useCallback(() => {
+    setState((prev) => {
+      const next = computeNoteClock(clockFormat, dateFormat);
+      if (prev && prev.time === next.time && prev.dayKey === next.dayKey) return prev;
+      return next;
+    });
+  }, [clockFormat, dateFormat]);
+
+  useEffect(() => onClockTick(update), [update]);
+
+  const dateParts = { dow: state.dow, month: state.month, day: state.day, year: state.year };
+  const showW = showWeather && weather;
+  const showCD = showClock;
+
+  if (!showW && !showCD) return null;
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        whiteSpace: "nowrap",
+        fontVariantNumeric: "tabular-nums",
+        userSelect: "none",
+        gap: 10,
+      }}
+    >
+      {showW && (
+        <span style={{ display: "inline-flex", alignItems: "center" }}>
+          <span style={{ opacity: 0.65, display: "flex", alignItems: "center", marginRight: 5 }}>
+            {getWeatherIcon(weather.code, weather.isDay, 12)}
+          </span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--w-ink-1)", letterSpacing: "-0.01em" }}>
+            {weather.temperature}°{weather.unit === "imperial" ? "F" : "C"}
+          </span>
+        </span>
+      )}
+      {showCD && (
+        <span style={{ display: "inline-flex", alignItems: "baseline" }}>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--w-ink-1)", letterSpacing: "-0.02em" }}>
+            {state.time}
+          </span>
+          {state.period && (
+            <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "var(--w-ink-3)", marginLeft: 3 }}>
+              {state.period}
+            </span>
+          )}
+        </span>
+      )}
+      {showCD && (
+        <span style={{ fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.01em", color: "var(--w-ink-1)" }}>
+          {dateParts.dow}, {dateParts.month} {dateParts.day}
+        </span>
+      )}
+    </span>
+  );
+};
 
 // ─── Segmented-control button (with Popup tooltip) ────────────────────────────
 const SegBtn = ({ onClick, disabled, label, children }) => (
@@ -40,7 +135,7 @@ const SegBtn = ({ onClick, disabled, label, children }) => (
  *   exitLabel — text shown next to the back arrow (e.g. "Notes" / "Canvas")
  *   exitAriaLabel — accessible name for the back button (defaults to "Back to {exitLabel}")
  */
-export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel }) => {
+export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, isNoteMode = false }) => {
   const {
     localIdx,
     localNote,
@@ -60,6 +155,9 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel }
     syncing,
     syncFeedback,
     handleSyncNow,
+    showClock,
+    showWeather,
+    dateFormat,
   } = notes;
 
   const titleRef = useRef(null);
@@ -165,7 +263,7 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel }
 
   return createPortal(
     <div className="fixed inset-0 flex flex-col notes-fullscreen">
-      <div className="notes-fullscreen-topbar">
+      <div className="notes-fullscreen-topbar" style={{ position: 'relative' }}>
         <button
           onClick={onExit}
           aria-label={exitAriaLabel || `Back to ${exitLabel}`}
@@ -175,6 +273,22 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel }
           <span>{exitLabel}</span>
         </button>
         {navControls}
+        {isNoteMode && (
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              top: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <NoteAmbientStrip showClock={showClock} showWeather={showWeather} dateFormat={dateFormat} />
+          </div>
+        )}
         {syncControl}
       </div>
 

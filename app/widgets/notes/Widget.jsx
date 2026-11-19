@@ -8,6 +8,7 @@ import { useNotesState } from "../../hooks/useNotesState";
 import { NoteEditor } from "../../components/notes/NoteEditor";
 import { Popup } from "../../components/ui/Popup";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
+import { Settings } from "./Settings";
 
 // ─── Per-note hue palette (cycles by note index) ─────────────────────────────
 const NOTE_HUES = [
@@ -59,6 +60,10 @@ export const Widget = ({ id, onRemove }) => {
     wordCount,
     jumpTo,
     handleWidgetTextChange,
+    showClock,
+    showWeather,
+    dateFormat,
+    updateSetting,
   } = notes;
 
   // ── Mode (widget card vs. full-screen editor) ──────────────────────────────
@@ -72,6 +77,16 @@ export const Widget = ({ id, onRemove }) => {
     <BaseWidget
       className="flex flex-col overflow-hidden"
       cardStyle={{ borderRadius: "14px" }}
+      settingsTitle="Notes"
+      settingsContent={
+        <Settings
+          id={id}
+          showClock={showClock}
+          showWeather={showWeather}
+          dateFormat={dateFormat}
+          onChange={updateSetting}
+        />
+      }
       onRemove={onRemove}
     >
       <div className="notes-writing-surface">

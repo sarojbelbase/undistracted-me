@@ -258,5 +258,11 @@ export function useNotesState(widgetId) {
     syncing,
     syncFeedback,
     handleSyncNow,
+    // Note Mode display settings (weather + clock + date) — read from the same
+    // per-widget settings slot so the Notes widget settings drive Note Mode.
+    showClock: settings.showClock,
+    showWeather: settings.showWeather,
+    dateFormat: settings.dateFormat,
+    updateSetting,
   };
 }

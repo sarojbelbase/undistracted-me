@@ -65,7 +65,7 @@ export const WIDGET_SETTINGS_DEFAULTS = Object.freeze({
   calendar: { calendarType: "bs", showHolidays: true },
   progress: { period: "day", calendar: "ad" },
   stock: { symbols: ["NEPSE"] },
-  notes: { notes: [""], idx: 0 },
+  notes: { notes: [""], idx: 0, showClock: true, showWeather: true, dateFormat: "gregorian" },
   bookmark: { url: "", name: "", iconMode: "favicon" },
   pomodoro: {
     soundEnabled: true,
