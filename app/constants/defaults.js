@@ -45,6 +45,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   focusTasks: true,
   focusSearchTopSites: true,
   focusSearchWeb: true,
+  focusBgSync: false,
   focusPanels: {
     pomodoro: true,
     event: true,

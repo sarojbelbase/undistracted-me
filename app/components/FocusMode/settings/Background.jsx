@@ -8,7 +8,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { XLg, Link45deg, CheckLg } from 'react-bootstrap-icons';
 import bgImage from '../../../assets/img/bg.webp';
 import { Input } from '../../ui/Input';
-import { TabRow } from '../../ui/TabRow';
+import { SegmentedControl } from '../../ui/SegmentedControl';
 import {
   getPhotoLibrary,
   downloadCuratedPhotos,
@@ -18,7 +18,9 @@ import {
   getThumbUrl,
 } from '../../../utilities/unsplash';
 import { extractColorFromImage } from '../../../utilities/favicon';
+import { useSettingsStore } from '../../../store';
 import { FM_SURFACE, FM_SURFACE_2, FM_SECTION_CARD_BG, FM_BORDER, FM_INK_1, FM_INK_2, FM_INK_3 } from '../theme';
+import { SECTION_CARD_STYLE, ToggleRow } from '../dialog/shared';
 
 // ─── Tab config ─────────────────────────────────────────────────────────────────────────────
 
@@ -438,6 +440,8 @@ export const Background = ({ initialSource, initialCustomUrl, initialPhotoUrl, o
   const [tab, setTab] = useState(() => (
     initialSource === 'custom' ? 'custom' : 'curated'
   ));
+  const focusBgSync = useSettingsStore(s => s.focusBgSync);
+  const setFocusBgSync = useSettingsStore(s => s.setFocusBgSync);
 
   const handleApply = useCallback((type, opts = {}) => {
     setActiveSource(type);
@@ -446,28 +450,49 @@ export const Background = ({ initialSource, initialCustomUrl, initialPhotoUrl, o
 
   return (
     <div className="flex flex-col gap-3">
-      <TabRow tabs={TABS} value={tab} onChange={setTab} dark />
-      <div>
-        {tab === 'curated' && (
-          <CuratedPanel
-            isActive={activeSource === 'curated'}
-            isDefaultActive={activeSource === 'default'}
-            initialPhotoUrl={initialPhotoUrl}
-            onApply={(url, color) => handleApply('curated', url ? { url, ...(color ? { color } : {}) } : {})}
-            onApplyDefault={() => handleApply('default')}
-            onRotatePhoto={onRotatePhoto}
-          />
-        )}
-        {tab === 'custom' && (
-          <CustomPanel
-            isActive={activeSource === 'custom'}
-            initialCustomUrl={initialCustomUrl}
-            onApply={(opts) => {
-              if (opts.url) handleApply('custom', opts);
-              else if (activeSource === 'custom') handleApply('default', {});
-            }}
-          />
-        )}
+      {/* ── Mirror canvas background ── */}
+      <div style={SECTION_CARD_STYLE}>
+        <ToggleRow
+          label="Mirror canvas background"
+          description="Use the photo or custom image set in Canvas mode. Turn off to choose a background here."
+          checked={focusBgSync}
+          onChange={setFocusBgSync}
+        />
+      </div>
+
+      <div style={{
+        opacity: focusBgSync ? 0.45 : 1,
+        pointerEvents: focusBgSync ? 'none' : undefined,
+        transition: 'opacity 0.2s ease',
+      }}>
+        <SegmentedControl
+          ariaLabel="Background source"
+          options={TABS.map(({ id, label }) => ({ value: id, label }))}
+          value={tab}
+          onChange={setTab}
+        />
+        <div>
+          {tab === 'curated' && (
+            <CuratedPanel
+              isActive={activeSource === 'curated'}
+              isDefaultActive={activeSource === 'default'}
+              initialPhotoUrl={initialPhotoUrl}
+              onApply={(url, color) => handleApply('curated', url ? { url, ...(color ? { color } : {}) } : {})}
+              onApplyDefault={() => handleApply('default')}
+              onRotatePhoto={onRotatePhoto}
+            />
+          )}
+          {tab === 'custom' && (
+            <CustomPanel
+              isActive={activeSource === 'custom'}
+              initialCustomUrl={initialCustomUrl}
+              onApply={(opts) => {
+                if (opts.url) handleApply('custom', opts);
+                else if (activeSource === 'custom') handleApply('default', {});
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -95,9 +95,10 @@ function computePageBg(bgType, isDark, accent, cardStyle, url, color) {
     return "var(--w-page-bg)";
   }
   if ((bgType === "photo" || bgType === "custom") && url) {
-    // Cover-fill the viewport with the image; the (dominant) colour sits behind
-    // it as a placeholder while it loads and as a fallback if it 404s.
-    return `${color || "#18191b"} url("${url}") center / cover no-repeat`;
+    // The image itself is rendered by CanvasBgImage's crossfade layer (see
+    // CanvasBackground.jsx) so switching backgrounds fades like Focus Mode —
+    // the page background only carries the dominant colour as a placeholder.
+    return color || "#18191b";
   }
   return getSolidGradientBg(isDark, accent, cardStyle);
 }

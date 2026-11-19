@@ -137,6 +137,7 @@ export const useSettingsStore = create(
       focusTasks: APP_SETTINGS_DEFAULTS.focusTasks,
       focusSearchTopSites: APP_SETTINGS_DEFAULTS.focusSearchTopSites,
       focusSearchWeb: APP_SETTINGS_DEFAULTS.focusSearchWeb,
+      focusBgSync: APP_SETTINGS_DEFAULTS.focusBgSync,
 
       focusPanels: APP_SETTINGS_DEFAULTS.focusPanels,
 
@@ -173,6 +174,9 @@ export const useSettingsStore = create(
 
       /** Include web autocomplete suggestions in results */
       setFocusSearchWeb: (v) => set({ focusSearchWeb: v }),
+
+      /** Mirror Canvas photo/custom background into Focus Mode (one-way). */
+      setFocusBgSync: (focusBgSync) => set({ focusBgSync }),
 
       /** Toggle a single Focus Mode panel on/off by key */
       setFocusPanelEnabled: (key, enabled) =>

@@ -147,10 +147,12 @@ export const FocusMode = ({ onExit }) => {
       globalThis.removeEventListener("focus_mode_changed", onFocusModeChanged);
   }, []);
   // Card surface style (glass vs flat) — both are always dark-tinted.
-  const { cardStyle, accent } = useSettingsStore(
+  const { cardStyle, accent, focusBgSync, canvasBg } = useSettingsStore(
     useShallow((s) => ({
       cardStyle: s.cardStyle,
       accent: s.accent,
+      focusBgSync: s.focusBgSync,
+      canvasBg: s.canvasBg,
     })),
   );
   const effectiveCardStyle = cardStyle || APP_SETTINGS_DEFAULTS.cardStyle;
@@ -160,16 +162,34 @@ export const FocusMode = ({ onExit }) => {
     search: searchDark,
     greet: greetDark,
   } = useCenterOnDark(slotA, slotB, activeSlot);
+
+  // ── Canvas background mirror (one-way) ─────────────────────────────────────
+  // When "Mirror canvas background" is on, Focus Mode renders the canvas photo /
+  // custom-URL image. Solid + orb do not sync — they fall back to Focus Mode's
+  // default. Changes only flow canvas → focus (never focus → canvas).
+  const syncedUrl =
+    focusBgSync &&
+    (canvasBg?.type === "photo" || canvasBg?.type === "custom") &&
+    canvasBg?.url
+      ? canvasBg.url
+      : null;
+  const effectiveBgSource = focusBgSync
+    ? syncedUrl
+      ? "custom"
+      : "default"
+    : bgSource;
+  const effectiveCustomUrl = syncedUrl ?? customBgUrl;
+
   // Non-curated sources are always dark — prevents white-shadow flash.
-  const effectiveClockDark = bgSource === "curated" ? clockDark : true;
+  const effectiveClockDark = effectiveBgSource === "curated" ? clockDark : true;
   // The search pill is photo-adaptive (translucent glass) only in glass mode.
   // Paper and comic render the pill as a solid dark surface (see _paper.scss /
   // _comic.scss `:has(> #fm-search)`), so its text must stay light even over a
   // bright photo — otherwise a light search zone flips the text to black-on-dark.
   const searchAdaptsToPhoto =
-    bgSource === "curated" && effectiveCardStyle === "glass";
+    effectiveBgSource === "curated" && effectiveCardStyle === "glass";
   const effectiveSearchDark = searchAdaptsToPhoto ? searchDark : true;
-  const effectiveGreetDark = bgSource === "curated" ? greetDark : true;
+  const effectiveGreetDark = effectiveBgSource === "curated" ? greetDark : true;
 
   // ── Fullscreen + UI visiblity ───────────────────────────────────────────────
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -266,11 +286,11 @@ export const FocusMode = ({ onExit }) => {
       }}
     >
       <FocusBgLayer
-        bgSource={bgSource}
+        bgSource={effectiveBgSource}
         slotA={slotA}
         slotB={slotB}
         activeSlot={activeSlot}
-        customBgUrl={customBgUrl}
+        customBgUrl={effectiveCustomUrl}
       />
 
       {/* Cinematic vignette */}
