@@ -19,7 +19,7 @@ import {
   FullscreenExit,
 } from "react-bootstrap-icons";
 import { RainNoiseIcon } from "../../../assets/svg/RainNoiseIcon";
-import { getWeatherIcon } from "../../../widgets/weather/utils.jsx";
+import { WeatherDateStrip } from "../../ui/WeatherDateStrip";
 import { useSettingsStore } from "../../../store";
 import { onClockTick } from "../../../utilities/sharedClock";
 import {
@@ -35,9 +35,7 @@ import {
   FM_CARD_BORDER,
   FM_SURFACE_2,
   FM_INK_1,
-  FM_INK_2,
   FM_INK_4,
-  FM_INK_3,
   FM_BORDER,
 } from "../theme";
 import { useRainStream } from "../../../hooks/useRainStream";
@@ -46,65 +44,8 @@ import { ChevronLeftIcon } from '../../../assets/svg/ChevronLeftIcon';
 const TOP = ZONES.top.items;
 
 // ── Info strip (weather + date) ───────────────────────────────────────────────
-
-const ITEM_RENDERERS = {
-  weatherIcon: (weather) =>
-    weather ? (
-      <div
-        key="weatherIcon"
-        style={{
-          filter: "brightness(0) invert(1)",
-          opacity: 0.65,
-          display: "flex",
-          alignItems: "center",
-          marginRight: 6,
-        }}
-      >
-        {getWeatherIcon(weather.code, weather.isDay, 14)}
-      </div>
-    ) : null,
-  weatherTemp: (weather) =>
-    weather ? (
-      <React.Fragment key="weatherTemp">
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: FM_INK_2,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {weather.temperature}°{weather.unit === "imperial" ? "F" : "C"}
-        </span>
-        <span style={{ fontSize: 14, color: FM_INK_4, marginInline: 4 }}>
-          ·
-        </span>
-      </React.Fragment>
-    ) : null,
-  date: (_, dateParts) => (
-    <span
-      key="date"
-      style={{
-        fontSize: 15,
-        fontWeight: 700,
-        letterSpacing: "0.01em",
-        color: FM_INK_2,
-      }}
-    >
-      {dateParts.dow}, {dateParts.month} {dateParts.day}
-    </span>
-  ),
-  year: (_, dateParts) => (
-    <span
-      key="year"
-      className="fm-topbar-year"
-      style={{ fontSize: 13, fontWeight: 600, color: FM_INK_3, marginLeft: 7 }}
-    >
-      {dateParts.year}
-    </span>
-  ),
-  screenTime: () => <ScreenTime key="screenTime" />,
-};
+// weather + date + year rendering now lives in the shared <WeatherDateStrip>
+// component (also used by Note Mode). ScreenTime is rendered separately below.
 
 // ── Screen time (digital wellbeing) ────────────────────────────────────────────
 //
@@ -179,29 +120,20 @@ const ScreenTime = () => {
   );
 };
 
-const InfoStrip = ({ weather, dateParts }) => {
-  const nodes = Object.entries(TOP)
-    .filter(([, cfg]) => cfg.enable)
-    .sort(([, a], [, b]) => a.order - b.order)
-    .map(([key]) => ITEM_RENDERERS[key]?.(weather, dateParts))
-    .filter(Boolean);
-
-  if (!nodes.length) return null;
-
-  return (
-    <div
-      className="fm-topbar-center"
-      style={{
-        zIndex: 31,
-        top: "calc(1.25rem + 2px)",
-        pointerEvents: "none",
-        userSelect: "none",
-      }}
-    >
-      {nodes}
-    </div>
-  );
-};
+const InfoStrip = ({ weather, dateParts }) => (
+  <div
+    className="fm-topbar-center"
+    style={{
+      zIndex: 31,
+      top: "calc(1.25rem + 2px)",
+      pointerEvents: "none",
+      userSelect: "none",
+    }}
+  >
+    <WeatherDateStrip weather={weather} dateParts={dateParts} dark showYear />
+    {TOP.screenTime.enable && <ScreenTime />}
+  </div>
+);
 
 
 // ── Nav bar ───────────────────────────────────────────────────────────────────

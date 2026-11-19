@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useWeather } from "../../hooks/useWeather";
 import {
   getCurrentPhoto,
   rotatePhoto,
@@ -10,7 +9,6 @@ import {
   setCurrentPhotoId,
 } from "../../utilities/unsplash";
 import { useWidgetInstancesStore } from "../../store";
-import { useLocationStore } from "../../store/useLocationStore";
 import {
   isGoogleAuthAvailable,
   getGoogleUserProfile,
@@ -19,40 +17,9 @@ import { useGoogleAccountStore } from "../../store/useGoogleAccountStore";
 
 const HISTORY_KEY = "fm_search_history";
 
-// ─── Weather ──────────────────────────────────────────────────────────────────
+// ─── Weather (shared hook — also used by Note Mode) ──────────────────────────
 
-export const useFocusWeather = () => {
-  // Read from Zustand widgetSettings — reactive to same-tab setting changes.
-  // Use a two-step selector to avoid creating a new reference on every
-  // unrelated store mutation (e.g. notes keystrokes, RSS refresh).
-  // Step 1: find the weather instance id (stable unless instances array reorders).
-  // Returns a primitive string — no useShallow needed (identity compare is enough).
-  const weatherInstId = useWidgetInstancesStore((s) => {
-    const inst = s.instances.find((i) => i.type === "weather");
-    return inst?.id ?? "weather";
-  });
-  // Step 2: read only that instance's settings — isolated from other widget writes.
-  const weatherSettings = useWidgetInstancesStore(
-    useShallow((s) => s.widgetSettings[weatherInstId] ?? null),
-  );
-
-  // Fall back to the centralized location store when no manual location is set
-  const { geoLat, geoLon, geoSource } = useLocationStore(
-    useShallow((s) => ({ geoLat: s.lat, geoLon: s.lon, geoSource: s.source })),
-  );
-
-  const location = weatherSettings?.location ?? null;
-  const unit = weatherSettings?.unit ?? "metric";
-
-  // Resolve coords: manual location → geo store → nothing
-  const useGeo = geoSource !== "default";
-  const lat = location?.lat ?? (useGeo ? geoLat : null);
-  const lon = location?.lon ?? (useGeo ? geoLon : null);
-  const city = location?.name || "";
-
-  const { weather } = useWeather({ lat, lon, unit, cityName: city });
-  return weather ? { ...weather, unit } : null;
-};
+export { useFocusWeather } from "../../hooks/useFocusWeather";
 
 // ─── Stocks (delegates to shared hook) ───────────────────────────────────────
 
