@@ -263,6 +263,12 @@ html.js .cell.in{opacity:1;translate:none}
 .foot .logo{margin-bottom:.9rem}
 .foot .logo svg{height:2rem}
 .foot .legal{grid-column:1/-1;max-width:none;border-top:1px solid #2a2a2a;padding-top:var(--s3);margin:0;font:500 .8rem var(--mono);color:#9a9a96}
+.foot-base{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s3);border-top:1px solid #2a2a2a;padding-top:var(--s3)}
+.foot-base .legal{border-top:0;padding-top:0;margin:0}
+.foot-badges{display:flex;align-items:center;gap:var(--s2)}
+.foot .fbadge{display:block;margin:0;padding:0}
+.foot .fbadge img{opacity:.9;transition:opacity var(--dur-1)}
+.foot .fbadge:hover img{opacity:1}
 
 @media(max-width:800px){
 .hero{display:block;padding:calc(var(--nav) + 1rem) var(--pad) 3rem}.fig{position:relative;right:auto;bottom:auto;width:min(94vw,470px);margin:0 calc(var(--g)*-1) 0 auto;-webkit-mask:linear-gradient(#000 80%,transparent);mask:linear-gradient(#000 80%,transparent)}.hcopy{max-width:none;margin-top:.5rem}

@@ -59,6 +59,18 @@ const cols = [
     ],
   },
 ];
+
+// Directory & social-proof badges. Add more entries here (Product Hunt,
+// Chrome Web Store, Firefox Add-ons, etc.) and they join the same quiet row.
+const badges = [
+  {
+    href: "https://alternativeto.net/software/undistracted-me/about/?utm_source=badge&utm_medium=referral",
+    src: "https://alternativeto.net/static/badges/badge-compact-light.svg",
+    alt: "Undistracted Me on AlternativeTo",
+    width: 171,
+    height: 58,
+  },
+];
 ---
 
 <footer class="dark foot">
@@ -76,5 +88,14 @@ const cols = [
     </div>
   ))}
 
-  <p class="legal">Made with ♥ in Nepal. © 2026 Undistracted Me. MIT license.</p>
+  <div class="foot-base">
+    <p class="legal">Made with ♥ in Nepal. © 2026 Undistracted Me. MIT license.</p>
+    <div class="foot-badges">
+      {badges.map((b) => (
+        <a class="fbadge" href={b.href} target="_blank" rel="noopener" aria-label={b.alt}>
+          <img src={b.src} alt="" width={b.width} height={b.height} loading="lazy" decoding="async" />
+        </a>
+      ))}
+    </div>
+  </div>
 </footer>
