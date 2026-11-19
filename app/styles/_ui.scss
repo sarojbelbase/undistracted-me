@@ -761,6 +761,16 @@
 .um-seg--md button { min-height: 32px; }
 .um-seg--lg button { min-height: 38px; }
 
+// Subtle (non-accent) variant — quiet raised pill for inline toolbars such as
+// Pocket's "Group by", leaving the accent thumb for settings rows.
+.um-seg--subtle button {
+  &[aria-pressed="true"] {
+    background: var(--panel-bg);
+    color: var(--w-ink-1);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--w-ink-1) 14%, transparent);
+  }
+}
+
 @media (pointer: coarse) {
   .um-seg--sm button { min-height: 36px; }
   .um-seg--md button { min-height: 42px; }

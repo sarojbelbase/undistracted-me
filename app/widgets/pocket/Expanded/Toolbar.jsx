@@ -52,6 +52,7 @@ export function Toolbar({ query, onQueryChange, onClear, onAdd, groupBy, onGroup
           <SegmentedControl
             inline
             size="sm"
+            variant="subtle"
             ariaLabel="Group saves by"
             options={GROUP_BY_OPTIONS}
             value={groupBy}

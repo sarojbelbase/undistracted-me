@@ -16,12 +16,14 @@
  *  inline   – true = size to content (e.g. Pocket toolbar "Group by");
  *             false (default) = fill the parent width (settings rows)
  *  size     – "sm" (Pocket toolbar) | "md" | "lg" (settings rows, default)
+ *  variant  – "accent" (default, sliding accent thumb) | "subtle" (quiet raised
+ *             pill — for inline toolbars like Pocket "Group by")
  *  ariaLabel – accessible group name (falls back to label)
  */
 
 import { useRef, useState, useLayoutEffect, useEffect, useCallback } from "react";
 
-export const SegmentedControl = ({ label, options, value, onChange, inline = false, ariaLabel, size = "lg" }) => {
+export const SegmentedControl = ({ label, options, value, onChange, inline = false, ariaLabel, size = "lg", variant = "accent" }) => {
   const trackRef = useRef(null);
   const [thumb, setThumb] = useState(null);
 
@@ -54,11 +56,11 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
   const track = (
     <div
       ref={trackRef}
-      className={`um-seg um-seg--${size} ${inline ? "" : "um-seg--full"}`}
+      className={`um-seg um-seg--${size} um-seg--${variant} ${inline ? "" : "um-seg--full"}`}
       role="group"
       aria-label={ariaLabel || label}
     >
-      {thumb && (
+      {variant === "accent" && thumb && (
         <span
           className="um-seg-thumb"
           aria-hidden="true"
