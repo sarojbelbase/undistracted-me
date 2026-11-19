@@ -355,7 +355,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           // times (widgets rearrangeable without entering arrange mode).
           dragConfig={{ enabled: arrangeMode, handle: ".widget-drag-handle" }}
           resizeConfig={{ enabled: false }}
-          compactor={getCompactor("vertical")}
+          compactor={getCompactor("none")}
           positionStrategy={{ type: "absolute" }}
           margin={RGL_MARGIN}
           containerPadding={RGL_PADDING}
