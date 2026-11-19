@@ -100,7 +100,6 @@ export function Rail({ filter, onPick, onOpenSettings }) {
 
   return (
     <nav className="pocket-rail" aria-label="Pocket library">
-      <span className="pocket-rail__title">Library</span>
       {renderItem(!filter, () => onPick(null), null, "All", total)}
       {KINDS.map((k) => {
         const Icon = KIND_ICONS[k];
@@ -115,7 +114,6 @@ export function Rail({ filter, onPick, onOpenSettings }) {
         onClick={() => applyFoldersOpen(!foldersOpen)}
       >
         Folders
-        <span className="pocket-rail__title-count">{live.length}</span>
         <span className="pocket-rail__chevron" style={{ transform: foldersOpen ? "rotate(180deg)" : "none" }}>
           <ChevronDown size={12} />
         </span>
@@ -179,7 +177,7 @@ export function Rail({ filter, onPick, onOpenSettings }) {
         })}
 
       {foldersOpen && creating ? (
-        <div className="pocket-rail-edit" style={{ margin: "4px 8px" }}>
+        <div className="pocket-rail-edit" style={{ margin: "4px 8px", flexWrap: "nowrap" }}>
           <input
             autoFocus
             value={newName}
@@ -197,7 +195,7 @@ export function Rail({ filter, onPick, onOpenSettings }) {
             placeholder="Folder name"
             maxLength={MAX_FOLDER_NAME_LENGTH}
             className="pocket-inline-input"
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: 0 }}
           />
           <IconButton label="Create folder" onClick={commitCreate}>
             <Check2 size={14} />

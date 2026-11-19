@@ -48,7 +48,7 @@
 		"@testing-library/jest-dom": "^7.0.1",
 		"@testing-library/react": "^16.3.3",
 		"@testing-library/user-event": "^14.6.12",
-		"@vitest/coverage-v8": "^5.1.0",
+		"@vitest/coverage-v8": "^5.1.1",
 		"esbuild": "^0.28.2",
 		"jsdom": "~31.0.1",
 		"postcss": "^8.5.33",
@@ -57,7 +57,7 @@
 		"sass": "^1.108.2",
 		"tailwindcss": "^4.3.5",
 		"vite": "^8.3.8",
-		"vitest": "^5.1.0",
+		"vitest": "^5.1.1",
 		"web-ext": "^10.8.0"
 	},
 	"browserslist": {

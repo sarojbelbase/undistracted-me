@@ -143,7 +143,7 @@ export const Widget = ({ id, onRemove }) => {
       title={EMPTY_STATES.pocket.widget.title}
       text={EMPTY_STATES.pocket.widget.text}
       action={
-        <Button variant="primary" size="sm" onClick={() => openAdd()}>
+        <Button variant="soft" size="sm" onClick={() => openAdd()}>
           Add or paste
         </Button>
       }

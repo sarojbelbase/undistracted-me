@@ -12,6 +12,7 @@ import { SpotifyPlayer } from './SpotifyPlayer';
 import { SpotifySettings } from './Settings';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { EMPTY_STATES } from '../../constants/emptyStates';
+import { Button } from '../../components/ui/Button';
 
 export const Widget = ({ onRemove }) => {
   const [connected, setConnected] = useState(() => isSpotifyConnected());
@@ -75,14 +76,9 @@ export const Widget = ({ onRemove }) => {
           title={EMPTY_STATES.media.empty.title}
           text={EMPTY_STATES.media.empty.text}
           action={
-            <button
-              type="button"
-              onClick={() => useUIStore.getState().openAccountsDialog()}
-              className="text-[10.5px] font-semibold rounded-lg transition-opacity hover:opacity-80 active:opacity-60 cursor-pointer"
-              style={{ padding: '5px 12px', border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-            >
+            <Button variant="soft" size="sm" onClick={() => useUIStore.getState().openAccountsDialog()}>
               Connect Spotify
-            </button>
+            </Button>
           }
         />
       </BaseWidget>

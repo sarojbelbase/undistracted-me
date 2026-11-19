@@ -14,9 +14,9 @@ import { FOLDER_COLOR_MAP } from "./constants";
  * an inline "New folder" input. Used by the "Add to Folder" menu item and the
  * expanded Details "Add to folder" button.
  */
-export function FolderPicker({ anchor, item, onClose }) {
+export function FolderPicker({ anchor, item, onClose, autoCreate = false }) {
   const { folders } = usePocket();
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(autoCreate);
   const [name, setName] = useState("");
   const active = new Set(item.folderIds || []);
   const visible = liveFolders(folders).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -109,7 +109,7 @@ export function FolderPicker({ anchor, item, onClose }) {
                 }}
                 placeholder="Folder name"
                 className="pocket-inline-input"
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: 0 }}
               />
               <IconButton label="Create folder" onClick={doCreate}>
                 <Check2 size={14} />

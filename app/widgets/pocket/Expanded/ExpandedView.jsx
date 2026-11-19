@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { List, PlusLg } from "react-bootstrap-icons";
+import { List } from "react-bootstrap-icons";
 import { Button } from "../../../components/ui/Button";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { WidgetHeaderFull } from "../../../components/ui/WidgetHeaderFull";
@@ -51,6 +51,13 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  // Focus the search field on open. The shared Modal focuses the first
+  // focusable element, which here is the mobile-only Library toggle
+  // (display:none on desktop), so initial focus would otherwise fail silently.
+  useEffect(() => {
+    searchRef.current?.focus();
+  }, []);
+
   const base = useMemo(() => filterItems(items, filter), [items, filter]);
   const searching = debouncedQuery.trim().length > 0;
   const searched = searching ? searchItems(items, folders, debouncedQuery) : null;
@@ -71,7 +78,6 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
         ? KIND_META[filter.value].label
         : folders.find((f) => f.id === filter.value)?.name || "Folder";
   const countText = searching ? `${list.length} results` : `${list.length}`;
-  const showKind = !(filter?.type === "kind");
 
   const pickFilter = (f) => {
     setFilter(f);
@@ -138,12 +144,6 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
           </Button>
         }
         onClose={onClose}
-        actions={[
-          <Button key="add" variant="primary" size="md" onClick={onAdd}>
-            <PlusLg size={13} />
-            Add
-          </Button>,
-        ]}
       />
 
       <div className={`pocket-expanded ${railOpen ? "pocket-expanded--rail-open" : ""}`}>
@@ -153,6 +153,7 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
             query={query}
             onQueryChange={setQuery}
             onClear={clearSearch}
+            onAdd={onAdd}
             groupBy={prefs.groupBy || "date"}
             onGroupBy={(v) => updatePrefs({ groupBy: v })}
             title={title}
@@ -176,7 +177,6 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
                   showSiteIcons={prefs.showSiteIcons !== false}
                   previewLength={prefs.previewLength || "medium"}
                   wrapCode={!!prefs.wrapCode}
-                  showKind={showKind}
                   collapsedHosts={collapsedHosts}
                   onToggleHost={(h) =>
                     setCollapsedHosts((prev) => {

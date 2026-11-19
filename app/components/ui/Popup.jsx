@@ -54,7 +54,7 @@ export const Popup = ({
     setStyle({
       position: "fixed",
       zIndex: 9999,
-      pointerEvents: "none",
+      pointerEvents: "auto",
       opacity: 1,
       left,
       top,

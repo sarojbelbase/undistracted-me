@@ -7,7 +7,7 @@ import { usePocket } from "./usePocket";
 import { setItemFolders } from "./pocketStore";
 import { copyText, openUrl, openItemSource } from "./actions";
 import { previewClamp } from "./previewLines";
-import { formatSavedDate, middleEllipsis } from "./utils";
+import { detectLanguage, formatSavedDate, middleEllipsis } from "./utils";
 import { humanizeAge } from "../../utilities";
 import { KIND_META, FOLDER_COLOR_MAP } from "./constants";
 import { LinkBody } from "./items/LinkBody";
@@ -30,7 +30,6 @@ export function ItemRow({
   isNew = false,
   variant = "list",
   showSiteIcons = true,
-  showKind = false,
   inWebsiteGroup = false,
   previewLength = "medium",
   wrapCode = false,
@@ -109,11 +108,6 @@ export function ItemRow({
         expanded={expanded}
         variant={variant}
         wrapCode={wrapCode}
-        copied={copied}
-        onCopy={(e) => {
-          e.stopPropagation();
-          doCopy();
-        }}
         onToggle={() => setExpanded((v) => !v)}
       />
     );
@@ -137,7 +131,6 @@ export function ItemRow({
             <SourceLine
               item={item}
               showSiteIcons={showSiteIcons}
-              showKind={showKind}
               inWebsiteGroup={inWebsiteGroup}
             />
           )}
@@ -262,15 +255,20 @@ function WidgetRow({ item, isNew, onOpen }) {
   );
 }
 
-function SourceLine({ item, showSiteIcons, showKind, inWebsiteGroup }) {
+/**
+ * SourceLine — the one quiet line under a text entry: site icon, host, age.
+ * Code adds its language. Everything else (page title, kind, full date) lives
+ * in the expanded Details block, so a collapsed row stays calm.
+ */
+function SourceLine({ item, showSiteIcons, inWebsiteGroup }) {
   const host = item.host || "";
   const age = humanizeAge(item.updatedAt) || "";
   const parts = [];
   if (!inWebsiteGroup && host) parts.push(host);
-  if (!inWebsiteGroup && item.kind === "paragraph" && item.title && item.title !== host) {
-    parts.push(item.title);
+  if (item.kind === "code") {
+    const language = detectLanguage(item.text);
+    if (language !== "Code") parts.push(language);
   }
-  if (showKind) parts.push(KIND_META[item.kind].singular);
   if (age) parts.push(age);
   // title attribute: full URL + absolute date (hover)
   const title = [item.sourceUrl || "", formatSavedDate(item.updatedAt)].filter(Boolean).join(" · ");
@@ -283,6 +281,10 @@ function SourceLine({ item, showSiteIcons, showKind, inWebsiteGroup }) {
   );
 }
 
+/**
+ * Details — the less-used information, shown only when a row is expanded, as
+ * quiet label/value rows: Source (page title, path, actions), Folders, Saved.
+ */
 function Details({ item }) {
   const { folders } = usePocket();
   const [folderAnchor, setFolderAnchor] = useState(null);
@@ -297,62 +299,68 @@ function Details({ item }) {
   return (
     <div className="pocket-details" onClick={(e) => e.stopPropagation()}>
       {hasSource && (
-        <div className="pocket-details__source">
-          <span className="w-label" style={{ color: "var(--w-ink-4)" }}>Source</span>
-          <a
-            href={item.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="pocket-details__link"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {item.title || item.host || item.sourceUrl}
-          </a>
-          <div className="w-caption truncate" title={item.sourceUrl} style={{ color: "var(--w-ink-4)" }}>
-            {middleEllipsis(item.sourceUrl)}
+        <div className="pocket-details__row">
+          <span className="pocket-details__label">Source</span>
+          <div className="pocket-details__value">
+            <a
+              href={item.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="pocket-details__link"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.title || item.host || item.sourceUrl}
+            </a>
+            <div className="w-caption truncate" title={item.sourceUrl} style={{ color: "var(--w-ink-4)" }}>
+              {middleEllipsis(item.sourceUrl)}
+            </div>
+            <div className="pocket-details__actions">
+              {item.kind !== "code" && (
+                <Button variant="secondary" size="sm" onClick={() => openItemSource(item)}>
+                  Open at quote
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => openUrl(item.sourceUrl)}>
+                Open page
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
-      {hasSource && (
-        <div className="flex gap-2">
-          <Button variant="primary" size="sm" onClick={() => openItemSource(item)}>
-            Open at quote
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => openUrl(item.sourceUrl)}>
-            Open page
-          </Button>
+      <div className="pocket-details__row">
+        <span className="pocket-details__label">Folders</span>
+        <div className="pocket-details__value pocket-details__value--wrap">
+          {(item.folderIds || []).map((fid) => {
+            const f = folderById.get(fid);
+            if (!f) return null;
+            return (
+              <button
+                key={fid}
+                type="button"
+                className="pocket-folder-chip"
+                onClick={() => setItemFolders(item.id, (item.folderIds || []).filter((x) => x !== fid))}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{ width: 8, height: 8, borderRadius: 2, background: FOLDER_COLOR_MAP[f.color] || FOLDER_COLOR_MAP.slate }}
+                />
+                <span className="truncate">{f.name}</span>
+                <XLg size={10} aria-hidden="true" />
+              </button>
+            );
+          })}
+          <button type="button" className="pocket-text-btn" onClick={openFolderPicker}>
+            Add to folder
+          </button>
         </div>
-      )}
-
-      <div className="pocket-details__folders">
-        {(item.folderIds || []).map((fid) => {
-          const f = folderById.get(fid);
-          if (!f) return null;
-          return (
-            <button
-              key={fid}
-              type="button"
-              className="pocket-folder-chip"
-              onClick={() => setItemFolders(item.id, (item.folderIds || []).filter((x) => x !== fid))}
-            >
-              <span
-                aria-hidden="true"
-                style={{ width: 8, height: 8, borderRadius: 2, background: FOLDER_COLOR_MAP[f.color] || FOLDER_COLOR_MAP.slate }}
-              />
-              <span className="truncate">{f.name}</span>
-              <XLg size={10} aria-hidden="true" />
-            </button>
-          );
-        })}
-        <button type="button" className="pocket-text-btn" onClick={openFolderPicker}>
-          Add to folder
-        </button>
       </div>
 
-      <div className="pocket-details__saved">
-        <span className="w-label" style={{ color: "var(--w-ink-4)" }}>Saved</span>
-        <span className="w-caption">{formatSavedDate(item.createdAt)} · {KIND_META[item.kind].singular}</span>
+      <div className="pocket-details__row">
+        <span className="pocket-details__label">Saved</span>
+        <span className="w-caption" style={{ color: "var(--w-ink-3)" }}>
+          {formatSavedDate(item.createdAt)} · {KIND_META[item.kind].singular}
+        </span>
       </div>
 
       {folderAnchor && <FolderPicker anchor={folderAnchor} item={item} onClose={() => setFolderAnchor(null)} />}

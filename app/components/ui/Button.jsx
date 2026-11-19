@@ -4,6 +4,7 @@
  *
  * Variants:
  *   primary   – solid accent fill
+ *   soft      – tinted accent chip; fills accent on hover
  *   secondary – outlined (panel surface + card border)
  *   ghost     – text only, transparent
  *   danger    – red outline, red text

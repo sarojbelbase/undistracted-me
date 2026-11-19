@@ -43,6 +43,21 @@
   &:hover:not(:disabled) { opacity: 0.85; }
 }
 
+// Tinted chip: subtle accent wash at rest, solid accent on hover. Used for
+// empty-state actions (the shared "get started" buttons) so they read as calm
+// chips rather than loud solid buttons.
+.um-btn--soft {
+  background: color-mix(in srgb, var(--w-accent) 14%, transparent);
+  color: var(--w-accent);
+  border: 1px solid color-mix(in srgb, var(--w-accent) 30%, transparent);
+
+  &:hover:not(:disabled) {
+    background: var(--w-accent);
+    color: var(--w-accent-fg);
+    border-color: transparent;
+  }
+}
+
 .um-btn--secondary {
   background: var(--panel-bg);
   color: var(--w-ink-2);
@@ -198,6 +213,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.um-menu__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  flex-shrink: 0;
+  color: var(--w-accent);
 }
 
 .um-menu__label {
@@ -668,4 +692,50 @@
     animation: none;
     transition: none;
   }
+}
+
+// ── Segmented switch ────────────────────────────────────────────────────────
+// A subtle track with a raised active pill. App-wide default for secondary
+// view switches (e.g. Pocket's Group by) and widget settings.
+
+.um-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
+
+  button {
+    min-height: 26px;
+    padding: 3px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--w-ink-3);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.14s ease, color 0.14s ease;
+
+    &:hover { color: var(--w-ink-1); }
+
+    &[aria-pressed="true"] {
+      background: var(--panel-bg);
+      color: var(--w-ink-1);
+      font-weight: 600;
+      box-shadow: 0 1px 2px color-mix(in srgb, var(--w-ink-1) 14%, transparent);
+    }
+  }
+}
+
+// Fill the parent width (settings rows); buttons share space evenly.
+.um-seg--full {
+  display: flex;
+  width: 100%;
+
+  button { flex: 1; }
+}
+
+@media (pointer: coarse) {
+  .um-seg button { min-height: 36px; }
 }

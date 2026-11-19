@@ -18,10 +18,7 @@ export function ParagraphBody({ item, clamp, expanded, variant = "list", onToggl
     <div className="flex-1 min-w-0">
       <div
         className="pocket-prose"
-        style={{
-          fontSize: "0.9375rem",
-          ...(expanded ? expandedStyle : { ...clampStyle(clamp), ...fade }),
-        }}
+        style={expanded ? expandedStyle : { ...clampStyle(clamp), ...fade }}
       >
         {item.text}
       </div>

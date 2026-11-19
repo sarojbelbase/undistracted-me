@@ -194,18 +194,15 @@
 }
 
 .pocket-time-label {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: 8px 20px 6px;
-  font-size: 0.625rem;
+  padding: 20px 28px 6px;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--w-ink-5);
-  background: var(--card-bg);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
+  color: var(--w-ink-4);
+}
+.pocket-list-inner > div:first-child > .pocket-time-label {
+  padding-top: 8px;
 }
 
 // --- Rows -----------------------------------------------------------------
@@ -252,8 +249,8 @@
 .pocket-row {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 16px 20px;
+  gap: 12px;
+  padding: 14px 16px;
   cursor: pointer;
 }
 
@@ -266,11 +263,12 @@
 }
 
 // Serif prose for sentence/paragraph bodies in the expanded list (Source Serif
-// 4, the Notes face). Larger + medium weight for comfortable reading.
+// 4, the Notes face). Regular weight keeps long text calm.
 .pocket-prose {
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-weight: 500;
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.65;
   color: var(--w-ink-2);
 }
 
@@ -286,6 +284,35 @@
 }
 .pocket-row__meta-text {
   min-width: 0;
+}
+
+// Expanded list: rows are soft rounded blocks with no divider lines; an open row
+// gets a faint surface so it reads as one unit with its Details.
+.pocket-expanded .pocket-item {
+  margin: 2px 12px;
+  border-bottom: none;
+  border-radius: 12px;
+}
+.pocket-expanded .pocket-item[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--w-ink-1) 4%, transparent);
+}
+
+// Row actions are quiet at rest: revealed on hover, keyboard focus, an expanded
+// row or an open menu — and always visible on touch.
+.pocket-row__actions {
+  opacity: 0;
+  transition: opacity 0.14s ease;
+}
+.pocket-expanded .pocket-item:hover .pocket-row__actions,
+.pocket-expanded .pocket-item:focus-within .pocket-row__actions,
+.pocket-expanded .pocket-item[aria-expanded="true"] .pocket-row__actions,
+.pocket-row__actions--active {
+  opacity: 1;
+}
+@media (hover: none) {
+  .pocket-row__actions {
+    opacity: 1;
+  }
 }
 
 // --- Text button (Show more / Show all / Add to folder / Open page) -------
@@ -305,37 +332,36 @@
 }
 
 // --- Code block -----------------------------------------------------------
+// A quiet inset: no border and no header bar (Copy is the row's primary action).
+// The clamp is whole lines: max-height = N lines × line-height + the block's
+// vertical padding, so a line is never cut in half.
 
-.pocket-code-block {
+.pocket-code {
   background: var(--w-surface-2);
-  border: 1px solid var(--w-border);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
-.pocket-code-block__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  height: 36px;
-  padding: 0 10px 0 12px;
-  border-bottom: 1px solid var(--w-divider);
-}
-
-.pocket-code-block__lang {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--w-ink-4);
-}
-
-.pocket-code-block__body {
+.pocket-code__body {
+  --pocket-code-lh: 1.3rem;
+  --pocket-code-pad: 12px;
+  box-sizing: border-box;
   margin: 0;
-  padding: 12px 14px;
+  padding: var(--pocket-code-pad) 14px;
   font-size: 0.8125rem;
-  line-height: 1.6;
+  line-height: var(--pocket-code-lh);
   color: var(--w-ink-1);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.pocket-code__body--clamped {
+  max-height: calc(var(--pocket-code-lines) * var(--pocket-code-lh) + var(--pocket-code-pad) * 2);
+  overflow-y: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+.pocket-code__more {
+  margin-top: 4px;
 }
 
 // --- Expanded Details block ------------------------------------------------
@@ -343,17 +369,44 @@
 .pocket-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  margin: 0 16px;
+  padding: 12px 0 14px;
   border-top: 1px solid var(--w-divider);
-  background: color-mix(in srgb, var(--w-ink-1) 2%, transparent);
 }
 
-.pocket-details__source {
+.pocket-details__row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+}
+
+.pocket-details__label {
+  padding-top: 2px;
+  font-size: 0.75rem;
+  color: var(--w-ink-4);
+}
+
+.pocket-details__value {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
+.pocket-details__value--wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pocket-details__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 
 .pocket-details__link {
   color: var(--w-accent);
@@ -368,18 +421,7 @@
   text-decoration: underline;
 }
 
-.pocket-details__folders {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 
-.pocket-details__saved {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 // Folder chip (removable)
 .pocket-folder-chip {
@@ -409,8 +451,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  width: min(880px, 94vw);
-  height: min(700px, 90vh);
+  width: min(960px, 94vw);
+  height: min(720px, 90vh);
   container-type: inline-size;
 }
 
@@ -442,8 +484,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 200px;
-  padding: 8px 10px 12px;
+  width: 208px;
+  padding: 16px 12px 12px;
   overflow-y: auto;
   flex-shrink: 0;
   border-right: 1px solid var(--w-divider);
@@ -454,12 +496,12 @@
 }
 
 .pocket-rail__title {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--w-ink-5);
-  padding: 8px 8px 4px;
+  color: var(--w-ink-4);
+  padding: 16px 10px 6px;
 }
 
 // Folders section header — a button with a chevron so the section collapses.
@@ -472,12 +514,12 @@
   background: transparent;
   cursor: pointer;
   text-align: left;
-  color: var(--w-ink-5);
-  font-size: 0.5625rem;
+  color: var(--w-ink-4);
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 8px 8px 4px;
+  padding: 16px 10px 6px;
   border-radius: 6px;
   transition: color 0.14s ease;
 }
@@ -485,14 +527,9 @@
   color: var(--w-ink-2);
 }
 
-.pocket-rail__title-count {
-  color: var(--w-ink-5);
-  font-weight: 600;
-  margin-left: auto;
-  letter-spacing: 0;
-}
 
 .pocket-rail__chevron {
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -511,7 +548,7 @@
   border: none;
   background: transparent;
   color: var(--w-ink-3);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
@@ -521,11 +558,17 @@
   color: var(--w-ink-1);
 }
 .pocket-rail-item--active {
-  background: color-mix(in srgb, var(--w-accent) 12%, transparent);
-  color: var(--w-accent);
+  background: color-mix(in srgb, var(--w-ink-1) 7%, transparent);
+  color: var(--w-ink-1);
   font-weight: 600;
 }
+.pocket-rail-item--active .pocket-rail-item__icon {
+  color: var(--w-accent);
+}
 .pocket-rail-item--new {
+  color: var(--w-ink-4);
+}
+.pocket-rail-item--new:hover {
   color: var(--w-accent);
 }
 .pocket-rail-item__icon {
@@ -666,35 +709,52 @@
 .pocket-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 20px 10px;
+  gap: 12px;
+  padding: 16px 24px 4px;
   flex-shrink: 0;
+}
+
+.pocket-toolbar__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pocket-toolbar__search {
+  flex: 1;
+  min-width: 0;
 }
 
 .pocket-toolbar__row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
+  min-height: 32px;
 }
 
 .pocket-toolbar__heading {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--w-ink-1);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pocket-toolbar__group {
   margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-shrink: 0;
 }
+
+
+
 
 .pocket-expanded__body {
   flex: 1;
   min-height: 0;
+  padding-bottom: 16px;
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -720,12 +780,10 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 20px;
+  padding: 16px 28px 6px;
   border: none;
-  border-bottom: 1px solid var(--w-divider);
   background: transparent;
   cursor: pointer;
-  transition: background 0.14s ease;
 }
 .pocket-site-header:hover {
   background: color-mix(in srgb, var(--w-ink-1) 3%, transparent);
@@ -735,10 +793,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 20px 6px 36px;
+  padding: 8px 28px 2px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--w-ink-3);
+  color: var(--w-ink-4);
 }
 
 .pocket-chevron {
@@ -911,16 +969,6 @@
     background: var(--modal-overlay-bg);
   }
 
-  .pocket-toolbar__group {
-    width: 100%;
-    margin-left: 0;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .pocket-toolbar__group > div {
-    width: 160px;
-  }
 }
 
 // --- Motion preference ----------------------------------------------------
@@ -931,6 +979,7 @@
   .pocket-row,
   .pocket-item,
   .pocket-rail-item,
+  .pocket-row__actions,
   .pocket-site-header,
   .pocket-folder-chip {
     animation: none;

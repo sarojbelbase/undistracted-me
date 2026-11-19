@@ -149,6 +149,9 @@ function dialogSurface(focus) {
     "--w-border": focus["--fm-border"],
     "--w-surface": focus["--fm-surface"],
     "--w-surface-2": focus["--fm-surface-2"],
+    // The segmented-control active pill uses --panel-bg; pin it to the raised
+    // FM surface so shared controls render correctly inside portaled dialogs.
+    "--panel-bg": focus["--fm-surface-2"],
   };
 }
 

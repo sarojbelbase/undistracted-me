@@ -41,3 +41,11 @@ export function isClamped(text, clamp) {
   if (t.split("\n").length > clamp) return true;
   return t.length > clamp * 80; // ~80 chars/line heuristic
 }
+
+/**
+ * True when code has more lines than `clamp`. Long code lines scroll
+ * horizontally instead of wrapping, so character count is irrelevant here.
+ */
+export function isCodeClamped(text, clamp) {
+  return (text || "").split("\n").length > clamp;
+}

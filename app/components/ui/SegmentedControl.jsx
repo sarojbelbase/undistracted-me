@@ -1,14 +1,18 @@
 /**
  * SegmentedControl — horizontal pill-track toggle for widget settings panels.
  *
- * Renders a pill-shaped container (track) where exactly one option is active.
- * Uses design-system CSS vars so it adapts automatically to theme/accent changes.
+ * Renders a subtle pill-shaped container (track) where exactly one option is
+ * active (raised pill). Uses design-system CSS vars so it adapts automatically
+ * to theme/accent changes.
  *
  * Props:
  *  label    – Section label shown above the control (optional)
  *  options  – Array of { label: string, value: string }
  *  value    – Currently selected value
  *  onChange – (newValue: string) => void
+ *  inline   – true = size to content (e.g. Pocket toolbar "Group by");
+ *             false (default) = fill the parent width (settings rows)
+ *  ariaLabel – accessible group name (falls back to label)
  *
  * Example:
  *   <SegmentedControl
@@ -18,28 +22,32 @@
  *     onChange={(v) => onChange('format', v)}
  *   />
  */
-export const SegmentedControl = ({ label, options, value, onChange }) => (
-  <div className="flex flex-col gap-2">
-    {label && <span className="w-label">{label}</span>}
+export const SegmentedControl = ({ label, options, value, onChange, inline = false, ariaLabel }) => {
+  const track = (
     <div
-      className="flex gap-1 p-1 rounded-xl"
-      style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}
+      className={`um-seg ${inline ? "" : "um-seg--full"}`}
+      role="group"
+      aria-label={ariaLabel || label}
     >
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
+          aria-pressed={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className="flex-1 rounded-lg text-xs font-semibold py-1.5 transition-all cursor-pointer"
-          style={
-            value === opt.value
-              ? { background: 'var(--w-accent)', color: 'var(--w-accent-fg)', border: 'none', outline: 'none' }
-              : { background: 'transparent', color: 'var(--w-ink-3)', border: 'none', outline: 'none' }
-          }
         >
           {opt.label}
         </button>
       ))}
     </div>
-  </div>
-);
+  );
+
+  if (!label) return track;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="w-label">{label}</span>
+      {track}
+    </div>
+  );
+};

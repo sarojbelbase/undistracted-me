@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Check2 } from "react-bootstrap-icons";
 import { Popup } from "./Popup";
 
 /**
@@ -7,11 +8,13 @@ import { Popup } from "./Popup";
  * auto-flip) with a transparent full-screen backdrop for outside-click close.
  *
  * items: Array<{
- *   label, icon?, onSelect?, danger?, divider?, submenu?
+ *   label, icon?, onSelect?, danger?, divider?, submenu?, keepOpen?, checked?
  * }>
  *   - `divider: true` renders a hairline.
  *   - `submenu` (array of items) renders `label` as a section header with the
  *     submenu items listed beneath it (the "Change Type" pattern).
+ *   - `keepOpen: true` runs `onSelect` but leaves the menu open (multi-toggle).
+ *   - `checked: true` renders a trailing accent check.
  *
  * Roving tabindex (only the active item is focusable), Arrow Up/Down to move,
  * Enter/Space to select, Escape to close and return focus to the trigger.
@@ -84,7 +87,7 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
         const entry = flat[activeIndex];
         if (entry) {
           entry.onSelect?.();
-          onClose();
+          if (!entry.keepOpen) onClose();
         }
       }
     };
@@ -118,11 +121,16 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
         onClick={(e) => {
           e.stopPropagation();
           entry.item.onSelect?.();
-          onClose();
+          if (!entry.item.keepOpen) onClose();
         }}
       >
         {entry.item.icon && <span className="um-menu__icon">{entry.item.icon}</span>}
         <span className="um-menu__label-text">{entry.item.label}</span>
+        {entry.item.checked && (
+          <span className="um-menu__check" aria-hidden="true">
+            <Check2 size={13} />
+          </span>
+        )}
       </button>
     );
   };

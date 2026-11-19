@@ -11,43 +11,10 @@ import {
 } from '../theme';
 import { CalendarIcon } from '../../../assets/svg/CalendarIcon';
 import { ClockIcon } from '../../../assets/svg/ClockIcon';
+import { SegmentedControl } from '../../ui/SegmentedControl';
 
 const IconCalendar = () => <CalendarIcon size={14} color={FM_ICON_STROKE_MUTED} />;
 const IconClock = () => <ClockIcon size={14} color={FM_ICON_STROKE_MUTED} />;
-
-const SegmentedControl = ({ options, value, onChange }) => (
-  <div
-    style={{
-      display: 'flex', gap: 2, padding: 3,
-      borderRadius: 10,
-      background: FM_SURFACE,
-      border: `1px solid ${FM_BORDER}`,
-    }}
-  >
-    {options.map(({ id, label }) => (
-      <button
-        key={id}
-        type="button"
-        onClick={() => onChange(id)}
-        style={{
-          flex: 1,
-          padding: '5px 0',
-          borderRadius: 7,
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.02em',
-          transition: 'all 0.15s ease',
-          background: value === id ? 'var(--w-accent)' : 'transparent',
-          color: value === id ? 'var(--w-accent-fg)' : FM_INK_3,
-        }}
-      >
-        {label}
-      </button>
-    ))}
-  </div>
-);
 
 // ─── Setting row (icon + label/description + control) ────────────────────────
 
@@ -99,9 +66,10 @@ export const General = () => {
           description="Common Era or Bikram Sambat"
           control={
             <SegmentedControl
+              ariaLabel="Date Calendar"
               options={[
-                { id: 'gregorian', label: 'CE' },
-                { id: 'bikramSambat', label: 'BS' },
+                { value: 'gregorian', label: 'CE' },
+                { value: 'bikramSambat', label: 'BS' },
               ]}
               value={dateFormat || 'gregorian'}
               onChange={setDateFormat}
@@ -114,9 +82,10 @@ export const General = () => {
           description="24-hour or 12-hour with AM/PM"
           control={
             <SegmentedControl
+              ariaLabel="Clock Format"
               options={[
-                { id: '24h', label: '24h' },
-                { id: '12h', label: '12h' },
+                { value: '24h', label: '24h' },
+                { value: '12h', label: '12h' },
               ]}
               value={clockFormat || '24h'}
               onChange={setClockFormat}

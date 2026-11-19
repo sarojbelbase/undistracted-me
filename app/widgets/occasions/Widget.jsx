@@ -3,6 +3,7 @@ import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { BalloonFill, HeartFill, StarFill, XLg, PersonHeart } from 'react-bootstrap-icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { EMPTY_STATES } from '../../constants/emptyStates';
+import { Button } from '../../components/ui/Button';
 import { BaseWidget } from '../BaseWidget';
 import {
   getContactBirthdays,
@@ -21,7 +22,6 @@ import {
 import { OccasionsSettings } from './Settings';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import config from './config';
-import { useUIStore } from '../../store/useUIStore';
 import { GOOGLE_ACCOUNT_CHANGED } from '../../store/useGoogleAccountStore';
 
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
@@ -141,7 +141,6 @@ export const Widget = ({ id, onRemove }) => {
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const ageLabel = useAgeLabel(syncedAt);
-  const openAccountsDialog = useUIStore(s => s.openAccountsDialog);
 
   // Load cached contacts from chrome.storage.local on mount (async).
   useEffect(() => {
@@ -269,31 +268,9 @@ export const Widget = ({ id, onRemove }) => {
             title={EMPTY_STATES.occasions.unconnected.title}
             text={EMPTY_STATES.occasions.unconnected.text}
             action={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 220 }}>
-                <button
-                  type="button"
-                  onClick={openAccountsDialog}
-                  style={{
-                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', width: '100%',
-                    fontSize: 11.5, fontWeight: 600, border: 'none',
-                    background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-                  }}
-                >
-                  Connect Contacts
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(true)}
-                  style={{
-                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', width: '100%',
-                    fontSize: 11.5, fontWeight: 600,
-                    background: 'transparent', color: 'var(--w-ink-3)',
-                    border: '1px solid var(--card-border)',
-                  }}
-                >
-                  Add manually
-                </button>
-              </div>
+              <Button variant="soft" size="sm" onClick={() => setShowAddModal(true)}>
+                Add Occasions
+              </Button>
             }
           />
         </div>

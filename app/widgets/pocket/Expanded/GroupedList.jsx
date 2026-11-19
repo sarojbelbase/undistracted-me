@@ -19,7 +19,6 @@ export function GroupedList({
   showSiteIcons,
   previewLength,
   wrapCode,
-  showKind,
   highlightId,
   collapsedHosts,
   onToggleHost,
@@ -30,7 +29,6 @@ export function GroupedList({
     showSiteIcons,
     previewLength,
     wrapCode,
-    showKind,
     isNew: it.id === highlightId,
   });
 

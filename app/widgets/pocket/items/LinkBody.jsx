@@ -27,7 +27,7 @@ export function LinkBody({ item, showSiteIcons }) {
       <SiteTile url={item.text} host={item.host || ""} size={28} showFavicon={showSiteIcons} />
       <div className="flex-1 min-w-0">
         <div
-          className="w-body font-semibold truncate"
+          className="w-body font-medium truncate"
           title={item.text}
           style={{ color: "var(--w-ink-2)" }}
         >
