@@ -4,12 +4,15 @@
  */
 
 import { useSettingsStore } from '../../store';
+import { useUIStore } from '../../store/useUIStore';
 import { Divider } from '../ui/Divider';
+import { Button } from '../ui/Button';
 import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
 import { BlockedSites } from './BlockedSites';
 import { Toggle } from '../../components/ui/Toggle';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
+import { useState, useRef } from 'react';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -40,6 +43,21 @@ export const General = ({ onPreviewLookAway }) => {
   const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
   const notificationTypes = useSettingsStore((s) => s.notificationTypes);
   const setNotificationType = useSettingsStore((s) => s.setNotificationType);
+
+  // Two-step confirm for the destructive "Reset layout" action: first click arms
+  // it, second click executes; auto-disarms after 3s.
+  const [confirmReset, setConfirmReset] = useState(false);
+  const confirmTimerRef = useRef(null);
+  const handleResetLayout = () => {
+    if (!confirmReset) {
+      setConfirmReset(true);
+      confirmTimerRef.current = setTimeout(() => setConfirmReset(false), 3000);
+      return;
+    }
+    clearTimeout(confirmTimerRef.current);
+    setConfirmReset(false);
+    useUIStore.getState().requestLayoutReset();
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -99,26 +117,18 @@ export const General = ({ onPreviewLookAway }) => {
             {/* Interval */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--w-ink-3)' }}>Remind every</span>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[20, 30, 60].map((mins) => {
-                  const selected = lookAwayInterval === mins;
-                  return (
-                    <button
-                      key={mins}
-                      onClick={() => setLookAwayInterval(mins)}
-                      style={{
-                        padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
-                        fontSize: 11, fontWeight: 600, transition: 'all 0.15s ease',
-                        border: selected ? 'none' : '1px solid var(--card-border)',
-                        background: selected ? 'var(--w-accent)' : 'transparent',
-                        color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-4)',
-                      }}
-                    >
-                      {mins === 60 ? '1 hr' : `${mins}m`}
-                    </button>
-                  );
-                })}
-              </div>
+              <SegmentedControl
+                ariaLabel="Remind every"
+                inline
+                size="sm"
+                options={[
+                  { value: '20', label: '20m' },
+                  { value: '30', label: '30m' },
+                  { value: '60', label: '1 hr' },
+                ]}
+                value={String(lookAwayInterval)}
+                onChange={(v) => setLookAwayInterval(Number(v))}
+              />
             </div>
 
             <Divider />
@@ -127,19 +137,9 @@ export const General = ({ onPreviewLookAway }) => {
             {onPreviewLookAway && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--w-ink-3)' }}>Preview</span>
-                <button
-                  type="button"
-                  onClick={onPreviewLookAway}
-                  style={{
-                    fontSize: 11, fontWeight: 600, background: 'none', border: 'none',
-                    cursor: 'pointer', color: 'var(--w-accent)', padding: 0,
-                    transition: 'opacity 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-                >
+                <Button variant="ghost" size="sm" onClick={onPreviewLookAway}>
                   Preview
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -148,6 +148,26 @@ export const General = ({ onPreviewLookAway }) => {
 
       {/* ── Blocked Sites ── */}
       <BlockedSites />
+
+      {/* ── Separator ── */}
+      <Divider />
+
+      {/* ── Reset Layout ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <SectionLabel>Reset Layout</SectionLabel>
+          <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
+            Restore widgets to their default positions &amp; sizes
+          </p>
+        </div>
+        <Button
+          variant={confirmReset ? 'danger' : 'secondary'}
+          size="sm"
+          onClick={handleResetLayout}
+        >
+          {confirmReset ? 'Confirm reset' : 'Reset'}
+        </Button>
+      </div>
 
       {/* ── Separator ── */}
       <Divider />

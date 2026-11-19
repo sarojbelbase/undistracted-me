@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Responsive, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 
@@ -7,6 +7,7 @@ import { WIDGET_COMPONENTS } from "./components";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 import { useSettingsStore } from "../store";
+import { useUIStore } from "../store/useUIStore";
 import { WidgetActionsContext } from "./WidgetActionsContext";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
@@ -14,6 +15,14 @@ const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 // Consistent horizontal margin (container edge padding) across all breakpoints.
 // Vertical padding per breakpoint is preserved in BP_SPECS for fine-tuning.
 const WIDGETGRID_X_MARGIN = 12;
+
+// Grid row height (px) — matches the RGL `rowHeight`; a widget's `h` spans
+// `h` rows plus `(h - 1)` inter-row margins.
+const ROW_HEIGHT = 8.5;
+// The canvas scroll container in App.jsx reserves a 64px (`pt-16`) top bar for
+// the mode buttons, so the widget grid's visible area is the viewport minus this
+// offset (plus the grid's own vertical padding).
+const TOP_BAR_OFFSET = 64;
 
 const BP_SPECS = [
   { name: "lg", minW: 1200, cols: 48, margin: 14, padding: 14 },
@@ -168,7 +177,22 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // positions) before the effect corrects it. Remounting on breakpoint change
   // makes RGL compute the correct cols + layout synchronously on mount → a single
   // clean swap instead of a multi-frame glitch.
-  const currentBp = (BP_SPECS.find((s) => quantizedWidth >= s.minW) ?? BP_SPECS.at(-1)).name;
+  const currentBpSpec =
+    BP_SPECS.find((s) => quantizedWidth >= s.minW) ?? BP_SPECS.at(-1);
+  const currentBp = currentBpSpec.name;
+  // Bound drag to the visible screen: react-grid-layout clamps drag `y` through
+  // its default gridBounds constraint to `maxRows - h`. Without a finite
+  // `maxRows` (default Infinity) a downward drag lands arbitrarily far below the
+  // fold. Compute the number of rows that fit in the viewport minus the top-bar
+  // offset and the grid's vertical padding, so free placement stays free but
+  // widgets can never be dropped outside the canvas.
+  const maxRows = Math.max(
+    1,
+    Math.floor(
+      (globalThis.innerHeight - TOP_BAR_OFFSET - currentBpSpec.padding) /
+        (ROW_HEIGHT + currentBpSpec.margin),
+    ),
+  );
   const [layouts, setLayouts] = useState(loadLayouts);
   const [draggingId, setDraggingId] = useState(null);
 
@@ -177,6 +201,16 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   // Blend widgets into the background until hovered (Appearance → Widget Focus).
   const widgetDim = useSettingsStore((s) => s.widgetDim);
+
+  // Settings → General "Reset layout" — clears the saved layout back to defaults.
+  const layoutResetRequest = useUIStore((s) => s.layoutResetRequest);
+  useEffect(() => {
+    if (!layoutResetRequest) return;
+    // Drop the persisted layout so the next mount (and this render) falls back
+    // to each widget's config.js default position/size.
+    localStorage.removeItem(LAYOUT_KEY);
+    setLayouts({});
+  }, [layoutResetRequest]);
 
   // Build layout items for all breakpoints.
   // lg uses positions from each widget's config.js.
@@ -236,23 +270,21 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   }, [instances, layouts]);
 
   const handleLayoutChange = useCallback((current, allLayouts) => {
+    // RGL 2.3.0 calls onLayoutChange only on meaningful changes (mount, drag
+    // stop, resize stop, breakpoint/children change) — never per drag pixel.
+    // Persist the authoritative full layout here; the previous onDragStop write
+    // fired before RGL committed the final layout, saving stale/empty positions
+    // (drag positions were silently lost on reload).
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(allLayouts));
     setLayouts((prev) => {
       const next = { ...prev, ...allLayouts };
       // Fast structural compare across all breakpoints — avoids re-rendering
       // (and returning a new object) when nothing actually changed, but keeps
       // every breakpoint's real changes.
       if (layoutsEqual(prev, next)) return prev;
-      // Persist is deferred to onDragStop — avoids per-pixel synchronous I/O
-      // during drag which causes jank on low-RAM machines with slow storage.
       return next;
     });
   }, []);
-
-  // Keep a ref to the latest layouts so onDragStop can persist without a stale closure.
-  const layoutsRef = useRef(layouts);
-  useEffect(() => {
-    layoutsRef.current = layouts;
-  }, [layouts]);
 
   const handleDragStart = useCallback((_layout, oldItem) => {
     setDraggingId(oldItem.i);
@@ -260,10 +292,6 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   const handleDragStop = useCallback(() => {
     setDraggingId(null);
-    // Persist layouts once per drag operation — not on every pixel movement.
-    // This eliminates the per-frame JSON.stringify + localStorage.setItem that
-    // was blocking the main thread during drag on slow storage (eMMC/HDD).
-    localStorage.setItem(LAYOUT_KEY, JSON.stringify(layoutsRef.current));
   }, []);
 
   // Safety net: if onDragStop doesn't fire (mouse released outside viewport), clear state
@@ -348,14 +376,20 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           breakpoint={currentBp}
           breakpoints={RGL_BREAKPOINTS}
           cols={RGL_COLS}
-          rowHeight={8.5}
+          rowHeight={ROW_HEIGHT}
+          maxRows={maxRows}
           // react-grid-layout 2.3.0 moved the flat props into composable config
           // objects. The old `isDraggable` / `draggableHandle` / `useCSSTransforms`
           // props are silently ignored — which previously left drag enabled at all
           // times (widgets rearrangeable without entering arrange mode).
           dragConfig={{ enabled: arrangeMode, handle: ".widget-drag-handle" }}
           resizeConfig={{ enabled: false }}
-          compactor={getCompactor("none")}
+          // Free placement (no compaction = no gravity pulling widgets up to fill
+          // gaps) but with preventCollision: a drag that would land on another
+          // widget snaps back to its last clear spot instead of overlapping.
+          // Together with `maxRows` this keeps placement free, non-overlapping,
+          // and bounded to the visible canvas.
+          compactor={getCompactor("none", false, true)}
           positionStrategy={{ type: "absolute" }}
           margin={RGL_MARGIN}
           containerPadding={RGL_PADDING}

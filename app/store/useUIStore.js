@@ -28,6 +28,11 @@ export const useUIStore = create((set) => ({
   noteModeRequest: 0,
   requestNoteMode: () => set((s) => ({ noteModeRequest: s.noteModeRequest + 1 })),
 
+  // Bumped by the Settings → General "Reset layout" button; WidgetGrid watches
+  // this and clears the saved widget-grid layout back to config defaults.
+  layoutResetRequest: 0,
+  requestLayoutReset: () => set((s) => ({ layoutResetRequest: s.layoutResetRequest + 1 })),
+
   commandPaletteOpen: false,
   openCommandPalette: () => set({ commandPaletteOpen: true }),
   closeCommandPalette: () => set({ commandPaletteOpen: false }),
