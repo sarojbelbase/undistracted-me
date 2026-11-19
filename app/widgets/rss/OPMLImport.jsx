@@ -5,6 +5,7 @@
 
 import { useRef } from "react";
 import { FileEarmarkArrowDown } from "react-bootstrap-icons";
+import { Button } from "../../components/ui/Button";
 
 /**
  * @param {object} props
@@ -15,20 +16,16 @@ export const OPMLImport = ({ onFileSelected }) => {
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        size="md"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={() => fileRef.current?.click()}
-        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg font-semibold text-[12px] cursor-pointer transition-opacity hover:opacity-85"
-        style={{
-          background: "var(--w-accent)",
-          color: "var(--w-accent-fg)",
-          border: "none",
-        }}
+        style={{ flex: 1 }}
       >
-        <FileEarmarkArrowDown size={12} />
+        <FileEarmarkArrowDown size={13} />
         Import OPML
-      </button>
+      </Button>
       <input
         ref={fileRef}
         type="file"

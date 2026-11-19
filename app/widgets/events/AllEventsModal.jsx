@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PlusLg, XLg, CalendarEvent } from 'react-bootstrap-icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { EMPTY_STATES } from '../../constants/emptyStates';
+import { IconButton } from '../../components/ui/IconButton';
 import { bucketLabel, isPast } from './utils';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
@@ -41,14 +42,9 @@ export const AllEventsModal = ({ events, onClose, onRemove }) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowCreate(true)}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-85 cursor-pointer shadow-sm"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-            aria-label="Add event"
-          >
+          <IconButton label="Add event" accent onClick={() => setShowCreate(true)}>
             <PlusLg size={14} />
-          </button>
+          </IconButton>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors btn-close cursor-pointer"

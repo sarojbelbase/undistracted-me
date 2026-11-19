@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { WalletFill, XLg, CashStack } from 'react-bootstrap-icons';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 import { Popup } from '../../components/ui/Popup';
 import { DEFAULT_CATEGORIES } from './useExpenses';
 
@@ -129,17 +130,19 @@ export function AddExpenseModal({ currencySymbol, onClose, onAdd, editing }) {
       {/* Footer */}
       <div className="exp-add-modal__divider" />
       <div className="exp-add-modal__footer">
-        <button type="button" onClick={onClose} className="exp-add-modal__cancel-btn">
+        <Button type="button" variant="secondary" size="md" onClick={onClose} style={{ flex: 1 }}>
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="primary"
+          size="md"
           onClick={handleAdd}
           disabled={!canAdd}
-          className="exp-add-modal__add-btn"
+          style={{ flex: 2 }}
         >
           {isEditing ? 'Save Changes' : 'Add Expense'}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

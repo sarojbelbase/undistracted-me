@@ -5,6 +5,7 @@
 import { createPortal } from "react-dom";
 import { XLg, StarFill } from "react-bootstrap-icons";
 import { useReviewPromptStore } from "./reviewPromptStore";
+import { Button } from "../ui/Button";
 import { CHROME_STORE_URL, FIREFOX_ADDONS_URL } from "../../constants/urls";
 
 const isFirefox =
@@ -127,22 +128,9 @@ export function ReviewPrompt() {
           >
             Rate on {storeLabel}
           </a>
-          <button
-            type="button"
-            onClick={dismiss}
-            style={{
-              padding: "9px 14px",
-              borderRadius: 10,
-              border: "1px solid var(--card-border)",
-              background: "var(--panel-bg)",
-              color: "var(--w-ink-2)",
-              fontSize: 12.5,
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
+          <Button variant="secondary" size="md" onClick={dismiss}>
             Dismiss
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

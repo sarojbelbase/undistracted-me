@@ -1,4 +1,5 @@
 import { ArrowRepeat } from 'react-bootstrap-icons';
+import { Button } from './Button';
 
 // ─── Scope pills ──────────────────────────────────────────────────────────────
 
@@ -154,21 +155,16 @@ export const AccountCard = ({
       )}
 
       {/* Connect CTA */}
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        size="md"
         onClick={onConnect}
         disabled={connecting}
-        className="w-full h-9 flex items-center justify-center gap-2 rounded-xl text-[12px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
-        style={{
-          background: 'var(--w-accent)',
-          color: 'var(--w-accent-fg)',
-          border: 'none',
-          opacity: connecting ? 0.7 : 1,
-        }}
+        style={{ width: '100%' }}
       >
         {connecting && <ArrowRepeat size={12} className="animate-spin shrink-0" />}
         {connecting ? 'Connecting…' : connectLabel}
-      </button>
+      </Button>
     </div>
   );
 };

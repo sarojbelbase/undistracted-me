@@ -6,6 +6,7 @@ import {
 } from "react-bootstrap-icons";
 import { ListPanel, ListPanelRow } from "../../components/ui/ListPanel";
 import { UnifiedAddDialog } from "../../components/ui/UnifiedAddDialog";
+import { Button } from "../../components/ui/Button";
 import {
   getNextOccurrence,
   formatCountdown,
@@ -32,15 +33,10 @@ export const CountdownSettings = ({
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
           <p className="cdn-section-label">My Countdowns</p>
-          <button
-            type="button"
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[11px] px-3 py-1.5"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            <PlusLg size={9} />
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>
+            <PlusLg size={11} />
             Add Countdown
-          </button>
+          </Button>
         </div>
 
         <ListPanel

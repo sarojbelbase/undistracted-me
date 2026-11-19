@@ -16,6 +16,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Link45deg, CheckLg } from 'react-bootstrap-icons';
 import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 import {
   getPhotoLibrary,
   downloadCuratedPhotos,
@@ -275,11 +276,9 @@ const CustomUrlPanel = ({ value, onChange }) => {
               suffix={<UrlVerifySuffix status={status} />}
             />
           </div>
-          <button onClick={verify} disabled={!syntaxOk || status === 'checking'}
-            className="px-3.5 py-2 rounded-xl text-[11px] font-semibold focus:outline-none disabled:opacity-40 shrink-0 cursor-pointer"
-            style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)', color: 'var(--w-ink-2)' }}>
+          <Button onClick={verify} disabled={!syntaxOk || status === 'checking'} variant="secondary" size="sm">
             Verify
-          </button>
+          </Button>
         </div>
         {hint && !errorMsg && <p className="text-xs" style={{ color: 'var(--w-ink-5)' }}>{hint}</p>}
         {errorMsg && <p className="text-xs font-medium" style={{ color: 'rgb(220,38,38)' }}>{errorMsg}</p>}
@@ -291,17 +290,13 @@ const CustomUrlPanel = ({ value, onChange }) => {
       )}
       <div className="flex gap-2">
         {value?.type === 'custom' && value.url && (
-          <button onClick={handleClear}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold cursor-pointer focus:outline-none"
-            style={{ background: 'var(--panel-bg)', border: '1px solid var(--card-border)', color: 'var(--w-ink-2)' }}>
+          <Button onClick={handleClear} variant="secondary" size="sm" style={{ flex: 1 }}>
             Clear
-          </button>
+          </Button>
         )}
-        <button onClick={handleApply} disabled={!text.trim() || !syntaxOk}
-          className="flex-1 py-2 rounded-xl text-xs font-semibold focus:outline-none disabled:opacity-40 cursor-pointer"
-          style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)', cursor: text.trim() && syntaxOk ? 'pointer' : 'not-allowed' }}>
+        <Button onClick={handleApply} disabled={!text.trim() || !syntaxOk} variant="primary" size="sm" style={{ flex: 1 }}>
           {value?.type === 'custom' && value.url ? 'Update URL' : 'Use This URL'}
-        </button>
+        </Button>
       </div>
     </div>
   );

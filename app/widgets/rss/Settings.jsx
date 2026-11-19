@@ -16,6 +16,7 @@ import { parseOPML, generateOPML, generateSampleOPML, downloadFile } from "./opm
 import { PillButton } from "../../components/ui/PillButton";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
+import { Button } from "../../components/ui/Button";
 import { Download, InfoCircle, FileEarmarkArrowDown, Upload, ExclamationTriangle } from "react-bootstrap-icons";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
 
@@ -272,21 +273,16 @@ export const Settings = ({
 
               {/* Button row: Export OPML + Import OPML */}
               <div className="flex gap-2">
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleExportOPML}
                   disabled={!customFeeds.length}
-                  className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg font-semibold text-[12px] cursor-pointer transition-opacity hover:opacity-85"
-                  style={{
-                    background: "var(--w-accent)",
-                    color: "var(--w-accent-fg)",
-                    border: "none",
-                    opacity: customFeeds.length ? 1 : 0.45,
-                  }}
+                  style={{ flex: 1 }}
                 >
-                  <Download size={12} />
+                  <Download size={13} />
                   Export OPML
-                </button>
+                </Button>
                 <OPMLImport onFileSelected={handleFileSelected} />
               </div>
 

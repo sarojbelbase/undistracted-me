@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
-import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
 import { REPEAT_OPTIONS, MODE_OPTIONS } from './utils';
 import { makeUid } from '../../utilities';
 
@@ -63,24 +64,7 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
           <div style={{ marginBottom: 8 }}>
             <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Mode</span>
           </div>
-          <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-            {MODE_OPTIONS.map(opt => {
-              const active = mode === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setMode(opt.value)}
-                  style={{
-                    flex: 1, borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
-                    padding: '6px 0', cursor: 'pointer', transition: 'all 0.15s', border: 'none',
-                    background: active ? 'var(--w-accent)' : 'transparent',
-                    color: active ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                  }}
-                >{opt.label}</button>
-              );
-            })}
-          </div>
+          <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={setMode} />
         </div>
 
         {/* When */}
@@ -97,24 +81,7 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
               <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Repeat</span>
             </div>
-            <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--panel-bg)', border: '1px solid var(--card-border)' }}>
-              {REPEAT_OPTIONS.map(r => {
-                const active = repeat === r.value;
-                return (
-                  <button
-                    key={r.value}
-                    type="button"
-                    onClick={() => setRepeat(r.value)}
-                    style={{
-                      flex: 1, borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
-                      padding: '6px 0', cursor: 'pointer', transition: 'all 0.15s', border: 'none',
-                      background: active ? 'var(--w-accent)' : 'transparent',
-                      color: active ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                    }}
-                  >{r.label}</button>
-                );
-              })}
-            </div>
+            <SegmentedControl options={REPEAT_OPTIONS} value={repeat} onChange={setRepeat} />
           </div>
         )}
       </div>
@@ -122,28 +89,12 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
       {/* Footer */}
       <div style={{ height: 1, background: 'var(--card-border)' }} />
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            flex: 1, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${CANVAS_BORDER_SOFT}`, background: 'transparent',
-            color: 'var(--w-ink-2)', transition: 'all 0.15s',
-          }}
-        >Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!valid}
-          style={{
-            flex: 2, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600,
-            border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-            opacity: valid ? 1 : 0.4, cursor: valid ? 'pointer' : 'default',
-            transition: 'all 0.15s',
-          }}
-        >{initial ? 'Save Changes' : 'Save Countdown'}</button>
+        <Button variant="secondary" size="md" onClick={onCancel} style={{ flex: 1 }}>
+          Cancel
+        </Button>
+        <Button variant="primary" size="md" onClick={handleSave} disabled={!valid} style={{ flex: 2 }}>
+          {initial ? 'Save Changes' : 'Save Countdown'}
+        </Button>
       </div>
     </>
   );

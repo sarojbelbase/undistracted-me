@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BalloonFill, HeartFill, StarFill } from 'react-bootstrap-icons';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 
 const MONTHS = [
@@ -158,26 +159,12 @@ export const AddOccasion = ({ onSave, onCancel, initial }) => {
       {/* Footer */}
       <div style={{ height: 1, background: 'var(--card-border)' }} />
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            flex: 1, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: '1px solid var(--w-divider)', background: 'transparent',
-            color: 'var(--w-ink-2)', transition: 'all 0.15s',
-          }}
-        >Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          style={{
-            flex: 2, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600,
-            border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-            cursor: 'pointer', transition: 'all 0.15s',
-          }}
-        >{initial ? 'Save Changes' : 'Save Occasion'}</button>
+        <Button variant="secondary" size="md" onClick={onCancel} style={{ flex: 1 }}>
+          Cancel
+        </Button>
+        <Button variant="primary" size="md" onClick={handleSave} style={{ flex: 2 }}>
+          {initial ? 'Save Changes' : 'Save Occasion'}
+        </Button>
       </div>
     </>
   );

@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Upload, Download, ArrowCounterclockwise, InfoCircle, ArrowRepeat, ArrowClockwise, CheckCircleFill } from 'react-bootstrap-icons';
+import { Button } from '../ui/Button';
 import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
@@ -197,19 +198,16 @@ export const Data = ({ onNavigateToAccounts }) => {
             </div>
 
             {/* Sync now — primary action */}
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleSyncNow}
               disabled={syncing}
-              className="flex items-center justify-center gap-1.5 text-[11.5px] font-semibold transition-opacity cursor-pointer disabled:cursor-not-allowed"
-              style={{
-                borderRadius: 8, padding: '8px 0', border: 'none',
-                background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-              }}
+              style={{ width: '100%' }}
             >
               {syncButtonIcon}
               {syncButtonLabel}
-            </button>
+            </Button>
 
             <p style={{ fontSize: 10, color: 'var(--w-ink-5)', lineHeight: 1.4, margin: 0, textAlign: 'center' }}>
               {syncHint || 'Auto-syncs once a day — or tap Sync now.'}
@@ -229,14 +227,14 @@ export const Data = ({ onNavigateToAccounts }) => {
                 : 'Sync is only available in the browser extension.'}
             </p>
             {syncAvailable && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onNavigateToAccounts}
-                className="shrink-0 text-[11px] font-semibold transition-opacity hover:opacity-75 cursor-pointer"
-                style={{ color: 'var(--w-accent)', background: 'none', border: 'none', padding: 0 }}
+                style={{ color: 'var(--w-accent)' }}
               >
                 Open Accounts
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -294,42 +292,24 @@ export const Data = ({ onNavigateToAccounts }) => {
           background: 'var(--panel-bg)',
           border: '1px solid var(--card-border)',
         }}>
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={exportSettings}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 6, padding: '9px 0', borderRadius: 8,
-              border: 'none', cursor: 'pointer',
-              fontSize: 11.5, fontWeight: 600,
-              background: 'var(--w-accent)',
-              color: 'var(--w-accent-fg)',
-              transition: 'opacity 0.15s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+            style={{ flex: 1 }}
           >
             <Download size={12} />
             Export
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleImport}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 6, padding: '9px 0', borderRadius: 8,
-              border: 'none', cursor: 'pointer',
-              fontSize: 11.5, fontWeight: 600,
-              background: 'var(--w-accent)',
-              color: 'var(--w-accent-fg)',
-              transition: 'opacity 0.15s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+            style={{ flex: 1 }}
           >
             <Upload size={12} />
             Import
-          </button>
+          </Button>
         </div>
 
         {importError && (

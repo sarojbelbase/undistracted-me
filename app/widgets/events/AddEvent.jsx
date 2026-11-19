@@ -3,7 +3,7 @@ import { Clock, HourglassSplit } from 'react-bootstrap-icons';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { Input } from '../../components/ui/Input';
-import { CANVAS_BORDER_SOFT } from '../../theme/canvas';
+import { Button } from '../../components/ui/Button';
 import { todayStr } from '../../utilities';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
@@ -150,28 +150,12 @@ export const AddEvent = ({ onSave, onCancel, initialDate, initial }) => {
       {/* Footer */}
       <div style={{ height: 1, background: 'var(--card-border)' }} />
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          style={{
-            flex: 1, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${CANVAS_BORDER_SOFT}`, background: 'transparent',
-            color: 'var(--w-ink-2)', transition: 'all 0.15s',
-          }}
-        >Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!titleValid}
-          style={{
-            flex: 2, padding: '9px 0', borderRadius: 10,
-            fontSize: '13px', fontWeight: 600,
-            border: 'none', background: 'var(--w-accent)', color: 'var(--w-accent-fg)',
-            opacity: titleValid ? 1 : 0.4, cursor: titleValid ? 'pointer' : 'default',
-            transition: 'all 0.15s',
-          }}
-        >{initial ? 'Save Changes' : 'Save Event'}</button>
+        <Button variant="secondary" size="md" onClick={onCancel} style={{ flex: 1 }}>
+          Cancel
+        </Button>
+        <Button variant="primary" size="md" onClick={handleSave} disabled={!titleValid} style={{ flex: 2 }}>
+          {initial ? 'Save Changes' : 'Save Event'}
+        </Button>
       </div>
     </>
   );

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BalloonFill, HeartFill, StarFill, PlusLg, PersonHeart } from 'react-bootstrap-icons';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { ListPanel, ListPanelRow } from '../../components/ui/ListPanel';
+import { Button } from '../../components/ui/Button';
 import { OCCASION_ANNIVERSARY_COLOR, OCCASION_SPECIAL_COLOR } from '../../theme/canvas';
 import {
   loadManualBirthdays,
@@ -152,15 +153,10 @@ const ManualSection = ({ onManualChange }) => {
       <div>
         <div className="flex items-center justify-between mb-3">
           <SectionHeading>Your Occasions</SectionHeading>
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1 font-semibold rounded-lg whitespace-nowrap cursor-pointer transition-opacity hover:opacity-85 text-[10px] px-2.5 py-1"
-            style={{ background: 'var(--w-accent)', color: 'var(--w-accent-fg)' }}
-          >
-            <PlusLg size={9} />
+          <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+            <PlusLg size={11} />
             Add
-          </button>
+          </Button>
         </div>
 
         {/* Existing entries */}

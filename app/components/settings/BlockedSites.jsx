@@ -14,6 +14,8 @@ import { Trash3Fill, PlusLg, ClockFill } from 'react-bootstrap-icons';
 import { getBlockedSites, blockSite, clearBlockedSites } from '../../utilities/siteBlocker';
 import { onClockTick } from '../../utilities/sharedClock';
 import { ConfirmButton } from '../ui/ConfirmButton';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -159,7 +161,8 @@ export const BlockedSites = () => {
           background: 'var(--panel-bg)',
           border: '1px solid var(--card-border)',
         }}>
-          <input
+          <Input
+            pill
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -169,77 +172,30 @@ export const BlockedSites = () => {
             }}
             placeholder="e.g. twitter.com"
             autoFocus
-            style={{
-              padding: '7px 10px', borderRadius: 8,
-              border: '1px solid var(--card-border)',
-              background: 'var(--card-bg)',
-              color: 'var(--w-ink-1)',
-              fontSize: 11.5, outline: 'none',
-              transition: 'border-color 0.15s',
-            }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--w-accent)'; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
             {TIMER_PRESETS.map((p) => (
-              <button
+              <Button
                 key={p.mins}
-                type="button"
+                variant="soft"
+                size="sm"
                 onClick={() => handleAdd(p.mins)}
                 disabled={!hasInput}
-                style={{
-                  padding: '6px 4px', borderRadius: 7,
-                  border: hasInput
-                    ? '1px solid color-mix(in srgb, var(--w-accent) 30%, transparent)'
-                    : '1px solid transparent',
-                  cursor: hasInput ? 'pointer' : 'default',
-                  fontSize: 10.5, fontWeight: 600,
-                  background: hasInput
-                    ? 'color-mix(in srgb, var(--w-accent) 12%, transparent)'
-                    : 'rgba(0,0,0,0.04)',
-                  color: hasInput ? 'var(--w-accent)' : 'var(--w-ink-5)',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!hasInput) return;
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--w-accent) 20%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!hasInput) return;
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--w-accent) 12%, transparent)';
-                }}
               >
                 {p.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
       ) : (
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setAdding(true)}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-            padding: '8px 0', borderRadius: 10,
-            border: '1px dashed var(--card-border)',
-            background: 'transparent', cursor: 'pointer',
-            fontSize: 11, fontWeight: 600,
-            color: 'var(--w-ink-4)',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--w-accent)';
-            e.currentTarget.style.borderColor = 'var(--w-accent)';
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--w-accent) 5%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--w-ink-4)';
-            e.currentTarget.style.borderColor = 'var(--card-border)';
-            e.currentTarget.style.background = 'transparent';
-          }}
+          style={{ width: '100%' }}
         >
           <PlusLg size={10} /> Add domain
-        </button>
+        </Button>
       )}
 
       {/* Clear all — always visible when sites exist */}
