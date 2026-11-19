@@ -5,20 +5,26 @@ import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
 /**
  * Top-left pill button that opens Focus Mode.
  * Expands on hover to show the keyboard shortcut label.
- * Positioned by its parent — App.jsx renders it in a top-left cluster with
- * NoteModeButton.
+ *
+ * When `bare` is true the pill chrome (background/border/shadow) is omitted —
+ * the parent cluster (App.jsx renders both FocusModeButton and NoteModeButton
+ * inside one shared pill container) supplies it.
  */
-export const FocusModeButton = ({ isDark, onClick }) => (
+export const FocusModeButton = ({ isDark, onClick, bare = false }) => (
   <button
     onClick={onClick}
     className="group flex items-center rounded-full transition-all duration-300 focus:outline-none cursor-pointer"
     style={{
-      padding: "7px 12px",
-      background: "var(--card-bg)",
-      backdropFilter: "var(--card-blur)",
-      WebkitBackdropFilter: "var(--card-blur)",
-      border: "var(--card-border-width, 1px) solid var(--card-border)",
-      boxShadow: "var(--card-shadow)",
+      padding: bare ? "7px 10px 7px 12px" : "7px 12px",
+      ...(bare
+        ? {}
+        : {
+            background: "var(--card-bg)",
+            backdropFilter: "var(--card-blur)",
+            WebkitBackdropFilter: "var(--card-blur)",
+            border: "var(--card-border-width, 1px) solid var(--card-border)",
+            boxShadow: "var(--card-shadow)",
+          }),
     }}
   >
     <MoonStarsFill

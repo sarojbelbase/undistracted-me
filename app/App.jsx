@@ -393,9 +393,21 @@ const App = () => {
             style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
           />
 
-          <div className="absolute top-5 left-5 z-50 flex items-center gap-2">
-            <FocusModeButton isDark={isDark} onClick={openFocusMode} />
-            <NoteModeButton isDark={isDark} onClick={openNoteMode} />
+          <div className="absolute top-5 left-5 z-50 flex items-center">
+            <div
+              className="flex items-center rounded-full overflow-hidden"
+              style={{
+                background: "var(--card-bg)",
+                backdropFilter: "var(--card-blur)",
+                WebkitBackdropFilter: "var(--card-blur)",
+                border: "var(--card-border-width, 1px) solid var(--card-border)",
+                boxShadow: "var(--card-shadow)",
+              }}
+            >
+              <FocusModeButton isDark={isDark} onClick={openFocusMode} bare />
+              <div className="w-px h-3.5 shrink-0" style={{ background: "var(--card-border)" }} />
+              <NoteModeButton isDark={isDark} onClick={openNoteMode} bare />
+            </div>
           </div>
 
           <ControlCluster
