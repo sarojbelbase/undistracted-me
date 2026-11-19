@@ -6,6 +6,7 @@ import { WIDGET_REGISTRY } from "./index";
 import { WIDGET_COMPONENTS } from "./components";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
+import { useSettingsStore } from "../store";
 import { WidgetActionsContext } from "./WidgetActionsContext";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
@@ -174,6 +175,9 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // Widget-instance actions for the "⋯" menu (Duplicate).
   const duplicateInstance = useWidgetInstancesStore((s) => s.duplicateInstance);
 
+  // Blend widgets into the background until hovered (Appearance → Widget Focus).
+  const widgetDim = useSettingsStore((s) => s.widgetDim);
+
   // Build layout items for all breakpoints.
   // lg uses positions from each widget's config.js.
   // Other breakpoints use saved layouts (returning users) or config breakpoints (fresh install).
@@ -311,7 +315,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
             const h = reg.breakpoints?.xxs?.h ?? reg.h;
             const height = h * ROW_H + (h - 1) * GAP;
             return (
-              <div key={id} data-widget-type={type} style={{ height }}>
+              <div key={id} data-widget-type={type} className={widgetDim ? "widget-dim" : undefined} style={{ height }}>
                 <WidgetCell
                   id={id}
                   type={type}
@@ -365,9 +369,8 @@ export const WidgetGrid = React.memo(function WidgetGrid({
               <div
                 key={id}
                 data-widget-type={type}
-                className="group relative w-full h-full transition-opacity duration-200"
+                className={`group relative w-full h-full ${widgetDim ? "widget-dim" : ""}`}
                 style={{
-                  opacity: 1,
                   touchAction: arrangeMode ? "none" : "pan-y",
                 }}
               >

@@ -10,6 +10,8 @@ import { CARD_STYLES } from '../../constants/cardStyles';
 import { APP_SETTINGS_DEFAULTS } from '../../constants/defaults';
 import { TooltipBtn } from '../ui/TooltipBtn';
 import { useAutoTheme } from '../../hooks/useAutoTheme';
+import { CanvasBackgroundPicker } from './CanvasBackgroundPicker';
+import { Toggle } from '../ui/Toggle';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -42,6 +44,8 @@ export const Appearance = () => {
   const setCardStyle = useSettingsStore((s) => s.setCardStyle);
   const canvasBg = useSettingsStore((s) => s.canvasBg);
   const setCanvasBg = useSettingsStore((s) => s.setCanvasBg);
+  const widgetDim = useSettingsStore((s) => s.widgetDim);
+  const setWidgetDim = useSettingsStore((s) => s.setWidgetDim);
 
   // Canonical auto-mode resolution — resolves 'auto' to the effective light/dark
   // so the accent swatches use the correct tone even during the day. Reads only
@@ -50,12 +54,17 @@ export const Appearance = () => {
 
   const bgType = canvasBg?.type ?? APP_SETTINGS_DEFAULTS.canvasBg.type;
 
-  const selectSolid = () => setCanvasBg({ type: 'solid', orbId: canvasBg?.orbId ?? APP_SETTINGS_DEFAULTS.canvasBg.orbId });
-  const selectOrb = () => setCanvasBg({ type: 'orb', orbId: canvasBg?.orbId ?? APP_SETTINGS_DEFAULTS.canvasBg.orbId });
+  // Preserve the full canvasBg shape (url/photoId/color/orbId) across mode
+  // switches so a chosen photo or custom URL survives a temporary flip to
+  // Solid/Motion and back.
+  const setType = (type) =>
+    setCanvasBg({ ...(canvasBg ?? APP_SETTINGS_DEFAULTS.canvasBg), type });
 
   const backgroundOptions = [
-    { id: 'solid', label: 'Solid', hint: 'Accent tint', onClick: selectSolid },
-    { id: 'orb', label: 'Motion', hint: 'Animated orb', onClick: selectOrb },
+    { id: 'solid', label: 'Solid', hint: 'Accent tint' },
+    { id: 'orb', label: 'Motion', hint: 'Animated orb' },
+    { id: 'photo', label: 'Photos', hint: 'Curated gallery' },
+    { id: 'custom', label: 'Custom URL', hint: 'Your image' },
   ];
 
   return (
@@ -95,16 +104,37 @@ export const Appearance = () => {
         </Segment>
       </div>
 
+      {/* ── Widget Focus ── */}
+      <div>
+        <SectionLabel>Widget Focus</SectionLabel>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          padding: '10px 12px', borderRadius: 11,
+          background: 'var(--panel-bg)',
+          border: '1px solid var(--card-border)',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, lineHeight: '1.3', color: 'var(--w-ink-2)' }}>
+              Dim widgets
+            </span>
+            <span style={{ fontSize: 10, lineHeight: '1.4', color: 'var(--w-ink-5)' }}>
+              Fade into the background until you hover over them
+            </span>
+          </div>
+          <Toggle checked={widgetDim} onChange={setWidgetDim} ariaLabel="Dim widgets" />
+        </div>
+      </div>
+
       {/* ── Background ── */}
       <div>
         <SectionLabel>Background</SectionLabel>
         <Segment>
-          {backgroundOptions.map(({ id, label, hint, onClick }) => {
+          {backgroundOptions.map(({ id, label, hint }) => {
             const selected = bgType === id;
             return (
               <button
                 key={id}
-                onClick={onClick}
+                onClick={() => setType(id)}
                 style={{
                   flex: 1,
                   display: 'flex', flexDirection: 'column', gap: 2,
@@ -119,6 +149,7 @@ export const Appearance = () => {
                 <span style={{
                   fontSize: 10, lineHeight: '1.3',
                   color: selected ? 'color-mix(in srgb, var(--w-accent-fg) 65%, transparent)' : 'var(--w-ink-5)',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {hint}
                 </span>
@@ -126,6 +157,11 @@ export const Appearance = () => {
             );
           })}
         </Segment>
+        {(bgType === 'photo' || bgType === 'custom') && (
+          <div style={{ marginTop: 12 }}>
+            <CanvasBackgroundPicker type={bgType} value={canvasBg} onChange={setCanvasBg} />
+          </div>
+        )}
       </div>
 
       {/* ── Theme ── */}

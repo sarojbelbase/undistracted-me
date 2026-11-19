@@ -60,16 +60,31 @@ const fromLegacy = () => {
         })(),
         canvasBg: (() => {
           const cb = stored.state.canvasBg ?? D.canvasBg;
-          // Photo/curated backgrounds were removed — normalise any legacy
-          // 'default' | 'curated' | 'custom' type back to a solid background.
-          if (cb.type !== "solid" && cb.type !== "orb") {
-            return { type: "solid", orbId: null };
+          const type = cb?.type;
+          // Solid + Motion (orb) are the built-in canvas modes.
+          if (type === "solid" || type === "orb") {
+            return type === "orb" && cb.orbId && cb.orbId !== "accent"
+              ? { ...cb, orbId: "accent" }
+              : cb;
           }
-          return cb.type === "orb" && cb.orbId && cb.orbId !== "accent"
-            ? { ...cb, orbId: "accent" }
-            : cb;
+          // Photo + custom-URL backgrounds were re-added — preserve them when
+          // they carry a usable url. Legacy 'default' | 'curated' (and any
+          // photo/custom without a url) fall back to solid.
+          if (type === "custom" && cb.url) {
+            return { type: "custom", url: cb.url };
+          }
+          if (type === "photo" && cb.url) {
+            return {
+              type: "photo",
+              url: cb.url,
+              photoId: cb.photoId ?? null,
+              color: cb.color ?? null,
+            };
+          }
+          return { type: "solid", orbId: null };
         })(),
         cardStyle: stored.state.cardStyle ?? D.cardStyle,
+        widgetDim: stored.state.widgetDim ?? D.widgetDim,
         modePrefs: stored.state.modePrefs ?? D.modePrefs,
         notificationsEnabled:
           stored.state.notificationsEnabled ?? D.notificationsEnabled,
@@ -96,6 +111,7 @@ const fromLegacy = () => {
     lookAwayInterval: D.lookAwayInterval,
     canvasBg: D.canvasBg,
     cardStyle: D.cardStyle,
+    widgetDim: D.widgetDim,
     modePrefs: D.modePrefs,
     notificationsEnabled: D.notificationsEnabled,
     notificationTypes: DEFAULT_NOTIFICATION_TYPES,
@@ -204,7 +220,13 @@ export const useSettingsStore = create(
         _syncNotifications(get().notificationsEnabled, types);
       },
 
-      /** Canvas background — { type: 'solid'|'orb', orbId? } */
+      /**
+       * Canvas background.
+       *   - { type: 'solid', orbId? }            — accent mesh gradient
+       *   - { type: 'orb', orbId? }              — animated orb
+       *   - { type: 'photo', url, photoId?, color? } — curated photo
+       *   - { type: 'custom', url }              — custom image URL
+       */
       setCanvasBg: (canvasBg) => {
         set({ canvasBg });
       },
@@ -219,6 +241,9 @@ export const useSettingsStore = create(
         set({ cardStyle, modePrefs });
         applyTheme(get().accent, get().mode, cardStyle);
       },
+
+      /** Dim widget cards until hovered so they blend into the background. */
+      setWidgetDim: (widgetDim) => set({ widgetDim }),
 
       /** Enable / disable cross-device sync via chrome.storage.sync */
       setSyncEnabled: (syncEnabled) => {

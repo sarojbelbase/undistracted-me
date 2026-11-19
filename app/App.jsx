@@ -11,6 +11,7 @@ import { WidgetGrid } from "./widgets/WidgetGrid";
 import { CanvasBackground } from "./components/ui/CanvasBackground";
 import { ControlCluster } from "./components/ui/ControlCluster";
 import { FocusModeButton } from "./components/ui/FocusModeButton";
+import { NoteModeButton } from "./components/ui/NoteModeButton";
 import { useSettingsStore, useWidgetInstancesStore } from "./store";
 import { STORE_KEY } from "./store/useSettingsStore";
 import { seedWidgetInstancesIfEmpty } from "./store/seedWidgetInstances";
@@ -22,6 +23,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useAutoTheme } from "./hooks/useAutoTheme";
 import { useLocation } from "./hooks/useLocation";
 import { useFocusMode } from "./hooks/useFocusMode";
+import { useNoteMode } from "./hooks/useNoteMode";
 import { useSettingsPanel } from "./hooks/useSettingsPanel";
 import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
@@ -49,6 +51,24 @@ const _focusModeChunk = (() => {
 const FocusMode = lazy(() =>
   (_focusModeChunk ?? import("./components/FocusMode")).then((m) => ({
     default: m.FocusMode,
+  })),
+);
+
+const _noteModeChunk = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (stored?.state?.defaultView === "note") {
+      return import("./components/NoteMode");
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+})();
+
+const NoteMode = lazy(() =>
+  (_noteModeChunk ?? import("./components/NoteMode")).then((m) => ({
+    default: m.NoteMode,
   })),
 );
 
@@ -221,6 +241,7 @@ const App = () => {
   const catalogOpenRequest = useUIStore((s) => s.catalogOpenRequest);
   const arrangeToggleRequest = useUIStore((s) => s.arrangeToggleRequest);
   const focusModeRequest = useUIStore((s) => s.focusModeRequest);
+  const noteModeRequest = useUIStore((s) => s.noteModeRequest);
 
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
@@ -253,6 +274,8 @@ const App = () => {
   // ── Feature hooks ────────────────────────────────────────────────────────────
   const { showFocusMode, openFocusMode, closeFocusMode } =
     useFocusMode(defaultView);
+  const { showNoteMode, openNoteMode, closeNoteMode } =
+    useNoteMode(defaultView);
   const {
     showSettings,
     settingsInitialTab,
@@ -288,12 +311,20 @@ const App = () => {
     openFocusMode();
   }, [focusModeRequest, openFocusMode]);
 
+  useEffect(() => {
+    if (!noteModeRequest) return;
+    openNoteMode();
+  }, [noteModeRequest, openNoteMode]);
+
   const bg = useCanvasBg({ canvasBg, isDark, accent, cardStyle });
   const { commandPaletteOpen, closeCommandPalette } = useCommandPalette();
-  // Sync Focus Mode active state so useCommandPalette can route Cmd+K correctly.
+  // Sync Focus/Note Mode active state so useCommandPalette can route Cmd+K.
   useEffect(() => {
     useUIStore.getState().setFocusModeActive(showFocusMode);
   }, [showFocusMode]);
+  useEffect(() => {
+    useUIStore.getState().setNoteModeActive(showNoteMode);
+  }, [showNoteMode]);
 
   // Exit arrange mode when the user clicks anywhere outside a drag handle.
   // Skips the arrange-toggle button so its own onClick can handle the toggle.
@@ -349,10 +380,10 @@ const App = () => {
       className="fixed inset-0 overflow-hidden"
       style={{ background: bg.pageBg }}
     >
-      {/* Canvas is only mounted while it's the active view — focus mode renders
-          on its own, so opening a new tab with `defaultView: focus` never paints
-          (or fetches) the canvas behind the distraction-free screen. */}
-      {!showFocusMode && (
+      {/* Canvas is only mounted while it's the active view — focus/note modes render
+          on their own, so opening a new tab with `defaultView: focus`/`note` never
+          paints (or fetches) the canvas behind the distraction-free screen. */}
+      {!showFocusMode && !showNoteMode && (
         <>
           <CanvasBackground {...bg} isDark={isDark} />
 
@@ -362,7 +393,10 @@ const App = () => {
             style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
           />
 
-          <FocusModeButton isDark={isDark} onClick={openFocusMode} />
+          <div className="absolute top-5 left-5 z-50 flex items-center gap-2">
+            <FocusModeButton isDark={isDark} onClick={openFocusMode} />
+            <NoteModeButton isDark={isDark} onClick={openNoteMode} />
+          </div>
 
           <ControlCluster
             ref={panelRef}
@@ -403,9 +437,15 @@ const App = () => {
         </>
       )}
 
-      {showFocusMode && (
+      {showFocusMode && !showNoteMode && (
         <Suspense fallback={<FMFallback />}>
           <FocusMode onExit={closeFocusMode} />
+        </Suspense>
+      )}
+
+      {showNoteMode && (
+        <Suspense fallback={null}>
+          <NoteMode onExit={closeNoteMode} />
         </Suspense>
       )}
 
@@ -421,7 +461,7 @@ const App = () => {
       )}
 
       {/* Command Palette — Cmd+K / Ctrl+K */}
-      {commandPaletteOpen && !showFocusMode && (
+      {commandPaletteOpen && !showFocusMode && !showNoteMode && (
         <Suspense fallback={null}>
           <CommandPalette onClose={closeCommandPalette} />
         </Suspense>

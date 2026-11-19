@@ -2,9 +2,10 @@
  * canvas-bg-photo.spec.js
  *
  * Verifies the canvas Background section (Settings → Appearance). The canvas
- * scope supports two modes — Solid (accent tint) and Motion (animated orb) —
- * exposed inline as segment buttons. Curated/Photos is a focus-mode-only
- * feature and must NOT appear in the canvas scope.
+ * scope exposes four modes — Solid (accent tint), Motion (animated orb),
+ * Photos (curated gallery), and Custom URL — as segment buttons. Photos and
+ * Custom URL share the curated photo library / URL input that Focus Mode uses,
+ * but write to the canvas `canvasBg` store (independent selection).
  */
 
 import { test, expect } from '@playwright/test';
@@ -44,15 +45,13 @@ test.describe('Canvas Background', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('shows Solid and Motion options (no Photos for canvas scope)', async ({ page }) => {
+  test('shows all four background options', async ({ page }) => {
     const dialog = await openAppearance(page);
     await expect(dialog.getByText('Background', { exact: true })).toBeVisible();
-    // The two canvas background modes
     await expect(dialog.getByRole('button', { name: 'Solid' })).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Motion' })).toBeVisible();
-    // Photos / Curated must NOT appear in the canvas Background section
-    await expect(dialog.getByText('Photos', { exact: true })).not.toBeVisible();
-    await expect(dialog.getByText('Curated', { exact: true })).not.toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Photos' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Custom URL' })).toBeVisible();
   });
 
   test('defaults to Solid selection', async ({ page }) => {
@@ -74,5 +73,27 @@ test.describe('Canvas Background', () => {
     await dialog.getByRole('button', { name: 'Solid' }).click();
     const bg = await readCanvasBg(page);
     expect(bg?.type).toBe('solid');
+  });
+
+  test('selecting Photos switches the store to photo mode and shows the gallery', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    await dialog.getByRole('button', { name: 'Photos' }).click();
+    const bg = await readCanvasBg(page);
+    expect(bg?.type).toBe('photo');
+    // The curated gallery sub-panel renders (shimmer placeholders while the
+    // photo list loads; the grid container is present regardless).
+    await expect(dialog.getByLabel('Set as background').first()).toBeVisible();
+  });
+
+  test('selecting Custom URL shows the URL input and applies a valid url', async ({ page }) => {
+    const dialog = await openAppearance(page);
+    await dialog.getByRole('button', { name: 'Custom URL' }).click();
+    const input = dialog.getByLabel('Image URL');
+    await expect(input).toBeVisible();
+    await input.fill('https://example.com/photo.jpg');
+    await dialog.getByRole('button', { name: 'Use This URL' }).click();
+    const bg = await readCanvasBg(page);
+    expect(bg?.type).toBe('custom');
+    expect(bg?.url).toBe('https://example.com/photo.jpg');
   });
 });

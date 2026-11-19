@@ -32,6 +32,9 @@ export function useCommandPalette() {
         return;
       }
 
+      // In Note Mode — no inline search; suppress the palette (distraction-free).
+      if (state.noteModeActive) return;
+
       if (state.commandPaletteOpen) state.closeCommandPalette();
       else state.openCommandPalette();
     };

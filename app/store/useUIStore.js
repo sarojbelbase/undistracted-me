@@ -25,6 +25,9 @@ export const useUIStore = create((set) => ({
   focusModeRequest: 0,
   requestFocusMode: () => set((s) => ({ focusModeRequest: s.focusModeRequest + 1 })),
 
+  noteModeRequest: 0,
+  requestNoteMode: () => set((s) => ({ noteModeRequest: s.noteModeRequest + 1 })),
+
   commandPaletteOpen: false,
   openCommandPalette: () => set({ commandPaletteOpen: true }),
   closeCommandPalette: () => set({ commandPaletteOpen: false }),
@@ -33,4 +36,9 @@ export const useUIStore = create((set) => ({
   // route Cmd+K to focus the inline search bar instead of opening the palette.
   focusModeActive: false,
   setFocusModeActive: (v) => set({ focusModeActive: v }),
+
+  // Tracks whether Note Mode is currently visible so useCommandPalette can
+  // suppress Cmd+K while the distraction-free note view is active.
+  noteModeActive: false,
+  setNoteModeActive: (v) => set({ noteModeActive: v }),
 }));

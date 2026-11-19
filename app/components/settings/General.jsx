@@ -49,6 +49,7 @@ export const General = ({ onPreviewLookAway }) => {
         {(() => {
           const modes = [
             { id: 'canvas', label: 'Canvas', hint: 'Widgets & content on every new tab' },
+            { id: 'note', label: 'Note', hint: 'A distraction-free note on every new tab' },
             { id: 'focus', label: 'Focus', hint: 'Distraction-free sessions' },
           ];
           const activeHint = modes.find(m => m.id === defaultView)?.hint;

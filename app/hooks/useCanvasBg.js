@@ -84,7 +84,7 @@ function getSolidGradientBg(isDark, accent, cardStyle = APP_SETTINGS_DEFAULTS.ca
   return [grain, mesh, base].join(", ");
 }
 
-function computePageBg(bgType, isDark, accent, cardStyle) {
+function computePageBg(bgType, isDark, accent, cardStyle, url, color) {
   if (bgType === "orb") {
     if (isDark) {
       // Give comic mode a warm dark-paper page behind the orb instead of near-black.
@@ -94,14 +94,19 @@ function computePageBg(bgType, isDark, accent, cardStyle) {
     // in CARD_STYLE_TOKENS (comic → #ede0c4, glass → #e8eaf0, flat → #f0f0f0).
     return "var(--w-page-bg)";
   }
+  if ((bgType === "photo" || bgType === "custom") && url) {
+    // Cover-fill the viewport with the image; the (dominant) colour sits behind
+    // it as a placeholder while it loads and as a fallback if it 404s.
+    return `${color || "#18191b"} url("${url}") center / cover no-repeat`;
+  }
   return getSolidGradientBg(isDark, accent, cardStyle);
 }
 
 // ── Hook ───────────────────────────────────────────────────────────────────────
 
 /**
- * Canvas background computation for the two supported modes: solid (accent
- * mesh gradient) and orb (animated gradient).
+ * Canvas background computation. Supported modes: solid (accent mesh gradient),
+ * orb (animated gradient), photo (curated image), and custom (image URL).
  */
 export function useCanvasBg({
   canvasBg,
@@ -111,6 +116,8 @@ export function useCanvasBg({
 }) {
   const bgType = canvasBg?.type || APP_SETTINGS_DEFAULTS.canvasBg.type;
   const bgOrbId = canvasBg?.orbId || APP_SETTINGS_DEFAULTS.canvasBg.orbId;
+  const bgUrl = canvasBg?.url || null;
+  const bgColor = canvasBg?.color || null;
 
   const bgOrbRgb = useMemo(
     () => (bgOrbId === "accent" ? null : getOrbRgbById(bgOrbId)),
@@ -118,15 +125,15 @@ export function useCanvasBg({
   );
 
   const pageBg = useMemo(
-    () => computePageBg(bgType, isDark, accent, cardStyle),
-    [bgType, isDark, accent, cardStyle],
+    () => computePageBg(bgType, isDark, accent, cardStyle, bgUrl, bgColor),
+    [bgType, isDark, accent, cardStyle, bgUrl, bgColor],
   );
 
   // Return a stable object reference so `<CanvasBackground {...bg}>` (and any
   // memoized consumer of it) doesn't re-render on every App render when the
   // underlying values are unchanged.
   return useMemo(
-    () => ({ bgType, bgOrbId, bgOrbRgb, pageBg }),
-    [bgType, bgOrbId, bgOrbRgb, pageBg],
+    () => ({ bgType, bgOrbId, bgOrbRgb, bgUrl, bgColor, pageBg }),
+    [bgType, bgOrbId, bgOrbRgb, bgUrl, bgColor, pageBg],
   );
 }

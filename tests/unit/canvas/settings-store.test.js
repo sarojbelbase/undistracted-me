@@ -35,6 +35,7 @@ const resetStore = (overrides = {}) =>
     dateFormat: 'gregorian',
     lookAwayEnabled: false,
     lookAwayInterval: 20,
+    widgetDim: false,
     clockFormat: '24h',
     ...overrides,
   });
@@ -159,6 +160,11 @@ describe('setDefaultView', () => {
   it('can switch to "focus"', () => {
     useSettingsStore.getState().setDefaultView('focus');
     expect(useSettingsStore.getState().defaultView).toBe('focus');
+  });
+
+  it('can switch to "note"', () => {
+    useSettingsStore.getState().setDefaultView('note');
+    expect(useSettingsStore.getState().defaultView).toBe('note');
   });
 
   it('can switch back to "canvas"', () => {
@@ -295,12 +301,41 @@ describe('setCanvasBg', () => {
 
   it('sets custom url background', () => {
     useSettingsStore.getState().setCanvasBg({ type: 'custom', url: 'https://example.com/bg.jpg' });
-    expect(useSettingsStore.getState().canvasBg.type).toBe('custom');
+    expect(useSettingsStore.getState().canvasBg).toEqual({ type: 'custom', url: 'https://example.com/bg.jpg' });
+  });
+
+  it('sets curated photo background', () => {
+    useSettingsStore.getState().setCanvasBg({ type: 'photo', url: 'https://example.com/photo.jpg', photoId: 'abc123', color: '#123456' });
+    expect(useSettingsStore.getState().canvasBg).toEqual({ type: 'photo', url: 'https://example.com/photo.jpg', photoId: 'abc123', color: '#123456' });
   });
 
   it('sets solid background', () => {
     useSettingsStore.getState().setCanvasBg({ type: 'solid' });
     expect(useSettingsStore.getState().canvasBg.type).toBe('solid');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// canvasBg persistence — photo/custom must survive a rehydrate round-trip
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('canvasBg persistence', () => {
+  it('preserves a persisted custom-url background on rehydrate', async () => {
+    localStorage.setItem(
+      'undistracted_settings',
+      JSON.stringify({ state: { canvasBg: { type: 'custom', url: 'https://example.com/bg.jpg' } } }),
+    );
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().canvasBg).toEqual({ type: 'custom', url: 'https://example.com/bg.jpg' });
+  });
+
+  it('preserves a persisted curated photo background on rehydrate', async () => {
+    localStorage.setItem(
+      'undistracted_settings',
+      JSON.stringify({ state: { canvasBg: { type: 'photo', url: 'https://example.com/photo.jpg', photoId: 'abc123', color: '#123456' } } }),
+    );
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().canvasBg).toEqual({ type: 'photo', url: 'https://example.com/photo.jpg', photoId: 'abc123', color: '#123456' });
   });
 });
 
@@ -337,5 +372,27 @@ describe('setCardStyle', () => {
     resetStore({ mode: 'auto' });
     useSettingsStore.getState().setCardStyle('flat');
     expect(useSettingsStore.getState().modePrefs?.dark?.cardStyle).toBe('flat');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// setWidgetDim
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('setWidgetDim', () => {
+  it('defaults to false', () => {
+    resetStore();
+    expect(useSettingsStore.getState().widgetDim).toBe(false);
+  });
+
+  it('enables widget dimming', () => {
+    useSettingsStore.getState().setWidgetDim(true);
+    expect(useSettingsStore.getState().widgetDim).toBe(true);
+  });
+
+  it('disables widget dimming', () => {
+    useSettingsStore.getState().setWidgetDim(true);
+    useSettingsStore.getState().setWidgetDim(false);
+    expect(useSettingsStore.getState().widgetDim).toBe(false);
   });
 });

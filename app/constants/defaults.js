@@ -29,6 +29,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   lookAwayInterval: 20, // minutes between eye-break reminders
   canvasBg: { type: "solid", orbId: "accent", url: null },
   cardStyle: "paper",
+  widgetDim: false,
   modePrefs: {
     light: { cardStyle: "paper" },
     dark: { cardStyle: "paper" },

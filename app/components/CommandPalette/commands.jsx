@@ -22,6 +22,7 @@ import {
   Fullscreen,
   MoonFill,
   PlayFill,
+  StickyFill,
 } from "react-bootstrap-icons";
 import { useUIStore } from "../../store/useUIStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
@@ -68,6 +69,14 @@ export const COMMANDS = [
     keywords: ["focus", "focus mode", "fullscreen", "distraction", "zen"],
     icon: Fullscreen,
     run: () => useUIStore.getState().requestFocusMode(),
+  },
+  {
+    id: "note-mode",
+    label: "Note Mode",
+    description: "Switch to a full-screen note",
+    keywords: ["note", "notes", "notepad", "writing", "note mode"],
+    icon: StickyFill,
+    run: () => useUIStore.getState().requestNoteMode(),
   },
   {
     id: "theme",
