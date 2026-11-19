@@ -1,4 +1,4 @@
-import { JournalBookmarkFill } from "react-bootstrap-icons";
+import { NoteJournalIcon } from "../../assets/svg/NoteJournalIcon";
 import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
 
 /**
@@ -26,10 +26,10 @@ export const NoteModeButton = ({ isDark, onClick, bare = false }) => (
           }),
     }}
   >
-    <JournalBookmarkFill
+    <NoteJournalIcon
       size={14}
+      color={CANVAS_ICON_MUTED(isDark)}
       className="shrink-0 transition-transform duration-200 group-hover:scale-110"
-      style={{ color: CANVAS_ICON_MUTED(isDark) }}
     />
     <span className="max-w-0 overflow-hidden transition-all duration-300 group-hover:max-w-28 opacity-0 group-hover:opacity-100">
       <span
