@@ -695,18 +695,39 @@
 }
 
 // ── Segmented switch ────────────────────────────────────────────────────────
-// A subtle track with a raised active pill. App-wide default for secondary
-// view switches (e.g. Pocket's Group by) and widget settings.
+// A subtle track with a sliding accent-tinted thumb. App-wide default for
+// secondary view switches (e.g. Pocket's Group by) and widget settings.
 
 .um-seg {
+  position: relative;
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  border-radius: 10px;
+  border-radius: 11px;
   background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--w-ink-1) 8%, transparent);
+
+  // Sliding thumb — the raised, accent-tinted active pill. Positioned by the
+  // component to match the active button, then animated on selection change.
+  .um-seg-thumb {
+    position: absolute;
+    border-radius: 9px;
+    background: var(--w-accent);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--w-ink-1) 24%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    pointer-events: none;
+    will-change: left, width;
+    transition:
+      left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+      top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+      width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+      height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   button {
-    min-height: 26px;
+    position: relative;
+    z-index: 1;
     padding: 3px 12px;
     border: none;
     border-radius: 8px;
@@ -715,15 +736,14 @@
     font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.14s ease, color 0.14s ease;
+    transition: color 0.2s ease;
 
     &:hover { color: var(--w-ink-1); }
 
     &[aria-pressed="true"] {
-      background: var(--panel-bg);
-      color: var(--w-ink-1);
+      color: var(--w-accent-fg);
       font-weight: 600;
-      box-shadow: 0 1px 2px color-mix(in srgb, var(--w-ink-1) 14%, transparent);
+      // Background comes from the sliding .um-seg-thumb, not the button.
     }
   }
 }
@@ -736,6 +756,13 @@
   button { flex: 1; }
 }
 
+// Size variants — sm (Pocket "Group by" toolbar) · md · lg (settings rows, default).
+.um-seg--sm button { min-height: 26px; }
+.um-seg--md button { min-height: 32px; }
+.um-seg--lg button { min-height: 38px; }
+
 @media (pointer: coarse) {
-  .um-seg button { min-height: 36px; }
+  .um-seg--sm button { min-height: 36px; }
+  .um-seg--md button { min-height: 42px; }
+  .um-seg--lg button { min-height: 48px; }
 }

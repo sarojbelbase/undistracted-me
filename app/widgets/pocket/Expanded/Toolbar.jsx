@@ -51,6 +51,7 @@ export function Toolbar({ query, onQueryChange, onClear, onAdd, groupBy, onGroup
         <div className="pocket-toolbar__group">
           <SegmentedControl
             inline
+            size="sm"
             ariaLabel="Group saves by"
             options={GROUP_BY_OPTIONS}
             value={groupBy}

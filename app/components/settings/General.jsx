@@ -9,6 +9,7 @@ import { NOTIFICATION_TYPES } from '../../constants/notifications';
 import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-bootstrap-icons';
 import { BlockedSites } from './BlockedSites';
 import { Toggle } from '../../components/ui/Toggle';
+import { SegmentedControl } from '../../components/ui/SegmentedControl';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -46,45 +47,28 @@ export const General = ({ onPreviewLookAway }) => {
       {/* ── Launch Mode ── */}
       <div>
         <SectionLabel>Launch Mode</SectionLabel>
+        <SegmentedControl
+          ariaLabel="Launch Mode"
+          options={[
+            { value: 'canvas', label: 'Canvas' },
+            { value: 'note', label: 'Note' },
+            { value: 'focus', label: 'Focus' },
+          ]}
+          value={defaultView}
+          onChange={setDefaultView}
+        />
         {(() => {
-          const modes = [
-            { id: 'canvas', label: 'Canvas', hint: 'Widgets & content on every new tab' },
-            { id: 'note', label: 'Note', hint: 'A distraction-free note on every new tab' },
-            { id: 'focus', label: 'Focus', hint: 'Distraction-free sessions' },
-          ];
-          const activeHint = modes.find(m => m.id === defaultView)?.hint;
-          return (
-            <>
-              <div style={{
-                display: 'flex', gap: 3, padding: 3, borderRadius: 11,
-                background: 'var(--panel-bg)', border: '1px solid var(--card-border)',
-              }}>
-                {modes.map(({ id, label }) => {
-                  const selected = defaultView === id;
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setDefaultView(id)}
-                      style={{
-                        flex: 1, padding: '7px 0', borderRadius: 8,
-                        border: 'none', cursor: 'pointer',
-                        fontSize: 12, fontWeight: 600, transition: 'all 0.15s ease',
-                        background: selected ? 'var(--w-accent)' : 'transparent',
-                        color: selected ? 'var(--w-accent-fg)' : 'var(--w-ink-3)',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-              {activeHint && (
-                <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: 6, lineHeight: '1.4' }}>
-                  {activeHint}
-                </p>
-              )}
-            </>
-          );
+          const hints = {
+            canvas: 'Widgets & content on every new tab',
+            note: 'A distraction-free note on every new tab',
+            focus: 'Distraction-free sessions',
+          };
+          const activeHint = hints[defaultView];
+          return activeHint ? (
+            <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: 6, lineHeight: '1.4' }}>
+              {activeHint}
+            </p>
+          ) : null;
         })()}
       </div>
 
