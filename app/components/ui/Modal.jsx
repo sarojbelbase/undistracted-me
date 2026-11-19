@@ -16,6 +16,7 @@ import { XLg } from "react-bootstrap-icons";
  *   style       - extra inline styles merged onto the panel
  *   maxHeight   - CSS maxHeight applied in title mode (default '70vh')
  *   ariaLabel   - aria-label for the dialog (defaults to title if provided)
+ *   zIndex      - stacking context for the dialog (default 100)
  */
 export const Modal = ({
   title,
@@ -25,6 +26,7 @@ export const Modal = ({
   style = {},
   maxHeight = "70vh",
   ariaLabel,
+  zIndex = 100,
 }) => {
   // Capture the previously-focused element during the first render (before any
   // child effect moves focus into the dialog) and restore it on unmount so
@@ -115,7 +117,8 @@ export const Modal = ({
       aria-modal="true"
       aria-label={ariaLabel ?? title ?? "Dialog"}
       tabIndex={-1}
-      className="fixed inset-0 z-100 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
+      className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
+      style={{ zIndex }}
     >
       {/* Backdrop overlay — click to dismiss */}
       <div

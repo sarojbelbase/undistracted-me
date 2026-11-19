@@ -136,7 +136,7 @@ export const Settings = ({
     <Modal
       onClose={onClose}
       ariaLabel="Canvas settings"
-      style={{ width: 520, maxWidth: "calc(100vw - 32px)" }}
+      style={{ width: 524, maxWidth: "calc(100vw - 32px)" }}
     >
       {/* ── Header ── */}
       <div style={{
@@ -182,7 +182,7 @@ export const Settings = ({
       <TabBar active={activeTab} onChange={setActiveTab} />
 
       {/* ── Tab content ── */}
-      <div style={{ position: 'relative', height: 360, flexShrink: 0 }}>
+      <div style={{ position: 'relative', height: 380, flexShrink: 0 }}>
         <div
           ref={scrollRef}
           onScroll={updateScrollFade}
