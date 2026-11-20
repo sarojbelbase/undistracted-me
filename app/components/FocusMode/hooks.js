@@ -7,7 +7,7 @@ import {
   getCachedPhotoSync,
   getPhotoLibrary,
   setCurrentPhotoId,
-} from "../../utilities/unsplash";
+} from "../../utilities/photos";
 import { useWidgetInstancesStore } from "../../store";
 import {
   isGoogleAuthAvailable,
@@ -163,7 +163,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
     greet: true,
   });
   useEffect(() => {
-    // slotA/slotB hold CDN image URLs (p.regular). Never use the Unsplash page
+    // slotA/slotB hold CDN image URLs (p.regular). Never use the provider's page
     // URL (p.url) here — that origin blocks cross-origin canvas reads.
     const url = activeSlot === "a" ? slotA : slotB;
     if (!url || url.includes("unsplash.com/photos/")) return;

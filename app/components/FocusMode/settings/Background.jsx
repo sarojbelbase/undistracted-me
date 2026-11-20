@@ -16,7 +16,7 @@ import {
   jumpToPhotoById,
   updatePhotoColor,
   getThumbUrl,
-} from '../../../utilities/unsplash';
+} from '../../../utilities/photos';
 import { extractColorFromImage } from '../../../utilities/favicon';
 import { useSettingsStore } from '../../../store';
 import { FM_SURFACE, FM_SURFACE_2, FM_SECTION_CARD_BG, FM_BORDER, FM_INK_1, FM_INK_2, FM_INK_3 } from '../theme';

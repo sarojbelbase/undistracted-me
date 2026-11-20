@@ -65,10 +65,10 @@ export const REVERSE_GEOCODE_API = `${API_BASE_URL}/geo/reverse`;
 
 /** IP geolocation — city-level accuracy. Stays DIRECT: the provider geolocates
  *  the *caller's* IP, so proxying would geolocate our edge server instead. */
-export const IPAPI_GEO_URL = 'https://ipapi.co/json/';
+export const IP_GEO_API = 'https://ipapi.co/json/';
 
 /** IP geolocation fallback — CORS-enabled. Direct for the same IP reason above. */
-export const FREEIPAPI_GEO_URL = 'https://free.freeipapi.com/api/v1/json';
+export const IP_GEO_FALLBACK_API = 'https://free.freeipapi.com/api/v1/json';
 
 // ── Nepal stock market ────────────────────────────────────────────────────────
 
@@ -77,10 +77,10 @@ export const NEPSE_CHART_API = `${API_BASE_URL}/stocks/chart`;
 
 // ── International stock market ────────────────────────────────────────────────
 
-/** Backend proxy for Yahoo Finance chart data (CORS-safe, symbol-agnostic). */
+/** Backend proxy for international chart data (CORS-safe, symbol-agnostic). */
 export const INTL_CHART_API = `${API_BASE_URL}/stocks/intl-chart`;
 
-/** Backend proxy for Yahoo Finance symbol search. */
+/** Backend proxy for international symbol search. */
 export const INTL_SEARCH_API = `${API_BASE_URL}/stocks/intl-search`;
 
 // ── Google APIs ───────────────────────────────────────────────────────────────

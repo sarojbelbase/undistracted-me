@@ -24,7 +24,7 @@ vi.mock('../../../app/widgets/stock/utils', () => ({
   INTL_PREFIX: 'INTL:',
 }));
 
-vi.mock('../../../app/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/photos', () => ({
   getCachedPhotoSync: vi.fn(),
   getCurrentPhoto: vi.fn(),
   rotatePhoto: vi.fn(),
@@ -76,7 +76,7 @@ import {
   jumpToPhotoById,
   getPhotoLibrary,
   setCurrentPhotoId,
-} from '../../../app/utilities/unsplash';
+} from '../../../app/utilities/photos';
 
 import { useWidgetInstancesStore } from '../../../app/store';
 import { useLocationStore } from '../../../app/store/useLocationStore';

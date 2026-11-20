@@ -10,11 +10,11 @@
  * The sync engine treats the whole background as one sync key (`focus_mode`),
  * so this module aggregates those keys into a single object on read and fans
  * the object back out to the individual keys on write. Every existing reader
- * (`FocusMode`, the App suspense fallback, `unsplash`) keeps reading the
+ * (`FocusMode`, the App suspense fallback, `photos`) keeps reading the
  * individual `fm_*` keys unchanged.
  */
 
-import { getBgSource, setBgSource } from './unsplash';
+import { getBgSource, setBgSource } from './photos';
 
 const CUSTOM_BG_URL_KEY = 'fm_custom_bg_url';
 const ORB_PALETTE_KEY = 'fm_orb_palette_id';

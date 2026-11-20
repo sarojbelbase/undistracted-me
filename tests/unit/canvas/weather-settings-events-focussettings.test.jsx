@@ -133,7 +133,7 @@ vi.mock('../../../app/store', () => ({
 }));
 
 // Mock unsplash
-vi.mock('../../../app/utilities/unsplash', async (importOriginal) => {
+vi.mock('../../../app/utilities/photos', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,

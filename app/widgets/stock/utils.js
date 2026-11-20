@@ -59,7 +59,7 @@ export async function fetchCompanies() {
 }
 
 /**
- * Search international stocks via the backend proxy (Yahoo Finance).
+ * Search international stocks via the backend proxy.
  * Returns [{ symbol, name, exchange }].
  */
 export async function searchInternational(query) {
@@ -71,7 +71,7 @@ export async function searchInternational(query) {
 }
 
 /**
- * Fetch international chart data via the backend proxy (Yahoo Finance).
+ * Fetch international chart data via the backend proxy.
  * The backend already normalizes to
  *   { prices, ltp, prevClose, open, high, low, volume }
  * so this is a straight pass-through. Returns the object, or null when the

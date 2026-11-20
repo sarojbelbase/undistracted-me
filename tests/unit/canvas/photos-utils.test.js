@@ -1,5 +1,5 @@
 /**
- * Tests for app/utilities/unsplash.js
+ * Tests for app/utilities/photos.js
  *
  * The Unsplash ACCESS_KEY is null in tests, so fetchOne() returns null
  * immediately without making network calls. Tests focus on cache operations:
@@ -30,9 +30,9 @@ import {
   getCachedPhotoSync, getPhotoLibrary,
   clearPhotoCache, LIBRARY_MAX,
   downloadCuratedPhotos,
-} from '../../../app/utilities/unsplash';
+} from '../../../app/utilities/photos';
 
-const CACHE_KEY = 'fm_unsplash_cache';
+const CACHE_KEY = 'fm_photos_cache';
 
 const makePhoto = (n) => ({
   id: `photo_${n}`,

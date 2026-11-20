@@ -201,7 +201,7 @@ vi.mock('../../../app/constants/settings', () => ({
 }));
 
 // Mock unsplash
-vi.mock('../../../app/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/photos', () => ({
   hasUnsplashKey: vi.fn(() => false),
   getPhotoLibrary: vi.fn(() => []),
   downloadNewPhoto: vi.fn(() => Promise.resolve()),

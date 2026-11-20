@@ -66,7 +66,7 @@ const EXPORT_EXCLUDED = new Set([
   "spotify_connected",
 
   // ── Focus Mode caches + transient runtime state ──
-  "fm_unsplash_cache",
+  "fm_photos_cache",
   "fm_selected_photo_id",
   "fm_current_photo_id",
   "fm_pomodoro",

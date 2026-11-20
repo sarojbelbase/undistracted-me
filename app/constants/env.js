@@ -11,8 +11,8 @@
  * │ Nepali calendar conversion               │    ✅    │   ✅    │
  * │ Widget grid (clock, notes, countdown…)   │    ✅    │   ✅    │
  * │ Focus Mode + LookAway                    │    ✅    │   ✅    │
- * │ Weather widget (OpenWeatherMap)          │    ✅    │   ✅    │
- * │ Curated photo backgrounds (Cloudflare R2)  │    ✅    │   ✅    │
+ * │ Weather widget                           │    ✅    │   ✅    │
+ * │ Curated photo backgrounds (Cloudflare R2)│    ✅    │   ✅    │
  * │ localStorage persistence                 │    ✅    │   ✅    │
  * │ Dynamic browser-tab favicon (date)       │    ✅    │   ✗     │
  * ├──────────────────────────────────────────┼──────────┼─────────┤

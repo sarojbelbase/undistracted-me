@@ -14,14 +14,14 @@
  *
  * Resolution pipeline (in priority order):
  *   1. navigator.geolocation — GPS/WiFi, most accurate
- *   2. free.freeipapi.com    — IP-based, works from extension origins
+ *   2. IP-based fallback     — works from extension origins
  *   3. Kathmandu hardcoded  — last resort (source = 'default')
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { REVERSE_GEOCODE_API, IPAPI_GEO_URL, FREEIPAPI_GEO_URL } from '../constants/urls.js';
+import { REVERSE_GEOCODE_API, IP_GEO_API, IP_GEO_FALLBACK_API } from '../constants/urls.js';
 import { getSunTimes, getEffectiveMode } from '../utilities/sunTime';
 
 const KATHMANDU = { lat: 27.7172, lon: 85.324, city: 'Kathmandu', timezone: 'Asia/Kathmandu' };
@@ -75,14 +75,14 @@ const reverseGeocodeCity = async (lat, lon) => {
   }
 };
 
-/** IP geolocation — tries free.freeipapi.com (works from extension origins). */
+/** IP geolocation — tries the primary IP provider, then a CORS-enabled fallback. */
 const getCoordsFromIP = async () => {
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
-  // ipapi.co — blocked by CORS in extension origins; only try in web context
+  // Primary IP provider — blocked by CORS in extension origins; only try in web context
   if (!isExtension) {
     try {
-      const r = await fetch(IPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
+      const r = await fetch(IP_GEO_API, { signal: AbortSignal.timeout(5000) });
       if (r.ok) {
         const d = await r.json();
         if (typeof d.latitude === 'number') {
@@ -97,9 +97,9 @@ const getCoordsFromIP = async () => {
     } catch { /* fall through */ }
   }
 
-  // free.freeipapi.com — CORS-enabled, works from extension origins
+  // Fallback IP provider — CORS-enabled, works from extension origins
   try {
-    const r = await fetch(FREEIPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
+    const r = await fetch(IP_GEO_FALLBACK_API, { signal: AbortSignal.timeout(5000) });
     if (r.ok) {
       const d = await r.json();
       if (typeof d.latitude === 'number') {

@@ -7,7 +7,7 @@
  */
 
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { IPAPI_GEO_URL } from '../constants/urls.js';
+import { IP_GEO_API } from '../constants/urls.js';
 
 /** Kathmandu coordinates — used as fallback when geolocation is unavailable */
 const KATHMANDU = { lat: 27.7172, lon: 85.324 };
@@ -153,20 +153,20 @@ export const getCachedCoordsSource = () => {
 };
 
 /**
- * Tier 2 fallback: resolve coordinates from public IP via ipapi.co.
+ * Tier 2 fallback: resolve coordinates from the public IP.
  *
- * NOTE: ipapi.co blocks chrome-extension:// and moz-extension:// origins with
- * a CORS error, so we skip this path entirely when running as an extension.
- * In that case the Kathmandu hardcoded fallback is used instead.
+ * NOTE: the primary IP provider blocks chrome-extension:// and moz-extension://
+ * origins with a CORS error, so we skip this path entirely when running as an
+ * extension. In that case the Kathmandu hardcoded fallback is used instead.
  *
  * @returns {Promise<{lat:number,lon:number}|null>}
  */
 const _coordsFromIP = async () => {
-  // Skip if running as a browser extension — ipapi.co rejects extension origins.
+  // Skip if running as a browser extension — the primary IP provider rejects extension origins.
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
   if (isExtension) return null;
   try {
-    const res = await fetch(IPAPI_GEO_URL, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(IP_GEO_API, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     const data = await res.json();
     if (typeof data?.latitude === 'number' && typeof data?.longitude === 'number') {
@@ -179,7 +179,7 @@ const _coordsFromIP = async () => {
 /**
  * Requests coordinates using a three-tier priority chain, all non-blocking:
  *   1. Browser Geolocation API (most accurate — GPS/WiFi based)
- *   2. IP geolocation via ipapi.co (city-level, ~80% within 50 km)
+ *   2. IP geolocation (city-level, ~80% within 50 km)
  *   3. Kathmandu hardcoded fallback (last resort, implicit via getCachedCoords)
  *
  * Results are cached in localStorage for 24 h and reused on subsequent loads.

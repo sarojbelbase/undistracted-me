@@ -36,7 +36,7 @@
  *   - Notes content (widgetSettings.notes) — stripped from widget_instances and
  *     synced separately via per-note files.
  *   - Pomodoro history, per-instance pomodoro timers
- *   - Weather cache, Unsplash photos, RSS items, location state, auth tokens,
+ *   - Weather cache, curated photos, RSS items, location state, auth tokens,
  *     Spotify tokens, GCal cache, expense data
  */
 

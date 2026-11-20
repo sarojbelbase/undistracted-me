@@ -25,7 +25,7 @@ vi.mock("../../../app/store", () => ({
   }),
 }));
 
-vi.mock("../../../app/utilities/unsplash", () => ({
+vi.mock("../../../app/utilities/photos", () => ({
   getBgSource: vi.fn(() => "default"),
   setBgSource: vi.fn(),
 }));

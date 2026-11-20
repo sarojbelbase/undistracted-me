@@ -68,8 +68,8 @@ describe('STORAGE_KEYS', () => {
   });
 
   // ── Focus mode ────────────────────────────────────────────────────────────
-  it('UNSPLASH_CACHE key defined', () => {
-    expect(STORAGE_KEYS.UNSPLASH_CACHE).toBe('fm_unsplash_cache');
+  it('PHOTOS_CACHE key defined', () => {
+    expect(STORAGE_KEYS.PHOTOS_CACHE).toBe('fm_photos_cache');
   });
 
   // ── Integrations ──────────────────────────────────────────────────────────

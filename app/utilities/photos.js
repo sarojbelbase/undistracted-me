@@ -1,5 +1,5 @@
 /**
- * Unsplash photo utility for Focus Mode.
+ * Curated photo utility for Focus Mode.
  *
  * Photo library model:
  *  - library[0] = currently displayed photo.
@@ -11,7 +11,7 @@
  * Photo source: backend curated proxy — VITE_PHOTOS_API_URL or the
  *   hardcoded fallback api.undistracted.me/photos/curated.
  *
- * Attribution: per Unsplash ToS every photo carries author + link.
+ * Attribution: per the provider's ToS every photo carries author + link.
  */
 
 import { API_BASE_URL } from '../constants/env.js';
@@ -19,7 +19,7 @@ import { API_BASE_URL } from '../constants/env.js';
 const PHOTOS_API_URL = import.meta.env.VITE_PHOTOS_API_URL
   || `${API_BASE_URL}/photos/curated`;
 
-const CACHE_KEY = 'fm_unsplash_cache';
+const CACHE_KEY = 'fm_photos_cache';
 export const LIBRARY_MAX = 20;
 
 /** Persists the ID of the photo the user last explicitly chose. */
@@ -64,7 +64,7 @@ const writeCache = (items) => {
 
 /**
  * Returns the photo currently at the head of the library.
- * Fetches from Unsplash only if the library is completely empty.
+ * Fetches from the curated source only if the library is completely empty.
  * Pre-warms in the background when the library runs low.
  */
 export const getCurrentPhoto = async () => {
@@ -179,7 +179,7 @@ export const setBgSource = (src) => {
  *  - id, regular, url  — display URLs (regular/url = full-res wallpaper)
  *  - thumb, small      — pre-sized WebP thumbnail URLs for the picker grid
  *  - color              — dominant colour for background placeholder
- *  - author, authorUrl  — Unsplash attribution (ToS requirement)
+ *  - author, authorUrl  — photo attribution (ToS requirement)
  *  - cachedAt           — cache freshness tracking
  */
 const ESSENTIAL_FIELDS = ['id', 'regular', 'url', 'thumb', 'small', 'color', 'author', 'authorUrl', 'cachedAt'];

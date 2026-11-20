@@ -21,7 +21,7 @@ import {
   getPhotoLibrary,
   downloadCuratedPhotos,
   getThumbUrl,
-} from '../../utilities/unsplash';
+} from '../../utilities/photos';
 
 // ─── URL validation (mirrors Focus Mode's Background.jsx) ──────────────────────
 
@@ -139,7 +139,7 @@ const PhotoGrid = ({ value, onChange }) => {
       .then((photos) => {
         if (!alive) return;
         if (photos?.length) {
-          // `id` is stable across fetches (Unsplash id), so keying by it keeps
+          // `id` is stable across fetches (photo id), so keying by it keeps
           // browser image-cache + React reconciliation intact between opens. A
           // random per-fetch `_uid` was remounting every tile (re-blurring and
           // re-extracting colours on every open).

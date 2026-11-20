@@ -321,7 +321,7 @@ describe('export/import filtering', () => {
 
   it('excludes caches and transient timer state', async () => {
     localStorage.setItem('gcal_events_cache', JSON.stringify([]));
-    localStorage.setItem('fm_unsplash_cache', JSON.stringify([]));
+    localStorage.setItem('fm_photos_cache', JSON.stringify([]));
     localStorage.setItem('pomodoro_timer_state_pomodoro', JSON.stringify({ running: true }));
     localStorage.setItem('rss_cache_hn', JSON.stringify([]));
     localStorage.setItem('expense_migrated_x', '1');
@@ -329,7 +329,7 @@ describe('export/import filtering', () => {
     const payload = await readExported();
 
     expect(payload.undistracted_me.gcal_events_cache).toBeUndefined();
-    expect(payload.undistracted_me.fm_unsplash_cache).toBeUndefined();
+    expect(payload.undistracted_me.fm_photos_cache).toBeUndefined();
     expect(payload.undistracted_me.pomodoro_timer_state_pomodoro).toBeUndefined();
     expect(payload.undistracted_me.rss_cache_hn).toBeUndefined();
     expect(payload.undistracted_me.expense_migrated_x).toBeUndefined();

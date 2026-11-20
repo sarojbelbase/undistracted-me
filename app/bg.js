@@ -581,7 +581,7 @@ async function runStocksPrefetch() {
 
     const results = await Promise.allSettled(
       symbols.map(async (sym) => {
-        // International symbols (INTL:) go through the backend proxy (Yahoo),
+        // International symbols (INTL:) go through the backend proxy,
         // which returns the same normalized shape as the NEPSE path below.
         if (sym.startsWith('INTL:')) {
           const ticker = sym.slice('INTL:'.length);

@@ -42,7 +42,7 @@ export const STORAGE_KEYS = Object.freeze({
   AUTO_THEME_COORDS_SOURCE: "auto_theme_coords_source",
 
   // ── Focus mode ────────────────────────────────────────────────────────
-  UNSPLASH_CACHE: "fm_unsplash_cache",
+  PHOTOS_CACHE: "fm_photos_cache",
   FOCUS_TIMEZONES: "fm_world_clocks",
 
   // ── Notes sync (per-note files, discoverable separate from config) ──

@@ -162,7 +162,7 @@ const mockGetPhotoLibrary = vi.fn(() => []);
 const mockDownloadNewPhoto = vi.fn(() => Promise.resolve());
 const mockDeletePhoto = vi.fn();
 const mockJumpToPhotoById = vi.fn();
-vi.mock('../../../app/utilities/unsplash', () => ({
+vi.mock('../../../app/utilities/photos', () => ({
   hasUnsplashKey: (...args) => mockHasUnsplashKey(...args),
   getPhotoLibrary: (...args) => mockGetPhotoLibrary(...args),
   downloadNewPhoto: (...args) => mockDownloadNewPhoto(...args),

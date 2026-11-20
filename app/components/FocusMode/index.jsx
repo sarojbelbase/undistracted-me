@@ -16,7 +16,7 @@ import {
 import {
   getBgSource,
   setBgSource as persistBgSource,
-} from "../../utilities/unsplash";
+} from "../../utilities/photos";
 import { useSettingsStore } from "../../store";
 import { useShallow } from "zustand/react/shallow";
 import { getFMCardVars } from "./theme";
