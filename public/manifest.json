@@ -55,6 +55,7 @@
     "declarativeNetRequest"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://app.undistracted.me/*",
     "https://api.undistracted.me/*",
     "https://api.spotify.com/*",

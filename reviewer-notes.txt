@@ -38,9 +38,15 @@ declarativeNetRequest → Website Blocker (Focus Mode); dynamic rules (IDs
        1000+), user-configured only (src/utilities/siteBlocker.js)
 
 HOST PERMISSIONS
-Scoped to contacted origins only (YouTube/SoundCloud, Spotify, Google APIs,
-weather/geolocation, stocks, search-suggest, jokes, undistracted.me API).
-No <all_urls> / *://*/* grant.
+Scoped to contacted origins (YouTube/SoundCloud, Spotify, Google APIs,
+weather/geolocation, stocks, search-suggest, jokes, undistracted.me API) PLUS
+<all_urls>. The <all_urls> grant is required for the Website Blocker's
+declarativeNetRequest `redirect` action: the `declarativeNetRequest` permission
+alone only grants implicit access to `block`/`allow`/`allowAllRequests` rules,
+while `redirect` (to the blocked.html interstitial) requires host permission on
+the blocked host. Without <all_urls> the blocker silently no-ops on any site not
+already in host_permissions. No request data is read — DNR redirects happen in
+the browser's network stack without exposing request content to the extension.
 
 CONTENT SCRIPTS
 YouTube + SoundCloud (media.js, document_idle): polls mediaSession, routes
