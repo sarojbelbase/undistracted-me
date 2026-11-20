@@ -14,11 +14,14 @@ const DigitRoller = ({ char }) => (
 
 export const Clock = ({ parts, centerOnDark, compact = false }) => {
   const photo = getPhotoTokens(centerOnDark);
+  const timeLabel = `${parts.time}${parts.period ? ' ' + parts.period : ''}`;
   return (
     <div
       className={compact ? 'fm-clock-compact flex items-center select-none pointer-events-none' : 'flex items-center select-none pointer-events-none'}
+      role="timer"
+      aria-label={timeLabel}
     >
-      <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-start' }}>
+      <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-start' }} aria-hidden="true">
         <div
           className={compact ? 'fm-clock-text-compact flex items-center' : 'fm-clock-text flex items-center'}
           style={{

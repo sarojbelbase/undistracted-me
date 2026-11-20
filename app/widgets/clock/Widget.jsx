@@ -80,8 +80,14 @@ export const Widget = ({ id, onRemove }) => {
       }
       onRemove={onRemove}
     >
-      {/* Time + AM/PM inline, baseline-aligned — no awkward stacking */}
-      <div className="flex items-baseline gap-1 flex-wrap justify-center">
+      {/* Time + AM/PM inline, baseline-aligned — no awkward stacking.
+          role="timer" identifies it as a time display (and suppresses per-char
+          reading) without a spammy per-minute live region. */}
+      <div
+        role="timer"
+        aria-label={`Current time ${parts.time}${parts.period ? ' ' + parts.period : ''}`}
+        className="flex items-baseline gap-1 flex-wrap justify-center"
+      >
         <span className="clk-main-time" style={{ fontSize: mainSize }}>
           {parts.time}
         </span>
