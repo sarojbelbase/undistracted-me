@@ -72,14 +72,14 @@ test('Dark/Light mode buttons are visible in settings', async ({ page }) => {
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Appearance' }).click();
   // Use exact names to avoid matching accent swatches like "Not available in dark mode"
-  await expect(page.getByRole('button', { name: 'Dark', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Light', exact: true })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Dark', exact: true })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Light', exact: true })).toBeVisible();
 });
 
 test('Switching to light mode persists in localStorage', async ({ page }) => {
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Appearance' }).click();
-  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await page.getByRole('radio', { name: 'Light', exact: true }).click();
   const mode = await page.evaluate(() => localStorage.getItem('app_mode'));
   expect(mode).toBe('light');
 });
@@ -92,7 +92,7 @@ test('Switching back to dark mode persists in localStorage', async ({ page }) =>
 
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Appearance' }).click();
-  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page.getByRole('radio', { name: 'Dark', exact: true }).click();
   const mode = await page.evaluate(() => localStorage.getItem('app_mode'));
   expect(mode).toBe('dark');
 });

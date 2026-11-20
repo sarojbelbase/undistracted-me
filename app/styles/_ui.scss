@@ -772,7 +772,7 @@
 
     &:hover { color: var(--w-ink-1); }
 
-    &[aria-pressed="true"] {
+    &[aria-checked="true"] {
       color: var(--w-accent-fg);
       font-weight: 600;
       // Background comes from the sliding .um-seg-thumb, not the button.
@@ -796,7 +796,7 @@
 // Subtle (non-accent) variant — quiet raised pill for inline toolbars such as
 // Pocket's "Group by", leaving the accent thumb for settings rows.
 .um-seg--subtle button {
-  &[aria-pressed="true"] {
+  &[aria-checked="true"] {
     background: var(--panel-bg);
     color: var(--w-ink-1);
     box-shadow: 0 1px 2px color-mix(in srgb, var(--w-ink-1) 14%, transparent);

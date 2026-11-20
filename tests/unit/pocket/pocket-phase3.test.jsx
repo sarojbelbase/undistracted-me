@@ -30,24 +30,24 @@ describe('SegmentedControl', () => {
     { label: 'Website', value: 'website' },
   ];
 
-  it('renders a labelled group with pressed state', () => {
+  it('renders a labelled radiogroup with checked state', () => {
     render(<SegmentedControl inline ariaLabel="Group saves by" options={options} value="date" onChange={() => {}} />);
-    expect(screen.getByRole('group', { name: 'Group saves by' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Date' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Website' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('radiogroup', { name: 'Group saves by' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Date' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Website' }).getAttribute('aria-checked')).toBe('false');
   });
 
   it('calls onChange with the option value', () => {
     const onChange = vi.fn();
     render(<SegmentedControl inline ariaLabel="Group saves by" options={options} value="date" onChange={onChange} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Website' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Website' }));
     expect(onChange).toHaveBeenCalledWith('website');
   });
 
-  it('renders an optional label above the control with pressed state', () => {
+  it('renders an optional label above the control with checked state', () => {
     render(<SegmentedControl label="Time Format" options={options} value="date" onChange={() => {}} />);
     expect(screen.getByText('Time Format')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Date' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Date' }).getAttribute('aria-checked')).toBe('true');
   });
 });
 

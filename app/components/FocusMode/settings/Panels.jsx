@@ -83,7 +83,7 @@ const PanelRow = ({ panel, enabled, onToggle, borderTop }) => (
         {panel.description}
       </div>
     </div>
-    <Toggle checked={enabled} onChange={onToggle} />
+    <Toggle checked={enabled} onChange={onToggle} ariaLabel={panel.label} />
   </div>
 );
 

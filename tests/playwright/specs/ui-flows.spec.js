@@ -145,7 +145,7 @@ test.describe('Theme', () => {
     await loadCanvas(page, { state: { mode: 'light' } });
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('tab', { name: 'Appearance' }).click();
-    await page.getByRole('button', { name: 'Dark', exact: true }).click();
+    await page.getByRole('radio', { name: 'Dark', exact: true }).click();
 
     const mode = await page.evaluate(() => {
       const raw = JSON.parse(localStorage.getItem('undistracted_settings') || '{}');

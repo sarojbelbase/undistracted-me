@@ -61,7 +61,7 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
     <div
       ref={trackRef}
       className={`um-seg um-seg--${size} um-seg--${variant} ${inline ? "" : "um-seg--full"}`}
-      role="group"
+      role="radiogroup"
       aria-label={ariaLabel || label}
     >
       {variant === "accent" && thumb && (
@@ -80,7 +80,8 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
         <button
           key={opt.value}
           type="button"
-          aria-pressed={value === opt.value}
+          role="radio"
+          aria-checked={value === opt.value}
           data-value={opt.value}
           onClick={() => onChange(opt.value)}
         >

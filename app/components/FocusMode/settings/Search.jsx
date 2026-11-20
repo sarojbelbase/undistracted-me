@@ -42,7 +42,7 @@ const SourceRow = ({ icon, label, description, checked, onChange, borderTop = fa
         {description}
       </div>
     </div>
-    <Toggle checked={checked} onChange={onChange} />
+    <Toggle checked={checked} onChange={onChange} ariaLabel={label} />
   </div>
 );
 

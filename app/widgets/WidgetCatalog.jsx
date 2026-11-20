@@ -270,6 +270,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
         className={`wc-panel${phase === 'leaving' ? ' wc-panel--leaving' : ''}`}
         style={{ transform: phase === 'open' ? 'translateX(0)' : 'translateX(100%)' }}
         aria-label="Widget catalog"
+        aria-modal="true"
       >
         {/* ── Header ── */}
         <div className="wc-header">

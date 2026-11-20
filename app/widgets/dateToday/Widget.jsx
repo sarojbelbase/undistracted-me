@@ -17,12 +17,18 @@ export const Widget = ({ id, onRemove }) => {
   const lastKeyRef = useRef('');
 
   useEffect(() => {
+    // Cheap Nepal-calendar-date key (Asia/Kathmandu is UTC+5:45, no DST) so the
+    // per-second tick can short-circuit BEFORE the expensive getDateParts +
+    // Nepali conversion runs 86,400×/day for a value that changes once.
+    const nepalDateKey = () => {
+      const d = new Date(Date.now() + (5 * 60 + 45) * 60 * 1000);
+      return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+    };
     const tick = () => {
-      const p = getDateParts(language);
-      const key = `${p.year}|${p.month}|${p.day}`;
+      const key = nepalDateKey();
       if (key === lastKeyRef.current) return;
       lastKeyRef.current = key;
-      setParts(p);
+      setParts(getDateParts(language));
     };
     tick();
     return onClockTick(tick);

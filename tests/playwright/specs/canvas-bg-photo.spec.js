@@ -48,10 +48,10 @@ test.describe('Canvas Background', () => {
   test('shows all four background options', async ({ page }) => {
     const dialog = await openAppearance(page);
     await expect(dialog.getByText('Background', { exact: true })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Solid' })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Motion' })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Photos' })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Custom URL' })).toBeVisible();
+    await expect(dialog.getByRole('radio', { name: 'Solid' })).toBeVisible();
+    await expect(dialog.getByRole('radio', { name: 'Motion' })).toBeVisible();
+    await expect(dialog.getByRole('radio', { name: 'Photos' })).toBeVisible();
+    await expect(dialog.getByRole('radio', { name: 'Custom URL' })).toBeVisible();
   });
 
   test('defaults to Solid selection', async ({ page }) => {
@@ -62,22 +62,22 @@ test.describe('Canvas Background', () => {
 
   test('selecting Motion persists to the store', async ({ page }) => {
     const dialog = await openAppearance(page);
-    await dialog.getByRole('button', { name: 'Motion' }).click();
+    await dialog.getByRole('radio', { name: 'Motion' }).click();
     const bg = await readCanvasBg(page);
     expect(bg?.type).toBe('orb');
   });
 
   test('selecting Solid persists to the store (switch back from Motion)', async ({ page }) => {
     const dialog = await openAppearance(page);
-    await dialog.getByRole('button', { name: 'Motion' }).click();
-    await dialog.getByRole('button', { name: 'Solid' }).click();
+    await dialog.getByRole('radio', { name: 'Motion' }).click();
+    await dialog.getByRole('radio', { name: 'Solid' }).click();
     const bg = await readCanvasBg(page);
     expect(bg?.type).toBe('solid');
   });
 
   test('selecting Photos switches the store to photo mode and shows the gallery', async ({ page }) => {
     const dialog = await openAppearance(page);
-    await dialog.getByRole('button', { name: 'Photos' }).click();
+    await dialog.getByRole('radio', { name: 'Photos' }).click();
     const bg = await readCanvasBg(page);
     expect(bg?.type).toBe('photo');
     // The curated gallery sub-panel renders (shimmer placeholders while the
@@ -87,7 +87,7 @@ test.describe('Canvas Background', () => {
 
   test('selecting Custom URL shows the URL input and applies a valid url', async ({ page }) => {
     const dialog = await openAppearance(page);
-    await dialog.getByRole('button', { name: 'Custom URL' }).click();
+    await dialog.getByRole('radio', { name: 'Custom URL' }).click();
     const input = dialog.getByLabel('Image URL');
     await expect(input).toBeVisible();
     await input.fill('https://example.com/photo.jpg');

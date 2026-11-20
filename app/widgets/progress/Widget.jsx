@@ -15,20 +15,31 @@ export const Widget = ({ id = 'progress', onRemove }) => {
 
   const [progress, setProgress] = useState(() => getProgress(period, calendar));
 
-  // Immediately reflect setting changes without waiting for the next minute tick
-  useEffect(() => {
-    setProgress(getProgress(period, calendar));
-  }, [period, calendar]);
-
   const lastMinuteRef = useRef(-1);
   useEffect(() => {
-    // Gate on minute change — zero drift, updates at same wall-clock second as the clock widget
+    // Commit only when a visible field actually changes — year/month progress
+    // would otherwise re-render 1,440×/day (every minute) while the integer
+    // percentage changes ~every 3.6 days.
+    const commit = () => {
+      const next = getProgress(period, calendar);
+      setProgress((prev) =>
+        prev &&
+        prev.percentage === next.percentage &&
+        prev.filledDots === next.filledDots &&
+        prev.label === next.label &&
+        prev.subtitle === next.subtitle
+          ? prev
+          : next,
+      );
+    };
+    // Reflect setting changes immediately (don't wait for the next minute tick).
+    lastMinuteRef.current = -1;
+    commit();
     return onClockTick(() => {
       const m = new Date().getMinutes();
-      if (m !== lastMinuteRef.current) {
-        lastMinuteRef.current = m;
-        setProgress(getProgress(period, calendar));
-      }
+      if (m === lastMinuteRef.current) return;
+      lastMinuteRef.current = m;
+      commit();
     });
   }, [period, calendar]);
 
@@ -45,7 +56,14 @@ export const Widget = ({ id = 'progress', onRemove }) => {
         <span className="prg-pct">{progress.percentage}%</span>
       </div>
       <div className="flex-1 flex items-center">
-        <div className="grid grid-cols-6 gap-y-3 w-full place-items-center">
+        <div
+          role="progressbar"
+          aria-label={`${progress.label} progress`}
+          aria-valuenow={progress.percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="grid grid-cols-6 gap-y-3 w-full place-items-center"
+        >
           {Array.from({ length: 24 }, (_, i) => (
             <div
               key={i}

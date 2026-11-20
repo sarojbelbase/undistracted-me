@@ -78,12 +78,24 @@ export const getTimeInZone = (tz, format) => {
  * dayjs' timezone plugin applies the zone's current DST rules, so this is the
  * DST-correct offset at "now" — unlike the static `offset` in TZ_MAP which only
  * records standard time.
+ *
+ * Short-TTL cached: the picker renders ~240 rows per keystroke, so a per-call
+ * dayjs().tz() lookup makes typing janky. A 60s TTL removes that cost while
+ * still reflecting a DST transition within a minute of it happening.
  */
+const OFFSET_CACHE_MS = 60_000;
+const _offsetCache = new Map(); // tz -> { value, expires }
 export const getUtcOffset = (tz) => {
+  const now = Date.now();
+  const cached = _offsetCache.get(tz);
+  if (cached && cached.expires > now) return cached.value;
+  let value;
   try {
-    return 'UTC' + dayjs().tz(tz).format('Z');
+    value = 'UTC' + dayjs().tz(tz).format('Z');
   } catch {
     const meta = TZ_MAP[tz];
-    return 'UTC' + (meta ? meta.offset : '+00:00');
+    value = 'UTC' + (meta ? meta.offset : '+00:00');
   }
+  _offsetCache.set(tz, { value, expires: now + OFFSET_CACHE_MS });
+  return value;
 };

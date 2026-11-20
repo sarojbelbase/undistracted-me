@@ -12,7 +12,7 @@ import { CalendarEvent, HourglassSplit, AlarmFill, Eye, Gift } from 'react-boots
 import { BlockedSites } from './BlockedSites';
 import { Toggle } from '../../components/ui/Toggle';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const SectionLabel = ({ children }) => (
   <p style={{
@@ -48,6 +48,8 @@ export const General = ({ onPreviewLookAway }) => {
   // it, second click executes; auto-disarms after 3s.
   const [confirmReset, setConfirmReset] = useState(false);
   const confirmTimerRef = useRef(null);
+  // Clear the auto-disarm timer if the panel unmounts while "Confirm reset" shows.
+  useEffect(() => () => clearTimeout(confirmTimerRef.current), []);
   const handleResetLayout = () => {
     if (!confirmReset) {
       setConfirmReset(true);
