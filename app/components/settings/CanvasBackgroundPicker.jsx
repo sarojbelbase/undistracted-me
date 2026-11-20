@@ -65,11 +65,71 @@ const photoUrl = (ph) => ph.regular || ph.url || ph.small || ph.thumb;
 
 // ─── Curated photos grid ───────────────────────────────────────────────────────
 
+// Holds its own `loaded` flag so a single image finishing load re-renders only
+// that tile — not the whole grid. The previous grid-level `loadedIds` Set made
+// every staggered lazy-load repaint all ~20 tiles, which is what made the panel
+// feel laggy while scrolling.
+const PhotoTile = ({ photo, active, dimmed, onSelect }) => {
+  const [loaded, setLoaded] = useState(false);
+  const thumbSrc = getThumbUrl(photo) || photo.small || photo.url || photo.regular;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-label="Set as background"
+      aria-pressed={active}
+      className="relative rounded-lg overflow-hidden group"
+      style={{
+        aspectRatio: '4/3',
+        display: 'block',
+        padding: 0,
+        border: 'none',
+        cursor: 'pointer',
+        background: photo.color || 'var(--panel-bg)',
+        opacity: dimmed ? 0.55 : 1,
+        transition: 'opacity 0.3s',
+      }}
+    >
+      <img
+        src={thumbSrc}
+        alt=""
+        aria-hidden
+        decoding="async"
+        loading="lazy"
+        crossOrigin="anonymous"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{
+          filter: loaded ? 'none' : 'blur(10px)',
+          transform: loaded ? 'scale(1)' : 'scale(1.1)',
+          opacity: loaded ? 1 : 0.72,
+          transition: 'filter 0.45s ease, transform 0.45s ease, opacity 0.3s ease',
+        }}
+        onLoad={() => setLoaded(true)}
+      />
+      {!loaded && (
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s ease-in-out infinite',
+          }} />
+      )}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+        style={{ background: 'rgba(0,0,0,0.28)' }}>
+        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"
+          style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}>
+          <CheckLg size={10} /> Set as Background
+        </span>
+      </div>
+      {active && <ActiveBadge />}
+    </button>
+  );
+};
+
 const PhotoGrid = ({ value, onChange }) => {
   const [allPhotos, setAllPhotos] = useState(() => getPhotoLibrary());
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState(null);
-  const [loadedIds, setLoadedIds] = useState(() => new Set());
 
   useEffect(() => {
     let alive = true;
@@ -79,12 +139,11 @@ const PhotoGrid = ({ value, onChange }) => {
       .then((photos) => {
         if (!alive) return;
         if (photos?.length) {
-          setAllPhotos(photos.map((p) => ({
-            ...p,
-            _uid: (typeof crypto !== 'undefined' && crypto.randomUUID)
-              ? crypto.randomUUID()
-              : `${Date.now()}_${p.id}`,
-          })));
+          // `id` is stable across fetches (Unsplash id), so keying by it keeps
+          // browser image-cache + React reconciliation intact between opens. A
+          // random per-fetch `_uid` was remounting every tile (re-blurring and
+          // re-extracting colours on every open).
+          setAllPhotos(photos);
         } else if (!getPhotoLibrary().length) {
           setFetchError('Could not reach the server. Check your connection.');
         }
@@ -98,8 +157,8 @@ const PhotoGrid = ({ value, onChange }) => {
 
   const activeId = value?.type === 'photo' ? value.photoId : null;
 
-  const handleSetBackground = (uid) => {
-    const photo = allPhotos.find((p) => (p._uid ?? p.id) === uid);
+  const handleSelect = (id) => {
+    const photo = allPhotos.find((p) => p.id === id);
     if (!photo) return;
     onChange({
       type: 'photo',
@@ -121,66 +180,15 @@ const PhotoGrid = ({ value, onChange }) => {
       )}
       <div className="grid grid-cols-3 gap-1.5 overflow-y-auto"
         style={{ maxHeight: 220, scrollbarWidth: 'none', pointerEvents: fetching ? 'none' : undefined }}>
-        {allPhotos.map((ph) => {
-          const uid = ph._uid ?? ph.id;
-          const thumbSrc = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
-          const isPhotoActive =
-            activeId != null && (ph.id === activeId || photoMatchesUrl(ph, value?.url));
-          const isLoaded = loadedIds.has(ph.id);
-          return (
-            <button
-              key={uid}
-              type="button"
-              onClick={() => handleSetBackground(uid)}
-              aria-label="Set as background"
-              aria-pressed={isPhotoActive}
-              className="relative rounded-lg overflow-hidden group"
-              style={{
-                aspectRatio: '4/3',
-                display: 'block',
-                padding: 0,
-                border: 'none',
-                cursor: 'pointer',
-                background: ph.color || 'var(--panel-bg)',
-                opacity: fetching ? 0.55 : 1,
-                transition: 'opacity 0.3s',
-              }}
-            >
-              <img
-                src={thumbSrc}
-                alt=""
-                aria-hidden
-                decoding="async"
-                loading="lazy"
-                crossOrigin="anonymous"
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                style={{
-                  filter: isLoaded ? 'none' : 'blur(10px)',
-                  transform: isLoaded ? 'scale(1)' : 'scale(1.1)',
-                  opacity: isLoaded ? 1 : 0.72,
-                  transition: 'filter 0.45s ease, transform 0.45s ease, opacity 0.3s ease',
-                }}
-                onLoad={() => setLoadedIds((prev) => { const next = new Set(prev); next.add(ph.id); return next; })}
-              />
-              {!isLoaded && (
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)',
-                    backgroundSize: '200% 100%',
-                    animation: 'shimmer 1.4s ease-in-out infinite',
-                  }} />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                style={{ background: 'rgba(0,0,0,0.28)' }}>
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"
-                  style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}>
-                  <CheckLg size={10} /> Set as Background
-                </span>
-              </div>
-              {isPhotoActive && <ActiveBadge />}
-            </button>
-          );
-        })}
+        {allPhotos.map((ph) => (
+          <PhotoTile
+            key={ph.id}
+            photo={ph}
+            active={activeId != null && (ph.id === activeId || photoMatchesUrl(ph, value?.url))}
+            dimmed={fetching}
+            onSelect={() => handleSelect(ph.id)}
+          />
+        ))}
         {fetching && allPhotos.length === 0 && Array.from({ length: 6 }).map((_, i) => (
           <div key={`shimmer-slot-${i}`} className="relative rounded-lg overflow-hidden"
             style={{ aspectRatio: '4/3', background: 'var(--panel-bg)' }}>

@@ -113,7 +113,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
   const matchUid = (photos) => {
     if (!initialPhotoUrl) return null;
     const m = photos.find(p => photoMatchesUrl(p, initialPhotoUrl));
-    return m ? (m._uid ?? m.id) : null;
+    return m ? m.id : null;
   };
   const [confirmedPhotoId, setConfirmedPhotoId] = useState(() => matchUid(getPhotoLibrary()));
   const [applyingId, setApplyingId] = useState(null);
@@ -141,16 +141,10 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
           if (!getPhotoLibrary().length) setFetchError('Could not reach the server. Check your connection.');
           return;
         }
-        const tagged = photos.map(p => ({
-          ...p,
-          _uid: (typeof crypto !== 'undefined' && crypto.randomUUID)
-            ? crypto.randomUUID()
-            : `${Date.now()}_${p.id}`,
-        }));
-        setAllPhotos(tagged);
+        setAllPhotos(photos);
         if (initialPhotoUrl) {
-          const freshMatch = tagged.find(p => photoMatchesUrl(p, initialPhotoUrl));
-          if (freshMatch) setConfirmedPhotoId(freshMatch._uid);
+          const freshMatch = photos.find(p => photoMatchesUrl(p, initialPhotoUrl));
+          if (freshMatch) setConfirmedPhotoId(freshMatch.id);
         }
       })
       .catch(() => { if (!getPhotoLibrary().length) setFetchError('Something went wrong. Please try again.'); })
