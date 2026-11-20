@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Check2, PlusLg, XLg } from "react-bootstrap-icons";
 import { Popup } from "../../components/ui/Popup";
 import { IconButton } from "../../components/ui/IconButton";
-import { usePocket } from "./usePocket";
+import { usePocketFolders } from "./usePocket";
 import { createFolder, setItemFolders } from "./pocketStore";
 import { liveFolders } from "./selectors";
 import { FOLDER_COLOR_MAP } from "./constants";
@@ -15,7 +15,7 @@ import { FOLDER_COLOR_MAP } from "./constants";
  * expanded Details "Add to folder" button.
  */
 export function FolderPicker({ anchor, item, onClose, autoCreate = false }) {
-  const { folders } = usePocket();
+  const folders = usePocketFolders();
   const [creating, setCreating] = useState(autoCreate);
   const [name, setName] = useState("");
   const active = new Set(item.folderIds || []);

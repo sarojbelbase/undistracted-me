@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { BoxArrowUpRight, Check2, Copy, TextLeft, Trash, XLg } from "react-bootstrap-icons";
 import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
 import { KIND_ICONS } from "./kindIcons";
-import { usePocket } from "./usePocket";
+import { usePocketFolders } from "./usePocket";
 import { setItemFolders } from "./pocketStore";
 import { copyText, openUrl, openItemSource } from "./actions";
 import { previewClamp } from "./previewLines";
@@ -25,7 +25,7 @@ import { FolderPicker } from "./FolderPicker";
  * actions, click opens the expanded view) | "list" (expanded view — the rich
  * per-kind entry design with an expandable Details block).
  */
-export function ItemRow({
+export const ItemRow = memo(function ItemRow({
   item,
   isNew = false,
   variant = "list",
@@ -145,7 +145,7 @@ export function ItemRow({
       {showDetails && <Details item={item} />}
     </div>
   );
-}
+});
 
 /**
  * WidgetRow — the compact, uniform row used on the small card face. Content
@@ -286,7 +286,7 @@ function SourceLine({ item, showSiteIcons, inWebsiteGroup }) {
  * quiet label/value rows: Source (page title, path, actions), Folders, Saved.
  */
 function Details({ item }) {
-  const { folders } = usePocket();
+  const folders = usePocketFolders();
   const [folderAnchor, setFolderAnchor] = useState(null);
   const folderById = new Map(folders.map((f) => [f.id, f]));
   const hasSource = !!item.sourceUrl;

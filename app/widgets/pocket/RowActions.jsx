@@ -19,7 +19,7 @@ import { openUrl, openItemSource } from "./actions";
 import { softDelete, undoDelete, updateItem, setItemFolders } from "./pocketStore";
 import { KINDS, KIND_META, FOLDER_COLOR_MAP } from "./constants";
 import { liveFolders } from "./selectors";
-import { usePocket } from "./usePocket";
+import { usePocketFolders } from "./usePocket";
 import { FolderPicker } from "./FolderPicker";
 
 /**
@@ -49,7 +49,7 @@ export function RowActions({ item, copied, onCopy }) {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [folderAnchor, setFolderAnchor] = useState(null);
   const moreRef = useRef(null);
-  const { folders } = usePocket();
+  const folders = usePocketFolders();
 
   const isLink = item.kind === "link";
   const isCode = item.kind === "code";

@@ -170,8 +170,6 @@ export const parseForecast = (data) => {
           code: codes[i],
           hours: i,
           type: "clearing",
-          // Pass raw pop values so the widget can show the data that caused this
-          popSlots: pops.slice(0, Math.min(i + 2, n)),
         };
       }
     }
@@ -191,7 +189,6 @@ export const parseForecast = (data) => {
         code: codes[i],
         hours: i,
         type: "incoming",
-        popSlots: pops.slice(0, Math.min(i + 2, n)),
       };
     }
   }
@@ -204,7 +201,6 @@ export const parseForecast = (data) => {
         code: codes[i],
         hours: i,
         type: "incoming",
-        popSlots: pops.slice(0, Math.min(i + 2, n)),
       };
     }
   }
