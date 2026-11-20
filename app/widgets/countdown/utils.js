@@ -226,7 +226,15 @@ export function resolveAutoTarget(upcomingEvents, today, custom) {
         : getNextOccurrence(cd),
     }))
     .filter((cd) => cd._next > now || cd.mode === "since")
-    .sort((a, b) => a._next - b._next);
+    // Prefer the nearest *future* countdown. "Since" countdowns (past dates)
+    // sort last so they only surface when nothing upcoming remains — otherwise
+    // their past `_next` would steal the auto-target from a real countdown.
+    .sort((a, b) => {
+      const aSince = a.mode === "since" ? 1 : 0;
+      const bSince = b.mode === "since" ? 1 : 0;
+      if (aSince !== bSince) return aSince - bSince;
+      return a._next - b._next;
+    });
   if (sorted[0]) {
     const cd = sorted[0];
     return {
