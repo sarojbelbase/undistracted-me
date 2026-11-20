@@ -1,5 +1,4 @@
-import { MEROLAGANI_CHART_API, NEPALI_PAISA_COMPANIES_API, INTL_CHART_API, INTL_SEARCH_API } from '../../constants/urls.js';
-import { API_BASE_URL } from '../../constants/env.js';
+import { NEPSE_CHART_API, NEPSE_COMPANIES_API, INTL_CHART_API, INTL_SEARCH_API } from '../../constants/urls.js';
 
 // Default watchlist now lives in constants/defaults.js (single source of truth).
 // Re-exported here so existing import paths keep working.
@@ -15,36 +14,24 @@ export const intlTicker = (sym) => (isIntlSymbol(sym) ? sym.slice(INTL_PREFIX.le
 export const displaySymbol = (sym) => intlTicker(sym);
 
 // In dev (localhost) requests go through the Vite proxy to avoid CORS.
-// In production (web app) requests go through the backend API (api.undistracted.me).
-// In the browser extension the chrome-extension:// origin is allowed by host_permissions.
+// In production (web app + browser extension) requests go through the backend
+// API (api.undistracted.me) so the provider is never referenced client-side.
 const hostname = typeof location !== 'undefined' ? location.hostname : '';
 const isDev = hostname === 'localhost';
-const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
 // ── Company list ──────────────────────────────────────────────────────────────
-// dev → Vite proxy (/np-api → nepalipaisa.com)
-// extension → direct (allowed by host_permissions)
-// web → backend API (api.undistracted.me/stocks/companies)
-const COMPANIES_URL = isDev
-  ? '/np-api/GetCompanies'
-  : isExtension
-    ? NEPALI_PAISA_COMPANIES_API
-    : `${API_BASE_URL}/stocks/companies`;
+// dev → Vite proxy (/np-api); production (web + extension) → backend API.
+const COMPANIES_URL = isDev ? '/np-api/GetCompanies' : NEPSE_COMPANIES_API;
 
 // ── Chart data ────────────────────────────────────────────────────────────────
-// dev → Vite proxy (/ml-api → merolagani.com)
-// extension → direct (allowed by host_permissions)
-// web → backend API (api.undistracted.me/stocks/chart?symbol=...)
+// dev → Vite proxy (/ml-api); production (web + extension) → backend API.
 function chartUrl(symbol) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 90 * 24 * 60 * 60; // 90 days of daily data for sparkline
   if (isDev) {
     return `/ml-api?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
   }
-  if (isExtension) {
-    return `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(symbol)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
-  }
-  return `${API_BASE_URL}/stocks/chart?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
+  return `${NEPSE_CHART_API}?symbol=${encodeURIComponent(symbol)}&from=${start}&to=${now}`;
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
@@ -99,7 +86,7 @@ export async function fetchIntlChart(ticker) {
 }
 
 /**
- * Fetch chart data for a symbol from merolagani.com.
+ * Fetch chart data for a symbol from NEPSE.com.
  *
  * Single call returns 90 days of daily OHLCV candles.
  *   c[n-1] = today's close  → LTP

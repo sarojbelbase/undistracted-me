@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { ICANHAZDADJOKE_API } from "../../constants/urls.js";
+import { DAILY_JOKE_API } from "../../constants/urls.js";
 import { todayStr } from "../../utilities";
 import { useDataHub } from "../../hooks/useDataHub";
 
 /**
- * Fetches one dad joke from icanhazdadjoke.com per day.
+ * Fetches one dad joke from joke.com per day.
  * Caches in the shared DataHub (stamped with `updatedAt`) so subsequent page
  * opens are instant. No polling interval — it only fetches when today's joke
  * isn't already in the hub.
@@ -27,7 +27,7 @@ export const useDailyJoke = () => {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    fetch(ICANHAZDADJOKE_API, {
+    fetch(DAILY_JOKE_API, {
       headers: {
         Accept: "application/json",
         "User-Agent": "Undistracted Me (https://undistracted.me)",

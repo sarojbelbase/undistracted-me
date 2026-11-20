@@ -52,7 +52,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // SW-prefetched raw Open-Meteo data (metric) from the DataHub.
+  // SW-prefetched raw weather data (metric) from the DataHub.
   const {
     data: hubRaw,
     entry: hubEntry,

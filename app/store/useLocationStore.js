@@ -21,7 +21,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
-import { NOMINATIM_REVERSE_API, IPAPI_GEO_URL, FREEIPAPI_GEO_URL } from '../constants/urls.js';
+import { REVERSE_GEOCODE_API, IPAPI_GEO_URL, FREEIPAPI_GEO_URL } from '../constants/urls.js';
 import { getSunTimes, getEffectiveMode } from '../utilities/sunTime';
 
 const KATHMANDU = { lat: 27.7172, lon: 85.324, city: 'Kathmandu', timezone: 'Asia/Kathmandu' };
@@ -53,11 +53,11 @@ const computeSunFields = (lat, lon) => {
   };
 };
 
-/** Reverse-geocode coordinates to a city name via OSM Nominatim. */
+/** Reverse-geocode coordinates to a city name via OSM reverse geocoder. */
 const reverseGeocodeCity = async (lat, lon) => {
   try {
     const r = await fetch(
-      `${NOMINATIM_REVERSE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      `${REVERSE_GEOCODE_API}?lat=${lat}&lon=${lon}&format=json&zoom=10`,
       {
         signal: AbortSignal.timeout(5000),
         headers: {
@@ -226,7 +226,7 @@ export const useLocationStore = create(
                 : false;
             const locationChanged = wasFallback || moved;
 
-            // Use city from IP response; fall back to Nominatim if empty
+            // Use city from IP response; fall back to reverse geocoder if empty
             let city = fromIP.city || '';
             if (!city) city = await reverseGeocodeCity(lat, lon);
 

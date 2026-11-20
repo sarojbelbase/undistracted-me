@@ -332,7 +332,7 @@ export const WIND_QUIPS = {
 
 // ── Temperature-shift quips ───────────────────────────────────────────────────
 // Triggered by passing `tempTrend` to getWeatherQuip().
-// For warming / cooling you need hourly temp data from Open-Meteo
+// For warming / cooling you need hourly temp data from weather
 // (add temperature_2m to the hourly fields in fetchOpenMeteo).
 
 export const TEMP_QUIPS = {

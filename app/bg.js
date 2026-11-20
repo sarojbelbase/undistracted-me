@@ -8,9 +8,9 @@
  */
 
 import {
-  OPEN_METEO_WEATHER_API,
-  OPEN_METEO_AQI_API,
-  MEROLAGANI_CHART_API,
+  WEATHER_API,
+  AIR_QUALITY_API,
+  NEPSE_CHART_API,
   INTL_CHART_API,
   RSS_FEED_PROXY_URL,
   GCAL_EVENTS_API,
@@ -432,7 +432,7 @@ async function runWeatherPrefetch() {
   if (!prefetchCoords) return;
   const { lat, lon } = prefetchCoords;
   try {
-    // Use the same Open-Meteo params as the widget's fetchOpenMeteo() (always metric
+    // Use the same weather params as the widget's fetchOpenMeteo() (always metric
     // because the widget's per-instance unit preference isn't accessible in the SW).
     const weatherParams = new URLSearchParams({
       latitude: lat,
@@ -453,10 +453,10 @@ async function runWeatherPrefetch() {
 
     // Fetch weather + AQI in parallel; AQI failure is non-fatal
     const [weatherResult, aqiResult] = await Promise.allSettled([
-      fetch(`${OPEN_METEO_WEATHER_API}?${weatherParams}`, {
+      fetch(`${WEATHER_API}?${weatherParams}`, {
         signal: AbortSignal.timeout(10000),
       }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`OM ${r.status}`)))),
-      fetch(`${OPEN_METEO_AQI_API}?${aqiParams}`, {
+      fetch(`${AIR_QUALITY_API}?${aqiParams}`, {
         signal: AbortSignal.timeout(6000),
       }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`AQI ${r.status}`)))),
     ]);
@@ -567,9 +567,8 @@ async function runGcalPrefetch() {
 // ─── Stocks pre-fetch ─────────────────────────────────────────────────────────
 
 /**
- * Fetches chart data for all configured stock symbols from merolagani.com
+ * Fetches chart data for all configured stock symbols via the backend proxy
  * and writes results to the shared DataHub (`stocks` namespace, timestamped).
- * The service worker runs in extension context so direct fetch is allowed.
  */
 async function runStocksPrefetch() {
   try {
@@ -583,7 +582,7 @@ async function runStocksPrefetch() {
     const results = await Promise.allSettled(
       symbols.map(async (sym) => {
         // International symbols (INTL:) go through the backend proxy (Yahoo),
-        // which returns the same normalized shape as the merolagani path below.
+        // which returns the same normalized shape as the NEPSE path below.
         if (sym.startsWith('INTL:')) {
           const ticker = sym.slice('INTL:'.length);
           const url = `${INTL_CHART_API}?symbol=${encodeURIComponent(ticker)}`;
@@ -594,7 +593,7 @@ async function runStocksPrefetch() {
           return { sym, data };
         }
 
-        const url = `${MEROLAGANI_CHART_API}?type=get_advanced_chart&symbol=${encodeURIComponent(sym)}&resolution=1D&rangeStartDate=${start}&rangeEndDate=${now}&from=&isAdjust=1`;
+        const url = `${NEPSE_CHART_API}?symbol=${encodeURIComponent(sym)}&from=${start}&to=${now}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();

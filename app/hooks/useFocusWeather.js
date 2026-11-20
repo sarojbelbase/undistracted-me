@@ -1,6 +1,6 @@
 /**
  * useFocusWeather — reads the Weather widget's location/unit and fetches current
- * conditions via Open-Meteo. Shared by Focus Mode's top zone and Note Mode's
+ * conditions via weather. Shared by Focus Mode's top zone and Note Mode's
  * ambient strip (kept out of FocusMode/hooks.js so importing it doesn't pull in
  * the rest of the Focus Mode module — Spotify, tasks, media, etc.).
  */

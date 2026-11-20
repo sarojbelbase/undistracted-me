@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { OPEN_METEO_GEOCODING_API } from '../../constants/urls.js';
+import { GEOCODING_API } from '../../constants/urls.js';
 import { createPortal } from "react-dom";
 import { GeoAlt, XCircleFill } from "react-bootstrap-icons";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
@@ -96,7 +96,7 @@ export const Settings = ({
     }
     debounceRef.current = setTimeout(() => {
       fetch(
-        `${OPEN_METEO_GEOCODING_API}?name=${encodeURIComponent(val)}&count=20&language=en&format=json`,
+        `${GEOCODING_API}?name=${encodeURIComponent(val)}&count=20&language=en&format=json`,
       )
         .then((r) => r.json())
         .then((res) => {
@@ -108,7 +108,7 @@ export const Settings = ({
                 haversineKm(userLat, userLon, b.latitude, b.longitude),
             );
           }
-          // Open-Meteo returns several entries with identical name/admin1/country
+          // weather returns several entries with identical name/admin1/country
           // (differing only by lower admin levels) — de-dupe by display label.
           const seen = new Set();
           const deduped = results.filter((r) => {

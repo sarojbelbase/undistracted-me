@@ -1,10 +1,10 @@
 /**
- * Weather widget utilities — Open-Meteo backend
- * https://open-meteo.com — free, no API key required
+ * Weather widget utilities — forecast + air-quality parsing.
+ * Fetched via the backend proxy (api.undistracted.me); no API key required.
  */
 import {
-  OPEN_METEO_WEATHER_API,
-  OPEN_METEO_AQI_API,
+  WEATHER_API,
+  AIR_QUALITY_API,
 } from '../../constants/urls.js';
 import {
   SunFill,
@@ -100,7 +100,7 @@ export const getWeatherIcon = (code, isDay, size = 52) => {
 //     the centralized useLocationStore in app/store/useLocationStore.js) ──
 
 /**
- * Single Open-Meteo call — returns current + 12h hourly forecast.
+ * Single weather call — returns current + 12h hourly forecast.
  * No API key required.
  * @param {'metric'|'imperial'} units
  */
@@ -116,17 +116,17 @@ export const fetchOpenMeteo = (lat, lon, units = "metric") => {
     wind_speed_unit: units === "imperial" ? "mph" : "kmh",
     timezone: "auto",
   });
-  return fetch(`${OPEN_METEO_WEATHER_API}?${params}`, {
+  return fetch(`${WEATHER_API}?${params}`, {
     signal: AbortSignal.timeout(8000),
   }).then((r) =>
-    r.ok ? r.json() : Promise.reject(new Error(`Open-Meteo ${r.status}`)),
+    r.ok ? r.json() : Promise.reject(new Error(`weather ${r.status}`)),
   );
 };
 
 // ── Data parsers ──────────────────────────────────────────────────────────────
 
 /**
- * Extracts current conditions from an Open-Meteo response.
+ * Extracts current conditions from an weather response.
  * @param {string} cityName  pre-resolved city label (from settings or geolocation)
  */
 export const parseWeather = (data, cityName = "") => ({
@@ -141,14 +141,14 @@ export const parseWeather = (data, cityName = "") => ({
 });
 
 /**
- * Produces a plain-language forecast from Open-Meteo hourly data.
+ * Produces a plain-language forecast from weather hourly data.
  *
  * Returns one of three types:
  *  - 'clearing'  currently raining; clears in `hours` h
  *  - 'incoming'  not raining now; rain arrives in `hours` h
  *  - 'persist'   dominant condition covers `hours` h of the next ~6 h
  *
- * @param {object} data  raw Open-Meteo response
+ * @param {object} data  raw weather response
  * @returns {{ description: string, code: number, hours: number, type: string } | null}
  */
 export const parseForecast = (data) => {
@@ -311,7 +311,7 @@ export const getAQILevel = (value) => {
 };
 
 /**
- * Fetches current US AQI + PM2.5 from the Open-Meteo air quality API.
+ * Fetches current US AQI + PM2.5 from the weather air quality API.
  * Free — no API key required. Non-fatal: callers should .catch(() => null).
  */
 export const fetchAQI = (lat, lon) => {
@@ -322,7 +322,7 @@ export const fetchAQI = (lat, lon) => {
     timezone: "auto",
   });
   return fetch(
-    `${OPEN_METEO_AQI_API}?${params}`,
+    `${AIR_QUALITY_API}?${params}`,
     { signal: AbortSignal.timeout(6000) },
   ).then((r) =>
     r.ok ? r.json() : Promise.reject(new Error(`AQI ${r.status}`)),
@@ -330,7 +330,7 @@ export const fetchAQI = (lat, lon) => {
 };
 
 /**
- * Extracts AQI value + PM2.5 from an Open-Meteo air quality response.
+ * Extracts AQI value + PM2.5 from an weather air quality response.
  * @returns {{ value: number|null, pm25: number|null }}
  */
 export const parseAQI = (data) => ({

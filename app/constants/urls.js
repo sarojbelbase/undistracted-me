@@ -49,27 +49,31 @@ export const FEEDBACK_FORM_URL = 'https://forms.gle/7vf4VGrB9Loz8hB76';
 /** Landing site support section. */
 export const SUPPORT_URL = `${LANDING_BASE_URL}/#support`;
 
-// ── Weather & climate (Open-Meteo — free, no API key) ─────────────────────────
+// ── Weather & climate (via backend proxy) ─────────────────────────────────────
+// All weather/geolocation/joke/stocks calls route through api.undistracted.me so
+// the extension never references a third-party provider directly. The backend
+// forwards the query string verbatim, so the client keeps its URLSearchParams.
 
-export const OPEN_METEO_WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
-export const OPEN_METEO_AQI_API = 'https://air-quality-api.open-meteo.com/v1/air-quality';
-export const OPEN_METEO_GEOCODING_API = 'https://geocoding-api.open-meteo.com/v1/search';
+export const WEATHER_API = `${API_BASE_URL}/weather/forecast`;
+export const AIR_QUALITY_API = `${API_BASE_URL}/weather/air-quality`;
+export const GEOCODING_API = `${API_BASE_URL}/weather/geocoding`;
 
 // ── Geolocation ───────────────────────────────────────────────────────────────
 
-/** OSM Nominatim — free reverse geocoder (lat/lon → city name). */
-export const NOMINATIM_REVERSE_API = 'https://nominatim.openstreetmap.org/reverse';
+/** Reverse geocoder (lat/lon → city name) — via backend proxy. */
+export const REVERSE_GEOCODE_API = `${API_BASE_URL}/geo/reverse`;
 
-/** IP geolocation — city-level accuracy; CORS-blocked from extension origins. */
+/** IP geolocation — city-level accuracy. Stays DIRECT: the provider geolocates
+ *  the *caller's* IP, so proxying would geolocate our edge server instead. */
 export const IPAPI_GEO_URL = 'https://ipapi.co/json/';
 
-/** IP geolocation fallback — CORS-enabled, works from extension origins. */
+/** IP geolocation fallback — CORS-enabled. Direct for the same IP reason above. */
 export const FREEIPAPI_GEO_URL = 'https://free.freeipapi.com/api/v1/json';
 
 // ── Nepal stock market ────────────────────────────────────────────────────────
 
-/** Mero Lagani — OHLCV chart data for NEPSE-listed stocks. */
-export const MEROLAGANI_CHART_API = 'https://www.merolagani.com/handlers/TechnicalChartHandler.ashx';
+/** NEPSE OHLCV chart data — via backend proxy (api.undistracted.me/stocks/chart). */
+export const NEPSE_CHART_API = `${API_BASE_URL}/stocks/chart`;
 
 // ── International stock market ────────────────────────────────────────────────
 
@@ -106,10 +110,10 @@ export const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/drive.appdata',
 ].join(' ');
 
-/** Nepali Paisa — company / ticker listing for NEPSE. */
-export const NEPALI_PAISA_COMPANIES_API = 'https://nepalipaisa.com/api/GetCompanies';
+/** NEPSE company / ticker listing — via backend proxy (api.undistracted.me/stocks/companies). */
+export const NEPSE_COMPANIES_API = `${API_BASE_URL}/stocks/companies`;
 
 // ── Daily content ─────────────────────────────────────────────────────────────
 
-/** icanhazdadjoke.com — returns one random dad joke (JSON). */
-export const ICANHAZDADJOKE_API = 'https://icanhazdadjoke.com/';
+/** One random dad joke (JSON) — via backend proxy. */
+export const DAILY_JOKE_API = `${API_BASE_URL}/joke`;
