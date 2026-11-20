@@ -97,6 +97,22 @@ describe('ACCENT_COLORS catalogue', () => {
     const hexes = ACCENT_COLORS.map((a) => a.hex.toLowerCase());
     expect(new Set(hexes).size).toBe(hexes.length);
   });
+
+  it('does not include the removed Bubblegum accent', () => {
+    expect(ACCENT_COLORS.find((a) => a.name === 'Bubblegum')).toBeUndefined();
+  });
+
+  it('orders accents by colour spectrum (neutral first, earth last)', () => {
+    const names = ACCENT_COLORS.map((a) => a.name);
+    expect(names[0]).toBe('Matte Black');
+    expect(names[names.length - 1]).toBe('Cocoa');
+    // Warm hues precede cool hues: reds/oranges before greens before blues.
+    expect(names.indexOf('Strawberry')).toBeLessThan(names.indexOf('Orange'));
+    expect(names.indexOf('Orange')).toBeLessThan(names.indexOf('Lime'));
+    expect(names.indexOf('Emerald')).toBeLessThan(names.indexOf('Cyan'));
+    expect(names.indexOf('Cyan')).toBeLessThan(names.indexOf('Blueberry'));
+    expect(names.indexOf('Blueberry')).toBeLessThan(names.indexOf('Grape'));
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────────────

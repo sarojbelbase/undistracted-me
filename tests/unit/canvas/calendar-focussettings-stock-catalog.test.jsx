@@ -529,6 +529,32 @@ describe('WidgetCatalog', () => {
     expect(onRemoveInstance).toHaveBeenCalledWith('clock_1');
   });
 
+  it('Add all adds every widget type not already on the canvas', () => {
+    renderCatalog([{ id: 'clock_1', type: 'clock' }]);
+    fireEvent.click(screen.getByLabelText('Add every available widget'));
+    expect(onAddInstance).toHaveBeenCalled();
+    const addedTypes = onAddInstance.mock.calls.map(([t]) => t);
+    // Already-present widgets must not be duplicated.
+    expect(addedTypes).not.toContain('clock');
+    // The rest of the registry should be added.
+    expect(addedTypes.length).toBeGreaterThan(0);
+  });
+
+  it('Remove all removes every instance', () => {
+    renderCatalog([
+      { id: 'clock_1', type: 'clock' },
+      { id: 'date_1', type: 'dateToday' },
+    ]);
+    fireEvent.click(screen.getByLabelText('Remove all widgets'));
+    expect(onRemoveInstance).toHaveBeenCalledWith('clock_1');
+    expect(onRemoveInstance).toHaveBeenCalledWith('date_1');
+  });
+
+  it('Remove all is disabled when there are no instances', () => {
+    renderCatalog([]);
+    expect(screen.getByLabelText('Remove all widgets').disabled).toBe(true);
+  });
+
   it('shows stepper count for active widget', () => {
     renderCatalog([{ id: 'clock_1', type: 'clock' }]);
     expect(screen.getAllByText('1').length).toBeGreaterThan(0);

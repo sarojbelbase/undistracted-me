@@ -21,6 +21,7 @@ import {
   getNextOccurrence,
   formatCountdown,
   formatTargetDate,
+  resolveAutoTarget,
 } from '../../../app/widgets/countdown/utils';
 
 afterEach(() => vi.useRealTimers());
@@ -235,5 +236,33 @@ describe('formatTargetDate', () => {
   it('contains "Jan" for January', () => {
     const result = formatTargetDate(new Date(2026, 0, 15));
     expect(result).toContain('Jan');
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// resolveAutoTarget — since vs future prioritisation
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('resolveAutoTarget', () => {
+  it('prefers a future countdown over a past "since" countdown', () => {
+    const future = { id: 'f1', title: 'Launch', targetDate: '2099-01-01', targetTime: '00:00', repeat: 'none', mode: 'countdown' };
+    const since = { id: 's1', title: 'Graduation', targetDate: '2000-01-01', targetTime: '00:00', repeat: 'none', mode: 'since' };
+    const { target } = resolveAutoTarget([], '2099-01-01', [since, future]);
+    expect(target).not.toBeNull();
+    expect(target.id).toBe('f1');
+    expect(target.mode).toBe('countdown');
+  });
+
+  it('falls back to a "since" countdown when nothing upcoming remains', () => {
+    const since = { id: 's1', title: 'Graduation', targetDate: '2000-01-01', targetTime: '00:00', repeat: 'none', mode: 'since' };
+    const { target } = resolveAutoTarget([], '2099-01-01', [since]);
+    expect(target).not.toBeNull();
+    expect(target.id).toBe('s1');
+    expect(target.mode).toBe('since');
+  });
+
+  it('returns null when there are no countdowns', () => {
+    const { target } = resolveAutoTarget([], '2099-01-01', []);
+    expect(target).toBeNull();
   });
 });
