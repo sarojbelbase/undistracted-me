@@ -95,22 +95,6 @@ export const CANVAS_INPUT_ICON = (isDark) =>
 export const CANVAS_INPUT_PREFIX = (isDark) =>
   isDark ? "rgba(255,255,255,0.28)" : "var(--w-ink-6)";
 
-// ── TabRow component (dark-context overrides) ─────────────────────────────────
-// TabRow accepts a `dark` prop for rendering inside dark-glass contexts
-// (BackgroundPicker, FocusMode dialogs). These token values match that context.
-
-/** TabRow pill track background in dark context */
-export const CANVAS_TAB_BG_DARK = "rgba(255,255,255,0.07)";
-
-/** TabRow pill track border in dark context */
-export const CANVAS_TAB_BORDER_DARK = "rgba(255,255,255,0.10)";
-
-/** Inactive tab label color in dark context */
-export const CANVAS_TAB_INACTIVE_DARK = "rgba(255,255,255,0.55)";
-
-/** Tab hint/caption color in dark context (non-selected) */
-export const CANVAS_TAB_HINT_DARK = "rgba(255,255,255,0.38)";
-
 // ── Clock widget ─────────────────────────────────────────────────────────────
 /** Subtle divider above extra timezone clocks — theme-aware */
 export const CLOCK_TIMEZONE_DIVIDER = "var(--w-divider)";

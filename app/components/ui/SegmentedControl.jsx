@@ -28,9 +28,12 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
   const [thumb, setThumb] = useState(null);
 
   const measure = useCallback(() => {
+    if (variant !== "accent") return; // subtle variant has no thumb to measure
     const track = trackRef.current;
     if (!track) return;
-    const btn = track.querySelector(`[data-value="${value}"]`);
+    const btn = [...track.querySelectorAll("button")].find(
+      (b) => b.dataset.value === value,
+    );
     if (!btn) return;
     const tr = track.getBoundingClientRect();
     const br = btn.getBoundingClientRect();
@@ -40,18 +43,19 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
       width: br.width,
       height: br.height,
     });
-  }, [value]);
+  }, [value, variant]);
 
   useLayoutEffect(measure, [measure]);
 
   // Re-measure when the track resizes (settings panel resize, font/scale changes).
   useEffect(() => {
+    if (variant !== "accent") return;
     const track = trackRef.current;
     if (!track || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(measure);
     ro.observe(track);
     return () => ro.disconnect();
-  }, [measure]);
+  }, [measure, variant]);
 
   const track = (
     <div
