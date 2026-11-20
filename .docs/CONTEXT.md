@@ -57,7 +57,7 @@ Actions: `openAccountsDialog`, `closeAccountsDialog`
 - Allows any nested component to open the Accounts dialog without prop-drilling
 
 ## Theme System (`app/theme.js`)
-- `ACCENT_COLORS` — 11 colors: Default, Blueberry, Strawberry, Bubblegum, Grape, Orange, Banana, Lime, Mint, Latte, Cocoa
+- `ACCENT_COLORS` — 13 colors ordered by spectrum: Matte Black, Strawberry, Rose, Orange, Banana, Lime, Emerald, Mint, Cyan, Blueberry, Indigo, Grape, Cocoa
 - `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
 - CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
 - `data-mode` attribute on `<html>` drives `[data-mode="dark"]` overrides in `App.css`
