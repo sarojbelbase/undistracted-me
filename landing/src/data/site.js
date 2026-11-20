@@ -1,11 +1,11 @@
 export const site = {
   name: "Undistracted Me",
   url: "https://undistracted.me",
-  title: "Undistracted Me: Site Blocker, Web Clipper & Focus New Tab",
+  title: "Undistracted Me: Site Blocker, Web Clipper & Focus Extension New Tab",
   description:
-    "Free, open-source new tab that blocks distracting sites and clips what you find, plus Focus Mode, Pomodoro, tasks and widgets. No account, works offline. Nepali (BS) calendar and NEPSE included.",
+    "Free, open-source productivity extension — a site blocker and distraction blocker for your new tab, with a web clipper, Focus Mode, Pomodoro timer & Nepali calendar. A calm deep work tool. No account, offline.",
   // Bump this whenever the landing page content materially changes.
-  lastUpdated: "2026-11-13",
+  lastUpdated: "2026-11-20",
   author: {
     name: "Saroj Belbase",
     url: "https://github.com/sarojbelbase",

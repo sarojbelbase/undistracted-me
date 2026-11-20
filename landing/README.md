@@ -46,11 +46,17 @@ landing/
 
 ```bash
 cd landing
-npm install
-npm run dev      # → http://localhost:4321
-npm run build    # static build → dist/
-npm run preview  # serve the build
+bun install
+bun run dev      # → http://localhost:4321
+bun run build    # static build → dist/
+bun run preview  # serve the build
 ```
+
+> **Node requirement:** Astro 7 needs Node **≥ 22.23.4**. The `dev` / `build` /
+> `preview` scripts run Astro under Bun's bundled runtime (`bun run --bun`), so
+> `bun run build` works even on a machine whose system Node is older. If you run
+> Astro directly (or via `npm` / `node`), use Node 24 — see `.nvmrc` /
+> `.node-version` at the repo root.
 
 ## SEO
 
