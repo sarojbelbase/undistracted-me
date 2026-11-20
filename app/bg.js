@@ -17,7 +17,7 @@ import {
 } from './constants/urls.js';
 import { buildNotification } from './constants/notifications.js';
 import { initSiteBlocker } from './utilities/siteBlocker.js';
-import { writeEntry } from './data/dataHub.js';
+import { writeEntry, readEntry } from './data/dataHub.js';
 import {
   setupPocketContextMenu,
   handlePocketSave,
@@ -34,6 +34,9 @@ const ALARM_LOOKAWAY = "UM_LOOKAWAY"; // fires every N min for eye-break reminde
 const ALARM_PREFETCH = "UM_PREFETCH"; // fires every 30 min for background data pre-fetch
 const ALARM_RSS = "UM_RSS";           // fires every 30 min for RSS queue pre-fetch
 const ALARM_STOCKS = "UM_STOCKS";     // fires every 15 min for stock chart pre-fetch
+
+// Freshness window for the on-open prefetch — matches the ALARM_PREFETCH cadence.
+const PREFETCH_TTL_MS = 30 * 60_000;
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
 
@@ -481,9 +484,24 @@ function handlePrefetchSync(msg) {
       chrome.alarms.create(ALARM_PREFETCH, { periodInMinutes: 30 });
     }
   });
-  // Run an immediate prefetch if we just got fresh coords
-  runWeatherPrefetch();
-  runGcalPrefetch();
+  // Run an immediate prefetch only when the cached data is stale (or the coords
+  // moved) — the 30-min alarm covers periodic refresh, so opening N tabs must
+  // not fire N redundant weather/AQI/GCAL round-trips on top of it.
+  readEntry('weather')
+    .then((weather) => {
+      const coordsChanged = !weather || weather.lat !== msg.lat || weather.lon !== msg.lon;
+      const stale = !weather || Date.now() - (weather.updatedAt || 0) > PREFETCH_TTL_MS;
+      if (coordsChanged || stale) runWeatherPrefetch();
+    })
+    .catch(() => runWeatherPrefetch());
+
+  chrome.storage.local.get('gcal_prefetched_at')
+    .then(({ gcal_prefetched_at } = {}) => {
+      if (!gcal_prefetched_at || Date.now() - gcal_prefetched_at > PREFETCH_TTL_MS) {
+        runGcalPrefetch();
+      }
+    })
+    .catch(() => runGcalPrefetch());
 }
 
 // ─── GCal pre-fetch ───────────────────────────────────────────────────────────
@@ -558,7 +576,7 @@ async function runGcalPrefetch() {
         _source: 'gcal',
       }));
 
-    await chrome.storage.local.set({ gcal_events_cache: events });
+    await chrome.storage.local.set({ gcal_events_cache: events, gcal_prefetched_at: Date.now() });
   } catch {
     // Network or auth error — skip silently
   }

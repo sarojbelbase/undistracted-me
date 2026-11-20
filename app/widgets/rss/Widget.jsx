@@ -10,7 +10,7 @@
  *  • Digest   – compact numbered headline list, scrollable, accent left-bar on hover.
  */
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { useRssMulti } from "./useRssMulti";
@@ -406,29 +406,34 @@ const ErrorState = ({ onRetry, absolute = false }) => (
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.rss);
 
-  // Migrate legacy single feedId setting → activeFeedIds
-  const rawActive = settings.activeFeedIds;
-  let activeFeedIds;
-  if (Array.isArray(rawActive) && rawActive.length > 0) {
-    activeFeedIds = rawActive;
-  } else if (settings.feedId) {
-    activeFeedIds = [settings.feedId];
-  } else {
-    activeFeedIds = DEFAULT_ACTIVE_IDS;
-  }
+  // Migrate legacy single feedId setting → activeFeedIds. Memoized so the array
+  // reference is stable across renders (the `[feedId]` fallback otherwise
+  // allocates a fresh array each render, churning downstream memo deps).
+  const activeFeedIds = useMemo(() => {
+    const rawActive = settings.activeFeedIds;
+    if (Array.isArray(rawActive) && rawActive.length > 0) return rawActive;
+    if (settings.feedId) return [settings.feedId];
+    return DEFAULT_ACTIVE_IDS;
+  }, [settings.activeFeedIds, settings.feedId]);
 
-  const customFeeds = (settings.customFeeds ?? []).map((f) =>
-    typeof f.active === "boolean" ? f : { ...f, active: true }
+  const customFeeds = useMemo(
+    () => (settings.customFeeds ?? []).map((f) =>
+      typeof f.active === "boolean" ? f : { ...f, active: true }
+    ),
+    [settings.customFeeds],
   );
   const viewMode = settings.viewMode ?? "marquee";
   const sourceMode = settings.sourceMode ?? (customFeeds.length > 0 ? "custom" : "presets");
 
-  // Mutually exclusive: only use presets OR custom, never both
-  const activePresetFeeds = PRESET_FEEDS.filter((p) => activeFeedIds.includes(p.id));
-  const activeCustomFeeds = customFeeds.filter((f) => f.active !== false);
-  const allActiveFeeds = sourceMode === "custom"
-    ? activeCustomFeeds.map((f) => ({ label: f.label, url: f.url }))
-    : activePresetFeeds.map((p) => ({ label: p.label, url: p.url }));
+  // Mutually exclusive: only use presets OR custom, never both. Memoized so the
+  // array reference is stable — useRssMulti's ref-sync effect (dep: `feeds`)
+  // otherwise re-runs on every render.
+  const allActiveFeeds = useMemo(() => {
+    if (sourceMode === "custom") {
+      return customFeeds.filter((f) => f.active !== false).map((f) => ({ label: f.label, url: f.url }));
+    }
+    return PRESET_FEEDS.filter((p) => activeFeedIds.includes(p.id)).map((p) => ({ label: p.label, url: p.url }));
+  }, [sourceMode, customFeeds, activeFeedIds]);
 
   // Stable string keys for the effect deps below (avoid JSON.stringify
   // expressions in dependency arrays, which are non-idiomatic).
@@ -522,12 +527,11 @@ export const Widget = ({ id, onRemove }) => {
 
   const goNext = useCallback(() => {
     setNavDirection("next");
-    setCurrentIndex((i) => {
-      const next = (i + 1) % displayItems.length;
-      if (i >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
-      return next;
-    });
-  }, [displayItems.length, hasMore]);
+    // Read the index from the closure (not inside an updater) so the two setters
+    // run side-by-side — never call setState inside another setState updater.
+    if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
+    setCurrentIndex((currentIndex + 1) % displayItems.length);
+  }, [currentIndex, displayItems.length, hasMore]);
 
   const goPrev = useCallback(() => {
     setNavDirection("prev");

@@ -76,7 +76,14 @@ const Sparkline = ({ prices, dir, dead = false }) => {
   const deadLine = `M0,${baseY} L${vw},${baseY}`;
   const deadArea = `${deadLine} L${vw},${VH} L0,${VH} Z`;
 
-  const { line, area } = dead ? { line: deadLine, area: deadArea } : buildSparklinePaths(prices, vw, VH);
+  // buildSparklinePaths (LTTB downsampling + Catmull-Rom) is the only non-trivial
+  // work here; memoize so the ~30 s age-label tick doesn't rebuild the path.
+  // deadLine/deadArea are string primitives (compared by value), so they are
+  // stable deps across renders for the same vw.
+  const { line, area } = useMemo(
+    () => (dead ? { line: deadLine, area: deadArea } : buildSparklinePaths(prices, vw, VH)),
+    [dead, deadLine, deadArea, prices, vw],
+  );
   const gradId = `sg-${dead ? 'dead' : dir}`;
 
   return (

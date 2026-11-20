@@ -194,6 +194,11 @@ export const Widget = ({ id, onRemove }) => {
   // background-tab throttling (setInterval in hidden tabs drops to ~1/min).
   const remainingRef = useRef(remaining);
   const endTimeRef = useRef(null);
+  // Throttle the per-second Focus Mode / per-widget mirror: localStorage.setItem
+  // is a blocking disk flush, and the wall-clock `endTime` we persist is correct
+  // regardless of cadence — only "fresh enough" matters for remount recovery.
+  const lastRunningPersistRef = useRef(0);
+  const wasRunningRef = useRef(running);
   // Sync the mirror *after* render (never write refs during render — a discarded
   // concurrent render would otherwise leave the deadline based on stale time).
   useEffect(() => { remainingRef.current = remaining; }, [remaining]);
@@ -313,35 +318,43 @@ export const Widget = ({ id, onRemove }) => {
   useEffect(() => {
     const isTimerPhase = phase === PHASE.TIMER || phase === PHASE.BREAK;
 
-    // Persist pause state
+    // Persist pause state (discrete event — write immediately)
     if (isTimerPhase && !running && remaining > 0) {
       saveTimer(id, {
         phase, preset, duration, remaining, running: false, sessionType,
       });
     }
 
-    // Sync running state to Focus Mode
+    // Sync running state to Focus Mode. Write immediately on start/resume (so a
+    // remount right after unpausing restores correctly), then throttle to every
+    // 5 s — the persisted wall-clock `endTime` is correct regardless of cadence,
+    // and a blocking localStorage flush every second would drop frames.
+    const startedRunning = running && !wasRunningRef.current;
     if (isTimerPhase && running && remaining > 0) {
-      localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
-        running: true,
-        remaining,
-        // Persist the wall-clock end time so Focus Mode can keep the countdown
-        // ticking even though this widget is unmounted while FM is active.
-        endTime: Date.now() + remaining * 1000,
-        total: duration,
-        preset,
-        sessionType,
-        // Carry the settings Focus Mode needs to chime/notify + auto-break on completion.
-        soundEnabled,
-        autoBreak,
-        breakDuration,
-      }));
-      // Keep the per-widget persist key fresh every second (not just every 5s in
-      // the interval) so a remount after switching views never resets the timer.
-      saveTimer(id, { phase, preset, duration, remaining, running: true, sessionType });
+      const now = Date.now();
+      if (startedRunning || now - lastRunningPersistRef.current >= 5000) {
+        lastRunningPersistRef.current = now;
+        localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
+          running: true,
+          remaining,
+          // Persist the wall-clock end time so Focus Mode can keep the countdown
+          // ticking even though this widget is unmounted while FM is active.
+          endTime: now + remaining * 1000,
+          total: duration,
+          preset,
+          sessionType,
+          // Carry the settings Focus Mode needs to chime/notify + auto-break on completion.
+          soundEnabled,
+          autoBreak,
+          breakDuration,
+        }));
+        saveTimer(id, { phase, preset, duration, remaining, running: true, sessionType });
+      }
     } else if (!isTimerPhase || !running || remaining <= 0) {
       localStorage.removeItem(STORAGE_KEYS.POMODORO);
     }
+
+    wasRunningRef.current = running;
   }, [id, phase, running, remaining, preset, duration, sessionType, soundEnabled, autoBreak, breakDuration]);
 
   // ── Fire completion side-effects when timer reaches 0 ─────────────────

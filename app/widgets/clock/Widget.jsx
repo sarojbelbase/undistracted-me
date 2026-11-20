@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
@@ -17,7 +17,19 @@ export const Widget = ({ id, onRemove }) => {
   const [parts, setParts] = useState(() => getTimeParts(format));
   const [extraTimes, setExtraTimes] = useState([]);
 
+  // Key that fingerprints everything the clock output depends on: the minute
+  // boundary (HH:MM drives the time + greeting) plus the format/timezone
+  // settings. Used to skip the per-second dayjs().tz() allocations when nothing
+  // actually changed.
+  const lastKeyRef = useRef('');
+
   const update = useCallback(() => {
+    const d = new Date();
+    const minuteKey = d.getHours() * 60 + d.getMinutes();
+    const key = `${format}|${timezones.join(',')}|${minuteKey}`;
+    if (key === lastKeyRef.current) return;
+    lastKeyRef.current = key;
+
     // Gate on actual change — the clock shows HH:MM (no seconds), so skip the
     // per-second re-render when the formatted time/period/greeting is unchanged.
     setParts((prev) => {

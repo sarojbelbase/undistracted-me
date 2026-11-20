@@ -103,6 +103,88 @@ const WIPE_MS = 650;
 const photoMatchesUrl = (ph, url) =>
   !!url && (ph.regular === url || ph.url === url || ph.small === url || ph.thumb === url);
 
+// ─── Curated photo tile ──────────────────────────────────────────────────────────────────────
+
+// Holds its own `loaded` flag so a single image finishing load re-renders only
+// that tile — not the whole grid. The previous grid-level `loadedIds` Set made
+// every staggered lazy-load repaint all ~20 tiles (the same anti-pattern
+// CanvasBackgroundPicker.jsx already fixed). Colour extraction is also skipped
+// when the photo already carries a cached dominant colour.
+const PhotoTile = ({
+  photo, uid, active, applying, isSetting, fetching,
+  color, onExtractColor, onSet, onDelete,
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  const thumbSrc = getThumbUrl(photo) || photo.small || photo.url || photo.regular;
+
+  const handleLoad = (e) => {
+    setLoaded(true);
+    // Only extract + persist a dominant colour when one isn't already cached, so
+    // reopening the panel never re-runs N canvas pixel extractions.
+    if (!photo.color) onExtractColor(photo.id, e.currentTarget);
+  };
+
+  return (
+    <div
+      className="relative rounded-lg overflow-hidden group"
+      style={{
+        aspectRatio: '4/3',
+        background: color || '#1a1a1e',
+        opacity: fetching ? 0.55 : 1,
+        transition: 'opacity 0.3s',
+      }}
+    >
+      <img
+        src={thumbSrc}
+        alt=""
+        aria-hidden
+        decoding="async"
+        loading="lazy"
+        crossOrigin="anonymous"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{
+          filter: loaded ? 'none' : 'blur(10px)',
+          transform: loaded ? 'scale(1)' : 'scale(1.1)',
+          opacity: loaded ? 1 : 0.72,
+          transition: 'filter 0.45s ease, transform 0.45s ease, opacity 0.3s ease',
+        }}
+        onLoad={handleLoad}
+      />
+      {!loaded && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.4s ease-in-out infinite',
+          }}
+        />
+      )}
+      {applying && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0.0) 100%)',
+            animation: `bpWipe ${WIPE_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
+          }}
+        />
+      )}
+      {active && <ActiveBadge />}
+      {!active && !applying && loaded && !fetching && (
+        <TileOverlay isSetting={isSetting} onSet={onSet} />
+      )}
+      <button
+        onClick={onDelete}
+        className="absolute top-1 right-1 z-10 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
+        style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid transparent' }}
+        aria-label="Remove photo"
+      >
+        <XLg size={7} />
+      </button>
+    </div>
+  );
+};
+
 // ─── Curated photos panel ────────────────────────────────────────────────────────────────────
 
 const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRotatePhoto, initialPhotoUrl = null }) => {
@@ -120,15 +202,13 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
   const wipeTimerRef = useRef(null);
   const [settingId, setSettingId] = useState(null);
   const [photoColors, setPhotoColors] = useState({});
-  const [loadedIds, setLoadedIds] = useState(() => new Set());
 
   const handleColorExtracted = useCallback((id, color) => {
     setPhotoColors(prev => ({ ...prev, [id]: color }));
     updatePhotoColor(id, color);
   }, []);
 
-  const handleImgLoad = useCallback((id, imgEl) => {
-    setLoadedIds(prev => { const next = new Set(prev); next.add(id); return next; });
+  const extractColor = useCallback((id, imgEl) => {
     extractColorFromImage(imgEl, c => handleColorExtracted(id, c));
   }, [handleColorExtracted]);
 
@@ -235,70 +315,23 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
 
           {allPhotos.map((ph) => {
             const uid = ph._uid ?? ph.id;
-            const thumbSrc = getThumbUrl(ph) || ph.small || ph.url || ph.regular;
             const isPhotoActive = uid === activeId;
             const isApplying = uid === applyingId;
-            const isLoaded = loadedIds.has(ph.id);
             const isSetting = settingId === uid;
             return (
-              <div
+              <PhotoTile
                 key={uid}
-                className="relative rounded-lg overflow-hidden group"
-                style={{
-                  aspectRatio: '4/3',
-                  background: photoColors[ph.id] || ph.color || '#1a1a1e',
-                  opacity: fetching ? 0.55 : 1,
-                  transition: 'opacity 0.3s',
-                }}
-              >
-                <img
-                  src={thumbSrc}
-                  alt=""
-                  aria-hidden
-                  decoding="async"
-                  loading="lazy"
-                  crossOrigin="anonymous"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  style={{
-                    filter: isLoaded ? 'none' : 'blur(10px)',
-                    transform: isLoaded ? 'scale(1)' : 'scale(1.1)',
-                    opacity: isLoaded ? 1 : 0.72,
-                    transition: 'filter 0.45s ease, transform 0.45s ease, opacity 0.3s ease',
-                  }}
-                  onLoad={e => handleImgLoad(ph.id, e.currentTarget)}
-                />
-                {!isLoaded && (
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%)',
-                      backgroundSize: '200% 100%',
-                      animation: 'shimmer 1.4s ease-in-out infinite',
-                    }}
-                  />
-                )}
-                {isApplying && (
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0.0) 100%)',
-                      animation: `bpWipe ${WIPE_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
-                    }}
-                  />
-                )}
-                {isPhotoActive && <ActiveBadge />}
-                {!isPhotoActive && !isApplying && isLoaded && !fetching && (
-                  <TileOverlay isSetting={isSetting} onSet={() => handleSetBackground(uid)} />
-                )}
-                <button
-                  onClick={() => handleDelete(uid)}
-                  className="absolute top-1 right-1 z-10 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity btn-close focus:outline-none"
-                  style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid transparent' }}
-                  aria-label="Remove photo"
-                >
-                  <XLg size={7} />
-                </button>
-              </div>
+                photo={ph}
+                uid={uid}
+                active={isPhotoActive}
+                applying={isApplying}
+                isSetting={isSetting}
+                fetching={fetching}
+                color={photoColors[ph.id] || ph.color}
+                onExtractColor={extractColor}
+                onSet={() => handleSetBackground(uid)}
+                onDelete={() => handleDelete(uid)}
+              />
             );
           })}
 

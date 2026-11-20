@@ -60,11 +60,17 @@ export function ExpandedView({ onClose, onOpenSettings, onAdd }) {
 
   const base = useMemo(() => filterItems(items, filter), [items, filter]);
   const searching = debouncedQuery.trim().length > 0;
-  const searched = searching ? searchItems(items, folders, debouncedQuery) : null;
-  const list = useMemo(() => {
-    const src = searched ?? base;
-    return [...src].sort((a, b) => b.updatedAt - a.updatedAt);
-  }, [searched, base]);
+  // `filterItems` already returns newest-first; `searchItems` preserves store
+  // order, so sort the searched subset inside this memo. Memoizing here stops a
+  // repeated O(n log n) search on every render (e.g. "Load more" pagination
+  // clicks that don't change the query).
+  const searched = useMemo(
+    () => (searching
+      ? searchItems(items, folders, debouncedQuery).sort((a, b) => b.updatedAt - a.updatedAt)
+      : null),
+    [searching, items, folders, debouncedQuery],
+  );
+  const list = searched ?? base;
 
   const total = totalCount(items);
   const paged = list.slice(0, visible);

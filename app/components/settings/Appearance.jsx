@@ -40,6 +40,17 @@ const THEME_OPTIONS = [
   { label: 'Dark', value: 'dark' },
 ];
 
+// Static option lists — built once at module scope rather than recreated on
+// every render of the panel.
+const BACKGROUND_OPTIONS = [
+  { id: 'solid', label: 'Solid' },
+  { id: 'orb', label: 'Motion' },
+  { id: 'photo', label: 'Photos' },
+  { id: 'custom', label: 'Custom URL' },
+];
+const BACKGROUND_SEGMENT_OPTIONS = BACKGROUND_OPTIONS.map(({ id, label }) => ({ label, value: id }));
+const CARD_STYLE_OPTIONS = CARD_STYLES.map(({ id, label }) => ({ label, value: id }));
+
 export const Appearance = () => {
   // Narrow selectors — avoid re-rendering the whole panel on any single change.
   const mode = useSettingsStore((s) => s.mode);
@@ -66,13 +77,6 @@ export const Appearance = () => {
   const setType = (type) =>
     setCanvasBg({ ...(canvasBg ?? APP_SETTINGS_DEFAULTS.canvasBg), type });
 
-  const backgroundOptions = [
-    { id: 'solid', label: 'Solid' },
-    { id: 'orb', label: 'Motion' },
-    { id: 'photo', label: 'Photos' },
-    { id: 'custom', label: 'Custom URL' },
-  ];
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
@@ -93,7 +97,7 @@ export const Appearance = () => {
         <SectionLabel>Widget Style</SectionLabel>
         <SegmentedControl
           ariaLabel="Widget Style"
-          options={CARD_STYLES.map(({ id, label }) => ({ label, value: id }))}
+          options={CARD_STYLE_OPTIONS}
           value={cardStyle}
           onChange={setCardStyle}
         />
@@ -159,7 +163,7 @@ export const Appearance = () => {
         <SectionLabel>Background</SectionLabel>
         <SegmentedControl
           ariaLabel="Background"
-          options={backgroundOptions.map(({ id, label }) => ({ label, value: id }))}
+          options={BACKGROUND_SEGMENT_OPTIONS}
           value={bgType}
           onChange={setType}
         />

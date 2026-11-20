@@ -14,7 +14,7 @@ import { PocketIcon } from "../../assets/svg/PocketIcon";
 import { loadSourceSerif } from "../../utilities/loadSourceSerif";
 import { usePocket } from "./usePocket";
 import { saveText } from "./save";
-import { sortedItems, totalCount } from "./selectors";
+import { liveItems } from "./selectors";
 import { DEFAULT_WIDGET_ITEMS } from "./constants";
 import { EMPTY_STATES } from "../../constants/emptyStates";
 import { ItemRow } from "./ItemRow";
@@ -54,14 +54,13 @@ export const Widget = ({ id, onRemove }) => {
 
   // New-save highlight: when the newest item id changes, flash the top row.
   useEffect(() => {
-    const firstId = sortedItems(items)[0]?.id ?? null;
     if (firstId && firstId !== prevFirstId.current && prevFirstId.current !== null) {
       setHighlightId(firstId);
       if (highlightTimer.current) clearTimeout(highlightTimer.current);
       highlightTimer.current = setTimeout(() => setHighlightId(null), 1200);
     }
     prevFirstId.current = firstId;
-  }, [items]);
+  }, [firstId]);
 
   useEffect(() => () => clearTimeout(highlightTimer.current), []);
 
@@ -72,8 +71,18 @@ export const Widget = ({ id, onRemove }) => {
 
   const compact = width > 0 && width < 260;
   const widgetItems = prefs.widgetItems ?? DEFAULT_WIDGET_ITEMS;
-  const recent = useMemo(() => sortedItems(items).slice(0, widgetItems), [items, widgetItems]);
-  const total = totalCount(items);
+  // One linear pass: sort the live items once, then reuse it for both the top-N
+  // list and the total count — avoids a second full sort + an un-cached O(n)
+  // count on every save (the Pocket library is unbounded).
+  const { recent, total, firstId } = useMemo(() => {
+    const live = liveItems(items);
+    const sorted = live.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+    return {
+      recent: sorted.slice(0, widgetItems),
+      total: live.length,
+      firstId: sorted[0]?.id ?? null,
+    };
+  }, [items, widgetItems]);
   const showEmpty = hydrated && total === 0;
 
   const openAdd = (initialText = "") => {
