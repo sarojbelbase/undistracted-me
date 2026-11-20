@@ -807,6 +807,22 @@
   transition: transform 0.14s ease;
 }
 
+// Smooth expand/collapse for website groups. `grid-template-rows` animates from
+// 0fr → 1fr so the height eases open/closed without measuring the content, and
+// the inner wrapper clips overflow so rows don't spill during the transition.
+.pocket-group-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pocket-group-collapse__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.pocket-group-collapse--collapsed {
+  grid-template-rows: 0fr;
+}
+
 // --- Folder picker ---------------------------------------------------------
 
 .pocket-folder-picker {

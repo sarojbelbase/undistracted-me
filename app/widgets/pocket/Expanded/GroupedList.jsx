@@ -89,9 +89,17 @@ function WebsiteGroups({ items, rowProps, showSiteIcons, collapsedHosts, onToggl
               </span>
             </button>
 
-            {!collapsed && (
-              <div>
-                <PageGroups group={g} rowProps={rowProps} />
+            {collapsed ? (
+              <div className="pocket-group-collapse pocket-group-collapse--collapsed" inert>
+                <div className="pocket-group-collapse__inner">
+                  <PageGroups group={g} rowProps={rowProps} />
+                </div>
+              </div>
+            ) : (
+              <div className="pocket-group-collapse">
+                <div className="pocket-group-collapse__inner">
+                  <PageGroups group={g} rowProps={rowProps} />
+                </div>
               </div>
             )}
           </div>
