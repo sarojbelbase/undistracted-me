@@ -169,7 +169,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
         <TooltipBtn
           className="wc-stepper-btn wc-stepper-btn--remove"
           onClick={e => { e.stopPropagation(); if (!disabled) onRemove(); }}
-          disabled={disabled}
+          disabled={disabled || !isActive}
           tooltip={disabled ? 'Cannot remove (disabled)' : 'Remove one'}
           style={{ visibility: (isActive || disabled) ? 'visible' : 'hidden' }}
         >
@@ -197,6 +197,8 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
   const [phase, setPhase] = useState('entering'); // entering → open → leaving
   const prevFocusRef = useRef(null);
   const closeBtnRef = useRef(null);
+  const dialogRef = useRef(null);
+  const tabRefs = useRef([]);
 
   // Move focus into the drawer on open and restore it to the trigger on close,
   // so keyboard users aren't dumped to <body> after closing the catalog.
@@ -225,10 +227,30 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     setTimeout(onClose, 280);
   }, [onClose]);
 
+  // Escape closes; Tab is trapped inside the drawer so keyboard focus can't
+  // escape to the canvas behind it (the catalog is not a native showModal()).
   useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') handleClose(); };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
+    const handler = (e) => {
+      if (e.key === 'Escape') { handleClose(); return; }
+      if (e.key !== 'Tab') return;
+      const el = dialogRef.current;
+      if (!el) return;
+      const focusables = [...el.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )].filter((n) => !n.disabled && n.getClientRects().length > 0);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [handleClose]);
 
   const countByType = (instances || []).reduce((acc, { type }) => {
@@ -255,6 +277,20 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     ? WIDGET_REGISTRY
     : WIDGET_REGISTRY.filter(w => w.category === activeTab);
 
+  // ARIA tabs keyboard contract for the category tabs.
+  const onTabKeyDown = (e) => {
+    const idx = TABS.findIndex((t) => t.id === activeTab);
+    let next;
+    if (e.key === 'ArrowRight') next = (idx + 1) % TABS.length;
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + TABS.length) % TABS.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = TABS.length - 1;
+    else return;
+    e.preventDefault();
+    setActiveTab(TABS[next].id);
+    tabRefs.current[next]?.focus();
+  };
+
   return createPortal(
     <>
       {/* ── Backdrop ── */}
@@ -266,6 +302,7 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
 
       {/* ── Drawer panel ── */}
       <dialog
+        ref={dialogRef}
         open
         className={`wc-panel${phase === 'leaving' ? ' wc-panel--leaving' : ''}`}
         style={{ transform: phase === 'open' ? 'translateX(0)' : 'translateX(100%)' }}
@@ -303,13 +340,16 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
 
         {/* ── Category tabs ── */}
         <div role="tablist" className="wc-tabs" aria-label="Widget categories">
-          {TABS.map(tab => (
+          {TABS.map((tab, i) => (
             <button
               key={tab.id}
+              ref={(el) => { tabRefs.current[i] = el; }}
               role="tab"
               aria-selected={activeTab === tab.id}
+              tabIndex={activeTab === tab.id ? 0 : -1}
               className={`wc-tab${activeTab === tab.id ? ' wc-tab--active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={onTabKeyDown}
             >
               {tab.label}
             </button>
