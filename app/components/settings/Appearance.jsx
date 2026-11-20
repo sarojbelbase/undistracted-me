@@ -26,6 +26,14 @@ const SectionLabel = ({ children }) => (
   </p>
 );
 
+// Muted one-line caption that explains what a setting does (WCAG: not the only
+// source of meaning — the control's own label already says what it is).
+const Hint = ({ children }) => (
+  <p style={{ fontSize: 11, lineHeight: 1.45, color: 'var(--w-ink-5)', marginTop: 6 }}>
+    {children}
+  </p>
+);
+
 const THEME_OPTIONS = [
   { label: 'Light', value: 'light' },
   { label: 'Auto', value: 'auto' },
@@ -77,6 +85,7 @@ export const Appearance = () => {
           value={mode}
           onChange={setMode}
         />
+        <Hint>How bright the dashboard is. Auto follows sunrise and sunset, flipping to dark at night.</Hint>
       </div>
 
       {/* ── Widget Style ── */}
@@ -88,6 +97,7 @@ export const Appearance = () => {
           value={cardStyle}
           onChange={setCardStyle}
         />
+        <Hint>How every widget card looks — Paper is warm and textured, Glass is frosted and translucent, Comic is bold and playful.</Hint>
       </div>
 
       {/* ── Widget Focus ── */}
@@ -153,6 +163,7 @@ export const Appearance = () => {
           value={bgType}
           onChange={setType}
         />
+        <Hint>What fills the canvas behind your widgets — a flat colour, slow ambient motion, or a photo or custom image.</Hint>
         {(bgType === 'photo' || bgType === 'custom') && (
           <div style={{ marginTop: 12 }}>
             <CanvasBackgroundPicker type={bgType} value={canvasBg} onChange={setCanvasBg} />
