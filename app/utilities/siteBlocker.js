@@ -12,6 +12,7 @@
  */
 
 import { isExtension } from './isExtension';
+import { track, TELEMETRY_EVENTS } from './telemetry';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -190,6 +191,8 @@ export const blockSite = async (urlOrDomain, durationMinutes = 30) => {
     } catch { /* ignore */ }
   }
 
+  if (!existing) track(TELEMETRY_EVENTS.BLOCK_SITE_ADDED, { domain });
+
   return active;
 };
 
@@ -205,6 +208,8 @@ export const unblockSite = async (urlOrDomain) => {
   if (isExtension()) {
     try { await chrome.storage.local.set({ blocked_sites: updated }); } catch { /* ignore */ }
   }
+
+  track(TELEMETRY_EVENTS.BLOCK_SITE_REMOVED, { domain });
 
   return updated;
 };

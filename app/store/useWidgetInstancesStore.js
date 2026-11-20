@@ -18,6 +18,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import syncEngine from '../utilities/syncEngineFacade';
+import { trackWidgetEvent } from '../utilities/telemetry';
 import { useSettingsStore } from './useSettingsStore';
 
 const STORE_KEY = STORAGE_KEYS.WIDGET_INSTANCES;
@@ -98,6 +99,7 @@ export const useWidgetInstancesStore = create(
         const firstOccupied = get().instances.some((i) => i.id === type);
         const id = firstOccupied ? mkId(type) : type;
         set((state) => ({ instances: [...state.instances, { id, type }] }));
+        trackWidgetEvent('added', type);
       },
 
       /**
@@ -114,12 +116,15 @@ export const useWidgetInstancesStore = create(
         // newly added widget. `useWidgetSettings` falls back to defaults when
         // no entry exists for the new id.
         set((state) => ({ instances: [...state.instances, { id, type: src.type }] }));
+        trackWidgetEvent('duplicated', src.type);
       },
 
       removeInstance: (id) => {
+        const target = get().instances.find((i) => i.id === id);
         set((state) => ({
           instances: state.instances.filter((i) => i.id !== id),
         }));
+        if (target) trackWidgetEvent('removed', target.type);
       },
 
       /** Restore a full snapshot (used by settings import). */

@@ -10,6 +10,7 @@
  * the cached token predates the tasks scope being added to the manifest.
  */
 import { getGoogleAuthToken, removeGoogleAuthToken } from './googleAuth';
+import { track, TELEMETRY_EVENTS } from './telemetry';
 import { GOOGLE_TASKS_API } from '../constants/urls.js';
 
 const BASE = GOOGLE_TASKS_API;
@@ -96,6 +97,7 @@ export async function addGoogleTask(title) {
     method: 'POST',
     body: JSON.stringify({ title }),
   });
+  track(TELEMETRY_EVENTS.TASK_ADDED);
   return normalizeTask(data, '@default');
 }
 
@@ -114,6 +116,7 @@ export async function updateGoogleTask(taskId, updates, listId = '@default') {
  * Mark a task as completed (or uncompleted).
  */
 export async function completeGoogleTask(taskId, done, listId = '@default') {
+  if (done) track(TELEMETRY_EVENTS.TASK_COMPLETED);
   return updateGoogleTask(taskId, {
     status: done ? 'completed' : 'needsAction',
     completed: done ? new Date().toISOString() : null,

@@ -21,6 +21,7 @@ import { disconnectCalendar } from '../utilities/googleCalendar';
 import { disconnectContacts } from '../utilities/googleContacts';
 import { friendlyError } from '../utilities/index';
 import syncTransport from '../utilities/syncTransport';
+import { track, TELEMETRY_EVENTS } from '../utilities/telemetry';
 import { useSettingsStore } from './useSettingsStore';
 
 /** Custom event dispatched on connect/disconnect so hooks can react without prop-drilling. */
@@ -75,6 +76,7 @@ export const useGoogleAccountStore = create((set, get) => ({
       await getGoogleAuthToken(true);
       const profile = await getGoogleUserProfile();
       set({ connected: true, profile, connecting: false });
+      track(TELEMETRY_EVENTS.ACCOUNT_CONNECTED, { service: 'google' });
       // Google sign-in now also grants the Drive scope — enable cross-device sync.
       syncTransport.setConnected(true);
       useSettingsStore.getState().setSyncEnabled(true);
@@ -93,6 +95,7 @@ export const useGoogleAccountStore = create((set, get) => ({
     // Update state immediately so UI responds — don't block on async token/cache cleanup.
     // (Mirroring the earlier approach: set state first, then clean up in the background.)
     set({ connected: false, profile: null, error: null });
+    track(TELEMETRY_EVENTS.ACCOUNT_DISCONNECTED, { service: 'google' });
     // Google sign-out disables cross-device sync (Drive scope is gone).
     syncTransport.setConnected(false);
     useSettingsStore.getState().setSyncEnabled(false);

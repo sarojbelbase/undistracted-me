@@ -27,11 +27,13 @@ jobs:
       # repo secrets (Settings → Secrets and variables → Actions).
       # No client-side API key any more — endpoints are gated by Origin +
       # Cloudflare bot protection.
+      # VITE_POSTHOG_KEY is also a repo secret (the PostHog public client key).
       - name: Build for Firefox
         if: matrix.browser == 'firefox'
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
         run: bun run build:firefox
 
       - name: Build for Chrome
@@ -39,6 +41,7 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
         run: bun run build:chrome
 
       - name: Rename Firefox zip

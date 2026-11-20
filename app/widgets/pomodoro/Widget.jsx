@@ -8,6 +8,7 @@ import { ConfirmButton } from '../../components/ui/ConfirmButton';
 import { useRainStream } from '../../hooks/useRainStream';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { PomodoroSettings } from './Settings';
+import { trackWidgetEvent } from '../../utilities/telemetry';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
 import {
   PRESETS, PHASE, SESSION_TYPE, DEFAULT_SETTINGS,
@@ -233,6 +234,7 @@ export const Widget = ({ id, onRemove }) => {
     setSessionType(type);
     setPhase(next.phase);
     completedRef.current = false;
+    trackWidgetEvent('started', 'pomodoro', { session_type: type });
   }, [id]);
 
   // ── Preset click handler ──────────────────────────────────────────────

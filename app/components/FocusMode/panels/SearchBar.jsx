@@ -12,6 +12,7 @@ import { getTokens, FM_CARD_BLUR, FM_BORDER, FM_INK_3 } from '../theme';
 import { TooltipBtn } from '../../ui/TooltipBtn';
 import { useSettingsStore } from '../../../store';
 import { EngineIcon } from '../../../utilities/searchEngines';
+import { trackWidgetEvent } from '../../../utilities/telemetry';
 import { getTopSites } from '../../../utilities/index';
 import { useSearchCore } from '../../Search';
 import { Search } from 'react-bootstrap-icons';
@@ -227,6 +228,7 @@ export const SearchBar = ({ centerOnDark = true }) => {
     setBouncing(true);
     setTimeout(() => setBouncing(false), 420);
     search(q);
+    trackWidgetEvent('used', 'search');
     originalQueryRef.current = '';
     setFocused(false);
     setActiveSugg(-1);

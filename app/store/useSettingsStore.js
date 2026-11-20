@@ -15,6 +15,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { applyTheme } from "../theme";
 import { STORAGE_KEYS } from "../constants/storageKeys";
+import { track, TELEMETRY_EVENTS } from "../utilities/telemetry";
 import {
   APP_SETTINGS_DEFAULTS,
   DEFAULT_NOTIFICATION_TYPES,
@@ -183,6 +184,7 @@ export const useSettingsStore = create(
         set((s) => ({ focusPanels: { ...s.focusPanels, [key]: enabled } })),
 
       setAccent: (accent) => {
+        if (accent !== get().accent) track(TELEMETRY_EVENTS.ACCENT_CHANGED, { accent });
         set({ accent });
         applyTheme(accent, get().mode, get().cardStyle);
       },
@@ -191,6 +193,7 @@ export const useSettingsStore = create(
         const accent = get().accent;
         // cardStyle is a global preference — never overwritten by mode changes
         const cardStyle = get().cardStyle;
+        if (mode !== get().mode) track(TELEMETRY_EVENTS.MODE_CHANGED, { mode });
         set({ mode });
         // Mirror to legacy key — Playwright tests assert localStorage.getItem('app_mode').
         try {
@@ -208,7 +211,12 @@ export const useSettingsStore = create(
       setDateFormat: (dateFormat) => set({ dateFormat }),
 
       /** LookAway eye-break reminders */
-      setLookAwayEnabled: (lookAwayEnabled) => set({ lookAwayEnabled }),
+      setLookAwayEnabled: (lookAwayEnabled) => {
+        if (lookAwayEnabled !== get().lookAwayEnabled) {
+          track(lookAwayEnabled ? TELEMETRY_EVENTS.LOOKAWAY_ENABLED : TELEMETRY_EVENTS.LOOKAWAY_DISABLED);
+        }
+        set({ lookAwayEnabled });
+      },
       setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),
 
       /** Master switch for all extension browser notifications. */
@@ -233,6 +241,7 @@ export const useSettingsStore = create(
        */
       setCanvasBg: (canvasBg) => {
         set({ canvasBg });
+        track(TELEMETRY_EVENTS.BACKGROUND_CHANGED, { type: canvasBg?.type });
       },
 
       /** Widget surface style — 'paper' | 'glass' */
@@ -251,11 +260,15 @@ export const useSettingsStore = create(
 
       /** Enable / disable cross-device sync via chrome.storage.sync */
       setSyncEnabled: (syncEnabled) => {
+        const changed = syncEnabled !== get().syncEnabled;
         set({ syncEnabled });
         if (syncEnabled) {
           syncEngine.enableSync();
         } else {
           syncEngine.disableSync();
+        }
+        if (changed) {
+          track(syncEnabled ? TELEMETRY_EVENTS.SYNC_ENABLED : TELEMETRY_EVENTS.SYNC_DISABLED);
         }
       },
     }),

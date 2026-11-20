@@ -1,6 +1,6 @@
 import "./App.css";
 import "./styles/main.scss";
-import React, { useState, Suspense, lazy, useEffect, useCallback } from "react";
+import React, { useState, Suspense, lazy, useEffect, useCallback, useRef } from "react";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
@@ -31,6 +31,7 @@ import { useCommandPalette } from "./hooks/useCommandPalette";
 import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
 import syncEngine from "./utilities/syncEngineFacade";
 import { initSyncRefresh } from "./utilities/syncRefresh";
+import { initTelemetry, track, TELEMETRY_EVENTS } from "./utilities/telemetry";
 import bgImage from "./assets/img/bg.webp";
 import { WhatsNewNote } from "./components/WhatsNewNote";
 
@@ -251,6 +252,11 @@ const App = () => {
     useGoogleAccountStore.getState().init();
   }, []);
 
+  // ── Anonymous widget-usage telemetry — loads PostHog only when a key is set ─
+  useEffect(() => {
+    initTelemetry();
+  }, []);
+
   // ── Cross-device sync — init on mount if previously enabled ──────────────
   useEffect(() => {
     initSyncRefresh();
@@ -276,6 +282,23 @@ const App = () => {
     useFocusMode(defaultView);
   const { showNoteMode, openNoteMode, closeNoteMode } =
     useNoteMode(defaultView);
+
+  // ── Track view transitions (focus / note / canvas) for usage analytics ─────
+  const prevViewRef = useRef(
+    showFocusMode ? "focus" : showNoteMode ? "note" : "canvas",
+  );
+  useEffect(() => {
+    const view = showFocusMode ? "focus" : showNoteMode ? "note" : "canvas";
+    if (view === prevViewRef.current) return;
+    prevViewRef.current = view;
+    const event =
+      view === "focus"
+        ? TELEMETRY_EVENTS.FOCUS_MODE_ENTERED
+        : view === "note"
+          ? TELEMETRY_EVENTS.NOTE_MODE_ENTERED
+          : TELEMETRY_EVENTS.CANVAS_ENTERED;
+    track(event);
+  }, [showFocusMode, showNoteMode]);
   const {
     showSettings,
     settingsInitialTab,
@@ -346,7 +369,10 @@ const App = () => {
     enabled: lookAwayEnabled,
     intervalMins: lookAwayInterval,
     notify: true,
-    onTrigger: () => setShowLookAway(true),
+    onTrigger: () => {
+      setShowLookAway(true);
+      track(TELEMETRY_EVENTS.LOOKAWAY_TRIGGERED);
+    },
   });
 
   // Stabilized callbacks for the LookAway overlay — inline arrows would change
@@ -355,10 +381,12 @@ const App = () => {
     setShowLookAway(false);
     clearLookAwayDue();
     triggerSupportNudge('lookaway');
+    track(TELEMETRY_EVENTS.LOOKAWAY_DISMISSED);
   }, []);
   const handleLookAwaySnooze = useCallback((mins) => {
     setShowLookAway(false);
     snoozeLookAway(mins);
+    track(TELEMETRY_EVENTS.LOOKAWAY_SNOOZED, { minutes: mins });
   }, []);
 
   // Stabilized handlers for ControlCluster — inline arrows change identity every
@@ -366,6 +394,7 @@ const App = () => {
   const openCatalog = useCallback(() => {
     setShowCatalog(true);
     closeSettings();
+    track(TELEMETRY_EVENTS.WIDGET_CATALOG_OPENED);
   }, [closeSettings]);
   const previewLookAway = useCallback(() => {
     setShowLookAway(true);

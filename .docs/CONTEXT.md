@@ -114,6 +114,8 @@ app/
                          to all others; falls back to per-tab aligned interval;
                          API: `onClockTick(fn) → unsubscribeFn` — used by zones + clock widget
     chrome.js          — Chrome extension API helpers
+    telemetry.js       — PostHog anonymous widget-usage tracking (gated on VITE_POSTHOG_KEY;
+                          tracks widget_added/removed/duplicated/rendered/settings_opened)
     media.js           — media session content script (injected into SoundCloud pages) +
                          SW utility; detects playback via navigator.mediaSession + audio/video fallback
   components/
@@ -540,6 +542,7 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 | `manual_birthdays` | — | `[{ id, name, type, month, day }]` manual occasion entries |
 | `AUTO_THEME_COORDS` | `auto_theme_coords` | Legacy coords; superseded by `location_state` |
 | `AUTO_THEME_COORDS_SOURCE` | `auto_theme_coords_source` | Legacy source flag; superseded by `location_state` |
+| `INSTALL_ID` | `um_install_id` | Anonymous random install id (PostHog widget-usage telemetry unique-install counts). Not PII. |
 
 ### chrome.storage.local
 | Key (constant) | Key string | Contents |
@@ -574,6 +577,8 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 | `VITE_WEBSITE_MODE` | Set to `'true'` for the hosted website (disables extension-only features) |
 | `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
 | `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Cloudflare env var, never in bundle) |
+| `VITE_POSTHOG_KEY` | Anonymous widget-usage telemetry — PostHog public (client) key; telemetry is a no-op when unset |
+| `VITE_POSTHOG_HOST` | PostHog ingestion host (default `https://us.i.posthog.com`) |
 
 > No client-side API key exists any more: the old `VITE_API_KEY` / `API_KEY`
 > pair (and the `obscureEnvKeys` XOR pilot) was removed. Endpoint access is

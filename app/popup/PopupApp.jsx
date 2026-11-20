@@ -9,6 +9,7 @@ import { useSettingsStore } from "../store/useSettingsStore";
 import { useLocationStore } from "../store/useLocationStore";
 import { useShallow } from "zustand/react/shallow";
 import { onClockTick } from "../utilities/sharedClock";
+import { track, TELEMETRY_EVENTS } from "../utilities/telemetry";
 import { applyTheme } from "../theme";
 import { getTimeParts } from "../widgets/clock/utils";
 import { getGreeting } from "../data/greetings";
@@ -76,6 +77,10 @@ const relSun = (lat, lon) => {
 
 export const PopupApp = () => {
   const [clockTick, setClockTick] = useState(0);
+  // Count a popup open once per mount — the primary "popup usage" signal.
+  useEffect(() => {
+    track(TELEMETRY_EVENTS.POPUP_OPENED);
+  }, []);
   // The popup clock shows HH:MM — tick at minute granularity, not 60×/minute.
   const minuteRef = useRef(Math.floor(Date.now() / 60000));
   useEffect(() => onClockTick(() => {

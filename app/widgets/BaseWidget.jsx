@@ -12,6 +12,7 @@ import { BaseSettingsModal } from "./BaseSettingsModal";
 import { ConfirmButton } from "../components/ui/ConfirmButton";
 import { TooltipBtn } from "../components/ui/TooltipBtn";
 import { WidgetActionsContext } from "./WidgetActionsContext";
+import { trackWidgetEvent } from "../utilities/telemetry";
 
 /**
  * Base card wrapper for all widgets.
@@ -208,6 +209,7 @@ export const BaseWidget = forwardRef(
                   onClick={() => {
                     setMenuOpen(false);
                     setModalOpen(true);
+                    trackWidgetEvent('settings_opened', actions.type);
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"

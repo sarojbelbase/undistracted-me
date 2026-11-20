@@ -5,11 +5,15 @@
  * widget settings panel) to open the Accounts dialog without prop-drilling.
  */
 import { create } from "zustand";
+import { track, TELEMETRY_EVENTS } from "../utilities/telemetry";
 
 export const useUIStore = create((set) => ({
   // When non-null, App.jsx opens Settings and switches to this tab.
   settingsOpenAt: null,
-  openAccountsDialog: () => set({ settingsOpenAt: 'accounts' }),
+  openAccountsDialog: () => {
+    track(TELEMETRY_EVENTS.ACCOUNTS_DIALOG_OPENED);
+    set({ settingsOpenAt: 'accounts' });
+  },
   /** Open Settings at a given tab (defaults to 'general'). */
   openSettingsDialog: (tab = 'general') => set({ settingsOpenAt: tab }),
   clearSettingsOpenAt: () => set({ settingsOpenAt: null }),

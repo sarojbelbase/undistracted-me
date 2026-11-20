@@ -1,4 +1,6 @@
 // ─── Spotify Client ID ───────────────────────────────────────────────────────
+import { track, TELEMETRY_EVENTS } from '../../utilities/telemetry';
+
 // Set VITE_SPOTIFY_CLIENT_ID in your .env file.
 // 1. Go to https://developer.spotify.com/dashboard and create an app.
 // 2. Add redirect URI: https://<your-extension-id>.chromiumapp.org/
@@ -139,6 +141,7 @@ export const connectSpotify = async () => {
     await globalThis.chrome?.storage?.local?.set({ [TOKEN_KEY]: stored }); // eslint-disable-line no-undef
   }
   localStorage.setItem(CONNECTED_FLAG, '1'); // sync flag so isSpotifyConnected() is immediate
+  track(TELEMETRY_EVENTS.ACCOUNT_CONNECTED, { service: 'spotify' });
   return stored.access_token;
 };
 
@@ -234,6 +237,7 @@ export const disconnectSpotify = () => {
     globalThis.chrome?.storage?.local?.remove([TOKEN_KEY, PROFILE_KEY]); // eslint-disable-line no-undef
   }
   localStorage.removeItem(CONNECTED_FLAG);
+  track(TELEMETRY_EVENTS.ACCOUNT_DISCONNECTED, { service: 'spotify' });
 };
 
 // Synchronous — in web mode validates that a token actually exists (it lives in

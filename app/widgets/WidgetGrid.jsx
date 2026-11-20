@@ -9,6 +9,7 @@ import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 import { useSettingsStore } from "../store";
 import { useUIStore } from "../store/useUIStore";
 import { WidgetActionsContext } from "./WidgetActionsContext";
+import { trackWidgetRendered } from "../utilities/telemetry";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
@@ -109,11 +110,19 @@ const WidgetCell = React.memo(function WidgetCell({
     [onRemoveInstance, id],
   );
   const contextValue = useMemo(
-    () => ({ id, duplicate: () => duplicateInstance(id) }),
-    [id, duplicateInstance],
+    () => ({ id, type, duplicate: () => duplicateInstance(id) }),
+    [id, type, duplicateInstance],
   );
 
   const Component = WIDGET_COMPONENTS[type];
+
+  // Count this widget type as "rendered" once per session — the clean signal
+  // for "which widgets are actually on people's dashboards". Deduped internally
+  // (by type) so breakpoint remounts / drag re-renders don't double-count.
+  useEffect(() => {
+    if (Component) trackWidgetRendered(type);
+  }, [Component, type]);
+
   if (!Component) return null;
 
   return (

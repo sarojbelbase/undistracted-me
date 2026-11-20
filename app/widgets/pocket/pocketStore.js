@@ -8,6 +8,7 @@
  */
 
 import { POCKET_KEYS } from "./constants";
+import { track, TELEMETRY_EVENTS } from "../../utilities/telemetry";
 import {
   findDuplicate,
   mergeStates,
@@ -297,6 +298,7 @@ export function addItem(item, opts = {}) {
   }
   setSnapshot({ ...s, items: [item, ...s.items] });
   schedulePersist();
+  track(TELEMETRY_EVENTS.CLIP_SAVED);
   return { status: "added", item };
 }
 

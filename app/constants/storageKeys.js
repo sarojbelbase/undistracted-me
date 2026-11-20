@@ -62,6 +62,10 @@ export const STORAGE_KEYS = Object.freeze({
   /** Per-feed RSS cache key. */
   rssCache: (feedId) => `rss_cache_${feedId}`,
 
+  // ── Anonymous telemetry ───────────────────────────────────────────────
+  /** Stable random install id for PostHog unique-install counts. Not PII. */
+  INSTALL_ID: "um_install_id",
+
   // ── Pocket (text saves) ────────────────────────────────────────────────
   POCKET_ITEMS: "pocket:items",
   POCKET_FOLDERS: "pocket:folders",
