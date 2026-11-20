@@ -85,6 +85,69 @@ const TickingPomodoro = () => {
   return pomodoro ? <PomodoroPanel pomodoro={pomodoro} /> : null;
 };
 
+// Isolated media ticker — owns the Spotify/browser-media hooks so their 1s
+// progress interval (and 5s poll) re-renders only this leaf + its SpotifyPanel,
+// not the whole LeftZone (which would cascade into EventPanel/OccasionPanel/
+// StockPanel every second during playback). Mirrors TickingPomodoro above.
+// Also gates the polling on visibility: the hooks only mount when the spotify
+// panel is actually rendered, so toggling it off in Settings stops the poll.
+const TickingMedia = () => {
+  const {
+    spotify,
+    progress,
+    handleToggle,
+    handleNext,
+    handlePrev,
+    pending,
+    skipPending,
+  } = useFocusSpotify();
+
+  // Browser media session (SoundCloud, YouTube Music, Apple Music, etc.)
+  // Only shown when Spotify is not actively playing.
+  const {
+    track: chromeTrack,
+    sendAction: chromeSendAction,
+    pending: chromePending,
+    skipPending: chromeSkipPending,
+  } = useChromeMedia();
+
+  // Only treat Spotify as "active" when it is actually playing. Spotify's
+  // /me/player returns the last-played track (is_playing: false) even when
+  // idle, which would otherwise mask live browser media (SoundCloud, YouTube).
+  const spotifyTrack = useMemo(
+    () => (spotify?.isPlaying ? { ...spotify, progressMs: progress } : null),
+    [spotify, progress],
+  );
+
+  const mediaTrack = spotifyTrack ? null : chromeTrack;
+
+  if (spotifyTrack) {
+    return (
+      <SpotifyPanel
+        track={spotifyTrack}
+        onToggle={handleToggle}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        pending={pending}
+        skipPending={skipPending}
+      />
+    );
+  }
+  if (mediaTrack) {
+    return (
+      <SpotifyPanel
+        track={mediaTrack}
+        onToggle={() => chromeSendAction(mediaTrack.isPlaying ? 'pause' : 'play')}
+        onNext={() => chromeSendAction('next')}
+        onPrev={() => chromeSendAction('previous')}
+        pending={chromePending}
+        skipPending={chromeSkipPending}
+      />
+    );
+  }
+  return null;
+};
+
 export const LeftZone = () => {
   const focusPanels = useSettingsStore(s => s.focusPanels ?? {});
 
@@ -98,65 +161,12 @@ export const LeftZone = () => {
   const { stocks } = useFocusStocks();
   const occasions = useOccasions();
 
-  const {
-    spotify,
-    progress,
-    handleToggle,
-    handleNext,
-    handlePrev,
-    pending,
-    skipPending,
-  } = useFocusSpotify();
-
-  // Browser media session (SoundCloud, YouTube Music, Apple Music, etc.)
-  // Only shown when Spotify is not actively playing.
-  const { track: chromeTrack, sendAction: chromeSendAction, pending: chromePending, skipPending: chromeSkipPending } = useChromeMedia();
-
-  // Only treat Spotify as "active" when it is actually playing. Spotify's
-  // /me/player returns the last-played track (is_playing: false) even when
-  // idle, which would otherwise mask live browser media (SoundCloud, YouTube).
-  const spotifyTrack = useMemo(
-    () => (spotify?.isPlaying ? { ...spotify, progressMs: progress } : null),
-    [spotify, progress],
-  );
-
-  // Show the browser media card only when Spotify isn't actively playing.
-  const mediaTrack = spotifyTrack ? null : chromeTrack;
-
-  const activeMediaPanel = (() => {
-    if (spotifyTrack) {
-      return (
-        <SpotifyPanel
-          track={spotifyTrack}
-          onToggle={handleToggle}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          pending={pending}
-          skipPending={skipPending}
-        />
-      );
-    }
-    if (mediaTrack) {
-      return (
-        <SpotifyPanel
-          track={mediaTrack}
-          onToggle={() => chromeSendAction(mediaTrack.isPlaying ? 'pause' : 'play')}
-          onNext={() => chromeSendAction('next')}
-          onPrev={() => chromeSendAction('previous')}
-          pending={chromePending}
-          skipPending={chromeSkipPending}
-        />
-      );
-    }
-    return null;
-  })();
-
   const panels = {
     pomodoro: <TickingPomodoro />,
     event: eventInfo ? <EventPanel eventInfo={eventInfo} /> : null,
     occasion: occasions?.length > 0 ? <OccasionPanel occasions={occasions} /> : null,
     stock: stocks?.length > 0 ? <StockPanel stocks={stocks} /> : null,
-    spotify: activeMediaPanel,
+    spotify: <TickingMedia />,
   };
 
   const visible = Object.entries(LEFT)

@@ -155,8 +155,6 @@ export const Widget = ({ id, onRemove }) => {
     [custom, pinned, removeEventFromStore, id],
   );
 
-  useEffect(() => onClockTick(() => setNow(Date.now())), []);
-
   // Clear the post-completion pin-clear timer on unmount so a pending
   // setTimeout can't fire setPin(null) after the widget is gone.
   const pinClearRef = useRef(null);
@@ -175,6 +173,25 @@ export const Widget = ({ id, onRemove }) => {
     () => resolveTarget(pinned, allEvents, upcomingEvents, today, custom),
     [pinned, allEvents, upcomingEvents, today, custom],
   );
+
+  // Gate the 1s tick to the granularity the phrase actually needs: the humanized
+  // countdown ("in 3 years" / "in 5 min") only changes at minute boundaries, so
+  // a per-second setNow would re-render 86,400×/day for a once-a-minute change.
+  // Second-granularity only in the final 60s (where "in <1 min" flips to "now").
+  const lastTickRef = useRef(0);
+  useEffect(() => {
+    return onClockTick(() => {
+      const t = Date.now();
+      const deadline = target?.nextDate?.getTime();
+      const finalMinute =
+        target && target.mode !== "since" && deadline != null &&
+        deadline - t >= 0 && deadline - t < 60_000;
+      const bucket = finalMinute ? t : Math.floor(t / 60_000);
+      if (bucket === lastTickRef.current) return;
+      lastTickRef.current = bucket;
+      setNow(t);
+    });
+  }, [target?.nextDate, target?.mode]);
 
   useEffect(() => {
     if (!shouldClearPin) return;
