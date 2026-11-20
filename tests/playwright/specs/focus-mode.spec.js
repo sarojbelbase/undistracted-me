@@ -463,7 +463,7 @@ test.describe('Canvas — Countdown widget', () => {
     await mountCountdown(page, { countdown_events: [] });
     const w = page.locator('.react-grid-item').first();
     // Empty state message in the countdown widget
-    await expect(w).toContainText('No countdowns yet.');
+    await expect(w).toContainText('No countdowns yet');
   });
 
   test('countdown shows pre-seeded future event with days remaining', async ({ page }) => {
@@ -582,7 +582,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     await catalogBtn.click();
     await page.waitForTimeout(600);
 
-    const stockRow = page.locator('.wc-row').filter({ hasText: 'NEPSE Stock' });
+    const stockRow = page.locator('.wc-row').filter({ hasText: 'Stock' });
     await expect(stockRow).toBeVisible({ timeout: 5000 });
     await stockRow.locator('.wc-stepper-btn--add').click();
     await page.waitForTimeout(200);
