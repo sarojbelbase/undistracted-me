@@ -240,6 +240,17 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
     if (last) onRemoveInstance(last.id);
   };
 
+  // "Add all" adds one instance of every supported widget not yet on the canvas;
+  // "Remove all" clears every instance. Both are disabled when there's nothing to do.
+  const missingWidgets = WIDGET_REGISTRY.filter(
+    (w) => getPlatformSupport(w) !== 'none' && (countByType[w.type] || 0) === 0,
+  );
+  const canAddAll = missingWidgets.length > 0;
+  const canRemoveAll = (instances || []).length > 0;
+
+  const handleAddAll = () => missingWidgets.forEach((w) => onAddInstance(w.type));
+  const handleRemoveAll = () => [...(instances || [])].forEach((i) => onRemoveInstance(i.id));
+
   const filteredWidgets = activeTab === 'all'
     ? WIDGET_REGISTRY
     : WIDGET_REGISTRY.filter(w => w.category === activeTab);
@@ -266,7 +277,23 @@ export const WidgetCatalog = ({ instances, onAddInstance, onRemoveInstance, onCl
             <span className="wc-title">Widgets</span>
           </div>
 
-          <div className="wc-header-right">
+          <div className="wc-header-right" style={{ gap: 8 }}>
+            <button
+              className="wc-pill-btn"
+              onClick={handleAddAll}
+              disabled={!canAddAll}
+              aria-label="Add every available widget"
+            >
+              Add all
+            </button>
+            <button
+              className="wc-pill-btn wc-pill-btn--danger"
+              onClick={handleRemoveAll}
+              disabled={!canRemoveAll}
+              aria-label="Remove all widgets"
+            >
+              Remove all
+            </button>
             <button ref={closeBtnRef} className="wc-close-btn" onClick={handleClose} aria-label="Close (Esc)">
               <XLg size={11} />
             </button>

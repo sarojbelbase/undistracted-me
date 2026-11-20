@@ -290,6 +290,11 @@
     color: var(--wc-ink-2);
     border-color: var(--wc-border-med);
   }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .wc-pill-btn--danger {

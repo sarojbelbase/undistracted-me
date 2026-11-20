@@ -79,6 +79,12 @@ Custom subagents live in `.opencode/agents/`: `react-guru`,
 - **Add dialogs**: any "Add …" / "Edit …" dialog must inherit the shared
   `app/components/ui/AddDialogHeader` (accent icon tile + title + subtitle + ✕).
   Do not hand-roll dialog headers.
+- **No `React.lazy` / code-splitting for perf**: do not lazy-load widget/component
+  chunks to "render better". It does not help this extension (single bundled
+  new-tab page; MV3 loads the whole bundle once) and only adds Suspense
+  complexity. Optimize via memoization, virtualization, and shared components
+  instead — never by lazy-loading. (Existing `lazy()` in FocusMode's settings is
+  a deliberate, isolated exception for the heavy settings panel.)
 
 ## Before saying "done"
 
