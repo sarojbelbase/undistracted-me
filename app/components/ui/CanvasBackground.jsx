@@ -33,11 +33,25 @@ function CanvasBgImage({ url, color }) {
 
   useEffect(() => {
     if (!url) return;
-    setSlots((prev) => {
-      if (prev[prev.active].url === url) return prev;
-      const next = prev.active === 'a' ? 'b' : 'a';
-      return { ...prev, [next]: { url, id: prev[next].id + 1 }, active: next };
-    });
+    // Preload before swapping slots: if we flip the slot immediately, the new
+    // `background-image` starts downloading mid-crossfade and paints in bands
+    // (a CRT "line by line" effect). Waiting for `onload` means the image is
+    // fully decoded (and cached) before the 2.5s crossfade starts.
+    let alive = true;
+    const img = new Image();
+    img.onload = () => {
+      if (!alive) return;
+      setSlots((prev) => {
+        if (prev[prev.active].url === url) return prev;
+        const next = prev.active === 'a' ? 'b' : 'a';
+        return { ...prev, [next]: { url, id: prev[next].id + 1 }, active: next };
+      });
+    };
+    img.src = url;
+    return () => {
+      alive = false;
+      img.onload = null;
+    };
   }, [url]);
 
   const bg = (u) => (u ? `url("${u}")` : 'none');

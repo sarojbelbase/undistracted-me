@@ -266,8 +266,18 @@ export const FocusMode = ({ onExit }) => {
     persistBgSource(source);
     setBgSource(source);
     if (customUrl !== undefined) {
-      setCustomBgUrl(customUrl);
-      persistCustomUrl(customUrl);
+      if (customUrl) {
+        // Preload the custom image before it becomes the background so it paints
+        // atomically instead of decoding in bands (CRT "line by line"). On error
+        // still apply it, matching the previous immediate-apply behaviour.
+        const img = new Image();
+        img.onload = () => { setCustomBgUrl(customUrl); persistCustomUrl(customUrl); };
+        img.onerror = () => { setCustomBgUrl(customUrl); persistCustomUrl(customUrl); };
+        img.src = customUrl;
+      } else {
+        setCustomBgUrl(null);
+        persistCustomUrl(null);
+      }
     } else if (source !== "custom") {
       setCustomBgUrl(null);
       persistCustomUrl(null);
