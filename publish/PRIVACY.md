@@ -91,7 +91,9 @@ Each justification maps to a section of the live policy at
 ## 3. Data usage
 
 - **Data collected:** local user preferences / widget settings; authentication
-  tokens for Google and Spotify (stored locally only).
+  tokens for Google and Spotify (stored locally only); anonymous, aggregate
+  widget-usage analytics (which widgets are added/used) via PostHog.
 - **Sold to third parties:** ❌ No
 - **Used for targeted advertising / ad targeting:** ❌ No
 - **Used for anything unrelated to the extension's core function:** ❌ No
+  (usage analytics are used only to understand which widgets people find useful)

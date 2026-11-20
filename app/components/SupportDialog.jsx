@@ -66,7 +66,7 @@ export function SupportDialog({
         </header>
 
         <p className="sd-body">
-          {appName} is free and local, with no ads or usage tracking. If it
+          {appName} is free and local, with no ads. If it
           helps, Buy Me a Momo is the only way to chip in, even a snack&rsquo;s
           worth.
         </p>

@@ -72,7 +72,7 @@ export const alternatives = [
     subline:
       "The same free, open-source spirit as Tabliss — plus Pomodoro, ambient sounds and Google Tasks built in.",
     intro: [
-      "Tabliss is a free, open-source new tab that's earned a loyal following for good reason: it has no ads, no account and no tracking, and it stores everything locally. If you value a minimal, privacy-first new tab, Tabliss is a strong baseline. Undistracted Me shares that same free and open-source stance, then adds the focus tools Tabliss leaves out.",
+      "Tabliss is a free, open-source new tab that's earned a loyal following for good reason: it has no ads and no account, and it stores everything locally. If you value a minimal, privacy-first new tab, Tabliss is a strong baseline. Undistracted Me shares that same free and open-source stance, then adds the focus tools Tabliss leaves out.",
       "Where the two differ is in what \"new tab\" means to you. Tabliss is a blank canvas you fill with widgets. Undistracted Me is that canvas plus a dedicated Focus Mode with a Pomodoro timer, ambient rain and white noise, and your Google Tasks — features Tabliss simply doesn't ship.",
     ],
     comparison: {
@@ -149,7 +149,7 @@ export const alternatives = [
     name: "BlockSite",
     title: "BlockSite Alternative: Free, Open-Source Site Blocker + Focus New Tab",
     description:
-      "Looking for a BlockSite alternative? Undistracted Me is a free, open-source new tab with site blocking and a web clipper — no account, no tracking, and your blocklist never leaves your device.",
+      "Looking for a BlockSite alternative? Undistracted Me is a free, open-source new tab with site blocking and a web clipper — no account, and your blocklist never leaves your device.",
     h1: "BlockSite alternative",
     subline:
       "A free, open-source site blocker that is also a focus new tab — with a web clipper, Pomodoro and quiet widgets.",
@@ -190,7 +190,7 @@ export const alternatives = [
     name: "StayFocusd",
     title: "StayFocusd Alternative: Free, Open-Source Site Blocker + Focus New Tab",
     description:
-      "Looking for a StayFocusd alternative? Undistracted Me is a free, open-source new tab that blocks distracting sites and clips what you find — no account, no tracking, your blocklist never leaves your device.",
+      "Looking for a StayFocusd alternative? Undistracted Me is a free, open-source new tab that blocks distracting sites and clips what you find — no account, your blocklist never leaves your device.",
     h1: "StayFocusd alternative",
     subline:
       "The same free, open-source blocking spirit as StayFocusd — plus a web clipper, a Pomodoro and a whole focus new tab.",
@@ -219,7 +219,7 @@ export const alternatives = [
       clipper: "No",
     },
     differences: [
-      "On privacy and price the two are close: both are free, open source, and keep your settings local. Neither tracks you, and neither needs an account. If you just want a no-nonsense time-limiter, StayFocusd is a great, trustworthy choice.",
+      "On privacy and price the two are close: both are free, open source, and keep your settings local. Neither requires an account. If you just want a no-nonsense time-limiter, StayFocusd is a great, trustworthy choice.",
       "The practical difference is the surface. StayFocusd runs from a toolbar popup and does blocking only. Undistracted Me is a full new tab — the blocking is one part of a page that also clips what you find, times your focus sessions, plays ambient sounds and shows your tasks.",
       "On blocking style, StayFocusd's strength is daily time budgets per site. Undistracted Me blocks for a set timer or permanently, with a calm interstitial that gives you a countdown instead of a hard wall.",
     ],

@@ -534,7 +534,10 @@
         <strong>not</strong> collect your name, email, or any
         personally identifiable information on our own servers. We do
         <strong>not</strong> track your browsing history. All widget
-        configuration stays in your browser's local storage.
+        configuration stays in your browser's local storage. The only data
+        that leaves your device is <strong>anonymous, aggregate widget-usage
+        analytics</strong> &mdash; which widgets you add and use &mdash; sent to
+        PostHog. It never includes your notes, tasks, or browsing history.
       </p>
     </div>
 
@@ -547,6 +550,19 @@
       <li>Any notes you write in the Notes widget.</li>
       <li>Pomodoro and timer history.</li>
     </ul>
+
+    <h3>Anonymous usage analytics</h3>
+    <p>
+      To understand which widgets people find useful, the extension sends
+      <strong>anonymous, aggregate usage events</strong> (for example
+      &ldquo;widget added&rdquo; or &ldquo;widget removed&rdquo;) to
+      <strong>PostHog</strong>, a US-hosted analytics service
+      (<code>us.i.posthog.com</code>). Each event carries only the widget type
+      and a random, anonymous install id &mdash; no names, emails, notes, task
+      contents, or browsing history. The install id is a random value generated
+      on your device and cannot be linked back to you. The exact events sent are
+      visible in the open-source code.
+    </p>
 
     <h3>Cross-device sync (optional)</h3>
     <p>
@@ -696,6 +712,11 @@
             <td>api.undistracted.me</td>
             <td>Our backend (photos, favicon, FF token exchange)</td>
             <td><span class="badge-yes">API key</span></td>
+          </tr>
+          <tr>
+            <td>us.i.posthog.com</td>
+            <td>Anonymous widget-usage analytics (PostHog)</td>
+            <td><span class="badge-no">Anonymous id only</span></td>
           </tr>
         </tbody>
       </table>

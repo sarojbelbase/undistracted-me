@@ -92,7 +92,7 @@ const StepWelcome = () => (
           Your new tab, undistracted.
         </h1>
         <p className="text-[12.5px] leading-snug qt-subtitle">
-          Focus Mode or Canvas — switch anytime. No account, no tracking.
+          Focus Mode or Canvas — switch anytime. No account.
         </p>
       </div>
     </div>

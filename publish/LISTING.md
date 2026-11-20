@@ -15,7 +15,7 @@ the store APIs do not set name / description / category / screenshots.
 | Category | **Productivity** |
 | Developer website | `https://undistracted.me` |
 | Privacy policy URL | `https://undistracted.me/pp-and-tos` |
-| Short description | `Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account, no tracking.` (109 chars) |
+| Short description | `Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account.` (96 chars) |
 
 ### Detailed description
 
@@ -39,8 +39,7 @@ Undistracted Me replaces your new tab with a calm, distraction-free dashboard �
 • Quick access — your top sites and bookmarks, one click away
 
 ✦ Private by design
-• No account required — nothing to sign up for
-• No analytics, no ads, no tracking
+• No account required, no ads and no personal data
 • Google and Spotify tokens are stored only on your device
 • Minimal permissions — each is used only for a feature you turn on
 • Free and open source (MIT)
@@ -79,7 +78,7 @@ Category → **Productivity**.
 ### Summary (short description)
 
 ```
-Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account, no tracking.
+Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account.
 ```
 
 ### Description
@@ -104,7 +103,7 @@ Undistracted Me replaces your new tab with a calm, distraction-free dashboard �
 • Quick access — top sites and bookmarks
 
 ✦ Private by design
-• No account, no analytics, no ads, no tracking
+• No account required, no ads and no personal data
 • Google and Spotify tokens stay on your device
 • Minimal permissions, used only for the features you enable
 • Free and open source (MIT)

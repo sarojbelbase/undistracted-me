@@ -19,7 +19,7 @@ export const faq = [
   },
   {
     q: "What data does it collect?",
-    a: "None that identifies you: no account, no tracking and no analytics. Google integrations keep their tokens on your device, not on a server.",
+    a: "Only anonymous widget-usage analytics: we count which widgets are added and used, with no personal data and no browsing history. Google integrations keep their tokens on your device, not on a server.",
   },
   {
     q: "Does it support Firefox?",
