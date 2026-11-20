@@ -145,21 +145,28 @@ function deleteNoteFile(fileId) {
  * label (and creates the entry if missing) without touching the network.
  * `updatedAt` is left as the last-synced time; the note object's own
  * `updatedAt` (set by the widget) drives last-write-wins.
+ *
+ * Debounced: the widget calls this on every keystroke, and readIndex+writeIndex
+ * is a blocking localStorage round-trip. Coalesce so only the last edit writes.
  */
+let _noteChangedTimer = null;
 function onNoteChanged(noteId, text) {
   if (!noteId) return;
-  const index = readIndex();
-  const entry = index[noteId];
-  const trimmed = (text ?? "").trim();
-  // Empty and never synced — nothing to index (avoids polluting the config
-  // index with "Untitled note" placeholders).
-  if (!trimmed && !entry?.fileId) return;
-  index[noteId] = {
-    fileId: entry?.fileId ?? null,
-    label: noteLabel(text),
-    updatedAt: entry && typeof entry.updatedAt === 'number' ? entry.updatedAt : 0,
-  };
-  writeIndex(index);
+  clearTimeout(_noteChangedTimer);
+  _noteChangedTimer = setTimeout(() => {
+    const index = readIndex();
+    const entry = index[noteId];
+    const trimmed = (text ?? "").trim();
+    // Empty and never synced — nothing to index (avoids polluting the config
+    // index with "Untitled note" placeholders).
+    if (!trimmed && !entry?.fileId) return;
+    index[noteId] = {
+      fileId: entry?.fileId ?? null,
+      label: noteLabel(text),
+      updatedAt: entry && typeof entry.updatedAt === 'number' ? entry.updatedAt : 0,
+    };
+    writeIndex(index);
+  }, 300);
 }
 
 /**

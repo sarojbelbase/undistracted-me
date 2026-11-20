@@ -56,7 +56,10 @@ export const Widget = ({ onRemove }) => {
         if (!e.startTime) return e.startDate >= today;
         const cutoff = e.endTime
           ? new Date(`${e.endDate || e.startDate}T${e.endTime}`)
-          : new Date(`${e.startDate}T${e.startTime}`);
+          // No end time → treat as live for 30 min after start (matches isLiveNow
+          // in the All Events modal, so a no-end-time event doesn't vanish from
+          // the widget face while still showing "in progress" in the modal).
+          : new Date(new Date(`${e.startDate}T${e.startTime}`).getTime() + 30 * 60 * 1000);
         return cutoff > now;
       })
       .sort((a, b) => {

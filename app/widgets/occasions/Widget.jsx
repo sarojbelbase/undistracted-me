@@ -151,6 +151,11 @@ export const Widget = ({ id, onRemove }) => {
     return () => { cancelled = true; };
   }, []);
 
+  // Guard `sync`'s post-await setState so unmounting mid-sync (or navigating
+  // away) can't write state to an unmounted tree.
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   // Silent refresh on mount if already connected
   useEffect(() => {
     if (connected) sync(false);
@@ -185,11 +190,13 @@ export const Widget = ({ id, onRemove }) => {
     setError(null);
     try {
       const entries = await getContactBirthdays(interactive);
+      if (!mountedRef.current) return;
       setRaw(entries);
       const ts = Date.now();
       setSyncedAt(ts);
       setConnected(true);
     } catch (err) {
+      if (!mountedRef.current) return;
       if (interactive) {
         if (err.message === 'SERVICE_DISABLED') {
           setError('People API is not enabled. Enable it in Google Cloud Console for this project.');
@@ -198,7 +205,7 @@ export const Widget = ({ id, onRemove }) => {
         }
       }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 

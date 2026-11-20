@@ -160,18 +160,22 @@ describe('syncNotes — pull', () => {
 
 describe('local edit hooks', () => {
   it('onNoteChanged updates the index label without a fileId', () => {
+    vi.useFakeTimers();
     seedIndex({});
     notesSync.onNoteChanged('n1', 'Brand new title');
-
+    vi.advanceTimersByTime(300); // onNoteChanged is debounced (300ms)
     expect(readIndex().n1).toMatchObject({ fileId: null, label: 'Brand new title' });
     expect(mocks.pushKey).not.toHaveBeenCalled(); // no network on edit
+    vi.useRealTimers();
   });
 
   it('onNoteChanged preserves the fileId and last-synced time', () => {
+    vi.useFakeTimers();
     seedIndex({ n1: { fileId: 'file-1', label: 'Old', updatedAt: 42 } });
     notesSync.onNoteChanged('n1', 'New label');
-
+    vi.advanceTimersByTime(300);
     expect(readIndex().n1).toMatchObject({ fileId: 'file-1', label: 'New label', updatedAt: 42 });
+    vi.useRealTimers();
   });
 
   it('onNoteDeleted removes the index entry, tombstones, and pushes', () => {

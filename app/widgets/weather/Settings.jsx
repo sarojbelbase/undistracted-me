@@ -54,6 +54,12 @@ export const Settings = ({
   const [dropdownStyle, setDropdownStyle] = useState({});
   const debounceRef = useRef(null);
   const inputWrapRef = useRef(null);
+  // Sequence token so a slower earlier geocoding response can't overwrite the
+  // suggestions of a newer query.
+  const seqRef = useRef(0);
+
+  // Clear any in-flight debounce timer on unmount.
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
   const userLat = useLocationStore((s) => s.lat);
   const userLon = useLocationStore((s) => s.lon);
 
@@ -95,11 +101,13 @@ export const Settings = ({
       return;
     }
     debounceRef.current = setTimeout(() => {
+      const seq = ++seqRef.current;
       fetch(
         `${GEOCODING_API}?name=${encodeURIComponent(val)}&count=20&language=en&format=json`,
       )
         .then((r) => r.json())
         .then((res) => {
+          if (seq !== seqRef.current) return; // drop stale responses
           const results = res.results || [];
           if (userLat != null && userLon != null) {
             results.sort(
@@ -119,7 +127,7 @@ export const Settings = ({
           });
           setSuggestions(deduped);
         })
-        .catch(() => setSuggestions([]));
+        .catch(() => { if (seq === seqRef.current) setSuggestions([]); });
     }, 350);
   };
 
