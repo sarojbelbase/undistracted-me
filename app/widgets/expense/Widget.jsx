@@ -5,7 +5,7 @@ import { useWidgetSettings } from '../useWidgetSettings';
 import { useExpenses, DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
 import { formatAmount, getCurrencySymbol } from '../../data/currencies';
 import { ExpenseSettings } from './Settings';
-import { RecentExpensesModal } from './RecentExpensesModal';
+import { ExpenseExpandedView } from './ExpandedView';
 import { AddExpenseModal } from './AddExpenseModal';
 import { WidgetHeader } from '../../components/ui/WidgetHeader';
 import { IconButton } from '../../components/ui/IconButton';
@@ -242,16 +242,16 @@ export const Widget = ({ id, onRemove }) => {
         />
       )}
 
-      {/* ── Recent Expenses Modal ──────────────────────────────────────── */}
+      {/* ── Expense Expanded View ──────────────────────────────────────── */}
       {recentModalOpen && (
-        <RecentExpensesModal
+        <ExpenseExpandedView
           expenses={expenses}
           currency={currency}
-          budget={budget}
           timeRange={timeRange}
           onClose={() => setRecentModalOpen(false)}
-          onDelete={deleteExpense}
+          onAdd={() => { setEditingExpense(null); setAddModalOpen(true); }}
           onEdit={handleEdit}
+          onDelete={deleteExpense}
         />
       )}
     </>

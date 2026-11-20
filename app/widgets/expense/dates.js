@@ -1,7 +1,7 @@
 /**
  * Shared date helpers for the expense widget.
  * Single source of truth for date math — used by useExpenses, Widget, Settings,
- * and RecentExpensesModal.
+ * and ExpenseExpandedView.
  */
 
 export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -115,4 +115,46 @@ export function getPeriodLabel(timeRange, offset) {
   if (offset === 0) return 'This Year';
   const { start } = getPeriodBounds('year', offset);
   return `${start.getFullYear()}`;
+}
+
+// ─── Time-series bucketing (sparkline data) ────────────────────────────────
+
+/** Bucket expense amounts by day within [start, end]. Returns [{date, value}]. */
+export function dailyTotals(expenses, start, end) {
+  const map = {};
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { // NOSONAR
+    map[d.toDateString()] = 0;
+  }
+  expenses.forEach((e) => {
+    if (e.createdAt >= start.getTime() && e.createdAt <= end.getTime()) {
+      const key = new Date(e.createdAt).toDateString();
+      if (key in map) map[key] += e.amount;
+    }
+  });
+  return Object.entries(map).map(([k, v]) => ({
+    date: new Date(k),
+    value: v,
+  }));
+}
+
+/** Bucket expense amounts by month within [start, end]. Returns [{date, value, label}]. */
+export function monthlyTotals(expenses, start, end) {
+  const map = {};
+  for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+    const mStart = y === start.getFullYear() ? start.getMonth() : 0;
+    const mEnd = y === end.getFullYear() ? end.getMonth() : 11;
+    for (let m = mStart; m <= mEnd; m++) {
+      const key = `${y}-${String(m + 1).padStart(2, '0')}`;
+      map[key] = 0;
+    }
+  }
+  expenses.forEach((e) => {
+    const d = new Date(e.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (key in map) map[key] += e.amount;
+  });
+  return Object.entries(map).map(([k, v]) => {
+    const [y, m] = k.split('-').map(Number);
+    return { date: new Date(y, m - 1, 15), value: v, label: MONTHS[m - 1] };
+  });
 }

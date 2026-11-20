@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ListUl, PlusLg } from "react-bootstrap-icons";
 import { BaseWidget } from "../BaseWidget";
 import { BaseSettingsModal } from "../BaseSettingsModal";
-import { Modal } from "../../components/ui/Modal";
 import { Divider } from "../../components/ui/Divider";
 import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
@@ -198,13 +197,11 @@ export const Widget = ({ id, onRemove }) => {
       </div>
 
       {expanded && (
-        <Modal onClose={() => setExpanded(false)} className="pocket-modal-shell" ariaLabel="Pocket">
-          <ExpandedView
-            onClose={() => setExpanded(false)}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onAdd={() => openAdd()}
-          />
-        </Modal>
+        <ExpandedView
+          onClose={() => setExpanded(false)}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onAdd={() => openAdd()}
+        />
       )}
 
       {settingsOpen && (

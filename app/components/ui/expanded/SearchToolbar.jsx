@@ -1,16 +1,35 @@
 import { PlusLg, Search, XLg } from "react-bootstrap-icons";
-import { Button } from "../../../components/ui/Button";
-import { Input } from "../../../components/ui/Input";
-import { SegmentedControl } from "../../../components/ui/SegmentedControl";
-import { GROUP_BY_OPTIONS } from "../constants";
+import { Button } from "../Button";
+import { Input } from "../Input";
 
 /**
- * Toolbar — the expanded view's main-pane header, kept to two quiet rows:
+ * SearchToolbar — the expanded view's main-pane header, shared by Pocket and
+ * Expense. Two quiet rows:
  *   1. search (grows) + a secondary "Add" button
- *   2. the view title (h2) with a muted count, and a quiet "Group saves by"
- *      switch on the right
+ *   2. the view title (h2) with a muted count, and an optional `trailing`
+ *      control on the right (e.g. Pocket's "Group saves by" switch)
+ *
+ * Props:
+ *   query, onQueryChange, onClear, onAdd  – search + add wiring
+ *   title, count                          – heading + muted count
+ *   placeholder                           – search input placeholder (also aria-label)
+ *   searchRef                             – ref forwarded to the search input
+ *   addLabel, addIcon                     – the "Add" button content
+ *   trailing                              – ReactNode (optional); right-side control
  */
-export function Toolbar({ query, onQueryChange, onClear, onAdd, groupBy, onGroupBy, title, count, searchRef }) {
+export function SearchToolbar({
+  query,
+  onQueryChange,
+  onClear,
+  onAdd,
+  title,
+  count,
+  placeholder,
+  searchRef,
+  addLabel = "Add",
+  addIcon = <PlusLg size={13} />,
+  trailing = null,
+}) {
   return (
     <div className="pocket-toolbar">
       <div className="pocket-toolbar__top">
@@ -35,30 +54,20 @@ export function Toolbar({ query, onQueryChange, onClear, onAdd, groupBy, onGroup
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={(e) => e.key === "Escape" && onClear()}
-            placeholder="Search your saves"
-            aria-label="Search your saves"
+            placeholder={placeholder}
+            aria-label={placeholder}
           />
         </div>
         <Button variant="secondary" size="md" onClick={onAdd}>
-          <PlusLg size={13} />
-          Add
+          {addIcon}
+          {addLabel}
         </Button>
       </div>
 
       <div className="pocket-toolbar__row">
         <h2 className="pocket-toolbar__heading">{title}</h2>
         <span className="w-caption" style={{ color: "var(--w-ink-4)" }}>{count}</span>
-        <div className="pocket-toolbar__group">
-          <SegmentedControl
-            inline
-            size="sm"
-            variant="subtle"
-            ariaLabel="Group saves by"
-            options={GROUP_BY_OPTIONS}
-            value={groupBy}
-            onChange={onGroupBy}
-          />
-        </div>
+        {trailing && <div className="pocket-toolbar__group">{trailing}</div>}
       </div>
     </div>
   );

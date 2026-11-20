@@ -11,6 +11,7 @@ import {
 import { IconButton } from "../../../components/ui/IconButton";
 import { ActionMenu } from "../../../components/ui/ActionMenu";
 import { ConfirmButton } from "../../../components/ui/ConfirmButton";
+import { RailItem } from "../../../components/ui/expanded/RailItem";
 import { KIND_ICONS } from "../kindIcons";
 import { usePocket } from "../usePocket";
 import { createFolder, updateFolder, deleteFolder, updatePrefs } from "../pocketStore";
@@ -84,27 +85,22 @@ export function Rail({ filter, onPick, onOpenSettings }) {
     setError("");
   };
 
-  const renderItem = (active, onClick, icon, label, count, colorDot) => (
-    <button
-      type="button"
-      aria-current={active ? "true" : undefined}
-      className={`pocket-rail-item ${active ? "pocket-rail-item--active" : ""}`}
-      onClick={onClick}
-    >
-      {icon && <span className="pocket-rail-item__icon">{icon}</span>}
-      {colorDot}
-      <span className="flex-1 text-left truncate">{label}</span>
-      <span className="w-caption">{count}</span>
-    </button>
-  );
-
   return (
     <nav className="pocket-rail" aria-label="Pocket library">
-      {renderItem(!filter, () => onPick(null), null, "All", total)}
+      <RailItem active={!filter} onClick={() => onPick(null)} label="All" count={total} />
       {KINDS.map((k) => {
         const Icon = KIND_ICONS[k];
         const active = filter?.type === "kind" && filter.value === k;
-        return renderItem(active, () => onPick({ type: "kind", value: k }), <Icon size={14} />, KIND_META[k].label, kindCounts.get(k) || 0);
+        return (
+          <RailItem
+            key={k}
+            active={active}
+            onClick={() => onPick({ type: "kind", value: k })}
+            icon={<Icon size={14} />}
+            label={KIND_META[k].label}
+            count={kindCounts.get(k) || 0}
+          />
+        );
       })}
 
       <button

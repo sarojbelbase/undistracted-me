@@ -503,6 +503,27 @@
   color: var(--w-ink-4);
 }
 
+// ── Expense Expanded view ─────────────────────────────────────────────────────
+
+// Pinned graph card sits between the toolbar and the scrolling list.
+.exp-expanded__graph {
+  padding: 4px 16px 0;
+  flex-shrink: 0;
+}
+
+// The expense rows share the recent-expenses row format; this container adds
+// the horizontal inset so rows align with the toolbar/pocket list rhythm.
+.exp-expanded__list {
+  padding: 4px 12px 12px;
+}
+
+// Row actions (edit/delete) are hover-revealed; keep them visible on touch.
+@media (hover: none) {
+  .exp-modal__row-delete {
+    opacity: 1;
+  }
+}
+
 // ── Add Expense modal ────────────────────────────────────────────────────────
 
 .exp-add-modal__header-icon {
