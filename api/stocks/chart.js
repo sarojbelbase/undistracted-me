@@ -1,8 +1,24 @@
 /**
  * GET /stocks/chart?symbol=NABIL&from=<unix>&to=<unix>
  *
- * Server-side proxy for merolagani.com TechnicalChartHandler.
- * Avoids CORS issues when the app is served from a web origin.
+ * Server-side proxy for the NEPSE chart provider (merolagani.com
+ * TechnicalChartHandler). Avoids CORS issues when the app is served from a web
+ * origin.
+ *
+ * ── Contract (to swap the upstream provider) ─────────────────────────────────
+ * INPUT  (client → proxy):
+ *   symbol — NEPSE ticker (e.g. NABIL)
+ *   from   — range start, unix seconds (defaults to now − 90 days)
+ *   to     — range end, unix seconds (defaults to now)
+ *
+ * OUTPUT (proxy → client, pass-through upstream shape):
+ *   { s: 'ok', c: number[], o: number[], h: number[], l: number[], v: number[] }
+ *   c/o/h/l/v are daily arrays (newest last); the client derives:
+ *     prices=c, ltp=c[last], prevClose=c[last-1], open=o[last], high=h[last],
+ *     low=l[last], volume=v[last]
+ *
+ * To replace the provider: accept symbol/from/to and return the same
+ * { s, c, o, h, l, v } shape (translate here if the new provider differs).
  */
 
 import { assertStrictOrigin, json, corsHeaders } from '../_config.js';

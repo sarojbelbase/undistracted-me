@@ -1,9 +1,20 @@
 /**
  * GET /stocks/intl-chart?symbol=AAPL
  *
- * Server-side proxy for Yahoo Finance's chart endpoint, normalized to the
- * merolagani chart shape so the frontend renders it identically to NEPSE data.
- * Avoids CORS issues for web/extension origins and Yahoo's rate-limits.
+ * Server-side proxy for the international chart provider (Yahoo Finance),
+ * normalized to the same shape as the NEPSE chart path so the frontend renders
+ * it identically. Avoids CORS issues and the provider's rate-limits.
+ *
+ * ── Contract (to swap the upstream provider) ─────────────────────────────────
+ * INPUT  (client → proxy):
+ *   symbol — ticker (letters, digits, and . - ^ =)
+ *
+ * OUTPUT (proxy → client, normalized):
+ *   { prices: number[], ltp: number, prevClose: number, open: number|null,
+ *     high: number|null, low: number|null, volume: number|null }
+ *
+ * To replace the provider: accept `symbol` and return the same normalized shape
+ * (parse the new provider's response in ./_intl.js).
  */
 
 import { assertStrictOrigin, json, corsHeaders } from '../_config.js';

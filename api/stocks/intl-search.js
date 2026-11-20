@@ -1,8 +1,18 @@
 /**
  * GET /stocks/intl-search?q=apple
  *
- * Server-side proxy for Yahoo Finance's symbol search, filtered to equities.
- * Returns { quotes: [{ symbol, name, exchange }] }.
+ * Server-side proxy for the international symbol-search provider (Yahoo
+ * Finance), filtered to equities.
+ *
+ * ── Contract (to swap the upstream provider) ─────────────────────────────────
+ * INPUT  (client → proxy):
+ *   q — search text
+ *
+ * OUTPUT (proxy → client, normalized):
+ *   { quotes: [{ symbol: string, name: string, exchange: string }] }
+ *
+ * To replace the provider: accept `q` and return `quotes[]` with those three
+ * fields (parse the new provider's response in ./_intl.js).
  */
 
 import { assertStrictOrigin, json, corsHeaders } from '../_config.js';

@@ -1,8 +1,17 @@
 /**
  * GET /joke
  *
- * Forward-proxy for icanhazdadjoke.com (daily joke). Sends the Accept header
- * it requires so the upstream returns JSON rather than HTML.
+ * Forward-proxy for the daily-joke provider. Sends the Accept header the
+ * upstream requires so it returns JSON instead of HTML.
+ *
+ * ── Contract (to swap the upstream provider) ─────────────────────────────────
+ * INPUT  (client → proxy): none
+ *
+ * OUTPUT (proxy → client, pass-through; field the client parses):
+ *   joke — string, the joke text
+ *
+ * To replace the provider: return `{ joke: string }` (map here if the
+ * replacement names the field differently).
  */
 
 import { makeProxy } from '../_proxy.js';
