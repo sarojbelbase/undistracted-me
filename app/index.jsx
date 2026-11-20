@@ -1,6 +1,7 @@
 import './themeInit.js'; // must be first — sets data-mode & CSS vars before React renders
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { getPlatform, PLATFORMS, API_BASE_URL } from './constants/env';
 
 // ── Remove the server-rendered fallback (web app only) ───────────────────────
@@ -77,5 +78,20 @@ if (location.hostname === 'app.undistracted.me') {
 // <StrictMode> as a passthrough (no double-invocation of updaters/effects), so
 // the wrapper is omitted here to avoid implying a guarantee we don't get.
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <ErrorBoundary fallback={() => (
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'var(--w-page-bg, #141414)', color: 'var(--w-ink-2, #eee)' }}>
+      <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>Something went wrong</p>
+      <button
+        type="button"
+        onClick={() => location.reload()}
+        style={{ fontSize: 12, fontWeight: 600, padding: '8px 16px', borderRadius: 999, border: '1px solid var(--w-divider, #333)', background: 'var(--w-surface-2, #222)', color: 'inherit', cursor: 'pointer' }}
+      >
+        Reload
+      </button>
+    </div>
+  )}>
+    <App />
+  </ErrorBoundary>,
+);
 

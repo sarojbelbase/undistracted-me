@@ -28,7 +28,7 @@ import { useSettingsPanel } from "./hooks/useSettingsPanel";
 import { useArrangeMode } from "./hooks/useArrangeMode";
 import { useCanvasBg } from "./hooks/useCanvasBg";
 import { useCommandPalette } from "./hooks/useCommandPalette";
-import { getCachedPhotoSync, getBgSource } from "./utilities/unsplash";
+import { getCachedPhotoSync, getBgSource } from "./utilities/photos";
 import syncEngine from "./utilities/syncEngineFacade";
 import { initSyncRefresh } from "./utilities/syncRefresh";
 import { initTelemetry, track, TELEMETRY_EVENTS } from "./utilities/telemetry";
@@ -409,6 +409,10 @@ const App = () => {
       className="fixed inset-0 overflow-hidden"
       style={{ background: bg.pageBg }}
     >
+      {/* Screen-reader-only H1 — anchors the document heading hierarchy so the
+          widget <h3> titles aren't orphaned (WCAG 1.3.1). */}
+      <h1 className="um-sr-only">Undistracted Me — your distraction-free new tab</h1>
+
       {/* Canvas is only mounted while it's the active view — focus/note modes render
           on their own, so opening a new tab with `defaultView: focus`/`note` never
           paints (or fetches) the canvas behind the distraction-free screen. */}

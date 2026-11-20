@@ -18,7 +18,9 @@ export const Widget = ({ id, onRemove }) => {
   const linkRef = useRef(null);
   const { url, name, iconMode = "favicon" } = settings;
 
-  // Reset / recompute background colour whenever url or iconMode changes
+  // Reset / recompute background colour whenever url or iconMode changes.
+  // (Do NOT key on `name` — renaming re-runs this and clears the favicon-derived
+  // tint, which FaviconIcon only re-emits on a url/iconMode remount.)
   useEffect(() => {
     if (iconMode === "letter") {
       // Use accent CSS variable — set as string so BaseWidget inlines it.
@@ -27,7 +29,7 @@ export const Widget = ({ id, onRemove }) => {
     } else {
       setBgColor(null); // favicon onLoad callback will set it
     }
-  }, [url, iconMode, name]);
+  }, [url, iconMode]);
 
   const hasUrl = Boolean(url && url !== "https://");
   const displayName = name || (hasUrl ? shorthandFromUrl(url) : "Bookmark");

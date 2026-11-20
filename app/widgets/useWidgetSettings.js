@@ -1,5 +1,4 @@
-import { useCallback, useRef } from "react";
-import { useShallow } from "zustand/react/shallow";
+import { useCallback, useMemo } from "react";
 import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 
 /**
@@ -15,26 +14,18 @@ import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
  * localStorage keys via the store's `merge` function — so no user data is lost.
  * The legacy localStorage key is also kept in sync on every write so Playwright
  * tests that seed / read it directly continue to work.
+ *
+ * The per-widget `stored` slice is a stable reference (updateWidgetSetting only
+ * replaces the one widget being written, preserving every other widget's entry),
+ * so the `useMemo` below returns a stable merged object across unrelated writes.
  */
 export const useWidgetSettings = (widgetId, defaults) => {
-  // Stabilise defaults reference so the selector doesn't create new arrays/objects
-  // on every store tick — prevents cross-widget re-render cascades.
-  const defaultsRef = useRef(defaults);
-  if (defaultsRef.current !== defaults) defaultsRef.current = defaults;
+  const stored = useWidgetInstancesStore((s) => s.widgetSettings[widgetId]);
+  const updateWidgetSetting = useWidgetInstancesStore((s) => s.updateWidgetSetting);
 
-  // Read — shallow-compare the merged settings object so only real changes cause re-renders
-  const settings = useWidgetInstancesStore(
-    useShallow((s) => {
-      const stored = s.widgetSettings[widgetId];
-      const d = defaultsRef.current;
-      // Return a shallow copy in the fallback (not `d` itself) so callers can't
-      // mutate the shared module-level default object by reference.
-      return stored ? { ...d, ...stored } : { ...d };
-    }),
-  );
-
-  const updateWidgetSetting = useWidgetInstancesStore(
-    (s) => s.updateWidgetSetting,
+  const settings = useMemo(
+    () => (stored ? { ...defaults, ...stored } : { ...defaults }),
+    [stored, defaults],
   );
 
   const updateSetting = useCallback(

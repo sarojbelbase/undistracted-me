@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useId } from 'react';
 import { BaseWidget } from '../BaseWidget';
 import { useWidgetSettings } from '../useWidgetSettings';
 import { Settings } from './Settings';
@@ -84,7 +84,10 @@ const Sparkline = ({ prices, dir, dead = false }) => {
     () => (dead ? { line: deadLine, area: deadArea } : buildSparklinePaths(prices, vw, VH)),
     [dead, deadLine, deadArea, prices, vw],
   );
-  const gradId = `sg-${dead ? 'dead' : dir}`;
+  // Unique gradient id per widget instance — two duplicated stock widgets on the
+  // same dashboard otherwise collide on document-global ids like "sg-up", and
+  // fill="url(#sg-up)" would resolve to the first instance's gradient.
+  const gradId = `sg-${useId().replace(/:/g, '')}-${dead ? 'dead' : dir}`;
 
   return (
     <svg

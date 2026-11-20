@@ -24,15 +24,16 @@ export function SpotifyPlayer({ onRemove, settingsPanel, bgStyle, inkColor, mute
         <div className="flex items-center justify-center gap-3 pt-1">
           <div className="relative">
             {isSkip('prev') && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: spinColor }} aria-hidden="true" />}
-            <TooltipBtn tooltip="Previous"><button onClick={handlePrev} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ backgroundColor: btnBg, color: inkColor, border: btnBorder, opacity: isSkip('prev') ? 0.6 : 1, transition: 'opacity 0.2s' }} aria-label="Previous"><SkipStartFill size={13} /></button></TooltipBtn>
+            {/* TooltipBtn renders the <button> — no nested button */}
+            <TooltipBtn tooltip="Previous" aria-label="Previous" onClick={handlePrev} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ backgroundColor: btnBg, color: inkColor, border: btnBorder, opacity: isSkip('prev') ? 0.6 : 1, transition: 'opacity 0.2s' }}><SkipStartFill size={13} /></TooltipBtn>
           </div>
           <div className="relative">
             {spotifyPending && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(0,0,0,0.08)', borderTopColor: 'rgba(0,0,0,0.55)' }} aria-hidden="true" />}
-            <TooltipBtn tooltip={track.isPlaying ? 'Pause' : 'Play'}><button onClick={handlePlayPause} className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105" style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: '#000', opacity: spotifyPending ? 0.65 : 1, transition: 'opacity 0.2s, transform 0.15s' }} aria-label={track.isPlaying ? 'Pause' : 'Play'}>{track.isPlaying ? <PauseFill size={16} /> : <PlayFill size={16} />}</button></TooltipBtn>
+            <TooltipBtn tooltip={track.isPlaying ? 'Pause' : 'Play'} aria-label={track.isPlaying ? 'Pause' : 'Play'} onClick={handlePlayPause} className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105" style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: '#000', opacity: spotifyPending ? 0.65 : 1, transition: 'opacity 0.2s, transform 0.15s' }}>{track.isPlaying ? <PauseFill size={16} /> : <PlayFill size={16} />}</TooltipBtn>
           </div>
           <div className="relative">
             {isSkip('next') && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: spinColor }} aria-hidden="true" />}
-            <TooltipBtn tooltip="Next"><button onClick={handleNext} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ backgroundColor: btnBg, color: inkColor, border: btnBorder, opacity: isSkip('next') ? 0.6 : 1, transition: 'opacity 0.2s' }} aria-label="Next"><SkipEndFill size={13} /></button></TooltipBtn>
+            <TooltipBtn tooltip="Next" aria-label="Next" onClick={handleNext} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ backgroundColor: btnBg, color: inkColor, border: btnBorder, opacity: isSkip('next') ? 0.6 : 1, transition: 'opacity 0.2s' }}><SkipEndFill size={13} /></TooltipBtn>
           </div>
         </div>
       </div>

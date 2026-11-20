@@ -796,10 +796,6 @@ export const Widget = ({ id = "weather", onRemove }) => {
   // Normalise legacy 'simple' value to 'minimal'
   const style =
     settings.style === "simple" ? "minimal" : (settings.style ?? "minimal");
-  // Tracks the unit the currently-displayed payload was fetched in, so a °C↔°F
-  // switch can convert the stale value on the fly instead of briefly
-  // mislabelling it (e.g. showing "16°F" while the imperial fetch is in flight).
-  const weatherUnitRef = useRef(unit);
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -837,18 +833,14 @@ export const Widget = ({ id = "weather", onRemove }) => {
     refreshKey,
   });
 
-  // Track the unit the currently-displayed payload was fetched in, so a °C↔°F
-  // switch can convert the stale value on the fly while the refetch is in flight.
-  useEffect(() => {
-    weatherUnitRef.current = unit;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hookWeather]);
-
   // Convert the stale payload to the target unit while a unit switch is still
   // fetching, so the displayed temperature is always correct for the label.
+  // The payload carries the unit it was fetched in (`hookWeather.unit`), so the
+  // conversion can never lag the render (a ref write runs post-render, which
+  // previously caused a stale "from" unit and a persistent double-conversion).
   const displayWeather = useMemo(() => {
     if (!hookWeather) return null;
-    const from = weatherUnitRef.current;
+    const from = hookWeather.unit ?? unit;
     if (from === unit) return hookWeather;
     const toF = (c) => Math.round((c * 9) / 5 + 32);
     const toC = (f) => Math.round(((f - 32) * 5) / 9);

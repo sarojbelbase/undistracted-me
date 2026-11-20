@@ -230,7 +230,11 @@ export function buildSparklinePaths(prices, vw = 100, vh = 40) {
 // ── Stat helpers ──────────────────────────────────────────────────────────────
 
 export function priceStats(chartData) {
-  if (!chartData || chartData.prices.length < 2) return { change: 0, pct: 0, dir: 'flat' };
+  // Guard prevClose (0 / null / undefined) to avoid an Infinity/NaN percentage
+  // on halted, newly-listed, or malformed symbols.
+  if (!chartData || chartData.prices.length < 2 || !chartData.prevClose) {
+    return { change: 0, pct: 0, dir: 'flat' };
+  }
   const change = chartData.ltp - chartData.prevClose;
   const pct = (change / chartData.prevClose) * 100;
   const dir = change > 0 ? 'up' : change < 0 ? 'down' : 'flat';

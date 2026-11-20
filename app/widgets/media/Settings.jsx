@@ -26,14 +26,19 @@ export const SpotifySettings = ({ onClose = null }) => {
 
   useEffect(() => {
     // fetchAndCacheProfile hits the Spotify API and returns avatar; fall back to
-    // the cached storage profile (name+product only) if the API call fails.
+    // the cached storage profile (name+product only) ONLY if the API returned
+    // nothing. (Previously the `.finally` always re-read the cached no-avatar
+    // copy and overwrote the avatar-bearing profile.)
+    let cancelled = false;
     fetchAndCacheProfile()
-      .then(p => { if (p) setProfile(p); })
-      .catch(() => { })
-      .finally(() => {
-        if (!profile) getSpotifyProfile().then(p => { if (p) setProfile(p); });
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .then((p) => {
+        if (cancelled) return null;
+        if (p) { setProfile(p); return null; }
+        return getSpotifyProfile();
+      })
+      .then((p) => { if (p && !cancelled) setProfile(p); })
+      .catch(() => { });
+    return () => { cancelled = true; };
   }, []);
 
   // Sync when Accounts settings tab fires SPOTIFY_ACCOUNT_CHANGED on this window.

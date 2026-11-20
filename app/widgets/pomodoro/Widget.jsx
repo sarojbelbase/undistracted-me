@@ -17,41 +17,47 @@ import { formatTime, saveSession, firePomodoroComplete } from './utils';
 
 // ─── Persistence helpers (keyed per widget instance id) ───────────────────
 const loadTimer = (id) => {
-  // Prefer the freshest running state (`fm_pomodoro`, written every 1s) over the
-  // per-widget key (historically written every 5s), so remounting after switching
-  // between canvas and Focus Mode never restores stale state and resets the timer.
-  try {
-    const fmRaw = localStorage.getItem(STORAGE_KEYS.POMODORO);
-    if (fmRaw) {
-      const fm = JSON.parse(fmRaw);
-      if (fm.running && fm.endTime) {
-        const remaining = Math.round((fm.endTime - Date.now()) / 1000);
-        if (remaining > 0) {
-          return {
-            phase: fm.sessionType === SESSION_TYPE.BREAK ? PHASE.BREAK : PHASE.TIMER,
-            preset: fm.preset,
-            duration: fm.total,
-            remaining,
-            running: true,
-            sessionType: fm.sessionType,
-          };
-        }
-      }
-    }
-  } catch { /* fall through to the per-widget key */ }
-
+  // Per-instance state first — the per-widget key is scoped by id so duplicated
+  // pomodoros restore their own timer, not each other's.
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.pomodoroTimerState(id)));
-    if (!raw?.phase || raw.phase === PHASE.PICK) return null;
-    if (raw.running && raw.endTime) {
-      const remaining = Math.round((raw.endTime - Date.now()) / 1000);
-      // Already reached zero — the session completed while this widget was
-      // unmounted. Don't restore a "done" state that would re-fire completion.
-      if (remaining <= 0) return null;
-      return { ...raw, remaining, running: true };
+    if (raw?.phase && raw.phase !== PHASE.PICK) {
+      if (raw.running && raw.endTime) {
+        const remaining = Math.round((raw.endTime - Date.now()) / 1000);
+        // Already reached zero — the session completed while this widget was
+        // unmounted. Don't restore a "done" state that would re-fire completion.
+        if (remaining <= 0) return null;
+        return { ...raw, remaining, running: true };
+      }
+      return raw;
     }
-    return raw;
-  } catch { return null; }
+  } catch { /* fall through to the shared key */ }
+
+  // Focus Mode sync fallback — only the canonical "pomodoro" instance reads (and
+  // writes) the shared `fm_pomodoro` key; duplicates must not clobber it.
+  if (id === "pomodoro") {
+    try {
+      const fmRaw = localStorage.getItem(STORAGE_KEYS.POMODORO);
+      if (fmRaw) {
+        const fm = JSON.parse(fmRaw);
+        if (fm.running && fm.endTime) {
+          const remaining = Math.round((fm.endTime - Date.now()) / 1000);
+          if (remaining > 0) {
+            return {
+              phase: fm.sessionType === SESSION_TYPE.BREAK ? PHASE.BREAK : PHASE.TIMER,
+              preset: fm.preset,
+              duration: fm.total,
+              remaining,
+              running: true,
+              sessionType: fm.sessionType,
+            };
+          }
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  return null;
 };
 
 const saveTimer = (id, state) => {
@@ -146,7 +152,7 @@ const PickPhase = React.memo(({
 
 // ─── Widget ──────────────────────────────────────────────────────────────
 
-export const Widget = ({ id, onRemove }) => {
+export const Widget = ({ id = "pomodoro", onRemove }) => {
   // ── Settings ──────────────────────────────────────────────────────────
   const [settings] = useWidgetSettings(id, DEFAULT_SETTINGS);
 
@@ -330,29 +336,35 @@ export const Widget = ({ id, onRemove }) => {
     // remount right after unpausing restores correctly), then throttle to every
     // 5 s — the persisted wall-clock `endTime` is correct regardless of cadence,
     // and a blocking localStorage flush every second would drop frames.
+    // Only the canonical "pomodoro" instance touches the shared `fm_pomodoro`
+    // key; duplicates keep to their own per-widget key so they don't clobber
+    // Focus Mode's countdown.
     const startedRunning = running && !wasRunningRef.current;
+    const isCanonical = id === "pomodoro";
     if (isTimerPhase && running && remaining > 0) {
       const now = Date.now();
       if (startedRunning || now - lastRunningPersistRef.current >= 5000) {
         lastRunningPersistRef.current = now;
-        localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
-          running: true,
-          remaining,
-          // Persist the wall-clock end time so Focus Mode can keep the countdown
-          // ticking even though this widget is unmounted while FM is active.
-          endTime: now + remaining * 1000,
-          total: duration,
-          preset,
-          sessionType,
-          // Carry the settings Focus Mode needs to chime/notify + auto-break on completion.
-          soundEnabled,
-          autoBreak,
-          breakDuration,
-        }));
+        if (isCanonical) {
+          localStorage.setItem(STORAGE_KEYS.POMODORO, JSON.stringify({
+            running: true,
+            remaining,
+            // Persist the wall-clock end time so Focus Mode can keep the countdown
+            // ticking even though this widget is unmounted while FM is active.
+            endTime: now + remaining * 1000,
+            total: duration,
+            preset,
+            sessionType,
+            // Carry the settings Focus Mode needs to chime/notify + auto-break on completion.
+            soundEnabled,
+            autoBreak,
+            breakDuration,
+          }));
+        }
         saveTimer(id, { phase, preset, duration, remaining, running: true, sessionType });
       }
     } else if (!isTimerPhase || !running || remaining <= 0) {
-      localStorage.removeItem(STORAGE_KEYS.POMODORO);
+      if (isCanonical) localStorage.removeItem(STORAGE_KEYS.POMODORO);
     }
 
     wasRunningRef.current = running;

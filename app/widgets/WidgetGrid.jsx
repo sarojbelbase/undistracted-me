@@ -9,6 +9,7 @@ import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
 import { useSettingsStore } from "../store";
 import { useUIStore } from "../store/useUIStore";
 import { WidgetActionsContext } from "./WidgetActionsContext";
+import { ErrorBoundary, WidgetErrorFallback } from "../components/ui/ErrorBoundary";
 import { trackWidgetRendered } from "../utilities/telemetry";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
@@ -47,6 +48,15 @@ const RGL_PADDING = Object.fromEntries(
 );
 
 const BP_NAMES = BP_SPECS.map((s) => s.name);
+
+// Stable RGL config objects — hoisted so their identity doesn't change on every
+// WidgetGrid render (RGL memoizes internally on these references). `null` (not
+// "none") is the valid CompactType for "no compaction", and `scale: 1` is the
+// required PositionStrategy field the absolute strategy defaults in practice.
+const RESIZE_CONFIG = { enabled: false };
+const DRAG_HANDLE = ".widget-drag-handle";
+const FREE_PLACEMENT_COMPACTOR = getCompactor(null, false, true);
+const ABSOLUTE_POSITION_STRATEGY = { type: "absolute", scale: 1 };
 
 // Structural equality across every breakpoint's layout items (i, x, y, w, h).
 // Must compare ALL breakpoints — not just lg — because a drag at md/sm/xs/xxs
@@ -119,8 +129,10 @@ const WidgetCell = React.memo(function WidgetCell({
   // Count this widget type as "rendered" once per session — the clean signal
   // for "which widgets are actually on people's dashboards". Deduped internally
   // (by type) so breakpoint remounts / drag re-renders don't double-count.
+  // Guarded so a telemetry throw can never take down the widget via the boundary.
   useEffect(() => {
-    if (Component) trackWidgetRendered(type);
+    if (!Component) return;
+    try { trackWidgetRendered(type); } catch { /* telemetry must never break UI */ }
   }, [Component, type]);
 
   if (!Component) return null;
@@ -313,6 +325,12 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const isDragging = draggingId !== null;
   const showOverlay = isDragging || arrangeMode;
 
+  // Only `enabled` varies with state — memoize the one non-constant config object.
+  const dragConfig = useMemo(
+    () => ({ enabled: arrangeMode, handle: DRAG_HANDLE }),
+    [arrangeMode],
+  );
+
   // Zero renderable widgets → show an empty-state hint instead of a blank page.
   const renderableCount = (instances || []).filter(
     ({ type }) => WIDGET_COMPONENTS[type],
@@ -353,12 +371,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({
             const height = h * ROW_H + (h - 1) * GAP;
             return (
               <div key={id} data-widget-type={type} className={widgetDim ? "widget-dim" : undefined} style={{ height }}>
-                <WidgetCell
-                  id={id}
-                  type={type}
-                  onRemoveInstance={onRemoveInstance}
-                  duplicateInstance={duplicateInstance}
-                />
+                <ErrorBoundary fallback={(_error, reset) => <WidgetErrorFallback reset={reset} />}>
+                  <WidgetCell
+                    id={id}
+                    type={type}
+                    onRemoveInstance={onRemoveInstance}
+                    duplicateInstance={duplicateInstance}
+                  />
+                </ErrorBoundary>
               </div>
             );
           })}
@@ -391,15 +411,15 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           // objects. The old `isDraggable` / `draggableHandle` / `useCSSTransforms`
           // props are silently ignored — which previously left drag enabled at all
           // times (widgets rearrangeable without entering arrange mode).
-          dragConfig={{ enabled: arrangeMode, handle: ".widget-drag-handle" }}
-          resizeConfig={{ enabled: false }}
+          dragConfig={dragConfig}
+          resizeConfig={RESIZE_CONFIG}
           // Free placement (no compaction = no gravity pulling widgets up to fill
           // gaps) but with preventCollision: a drag that would land on another
           // widget snaps back to its last clear spot instead of overlapping.
           // Together with `maxRows` this keeps placement free, non-overlapping,
           // and bounded to the visible canvas.
-          compactor={getCompactor("none", false, true)}
-          positionStrategy={{ type: "absolute" }}
+          compactor={FREE_PLACEMENT_COMPACTOR}
+          positionStrategy={ABSOLUTE_POSITION_STRATEGY}
           margin={RGL_MARGIN}
           containerPadding={RGL_PADDING}
           onLayoutChange={handleLayoutChange}
@@ -448,12 +468,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({
                   style={{ pointerEvents: arrangeMode ? "none" : undefined }}
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <WidgetCell
-                    id={id}
-                    type={type}
-                    onRemoveInstance={onRemoveInstance}
-                    duplicateInstance={duplicateInstance}
-                  />
+                  <ErrorBoundary fallback={(_error, reset) => <WidgetErrorFallback reset={reset} />}>
+                    <WidgetCell
+                      id={id}
+                      type={type}
+                      onRemoveInstance={onRemoveInstance}
+                      duplicateInstance={duplicateInstance}
+                    />
+                  </ErrorBoundary>
                 </div>
               </div>
             );

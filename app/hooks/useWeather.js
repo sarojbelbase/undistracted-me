@@ -85,7 +85,9 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
     // ── Tier 1: localStorage cache (per-city, per-unit) ──────────────────
     const cached = readWeatherCache(locKey, unit);
     if (cached?.weather) {
-      applyData(cached.weather, cached.forecast ?? null, cached.aqi ?? null);
+      // Tag the payload with the unit it was fetched in so consumers can
+      // convert on the fly without a stale ref (see the weather widget).
+      applyData({ ...cached.weather, unit }, cached.forecast ?? null, cached.aqi ?? null);
       if (cached.fresh) return; // still within TTL — no network, no polling
     }
 
@@ -102,7 +104,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
       Math.abs(hubEntry.lon - lon) <= 0.01;
 
     if (hubMatches) {
-      const w = parseWeather(hubRaw, cityName);
+      const w = { ...parseWeather(hubRaw, cityName), unit: "metric" };
       const f = parseForecast(hubRaw);
       const a = full && hubEntry.aqiData ? parseAQI(hubEntry.aqiData) : null;
       applyData(w, f, a);
@@ -131,7 +133,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
     fetchPromise
       .then(({ raw, aqiRaw }) => {
         if (cancelled) return;
-        const w = parseWeather(raw, cityName);
+        const w = { ...parseWeather(raw, cityName), unit };
         const f = parseForecast(raw);
         const a = full && aqiRaw ? parseAQI(aqiRaw) : null;
 
