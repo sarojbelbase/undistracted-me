@@ -185,6 +185,18 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const [localEvents] = useEvents();
   const { gcalEvents, loading: gcalLoading } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
+  // Bucket events once per date (O(n)) instead of re-filtering the full list per
+  // day cell (O(cells × n)) — matters as a synced GCal list grows.
+  const eventsByDay = useMemo(() => {
+    const m = new Map();
+    for (const e of events) {
+      if (!e.startDate) continue;
+      const bucket = m.get(e.startDate);
+      if (bucket) bucket.push(e);
+      else m.set(e.startDate, [e]);
+    }
+    return m;
+  }, [events]);
   const { dates: holidayDates, names: holidayNames, intlDates, intlNames } = useHolidays();
   const [createDate, setCreateDate] = useState(null);
 
@@ -364,7 +376,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
           {week1.map((day, i) => {
             const isWeekend = i === 0 || i === 6;
             const dateStr = dayDateStr(day, calendarData);
-            const eventsForDay = dateStr ? events.filter(e => e.startDate === dateStr) : [];
+            const eventsForDay = dateStr ? (eventsByDay.get(dateStr) ?? []) : [];
             return (
               <DayCell
                 key={dateStr ?? `w1-empty-${i}`}
@@ -387,7 +399,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
           {week2.map((day, i) => {
             const isWeekend = i === 0 || i === 6;
             const dateStr = dayDateStr(day, calendarData);
-            const eventsForDay = dateStr ? events.filter(e => e.startDate === dateStr) : [];
+            const eventsForDay = dateStr ? (eventsByDay.get(dateStr) ?? []) : [];
             return (
               <DayCell
                 key={dateStr ?? `w2-empty-${i}`}

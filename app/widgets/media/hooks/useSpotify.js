@@ -52,7 +52,10 @@ export const useSpotify = () => {
   }, [connected]);
 
   const durationRef = useRef(spotify?.durationMs);
-  durationRef.current = spotify?.durationMs;
+  // Mirror the duration in an effect, not during render — a discarded concurrent
+  // render would otherwise leave the ref pointing at a stale duration (the 1s
+  // progress interval reads durationRef.current at tick time).
+  useEffect(() => { durationRef.current = spotify?.durationMs; }, [spotify?.durationMs]);
 
   useEffect(() => {
     if (!spotify?.isPlaying) return;

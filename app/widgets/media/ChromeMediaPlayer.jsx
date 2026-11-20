@@ -4,15 +4,16 @@ import { BaseWidget } from '../BaseWidget';
 import { chromeArtworkRing } from './hooks/mediaHelpers';
 
 function ChromePlayPauseBtn({ session, pending, onClick }) {
+  const isPlaying = session?.playbackState === 'playing';
   return (
     <div className="relative">
       {pending && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(0,0,0,0.08)', borderTopColor: 'rgba(0,0,0,0.55)' }} aria-hidden="true" />}
-      <TooltipBtn tooltip={session?.playbackState === 'playing' ? 'Pause' : 'Play'}>
-        <button onClick={onClick} className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
-          style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: '#000', opacity: pending ? 0.65 : 1, transition: 'opacity 0.2s, transform 0.15s' }}
-          aria-label={session?.playbackState === 'playing' ? 'Pause' : 'Play'}>
-          {session?.playbackState === 'playing' ? <PauseFill size={16} /> : <PlayFill size={16} />}
-        </button>
+      {/* TooltipBtn renders the <button> — no nested button */}
+      <TooltipBtn tooltip={isPlaying ? 'Pause' : 'Play'} onClick={onClick}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+        className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
+        style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: '#000', opacity: pending ? 0.65 : 1, transition: 'opacity 0.2s, transform 0.15s' }}>
+        {isPlaying ? <PauseFill size={16} /> : <PlayFill size={16} />}
       </TooltipBtn>
     </div>
   );
@@ -27,13 +28,12 @@ function ChromeSkipBtn({ direction, session, pending, onClick, btnBg, ink, borde
   return (
     <div className="relative">
       {pending && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.7)' }} aria-hidden="true" />}
-      <TooltipBtn tooltip={direction === 'prev' ? 'Previous' : 'Next'}>
-        <button onClick={onClick} disabled={disabled}
-          className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"
-          style={{ backgroundColor: btnBg, color: ink, border, opacity, cursor: disabled ? 'default' : undefined, transition: 'opacity 0.2s' }}
-          aria-label={direction === 'prev' ? 'Previous' : 'Next'}>
-          <Icon size={13} />
-        </button>
+      {/* TooltipBtn renders the <button> — no nested button */}
+      <TooltipBtn tooltip={direction === 'prev' ? 'Previous' : 'Next'} onClick={onClick} disabled={disabled}
+        aria-label={direction === 'prev' ? 'Previous' : 'Next'}
+        className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"
+        style={{ backgroundColor: btnBg, color: ink, border, opacity, cursor: disabled ? 'default' : undefined, transition: 'opacity 0.2s' }}>
+        <Icon size={13} />
       </TooltipBtn>
     </div>
   );

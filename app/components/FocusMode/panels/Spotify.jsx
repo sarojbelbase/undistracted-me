@@ -44,16 +44,15 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
         </div>
       </div>
 
-      {/* Playback controls */}
+      {/* Playback controls — TooltipBtn renders the <button>, so no nested button */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
-        <TooltipBtn tooltip="Previous">
-          <button
-            onClick={onPrev}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'prev' ? 0.5 : 1, transition: 'opacity 0.2s' }}
-            aria-label="Previous"
-          >
-            <SkipStartFill size={14} />
-          </button>
+        <TooltipBtn
+          tooltip="Previous"
+          onClick={onPrev}
+          aria-label="Previous"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'prev' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+        >
+          <SkipStartFill size={14} />
         </TooltipBtn>
         <div style={{ position: 'relative' }}>
           {pending && (
@@ -63,24 +62,22 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
               aria-hidden="true"
             />
           )}
-          <TooltipBtn tooltip={track.isPlaying ? 'Pause' : 'Play'}>
-            <button
-              onClick={onToggle}
-              style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pending ? 0.75 : 1, transition: 'opacity 0.2s' }}
-              aria-label={track.isPlaying ? 'Pause' : 'Play'}
-            >
-              {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
-            </button>
+          <TooltipBtn
+            tooltip={track.isPlaying ? 'Pause' : 'Play'}
+            onClick={onToggle}
+            aria-label={track.isPlaying ? 'Pause' : 'Play'}
+            style={{ background: t.btnBg, border: `1px solid ${t.btnBorder}`, cursor: 'pointer', color: t.btnColor, borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pending ? 0.75 : 1, transition: 'opacity 0.2s' }}
+          >
+            {track.isPlaying ? <PauseFill size={13} /> : <PlayFill size={13} />}
           </TooltipBtn>
         </div>
-        <TooltipBtn tooltip="Next">
-          <button
-            onClick={onNext}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'next' ? 0.5 : 1, transition: 'opacity 0.2s' }}
-            aria-label="Next"
-          >
-            <SkipEndFill size={14} />
-          </button>
+        <TooltipBtn
+          tooltip="Next"
+          onClick={onNext}
+          aria-label="Next"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.btnIcon, padding: 3, display: 'flex', opacity: skipPending === 'next' ? 0.5 : 1, transition: 'opacity 0.2s' }}
+        >
+          <SkipEndFill size={14} />
         </TooltipBtn>
       </div>
     </div>

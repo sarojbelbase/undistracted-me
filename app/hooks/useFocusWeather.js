@@ -5,6 +5,7 @@
  * the rest of the Focus Mode module — Spotify, tasks, media, etc.).
  */
 
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useWeather } from "./useWeather";
 import { useWidgetInstancesStore } from "../store";
@@ -36,5 +37,7 @@ export const useFocusWeather = () => {
   const city = location?.name || "";
 
   const { weather } = useWeather({ lat, lon, unit, cityName: city });
-  return weather ? { ...weather, unit } : null;
+  // Stable reference so downstream consumers (e.g. TopZone's InfoStrip) don't
+  // get a fresh object on every render.
+  return useMemo(() => (weather ? { ...weather, unit } : null), [weather, unit]);
 };

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Popup } from './Popup';
 
 function extraStyle(confirming, danger) {
@@ -35,6 +35,9 @@ export const ConfirmButton = ({
   const [hoverAnchor, setHoverAnchor] = useState(null);
   const timerRef = useRef(null);
   const btnRef = useRef(null);
+
+  // Clear the auto-reset timer if the button unmounts while "Sure?" is shown.
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   const cancel = useCallback(() => {
     clearTimeout(timerRef.current);

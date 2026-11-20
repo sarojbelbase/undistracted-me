@@ -13,7 +13,7 @@
 export const EmptyState = ({ icon, title, text, action, size = "default" }) => {
   const sm = size === "sm";
   return (
-    <output className={sm ? "um-empty um-empty--sm" : "um-empty"}>
+    <div className={sm ? "um-empty um-empty--sm" : "um-empty"}>
       {icon ? (
         <div className="um-empty__icon" aria-hidden="true">
           {icon}
@@ -34,6 +34,6 @@ export const EmptyState = ({ icon, title, text, action, size = "default" }) => {
         </p>
       ) : null}
       {action}
-    </output>
+    </div>
   );
 };

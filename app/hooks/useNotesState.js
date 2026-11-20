@@ -40,13 +40,12 @@ function resolveSettings(raw) {
 export function useNotesState(widgetId) {
   const [settings, updateSetting] = useWidgetSettings(widgetId, WIDGET_SETTINGS_DEFAULTS.notes);
 
-  // Resolve + migrate exactly once (assigning stable ids to legacy string notes).
-  const initialRef = useRef(null);
-  if (initialRef.current === null) {
-    initialRef.current = resolveSettings(settings);
-  }
-  const initNotes = initialRef.current.notes;
-  const initIdx = initialRef.current.idx;
+  // Resolve + migrate exactly once (lazy initializer — runs once, not during
+  // render) so makeNoteId() assigning stable ids to legacy string notes never
+  // fires on a discarded render.
+  const [init] = useState(() => resolveSettings(settings));
+  const initNotes = init.notes;
+  const initIdx = init.idx;
   const [localNotes, setLocalNotes] = useState(initNotes);
   const [localIdx, setLocalIdx] = useState(initIdx);
   const saveTimerRef = useRef(null);

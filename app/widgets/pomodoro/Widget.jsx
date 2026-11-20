@@ -170,9 +170,10 @@ export const Widget = ({ id, onRemove }) => {
   } = useRainStream(3000);
 
   // ── Init from localStorage (once) ─────────────────────────────────────
-  const initRef = useRef(undefined);
-  if (initRef.current === undefined) initRef.current = loadTimer(id);
-  const init = initRef.current;
+  // Lazy initializer (not a render-phase ref write) so the localStorage read +
+  // JSON.parse runs once and a discarded concurrent render can't observe a
+  // stale ref.
+  const [init] = useState(() => loadTimer(id));
 
   // ── Timer state ───────────────────────────────────────────────────────
   const [phase, setPhase] = useState(() => init?.phase ?? PHASE.PICK);

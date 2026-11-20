@@ -52,6 +52,22 @@ export const Widget = ({ id, onRemove }) => {
     return () => ro.disconnect();
   }, []);
 
+  const compact = width > 0 && width < 260;
+  const widgetItems = prefs.widgetItems ?? DEFAULT_WIDGET_ITEMS;
+  // One linear pass: sort the live items once, then reuse it for both the top-N
+  // list and the total count — avoids a second full sort + an un-cached O(n)
+  // count on every save (the Pocket library is unbounded).
+  const { recent, total, firstId } = useMemo(() => {
+    const live = liveItems(items);
+    const sorted = live.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+    return {
+      recent: sorted.slice(0, widgetItems),
+      total: live.length,
+      firstId: sorted[0]?.id ?? null,
+    };
+  }, [items, widgetItems]);
+  const showEmpty = hydrated && total === 0;
+
   // New-save highlight: when the newest item id changes, flash the top row.
   useEffect(() => {
     if (firstId && firstId !== prevFirstId.current && prevFirstId.current !== null) {
@@ -68,22 +84,6 @@ export const Widget = ({ id, onRemove }) => {
   useEffect(() => {
     loadSourceSerif();
   }, []);
-
-  const compact = width > 0 && width < 260;
-  const widgetItems = prefs.widgetItems ?? DEFAULT_WIDGET_ITEMS;
-  // One linear pass: sort the live items once, then reuse it for both the top-N
-  // list and the total count — avoids a second full sort + an un-cached O(n)
-  // count on every save (the Pocket library is unbounded).
-  const { recent, total, firstId } = useMemo(() => {
-    const live = liveItems(items);
-    const sorted = live.slice().sort((a, b) => b.updatedAt - a.updatedAt);
-    return {
-      recent: sorted.slice(0, widgetItems),
-      total: live.length,
-      firstId: sorted[0]?.id ?? null,
-    };
-  }, [items, widgetItems]);
-  const showEmpty = hydrated && total === 0;
 
   const openAdd = (initialText = "") => {
     setAddInitial(initialText);

@@ -28,11 +28,10 @@ export { useStocks as useFocusStocks } from "../../widgets/stock/useStocks";
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
 export const useFocusPhoto = () => {
-  // Read cached photo once at mount via useRef — avoids repeated localStorage reads.
-  const initRef = useRef(undefined);
-  if (initRef.current === undefined)
-    initRef.current = getCachedPhotoSync() ?? null;
-  const cached = initRef.current;
+  // Read the cached photo once via a lazy initializer — avoids a localStorage
+  // read + ref write during render (a discarded concurrent render would
+  // otherwise observe a stale ref).
+  const [cached] = useState(() => getCachedPhotoSync() ?? null);
   const [photo, setPhoto] = useState(cached);
   const [slotA, setSlotA] = useState(cached?.regular ?? null);
   const [slotB, setSlotB] = useState(null);

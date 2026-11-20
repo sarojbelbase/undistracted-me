@@ -11,6 +11,13 @@ import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
 
+// Static joke fallbacks — module scope so they're not reallocated each render.
+const FALLBACKS = [
+  "The joke API is down. Which is itself kind of a joke.",
+  "No joke today. The internet is on a coffee break.",
+  "Failed to fetch humor. Refresh your browser.",
+];
+
 const CarouselNav = ({ mode, onSelect }) => {
   const index = Math.max(
     0,
@@ -138,11 +145,6 @@ export const Widget = ({ id, onRemove }) => {
   const quote = QUOTES[getDailyIndex(QUOTES.length)];
   const fact = FACTS[getDailyIndex(FACTS.length)];
 
-  const FALLBACKS = [
-    "The joke API is down. Which is itself kind of a joke.",
-    "No joke today. The internet is on a coffee break.",
-    "Failed to fetch humor. Refresh your browser.",
-  ];
   const jokeFallback = FALLBACKS[getDailyIndex(FALLBACKS.length)];
 
   let item;
