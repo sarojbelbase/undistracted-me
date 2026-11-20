@@ -75,7 +75,7 @@ export const Modal = ({
       if (!el) return;
       const focusables = [...el.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      )].filter((n) => !n.disabled && n.offsetParent !== null);
+      )].filter((n) => !n.disabled && n.getClientRects().length > 0);
       if (focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];

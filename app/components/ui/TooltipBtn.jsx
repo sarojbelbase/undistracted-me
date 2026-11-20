@@ -34,6 +34,8 @@ export const TooltipBtn = ({ tooltip, children, onMouseEnter, onMouseLeave, ...r
           setAnchor(null);
           onMouseLeave?.(e);
         }}
+        onFocus={() => setAnchor(ref.current?.getBoundingClientRect() ?? null)}
+        onBlur={() => setAnchor(null)}
         {...rest}
       >
         {children}

@@ -65,7 +65,8 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
   }, []);
 
   // Debounced international search — runs when the International tab is active
-  // and the query is non-empty.
+  // and the query is non-empty. A `cancelled` flag drops stale/out-of-order
+  // results and prevents setState after unmount.
   useEffect(() => {
     if (market !== 'intl') return;
     const q = query.trim();
@@ -77,13 +78,14 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
     }
     setIntlLoading(true);
     setIntlError(null);
+    let cancelled = false;
     const t = setTimeout(() => {
       searchInternational(q)
-        .then(setIntlResults)
-        .catch(() => setIntlError('Could not search international stocks.'))
-        .finally(() => setIntlLoading(false));
+        .then((r) => { if (!cancelled) setIntlResults(r); })
+        .catch(() => { if (!cancelled) setIntlError('Could not search international stocks.'); })
+        .finally(() => { if (!cancelled) setIntlLoading(false); });
     }, 300);
-    return () => clearTimeout(t);
+    return () => { cancelled = true; clearTimeout(t); };
   }, [market, query]);
 
   // Auto-focus the search input when the modal opens

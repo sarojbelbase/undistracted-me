@@ -23,9 +23,17 @@ export const useSpotify = () => {
     return () => globalThis.removeEventListener("storage", onStorage);
   }, []);
 
+  // Poll every 5s while a track is playing (to track progress / next-track), but
+  // back off to 30s when idle — Spotify's /me/player is rate-limited, and a
+  // dashboard left open all day should not hit it ~17k times while nothing plays.
+  const playingRef = useRef(false);
+  useEffect(() => { playingRef.current = !!spotify?.isPlaying; }, [spotify?.isPlaying]);
+
   useEffect(() => {
     if (!connected) { setSpotify(null); return; }
     let cancelled = false;
+    let timerId = null;
+
     const fetchSpotify = async () => {
       if (document.hidden) return;
       try {
@@ -44,11 +52,17 @@ export const useSpotify = () => {
         setProgress(p.progressMs);
       } catch { if (!cancelled) setSpotify(null); }
     };
-    fetchSpotify();
-    const timerId = setInterval(fetchSpotify, 5000);
-    const onVisible = () => { if (!document.hidden) fetchSpotify(); };
+
+    const tick = async () => {
+      await fetchSpotify();
+      if (cancelled) return;
+      timerId = setTimeout(tick, playingRef.current ? 5000 : 30000);
+    };
+
+    tick();
+    const onVisible = () => { if (!document.hidden) { clearTimeout(timerId); tick(); } };
     document.addEventListener("visibilitychange", onVisible);
-    return () => { cancelled = true; clearInterval(timerId); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { cancelled = true; clearTimeout(timerId); document.removeEventListener("visibilitychange", onVisible); };
   }, [connected]);
 
   const durationRef = useRef(spotify?.durationMs);

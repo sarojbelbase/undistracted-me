@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { PauseFill, PlayFill } from "react-bootstrap-icons";
 import { BaseWidget } from "../BaseWidget";
 import { useWidgetSettings } from "../useWidgetSettings";
 import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
@@ -37,6 +38,7 @@ const CarouselNav = ({ mode, onSelect }) => {
             onSelect(m.value);
           }}
           aria-label={`Switch to ${m.label}`}
+          aria-current={k === index ? 'true' : undefined}
           title={`Switch to ${m.label}`}
           className={`dailys-nav__dot ${k === index ? "dailys-nav__dot--active" : "dailys-nav__dot--inactive"}`}
         />
@@ -86,7 +88,7 @@ const AdaptiveText = ({ text, fontFamily, fontWeight, textLineHeight }) => {
   );
 };
 
-const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
+const CarouselCard = ({ item, mode, onNext, onPrev, onSelect, paused, onTogglePause }) => {
   const { dragX, releasing, handlers } = useSwipeToNavigate({ onNext, onPrev });
 
   return (
@@ -125,7 +127,15 @@ const CarouselCard = ({ item, mode, onNext, onPrev, onSelect }) => {
             </span>
           </div>
         )}
-        <div className="ml-auto shrink-0">
+        <div className="ml-auto shrink-0 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onTogglePause(); }}
+            aria-label={paused ? 'Resume auto-slide' : 'Pause auto-slide'}
+            className="dailys-pause-btn"
+          >
+            {paused ? <PlayFill size={11} /> : <PauseFill size={11} />}
+          </button>
           <CarouselNav mode={mode} onSelect={onSelect} />
         </div>
       </div>
@@ -140,6 +150,7 @@ export const Widget = ({ id, onRemove }) => {
   const rawMode = settings.mode ?? "quote";
   const mode = ["quote", "joke", "fact"].includes(rawMode) ? rawMode : "quote";
   const autoSlide = settings.autoSlide ?? true;
+  const [paused, setPaused] = useState(false); // auto-slide pause (WCAG 2.2.2)
 
   const { joke, loading } = useDailyJoke();
   const quote = QUOTES[getDailyIndex(QUOTES.length)];
@@ -175,10 +186,10 @@ export const Widget = ({ id, onRemove }) => {
   }, [mode, updateSetting]);
 
   useEffect(() => {
-    if (!autoSlide) return;
+    if (!autoSlide || paused) return;
     const timer = setInterval(onNext, 30_000);
     return () => clearInterval(timer);
-  }, [onNext, autoSlide]);
+  }, [onNext, autoSlide, paused]);
 
   const settingsContent = (
     <DailysSettings
@@ -201,6 +212,8 @@ export const Widget = ({ id, onRemove }) => {
         onNext={onNext}
         onPrev={onPrev}
         onSelect={(m) => updateSetting("mode", m)}
+        paused={paused}
+        onTogglePause={() => setPaused((p) => !p)}
       />
     </BaseWidget>
   );

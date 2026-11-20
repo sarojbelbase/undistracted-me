@@ -1,4 +1,4 @@
-import { forwardRef, Suspense, lazy } from "react";
+import { forwardRef, Suspense, lazy, memo } from "react";
 import { Grid3x3GapFill, GearFill, Grid1x2Fill } from "react-bootstrap-icons";
 import { SearchIcon } from "../../assets/svg/SearchIcon";
 import { TooltipBtn } from "./TooltipBtn";
@@ -26,7 +26,7 @@ const preloadSettings = () => settingsImport();
  * Accepts a forwarded ref so the caller (useSettingsPanel) can detect
  * outside-clicks against the entire container — buttons + open panel.
  */
-export const ControlCluster = forwardRef(function ControlCluster(
+export const ControlCluster = memo(forwardRef(function ControlCluster(
   {
     isDark,
     arrangeMode,
@@ -130,7 +130,7 @@ export const ControlCluster = forwardRef(function ControlCluster(
       )}
     </div>
   );
-});
+}));
 
 // ── Private sub-components ─────────────────────────────────────────────────────
 

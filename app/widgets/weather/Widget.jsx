@@ -9,6 +9,7 @@ import { GeoAlt, SunriseFill, SunsetFill } from "react-bootstrap-icons";
 import { TooltipBtn } from "../../components/ui/TooltipBtn";
 
 import { getSunTimes } from "../../utilities/sunTime";
+import { onClockTick } from "../../utilities/sharedClock";
 
 // ── Solar event logic ─────────────────────────────────────────────────────────
 /**
@@ -799,6 +800,13 @@ export const Widget = ({ id = "weather", onRemove }) => {
   const [locationDenied, setLocationDenied] = useState(false);
   const [atmoAnchor, setAtmoAnchor] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Minute-granularity tick so the sunrise/sunset event + "in Xh Ym" countdown
+  // advance without waiting for a weather refresh (which only happens ~30 min).
+  const [nowMin, setNowMin] = useState(() => Math.floor(Date.now() / 60_000));
+  useEffect(() => onClockTick(() => {
+    const m = Math.floor(Date.now() / 60_000);
+    setNowMin((p) => (p === m ? p : m));
+  }), []);
   // Read auto-location from the centralized location store.
   // When the store updates (e.g. VPN switch), geoLat/geoLon change and
   // the effect below re-runs, fetching fresh weather for the new position.
@@ -895,7 +903,9 @@ export const Widget = ({ id = "weather", onRemove }) => {
       showSunTimes && sunLat != null && sunLon != null
         ? getNextSunEvent(sunLat, sunLon)
         : null,
-    [showSunTimes, sunLat, sunLon],
+    // nowMin forces a recompute at minute boundaries so the event + countdown
+    // advance around sunrise/sunset instead of freezing until the next fetch.
+    [showSunTimes, sunLat, sunLon, nowMin],
   );
 
   const content = getWeatherContent({

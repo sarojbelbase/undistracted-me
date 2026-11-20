@@ -13,7 +13,7 @@
  *   onBgRotate  () => void
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { useSettingsStore } from '../../store';
 import { General } from './settings/General';
@@ -66,7 +66,23 @@ const TABS = [
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
 
-const TabBar = ({ active, onChange }) => (
+const TabBar = ({ active, onChange }) => {
+  const tabRefs = useRef([]);
+  // ARIA tabs keyboard contract: Left/Right move between tabs, Home/End jump.
+  const onKeyDown = (e) => {
+    const idx = TABS.findIndex((t) => t.id === active);
+    let next;
+    if (e.key === 'ArrowRight') next = (idx + 1) % TABS.length;
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + TABS.length) % TABS.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = TABS.length - 1;
+    else return;
+    e.preventDefault();
+    onChange(TABS[next].id);
+    tabRefs.current[next]?.focus();
+  };
+
+  return (
   <div
     role="tablist"
     aria-label="Settings sections"
@@ -78,16 +94,18 @@ const TabBar = ({ active, onChange }) => (
       borderBottom: `1px solid ${FM_DIVIDER}`,
     }}
   >
-    {TABS.map(tab => {
+    {TABS.map((tab, i) => {
       const isActive = tab.id === active;
       return (
         <button
           key={tab.id}
+          ref={(el) => { tabRefs.current[i] = el; }}
           role="tab"
           aria-selected={isActive}
-          aria-controls={`fm-settings-panel-${tab.id}`}
+          tabIndex={isActive ? 0 : -1}
           type="button"
           onClick={() => onChange(tab.id)}
+          onKeyDown={onKeyDown}
           style={{
             flex: 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
@@ -102,7 +120,6 @@ const TabBar = ({ active, onChange }) => (
             borderBottom: isActive ? '2px solid var(--w-accent)' : '2px solid transparent',
             marginBottom: -1,
             transition: 'all 0.15s ease',
-            outline: 'none',
             whiteSpace: 'nowrap',
           }}
           onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = FM_INK_1; }}
@@ -114,7 +131,8 @@ const TabBar = ({ active, onChange }) => (
       );
     })}
   </div>
-);
+  );
+};
 
 // ─── Main component ───────────────────────────────────────────────────────────
 

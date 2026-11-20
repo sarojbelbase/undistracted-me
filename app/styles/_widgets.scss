@@ -85,6 +85,25 @@
   }
 }
 
+.dailys-pause-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--w-ink-4);
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    color: var(--w-ink-2);
+    background: color-mix(in srgb, var(--w-ink-1) 8%, transparent);
+  }
+}
+
 // Mode badge pill (Quote / Joke / Fact)
 .dailys-badge {
   font-size: 0.65rem;

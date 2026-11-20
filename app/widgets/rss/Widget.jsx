@@ -21,7 +21,7 @@ import { WIDGET_SETTINGS_DEFAULTS } from "../../constants/defaults.js";
 import { useAgeLabel } from "../../hooks/useAgeLabel";
 import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 import { ExpressiveTitle } from "../../utilities/expressifyText.jsx";
-import { Broadcast, Rss } from "react-bootstrap-icons";
+import { Broadcast, Rss, PauseFill, PlayFill } from "react-bootstrap-icons";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EMPTY_STATES } from "../../constants/emptyStates";
 import { RefreshIcon } from '../../assets/svg/RefreshIcon';
@@ -93,8 +93,9 @@ const HeadlineRow = ({ item, isLast = false }) => {
 
 // ─── Marquee mode — single full-bleed story card ──────────────────────────────
 
-const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext }) => {
+const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext, paused, onTogglePause }) => {
   const [navHovered, setNavHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const time = item?.isoDate ? relativeTime(item.isoDate) : "";
 
   // Measure actual card pixel dimensions for the layout engine.
@@ -158,6 +159,8 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
       onPointerUp={handlers.onPointerUp}
       onMouseEnter={() => setNavHovered(true)}
       onMouseLeave={() => setNavHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={() => setFocused(false)}
       aria-label={item.title}
     >
       {/* ── Rich gradient background (text-only, no images) ──────────────── */}
@@ -210,6 +213,17 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             <RefreshIcon size={10} spinning={isLoading} />
           </button>
 
+          {/* Pause/play auto-advance (WCAG 2.2.2 — pause, stop, hide) */}
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onTogglePause(); }}
+            aria-label={paused ? "Resume auto-advance" : "Pause auto-advance"}
+            className="rss-marquee__pause-btn"
+          >
+            {paused ? <PlayFill size={10} /> : <PauseFill size={10} />}
+          </button>
+
           {/* Timestamp */}
           {time && (
             <span className="rss-marquee__time">{time}</span>
@@ -236,6 +250,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
               className="rss-marquee__nav-row"
               onClick={(e) => e.stopPropagation()}
               role="toolbar"
+              aria-label={`Story ${index + 1} of ${total}`}
             >
               {/* ← Prev */}
               <button
@@ -250,9 +265,11 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                   backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                   border: "1px solid rgba(255,255,255,0.12)",
                   cursor: "pointer", color: "#fff",
-                  opacity: navHovered ? 1 : 0,
+                  // Reveal on hover OR keyboard focus (opacity:0 alone would leave
+                  // an invisible-but-focusable control in the tab order).
+                  opacity: navHovered || focused ? 1 : 0,
                   transition: "opacity 0.25s ease, background 0.15s",
-                  pointerEvents: navHovered ? "auto" : "none",
+                  pointerEvents: navHovered || focused ? "auto" : "none",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
@@ -345,9 +362,11 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                   backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                   border: "1px solid rgba(255,255,255,0.12)",
                   cursor: "pointer", color: "#fff",
-                  opacity: navHovered ? 1 : 0,
+                  // Reveal on hover OR keyboard focus (opacity:0 alone would leave
+                  // an invisible-but-focusable control in the tab order).
+                  opacity: navHovered || focused ? 1 : 0,
                   transition: "opacity 0.25s ease, background 0.15s",
-                  pointerEvents: navHovered ? "auto" : "none",
+                  pointerEvents: navHovered || focused ? "auto" : "none",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
@@ -456,6 +475,7 @@ export const Widget = ({ id, onRemove }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(10);
   const [navDirection, setNavDirection] = useState("next"); // for swipe animation
+  const [paused, setPaused] = useState(false); // auto-advance pause (WCAG 2.2.2)
   const sentinelRef = useRef(null);
 
   // ── Item ordering ────────────────────────────────────────────────────────────
@@ -513,18 +533,7 @@ export const Widget = ({ id, onRemove }) => {
     if (displayItems.length > 0 && currentIndex >= displayItems.length) setCurrentIndex(0);
   }, [displayItems.length, currentIndex]);
 
-  // Auto-advance for Marquee
-  useEffect(() => {
-    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError) return;
-    const timer = setTimeout(() => {
-      const next = (currentIndex + 1) % displayItems.length;
-      if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
-      setNavDirection("next");
-      setCurrentIndex(next);
-    }, AUTO_ADVANCE_MS);
-    return () => clearTimeout(timer);
-  }, [currentIndex, viewMode, displayItems.length, showSkeleton, showError, hasMore]);
-
+  // Auto-advance for Marquee (WCAG 2.2.2: pausable via the card's pause button)
   const goNext = useCallback(() => {
     setNavDirection("next");
     // Read the index from the closure (not inside an updater) so the two setters
@@ -532,6 +541,12 @@ export const Widget = ({ id, onRemove }) => {
     if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
     setCurrentIndex((currentIndex + 1) % displayItems.length);
   }, [currentIndex, displayItems.length, hasMore]);
+
+  useEffect(() => {
+    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError || paused) return;
+    const timer = setTimeout(goNext, AUTO_ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [goNext, viewMode, displayItems.length, showSkeleton, showError, paused]);
 
   const goPrev = useCallback(() => {
     setNavDirection("prev");
@@ -586,6 +601,8 @@ export const Widget = ({ id, onRemove }) => {
             isLoading={loading}
             onNext={goNext}
             onPrev={goPrev}
+            paused={paused}
+            onTogglePause={() => setPaused((p) => !p)}
           />
         )}
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (

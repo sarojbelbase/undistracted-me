@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useCallback,
   forwardRef,
 } from "react";
 import { createPortal } from "react-dom";
@@ -43,6 +44,9 @@ export const BaseWidget = forwardRef(
   ) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+    // Stable close callback so the Modal's Escape-key listener doesn't re-register
+    // on every widget render (clock widgets re-render once a second).
+    const closeModal = useCallback(() => setModalOpen(false), []);
     const menuRef = useRef(null);
     const btnRef = useRef(null);
     const dropRef = useRef(null);
@@ -278,12 +282,12 @@ export const BaseWidget = forwardRef(
         {modalOpen && (
           <BaseSettingsModal
             title={settingsTitle}
-            onClose={() => setModalOpen(false)}
+            onClose={closeModal}
             width={modalWidth}
             noHeader={settingsNoHeader}
           >
             {typeof settingsContent === "function"
-              ? settingsContent(() => setModalOpen(false))
+              ? settingsContent(closeModal)
               : settingsContent}
           </BaseSettingsModal>
         )}

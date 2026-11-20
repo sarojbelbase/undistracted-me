@@ -94,6 +94,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
         ref={inputRef}
         icon={<Search size={11} style={{ color: 'var(--w-ink-4)' }} />}
         placeholder="Search city, country, or timezone…"
+        aria-label="Search timezones"
         value={query}
         onChange={e => setQuery(e.target.value)}
         autoComplete="off"
