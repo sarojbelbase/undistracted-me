@@ -4,7 +4,7 @@ import { track, TELEMETRY_EVENTS } from '../../utilities/telemetry';
 // Set VITE_SPOTIFY_CLIENT_ID in your .env file.
 // 1. Go to https://developer.spotify.com/dashboard and create an app.
 // 2. Add redirect URI: https://<your-extension-id>.chromiumapp.org/
-// 3. Add the Client ID to .env  (it is XOR-encoded at build time: not plain text in bundle).
+// 3. Add the Client ID to .env (Vite inlines it as plain text; a Spotify Client ID is a public identifier, not a secret).
 export const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
 
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-private user-read-email';
