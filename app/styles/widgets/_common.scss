@@ -29,7 +29,7 @@
 //
 // Used by: rss (headline-row__source, headline-row__title),
 //          notes (title-btn), occasions (row__name), stock (row__symbol),
-//          countdown (list-item__title), clock (tz-label), quickAccess (tile__label)
+//          clock (tz-label), quickAccess (tile__label)
 
 @mixin text-truncate {
   overflow: hidden;
@@ -40,7 +40,7 @@
 // ── Tabular numbers ───────────────────────────────────────────────────────────
 //
 // Used by: pomodoro (timer-countdown), stock (row__price, row__pct),
-//          countdown (label), occasions (days-chip), clock (main-time, tz-time),
+//          occasions (days-chip), clock (main-time, tz-time),
 //          notes (word-count)
 
 @mixin tabular-nums {
@@ -50,7 +50,7 @@
 // ── Accent-coloured primary button ────────────────────────────────────────────
 //
 // Used by: pomodoro (.pom-custom-start-btn), bookmark (.bm-save-btn),
-//          countdown (.cdn-add-btn), events (.evt-add-btn)
+//          events (.evt-add-btn)
 //
 // Override padding, border-radius, font-size after @include as needed.
 
@@ -111,42 +111,4 @@
     width: $active-width;
     opacity: 0.8;
   }
-}
-
-// ── Empty state: centred flex column ─────────────────────────────────────────
-//
-// Used by: countdown (.cdn-empty-state, via empty-state-card)
-
-@mixin empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-// ── Empty state: card with dashed border ─────────────────────────────────────
-//
-// Used by: countdown (.cdn-empty-state)
-
-@mixin empty-state-card {
-  @include empty-state;
-  border-radius: 1rem;
-  padding: 1.75rem 1.25rem;
-  background: var(--panel-bg);
-  border: 1.5px dashed var(--card-border);
-}
-
-// ── Section label (settings panel header) ─────────────────────────────────────
-//
-// Used by: countdown (.cdn-section-label), stock (.stk-list-header-label)
-// The canonical .w-label from _typography.scss covers most cases; this mixin
-// matches the tighter 10px/uppercase variant.
-
-@mixin section-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--w-ink-4);
 }

@@ -236,7 +236,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
   const handleSetBackground = useCallback((uid) => {
     if (uid === confirmedPhotoId && isActive) return;
     if (uid === applyingId || uid === settingId) return;
-    const photo = allPhotos.find(p => (p._uid ?? p.id) === uid);
+    const photo = allPhotos.find(p => p.id === uid);
     if (!photo) return;
 
     const doApply = () => {
@@ -263,20 +263,20 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
   }, [confirmedPhotoId, isActive, applyingId, settingId, allPhotos, onRotatePhoto, onApply]);
 
   const handleDelete = async (uid) => {
-    const photo = allPhotos.find(p => (p._uid ?? p.id) === uid);
+    const photo = allPhotos.find(p => p.id === uid);
     if (!photo) return;
     if (uid === applyingId) { clearTimeout(wipeTimerRef.current); setApplyingId(null); }
     if (uid === settingId) setSettingId(null);
     const wasActive = uid === confirmedPhotoId;
     deletePhoto(photo.id);
-    setAllPhotos(prev => prev.filter(p => (p._uid ?? p.id) !== uid));
+    setAllPhotos(prev => prev.filter(p => p.id !== uid));
     if (wasActive) {
-      const next = allPhotos.find(p => (p._uid ?? p.id) !== uid) ?? getPhotoLibrary()[0];
+      const next = allPhotos.find(p => p.id !== uid) ?? getPhotoLibrary()[0];
       if (next) {
         jumpToPhotoById(next.id);
         await onRotatePhoto?.(next.id, next);
         onApply();
-        setConfirmedPhotoId(next._uid ?? next.id);
+        setConfirmedPhotoId(next.id);
       } else {
         onApplyDefault?.();
         setConfirmedPhotoId(null);
@@ -314,7 +314,7 @@ const CuratedPanel = ({ isActive, isDefaultActive, onApply, onApplyDefault, onRo
           </button>
 
           {allPhotos.map((ph) => {
-            const uid = ph._uid ?? ph.id;
+            const uid = ph.id;
             const isPhotoActive = uid === activeId;
             const isApplying = uid === applyingId;
             const isSetting = settingId === uid;
