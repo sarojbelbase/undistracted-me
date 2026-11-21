@@ -216,9 +216,6 @@ export const useSettingsStore = create(
 
       /** LookAway eye-break reminders */
       setLookAwayEnabled: (lookAwayEnabled) => {
-        if (lookAwayEnabled !== get().lookAwayEnabled) {
-          track(lookAwayEnabled ? TELEMETRY_EVENTS.LOOKAWAY_ENABLED : TELEMETRY_EVENTS.LOOKAWAY_DISABLED);
-        }
         set({ lookAwayEnabled });
       },
       setLookAwayInterval: (lookAwayInterval) => set({ lookAwayInterval }),

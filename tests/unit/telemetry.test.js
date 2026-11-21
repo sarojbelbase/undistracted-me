@@ -26,7 +26,7 @@ describe('telemetry (PostHog)', () => {
 
     // Fired during first render, before the async SDK load resolves.
     trackWidgetEvent('added', 'clock');
-    trackWidgetEvent('saved', 'clock');
+    trackWidgetEvent('removed', 'clock');
     expect(mockPostHog.capture).not.toHaveBeenCalled();
 
     await initTelemetry();
@@ -39,7 +39,7 @@ describe('telemetry (PostHog)', () => {
     expect(mockPostHog.capture).toHaveBeenCalledWith('widget_added', {
       widget_type: 'clock',
     });
-    expect(mockPostHog.capture).toHaveBeenCalledWith('widget_saved', {
+    expect(mockPostHog.capture).toHaveBeenCalledWith('widget_removed', {
       widget_type: 'clock',
     });
     // A guaranteed per-session custom event so PostHog is never "waiting".
@@ -54,11 +54,10 @@ describe('telemetry (PostHog)', () => {
     await initTelemetry();
     mockPostHog.capture.mockClear();
 
-    trackWidgetEvent('started', 'pomodoro', { session_type: 'focus' });
+    trackWidgetEvent('duplicated', 'pomodoro');
 
-    expect(mockPostHog.capture).toHaveBeenCalledWith('widget_started', {
+    expect(mockPostHog.capture).toHaveBeenCalledWith('widget_duplicated', {
       widget_type: 'pomodoro',
-      session_type: 'focus',
     });
   });
 

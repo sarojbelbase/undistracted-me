@@ -25,13 +25,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   WIDGET_REMOVED: widgetEvent('removed'),
   WIDGET_DUPLICATED: widgetEvent('duplicated'),
 
-  // ── Widget actions (generic verbs + `widget_type` prop) ───────────────
-  WIDGET_STARTED: widgetEvent('started'),
-  WIDGET_SAVED: widgetEvent('saved'),
-  WIDGET_CREATED: widgetEvent('created'),
-  WIDGET_IMPORTED: widgetEvent('imported'),
-  WIDGET_COMPLETED: widgetEvent('completed'),
-
   // ── Accounts / integrations ───────────────────────────────────────────
   ACCOUNT_CONNECTED: 'account_connected',
   ACCOUNT_DISCONNECTED: 'account_disconnected',
@@ -39,11 +32,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   // ── Cross-device sync ─────────────────────────────────────────────────
   SYNC_ENABLED: 'sync_enabled',
   SYNC_DISABLED: 'sync_disabled',
-
-  // ── LookAway eye-break system ─────────────────────────────────────────
-  LOOKAWAY_ENABLED: 'lookaway_enabled',
-  LOOKAWAY_DISABLED: 'lookaway_disabled',
-  LOOKAWAY_TRIGGERED: 'lookaway_triggered',
 
   // ── Site blocking ─────────────────────────────────────────────────────
   BLOCK_SITE_ADDED: 'block_site_added',

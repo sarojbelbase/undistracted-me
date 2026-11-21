@@ -362,7 +362,6 @@ const App = () => {
     notify: true,
     onTrigger: () => {
       setShowLookAway(true);
-      track(TELEMETRY_EVENTS.LOOKAWAY_TRIGGERED);
     },
   });
 

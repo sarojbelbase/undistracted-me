@@ -3,7 +3,6 @@ import { playChime, playBreakChime } from './chime';
 import { sendToServiceWorker } from '../../utilities/chrome';
 import { STORAGE_KEYS } from '../../constants/storageKeys';
 import { useReviewPromptStore } from '../../components/ReviewPrompt/reviewPromptStore';
-import { trackWidgetEvent } from '../../utilities/telemetry';
 
 // Re-export PRESETS so Focus Mode (panels/Pomodoro.jsx) doesn't break.
 // New code should import from './constants' directly.
@@ -131,10 +130,6 @@ export const saveSession = (session) => {
   } catch {
     // Storage full or unavailable: degrade silently
   }
-  trackWidgetEvent('completed', 'pomodoro', {
-    session_type: session.type,
-    preset: session.preset,
-  });
   // After a completed focus session, tick the review-prompt counter.
   if (session.type === SESSION_TYPE.FOCUS) {
     try {

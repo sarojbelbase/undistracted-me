@@ -12,7 +12,6 @@ import { useState, useCallback } from "react";
 import { PRESET_FEEDS, PRESET_CATEGORIES, DEFAULT_ACTIVE_IDS } from "./utils";
 import { VIEW_MODES } from "./constants";
 import { OPMLImport } from "./OPMLImport";
-import { trackWidgetEvent } from "../../utilities/telemetry";
 import { parseOPML, generateOPML, generateSampleOPML, downloadFile } from "./opmlParser";
 import { todayStr } from "../../utilities";
 import { PillButton } from "../../components/ui/PillButton";
@@ -78,7 +77,6 @@ export const Settings = ({
     const newFeeds = toImport.filter((f) => !existingUrls.has(f.url) && f.valid);
     if (newFeeds.length) {
       onChangeCustomFeeds([...customFeeds, ...newFeeds.map((f) => ({ label: f.label, url: f.url, active: true }))]);
-      trackWidgetEvent('imported', 'rss', { feed_count: newFeeds.length });
     }
     resetImport();
   }, [parsed, selected, customFeeds, onChangeCustomFeeds, resetImport]);

@@ -5,7 +5,6 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { todayStr } from '../../utilities';
-import { trackWidgetEvent } from '../../utilities/telemetry';
 import {
   EMPTY_FORM, DATE_CHIPS, DURATION_PILLS,
   getDateOffset, applyDuration,
@@ -73,7 +72,6 @@ export const AddEvent = ({ onSave, onCancel, initialDate, initial }) => {
 
   const handleSave = () => {
     if (!titleValid) return;
-    if (!initial) trackWidgetEvent('created', 'events');
     onSave(initial ? { ...form, id: initial.id } : form);
   };
 

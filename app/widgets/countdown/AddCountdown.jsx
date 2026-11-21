@@ -5,7 +5,6 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { SegmentedDateTime } from '../../components/ui/SegmentedDateTime';
 import { REPEAT_OPTIONS, MODE_OPTIONS } from './utils';
 import { makeUid } from '../../utilities';
-import { trackWidgetEvent } from '../../utilities/telemetry';
 
 const makeId = () => makeUid('cd');
 
@@ -31,7 +30,6 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
 
   const handleSave = () => {
     if (!valid) return;
-    if (!initial) trackWidgetEvent('created', 'countdown');
     onSave({
       id: initial?.id ?? makeId(),
       title: title.trim(),

@@ -8,7 +8,6 @@ import { FaviconIcon } from "../../components/ui/FaviconIcon";
 import { shorthandFromUrl } from "../../utilities/index";
 import { addBookmark as addSharedBookmark } from "../../data/sharedBookmarks";
 import { BookmarkSettings } from "./Settings";
-import { trackWidgetEvent } from "../../utilities/telemetry";
 
 export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, WIDGET_SETTINGS_DEFAULTS.bookmark);
@@ -40,7 +39,6 @@ export const Widget = ({ id, onRemove }) => {
     updateSetting("iconMode", mode ?? iconMode);
     // Sync to shared bookmark store so the popup sees it
     addSharedBookmark({ url: u, title: n, iconMode: mode ?? iconMode });
-    trackWidgetEvent('saved', 'bookmark');
     setShowSettings(false);
   };
 
