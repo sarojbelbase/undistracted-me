@@ -50,12 +50,12 @@ const RGL_PADDING = Object.fromEntries(
 const BP_NAMES = BP_SPECS.map((s) => s.name);
 
 // Stable RGL config objects — hoisted so their identity doesn't change on every
-// WidgetGrid render (RGL memoizes internally on these references). `null` (not
-// "none") is the valid CompactType for "no compaction", and `scale: 1` is the
-// required PositionStrategy field the absolute strategy defaults in practice.
+// WidgetGrid render (RGL memoizes internally on these references). "vertical"
+// compaction pulls widgets up to fill gaps (gravity); `scale: 1` is the required
+// PositionStrategy field the absolute strategy defaults in practice.
 const RESIZE_CONFIG = { enabled: false };
 const DRAG_HANDLE = ".widget-drag-handle";
-const FREE_PLACEMENT_COMPACTOR = getCompactor(null, false, true);
+const GRAVITY_COMPACTOR = getCompactor("vertical");
 const ABSOLUTE_POSITION_STRATEGY = { type: "absolute", scale: 1 };
 
 // Structural equality across every breakpoint's layout items (i, x, y, w, h).
@@ -413,12 +413,10 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           // times (widgets rearrangeable without entering arrange mode).
           dragConfig={dragConfig}
           resizeConfig={RESIZE_CONFIG}
-          // Free placement (no compaction = no gravity pulling widgets up to fill
-          // gaps) but with preventCollision: a drag that would land on another
-          // widget snaps back to its last clear spot instead of overlapping.
-          // Together with `maxRows` this keeps placement free, non-overlapping,
-          // and bounded to the visible canvas.
-          compactor={FREE_PLACEMENT_COMPACTOR}
+          // Gravity: vertical compaction pulls widgets up to fill gaps, so the
+          // grid stays tightly packed (no floating widgets, no overlaps). Dragging
+          // reorders within the compacted flow.
+          compactor={GRAVITY_COMPACTOR}
           positionStrategy={ABSOLUTE_POSITION_STRATEGY}
           margin={RGL_MARGIN}
           containerPadding={RGL_PADDING}
