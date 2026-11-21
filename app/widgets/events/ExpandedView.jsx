@@ -12,7 +12,8 @@ import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { EventRow } from '../../components/ui/EventRow';
 import { GoogleIcon } from '../../assets/brand/icons';
 import { isPast } from './utils';
-import { loadPinned, savePinned, findCountdownId } from '../countdown/utils';
+import { findCountdownId } from '../countdown/utils';
+import { useCountdownPin } from '../countdown/useCountdownPin';
 
 const PAGE_SIZE = 50;
 
@@ -48,24 +49,7 @@ export function EventsExpandedView({ onClose }) {
 
   // Countdown-face pin: target the primary countdown widget (if one exists).
   const countdownId = useWidgetInstancesStore((s) => findCountdownId(s.instances));
-  const [pinned, setPinned] = useState(() => (countdownId ? loadPinned(countdownId) : null));
-
-  useEffect(() => {
-    setPinned(countdownId ? loadPinned(countdownId) : null);
-    const handler = () => setPinned(countdownId ? loadPinned(countdownId) : null);
-    globalThis.addEventListener('countdown_pinned_changed', handler);
-    return () => globalThis.removeEventListener('countdown_pinned_changed', handler);
-  }, [countdownId]);
-
-  const togglePin = (event) => {
-    if (!countdownId) return;
-    const next = pinned?.type === 'event' && pinned.eventId === event.id
-      ? null
-      : { type: 'event', eventId: event.id };
-    savePinned(countdownId, next);
-    setPinned(next);
-    globalThis.dispatchEvent(new Event('countdown_pinned_changed'));
-  };
+  const { pinned, togglePin } = useCountdownPin(countdownId);
 
   // Debounce search (120 ms).
   useEffect(() => {
@@ -243,7 +227,7 @@ export function EventsExpandedView({ onClose }) {
                     event={event}
                     onRemove={removeEvent}
                     onOpen={openEvent}
-                    onPin={countdownId ? () => togglePin(event) : undefined}
+                    onPin={countdownId ? () => togglePin({ type: 'event', eventId: event.id }) : undefined}
                     pinned={pinned?.type === 'event' && pinned.eventId === event.id}
                     showBar={false}
                   />

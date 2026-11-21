@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { HourglassSplit, ListUl } from "react-bootstrap-icons";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EMPTY_STATES } from "../../constants/emptyStates";
@@ -13,13 +13,12 @@ import {
   humanizeDuration,
   formatTargetDate,
   loadCustom,
-  loadPinned,
-  savePinned,
   wasNotified,
   markNotified,
   sendNotification,
   resolveTarget,
 } from "./utils";
+import { useCountdownPin } from "./useCountdownPin";
 import { fmt12 } from "../events/utils";
 import { onClockTick } from "../../utilities/sharedClock";
 import { CountdownExpandedView } from "./ExpandedView";
@@ -94,7 +93,7 @@ function getDiffValues(activeTarget, nowTs) {
 
 export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
-  const [pinned, setPinned] = useState(() => loadPinned(id));
+  const { pinned, setPin } = useCountdownPin(id);
   const [now, setNow] = useState(() => Date.now());
   const [expanded, setExpanded] = useState(false);
 
@@ -124,16 +123,6 @@ export const Widget = ({ id, onRemove }) => {
     [allEvents, today],
   );
 
-  const setPin = useCallback(
-    (p) => {
-      setPinned(p);
-    },
-    [],
-  );
-
-  // Sync pinned state to localStorage on every change
-  useEffect(() => { savePinned(id, pinned); }, [pinned, id]);
-
   // Clear the post-completion pin-clear timer on unmount so a pending
   // setTimeout can't fire setPin(null) after the widget is gone.
   const pinClearRef = useRef(null);
@@ -146,14 +135,6 @@ export const Widget = ({ id, onRemove }) => {
     globalThis.addEventListener("countdown_events_changed", handler);
     return () => globalThis.removeEventListener("countdown_events_changed", handler);
   }, []);
-
-  // Re-read the pinned face when the Events widget (or the expanded view)
-  // pins/unpins a target.
-  useEffect(() => {
-    const handler = () => setPinned(loadPinned(id));
-    globalThis.addEventListener("countdown_pinned_changed", handler);
-    return () => globalThis.removeEventListener("countdown_pinned_changed", handler);
-  }, [id]);
 
   // ── Resolve target ──────────────────────────────────────────────────────────
   const { target, shouldClearPin } = useMemo(
@@ -216,6 +197,9 @@ export const Widget = ({ id, onRemove }) => {
     if (pinned?.type === "event") {
       pinClearRef.current = setTimeout(() => setPin(null), 10_000);
     }
+    // Clear the pending auto-clear if the effect re-runs (e.g. the user re-pins
+    // within the 10s window) so a stale timer can't wipe a fresh pin.
+    return () => clearTimeout(pinClearRef.current);
   }, [notifKey, totalSeconds, target, pinned, custom]);
 
   // ── Compute display values ──────────────────────────────────────────────────

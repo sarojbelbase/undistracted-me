@@ -17,9 +17,8 @@ import {
   humanizeDuration,
   loadCustom,
   saveCustom,
-  loadPinned,
-  savePinned,
 } from './utils';
+import { useCountdownPin } from './useCountdownPin';
 
 const PAGE_SIZE = 50;
 
@@ -40,7 +39,7 @@ export function CountdownExpandedView({ onClose, widgetId }) {
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [pinned, setPinned] = useState(() => loadPinned(widgetId));
+  const { pinned, togglePin } = useCountdownPin(widgetId);
   const searchRef = useRef(null);
 
   // Debounce search (120 ms).
@@ -56,22 +55,6 @@ export function CountdownExpandedView({ onClose, widgetId }) {
     globalThis.addEventListener('countdown_events_changed', handler);
     return () => globalThis.removeEventListener('countdown_events_changed', handler);
   }, []);
-
-  // Re-read the pinned face when the Events widget pins/unpins an event.
-  useEffect(() => {
-    const handler = () => setPinned(loadPinned(widgetId));
-    globalThis.addEventListener('countdown_pinned_changed', handler);
-    return () => globalThis.removeEventListener('countdown_pinned_changed', handler);
-  }, [widgetId]);
-
-  const togglePin = (a) => {
-    const next = pinned?.type === 'custom' && pinned.id === a.id
-      ? null
-      : { type: 'custom', id: a.id };
-    savePinned(widgetId, next);
-    setPinned(next);
-    globalThis.dispatchEvent(new Event('countdown_pinned_changed'));
-  };
 
   const removeCustom = (cdId) => {
     const next = custom.filter((c) => c.id !== cdId);
@@ -264,7 +247,7 @@ export function CountdownExpandedView({ onClose, widgetId }) {
                     editLabel={`Edit ${a.title}`}
                     onDelete={() => removeCustom(a.id)}
                     deleteLabel={`Remove ${a.title}`}
-                    onPin={() => togglePin(a)}
+                    onPin={() => togglePin({ type: 'custom', id: a.id })}
                     pinned={pinned?.type === 'custom' && pinned.id === a.id}
                     pinLabel={`Count down to ${a.title}`}
                     onClick={() => setEditing(a)}
