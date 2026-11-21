@@ -38,20 +38,8 @@
 }
 
 // ── Expanded view ───────────────────────────────────────────────────────────
-
-.evt-expanded__row {
-  padding: 10px 12px;
-  border-radius: 12px;
-  transition: background 0.15s ease;
-
-  &:hover {
-    background: var(--w-surface-2);
-  }
-}
-
-.evt-expanded__row--past {
-  opacity: 0.4;
-}
+// Row shell is the shared `.um-list-row` + Tailwind utilities; only the "Past"
+// divider remains event-specific.
 
 .evt-expanded__divider {
   margin: 4px 4px 2px;

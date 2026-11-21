@@ -388,19 +388,8 @@
 }
 
 // ── Expense row ──────────────────────────────────────────────────────────────
-
-.exp-modal__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px;
-  border-radius: 10px;
-  transition: background 0.12s ease;
-
-  &:hover {
-    background: color-mix(in srgb, var(--w-ink-1) 4%, transparent);
-  }
-}
+// Row shell is the shared `.um-list-row` + Tailwind utilities; only the
+// expense-specific internals (category tile, info, amount) live here.
 
 // ── Category icon circle ─────────────────────────────────────────────────────
 
@@ -412,7 +401,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  // bg + fg set via inline style per category
+  background: color-mix(in srgb, var(--w-ink-1) 6%, transparent);
+  color: var(--w-ink-3);
+  opacity: 0.85;
 }
 
 // ── Row info (two-line: category + optional note) ────────────────────────────
@@ -458,17 +449,6 @@
   letter-spacing: -0.01em;
 }
 
-// ── Row delete button ────────────────────────────────────────────────────────
-
-.exp-modal__row-delete {
-  opacity: 0;
-  transition: opacity 0.12s ease;
-
-  .exp-modal__row:hover & {
-    opacity: 1;
-  }
-}
-
 // ── Chart card ───────────────────────────────────────────────────────────────
 
 .exp-modal__chart-card {
@@ -505,18 +485,18 @@
 
 // ── Expense Expanded view ─────────────────────────────────────────────────────
 
+// Fade the category label so the small icons lead and the text reads quieter.
+.pocket-rail--expense .pocket-rail-item__label {
+  color: var(--w-ink-4);
+}
+.pocket-rail--expense .pocket-rail-item--active .pocket-rail-item__label {
+  color: var(--w-ink-1);
+}
+
 // Pinned graph card sits between the toolbar and the scrolling list.
 .exp-expanded__graph {
   padding: 4px 16px 0;
   flex-shrink: 0;
-}
-
-
-// Row actions (edit/delete) are hover-revealed; keep them visible on touch.
-@media (hover: none) {
-  .exp-modal__row-delete {
-    opacity: 1;
-  }
 }
 
 // ── Add Expense modal ────────────────────────────────────────────────────────

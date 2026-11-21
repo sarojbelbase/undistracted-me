@@ -1,9 +1,17 @@
-import { Trash } from 'react-bootstrap-icons';
-import { ConfirmButton } from './ConfirmButton';
-import { TintedChip } from './TintedChip';
+import { useRef, useState } from 'react';
+import {
+  Trash3Fill, Pin, PinFill, PencilFill, ThreeDots,
+  CameraVideoFill, Calendar3,
+} from 'react-bootstrap-icons';
+import { IconButton } from './IconButton';
+import { ActionMenu } from './ActionMenu';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from '../../widgets/events/utils';
 
-function EventTitle({ event, live, titleSz, compact, meetLink, clickable }) {
+function openExternal(url) {
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function EventTitle({ event, live, titleSz, clickable }) {
   return (
     <div className="flex items-start gap-2">
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
@@ -21,14 +29,6 @@ function EventTitle({ event, live, titleSz, compact, meetLink, clickable }) {
           >{event.title}</p>
         }
       </div>
-      {!compact && meetLink && (
-        <div
-          className="flex items-center gap-1.5 shrink-0 mt-0.5"
-          onClick={clickable ? (e) => e.stopPropagation() : undefined}
-        >
-          <TintedChip href={meetLink}>Go to Meet</TintedChip>
-        </div>
-      )}
     </div>
   );
 }
@@ -67,22 +67,95 @@ function EventMeta({ live, metaParts, endLabel, metaSz }) {
 }
 
 /**
+ * EventActions: pocket-style primary action + "More actions" menu for an event
+ * row. Primary is "Go to Meet" (join now) > "Go to Calendar" (view) > "Edit"
+ * (local). The menu holds the rest: Go to Calendar, Go to Meet, Pin/Unpin and
+ * Remove (local only). Revealed on hover / keyboard focus via `.row-actions`,
+ * kept visible while the menu is open via `--active`.
+ */
+function EventActions({ event, onOpen, onPin, pinned, pinLabel, onRemove, meetLink, calLink }) {
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const moreRef = useRef(null);
+  const isGcal = event._source === 'gcal';
+  const canRemove = !!onRemove && !isGcal;
+
+  const primaryKind = meetLink ? 'meet' : calLink ? 'calendar' : (typeof onOpen === 'function' ? 'edit' : null);
+
+  const openMenu = (e) => {
+    e.stopPropagation();
+    moreRef.current = e.currentTarget;
+    const r = e.currentTarget.getBoundingClientRect();
+    setMenuAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
+  };
+
+  const menuItems = [];
+  if (calLink && primaryKind !== 'calendar') {
+    menuItems.push({ label: 'Go to Calendar', icon: <Calendar3 size={13} />, onSelect: () => openExternal(calLink) });
+  }
+  if (meetLink && primaryKind !== 'meet') {
+    menuItems.push({ label: 'Go to Meet', icon: <CameraVideoFill size={13} />, onSelect: () => openExternal(meetLink) });
+  }
+  if (onPin) {
+    if (menuItems.length) menuItems.push({ divider: true });
+    menuItems.push({ label: pinned ? 'Unpin' : pinLabel, icon: pinned ? <PinFill size={13} /> : <Pin size={13} />, onSelect: onPin });
+  }
+  if (canRemove) {
+    if (menuItems.length) menuItems.push({ divider: true });
+    menuItems.push({ label: 'Remove', icon: <Trash3Fill size={13} />, danger: true, onSelect: () => onRemove(event.id) });
+  }
+
+  const primary = primaryKind === 'meet' ? (
+    <IconButton label="Go to Meet" size="sm" onClick={(e) => { e.stopPropagation(); openExternal(meetLink); }}><CameraVideoFill size={13} /></IconButton>
+  ) : primaryKind === 'calendar' ? (
+    <IconButton label="Go to Calendar" size="sm" onClick={(e) => { e.stopPropagation(); openExternal(calLink); }}><Calendar3 size={13} /></IconButton>
+  ) : primaryKind === 'edit' ? (
+    <IconButton label="Edit" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(event); }}><PencilFill size={13} /></IconButton>
+  ) : null;
+
+  return (
+    <div
+      className={`row-actions flex items-center gap-0.5 shrink-0 self-center ${menuAnchor ? 'row-actions--active' : ''}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {primary}
+      {menuItems.length > 0 && (
+        <IconButton label="More actions" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={openMenu}>
+          <ThreeDots size={14} />
+        </IconButton>
+      )}
+      {menuAnchor && (
+        <ActionMenu anchor={menuAnchor} triggerRef={moreRef} items={menuItems} onClose={() => setMenuAnchor(null)} />
+      )}
+    </div>
+  );
+}
+
+/**
  * EventRow - reusable event row shared across Events widget, expanded view and Calendar tooltip.
  *
  * Props:
  *  event       - { id, title, htmlLink?, startTime?, endTime?, startDate?, endDate?, meetLink?, _source? }
- *  onRemove    - optional handler; shows a hover-delete button for local (non-gcal) events
- *  showMeet    - show "Go to Meet" chip (default true)
+ *  onRemove    - optional handler; exposes a "Remove" action for local (non-gcal) events
+ *  onPin       - optional handler; exposes a pin/unpin action (countdown face)
+ *  pinned      - whether the event is currently pinned (default false)
+ *  pinLabel    - label for the pin action (default 'Count down to this')
+ *  showMeet    - show Meet/Calendar link actions (default true)
  *  showPrefix  - prepend Today/Tomorrow/date prefix to meta row (default true)
- *  compact     - compact variant for calendar tooltip - thinner bar, smaller text, no chips/delete
+ *  showBar     - render the left accent bar (default true); disable in the
+ *                expanded list for a cleaner, bar-less pocket look
+ *  compact     - compact variant for calendar tooltip - thinner bar, smaller text, no actions
  *  onOpen      - optional handler; makes the row clickable (goes to the event)
  *                and renders the title as accent text instead of a link
  */
 export const EventRow = ({
   event,
   onRemove,
+  onPin,
+  pinned = false,
+  pinLabel = 'Count down to this',
   showMeet = true,
   showPrefix = true,
+  showBar = true,
   compact = false,
   onOpen,
 }) => {
@@ -92,6 +165,7 @@ export const EventRow = ({
   const duration = calcDuration(event.startTime, event.endTime, event.startDate, event.endDate);
   const prefix = showPrefix ? datePrefixFor(event.startDate) : null;
   const meetLink = showMeet ? (event.meetLink || null) : null;
+  const calLink = event.htmlLink || null;
 
   const metaParts = [];
   if (!live) {
@@ -106,6 +180,7 @@ export const EventRow = ({
   const { bar: barW, minH, title: titleSz, meta: metaSz } = SIZE;
 
   const clickable = typeof onOpen === 'function';
+  const hasActions = !compact && !!(meetLink || calLink || onPin || (onRemove && event._source !== 'gcal'));
 
   const handleKeyDown = (e) => {
     if (!clickable) return;
@@ -117,7 +192,7 @@ export const EventRow = ({
 
   return (
     <div
-      className={`relative flex items-stretch gap-3 group${clickable ? ' cursor-pointer' : ''}`}
+      className={`relative flex ${showBar ? 'items-stretch gap-3' : 'items-center'} group${clickable ? ' cursor-pointer' : ''}`}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
       onClick={clickable ? () => onOpen(event) : undefined}
@@ -125,31 +200,35 @@ export const EventRow = ({
     >
 
       {/* Accent bar - pulses when live */}
-      <div
-        className={`${barW} rounded-xs shrink-0 self-stretch${live ? ' animate-pulse' : ''}`}
-        style={{ backgroundColor: live ? 'var(--w-success)' : 'var(--w-accent)', minHeight: minH }}
-      />
+      {showBar && (
+        <div
+          className={`${barW} rounded-xs shrink-0 self-stretch${live ? ' animate-pulse' : ''}`}
+          style={{ backgroundColor: live ? 'var(--w-success)' : 'var(--w-accent)', minHeight: minH }}
+        />
+      )}
 
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
 
         {/* Title row */}
-        <EventTitle event={event} live={live} titleSz={titleSz} compact={compact} meetLink={meetLink} clickable={clickable} />
-
-        {/* Trash - absolutely positioned top-right, never affects row width */}
-        {!compact && event._source !== 'gcal' && onRemove && (
-          <ConfirmButton
-            onConfirm={() => onRemove(event.id)}
-            label={`Remove ${event.title}`}
-            className="absolute right-0 top-1/2 -translate-y-1/2 min-w-7 h-7 px-1 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            style={{ color: 'var(--w-ink-4)', background: 'none' }}
-          >
-            <Trash size={14} />
-          </ConfirmButton>
-        )}
+        <EventTitle event={event} live={live} titleSz={titleSz} clickable={clickable} />
 
         {/* Meta: prefix / time / duration  OR  in progress / ends HH:MM */}
         <EventMeta live={live} metaParts={metaParts} endLabel={endLabel} metaSz={metaSz} />
       </div>
+
+      {/* Actions: pocket-style primary + "More actions", revealed on hover */}
+      {hasActions && (
+        <EventActions
+          event={event}
+          onOpen={onOpen}
+          onPin={onPin}
+          pinned={pinned}
+          pinLabel={pinLabel}
+          onRemove={onRemove}
+          meetLink={meetLink}
+          calLink={calLink}
+        />
+      )}
     </div>
   );
 };

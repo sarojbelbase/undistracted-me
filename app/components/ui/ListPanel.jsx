@@ -1,12 +1,13 @@
-import React from 'react';
-import { XLg, Pencil } from 'react-bootstrap-icons';
-import { ConfirmButton } from './ConfirmButton';
-import { Divider } from './Divider';
+import { useRef, useState } from 'react';
+import { Trash3Fill, PencilFill, Pin, PinFill, ThreeDots } from 'react-bootstrap-icons';
+import { IconButton } from './IconButton';
+import { ActionMenu } from './ActionMenu';
 
 /**
- * ListPanel: a rounded-2xl bordered container listing items with automatic dividers.
+ * ListPanel: a plain, chrome-less list of soft-rounded rows (the Pocket
+ * expanded-list look: no card border, no dividers, quiet hover on each row).
  *
- * Used by: Countdown (calendar + custom), Occasions (manual entries), Events (upcoming).
+ * Used by: Countdown (calendar + custom), Occasions (manual entries).
  *
  * Props:
  *   items         : array of items to render
@@ -30,24 +31,69 @@ export const ListPanel = ({
   const sliced = items.slice(0, maxItems);
 
   return (
-    <div
-      className={`rounded-2xl overflow-hidden ${className}`}
-      style={{ border: '1px solid var(--card-border)' }}
-    >
-      {sliced.map((item, i) => {
-        const isLast = i === sliced.length - 1;
-        return (
-          <React.Fragment key={item.id ?? i}>
-            {renderItem(item, i, isLast)}
-            {!isLast && <Divider />}
-          </React.Fragment>
-        );
-      })}
+    <div className={className}>
+      {sliced.map((item, i) => renderItem(item, i, i === sliced.length - 1))}
     </div>
   );
 };
 
 // ─── Pre-built sub-components for common patterns ────────────────────────────
+
+/**
+ * RowActions: pocket-style primary "Edit" action + "More actions" menu (pin /
+ * remove). Revealed on hover / keyboard focus via `.row-actions`, kept visible
+ * while the menu is open via `.row-actions--active`.
+ */
+function RowActions({ onPin, pinned, pinLabel, onEdit, editLabel, onDelete, deleteLabel }) {
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const moreRef = useRef(null);
+
+  const openMenu = (e) => {
+    e.stopPropagation();
+    moreRef.current = e.currentTarget;
+    const r = e.currentTarget.getBoundingClientRect();
+    setMenuAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
+  };
+
+  const menuItems = [];
+  if (onPin) {
+    menuItems.push({ label: pinned ? 'Unpin' : pinLabel, icon: pinned ? <PinFill size={13} /> : <Pin size={13} />, onSelect: onPin });
+  }
+  if (onDelete) {
+    if (menuItems.length) menuItems.push({ divider: true });
+    menuItems.push({ label: deleteLabel, icon: <Trash3Fill size={13} />, danger: true, onSelect: onDelete });
+  }
+
+  return (
+    <div
+      className={`row-actions flex items-center gap-0.5 shrink-0 ${menuAnchor ? 'row-actions--active' : ''}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {onEdit && (
+        <IconButton
+          label={editLabel}
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+        >
+          <PencilFill size={13} />
+        </IconButton>
+      )}
+      {menuItems.length > 0 && (
+        <IconButton
+          label="More actions"
+          size="sm"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={openMenu}
+        >
+          <ThreeDots size={14} />
+        </IconButton>
+      )}
+      {menuAnchor && (
+        <ActionMenu anchor={menuAnchor} triggerRef={moreRef} items={menuItems} onClose={() => setMenuAnchor(null)} />
+      )}
+    </div>
+  );
+}
 
 /**
  * Standard row layout: [avatar?] [title+meta] [label?] [delete?]
@@ -62,6 +108,9 @@ export const ListPanelRow = ({
   deleteLabel = 'Remove',
   onEdit,
   editLabel = 'Edit',
+  onPin,
+  pinned = false,
+  pinLabel = 'Pin as countdown face',
   onClick,
   className = '',
   style = {},
@@ -138,40 +187,22 @@ export const ListPanelRow = ({
     </>
   );
 
-  // Action buttons (edit / delete) render as siblings of the clickable content
-  // so they're never nested inside the row <button> when `onClick` is set.
-  // `.row-actions` hides them until the row is hovered or keyboard-focused (and
-  // keeps them visible on touch devices that have no hover): see _utilities.scss.
+  // Actions render as siblings of the clickable content so they're never nested
+  // inside the row <button> when `onClick` is set. Pocket-style: a primary
+  // "Edit" action plus a "More actions" menu (pin / remove). `.row-actions`
+  // hides them until hover/keyboard-focus (and keeps them visible on touch):
+  // see _utilities.scss.
   const actions = (
-    <div className="row-actions flex items-center gap-1.5">
-      {onEdit && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          aria-label={editLabel}
-          className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-          style={{ color: 'var(--w-ink-4)', background: 'none' }}
-        >
-          <Pencil size={11} />
-        </button>
-      )}
-      {onDelete && (
-        <ConfirmButton
-          onConfirm={onDelete}
-          label={deleteLabel}
-          className="w-7 h-7 flex items-center justify-center rounded-full transition-all cursor-pointer"
-          style={{ color: 'var(--w-ink-4)', background: 'none' }}
-        >
-          <XLg size={11} />
-        </ConfirmButton>
-      )}
-    </div>
+    <RowActions
+      onPin={onPin}
+      pinned={pinned}
+      pinLabel={pinLabel}
+      onEdit={onEdit}
+      editLabel={editLabel}
+      onDelete={onDelete}
+      deleteLabel={deleteLabel}
+    />
   );
-
-  const rowStyle = {
-    background: 'var(--panel-bg)',
-    ...style,
-  };
 
   const body = onClick ? (
     <button
@@ -187,7 +218,10 @@ export const ListPanelRow = ({
   );
 
   return (
-    <div className={`group flex items-center gap-3 px-4 py-3 ${className}`} style={rowStyle}>
+    <div
+      className={`um-list-row group flex items-center gap-3 px-3 py-2.5 ${className}`}
+      style={style}
+    >
       {body}
       {actions}
     </div>

@@ -21,6 +21,10 @@ vi.mock('react-bootstrap-icons', () => ({
   CalendarCheck: () => <span data-testid="calendar-check">📅</span>,
   Trash3: () => <span>🗑</span>,
   Trash: () => <span>🗑</span>,
+  Trash3Fill: () => <span>🗑</span>,
+  PencilFill: () => <span>✎</span>,
+  Pin: () => <span>📌</span>,
+  PinFill: () => <span>📌</span>,
   CheckLg: () => <span>✓</span>,
   XLg: () => <span>X</span>,
   ClockFill: () => <span>⏰</span>,
@@ -30,6 +34,8 @@ vi.mock('react-bootstrap-icons', () => ({
   CalendarDateFill: () => <span>📅</span>,
   BarChartFill: () => <span>📊</span>,
   Calendar3: () => <span>🗓</span>,
+  CameraVideoFill: () => <span>🎥</span>,
+  ThreeDots: () => <span>⋯</span>,
   StopwatchFill: () => <span>⏱</span>,
   StickyFill: () => <span>📝</span>,
   CloudSunFill: () => <span>⛅</span>,
@@ -319,8 +325,9 @@ describe('Events Widget', () => {
       { id: 'e1', title: 'Local Event', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    // Trash icon should be visible for local events
-    expect(screen.getAllByText('🗑').length).toBeGreaterThan(0);
+    // Delete lives behind the "More actions" menu for local events.
+    fireEvent.click(screen.getByLabelText('More actions'));
+    expect(screen.getByText('Remove')).toBeTruthy();
   });
 
   it('does NOT show delete button for gcal events', () => {
@@ -332,19 +339,17 @@ describe('Events Widget', () => {
       ], loading: false, connected: false, syncedAt: null, refresh: vi.fn(),
     });
     render(<EventsWidget onRemove={vi.fn()} />);
-    // gcal events should NOT have trash icons
-    expect(screen.queryAllByText('🗑').length).toBe(0);
+    // gcal events should NOT have a "More actions" menu with Remove
+    expect(screen.queryByLabelText('More actions')).toBeNull();
   });
 
-  it('calls removeEvent when trash button is confirmed', () => {
+  it('calls removeEvent when Remove is chosen from the menu', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'e1', title: 'Delete me', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
-    // Removal is a two-step ConfirmButton ("Sure?"), so click twice.
-    const trashBtn = screen.getByLabelText('Remove Delete me');
-    fireEvent.click(trashBtn);
-    fireEvent.click(trashBtn);
+    fireEvent.click(screen.getByLabelText('More actions'));
+    fireEvent.click(screen.getByText('Remove'));
     expect(mockRemoveEvent).toHaveBeenCalledWith('e1');
   });
 

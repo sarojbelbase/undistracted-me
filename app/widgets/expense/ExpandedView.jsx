@@ -1,13 +1,14 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { WalletFill, PencilFill, Trash3Fill, PlusLg } from 'react-bootstrap-icons';
+import { WalletFill, PencilFill, Trash3Fill, ThreeDots, PlusLg } from 'react-bootstrap-icons';
 import { ExpandedShell } from '../../components/ui/expanded/ExpandedShell';
 import { SearchToolbar } from '../../components/ui/expanded/SearchToolbar';
 import { RailItem } from '../../components/ui/expanded/RailItem';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { ConfirmButton } from '../../components/ui/ConfirmButton';
+import { IconButton } from '../../components/ui/IconButton';
+import { ActionMenu } from '../../components/ui/ActionMenu';
 import { formatAmount } from '../../data/currencies';
-import { DEFAULT_CATEGORIES, getCategoryInfo, getCatColor } from './useExpenses';
+import { DEFAULT_CATEGORIES, getCategoryInfo } from './useExpenses';
 import { formatDate, getPeriodBounds, getPeriodLabel, dailyTotals, monthlyTotals } from './dates';
 import { EMPTY_STATES } from '../../constants/emptyStates';
 import { Sparkline } from '../../components/ui/Sparkline';
@@ -131,14 +132,14 @@ export function ExpenseExpandedView({
   };
 
   const rail = (
-    <nav className="pocket-rail" aria-label="Expense categories">
+    <nav className="pocket-rail pocket-rail--expense" aria-label="Expense categories">
       <RailItem active={!filter} onClick={() => pickFilter(null)} label="All" count={total} />
       {DEFAULT_CATEGORIES.map((c) => (
         <RailItem
           key={c.id}
           active={filter === c.id}
           onClick={() => pickFilter(c.id)}
-          icon={<c.Icon size={14} style={{ color: getCatColor(c.id).fg }} />}
+          icon={<c.Icon size={13} />}
           label={c.label}
           count={countByCat.get(c.id) || 0}
         />
@@ -236,6 +237,53 @@ function ExpenseGraphCard({ expenses, currency, timeRange }) {
 }
 
 /**
+ * ExpenseActions: pocket-style primary "Edit" + "More actions" menu (Remove),
+ * revealed on hover / keyboard focus via `.row-actions`, kept visible while the
+ * menu is open via `.row-actions--active`.
+ */
+function ExpenseActions({ onEdit, onDelete }) {
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const moreRef = useRef(null);
+
+  const openMenu = (e) => {
+    e.stopPropagation();
+    moreRef.current = e.currentTarget;
+    const r = e.currentTarget.getBoundingClientRect();
+    setMenuAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
+  };
+
+  const menuItems = [
+    { label: 'Remove', icon: <Trash3Fill size={13} />, danger: true, onSelect: onDelete },
+  ];
+
+  return (
+    <div
+      className={`row-actions flex items-center gap-0.5 shrink-0 ${menuAnchor ? 'row-actions--active' : ''}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <IconButton
+        label="Edit expense"
+        size="sm"
+        onClick={(e) => { e.stopPropagation(); onEdit(); }}
+      >
+        <PencilFill size={13} />
+      </IconButton>
+      <IconButton
+        label="More actions"
+        size="sm"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={openMenu}
+      >
+        <ThreeDots size={14} />
+      </IconButton>
+      {menuAnchor && (
+        <ActionMenu anchor={menuAnchor} triggerRef={moreRef} items={menuItems} onClose={() => setMenuAnchor(null)} />
+      )}
+    </div>
+  );
+}
+
+/**
  * ExpenseList: the expense rows in the Recent Expenses format, grouped by a
  * quiet date divider (Today / Yesterday / weekday, date).
  */
@@ -248,7 +296,6 @@ function ExpenseList({ expenses, onEdit, onDelete }) {
         const showDateDivider = thisDate !== lastDate;
         lastDate = thisDate;
         const info = getCategoryInfo(exp.category);
-        const catColor = getCatColor(exp.category);
 
         return (
           <Fragment key={exp.id}>
@@ -257,8 +304,8 @@ function ExpenseList({ expenses, onEdit, onDelete }) {
                 <span className="exp-modal__date-text">{thisDate}</span>
               </div>
             )}
-            <div className="exp-modal__row group">
-              <div className="exp-modal__cat-circle" style={{ backgroundColor: catColor.bg, color: catColor.fg }}>
+            <div className="um-list-row group flex items-center gap-2.5 px-3 py-2.5">
+              <div className="exp-modal__cat-circle">
                 {info?.Icon ? <info.Icon size={12} /> : <WalletFill size={12} />}
               </div>
               <div className="exp-modal__row-info">
@@ -268,23 +315,7 @@ function ExpenseList({ expenses, onEdit, onDelete }) {
               <span className="exp-modal__row-amount">
                 {formatAmount(exp.amount, exp.currency)}
               </span>
-              <button
-                type="button"
-                onClick={() => onEdit(exp)}
-                aria-label="Edit expense"
-                className="exp-modal__row-delete"
-                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', border: 'none', background: 'transparent', color: 'var(--w-ink-3)', transition: 'all 0.18s ease' }}
-              >
-                <PencilFill size={11} />
-              </button>
-              <ConfirmButton
-                onConfirm={() => onDelete(exp.id)}
-                label="Delete expense"
-                danger
-                className="exp-modal__row-delete"
-              >
-                <Trash3Fill size={11} />
-              </ConfirmButton>
+              <ExpenseActions onEdit={() => onEdit(exp)} onDelete={() => onDelete(exp.id)} />
             </div>
           </Fragment>
         );

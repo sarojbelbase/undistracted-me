@@ -23,7 +23,7 @@ export function RailItem({ active = false, onClick, icon, label, count, colorDot
     >
       {icon && <span className="pocket-rail-item__icon">{icon}</span>}
       {colorDot}
-      <span className="flex-1 text-left truncate">{label}</span>
+      <span className="pocket-rail-item__label flex-1 text-left truncate">{label}</span>
       {count != null && count !== "" && <span className="w-caption">{count}</span>}
     </button>
   );
