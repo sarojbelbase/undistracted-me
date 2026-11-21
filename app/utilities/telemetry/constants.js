@@ -60,6 +60,7 @@ export const TELEMETRY_EVENTS = Object.freeze({
 
   // ── Misc features ─────────────────────────────────────────────────────
   SEARCH_USED: 'search_used',
+  RAIN_TOGGLED: 'rain_toggled',
   QUICK_TOUR_SHOWN: 'quick_tour_shown',
   CLIP_SAVED: 'clip_saved',
   TASK_ADDED: 'task_added',
