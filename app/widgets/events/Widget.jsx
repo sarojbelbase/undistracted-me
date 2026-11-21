@@ -15,12 +15,14 @@ const EventSkeleton = () => (
 );
 import { BaseWidget } from '../BaseWidget';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
+import { useWidgetInstancesStore } from '../../store/useWidgetInstancesStore';
 import { todayStr } from '../../utilities';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { onClockTick } from '../../utilities/sharedClock';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { EventsExpandedView } from './ExpandedView';
 import { isPast } from './utils';
+import { loadPinned, savePinned, findCountdownId } from '../countdown/utils';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
 import { TintedChip } from '../../components/ui/TintedChip';
@@ -36,6 +38,27 @@ export const Widget = ({ onRemove }) => {
   const ageLabel = useAgeLabel(syncedAt);
   const [now, setNow] = useState(() => new Date());
   const lastMinuteRef = useRef(now.getMinutes());
+
+  // Countdown-face pin: target the primary countdown widget (if one exists).
+  const countdownId = useWidgetInstancesStore((s) => findCountdownId(s.instances));
+  const [pinned, setPinned] = useState(() => (countdownId ? loadPinned(countdownId) : null));
+
+  useEffect(() => {
+    setPinned(countdownId ? loadPinned(countdownId) : null);
+    const handler = () => setPinned(countdownId ? loadPinned(countdownId) : null);
+    globalThis.addEventListener('countdown_pinned_changed', handler);
+    return () => globalThis.removeEventListener('countdown_pinned_changed', handler);
+  }, [countdownId]);
+
+  const togglePin = (event) => {
+    if (!countdownId) return;
+    const next = pinned?.type === 'event' && pinned.eventId === event.id
+      ? null
+      : { type: 'event', eventId: event.id };
+    savePinned(countdownId, next);
+    setPinned(next);
+    globalThis.dispatchEvent(new Event('countdown_pinned_changed'));
+  };
 
   // Tick every minute so past events disappear in real-time: uses shared clock
   useEffect(() => onClockTick(() => {
@@ -123,7 +146,13 @@ export const Widget = ({ onRemove }) => {
         ) : (
           <div className="flex-1 flex flex-col gap-3.5">
             {visibleEvents.map(event => (
-              <EventRow key={event.id} event={event} onRemove={removeEvent} />
+              <EventRow
+                key={event.id}
+                event={event}
+                onRemove={removeEvent}
+                onPin={countdownId ? () => togglePin(event) : undefined}
+                pinned={pinned?.type === 'event' && pinned.eventId === event.id}
+              />
             ))}
           </div>
         )}

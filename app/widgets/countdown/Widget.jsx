@@ -147,6 +147,14 @@ export const Widget = ({ id, onRemove }) => {
     return () => globalThis.removeEventListener("countdown_events_changed", handler);
   }, []);
 
+  // Re-read the pinned face when the Events widget (or the expanded view)
+  // pins/unpins a target.
+  useEffect(() => {
+    const handler = () => setPinned(loadPinned(id));
+    globalThis.addEventListener("countdown_pinned_changed", handler);
+    return () => globalThis.removeEventListener("countdown_pinned_changed", handler);
+  }, [id]);
+
   // ── Resolve target ──────────────────────────────────────────────────────────
   const { target, shouldClearPin } = useMemo(
     () => resolveTarget(pinned, allEvents, upcomingEvents, today, custom),
@@ -423,7 +431,7 @@ export const Widget = ({ id, onRemove }) => {
       )}
       </BaseWidget>
 
-      {expanded && <CountdownExpandedView onClose={() => setExpanded(false)} />}
+      {expanded && <CountdownExpandedView onClose={() => setExpanded(false)} widgetId={id} />}
     </>
   );
 };

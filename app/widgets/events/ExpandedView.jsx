@@ -7,10 +7,12 @@ import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { EMPTY_STATES } from '../../constants/emptyStates';
 import { useEvents, useGoogleCalendar } from '../../hooks/useEvents';
+import { useWidgetInstancesStore } from '../../store/useWidgetInstancesStore';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
 import { EventRow } from '../../components/ui/EventRow';
 import { GoogleIcon } from '../../assets/brand/icons';
 import { isPast } from './utils';
+import { loadPinned, savePinned, findCountdownId } from '../countdown/utils';
 
 const PAGE_SIZE = 50;
 
@@ -43,6 +45,27 @@ export function EventsExpandedView({ onClose }) {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
   const searchRef = useRef(null);
+
+  // Countdown-face pin: target the primary countdown widget (if one exists).
+  const countdownId = useWidgetInstancesStore((s) => findCountdownId(s.instances));
+  const [pinned, setPinned] = useState(() => (countdownId ? loadPinned(countdownId) : null));
+
+  useEffect(() => {
+    setPinned(countdownId ? loadPinned(countdownId) : null);
+    const handler = () => setPinned(countdownId ? loadPinned(countdownId) : null);
+    globalThis.addEventListener('countdown_pinned_changed', handler);
+    return () => globalThis.removeEventListener('countdown_pinned_changed', handler);
+  }, [countdownId]);
+
+  const togglePin = (event) => {
+    if (!countdownId) return;
+    const next = pinned?.type === 'event' && pinned.eventId === event.id
+      ? null
+      : { type: 'event', eventId: event.id };
+    savePinned(countdownId, next);
+    setPinned(next);
+    globalThis.dispatchEvent(new Event('countdown_pinned_changed'));
+  };
 
   // Debounce search (120 ms).
   useEffect(() => {
@@ -215,16 +238,23 @@ export function EventsExpandedView({ onClose }) {
           <>
             <div className="pocket-expanded__list">
               {visibleUpcoming.map((event) => (
-                <div key={event.id} className="evt-expanded__row">
-                  <EventRow event={event} onRemove={removeEvent} onOpen={openEvent} />
+                <div key={event.id} className="um-list-row px-3 py-2.5">
+                  <EventRow
+                    event={event}
+                    onRemove={removeEvent}
+                    onOpen={openEvent}
+                    onPin={countdownId ? () => togglePin(event) : undefined}
+                    pinned={pinned?.type === 'event' && pinned.eventId === event.id}
+                    showBar={false}
+                  />
                 </div>
               ))}
               {visiblePast.length > 0 && (
                 <>
                   <div className="evt-expanded__divider">Past</div>
                   {visiblePast.map((event) => (
-                    <div key={event.id} className="evt-expanded__row evt-expanded__row--past">
-                      <EventRow event={event} onRemove={removeEvent} onOpen={openEvent} />
+                    <div key={event.id} className="um-list-row px-3 py-2.5" style={{ opacity: 0.4 }}>
+                      <EventRow event={event} onRemove={removeEvent} onOpen={openEvent} showBar={false} />
                     </div>
                   ))}
                 </>

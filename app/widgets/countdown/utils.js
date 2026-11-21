@@ -136,6 +136,17 @@ export const loadPinned = (id) => {
 export const savePinned = (id, p) =>
   localStorage.setItem(STORAGE_KEYS.countdownPinned(id), JSON.stringify(p));
 
+/**
+ * Returns the primary countdown widget id from the instances list (the first
+ * instance, which uses the bare type name "countdown" as its id). Used by the
+ * Events widget to target a countdown face from outside the Countdown widget.
+ */
+export const findCountdownId = (instances) => {
+  const cds = (instances || []).filter((i) => i.type === "countdown");
+  if (!cds.length) return null;
+  return cds.find((i) => i.id === "countdown")?.id ?? cds[0].id;
+};
+
 // ─── Notification helpers ────────────────────────────────────────────────────
 
 const _today = todayStr;
