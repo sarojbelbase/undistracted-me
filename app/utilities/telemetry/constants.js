@@ -3,9 +3,9 @@
  *
  * Every event the app sends is defined here as a constant, so call sites never
  * hardcode magic strings (and renaming an event touches exactly one place).
- * Widget *actions* (started/saved/created/…) share a generic verb and are
- * disambiguated by a `widget_type` property derived from the widget config, so
- * a new widget type is tracked automatically with zero new constants.
+ * Widget *lifecycle* events (added/removed/duplicated) share a generic verb and
+ * are disambiguated by a `widget_type` property derived from the widget config,
+ * so a new widget type is tracked automatically with zero new constants.
  *
  * The `WIDGET_EVENT_PREFIX` drives that dynamic naming (see `trackWidgetEvent`
  * in index.js).
