@@ -61,3 +61,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 8daf806d18c057c542bd141fce6ca034
           command: pages deploy dist --project-name=undistracted-me-app --branch=main --commit-hash=${{ github.sha }} --commit-dirty=true
+
+      # Runs after deploy so the key file at public/<key>.txt is already live;
+      # IndexNow rejects submissions (HTTP 403) sent before the key is reachable.
+      - name: Notify IndexNow
+        run: bun scripts/submit-indexnow.mjs
