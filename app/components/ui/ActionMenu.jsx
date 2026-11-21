@@ -94,7 +94,10 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
   const activate = (item) => {
     if (item.disabled) return;
     item.onSelect?.();
-    if (!item.keepOpen) onClose();
+    if (!item.keepOpen) {
+      onClose();
+      triggerRef?.current?.focus?.();
+    }
   };
 
   // Live closure for the keydown handler, synced after each render (never
@@ -223,7 +226,10 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
           aria-hidden="true"
           className="fixed inset-0"
           style={{ zIndex: 9998, background: "transparent" }}
-          onClick={onClose}
+          onClick={() => {
+            onClose();
+            triggerRef?.current?.focus?.();
+          }}
         />,
         document.body,
       )}
