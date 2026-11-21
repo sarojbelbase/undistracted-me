@@ -1,6 +1,6 @@
 import "./App.css";
 import "./styles/main.scss";
-import React, { useState, Suspense, lazy, useEffect, useCallback, useRef } from "react";
+import React, { useState, Suspense, lazy, useEffect, useCallback } from "react";
 import {
   useLookAwayScheduler,
   clearLookAwayDue,
@@ -290,22 +290,6 @@ const App = () => {
   const { showNoteMode, openNoteMode, closeNoteMode } =
     useNoteMode(defaultView);
 
-  // ── Track view transitions (focus / note / canvas) for usage analytics ─────
-  const prevViewRef = useRef(
-    showFocusMode ? "focus" : showNoteMode ? "note" : "canvas",
-  );
-  useEffect(() => {
-    const view = showFocusMode ? "focus" : showNoteMode ? "note" : "canvas";
-    if (view === prevViewRef.current) return;
-    prevViewRef.current = view;
-    const event =
-      view === "focus"
-        ? TELEMETRY_EVENTS.FOCUS_MODE_ENTERED
-        : view === "note"
-          ? TELEMETRY_EVENTS.NOTE_MODE_ENTERED
-          : TELEMETRY_EVENTS.CANVAS_ENTERED;
-    track(event);
-  }, [showFocusMode, showNoteMode]);
   const {
     showSettings,
     settingsInitialTab,

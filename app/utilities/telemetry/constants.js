@@ -50,11 +50,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   BLOCK_SITE_REMOVED: 'block_site_removed',
   BLOCK_PAGE_SHOWN: 'block_page_shown',
 
-  // ── Views / modes ─────────────────────────────────────────────────────
-  FOCUS_MODE_ENTERED: 'focus_mode_entered',
-  NOTE_MODE_ENTERED: 'note_mode_entered',
-  CANVAS_ENTERED: 'canvas_entered',
-
   // ── Personalization ───────────────────────────────────────────────────
   BACKGROUND_CHANGED: 'background_changed',
   ACCENT_CHANGED: 'accent_changed',
