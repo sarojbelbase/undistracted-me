@@ -191,7 +191,7 @@ export const blockSite = async (urlOrDomain, durationMinutes = 30) => {
     } catch { /* ignore */ }
   }
 
-  if (!existing) track(TELEMETRY_EVENTS.BLOCK_SITE_ADDED, { domain });
+  if (!existing) track(TELEMETRY_EVENTS.BLOCK_SITE_ADDED);
 
   return active;
 };
@@ -209,7 +209,7 @@ export const unblockSite = async (urlOrDomain) => {
     try { await chrome.storage.local.set({ blocked_sites: updated }); } catch { /* ignore */ }
   }
 
-  track(TELEMETRY_EVENTS.BLOCK_SITE_REMOVED, { domain });
+  track(TELEMETRY_EVENTS.BLOCK_SITE_REMOVED);
 
   return updated;
 };
