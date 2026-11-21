@@ -14,7 +14,7 @@
  * replacement names the field differently).
  */
 
-import { makeProxy } from '../_proxy.js';
+import { makeProxy } from './_proxy.js';
 
 export const onRequest = makeProxy('https://icanhazdadjoke.com/', {
   headers: { Accept: 'application/json' },
