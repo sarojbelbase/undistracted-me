@@ -16,6 +16,15 @@ Each justification maps to a section of the live policy at
 
 ## 2. Permission justifications
 
+**activeTab**
+> Used by the web clipper (Pocket). When the user right-clicks selected text, a
+> link or the current page and chooses "Save to Pocket", the extension reads the
+> selection and page title from the active tab so it can save the clip with line
+> breaks and indentation intact (which matters for code snippets). `activeTab`
+> grants this read only for the single tab the user is viewing, and only after
+> the user explicitly invokes the extension, so the extension never reads page
+> content on its own.
+
 **alarms**
 > Runs lightweight periodic background tasks in the MV3 service worker (which
 > Chrome suspends when idle): a 1-minute tick to keep the clock and Focus Mode
@@ -23,6 +32,13 @@ Each justification maps to a section of the live policy at
 > and scheduled reminders for Google Calendar events and Pomodoro breaks. Without
 > alarms these reminders and refreshes stop whenever Chrome suspends the service
 > worker.
+
+**contextMenus**
+> Used to add the "Save to Pocket" item to the browser's right-click menu. When
+> the user selects text, right-clicks a link or right-clicks a page and chooses
+> "Save to Pocket", the extension saves that clip to the user's Pocket widget (via
+> a folder submenu). The menu exists only for this user-initiated save; nothing is
+> read until the user clicks it.
 
 **declarativeNetRequest**
 > Used only by the optional Website Blocker in Focus Mode. When the user adds a
