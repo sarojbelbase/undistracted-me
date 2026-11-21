@@ -1,12 +1,11 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { WalletFill, PencilFill, Trash3Fill, ThreeDots, PlusLg } from 'react-bootstrap-icons';
+import { WalletFill, PencilFill, Trash3Fill, PlusLg } from 'react-bootstrap-icons';
 import { ExpandedShell } from '../../components/ui/expanded/ExpandedShell';
 import { SearchToolbar } from '../../components/ui/expanded/SearchToolbar';
 import { RailItem } from '../../components/ui/expanded/RailItem';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { IconButton } from '../../components/ui/IconButton';
-import { ActionMenu } from '../../components/ui/ActionMenu';
+import { RowActions } from '../../components/ui/RowActions';
 import { formatAmount } from '../../data/currencies';
 import { DEFAULT_CATEGORIES, getCategoryInfo } from './useExpenses';
 import { formatDate, getPeriodBounds, getPeriodLabel, dailyTotals, monthlyTotals } from './dates';
@@ -242,45 +241,12 @@ function ExpenseGraphCard({ expenses, currency, timeRange }) {
  * menu is open via `.row-actions--active`.
  */
 function ExpenseActions({ onEdit, onDelete }) {
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const moreRef = useRef(null);
-
-  const openMenu = (e) => {
-    e.stopPropagation();
-    moreRef.current = e.currentTarget;
-    const r = e.currentTarget.getBoundingClientRect();
-    setMenuAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
-  };
-
-  const menuItems = [
+  const primary = { label: 'Edit expense', icon: <PencilFill size={13} />, onClick: onEdit };
+  const items = [
     { label: 'Remove', icon: <Trash3Fill size={13} />, danger: true, onSelect: onDelete },
   ];
 
-  return (
-    <div
-      className={`row-actions flex items-center gap-0.5 shrink-0 ${menuAnchor ? 'row-actions--active' : ''}`}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <IconButton
-        label="Edit expense"
-        size="sm"
-        onClick={(e) => { e.stopPropagation(); onEdit(); }}
-      >
-        <PencilFill size={13} />
-      </IconButton>
-      <IconButton
-        label="More actions"
-        size="sm"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={openMenu}
-      >
-        <ThreeDots size={14} />
-      </IconButton>
-      {menuAnchor && (
-        <ActionMenu anchor={menuAnchor} triggerRef={moreRef} items={menuItems} onClose={() => setMenuAnchor(null)} />
-      )}
-    </div>
-  );
+  return <RowActions primary={primary} items={items} />;
 }
 
 /**

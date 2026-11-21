@@ -1,10 +1,8 @@
-import { useRef, useState } from 'react';
 import {
-  Trash3Fill, Pin, PinFill, PencilFill, ThreeDots,
+  Trash3Fill, Pin, PinFill, PencilFill,
   CameraVideoFill, Calendar3,
 } from 'react-bootstrap-icons';
-import { IconButton } from './IconButton';
-import { ActionMenu } from './ActionMenu';
+import { RowActions } from './RowActions';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from '../../widgets/events/utils';
 
 function openExternal(url) {
@@ -74,19 +72,10 @@ function EventMeta({ live, metaParts, endLabel, metaSz }) {
  * kept visible while the menu is open via `--active`.
  */
 function EventActions({ event, onOpen, onPin, pinned, pinLabel, onRemove, meetLink, calLink }) {
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const moreRef = useRef(null);
   const isGcal = event._source === 'gcal';
   const canRemove = !!onRemove && !isGcal;
 
   const primaryKind = meetLink ? 'meet' : calLink ? 'calendar' : (typeof onOpen === 'function' ? 'edit' : null);
-
-  const openMenu = (e) => {
-    e.stopPropagation();
-    moreRef.current = e.currentTarget;
-    const r = e.currentTarget.getBoundingClientRect();
-    setMenuAnchor({ left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height });
-  };
 
   const menuItems = [];
   if (calLink && primaryKind !== 'calendar') {
@@ -104,30 +93,15 @@ function EventActions({ event, onOpen, onPin, pinned, pinLabel, onRemove, meetLi
     menuItems.push({ label: 'Remove', icon: <Trash3Fill size={13} />, danger: true, onSelect: () => onRemove(event.id) });
   }
 
-  const primary = primaryKind === 'meet' ? (
-    <IconButton label="Go to Meet" size="sm" onClick={(e) => { e.stopPropagation(); openExternal(meetLink); }}><CameraVideoFill size={13} /></IconButton>
-  ) : primaryKind === 'calendar' ? (
-    <IconButton label="Go to Calendar" size="sm" onClick={(e) => { e.stopPropagation(); openExternal(calLink); }}><Calendar3 size={13} /></IconButton>
-  ) : primaryKind === 'edit' ? (
-    <IconButton label="Edit" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(event); }}><PencilFill size={13} /></IconButton>
-  ) : null;
+  const primary = primaryKind === 'meet'
+    ? { label: 'Go to Meet', icon: <CameraVideoFill size={13} />, onClick: () => openExternal(meetLink) }
+    : primaryKind === 'calendar'
+      ? { label: 'Go to Calendar', icon: <Calendar3 size={13} />, onClick: () => openExternal(calLink) }
+      : primaryKind === 'edit'
+        ? { label: 'Edit', icon: <PencilFill size={13} />, onClick: () => onOpen(event) }
+        : null;
 
-  return (
-    <div
-      className={`row-actions flex items-center gap-0.5 shrink-0 self-center ${menuAnchor ? 'row-actions--active' : ''}`}
-      onClick={(e) => e.stopPropagation()}
-    >
-      {primary}
-      {menuItems.length > 0 && (
-        <IconButton label="More actions" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={openMenu}>
-          <ThreeDots size={14} />
-        </IconButton>
-      )}
-      {menuAnchor && (
-        <ActionMenu anchor={menuAnchor} triggerRef={moreRef} items={menuItems} onClose={() => setMenuAnchor(null)} />
-      )}
-    </div>
-  );
+  return <RowActions primary={primary} items={menuItems} />;
 }
 
 /**
