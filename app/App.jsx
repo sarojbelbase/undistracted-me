@@ -252,9 +252,16 @@ const App = () => {
     useGoogleAccountStore.getState().init();
   }, []);
 
-  // ── Anonymous widget-usage telemetry: loads PostHog only when a key is set ─
+  // ── Anonymous widget-usage telemetry: defer PostHog off the startup path ──
+  // Loads only when a key is set; requestIdleCallback keeps first paint fast.
   useEffect(() => {
-    initTelemetry();
+    const start = () => initTelemetry();
+    if (typeof requestIdleCallback === "function") {
+      const id = requestIdleCallback(start, { timeout: 3000 });
+      return () => cancelIdleCallback(id);
+    }
+    const id = setTimeout(start, 3000);
+    return () => clearTimeout(id);
   }, []);
 
   // ── Cross-device sync: init on mount if previously enabled ──────────────
