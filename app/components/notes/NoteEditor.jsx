@@ -6,9 +6,11 @@ import {
   Plus,
   DashLg,
   ArrowLeft,
+  StopwatchFill,
 } from "react-bootstrap-icons";
 import { ConfirmButton } from "../ui/ConfirmButton";
 import { TooltipBtn } from "../ui/TooltipBtn";
+import { Popup } from "../ui/Popup";
 import { useFocusWeather } from "../../hooks/useFocusWeather";
 import { usePomodoroPresence } from "../../hooks/usePomodoroPresence";
 import { getWeatherIcon } from "../../widgets/weather/utils.jsx";
@@ -48,31 +50,72 @@ const computeNoteClock = (clockFormat, dateFormat) => {
 };
 
 // ─── Running pomodoro presence chip (quiet, non-distracting) ────────────────
-// A single muted dot (accent for focus, neutral for break) and a tabular
-// countdown. No glow, no label: the dot alone carries the state, so the chip
-// reads as part of the ambient line instead of drawing the eye.
+// A small stopwatch icon (accent for focus, neutral for break) beside a
+// tabular countdown. Hover or keyboard focus reveals a Popup with the session
+// details (label + preset, and time remaining). No glow and no label on the chip
+// itself: the icon alone carries the state, so it recedes behind the note.
 const PomodoroChip = ({ pomodoro }) => {
   const isFocus = pomodoro.sessionType === SESSION_TYPE.FOCUS;
+  const ref = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  const label = isFocus ? "Focus" : "Break";
+  const tint = isFocus ? "var(--w-accent)" : "var(--w-ink-4)";
+
+  const show = () => setAnchor(ref.current?.getBoundingClientRect() ?? null);
+  const hide = () => setAnchor(null);
+
   return (
-    <span
-      role="timer"
-      aria-label={`${isFocus ? "Focus" : "Break"} timer, ${formatTime(pomodoro.remaining)} remaining`}
-      className="notes-ambient-pomo"
-    >
+    <>
       <span
-        aria-hidden="true"
-        className="notes-ambient-pomo-dot"
-        style={{ backgroundColor: isFocus ? "var(--w-accent)" : "var(--w-ink-4)" }}
-      />
-      <span>{formatTime(pomodoro.remaining)}</span>
-    </span>
+        ref={ref}
+        role="timer"
+        tabIndex={0}
+        aria-label={`${label} timer, ${formatTime(pomodoro.remaining)} remaining`}
+        className="notes-ambient-pomo"
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+      >
+        <StopwatchFill size={12} aria-hidden="true" style={{ color: tint, flexShrink: 0 }} />
+        <span>{formatTime(pomodoro.remaining)}</span>
+      </span>
+      {anchor && (
+        <Popup anchor={anchor} preferAbove className="px-3 py-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span
+              style={{
+                fontSize: "0.6875rem",
+                fontWeight: 600,
+                color: "var(--w-ink-2)",
+                letterSpacing: "0.02em",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {label}
+              {pomodoro.preset ? ` · ${pomodoro.preset}` : ""}
+            </span>
+            <span
+              style={{
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                color: "var(--w-ink-1)",
+                fontVariantNumeric: "tabular-nums",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatTime(pomodoro.remaining)}
+              <span style={{ color: "var(--w-ink-4)", fontWeight: 500 }}> remaining</span>
+            </span>
+          </div>
+        </Popup>
+      )}
+    </>
   );
 };
 
-const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
+const NoteAmbientStrip = ({ showClock, showWeather, dateFormat, weather }) => {
   const clockFormat = useSettingsStore((s) => s.clockFormat);
-  const weather = useFocusWeather();
-  const pomodoro = usePomodoroPresence();
   const [state, setState] = useState(() => computeNoteClock(clockFormat, dateFormat));
 
   // onClockTick fires every second; only re-render when the minute or the day
@@ -90,9 +133,8 @@ const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
   const dateParts = { dow: state.dow, month: state.month, day: state.day, year: state.year };
   const showW = showWeather && weather;
   const showCD = showClock;
-  const showP = !!pomodoro;
 
-  if (!showW && !showCD && !showP) return null;
+  if (!showW && !showCD) return null;
 
   return (
     <span className="notes-ambient">
@@ -125,9 +167,18 @@ const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
           {dateParts.dow}, {dateParts.month} {dateParts.day}
         </span>
       )}
-      {showP && <PomodoroChip pomodoro={pomodoro} />}
     </span>
   );
+};
+
+// ─── Focus session (running pomodoro) ────────────────────────────────────────
+// Sits dead center of the top bar: clock/date on the left, action buttons on the
+// right. When the clock (and weather/date) is hidden it is still the only
+// centered element.
+const NoteFocusSession = () => {
+  const pomodoro = usePomodoroPresence();
+  if (!pomodoro) return null;
+  return <PomodoroChip pomodoro={pomodoro} />;
 };
 
 // ─── Segmented-control button (with Popup tooltip) ────────────────────────────
@@ -178,6 +229,11 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
   const hasAutoFocusedRef = useRef(false);
+
+  // Weather is lifted here (single subscription) so we can know whether the
+  // clock/date strip will render and position the focus session accordingly.
+  const weather = useFocusWeather();
+  const hasClockDate = showClock || (showWeather && weather);
 
   // Auto-focus on first mount: title when empty, else the body editor.
   useEffect(() => {
@@ -251,10 +307,20 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
         </button>
         <div className="notes-fullscreen-ambient">
           {isNoteMode && (
-            <NoteAmbientStrip showClock={showClock} showWeather={showWeather} dateFormat={dateFormat} />
+            <NoteAmbientStrip
+              showClock={showClock}
+              showWeather={showWeather}
+              dateFormat={dateFormat}
+              weather={weather}
+            />
           )}
         </div>
         {navControls}
+        {isNoteMode && (
+          <div className={`notes-focus-session${hasClockDate ? "" : " notes-focus-session--centered"}`}>
+            <NoteFocusSession />
+          </div>
+        )}
       </div>
 
       <div className="notes-fullscreen-editor-wrap">
