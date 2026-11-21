@@ -6,7 +6,7 @@ import { OrbBackground } from './OrbBackground';
  *   - Orb animated gradient (bgType === 'orb')
  *   - Photo / custom image (bgType === 'photo' | 'custom') via a two-slot
  *     crossfade that mirrors Focus Mode's curated-photo transition
- *   - Solid accent mesh gradient (bgType === 'solid' — rendered as the page
+ *   - Solid accent mesh gradient (bgType === 'solid': rendered as the page
  *     background colour in App, so nothing needs to be layered here)
  *
  * All data comes from the useCanvasBg hook via spread props.
@@ -21,7 +21,7 @@ const IMAGE_STYLE = {
 
 /**
  * Two-slot crossfade for the canvas image background. When `url` changes, the
- * new image fades in over the previous one instead of snapping — same 2.5s
+ * new image fades in over the previous one instead of snapping: same 2.5s
  * ease as Focus Mode's photo crossfade.
  */
 function CanvasBgImage({ url, color }) {

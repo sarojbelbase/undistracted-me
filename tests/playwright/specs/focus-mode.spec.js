@@ -75,7 +75,7 @@ async function assertInViewport(locator, page, label) {
 // 1. Focus Mode: entry & exit
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — entry and exit', () => {
+test.describe('Focus Mode: entry and exit', () => {
   test.beforeEach(async ({ page }) => {
     await loadWith(page, baseStorage());
   });
@@ -94,9 +94,9 @@ test.describe('Focus Mode — entry and exit', () => {
   test('pressing Escape exits Focus Mode', async ({ page }) => {
     await enterFocusMode(page);
     await page.keyboard.press('Escape');
-    // FocusMode unmounts — "Back to Canvas" disappears
+    // FocusMode unmounts: "Back to Canvas" disappears
     await expect(page.getByRole('button', { name: 'Back to Canvas' })).toHaveCount(0, { timeout: 4000 });
-    // App canvas comes back — moon button re-appears
+    // App canvas comes back: moon button re-appears
     await expect(page.getByRole('button', { name: /^Focus/ })).toBeVisible();
   });
 
@@ -130,7 +130,7 @@ test.describe('Focus Mode — entry and exit', () => {
 // 2. Focus Mode: clock and greeting
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — clock and greeting', () => {
+test.describe('Focus Mode: clock and greeting', () => {
   test.beforeEach(async ({ page }) => {
     await loadWith(page, baseStorage());
     await enterFocusMode(page);
@@ -141,7 +141,7 @@ test.describe('Focus Mode — clock and greeting', () => {
     // mode (`.fm-clock-text-compact`); non-compact is `.fm-clock-text`.
     const clock = page.locator('.fm-clock-text, .fm-clock-text-compact');
     await expect(clock).toBeVisible();
-    // DigitRoller renders each char in an inline-block span — Playwright's
+    // DigitRoller renders each char in an inline-block span: Playwright's
     // innerText() adds \n between inline-block siblings. Use textContent()
     // which returns raw text nodes without extra whitespace.
     const raw = await clock.evaluate(el => el.textContent || '');
@@ -160,7 +160,7 @@ test.describe('Focus Mode — clock and greeting', () => {
     const greeting = page.locator('.fm-greeting-row');
     await expect(greeting).toBeVisible();
     // Greetings are time-of-day phrases from GREETINGS constant (not standard
-    // "Good morning" — e.g. "great job, wrap it up", "stay in the zone").
+    // "Good morning": e.g. "great job, wrap it up", "stay in the zone").
     // Just verify the row is non-empty and contains at least two words.
     const raw = await greeting.evaluate(el => el.textContent || '');
     const text = raw.replace(/\s+/g, ' ').trim();
@@ -193,10 +193,10 @@ test.describe('Focus Mode — clock and greeting', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Focus Mode: left panel — stocks
+// 3. Focus Mode: left panel: stocks
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — left panel stocks card', () => {
+test.describe('Focus Mode: left panel stocks card', () => {
   test('left panel shows stock watchlist when symbols are configured', async ({ page }) => {
     await loadWith(page, baseStorage({
       // useFocusStocks reads widgetSettings_stock.symbols directly
@@ -232,7 +232,7 @@ test.describe('Focus Mode — left panel stocks card', () => {
     }));
     await enterFocusMode(page);
     await page.waitForTimeout(600);
-    // Left panel is stacked on the left side — check it is on-screen
+    // Left panel is stacked on the left side: check it is on-screen
     const panel = page.locator('.fixed.inset-0').first();
     await assertInViewport(panel, page, 'FocusMode with left panel');
   });
@@ -249,10 +249,10 @@ test.describe('Focus Mode — left panel stocks card', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Focus Mode: left panel — upcoming event
+// 4. Focus Mode: left panel: upcoming event
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — left panel event card', () => {
+test.describe('Focus Mode: left panel event card', () => {
   test('left panel shows upcoming event title', async ({ page }) => {
     const tomorrow = futureDate(1);
     await loadWith(page, baseStorage({
@@ -302,7 +302,7 @@ test.describe('Focus Mode — left panel event card', () => {
       // and would make the "Upcoming"/"Stocks" labels appear regardless).
       widget_instances: { state: { instances: [{ id: 'clock', type: 'clock' }], widgetSettings: {} }, version: 0 },
       widget_events: [],
-      // Empty symbols — `useFocusStocks` falls back to DEFAULT_SYMBOLS ["NEPSE"]
+      // Empty symbols: `useFocusStocks` falls back to DEFAULT_SYMBOLS ["NEPSE"]
       // when the key is null/absent, which would render a "Stocks" panel.
       widgetSettings_stock: { symbols: [] },
     }));
@@ -317,10 +317,10 @@ test.describe('Focus Mode — left panel event card', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Focus Mode: left panel filled — both stocks AND event
+// 5. Focus Mode: left panel filled: both stocks AND event
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — left panel fully filled', () => {
+test.describe('Focus Mode: left panel fully filled', () => {
   test('shows both stock watchlist and upcoming event simultaneously', async ({ page }) => {
     const tomorrow = futureDate(1);
     await loadWith(page, baseStorage({
@@ -364,7 +364,7 @@ test.describe('Focus Mode — left panel fully filled', () => {
 // 6. Focus Mode: background picker ("Focus Mode Background")
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Focus Mode — background management', () => {
+test.describe('Focus Mode: background management', () => {
   test.beforeEach(async ({ page }) => {
     await loadWith(page, baseStorage());
     await enterFocusMode(page);
@@ -418,7 +418,7 @@ test.describe('Focus Mode — background management', () => {
 // 7. Canvas: Countdown widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Canvas — Countdown widget', () => {
+test.describe('Canvas: Countdown widget', () => {
   /** Mount a single countdown widget via localStorage and go to canvas. */
   async function mountCountdown(page, extra = {}) {
     await loadWith(page, baseStorage({
@@ -470,7 +470,7 @@ test.describe('Canvas — Countdown widget', () => {
     // 5 days out so the humanized phrase is "in N days" (not "next month").
     const future = futureDate(5);
     const event = { id: 'cd_pw_1', title: 'Product Launch', targetDate: future, targetTime: '10:00', repeat: 'none' };
-    // pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
+    // pinnedKey(id) = `countdown_pinned_${widgetId}`: widget id is 'countdown'
     await mountCountdown(page, {
       countdown_events: [event],
       countdown_pinned_countdown: { type: 'custom', id: 'cd_pw_1' },
@@ -480,26 +480,20 @@ test.describe('Canvas — Countdown widget', () => {
     await expect(w).toContainText('days');
   });
 
-  test('can create a countdown via widget settings', async ({ page }) => {
+  test('can create a countdown via the expanded view', async ({ page }) => {
     await mountCountdown(page, { countdown_events: [] });
-    const w = page.locator('.react-grid-item').first();
 
-    // Open widget options
-    await w.hover();
-    await page.locator('[aria-label="Widget options"]').click();
-    // Use role=menuitem to avoid ambiguity with "open settings" in the empty-state text
-    await page.getByRole('menuitem', { name: 'Settings' }).click();
-    await page.waitForTimeout(500);
+    // Open the expanded view (the widget's only header action)
+    await page.getByRole('button', { name: 'All countdowns' }).click();
 
-    // The "Add Countdown" button (text pill, not a bare round + icon) opens the
-    // UnifiedAddDialog → AddCountdown form (Title text input + Date input).
-    await page.getByRole('button', { name: 'Add Countdown' }).click();
+    // The empty-state "Add countdown" button opens the create dialog
+    await page.getByRole('button', { name: 'Add countdown' }).click();
 
     const titleInput = page.locator('input[type="text"]').first();
     await expect(titleInput).toBeVisible({ timeout: 4000 });
     await titleInput.fill('Playwright Demo Day');
 
-    // Date is entered via a segmented MM/DD/YYYY field (SegmentedDateTime) — no
+    // Date is entered via a segmented MM/DD/YYYY field (SegmentedDateTime): no
     // native <input type="date">. Open the calendar popover (month segment) and
     // pick the first day of next month (always in the future).
     const dateField = page.locator('fieldset[aria-label="Date and Time"]');
@@ -507,17 +501,13 @@ test.describe('Canvas — Countdown widget', () => {
     await page.getByRole('button', { name: 'Next month' }).click();
     await page.getByRole('button', { name: '1', exact: true }).click();
 
-    // Save (exact — avoids colliding with the "Add Countdown" button behind).
+    // Save (exact: avoids colliding with the "Add countdown" button behind).
     const saveBtn = page.getByRole('button', { name: 'Save Countdown', exact: true });
     await saveBtn.click();
     await page.waitForTimeout(600);
 
-    // Close the settings modal
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(400);
-
-    // The created countdown should appear in the widget
-    await expect(w).toContainText('Playwright Demo Day');
+    // The created countdown appears in the expanded view list
+    await expect(page.getByText('Playwright Demo Day')).toBeVisible();
   });
 
   test('yearly repeating countdown shows days remaining', async ({ page }) => {
@@ -531,14 +521,14 @@ test.describe('Canvas — Countdown widget', () => {
       targetTime: '00:00',
       repeat: 'yearly',
     };
-    // pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
+    // pinnedKey(id) = `countdown_pinned_${widgetId}`: widget id is 'countdown'
     await mountCountdown(page, {
       countdown_events: [event],
       countdown_pinned_countdown: { type: 'custom', id: 'cd_pw_2' },
     });
     const w = page.locator('.react-grid-item').first();
     await expect(w).toContainText('New Year');
-    // Next occurrence (Jan 1 of next year) is ~2 months out — the widget shows a
+    // Next occurrence (Jan 1 of next year) is ~2 months out: the widget shows a
     // humanized phrase ("in 2 months"), not literal "days". Assert the mode label.
     await expect(w).toContainText('Countdown');
   });
@@ -558,10 +548,10 @@ test.describe('Canvas — Countdown widget', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 8. Canvas: Stock widget — add from catalog + pick NEPSE symbols
+// 8. Canvas: Stock widget: add from catalog + pick NEPSE symbols
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Canvas — Stock widget (NEPSE)', () => {
+test.describe('Canvas: Stock widget (NEPSE)', () => {
   async function mountStock(page, symbols = []) {
     await loadWith(page, baseStorage({
       widget_instances: { state: { instances: [{ id: 'stock', type: 'stock' }], widgetSettings: {} }, version: 0 },
@@ -597,7 +587,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
   test('stock widget with no symbols shows empty / setup state', async ({ page }) => {
     await mountStock(page, []);
     const w = page.locator('.react-grid-item').first();
-    // Widget renders even with no symbols — at minimum the card container is visible
+    // Widget renders even with no symbols: at minimum the card container is visible
     const card = w.locator('.overflow-hidden').first();
     await expect(card).toBeVisible();
   });
@@ -657,7 +647,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     // After a brief wait the widget shows symbol names
     await page.waitForTimeout(1500);
     const text = await w.innerText();
-    // At minimum the widget renders — text may be loading or have symbols
+    // At minimum the widget renders: text may be loading or have symbols
     expect(text.trim().length).toBeGreaterThan(0);
   });
 
@@ -668,7 +658,7 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
     // Note: actual heading comes from the stock widget's own inner rendering
     await page.waitForTimeout(600);
     const text = await w.innerText();
-    // The card is visible and non-empty — a specific "Watchlist" heading
+    // The card is visible and non-empty: a specific "Watchlist" heading
     // may not appear in the standalone widget (only in FocusMode panel),
     // so we just verify the card renders both symbols
     expect(text.length).toBeGreaterThan(0);
@@ -687,10 +677,10 @@ test.describe('Canvas — Stock widget (NEPSE)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. Canvas: Events widget — create + appear in Focus Mode
+// 9. Canvas: Events widget: create + appear in Focus Mode
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Canvas — Events widget', () => {
+test.describe('Canvas: Events widget', () => {
   async function mountEvents(page, extra = {}) {
     await loadWith(page, baseStorage({
       widget_instances: { state: { instances: [{ id: 'events', type: 'events' }], widgetSettings: {} }, version: 0 },
@@ -823,7 +813,7 @@ test.describe('Canvas — Events widget', () => {
 // 10. Canvas filled: Countdown + Stock + Events all on screen
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Canvas filled — Countdown + Stock + Events', () => {
+test.describe('Canvas filled: Countdown + Stock + Events', () => {
   const tomorrow = () => futureDate(1);
 
   test.beforeEach(async ({ page }) => {

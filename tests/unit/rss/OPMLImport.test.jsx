@@ -1,9 +1,9 @@
 /**
- * Unit tests for OPMLImport.jsx — the one-click OPML file-picker button.
+ * Unit tests for OPMLImport.jsx: the one-click OPML file-picker button.
  *
  * The OPMLImport component was reduced to a thin file-picker wrapper: it renders
  * an "Import OPML" button plus a hidden <input type="file"> and forwards the
- * chosen File to `onFileSelected`. Parsing, preview, and feed selection now live
+ * chosen File to `onFileSelected`. Parsing, preview and feed selection now live
  * in the parent (rss/Settings.jsx).
  */
 

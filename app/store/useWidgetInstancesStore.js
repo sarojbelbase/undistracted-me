@@ -45,7 +45,7 @@ const collectLegacyWidgetSettings = () => {
   return result;
 };
 
-/** Read persisted instances synchronously — no WIDGET_REGISTRY needed. */
+/** Read persisted instances synchronously: no WIDGET_REGISTRY needed. */
 const readStoredInstances = () => {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -81,7 +81,7 @@ export const useWidgetInstancesStore = create(
             [widgetId]: updated,
           },
         });
-        // Mirror to legacy key — keeps Playwright tests and any external
+        // Mirror to legacy key: keeps Playwright tests and any external
         // readers in sync with the Zustand store. Done *outside* the updater so
         // the store action stays pure (updaters may be re-invoked).
         try {
@@ -93,7 +93,7 @@ export const useWidgetInstancesStore = create(
       },
 
       addInstance: (type) => {
-        // Generate the id OUTSIDE the updater — mkId() is non-deterministic
+        // Generate the id OUTSIDE the updater: mkId() is non-deterministic
         // (Date.now + random), and a pure updater must not generate ids (it may
         // be re-invoked, producing a different id on each invocation).
         const firstOccupied = get().instances.some((i) => i.id === type);
@@ -104,14 +104,14 @@ export const useWidgetInstancesStore = create(
 
       /**
        * Clone an existing instance: same type, fresh id, empty settings (the
-       * duplicate starts from defaults — see inline comment). No-op if the
+       * duplicate starts from defaults: see inline comment). No-op if the
        * source id is unknown.
        */
       duplicateInstance: (sourceId) => {
         const src = get().instances.find((i) => i.id === sourceId);
         if (!src) return;
         const id = mkId(src.type);
-        // The duplicate starts empty (fresh defaults) — no settings are copied
+        // The duplicate starts empty (fresh defaults): no settings are copied
         // from the source, so it lands in the same "first-run" state as a
         // newly added widget. `useWidgetSettings` falls back to defaults when
         // no entry exists for the new id.
@@ -156,7 +156,7 @@ export const useWidgetInstancesStore = create(
 );
 
 // After hydration, subscribe to state changes and schedule sync pushes.
-// Checks syncEnabled from settings store — only pushes if user has sync on.
+// Checks syncEnabled from settings store: only pushes if user has sync on.
 let _wiHydrated = false;
 useWidgetInstancesStore.persist.onFinishHydration(() => {
   _wiHydrated = true;

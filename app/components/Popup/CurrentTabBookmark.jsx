@@ -13,7 +13,7 @@ const TIMER_PRESETS = [
 ];
 
 /**
- * Current-tab card — favicon, title, and two icon buttons side by side.
+ * Current-tab card: favicon, title and two icon buttons side by side.
  * Block button opens an inline timer picker; save button bookmarks the tab.
  */
 export const CurrentTabBookmark = ({
@@ -61,7 +61,7 @@ export const CurrentTabBookmark = ({
           </div>
         </div>
 
-        {/* Action buttons — block + save side by side */}
+        {/* Action buttons: block + save side by side */}
         <div className="popup-ctab__actions">
           {blockable && (
             <button
@@ -90,7 +90,7 @@ export const CurrentTabBookmark = ({
         </div>
       </div>
 
-      {/* Timer picker — compact single-row segmented pills */}
+      {/* Timer picker: compact single-row segmented pills */}
       {showPicker && (
         <div className="popup-ctab__timer-row">
           <div className="popup-ctab__timer-segments">

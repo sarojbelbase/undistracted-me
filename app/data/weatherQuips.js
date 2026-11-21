@@ -1,5 +1,5 @@
 /**
- * Weather widget copy — Nepali-flavoured quips
+ * Weather widget copy: Nepali-flavoured quips
  *
  * Organisation:
  *   QUIPS[conditionGroup][forecastType] → string[]
@@ -7,9 +7,9 @@
  *   conditionGroup : rain | snow | thunder | clear | cloudy | fog
  *   forecastType   : clearing | incoming | persist | possible
  *
- * WIND_QUIPS  — wind intensity overrides (breezy / strong / storm)
- * TEMP_QUIPS  — temperature-shift scenarios (cold_sunny / warming / cooling)
- * MOOD_QUIPS  — relatable daily-life lines used as fallbacks
+ * WIND_QUIPS : wind intensity overrides (breezy / strong / storm)
+ * TEMP_QUIPS : temperature-shift scenarios (cold_sunny / warming / cooling)
+ * MOOD_QUIPS : relatable daily-life lines used as fallbacks
  *
  * Entry point: getWeatherQuip(forecast, weather, ctx?)
  *
@@ -289,7 +289,7 @@ export const QUIPS = {
 // Keyed by intensity: breezy (20–44 km/h), strong (45–64 km/h), storm (65+ km/h)
 
 export const WIND_QUIPS = {
-  /** 20–44 km/h — noticeably breezy */
+  /** 20–44 km/h: noticeably breezy */
   breezy: [
     'hair has given up.',
     'breezy. umbrella is now a liability.',
@@ -302,7 +302,7 @@ export const WIND_QUIPS = {
     'wind doing its thing out there.',
     'door is making its own decisions.',
   ],
-  /** 45–64 km/h — genuinely strong gusts */
+  /** 45–64 km/h: genuinely strong gusts */
   strong: [
     'wind is making decisions for you.',
     'umbrella is already dead.',
@@ -315,7 +315,7 @@ export const WIND_QUIPS = {
     'strong wind energy. stay inside.',
     'anything light is leaving now.',
   ],
-  /** 65+ km/h — storm-grade, dangerous */
+  /** 65+ km/h: storm-grade, dangerous */
   storm: [
     "that's not wind. that's a vendetta.",
     'stay inside. non-negotiable.',
@@ -446,7 +446,7 @@ export const MOOD_QUIPS = {
 // ── Quip picker ───────────────────────────────────────────────────────────────
 
 /**
- * Deterministic seed — changes once per hour so the quip feels fresh
+ * Deterministic seed: changes once per hour so the quip feels fresh
  * but doesn't flicker on every re-render.
  */
 const hourSeed = () => {

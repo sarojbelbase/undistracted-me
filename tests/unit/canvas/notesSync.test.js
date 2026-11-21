@@ -2,7 +2,7 @@
  * Unit tests for app/utilities/notesSync.js (per-note file sync)
  *
  * syncEngine and syncTransport are mocked so the tests exercise notesSync's own
- * logic: index maintenance, note file CRUD, and last-write-wins reconcile.
+ * logic: index maintenance, note file CRUD and last-write-wins reconcile.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -85,7 +85,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('syncNotes — push', () => {
+describe('syncNotes: push', () => {
   it('creates a note file for a local note with no fileId', async () => {
     seedNotes([{ id: 'n1', text: 'Hello\nWorld', updatedAt: 100 }]);
     seedIndex({ n1: { fileId: null, label: 'Hello', updatedAt: 0 } });
@@ -117,7 +117,7 @@ describe('syncNotes — push', () => {
   });
 });
 
-describe('syncNotes — pull', () => {
+describe('syncNotes: pull', () => {
   it('pulls a newer remote version over the local note', async () => {
     seedNotes([{ id: 'n1', text: 'Old title\nOld body', updatedAt: 100 }]);
     seedIndex({ n1: { fileId: 'file-remote', label: 'New title', updatedAt: 200 } });
@@ -158,6 +158,47 @@ describe('syncNotes — pull', () => {
   });
 });
 
+describe('syncNotes: blank note discard', () => {
+  it('discards a blank local note when a remote-only note is pulled', async () => {
+    seedNotes([{ id: 'blank', text: '', updatedAt: 0 }]);
+    seedIndex({ nX: { fileId: 'file-x', label: 'Remote note', updatedAt: 500 } });
+    mocks.noteFiles['file-x'] = JSON.parse(noteJson('nX', 'Remote note', 'body', 500));
+
+    await runSync();
+
+    const notes = readNotes();
+    expect(notes).toHaveLength(1);
+    expect(notes[0].id).toBe('nX');
+    expect(notes[0].text).toBe('Remote note\nbody');
+  });
+
+  it('keeps a blank local note when no remote note arrives', async () => {
+    seedNotes([{ id: 'blank', text: '', updatedAt: 0 }]);
+    seedIndex({});
+
+    await runSync();
+
+    const notes = readNotes();
+    expect(notes).toHaveLength(1);
+    expect(notes[0].id).toBe('blank');
+  });
+
+  it('discards a blank note alongside a pulled newer remote note', async () => {
+    seedNotes([
+      { id: 'blank', text: '', updatedAt: 0 },
+      { id: 'n1', text: 'Old title\nOld body', updatedAt: 100 },
+    ]);
+    seedIndex({ n1: { fileId: 'file-remote', label: 'New title', updatedAt: 200 } });
+    mocks.noteFiles['file-remote'] = JSON.parse(noteJson('n1', 'New title', 'New body', 200));
+
+    await runSync();
+
+    const notes = readNotes();
+    expect(notes.map((n) => n.id)).toEqual(['n1']);
+    expect(notes[0].text).toBe('New title\nNew body');
+  });
+});
+
 describe('local edit hooks', () => {
   it('onNoteChanged updates the index label without a fileId', () => {
     vi.useFakeTimers();
@@ -178,7 +219,7 @@ describe('local edit hooks', () => {
     vi.useRealTimers();
   });
 
-  it('onNoteDeleted removes the index entry, tombstones, and pushes', () => {
+  it('onNoteDeleted removes the index entry, tombstones and pushes', () => {
     seedIndex({ n1: { fileId: 'file-1', label: 'X', updatedAt: 42 } });
 
     notesSync.onNoteDeleted('n1');

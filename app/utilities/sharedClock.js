@@ -1,5 +1,5 @@
 /**
- * Shared Clock — one setInterval drives all open new-tab pages.
+ * Shared Clock: one setInterval drives all open new-tab pages.
  *
  * Problem solved
  * ──────────────
@@ -22,7 +22,7 @@
  * ─────────
  * Instead of raw setInterval(1000) (which drifts from mount time), the leader
  * first waits until the next whole-second boundary before starting the interval.
- * Result: all clocks update at exactly :00, :01, :02 … of each minute — never
+ * Result: all clocks update at exactly :00, :01, :02 … of each minute: never
  * half a second late.
  *
  * Fallbacks
@@ -44,7 +44,7 @@
  *
  * // In a useEffect:
  * useEffect(() => onClockTick(myUpdateFn), [myUpdateFn]);
- *   // onClockTick returns the unsubscribe function — perfect for useEffect cleanup.
+ *   // onClockTick returns the unsubscribe function: perfect for useEffect cleanup.
  *   // myUpdateFn is called immediately (no stale first render) then every second.
  */
 
@@ -54,7 +54,7 @@ const LOCK_NAME = 'um:clock:leader';
 /** All registered callbacks. Uses a Set so each fn is stored once. */
 const listeners = new Set();
 
-/** Timestamp of the last tick dispatch — used for the immediate-call in onClockTick. */
+/** Timestamp of the last tick dispatch: used for the immediate-call in onClockTick. */
 let lastTs = 0;
 
 /** Call all listeners. Called by leader (directly) and followers (via BroadcastChannel). */
@@ -76,7 +76,7 @@ function _notify() {
  * Start the one true setInterval. Aligns to the next whole second first,
  * then fires every 1000 ms.
  *
- * @param {BroadcastChannel|null} bc — channel to broadcast ticks to followers, or null.
+ * @param {BroadcastChannel|null} bc: channel to broadcast ticks to followers, or null.
  * @returns {() => void} cleanup function
  */
 function _becomeLeader(bc) {
@@ -97,12 +97,12 @@ function _becomeLeader(bc) {
   return () => { clearTimeout(tid); clearInterval(iv); };
 }
 
-/** Module-level initialiser — runs once when the module is first imported. */
+/** Module-level initialiser: runs once when the module is first imported. */
 function _init() {
   if (globalThis.window === undefined) return; // SSR guard
 
   if (typeof BroadcastChannel === 'undefined') {
-    // No BroadcastChannel — each tab runs its own aligned interval (graceful degradation)
+    // No BroadcastChannel: each tab runs its own aligned interval (graceful degradation)
     _becomeLeader(null);
     return;
   }
@@ -113,7 +113,7 @@ function _init() {
   bc.onmessage = _notify;
 
   if (!('locks' in navigator)) {
-    // No Web Locks API (Safari < 17) — BroadcastChannel is available but no
+    // No Web Locks API (Safari < 17): BroadcastChannel is available but no
     // leader election; every tab runs its own interval. Still second-aligned.
     // Stop consuming other tabs' broadcasts too, otherwise each tab both ticks
     // locally AND fires on every other tab's broadcast (N× amplification).
@@ -153,7 +153,7 @@ function _electLeader(bc) {
   hasRequest = true;
 
   // navigator.locks.request queues this tab. The callback fires as soon as this
-  // tab becomes the exclusive lock holder — immediately if no other tab has it,
+  // tab becomes the exclusive lock holder: immediately if no other tab has it,
   // or after the current leader releases it (on pagehide / crash).
   navigator.locks.request(LOCK_NAME, { mode: 'exclusive' }, () => {
     // === We are the leader ===
@@ -166,7 +166,7 @@ function _electLeader(bc) {
     const cleanup = _becomeLeader(bc);
 
     // Hold the lock until this page is hidden (tab close, navigation, bfcache).
-    // 'pagehide' is the correct event — 'unload' is deprecated and unreliable in MV3.
+    // 'pagehide' is the correct event: 'unload' is deprecated and unreliable in MV3.
     return new Promise(resolve => {
       globalThis.window.addEventListener('pagehide', resolve, { once: true });
     }).finally(() => {
@@ -178,7 +178,7 @@ function _electLeader(bc) {
       bc.onmessage = _notify;
     });
   }).catch(() => {
-    // Lock request aborted or denied (e.g. Permissions-Policy) — stay as follower.
+    // Lock request aborted or denied (e.g. Permissions-Policy): stay as follower.
     hasRequest = false;
   });
 }
@@ -191,14 +191,14 @@ _init();
  * The callback is called immediately with the last known tick (so components
  * don't show stale data on first render), then every second thereafter.
  *
- * @param {() => void} fn   — callback, called every second
- * @returns {() => void}    — unsubscribe function (pass directly to useEffect return)
+ * @param {() => void} fn  : callback, called every second
+ * @returns {() => void}   : unsubscribe function (pass directly to useEffect return)
  *
  * @example
  * useEffect(() => onClockTick(update), [update]);
  */
 export function onClockTick(fn) {
   listeners.add(fn);
-  fn(); // call immediately — ensures no stale first render (mirrors old setInterval(update) + update() pattern)
+  fn(); // call immediately: ensures no stale first render (mirrors old setInterval(update) + update() pattern)
   return () => listeners.delete(fn);
 }

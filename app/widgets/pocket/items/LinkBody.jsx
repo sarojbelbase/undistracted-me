@@ -15,7 +15,7 @@ function hostPath(url) {
 }
 
 /**
- * LinkBody — the link entry design (site tile, one-line title, host+path with
+ * LinkBody: the link entry design (site tile, one-line title, host+path with
  * middle ellipsis, time). No expand. Row actions live in RowActions.
  */
 export function LinkBody({ item, showSiteIcons }) {

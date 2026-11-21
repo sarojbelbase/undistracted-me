@@ -1,6 +1,6 @@
 // ─── SCSS Configuration ────────────────────────────────────────────────────────
-// Variables, mixins, and functions used across all SCSS partials.
-// This file has NO output on its own — only @use it, never import directly.
+// Variables, mixins and functions used across all SCSS partials.
+// This file has NO output on its own: only @use it, never import directly.
 
 // ── Spacing ───────────────────────────────────────────────────────────────────
 $space-1: 4px;
@@ -23,7 +23,7 @@ $ease-smooth: cubic-bezier(0.16, 1, 0.3, 1); // spring pop-in
 $ease-pop: cubic-bezier(0.22, 1, 0.36, 1); // slide-in panels
 $ease-snap: cubic-bezier(0.55, 0, 1, 0.45); // snap-close
 
-// ── Glass card surface — CSS-var-driven ───────────────────────────────────────
+// ── Glass card surface: CSS-var-driven ───────────────────────────────────────
 // Apply to any dialog / card that follows the canvas cardStyle toggle.
 @mixin glass-surface {
   background: var(--card-bg);

@@ -1,10 +1,10 @@
 @use "config" as c;
 
 // ─── Widget Catalog Drawer  (.wc-*) ───────────────────────────────────────────
-// Right-side macOS-style panel — accent-free, theme-aware.
+// Right-side macOS-style panel: accent-free, theme-aware.
 //
 // Color philosophy: ZERO accent in the drawer.
-// Active states use ink weight / tone shifts only — the drawer
+// Active states use ink weight / tone shifts only: the drawer
 // should look like Finder sidebar or Figma layers: calm, neutral,
 // letting the canvas content hold all the personality.
 
@@ -20,7 +20,7 @@
     250,
     251,
     0.88
-  ); // semi-transparent — blurred world shows through
+  ); // semi-transparent: blurred world shows through
   --wc-border: rgba(0, 0, 0, 0.07);
   --wc-border-med: rgba(0, 0, 0, 0.11);
   --wc-ink-1: #0f0f10;
@@ -46,7 +46,7 @@
   width: 380px;
   display: flex;
   flex-direction: column;
-  // No backdrop-filter here — panel is a transform-animated element.
+  // No backdrop-filter here: panel is a transform-animated element.
   // Blur lives on .wc-backdrop (z:200, fade-only) so Chrome resolves it cleanly.
   // Panel uses semi-transparent bg so the blurred backdrop shows through.
   background: var(--wc-panel-bg);
@@ -88,7 +88,7 @@
   border-left: 2px solid #111111;
 
   // Bump 1px borders → 1.5px for a heavier ink feel.
-  // Structural dividers — border-bottom / border-top.
+  // Structural dividers: border-bottom / border-top.
   .wc-header,
   .wc-tabs,
   .wc-row {
@@ -133,7 +133,7 @@
   box-shadow: -4px 4px 0 0 rgba(212, 201, 168, 0.55);
   border-left: 2px solid #d4c9a8;
 
-  // Bump 1px borders → 1.5px — same as light comic.
+  // Bump 1px borders → 1.5px: same as light comic.
   .wc-header,
   .wc-tabs,
   .wc-row {
@@ -641,7 +641,7 @@
   }
 }
 
-// Remove (−) — red-tinted, always visible when row is active
+// Remove (−): red-tinted, always visible when row is active
 .wc-stepper-btn--remove {
   background: #fecaca;
   color: #7f1d1d;
@@ -666,7 +666,7 @@
   }
 }
 
-// Add (+) — neutral
+// Add (+): neutral
 .wc-stepper-btn--add {
   background: var(--wc-bg-2);
   color: var(--wc-ink-3);

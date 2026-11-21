@@ -1,7 +1,7 @@
 /**
  * Google Tasks REST API v1 wrapper.
  *
- * Uses the shared getGoogleAuthToken() helper — same auth flow as Google
+ * Uses the shared getGoogleAuthToken() helper: same auth flow as Google
  * Calendar and Contacts, so no extra consent is needed beyond adding the
  * tasks scope to GOOGLE_SCOPES in googleAuth.js.
  *
@@ -36,7 +36,7 @@ async function apiFetch(path, options = {}, retried = false, interactive = false
   // Remove the cached token and retry ONCE with an *interactive* auth flow so a
   // fresh token (now carrying the tasks scope) is fetched. Retrying
   // non-interactively here was dead code: the token was just deleted, so
-  // getGoogleAuthToken(false) always threw — and it silently logged Calendar /
+  // getGoogleAuthToken(false) always threw: and it silently logged Calendar /
   // Contacts / Drive out too, since they share the same `google_tokens` key.
   if ((res.status === 401 || res.status === 403) && !retried) {
     await removeGoogleAuthToken();

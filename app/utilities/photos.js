@@ -8,7 +8,7 @@
  *  - jumpToPhotoById(id)→ moves any photo to head without discarding others.
  *  - getPhotoLibrary()  → returns the full cached library.
  *
- * Photo source: backend curated proxy — VITE_PHOTOS_API_URL or the
+ * Photo source: backend curated proxy: VITE_PHOTOS_API_URL or the
  *   hardcoded fallback api.undistracted.me/photos/curated.
  *
  * Attribution: per the provider's ToS every photo carries author + link.
@@ -84,7 +84,7 @@ export const getCurrentPhoto = async () => {
 
 /**
  * Advance to the next photo by cycling head → tail.
- * The current photo is never discarded — it moves to the end.
+ * The current photo is never discarded: it moves to the end.
  * If only one photo exists, fetches a new one first.
  */
 export const rotatePhoto = async () => {
@@ -128,10 +128,10 @@ export const jumpToPhotoById = (id, photoData = null) => {
   const cache = readCache();
   const idx = cache.findIndex(c => c.id === id);
   if (idx < 0 && photoData) {
-    // Photo not in cache (sliced out by LIBRARY_MAX) — insert at head.
+    // Photo not in cache (sliced out by LIBRARY_MAX): insert at head.
     writeCache([photoData, ...cache]);
   } else if (idx > 0) {
-    // Already in cache but not at head — move to head.
+    // Already in cache but not at head: move to head.
     const photo = cache[idx];
     writeCache([photo, ...cache.filter(c => c.id !== id)]);
   }
@@ -154,7 +154,7 @@ export const BG_SOURCE_KEY = 'fm_bg_source';
 export const getBgSource = () => {
   try {
     const src = localStorage.getItem(BG_SOURCE_KEY) || 'default';
-    // "orb" (Motion) is no longer a Focus Mode background — treat it as default.
+    // "orb" (Motion) is no longer a Focus Mode background: treat it as default.
     return src === 'orb' ? 'default' : src;
   }
   catch { return 'default'; }
@@ -173,14 +173,14 @@ export const setBgSource = (src) => {
  *
  * The full API response includes `small`, `thumb`, `description`, `width`,
  * `height`, and other fields we never read. Stripping them reduces
- * localStorage footprint from ~2 KB/photo to ~400 bytes/photo — a 5× saving.
+ * localStorage footprint from ~2 KB/photo to ~400 bytes/photo: a 5× saving.
  *
  * Essential fields kept:
- *  - id, regular, url  — display URLs (regular/url = full-res wallpaper)
- *  - thumb, small      — pre-sized WebP thumbnail URLs for the picker grid
- *  - color              — dominant colour for background placeholder
- *  - author, authorUrl  — photo attribution (ToS requirement)
- *  - cachedAt           — cache freshness tracking
+ *  - id, regular, url : display URLs (regular/url = full-res wallpaper)
+ *  - thumb, small     : pre-sized WebP thumbnail URLs for the picker grid
+ *  - color             : dominant colour for background placeholder
+ *  - author, authorUrl : photo attribution (ToS requirement)
+ *  - cachedAt          : cache freshness tracking
  */
 const ESSENTIAL_FIELDS = ['id', 'regular', 'url', 'thumb', 'small', 'color', 'author', 'authorUrl', 'cachedAt'];
 

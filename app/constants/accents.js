@@ -2,16 +2,16 @@
  * Single source of truth for all accent color definitions.
  *
  * Each accent has two tone pairs:
- *   hex / fg       — light-mode: dark saturated hue on white surface (≥4.5:1 WCAG AA)
- *   darkHex / darkFg — dark-mode: luminous tonal variant on near-black surface (≥4.5:1 AA)
+ *   hex / fg      : light-mode: dark saturated hue on white surface (≥4.5:1 WCAG AA)
+ *   darkHex / darkFg: dark-mode: luminous tonal variant on near-black surface (≥4.5:1 AA)
  *
- * fg is #ffffff (pure white) — maximizes contrast on all dark light-mode hex values.
- * darkFg is #000000 (pure black) — maximizes contrast on all luminous dark-mode hex values.
+ * fg is #ffffff (pure white): maximizes contrast on all dark light-mode hex values.
+ * darkFg is #000000 (pure black): maximizes contrast on all luminous dark-mode hex values.
  * Both are strictly better than the prior #f3f3f3 / #111111 "near" versions:
  *   light fg #f3f3f3 → #ffffff: +0.4–0.7 ratio points on every accent
  *   dark fg  #111111 → #000000: +0.8–1.4 ratio points on every accent
  * Light text (#ffffff) on dark-mode accents and dark text (#000000) on light-mode accents
- * always fail (1.x–3.x:1) — no "cross direction" is possible here.
+ * always fail (1.x–3.x:1): no "cross direction" is possible here.
  *
  * Dark-mode accents are ~60–70 % lightness (HSL) so they glow against #1c1c1c flat
  * and rgba(255,255,255,0.10) glass surfaces without going neon.

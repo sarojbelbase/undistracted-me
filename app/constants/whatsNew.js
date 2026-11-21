@@ -1,5 +1,5 @@
 /**
- * What's New — versioned changelog for the in-app update note.
+ * What's New: versioned changelog for the in-app update note.
  *
  * Derived from the single source of truth at `changelog/index.js` (the same
  * data that powers /changelogs and the GitHub releases). The note shows the

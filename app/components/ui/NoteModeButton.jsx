@@ -2,11 +2,11 @@ import { NoteJournalIcon } from "../../assets/svg/NoteJournalIcon";
 import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
 
 /**
- * Top-left pill button that opens Note Mode. Sibling of FocusModeButton —
+ * Top-left pill button that opens Note Mode. Sibling of FocusModeButton -
  * positioned by the parent cluster (App.jsx renders both in a flex row).
  * Expands on hover to show its label.
  *
- * When `bare` is true the pill chrome (background/border/shadow) is omitted —
+ * When `bare` is true the pill chrome (background/border/shadow) is omitted -
  * the parent cluster supplies it.
  */
 export const NoteModeButton = ({ isDark, onClick, bare = false }) => (

@@ -535,7 +535,7 @@ export const SegmentedDateTime = ({
           overflow: 'hidden',
         }}
       >
-        {/* Date portion — animates in/out via max-width */}
+        {/* Date portion: animates in/out via max-width */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0,
           overflow: 'hidden',
@@ -551,7 +551,7 @@ export const SegmentedDateTime = ({
           <button type="button" style={makeSegStyle(active === 'year', hasDate, '42px')} onFocus={() => stepTo('year')} onKeyDown={(e) => onKey('year', e)} onClick={() => openCal('year')}>{dispYear()}</button>
         </div>
 
-        {/* Separator between date and time — animates with date */}
+        {/* Separator between date and time: animates with date */}
         {showTime && (
           <div style={{
             display: 'flex', flexShrink: 0, overflow: 'hidden',
@@ -564,7 +564,7 @@ export const SegmentedDateTime = ({
 
         {showTime && (
           <>
-            {/* Clock icon — only for time-only mode, fades out when date appears */}
+            {/* Clock icon: only for time-only mode, fades out when date appears */}
             <div style={{
               display: 'flex', alignItems: 'center', flexShrink: 0, overflow: 'hidden',
               maxWidth: showDate ? '0px' : '20px',

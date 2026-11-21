@@ -1,14 +1,14 @@
-# Privacy Policy & Terms of Service — Undistracted Me
+# Privacy Policy & Terms of Service: Undistracted Me
 
 Undistracted Me is a free, open-source new-tab extension for Chrome and Firefox. This is a machine-readable summary; the full legal text is at https://undistracted.me/pp-and-tos.
 
 ## What we collect
 
-Nothing personal. We do not operate a user database, do not collect your name or email, and do not track your browsing history. All widget configuration stays in your browser's local storage. The only data that leaves your device is anonymous, aggregate widget-usage analytics (which widgets you add and use) to help towards feature retention which is sent to PostHog (US-hosted) — a random install id plus the widget type, never your notes, tasks, or browsing history.
+Nothing personal. We do not operate a user database, do not collect your name or email and do not track your browsing history. All widget configuration stays in your browser's local storage. The only data that leaves your device is anonymous, aggregate widget-usage analytics (which widgets you add and use) to help towards feature retention which is sent to PostHog (US-hosted): a random install id plus the widget type, never your notes, tasks or browsing history.
 
 ## Data storage
 
-- Sensitive data (Google events, contacts, and OAuth tokens) is sandboxed in `chrome.storage.local`, inaccessible to other websites.
+- Sensitive data (Google events, contacts and OAuth tokens) is sandboxed in `chrome.storage.local`, inaccessible to other websites.
 - Less sensitive UI preferences use standard `localStorage`.
 - Everything stays on your device unless you enable a feature that talks to a third-party service.
 
@@ -19,4 +19,4 @@ Nothing personal. We do not operate a user database, do not collect your name or
 
 ## Contact
 
-Questions, concerns, or data requests: hello@undistracted.me
+Questions, concerns or data requests: hello@undistracted.me

@@ -6,7 +6,7 @@
  * variants; now served from the static media manifest with every size variant
  * equal to the manifest URL (the old `/_vercel/image` resizing is dropped).
  *
- * CORS: allows GET from chrome-extension://, moz-extension://, and the
+ * CORS: allows GET from chrome-extension://, moz-extension:// and the
  * production origin so the extension can call this directly.
  */
 

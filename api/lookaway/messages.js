@@ -6,7 +6,7 @@
  * server-side and is fetched on demand so the client bundle stays lean.
  *
  * The messages are non-sensitive public content, so this endpoint only
- * enforces the CORS origin check (no API key) — it must work for the website
+ * enforces the CORS origin check (no API key): it must work for the website
  * build too, where no key is configured.
  */
 
@@ -32,7 +32,7 @@ export async function onRequest(context) {
     return json({ error: 'Method not allowed' }, 405, { request });
   }
 
-  // Public content — cache at the CDN for a day.
+  // Public content: cache at the CDN for a day.
   return json(MESSAGES, 200, {
     request,
     headers: { 'Cache-Control': 'public, max-age=86400' },

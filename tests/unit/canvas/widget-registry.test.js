@@ -1,11 +1,11 @@
 /**
- * Tests for app/widgets/index.js — WIDGET_REGISTRY and WIDGET_TYPES
+ * Tests for app/widgets/index.js: WIDGET_REGISTRY and WIDGET_TYPES
  *
  * What can go wrong:
  *  – A widget config typo (e.g. type: 'clokc') means WidgetGrid's renderWidget()
- *    switch-case falls through to `default: return null` — widget renders blank.
+ *    switch-case falls through to `default: return null`: widget renders blank.
  *  – Missing `w` or `h` in a config means the grid uses undefined dimensions
- *    which react-grid-layout treats as 0 — the widget collapses to zero pixels.
+ *    which react-grid-layout treats as 0: the widget collapses to zero pixels.
  *  – Duplicate ids in WIDGET_REGISTRY cause the grid to mount two widgets with
  *    the same layout key and they overwrite each other.
  *  – WIDGET_TYPES values must stay lowercase to match the switch-case in
@@ -40,7 +40,7 @@ describe('WIDGET_TYPES', () => {
     });
   });
 
-  it('no value contains spaces, dashes, or underscores', () => {
+  it('no value contains spaces, dashes or underscores', () => {
     Object.values(WIDGET_TYPES).forEach((v) => {
       expect(v).not.toMatch(/[ \-_]/);
     });
@@ -129,7 +129,7 @@ describe('WIDGET_REGISTRY structure', () => {
   it('every entry has an icon component', () => {
     WIDGET_REGISTRY.forEach((w) => {
       expect(w).toHaveProperty('icon');
-      // Icons are react-bootstrap-icons components (forwardRef objects) — just
+      // Icons are react-bootstrap-icons components (forwardRef objects): just
       // verify a truthy component is present.
       expect(w.icon).toBeTruthy();
     });
@@ -172,7 +172,7 @@ describe('WIDGET_REGISTRY ↔ WIDGET_TYPES consistency', () => {
   });
 
   it('registry type is unique per entry (single-instance layout key compat)', () => {
-    // Config entries no longer carry a separate `id` — the `type` IS the
+    // Config entries no longer carry a separate `id`: the `type` IS the
     // layout key. Every type must appear exactly once so saved layout keys
     // (which equal the type) resolve unambiguously.
     const typeCount = {};
@@ -193,7 +193,7 @@ describe('WIDGET_REGISTRY grid dimensions sanity', () => {
   it('no widget base width exceeds the grid column count', () => {
     // The canvas now uses responsive breakpoints with up to 48 columns (lg) and
     // per-widget breakpoint overrides (some md/xs layouts span 16–20 cols).
-    // Base config widths range up to 14 (events) — keep a generous upper bound.
+    // Base config widths range up to 14 (events): keep a generous upper bound.
     WIDGET_REGISTRY.forEach((w) => {
       expect(w.w).toBeLessThanOrEqual(48);
     });

@@ -21,7 +21,7 @@ vi.mock('../../../app/store', () => ({
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LeftPanel was removed in the Focus Mode redesign — its pomodoro/event/stock/
+// LeftPanel was removed in the Focus Mode redesign: its pomodoro/event/stock/
 // spotify cards now live in app/components/FocusMode/zones/*.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -58,8 +58,8 @@ describe('CalendarWidget', () => {
 
   it('renders a month/year label', () => {
     render(<CalendarWidget id="calendar" />);
-    // Default is BS (Bikram Sambat) — months like Baisakh, Jestha, etc.
-    // or AD months for English — either way there should be a year number
+    // Default is BS (Bikram Sambat): months like Baisakh, Jestha, etc.
+    // or AD months for English: either way there should be a year number
     const body = document.body.textContent;
     expect(body).toMatch(/\d{4}/);
   });

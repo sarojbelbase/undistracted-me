@@ -42,7 +42,7 @@ export const SpotifySettings = ({ onClose = null }) => {
   }, []);
 
   // Sync when Accounts settings tab fires SPOTIFY_ACCOUNT_CHANGED on this window.
-  // (globalThis.storage only fires on *other* tabs — useless here.)
+  // (globalThis.storage only fires on *other* tabs: useless here.)
   useEffect(() => {
     const handler = ({ detail }) => {
       setConnected(detail.connected);

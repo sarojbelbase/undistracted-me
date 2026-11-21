@@ -8,7 +8,7 @@
  *  – The dark-mode / light-mode page background is applied by applyTheme();
  *    if the wrong token object is selected it causes global colour corruption.
  *  – The "Default" accent is #111827 (near-black). In dark mode that accent on
- *    a dark background is invisible — the store guards against this but
+ *    a dark background is invisible: the store guards against this but
  *    applyTheme() itself must faithfully apply whatever it is given.
  *  – hexToRgb is internal (not exported) but its output is observable via the
  *    --w-accent-rgb CSS variable that drives gradient/glow effects in LookAway.
@@ -51,7 +51,7 @@ describe('ACCENT_COLORS catalogue', () => {
     expect(ACCENT_COLORS.length).toBeGreaterThanOrEqual(10);
   });
 
-  it('every entry has name, hex, and fg properties', () => {
+  it('every entry has name, hex and fg properties', () => {
     ACCENT_COLORS.forEach((a) => {
       expect(a).toHaveProperty('name');
       expect(a).toHaveProperty('hex');
@@ -116,10 +116,10 @@ describe('ACCENT_COLORS catalogue', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// applyTheme — light mode
+// applyTheme: light mode
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('applyTheme — light mode', () => {
+describe('applyTheme: light mode', () => {
   beforeEach(() => applyTheme('Default', 'light', 'glass'));
 
   it('sets data-mode attribute to "light"', () => {
@@ -144,10 +144,10 @@ describe('applyTheme — light mode', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// applyTheme — dark mode
+// applyTheme: dark mode
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('applyTheme — dark mode', () => {
+describe('applyTheme: dark mode', () => {
   beforeEach(() => applyTheme('Blueberry', 'dark', 'glass'));
 
   it('sets data-mode attribute to "dark"', () => {
@@ -172,10 +172,10 @@ describe('applyTheme — dark mode', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// applyTheme — accent CSS variables
+// applyTheme: accent CSS variables
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('applyTheme — accent variables', () => {
+describe('applyTheme: accent variables', () => {
   it('sets --w-accent to the accent hex for Blueberry', () => {
     applyTheme('Blueberry', 'light');
     const blueberry = ACCENT_COLORS.find((a) => a.name === 'Blueberry');
@@ -228,10 +228,10 @@ describe('applyTheme — accent variables', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// applyTheme — mode switching
+// applyTheme: mode switching
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('applyTheme — mode switching idempotency', () => {
+describe('applyTheme: mode switching idempotency', () => {
   it('calling applyTheme twice with the same args produces the same result', () => {
     applyTheme('Grape', 'dark');
     const afterFirst = cssVar('--w-accent');

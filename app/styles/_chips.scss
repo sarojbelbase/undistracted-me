@@ -3,13 +3,13 @@
 // compact inline pills with icon + label + accent value.
 //
 // Pattern:
-//   <span class="chip">                    — default: subtle bg, subtle border
-//   <span class="chip chip--accent">       — accent-tinted background
-//   <span class="chip chip--outlined">     — transparent, border-only
+//   <span class="chip">                   : default: subtle bg, subtle border
+//   <span class="chip chip--accent">      : accent-tinted background
+//   <span class="chip chip--outlined">    : transparent, border-only
 //
-//   <img class="chip__icon" />             — 13px favicon / icon
-//   <span class="chip__label">Name</span>  — primary label
-//   <span class="chip__value">2h</span>    — accent-colored value
+//   <img class="chip__icon" />            : 13px favicon / icon
+//   <span class="chip__label">Name</span> : primary label
+//   <span class="chip__value">2h</span>   : accent-colored value
 
 // ── Base chip ────────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@
   letter-spacing: 0.02em;
 }
 
-// ── Unblock button — appears on hover for infinite blocks ────────────────────
+// ── Unblock button: appears on hover for infinite blocks ────────────────────
 
 .chip__unblock {
   display: none;

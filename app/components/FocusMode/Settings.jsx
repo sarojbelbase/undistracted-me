@@ -1,12 +1,12 @@
 /**
- * FocusModeSettings — unified tabbed settings dialog for Focus Mode.
+ * FocusModeSettings: unified tabbed settings dialog for Focus Mode.
  *
  * Tabs: General · Search · Tasks · Panels · Background.
  *
  * Props:
  *   onClose     () => void
  *   initialTab  'general' | 'search' | 'tasks' | 'panels' | 'background'
- *   bgSource    string   — current bg source, passed through to BackgroundTab
+ *   bgSource    string  : current bg source, passed through to BackgroundTab
  *   bgCustomUrl string|null
  *   bgPhotoUrl  string|null
  *   onBgApply   (type, opts) => void

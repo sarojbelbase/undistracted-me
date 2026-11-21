@@ -7,7 +7,7 @@
  *  – Malformed JSON in localStorage (external edit, corruption) must not crash
  *    the widget and must fall back to defaults.
  *  – updateSetting must merge the new value into the existing settings rather
- *    than replacing the whole object — otherwise changing one field wipes all
+ *    than replacing the whole object: otherwise changing one field wipes all
  *    other saved settings.
  *  – If `defaults` contains a field not yet stored, it must be present in the
  *    returned settings (safe upgrade path when new defaults are added).
@@ -60,7 +60,7 @@ describe('initial read', () => {
     );
     const [settings] = result.current;
     expect(settings.language).toBe('ne');
-    // `format` was not saved — should come from defaults
+    // `format` was not saved: should come from defaults
     expect(settings.format).toBe('24h');
   });
 
@@ -83,7 +83,7 @@ describe('initial read', () => {
   });
 
   it('gracefully falls back to defaults on malformed JSON', () => {
-    // Only seed localStorage (no valid JSON) — store remains empty → defaults
+    // Only seed localStorage (no valid JSON): store remains empty → defaults
     localStorage.setItem('widgetSettings_clock', 'NOT_VALID_JSON{{{');
     const { result } = renderHook(() =>
       useWidgetSettings('clock', { language: 'en' })

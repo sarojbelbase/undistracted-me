@@ -1,7 +1,7 @@
 // ─── Main SCSS Entrypoint ─────────────────────────────────────────────────────
 //
 // Import order matters for CSS cascade:
-// 1. Sass config (no output — mixins/vars only)
+// 1. Sass config (no output: mixins/vars only)
 // 2. Design tokens (:root custom properties)
 // 3. Browser resets
 // 4. Typography component classes
@@ -9,12 +9,12 @@
 // 6. Scrollbars
 // 7. Component-specific styles
 // 8. Layout-specific styles
-// 9. Dark mode overrides (last — highest specificity)
+// 9. Dark mode overrides (last: highest specificity)
 //
 // Tailwind (@import "tailwindcss") and font @import live in App.css so they
 // stay in a plain CSS file (required for Tailwind v4 PostCSS processing).
 
-@use "config"; // Variables, mixins — no CSS output
+@use "config"; // Variables, mixins: no CSS output
 @use "tokens"; // :root CSS custom properties
 @use "reset"; // Browser / element resets
 @use "typography"; // .w-display, .w-heading, .w-label etc.
@@ -45,6 +45,6 @@
 @use "quick-tour"; // .qt-* Quick Tour onboarding overlay
 @use "dark-overrides"; // [data-mode="dark"] Tailwind utility overrides
 @use "paper"; // [data-card-style="paper"] reMarkable-inspired paper grain
-@use "chips"; // .chip .chip__label .chip__value — shared inline pills
+@use "chips"; // .chip .chip__label .chip__value: shared inline pills
 @use "popup"; // .popup-* extension popup components
 @use "utilities"; // .animate-*, .no-scrollbar, keyboard focus ring

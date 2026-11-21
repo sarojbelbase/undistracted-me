@@ -142,7 +142,7 @@ const googleTokenProxy = (): Plugin => ({
       if (!clientId || !clientSecret) {
         res.statusCode = 503;
         res.end(
-          JSON.stringify({ error: "Google OAuth not configured — check .env" }),
+          JSON.stringify({ error: "Google OAuth not configured: check .env" }),
         );
         return;
       }
@@ -352,7 +352,7 @@ export default defineConfig(({ mode }) => {
   const dynamicManifest = structuredClone(manifest);
 
   return {
-    // ── Preact runtime — alias React → preact/compat so existing React code runs
+    // ── Preact runtime: alias React → preact/compat so existing React code runs
     // on the smaller Preact runtime. `react-dom/client` (createRoot) is NOT
     // covered by @preact/preset-vite's built-in aliases, so we keep these here
     // and disable the preset's own aliasing (reactAliasesEnabled: false) below.
@@ -382,7 +382,7 @@ export default defineConfig(({ mode }) => {
     // __REACT_DEVTOOLS_GLOBAL_HOOK__ = { isDisabled: true } is the official
     // React mechanism to prevent DevTools registration entirely in production.
     // Without it, React registers a ~60-line initializer unconditionally on every
-    // page load — ~2–4ms of wasted work on every new-tab open.
+    // page load: ~2–4ms of wasted work on every new-tab open.
     define: mode === "production"
       ? {
         "process.env.NODE_ENV": JSON.stringify("production"),
@@ -394,7 +394,7 @@ export default defineConfig(({ mode }) => {
     build: {
       // Target modern Chrome/Firefox versions to allow native ES2022+ syntax
       // (optional chaining, nullish coalescing, class fields, logical assignment)
-      // to pass through without polyfill transforms — real bundle size saving.
+      // to pass through without polyfill transforms: real bundle size saving.
       target: ['chrome120', 'firefox128'],
       // Strip console.warn/console.error in extension production builds.
       // console.error is kept for real runtime errors; warn is dev-only noise.

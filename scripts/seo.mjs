@@ -3,7 +3,7 @@
 //
 // The extension build shares entries/index.html and its CSP
 // (`script-src 'self'`) blocks inline scripts, so JSON-LD is injected ONLY at
-// web-app deploy time via scripts/inject-seo.mjs — never into the shared HTML.
+// web-app deploy time via scripts/inject-seo.mjs: never into the shared HTML.
 
 const BASE_URL = 'https://app.undistracted.me';
 const LANDING_URL = 'https://undistracted.me';
@@ -138,7 +138,7 @@ export function buildSchemaGraph() {
             name: 'Is Undistracted Me free?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Yes. Undistracted Me is free and open source (MIT). There is no account, no subscription, and no sign-up.',
+              text: 'Yes. Undistracted Me is free and open source (MIT). There is no account, no subscription and no sign-up.',
             },
           },
           {
@@ -146,7 +146,7 @@ export function buildSchemaGraph() {
             name: 'Does Undistracted Me work offline?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Yes. The Nepali calendar, Focus Mode clock, and dashboard all work fully offline. Only optional widgets like weather, stocks, and RSS need a connection.',
+              text: 'Yes. The Nepali calendar, Focus Mode clock and dashboard all work fully offline. Only optional widgets like weather, stocks and RSS need a connection.',
             },
           },
           {
@@ -154,7 +154,7 @@ export function buildSchemaGraph() {
             name: 'What data does Undistracted Me collect?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Nothing is sent to our servers unless you connect an optional integration. Your settings, widgets, and layout stay in your browser.',
+              text: 'Nothing is sent to our servers unless you connect an optional integration. Your settings, widgets and layout stay in your browser.',
             },
           },
           {
@@ -224,7 +224,7 @@ export function unhideSsrContent(html) {
     return html; // already visible
   }
   const unhidden = html.replace(ssrOpen, '<div id="ssr-content">');
-  // Match the real <noscript> wrapper — the one that wraps a <style> block —
+  // Match the real <noscript> wrapper: the one that wraps a <style> block -
   // not the literal "<noscript>" mentioned inside the HTML comment above it.
   const noscript = /<noscript>\s*(<style>[\s\S]*?<\/style>)\s*<\/noscript>/;
   const match = noscript.exec(unhidden);

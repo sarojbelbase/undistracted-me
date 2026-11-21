@@ -113,7 +113,7 @@ function mockStore(instances = [], widgetSettings = {}) {
 // useFocusWeather
 // ═════════════════════════════════════════════════════════════════════════════
 
-// NOTE: no vi.useFakeTimers() in useFocusWeather/useFocusStocks — fake timers
+// NOTE: no vi.useFakeTimers() in useFocusWeather/useFocusStocks: fake timers
 // break waitFor()'s internal setTimeout polling. We test setInterval via spy.
 describe('useFocusWeather', () => {
   const mockLocation = (lat, lon, source) => {

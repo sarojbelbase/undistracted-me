@@ -18,6 +18,7 @@ export const BookmarkSettings = ({
   name,
   iconMode: initialIconMode = "favicon",
   onSave,
+  submitLabel,
 }) => {
   const stripProtocol = (u) => (u || "").replace(/^https?:\/\//, "");
   const isEditing = Boolean(url && url !== "https://");
@@ -129,7 +130,7 @@ export const BookmarkSettings = ({
         disabled={!canSave}
         className="bm-save-btn"
       >
-        {isEditing ? "Update Bookmark" : "Add Bookmark"}
+        {submitLabel ?? (isEditing ? "Update Bookmark" : "Add Bookmark")}
       </button>
     </div>
   );

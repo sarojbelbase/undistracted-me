@@ -3,7 +3,7 @@ import { clampStyle } from "../previewLines";
 const expandedStyle = { maxHeight: 240, overflowY: "auto", paddingRight: 2 };
 
 /**
- * SentenceBody — a 2px accent-soft bar on the left with the sentence text,
+ * SentenceBody: a 2px accent-soft bar on the left with the sentence text,
  * clamped to the preview length (or shown in full when expanded).
  */
 export function SentenceBody({ item, clamp, expanded }) {

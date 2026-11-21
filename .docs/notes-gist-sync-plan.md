@@ -1,6 +1,6 @@
-# Notes Sync via Private Gists — Implementation Plan
+# Notes Sync via Private Gists: Implementation Plan
 
-> **Status:** Superseded — notes now sync as per-note files in Google Drive `appDataFolder` (via `app/utilities/syncTransport.js`), not private gists. This plan is kept for historical reference; the merge/reconcile design was carried over to `app/utilities/notesSync.js`.
+> **Status:** Superseded: notes now sync as per-note files in Google Drive `appDataFolder` (via `app/utilities/syncTransport.js`), not private gists. This plan is kept for historical reference; the merge/reconcile design was carried over to `app/utilities/notesSync.js`.
 > **Depends on:** ~~GitHub OAuth device flow + gist transport~~ → Google OAuth `drive.appdata` (shipped with the Drive migration)
 > **Scope:** Sync each Notes-widget note as its own file in the hidden Drive app-data folder, separate from the settings/config file. The config file keeps a `note_id → fileId` index so notes stay discoverable and identifiable across devices.
 
@@ -17,12 +17,12 @@ Today the Notes widget stores everything locally in `widgetSettings_notes` as
 We want each note to be:
 
 - **Synced** across devices through a private GitHub gist.
-- **Discoverable as a gist** — one gist per note, with a human-readable description.
-- **Separate from the config/settings gist** — note *content* lives in its own gist;
+- **Discoverable as a gist**: one gist per note, with a human-readable description.
+- **Separate from the config/settings gist**: note *content* lives in its own gist;
   the settings/config gist only holds a lightweight *index* of note IDs and keys.
 
 The config gist keeps the `note_id` (gist id) + a `note_key` (a title/body-derived
-label) for every note, so any device — or the user browsing `gist.github.com` — can
+label) for every note, so any device: or the user browsing `gist.github.com`: can
 see what each note is without opening it.
 
 ---
@@ -32,7 +32,7 @@ see what each note is without opening it.
 ### 2.1 Note identity (stable `note_id`)
 
 Notes currently have no stable identity (array-index based). We introduce a stable
-`note_id` (UUID) so a note can be tracked across reorders, edits, and devices.
+`note_id` (UUID) so a note can be tracked across reorders, edits and devices.
 
 ```js
 // crypto.randomUUID() is available in MV3 Chrome 92+/Firefox 95+.
@@ -65,7 +65,7 @@ Each note is a standalone **private** gist:
 
 ```
 gist:
-  description: "Undistracted Me — <label>"
+  description: "Undistracted Me: <label>"
   public: false
   files:
     undistracted-me-note.json: {
@@ -97,7 +97,7 @@ inside its existing `keys` object (reusing the LWW machinery), keyed by `note_id
       "v": {
         "<note_id>": {
           "gistId": "<github gist id>",
-          "label":  "<note_key — title or body snippet>",
+          "label":  "<note_key: title or body snippet>",
           "updatedAt": 123
         }
       },
@@ -107,7 +107,7 @@ inside its existing `keys` object (reusing the LWW machinery), keyed by `note_id
 }
 ```
 
-**`label` (the `note_key`) rule** — the config always stores a human-readable key so
+**`label` (the `note_key`) rule**: the config always stores a human-readable key so
 the note is identifiable when it has *at least* a title or a body:
 
 | Note has…                      | `label` value                              |
@@ -116,7 +116,7 @@ the note is identifiable when it has *at least* a title or a body:
 | no title, but body non-empty   | first ~80 chars of body (single line)      |
 | neither title nor body (empty) | `"Untitled note"`                          |
 
-This satisfies "key to be shared in the config if the note has a title or the body —
+This satisfies "key to be shared in the config if the note has a title or the body -
 at least one of each".
 
 ### 2.4 Local index (note_id → gist)
@@ -128,14 +128,14 @@ resolve a note's gist without a network round-trip:
 notes_gist_index = { "<note_id>": { gistId, label, updatedAt } }
 ```
 
-This is **non-secret** (like `github_gist_id`) — it only needs the gist id + label.
+This is **non-secret** (like `github_gist_id`): it only needs the gist id + label.
 
 ---
 
 ## 3. Sync Engine Changes
 
 Add a dedicated module `app/utilities/notesSync.js` (or extend `syncEngine.js`) that
-orchestrates note gists. Reuse `githubAuth` for the token, gist headers, and
+orchestrates note gists. Reuse `githubAuth` for the token, gist headers and
 `User-Agent`.
 
 ### 3.1 Primitives
@@ -183,7 +183,7 @@ setNotesIndex(map, ts)
 - If `DELETE` fails (e.g. network), the index entry is still removed locally and the
   config is marked; a cleanup sweep on the next sync retries orphaned gists.
 - **Never delete a gist we didn't create**: only delete gists whose description
-  matches the `Undistracted Me —` prefix and whose `note.json` `id` matches.
+  matches the `Undistracted Me -` prefix and whose `note.json` `id` matches.
 
 ---
 
@@ -199,17 +199,17 @@ setNotesIndex(map, ts)
 - `handleTitleChange` / `handleBodyChange` / `handleWidgetTextChange` continue to
   produce `text = "title\nbody"`; after `persist`, call `notesSync.onNoteChanged(id, text)`.
 
-`app/constants/defaults.js` — the demo/seed notes gain ids on write (no source change
+`app/constants/defaults.js`: the demo/seed notes gain ids on write (no source change
 needed if migration is lazy).
 
 ---
 
 ## 5. Discoverability & UI
 
-- Each note gist description = `"Undistracted Me — <label>"`, so notes appear
+- Each note gist description = `"Undistracted Me: <label>"`, so notes appear
   clearly in the user's `gist.github.com` list and are linkable.
 - Config gist holds the `notes_index`, so the Data tab (or a future Notes-sync panel)
-  can list every synced note with its `label` and a link to its gist — but the actual
+  can list every synced note with its `label` and a link to its gist: but the actual
   gist *file* stays hidden behind the existing "Go to config" link (consistent with the
   Data-tab redesign in `abe4245`).
 - The Notes widget itself stays minimal (no new chrome); optionally a small
@@ -221,7 +221,7 @@ needed if migration is lazy).
 
 | Case | Handling |
 |------|----------|
-| Empty note (no title, no body) | Still create a gist with `label: "Untitled note"`; or skip until it has content. **Recommend: skip** — don't create gists for empty notes; create on first non-empty keystroke. |
+| Empty note (no title, no body) | Still create a gist with `label: "Untitled note"`; or skip until it has content. **Recommend: skip**: don't create gists for empty notes; create on first non-empty keystroke. |
 | Note edited to empty on device A, still present on B | Last-write-wins on `updatedAt`; empty note → delete gist + index entry. |
 | Reordering notes | Order is local-only (index/id stable); sync unaffected since each gist is keyed by id. |
 | Two devices edit the same note offline | LWW on `updatedAt` (same as config sync). Document as a known limitation. |
@@ -232,13 +232,13 @@ needed if migration is lazy).
 
 ## 7. Security & Privacy
 
-- **Private gists only** — `public: false` always; never expose a note as public.
-- **Minimal scope** — `gist` scope already covers create/read/update/delete gists;
+- **Private gists only**: `public: false` always; never expose a note as public.
+- **Minimal scope**: `gist` scope already covers create/read/update/delete gists;
   no new scope or backend required (device flow, no client secret, no redirect).
-- **Token storage** — token stays in `chrome.storage.local`; only gist id + label
+- **Token storage**: token stays in `chrome.storage.local`; only gist id + label
   (non-secret) are in localStorage via `notes_gist_index`.
-- **No data on our servers** — note gists are written directly to GitHub's API.
-- **Rate-limit hygiene** — reuse the 5-min throttle + write queue; do not fetch every
+- **No data on our servers**: note gists are written directly to GitHub's API.
+- **Rate-limit hygiene**: reuse the 5-min throttle + write queue; do not fetch every
   note gist on every focus (only on daily/manual sync or when a note is opened).
 - Update `landing/pp-and-tos.html` §5 (GitHub Sync) to list notes as stored-in-gist data
   (already listed) and note the "one gist per note" layout.
@@ -272,10 +272,10 @@ tests/unit/canvas/syncEngine.test.js# notes_index round-trip
 
 ## 10. Sequencing
 
-1. **Data model + migration** — stable ids in the Notes widget (no sync yet).
-2. **notesSync module** — note gist CRUD + index, with unit tests (happy path first).
-3. **Config index integration** — add `notes_index` to the config gist sync.
-4. **Wire the widget** — onNoteChanged/delete hooks.
-5. **UI polish** — note gist links / discoverability.
-6. **Docs + legal** — update CONTEXT.md and `landing/pp-and-tos.html`.
+1. **Data model + migration**: stable ids in the Notes widget (no sync yet).
+2. **notesSync module**: note gist CRUD + index, with unit tests (happy path first).
+3. **Config index integration**: add `notes_index` to the config gist sync.
+4. **Wire the widget**: onNoteChanged/delete hooks.
+5. **UI polish**: note gist links / discoverability.
+6. **Docs + legal**: update CONTEXT.md and `landing/pp-and-tos.html`.
 7. **Build, test, commit.**

@@ -6,7 +6,7 @@ import { useDataHub } from "../../hooks/useDataHub";
 /**
  * Fetches one dad joke from joke.com per day.
  * Caches in the shared DataHub (stamped with `updatedAt`) so subsequent page
- * opens are instant. No polling interval — it only fetches when today's joke
+ * opens are instant. No polling interval: it only fetches when today's joke
  * isn't already in the hub.
  */
 export const useDailyJoke = () => {

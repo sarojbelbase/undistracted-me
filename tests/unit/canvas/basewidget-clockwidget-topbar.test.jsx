@@ -10,7 +10,7 @@ import React from 'react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
-// Mock react-bootstrap-icons — keep the real exports (components import many
+// Mock react-bootstrap-icons: keep the real exports (components import many
 // icons) and only override the ones this suite asserts on.
 vi.mock('react-bootstrap-icons', async (importOriginal) => {
   const actual = await importOriginal();
@@ -198,9 +198,9 @@ describe('BaseWidget', () => {
     const onRemove = vi.fn();
     render(<BaseWidget onRemove={onRemove}><div>Widget</div></BaseWidget>);
     fireEvent.click(screen.getByLabelText('Widget options'));
-    // Remove is a two-step ConfirmButton — first click arms, second confirms.
+    // Remove is a two-step ConfirmButton: first click arms, second confirms.
     fireEvent.click(screen.getByRole('menuitem', { name: 'Remove widget' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Confirm — click again to proceed' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Confirm: click again to proceed' }));
     expect(onRemove).toHaveBeenCalledOnce();
   });
 
@@ -270,6 +270,6 @@ describe('ClockWidget (dateToday)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TopBar was removed in the Focus Mode redesign — its back/fullscreen/settings
+// TopBar was removed in the Focus Mode redesign: its back/fullscreen/settings
 // controls now live in app/components/FocusMode/zones/TopZone.jsx.
 // ─────────────────────────────────────────────────────────────────────────────

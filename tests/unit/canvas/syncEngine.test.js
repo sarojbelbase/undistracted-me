@@ -15,6 +15,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import syncEngine from '../../../app/utilities/syncEngine';
+import { syncApply as applyPocket, getSnapshot as getPocketSnapshot } from '../../../app/widgets/pocket/pocketStore';
 
 const SCHEMA_VERSION = 3;
 
@@ -87,7 +88,7 @@ afterEach(() => {
 
 // ─── field-level LWW (settings) ─────────────────────────────────────────────
 
-describe('pullFromSync — settings field-level merge', () => {
+describe('pullFromSync: settings field-level merge', () => {
   it('adopts a remote field when remote is newer', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
     localStorage.setItem('sync_merge_meta', JSON.stringify({
@@ -135,7 +136,7 @@ describe('pullFromSync — settings field-level merge', () => {
 
 // ─── array element-set merge ────────────────────────────────────────────────
 
-describe('pullFromSync — array element-set merge', () => {
+describe('pullFromSync: array element-set merge', () => {
   it('unions remote-only items into the local array', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 'local', title: 'L' }]));
     setGist({
@@ -181,7 +182,7 @@ describe('pullFromSync — array element-set merge', () => {
 
 // ─── push: element-set format + sanitization ───────────────────────────────
 
-describe('pushAll — array element-set format', () => {
+describe('pushAll: array element-set format', () => {
   it('writes events as an element set (not a raw array)', async () => {
     localStorage.setItem('widget_events', JSON.stringify([{ id: 'a', title: 'A' }]));
 
@@ -369,7 +370,7 @@ describe('widget_instances per-instance merge', () => {
       version: 0,
     }));
 
-    // Simulate a config that was polluted before the fix — `notes` lives in the
+    // Simulate a config that was polluted before the fix: `notes` lives in the
     // remote widgetSettings element set. A clean device must scrub it on push.
     setGist({
       widget_instances: {
@@ -490,7 +491,7 @@ describe('change detection and throttle', () => {
 
 // ─── divergence detection + directional sync (pull / push / merge) ───────────
 
-describe('previewSync — divergence classification', () => {
+describe('previewSync: divergence classification', () => {
   it('classifies a first-connect with data on both sides as diverged', async () => {
     // Simulate a device that has never synced (enableSync in beforeEach already
     // recorded a base, so drop it).
@@ -536,7 +537,7 @@ describe('previewSync — divergence classification', () => {
   });
 });
 
-describe('directional sync — pull / push', () => {
+describe('directional sync: pull / push', () => {
   it('pullSync overwrites local with remote (remote wins)', async () => {
     localStorage.setItem('undistracted_settings', JSON.stringify({ state: { accent: 'local' }, version: 0 }));
     setGistV3({ undistracted_settings: { v: { fields: { accent: { v: 'remote', t: 100 }, language: { v: 'ne', t: 100 } }, version: 0 }, t: 100 } });
@@ -583,5 +584,72 @@ describe('directional sync — pull / push', () => {
     expect(state_.accent).toBe('local'); // not clobbered
     expect(JSON.parse(state.gistContent).keys.undistracted_settings.v.fields.accent.v).toBe('remote'); // not overwritten
     expect(syncEngine.getSyncStatus().pendingConflict?.status).toBe('diverged');
+  });
+});
+
+// ─── pocket sync: whole-value merge + toggle gating ──────────────────────
+
+const pocketItem = (over = {}) => ({
+  id: 'p1',
+  kind: 'sentence',
+  text: 'hello',
+  title: '',
+  host: '',
+  sourceUrl: '',
+  favicon: '',
+  folderIds: [],
+  createdAt: 1,
+  updatedAt: 1,
+  deletedAt: null,
+  ...over,
+});
+
+describe('pocket sync: whole-value merge + toggle gating', () => {
+  it('pullFromSync unions remote-only pocket items and prefers the newer updatedAt', async () => {
+    applyPocket({ items: [pocketItem({ id: 'a', text: 'local', updatedAt: 100 })], folders: [] });
+    setGistV3({
+      pocket: {
+        v: {
+          items: [
+            pocketItem({ id: 'a', text: 'remote-newer', updatedAt: 200 }),
+            pocketItem({ id: 'b', text: 'remote-only', updatedAt: 150 }),
+          ],
+          folders: [],
+        },
+        t: 200,
+      },
+    });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes.pocket).toBe(true);
+    const { items } = getPocketSnapshot();
+    expect(items.find((i) => i.id === 'a').text).toBe('remote-newer');
+    expect(items.find((i) => i.id === 'b').text).toBe('remote-only');
+  });
+
+  it('pushAll writes the pocket blob when it differs from remote', async () => {
+    applyPocket({ items: [pocketItem({ id: 'a', text: 'local', updatedAt: 100 })], folders: [] });
+    setGistV3({});
+
+    const result = await syncEngine.pushAll();
+
+    expect(result.changed).toBe(true);
+    const written = JSON.parse(state.gistContent);
+    expect(written.keys.pocket.v.items).toHaveLength(1);
+    expect(written.keys.pocket.v.items[0].id).toBe('a');
+  });
+
+  it('skips pocket when the syncPocket toggle is off (cloud copy untouched)', async () => {
+    localStorage.setItem('undistracted_settings', JSON.stringify({ state: { syncPocket: false }, version: 0 }));
+    applyPocket({ items: [pocketItem({ id: 'a', text: 'local', updatedAt: 100 })], folders: [] });
+    setGistV3({
+      pocket: { v: { items: [pocketItem({ id: 'a', text: 'remote', updatedAt: 200 })], folders: [] }, t: 200 },
+    });
+
+    const changes = await syncEngine.pullFromSync();
+
+    expect(changes.pocket).toBeUndefined();
+    expect(getPocketSnapshot().items.find((i) => i.id === 'a').text).toBe('local');
   });
 });

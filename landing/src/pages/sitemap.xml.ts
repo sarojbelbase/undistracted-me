@@ -16,7 +16,7 @@ const PAGES = [
 ];
 
 /**
- * Flat XML sitemap at /sitemap.xml — the standard path most crawlers and
+ * Flat XML sitemap at /sitemap.xml: the standard path most crawlers and
  * agent-readiness checkers request. Replaces the @astrojs/sitemap index
  * (/sitemap-index.xml) so the canonical location matches what robots.txt and
  * the Link header advertise.

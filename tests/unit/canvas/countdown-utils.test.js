@@ -53,7 +53,7 @@ describe('REPEAT_OPTIONS', () => {
 // getNextOccurrence
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('getNextOccurrence — repeat none', () => {
+describe('getNextOccurrence: repeat none', () => {
   it('returns the exact target Date for a future event', () => {
     const target = new Date(Date.now() + 86400_000); // tomorrow
     const dateStr = target.toISOString().slice(0, 10);
@@ -85,7 +85,7 @@ describe('getNextOccurrence — repeat none', () => {
   });
 });
 
-describe('getNextOccurrence — repeat weekly', () => {
+describe('getNextOccurrence: repeat weekly', () => {
   it('advances past date by 7-day increments until future', () => {
     vi.useFakeTimers();
     // Set now to a fixed point: Wednesday 2025-01-08
@@ -128,7 +128,7 @@ describe('getNextOccurrence — repeat weekly', () => {
   });
 });
 
-describe('getNextOccurrence — repeat monthly', () => {
+describe('getNextOccurrence: repeat monthly', () => {
   it('returns a future date', () => {
     const result = getNextOccurrence({
       targetDate: '2020-03-15',
@@ -139,7 +139,7 @@ describe('getNextOccurrence — repeat monthly', () => {
   });
 });
 
-describe('getNextOccurrence — repeat yearly', () => {
+describe('getNextOccurrence: repeat yearly', () => {
   it('returns a future date', () => {
     const result = getNextOccurrence({
       targetDate: '2020-06-01',
@@ -240,7 +240,7 @@ describe('formatTargetDate', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// resolveAutoTarget — since vs future prioritisation
+// resolveAutoTarget: since vs future prioritisation
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('resolveAutoTarget', () => {

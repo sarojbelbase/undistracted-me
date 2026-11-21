@@ -3,7 +3,7 @@
 // Used by both Focus Mode (LeftPanel → Stock.jsx) and the canvas stock widget.
 // Reads configured symbols from the first stock widget instance's settings via
 // Zustand, and serves chart data from the shared DataHub (stamped with
-// `updatedAt`).  There is NO page-side polling interval — background refreshes
+// `updatedAt`).  There is NO page-side polling interval: background refreshes
 // come from the service worker's UM_STOCKS prefetch alarm, which writes to the
 // hub and propagates via chrome.storage.onChanged.
 //
@@ -25,7 +25,7 @@ const isExtension = typeof chrome !== "undefined" && !!chrome.runtime?.id;
 
 export const useStocks = () => {
   // Two-step selector: first find the stock instance id (stable),
-  // then read only that instance's symbols — avoids re-rendering on
+  // then read only that instance's symbols: avoids re-rendering on
   // unrelated widget setting changes (e.g. notes keystrokes, RSS refresh).
   const stockInstId = useWidgetInstancesStore((s) => {
     const inst = s.instances.find((i) => i.type === "stock");

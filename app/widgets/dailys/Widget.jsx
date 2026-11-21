@@ -12,7 +12,7 @@ import { useSwipeToNavigate } from "../../hooks/useSwipeToNavigate";
 
 const getDailyIndex = (len) => Math.floor(Date.now() / 86_400_000) % len;
 
-// Static joke fallbacks — module scope so they're not reallocated each render.
+// Static joke fallbacks: module scope so they're not reallocated each render.
 const FALLBACKS = [
   "The joke API is down. Which is itself kind of a joke.",
   "No joke today. The internet is on a coffee break.",

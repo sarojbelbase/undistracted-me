@@ -1,6 +1,6 @@
 /**
- * General — Date calendar and clock format settings.
- * No Modal wrapper — rendered inside the unified FocusModeSettings dialog.
+ * General: Date calendar and clock format settings.
+ * No Modal wrapper: rendered inside the unified FocusModeSettings dialog.
  */
 
 import { useSettingsStore } from '../../../store';
@@ -48,7 +48,7 @@ const SettingRow = ({ icon, label, description, control }) => (
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const General = () => {
-  // Narrow selectors — a whole-store subscription would re-render the panel on
+  // Narrow selectors: a whole-store subscription would re-render the panel on
   // any settings change (accent, mode, notifications, …).
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const setDateFormat = useSettingsStore((s) => s.setDateFormat);

@@ -26,7 +26,7 @@ const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || (year % 400
 
 const isValidDate = (year, month, day) => year >= BASE_YEAR && year <= MAX_ENGLISH_YEAR && month >= 1 && month <= 12 && day >= 1 && day <= 31;
 
-// Pure-function memo — one entry per unique (yy, mm, dd) triple.
+// Pure-function memo: one entry per unique (yy, mm, dd) triple.
 // The new-tab page calls convertEnglishToNepali every second with today's date,
 // so even a trivial cache eliminates ~86 400 redundant algorithm runs per day.
 const _nepaliDateCache = new Map();
@@ -40,12 +40,12 @@ const convertEnglishToNepali = (yy, mm, dd) => {
 
     // ── English day count ───────────────────────────────────────────────────
     // Count total days elapsed from 1944-01-01 (BASE_YEAR) to the input date.
-    // Use direct 365/366 addition — avoids per-year array reduce + allocation.
+    // Use direct 365/366 addition: avoids per-year array reduce + allocation.
     let totalEnglishDays = 0;
     for (let year = BASE_YEAR; year < yy; year++) {
         totalEnglishDays += isLeapYear(year) ? 366 : 365;
     }
-    // Accumulate elapsed months via index loop — avoids .slice() allocation.
+    // Accumulate elapsed months via index loop: avoids .slice() allocation.
     const monthDays = isLeapYear(yy) ? LEAP_YEAR_DAYS_IN_MONTHS : DAYS_IN_MONTHS;
     for (let m = 0; m < mm - 1; m++) {
         totalEnglishDays += monthDays[m];
@@ -65,7 +65,7 @@ const convertEnglishToNepali = (yy, mm, dd) => {
     const daysRemainingInStartMonth = daysInStartMonth - nepaliDay;
 
     if (totalEnglishDays <= daysRemainingInStartMonth) {
-        // Target is still within the starting partial month — done.
+        // Target is still within the starting partial month: done.
         nepaliDay += totalEnglishDays;
         const result = `${nepaliYear} ${nepaliMonth} ${nepaliDay}`;
         _nepaliDateCache.set(cacheKey, result);
@@ -123,7 +123,7 @@ export const getBikramSambatDateParts = () => {
     const now = getTimeZoneAwareDayJsInstance();
     const [year, month, day] = now.format('YYYY M D').split(' ').map(Number);
     const result = convertEnglishToNepali(year, month, day);
-    if (result === 'Invalid date!') return { dow: ENGLISH_DAYS[now.day()], month: '—', day: 0, year: 0 };
+    if (result === 'Invalid date!') return { dow: ENGLISH_DAYS[now.day()], month: '-', day: 0, year: 0 };
     const [ny, nm, nd] = result.split(' ').map(Number);
     return { dow: ENGLISH_DAYS[now.day()], month: MONTH_NAMES[nm - 1], day: nd, year: ny };
 };
@@ -149,7 +149,7 @@ function todayStr() {
 
 /**
  * Formats a Date object as a YYYY-MM-DD string in local time.
- * Prefer this over d.toISOString().slice(0,10) which gives UTC — wrong for
+ * Prefer this over d.toISOString().slice(0,10) which gives UTC: wrong for
  * anyone east of UTC at midnight (e.g. Nepal UTC+5:45 shows yesterday).
  */
 function toLocalDateStr(d) {
@@ -160,7 +160,7 @@ function toLocalDateStr(d) {
  * Format a timestamp (ms) as a human-readable age string.
  * e.g. "just now", "3m ago", "2h ago", "1d ago"
  * Returns null when ts is falsy.
- * Delegates to humanizeTime — single source of truth.
+ * Delegates to humanizeTime: single source of truth.
  */
 function humanizeAge(ts) {
     if (!ts) return null;
@@ -202,7 +202,7 @@ export function shorthandFromUrl(url) {
     try {
         const labels = new URL(url).hostname.toLowerCase().split('.');
         // Only skip a leading label when a real domain + TLD remain (≥ 3
-        // labels) — for `app.com`, `app` IS the domain, so keep it.
+        // labels): for `app.com`, `app` IS the domain, so keep it.
         let idx = 0;
         while (labels.length - idx > 2 && GENERIC_SUBDOMAINS.has(labels[idx])) {
             idx++;
@@ -216,10 +216,10 @@ export function shorthandFromUrl(url) {
 
 /**
  * Maps a raw error to a user-facing message.
- * Handles known OAuth, network, and API error patterns.
+ * Handles known OAuth, network and API error patterns.
  */
 
-/** Shared check — are we running inside a Chrome/Firefox extension? */
+/** Shared check: are we running inside a Chrome/Firefox extension? */
 // Re-exported from a dependency-free leaf so the service worker can import it
 // without pulling dayjs + the calendar table into the MV3 bundle.
 export { isExtension } from './isExtension';
@@ -236,11 +236,11 @@ export const getTopSites = async () => {
     const api = globalThis.chrome?.topSites || globalThis.browser?.topSites;
     if (!api) return [];
     try {
-        // Promise style — Firefox (browser.topSites / chrome.topSites) and Chrome 96+.
+        // Promise style: Firefox (browser.topSites / chrome.topSites) and Chrome 96+.
         const sites = await api.get();
         return Array.isArray(sites) ? sites : [];
     } catch {
-        // Callback-only APIs (Chrome 88–95) reject a bare get() call — retry with a callback.
+        // Callback-only APIs (Chrome 88–95) reject a bare get() call: retry with a callback.
         return new Promise((resolve) => {
             try {
                 api.get((sites) => resolve(Array.isArray(sites) ? sites : []));
@@ -254,9 +254,9 @@ export const getTopSites = async () => {
 export function friendlyError(err) {
     const msg = err?.message || '';
     if (!msg) return 'Something went wrong. Please try again.';
-    if (/failed to fetch|network|networkerror/i.test(msg)) return 'Network error — check your connection.';
+    if (/failed to fetch|network|networkerror/i.test(msg)) return 'Network error: check your connection.';
     if (/popup_closed|user_cancelled|cancelled|Sign-in cancelled/i.test(msg)) return 'Sign-in was cancelled.';
-    if (/popup.*blocked|blocked.*popup/i.test(msg)) return 'Pop-up was blocked — allow pop-ups for this site and try again.';
+    if (/popup.*blocked|blocked.*popup/i.test(msg)) return 'Pop-up was blocked: allow pop-ups for this site and try again.';
     if (/invalid_grant/i.test(msg)) return 'Your session expired. Please sign in again.';
     if (/authorization page could not be loaded/i.test(msg)) return "The sign-in page couldn't load. Make sure your extension's redirect URI is registered with the provider, then try again.";
     if (/not_authenticated|not authenticated/i.test(msg)) return 'Please sign in to Google first.';

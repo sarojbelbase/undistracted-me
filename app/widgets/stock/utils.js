@@ -116,7 +116,7 @@ export async function fetchChart(symbol) {
   const v = json.v;
   const n = c.length;
   return {
-    prices: c,            // 90 days of daily closes — sparkline
+    prices: c,            // 90 days of daily closes: sparkline
     ltp: c[n - 1],    // today's official close
     prevClose: c[n - 2],    // yesterday's official close
     open: o?.[n - 1],  // today's open
@@ -129,7 +129,7 @@ export async function fetchChart(symbol) {
 // ── Sparkline SVG path builder ────────────────────────────────────────────────
 
 /**
- * LTTB — Largest Triangle Three Buckets downsampling.
+ * LTTB: Largest Triangle Three Buckets downsampling.
  * Reduces a price array to `threshold` points while preserving the visual shape.
  */
 function lttb(prices, threshold) {
@@ -231,7 +231,7 @@ export function buildSparklinePaths(prices, vw = 100, vh = 40) {
 
 export function priceStats(chartData) {
   // Guard prevClose (0 / null / undefined) to avoid an Infinity/NaN percentage
-  // on halted, newly-listed, or malformed symbols.
+  // on halted, newly-listed or malformed symbols.
   if (!chartData || chartData.prices.length < 2 || !chartData.prevClose) {
     return { change: 0, pct: 0, dir: 'flat' };
   }
@@ -241,22 +241,22 @@ export function priceStats(chartData) {
   return { change, pct, dir };
 }
 
-// humanizeAge is sourced from utilities/index.js — single canonical implementation.
+// humanizeAge is sourced from utilities/index.js: single canonical implementation.
 export { humanizeAge } from '../../utilities';
 
 export function fmtPrice(n) {
-  if (n == null) return '—';
+  if (n == null) return '-';
   return Number(n).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// O/H/L labels — 1 decimal is enough, saves horizontal space
+// O/H/L labels: 1 decimal is enough, saves horizontal space
 export function fmtOHL(n) {
-  if (n == null) return '—';
+  if (n == null) return '-';
   return Number(n).toLocaleString('en-NP', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 export function fmtVolume(n) {
-  if (n == null || isNaN(n)) return '—';
+  if (n == null || isNaN(n)) return '-';
   const abs = Math.abs(n);
   if (abs >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
   if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;

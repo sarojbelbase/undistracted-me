@@ -1,12 +1,12 @@
 /**
- * Widget grid gravity + persistence — verifies that with `getCompactor("vertical")`
+ * Widget grid gravity + persistence: verifies that with `getCompactor("vertical")`
  * (gravity) the grid pulls widgets up to fill gaps (no floating widgets), that
  * dragging reorders the flow, and that the reordered layout is SAVED and survives
  * a reload.
  *
  * (Formerly the free-placement bounds regression tests; the grid now uses gravity
  * so the "flung below the fold" and "stack on top of each other" regressions are
- * impossible — gravity always packs widgets up and never overlaps.)
+ * impossible: gravity always packs widgets up and never overlaps.)
  */
 
 import { test, expect } from '@playwright/test';

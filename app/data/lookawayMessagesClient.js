@@ -1,5 +1,5 @@
 /**
- * LookAway / website-blocker messages — client fetcher.
+ * LookAway / website-blocker messages: client fetcher.
  *
  * The full message catalog is served from the API (api/lookaway/messages)
  * so it is no longer bundled into the extension. A small offline fallback keeps
@@ -11,7 +11,7 @@ import { API_BASE_URL } from '../constants/env';
 
 const API_URL = `${API_BASE_URL}/lookaway/messages`;
 
-/** Minimal offline subset — only used when the API cannot be reached. */
+/** Minimal offline subset: only used when the API cannot be reached. */
 export const FALLBACK_MESSAGES = [
   { title: "The urge will pass", subtitle: "Every craving has a lifespan. You are watching one die right now. Stay with it." },
   { title: "You already decided", subtitle: "Past you made this choice for a reason. Trust that version of yourself." },
@@ -27,7 +27,7 @@ let cache = null;
 
 /**
  * Fetch the full message catalog (cached for the session). Resolves to an array
- * of `{ title, subtitle }` — never rejects, falling back to FALLBACK_MESSAGES.
+ * of `{ title, subtitle }`: never rejects, falling back to FALLBACK_MESSAGES.
  */
 export function loadLookawayMessages() {
   if (!cache) {

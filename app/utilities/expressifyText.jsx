@@ -1,38 +1,38 @@
 /**
- * expressifyText — Magazine-quality scale-contrast typographic layout engine.
+ * expressifyText: Magazine-quality scale-contrast typographic layout engine.
  *
  * Picks one semantically meaningful "hero" word and calculates per-word font
  * metrics so the full headline fills a given pixel area without clipping.
- * Body text is kept at a comfortable reading size — the effect comes from
+ * Body text is kept at a comfortable reading size: the effect comes from
  * RATIO (font-size contrast), not from making body tiny.
  *
  * Performance: word widths are precomputed at 1px so the binary search loop
- * runs with only multiplications — no canvas calls in the hot path.
+ * runs with only multiplications: no canvas calls in the hot path.
  *
  * Typography: all tokens share the same line-height (1.15). The hero word's
  * larger font-size is the sole source of visual contrast, keeping the line
- * rhythm harmonious and legible — how print magazines actually work.
+ * rhythm harmonious and legible: how print magazines actually work.
  *
  * Design references: Cosmopolitan digital, Flipboard editorial cards,
  * Apple News hero cards, WIRED magazine covers.
  *
  * Exports:
  *   expressiveLayout(title, areaWidth, areaHeight, fontFamily?) → layout tokens
- *   ExpressiveTitle  — React component; DOM-measures + renders a fitted headline
+ *   ExpressiveTitle : React component; DOM-measures + renders a fitted headline
  */
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Unity: unified LINE_HEIGHT means size contrast IS the visual contrast.
-// League Gothic is a display face — tight leading is intentional and correct.
+// League Gothic is a display face: tight leading is intentional and correct.
 // 1.0 means each line occupies exactly one em, no extra leading.
 const LINE_HEIGHT = 1;
 const HERO_WEIGHT = 400;
 const BODY_WEIGHT = 400;
 
 /**
- * Design principle — Proportion:
+ * Design principle: Proportion:
  * The hero-to-body ratio adapts to word count.
  * Short headlines (4–6 words) have room for strongest contrast (2.4×).
  * Long headlines (12+ words) tighten the ratio so body text stays large.
@@ -82,7 +82,7 @@ function measureWidth(text, fontSize, fontWeight, fontFamily) {
 /**
  * Measure every word at fontSize=1 for both weights once.
  * In the binary search loop we just multiply: wordWidth = factor × fontSize.
- * This eliminates all canvas calls from the hot path — O(n) precompute,
+ * This eliminates all canvas calls from the hot path: O(n) precompute,
  * O(1) per word per iteration.
  */
 function precomputeWidths(words, fontFamily) {
@@ -94,9 +94,9 @@ function precomputeWidths(words, fontFamily) {
 
 // ─── Fast word-wrap (uses precomputed width factors) ─────────────────────────
 /**
- * `wf` — precomputed width factors from precomputeWidths()
- * `sp` — { body, hero } space width factors at fontSize=1
- * `cw` — container width in px
+ * `wf`: precomputed width factors from precomputeWidths()
+ * `sp`: { body, hero } space width factors at fontSize=1
+ * `cw`: container width in px
  */
 function computeSpaceWidth(isHero, size, sp) {
   return isHero ? sp.hero * size : sp.body * size;
@@ -137,7 +137,7 @@ function fastWrap(words, heroIdx, bodySize, heroSize, wf, sp, cw) {
 }
 
 /**
- * Block height using unified LINE_HEIGHT — each line is
+ * Block height using unified LINE_HEIGHT: each line is
  * max(fontSize on that line) × LINE_HEIGHT.
  */
 function fastBlockH(lines, heroIdx, bodySize, heroSize) {
@@ -147,19 +147,19 @@ function fastBlockH(lines, heroIdx, bodySize, heroSize) {
   }, 0);
 }
 /**
- * Design principles — Rhythm + Balance:
+ * Design principles: Rhythm + Balance:
  * Scores a wrapped layout for visual composition quality.
  * Used in two-pass hero selection to pick not just the semantically rich word
  * but the word whose placement creates the most harmonious composition.
  *
  * Penalises:
- *   Orphan/widow last line (1 word alone) — breaks rhythm    − 5
- *   Orphan first line — hurts opening emphasis              − 2
- *   Extreme line count (6+) — card feels crowded             − 1
+ *   Orphan/widow last line (1 word alone): breaks rhythm    − 5
+ *   Orphan first line: hurts opening emphasis              − 2
+ *   Extreme line count (6+): card feels crowded             − 1
  *
  * Rewards:
- *   Hero sharing its line (≥1 neighbour) — emphasis in flow  + 3
- *   3–5 lines total — ideal card proportion                  + 1
+ *   Hero sharing its line (≥1 neighbour): emphasis in flow  + 3
+ *   3–5 lines total: ideal card proportion                  + 1
  */
 function layoutRhythmScore(lines, heroIdx) {
   if (lines.length === 0) return 0;
@@ -180,8 +180,8 @@ function layoutRhythmScore(lines, heroIdx) {
 }
 // ─── Latin script detector ────────────────────────────────────────────────────
 // A token is "Latin" (lh=1.0) if it contains NO non-Latin Unicode script chars
-// (Devanagari, CJK, Arabic, etc.). ASCII digits, punctuation, and hyphens are
-// neutral — they should NOT trigger Devanagari line-height.
+// (Devanagari, CJK, Arabic, etc.). ASCII digits, punctuation and hyphens are
+// neutral: they should NOT trigger Devanagari line-height.
 // e.g. "(CVE-2026-45185)" → no Devanagari → isLatin=true → lh=1.0 ✓
 function isLatinWord(word) {
   // Match any character that is clearly a non-Latin script (Devanagari U+0900-097F,
@@ -239,7 +239,7 @@ function scoreLatinWord(word, clean, idx, total) {
 
 /**
  * Scores a word for hero eligibility. Higher = better candidate.
- * All words are eligible (including first/last) — edges are just penalised.
+ * All words are eligible (including first/last): edges are just penalised.
  */
 function scoreWord(word, idx, total) {
   if (!isLatinWord(word)) {
@@ -297,7 +297,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeigh
     return lines.length * size * lh;
   }
 
-  // 82% fill target — conservative margin guards against canvas/browser
+  // 82% fill target: conservative margin guards against canvas/browser
   // measurement discrepancy (especially with ultra-condensed fonts like
   // League Gothic where per-character width is measured but browser line
   // wrapping may differ by a word or two).
@@ -308,7 +308,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeigh
     else hi = mid;
   }
 
-  // Safety shrink — extra guard for font-load measurement drift.
+  // Safety shrink: extra guard for font-load measurement drift.
   // Runs after binary search; shrinks by 5% until height fits with margin.
   let fontSize = Math.round(lo);
   for (let i = 0; i < 10; i++) {
@@ -317,7 +317,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeigh
   }
   // Width clamp: ensure no single indivisible word overflows the container.
   // Without this, ultra-condensed fonts (League Gothic) render a long single word
-  // at a size that fits in height but physically overflows width — clipped by overflow:hidden.
+  // at a size that fits in height but physically overflows width: clipped by overflow:hidden.
   const maxWordFactor = wf.reduce((m, w) => Math.max(m, w.body), 0);
   if (maxWordFactor > 0) {
     fontSize = Math.min(fontSize, Math.floor(areaWidth * 0.97 / maxWordFactor));
@@ -326,7 +326,7 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeigh
     const isDevanagari = !isLatinWord(text);
     return {
       text, fontSize, fontWeight,
-      // Hind (Devanagari) needs 1.3 leading — akshars + matras exceed Latin cap-height.
+      // Hind (Devanagari) needs 1.3 leading: akshars + matras exceed Latin cap-height.
       lineHeight: isDevanagari ? 1.3 : (textLineHeight ?? LINE_HEIGHT),
       letterSpacing: isDevanagari ? '0.01em' : '0.005em',
       fontFamily,
@@ -350,27 +350,27 @@ function uniformFallback(words, areaWidth, areaHeight, fontFamily, textLineHeigh
  *
  * Algorithm (O(n) precompute + O(n × 14) search):
  *   1. Titles < 5 words → uniform large display via uniformFallback
- *   2. Precompute per-word width factors at 1px (both weights) — eliminates
+ *   2. Precompute per-word width factors at 1px (both weights): eliminates
  *      canvas calls from the binary search hot path
  *   3. Score ALL words for hero suitability (first/last get a −2 penalty,
- *      not a hard exclusion — any word can be hero if semantically rich)
+ *      not a hard exclusion: any word can be hero if semantically rich)
  *   4. Binary-search body size (14–36px) to maximise fill of areaHeight
  *   5. Safety shrink loop in case of measurement drift
  *
  * @param {string} title
- * @param {number} areaWidth    — available width in px
- * @param {number} areaHeight   — available height in px for the text block
+ * @param {number} areaWidth   : available width in px
+ * @param {number} areaHeight  : available height in px for the text block
  * @param {string} [fontFamily]
  *
  * @returns {{
  *   words: Array<{text, fontSize, fontWeight, lineHeight, letterSpacing, isHero}>,
- *   heroIdx: number,    — index in words[], or -1 if no hero
+ *   heroIdx: number,   : index in words[] or -1 if no hero
  *   fits: boolean,
  *   estimatedHeight: number,
  * }}
  */
 // ─── Punctuation-only token filter ───────────────────────────────────────────
-// Strips tokens that are entirely punctuation (":", "।", "—", etc.).
+// Strips tokens that are entirely punctuation (":", "।", "-", etc.).
 // These add nothing visually and confuse the layout scoring.
 const PUNCT_ONLY = /^[\u0964\u0965,:;.!?\u2014\u2013\-"'\u2018\u2019\u201c\u201d()[\]|&*#@%^~`+]+$/u;
 
@@ -388,23 +388,23 @@ export function expressiveLayout(
 }
 // ─── ExpressiveTitle ─────────────────────────────────────────────────────
 /**
- * React component — renders a headline fitted to `areaWidth × areaHeight`.
+ * React component: renders a headline fitted to `areaWidth × areaHeight`.
  *
  * Sizing strategy (same as textFit / fitty.js):
  *   1. `expressiveLayout` provides font-family / weight / letter-spacing tokens.
  *   2. A position:fixed hidden div lets the *browser* measure the real rendered
- *      height via getBoundingClientRect() — the only method that matches actual
+ *      height via getBoundingClientRect(): the only method that matches actual
  *      line-wrapping for condensed faces like League Gothic.
  *   3. Binary search on that DOM height → font-size that genuinely fits.
  *   4. Explicit `buttonHeight = textH + ∼28% descent` so overflow:hidden clips
  *      BELOW descenders (g, y, j, p, q) rather than through them.
  *
  * Props:
- *   title        {string}   — headline text
- *   areaWidth    {number}   — available px width
- *   areaHeight   {number}   — available px height
- *   marginBottom {number}   — margin below the button (for dot nav clearance)
- *   onClick      {Function} — called when the headline is tapped/clicked
+ *   title        {string}  : headline text
+ *   areaWidth    {number}  : available px width
+ *   areaHeight   {number}  : available px height
+ *   marginBottom {number}  : margin below the button (for dot nav clearance)
+ *   onClick      {Function}: called when the headline is tapped/clicked
  */
 export const ExpressiveTitle = ({
   title,
@@ -449,7 +449,7 @@ export const ExpressiveTitle = ({
     // Google Sans / similar (lh ~1.1–1.2): line-height absorbs most of it.
     // Devanagari / Hind (lh≥1.25): leading already covers matras.
     // We bake the descent into the binary search condition so the found
-    // font-size guarantees textH + descentPx ≤ areaHeight — no overflow clipping.
+    // font-size guarantees textH + descentPx ≤ areaHeight: no overflow clipping.
     const lineH = w0.lineHeight;
     const descentFactor = lineH >= 1.25 ? 0.08 : lineH > 1 ? 0.12 : 0.28; // NOSONAR
 
@@ -475,7 +475,7 @@ export const ExpressiveTitle = ({
     }
     const textH = el.getBoundingClientRect().height;
     const descentPx = Math.ceil(fs * descentFactor);
-    // min() is a safety net only — the binary search already guarantees fit.
+    // min() is a safety net only: the binary search already guarantees fit.
     const buttonH = Math.min(Math.ceil(textH) + descentPx, areaHeight);
 
     setDomFit({ fontSize: fs, buttonHeight: buttonH });
@@ -487,7 +487,7 @@ export const ExpressiveTitle = ({
 
   return (
     <>
-      {/* Off-screen measurement node — position:fixed keeps it out of all flow. */}
+      {/* Off-screen measurement node: position:fixed keeps it out of all flow. */}
       <div
         ref={measureRef}
         aria-hidden="true"

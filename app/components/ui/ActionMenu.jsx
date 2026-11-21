@@ -7,13 +7,29 @@ const MARGIN = 10; // min gap from every viewport edge
 const SUB_GAP = 4; // gap between the menu panel and a flyout submenu
 const CLOSE_DELAY = 150; // hover-intent delay before a submenu closes (ms)
 
+// Advance to the next non-disabled item index (wraps around). Falls back to
+// `current` when every item is disabled.
+const nextEnabledIndex = (items, current, dir) => {
+  const n = items.length;
+  if (!n) return current;
+  let idx = current;
+  for (let i = 0; i < n; i++) {
+    idx = (idx + dir + n) % n;
+    if (!items[idx]?.disabled) return idx;
+  }
+  return current;
+};
+
 /**
- * ActionMenu — a keyboard-accessible popover menu built on Popup (portal,
+ * ActionMenu: a keyboard-accessible popover menu built on Popup (portal,
  * auto-flip) with a transparent full-screen backdrop for outside-click close.
  *
  * items: Array<{
- *   label, icon?, onSelect?, danger?, divider?, submenu?, keepOpen?, checked?
+ *   label, icon?, onSelect?, danger?, divider?, submenu?, keepOpen?, checked?,
+ *   disabled?
  * }>
+ *   - `disabled: true` greys the item out and makes it non-activatable (skipped
+ *     by keyboard navigation and hover).
  *   - `divider: true` renders a hairline.
  *   - `submenu` (array of items) renders `label` as a parent item with a right
  *     chevron; hovering/focusing it opens a flyout sub-panel to the side listing
@@ -30,7 +46,7 @@ const CLOSE_DELAY = 150; // hover-intent delay before a submenu closes (ms)
  * Props:
  *   anchor     – getBoundingClientRect() snapshot of the trigger
  *   items      – item array (above)
- *   onClose    – () => void; called on Escape, outside click, or after a select
+ *   onClose    – () => void; called on Escape, outside click or after a select
  *   triggerRef – optional ref; focused on Escape
  *   className  – extra classes on the panel
  */
@@ -49,7 +65,9 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
     }
   }
 
-  const [activeIndex, setActiveIndex] = useState(0); // top-level focus index
+  const [activeIndex, setActiveIndex] = useState(
+    () => nextEnabledIndex(topItems, -1, 1), // top-level focus index
+  );
   const [openSub, setOpenSub] = useState(null); // top-level index of open submenu
   const [subIndex, setSubIndex] = useState(0); // focus index within the open submenu
   const [subPos, setSubPos] = useState(null); // measured {left,top} for the flyout
@@ -74,6 +92,7 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
   useEffect(() => () => clearClose(), []);
 
   const activate = (item) => {
+    if (item.disabled) return;
     item.onSelect?.();
     if (!item.keepOpen) onClose();
   };
@@ -132,16 +151,16 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
       } else {
         if (e.key === "ArrowDown") {
           e.preventDefault();
-          setActiveIndex((i) => (i + 1) % top.length);
+          setActiveIndex((i) => nextEnabledIndex(top, i, 1));
         } else if (e.key === "ArrowUp") {
           e.preventDefault();
-          setActiveIndex((i) => (i - 1 + top.length) % top.length);
+          setActiveIndex((i) => nextEnabledIndex(top, i, -1));
         } else if (e.key === "Home") {
           e.preventDefault();
-          setActiveIndex(0);
+          setActiveIndex(nextEnabledIndex(top, -1, 1));
         } else if (e.key === "End") {
           e.preventDefault();
-          setActiveIndex(top.length - 1);
+          setActiveIndex(nextEnabledIndex(top, top.length, -1));
         } else if (e.key === "ArrowRight") {
           if (top[s.activeIndex]?.submenu) {
             e.preventDefault();
@@ -226,12 +245,15 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
                 role="menuitem"
                 aria-haspopup={hasSub ? "menu" : undefined}
                 aria-expanded={hasSub ? expanded : undefined}
-                tabIndex={active ? 0 : -1}
+                aria-disabled={item.disabled ? true : undefined}
+                disabled={item.disabled}
+                tabIndex={item.disabled ? -1 : active ? 0 : -1}
                 ref={(n) => {
                   itemRefs.current[idx] = n;
                 }}
-                className={`um-menu__item ${item.danger ? "um-menu__item--danger" : ""}`}
+                className={`um-menu__item ${item.danger ? "um-menu__item--danger" : ""} ${item.disabled ? "um-menu__item--disabled" : ""}`}
                 onMouseEnter={() => {
+                  if (item.disabled) return;
                   clearClose();
                   setActiveIndex(idx);
                   if (hasSub) openSubmenu(idx);
@@ -239,6 +261,7 @@ export const ActionMenu = ({ anchor, items = [], onClose, triggerRef, className 
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (item.disabled) return;
                   if (hasSub) {
                     if (expanded) setOpenSub(null);
                     else openSubmenu(idx);

@@ -64,7 +64,7 @@ const DISABLED_STATUS = {
 };
 
 const facade = {
-  // No-op by design — matches the real engine, where sync is intentionally not
+  // No-op by design: matches the real engine, where sync is intentionally not
   // continuous (changes push on the next daily/manual sync, not per-edit).
   schedulePush: () => {},
 
@@ -80,7 +80,7 @@ const facade = {
       engine.disableSync();
       return;
     }
-    // Engine never loaded — nothing to tear down; just clear the flag.
+    // Engine never loaded: nothing to tear down; just clear the flag.
     try {
       localStorage.setItem('sync_enabled', 'false');
     } catch {

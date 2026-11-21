@@ -17,7 +17,7 @@ import { useWidgetInstancesStore } from '../../../app/store/useWidgetInstancesSt
 
 import { Widget as EventsWidget } from '../../../app/widgets/events/Widget';
 
-describe('EventsWidget — empty state', () => {
+describe('EventsWidget: empty state', () => {
   beforeEach(() => {
     vi.stubGlobal('chrome', undefined);
     localStorage.clear();
@@ -43,7 +43,7 @@ describe('EventsWidget — empty state', () => {
   });
 });
 
-describe('EventsWidget — with events', () => {
+describe('EventsWidget: with events', () => {
   beforeEach(() => {
     vi.stubGlobal('chrome', undefined);
     localStorage.clear();
@@ -85,7 +85,7 @@ describe('BookmarksWidget', () => {
 
   it('renders some content', () => {
     render(<BookmarksWidget id="bookmarks" />);
-    // Empty state renders an SVG + button — innerHTML is non-empty even with no text
+    // Empty state renders an SVG + button: innerHTML is non-empty even with no text
     expect(document.body.innerHTML.length).toBeGreaterThan(0);
   });
 
@@ -122,7 +122,7 @@ describe('BookmarksWidget', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Weather Widget — shows "no API key" or "no location" state
+// Weather Widget: shows "no API key" or "no location" state
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Widget as WeatherWidget } from '../../../app/widgets/weather/Widget';
@@ -149,7 +149,7 @@ describe('WeatherWidget', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WidgetCatalog — modal listing available widgets
+// WidgetCatalog: modal listing available widgets
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { WidgetCatalog } from '../../../app/widgets/WidgetCatalog';
@@ -180,7 +180,7 @@ describe('WidgetCatalog', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BaseWidget — covers menu/modal toggle code paths
+// BaseWidget: covers menu/modal toggle code paths
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { BaseWidget } from '../../../app/widgets/BaseWidget';

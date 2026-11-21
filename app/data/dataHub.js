@@ -1,7 +1,7 @@
 /**
- * DataHub — a single shared, timestamped store for all API-fetched data.
+ * DataHub: a single shared, timestamped store for all API-fetched data.
  *
- * Canvas, Focus Mode, and the background service worker all read and write
+ * Canvas, Focus Mode and the background service worker all read and write
  * through this one hub instead of running independent fetch/poll cycles.
  *
  * Storage: `chrome.storage.local['um_datahub']` (falls back to localStorage in
@@ -39,7 +39,7 @@ let storageListenerAttached = false;
 let writeChain = Promise.resolve();
 
 function emit() {
-  // Per-listener isolation — a single throwing listener must not abort the rest
+  // Per-listener isolation: a single throwing listener must not abort the rest
   // (and, since emit() runs inside writeEntry's write-chain, a throw would
   // otherwise reject a subsequent write). Matches sharedClock._notify().
   for (const fn of listeners) {
@@ -127,7 +127,7 @@ export function subscribe(listener) {
 
 // Coalesce bursts of writes (e.g. the service worker's multi-namespace prefetch)
 // into a single full-hub serialize + storage write. The in-memory `snapshot` and
-// `emit()` stay immediate — only the durable `persist` is debounced, so N rapid
+// `emit()` stay immediate: only the durable `persist` is debounced, so N rapid
 // writeEntry/removeEntry calls produce one storage round-trip instead of N.
 let persistTimer = null;
 
@@ -163,7 +163,7 @@ export function writeEntry(namespace, data, meta = {}) {
       [namespace]: { data, updatedAt: Date.now(), ...meta },
     };
     snapshot = hub;
-    // Notify subscribers immediately — don't gate live propagation on the
+    // Notify subscribers immediately: don't gate live propagation on the
     // storage round-trip.
     emit();
     schedulePersist();

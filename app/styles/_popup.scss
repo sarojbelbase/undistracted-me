@@ -20,7 +20,7 @@
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Hero
-//   Top row:   left (date + clock) · right (weather) — one flex, same height
+//   Top row:   left (date + clock) · right (weather): one flex, same height
 //   Below:     BS date → greeting (stacked)
 //   Bottom-right: sun-event chip
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -217,7 +217,7 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Section chrome — shared border-bottom + padding across sections
+// Section chrome: shared border-bottom + padding across sections
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .popup-section {
@@ -279,7 +279,7 @@
   letter-spacing: -0.01em;
 }
 
-// Shared icon action buttons — block + save side by side
+// Shared icon action buttons: block + save side by side
 .popup-ctab__actions {
   display: flex;
   align-items: center;
@@ -312,7 +312,7 @@
     border-color: var(--w-accent);
   }
 
-  // Tooltip — appears on hover, reads from title attribute
+  // Tooltip: appears on hover, reads from title attribute
   &:hover::after {
     content: attr(title);
     position: absolute;
@@ -354,7 +354,7 @@
     border-color: var(--w-accent);
   }
 
-  // Saved / bookmarked state — green
+  // Saved / bookmarked state: green
   &--saved {
     background: rgba(34, 197, 94, 0.1);
     color: var(--w-success);
@@ -373,7 +373,7 @@
   }
 }
 
-// Timer picker — compact segmented control row
+// Timer picker: compact segmented control row
 .popup-ctab__timer-row {
   display: flex;
   align-items: center;
@@ -442,7 +442,7 @@
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Blocked Sites (popup section — uses shared .chip + .chips)
+// Blocked Sites (popup section: uses shared .chip + .chips)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .popup-blocked {
@@ -457,7 +457,7 @@
   margin-bottom: 8px;
 }
 
-// Blocked chip — subtle accent border, no shield icon
+// Blocked chip: subtle accent border, no shield icon
 .chip--blocked {
   border-color: color-mix(in srgb, var(--w-accent) 20%, transparent);
 }

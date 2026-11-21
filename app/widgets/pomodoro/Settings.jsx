@@ -105,7 +105,7 @@ export const PomodoroSettings = ({ id }) => {
       <div className="flex flex-col gap-3">
         <span className="w-label">Stats</span>
 
-        {/* Stat chips — evenly spaced grid */}
+        {/* Stat chips: evenly spaced grid */}
         <div className="pom-stats-grid">
           <div className="pom-stat-chip">
             <span className="pom-stat-chip__value">{sessionCount}</span>

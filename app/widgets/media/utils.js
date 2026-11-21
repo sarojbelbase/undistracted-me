@@ -4,7 +4,7 @@ import { track, TELEMETRY_EVENTS } from '../../utilities/telemetry';
 // Set VITE_SPOTIFY_CLIENT_ID in your .env file.
 // 1. Go to https://developer.spotify.com/dashboard and create an app.
 // 2. Add redirect URI: https://<your-extension-id>.chromiumapp.org/
-// 3. Add the Client ID to .env  (it is XOR-encoded at build time — not plain text in bundle).
+// 3. Add the Client ID to .env  (it is XOR-encoded at build time: not plain text in bundle).
 export const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
 
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-private user-read-email';
@@ -34,13 +34,13 @@ const generateCodeChallenge = async (verifier) => {
 const getRedirectUri = () => {
   if (isWebMode()) return `${globalThis.location.origin}/callbacks/auth.html`;
   // Extension: chrome.identity.getRedirectURL() returns the provider-registered
-  // redirect URL — https://<id>.chromiumapp.org/ on Chrome/Chromium and
+  // redirect URL: https://<id>.chromiumapp.org/ on Chrome/Chromium and
   // https://sha1(<gecko-id>).extensions.allizom.org/ on Firefox (Firefox hashes
-  // the id — it's not the raw id). This exact URI must be
+  // the id: it's not the raw id). This exact URI must be
   // added to the Spotify Developer Dashboard, otherwise launchWebAuthFlow fails
   // with "Authorization page could not be loaded."
   const url = typeof chrome !== 'undefined' && chrome.identity?.getRedirectURL?.(); // eslint-disable-line no-undef
-  if (!url) throw new Error('chrome.identity unavailable — load the extension from chrome://extensions before connecting.');
+  if (!url) throw new Error('chrome.identity unavailable: load the extension from chrome://extensions before connecting.');
   return url;
 };
 
@@ -67,13 +67,13 @@ export const connectSpotify = async () => {
 
   let code;
   if (isWebMode()) {
-    // Popup-based PKCE flow — mirrors the Google web auth pattern.
+    // Popup-based PKCE flow: mirrors the Google web auth pattern.
     code = await new Promise((resolve, reject) => {
       const w = 500, h = 700;
       const left = Math.round(globalThis.screen.width / 2 - w / 2);
       const top = Math.round(globalThis.screen.height / 2 - h / 2);
       const popup = globalThis.open(authUrl, 'spotify-auth', `width=${w},height=${h},left=${left},top=${top},popup=1`);
-      if (!popup) { reject(new Error('Popup blocked — allow popups for this site')); return; }
+      if (!popup) { reject(new Error('Popup blocked: allow popups for this site')); return; }
 
       const onMessage = (e) => {
         if (e.origin !== globalThis.location.origin) return;
@@ -98,7 +98,7 @@ export const connectSpotify = async () => {
     // Extension flow: chrome.identity.launchWebAuthFlow
     const responseUrl = await new Promise((resolve, reject) => {
       if (typeof chrome === 'undefined' || !chrome.identity?.launchWebAuthFlow) { // eslint-disable-line no-undef
-        reject(new Error('chrome.identity API not available — load the extension from chrome://extensions'));
+        reject(new Error('chrome.identity API not available: load the extension from chrome://extensions'));
         return;
       }
       chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (url) => { // eslint-disable-line no-undef
@@ -134,7 +134,7 @@ export const connectSpotify = async () => {
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
   if (isWebMode()) {
-    // sessionStorage: tokens are sensitive — scoped to the session to limit XSS exposure.
+    // sessionStorage: tokens are sensitive: scoped to the session to limit XSS exposure.
     // CONNECTED_FLAG and profile stay in localStorage (non-sensitive).
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify(stored));
   } else {
@@ -187,7 +187,7 @@ async function getExtensionAccessToken() {
         localStorage.setItem(CONNECTED_FLAG, '1');
       }
     } catch { /* ignore malformed legacy data */ }
-    localStorage.removeItem(TOKEN_KEY); // always clear — even if parse failed
+    localStorage.removeItem(TOKEN_KEY); // always clear: even if parse failed
   }
 
   const result = await globalThis.chrome?.storage?.local?.get(TOKEN_KEY) ?? {}; // eslint-disable-line no-undef
@@ -210,7 +210,7 @@ async function getExtensionAccessToken() {
     }),
   });
 
-  // Don't clear stored tokens on a transient refresh failure — only disconnectSpotify() should do that.
+  // Don't clear stored tokens on a transient refresh failure: only disconnectSpotify() should do that.
   // This prevents the connect screen from reappearing after a network hiccup or token expiry.
   if (!res.ok) return null;
 
@@ -240,7 +240,7 @@ export const disconnectSpotify = () => {
   track(TELEMETRY_EVENTS.ACCOUNT_DISCONNECTED, { service: 'spotify' });
 };
 
-// Synchronous — in web mode validates that a token actually exists (it lives in
+// Synchronous: in web mode validates that a token actually exists (it lives in
 // sessionStorage, which is wiped on restart) so the "connected" flag can't go
 // stale and report a phantom connected state with no token.
 export const isSpotifyConnected = () => {

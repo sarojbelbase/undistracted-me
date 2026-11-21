@@ -7,7 +7,7 @@
  *
  * ── Contract (to swap the upstream provider) ─────────────────────────────────
  * INPUT  (client → proxy):
- *   symbol — ticker (letters, digits, and . - ^ =)
+ *   symbol: ticker (letters, digits and . - ^ =)
  *
  * OUTPUT (proxy → client, normalized):
  *   { prices: number[], ltp: number, prevClose: number, open: number|null,

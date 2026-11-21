@@ -1,10 +1,10 @@
 /**
- * SegmentedControl — horizontal pill-track toggle for widget settings panels
+ * SegmentedControl: horizontal pill-track toggle for widget settings panels
  * and anywhere there are multiple options.
  *
  * Renders a subtle pill-shaped track with a sliding accent-tinted thumb via the
  * `.um-seg` / `.um-seg--full` design-system classes. The thumb is measured to
- * the active button and animates (left/width) when the selection changes — the
+ * the active button and animates (left/width) when the selection changes: the
  * canonical "multiple-option" selector used app-wide (Pocket "Group by",
  * Appearance, Focus Mode, Notes, widget settings).
  *
@@ -17,7 +17,7 @@
  *             false (default) = fill the parent width (settings rows)
  *  size     – "sm" (Pocket toolbar) | "md" | "lg" (settings rows, default)
  *  variant  – "accent" (default, sliding accent thumb) | "subtle" (quiet raised
- *             pill — for inline toolbars like Pocket "Group by")
+ *             pill: for inline toolbars like Pocket "Group by")
  *  ariaLabel – accessible group name (falls back to label)
  */
 
@@ -32,7 +32,7 @@ export const SegmentedControl = ({ label, options, value, onChange, inline = fal
     const track = trackRef.current;
     if (!track) return;
     const btn = [...track.querySelectorAll("button")].find(
-      (b) => b.dataset.value === value,
+      (b) => b.dataset.value === String(value),
     );
     if (!btn) return;
     const tr = track.getBoundingClientRect();

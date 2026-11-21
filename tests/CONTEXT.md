@@ -1,4 +1,4 @@
-# Test Coverage — Undistracted Me
+# Test Coverage: Undistracted Me
 
 > **83 tests · 4 spec files · Playwright / Chromium**
 > Run: `bun test` (headless) · `bun run test:ui` (interactive) · `bun run test:headed`
@@ -21,7 +21,7 @@ tests/
 
 ---
 
-## `main-view.spec.js` — 10 tests
+## `main-view.spec.js`: 10 tests
 
 Classic mode (`showWidgets=false`): the full-screen Nepali date centred on a dark background.
 
@@ -39,12 +39,12 @@ Classic mode (`showWidgets=false`): the full-screen Nepali date centred on a dar
 | 10 | No clipping at Tablet (768×1024) | All 3 elements within viewport |
 
 ### Not yet covered
-- [ ] `language = 'ne'` font actually loads (Akshar) — no font-load assertion
-- [ ] Very small viewport (e.g. 375×667 mobile) — 9vw font may still overflow
+- [ ] `language = 'ne'` font actually loads (Akshar): no font-load assertion
+- [ ] Very small viewport (e.g. 375×667 mobile): 9vw font may still overflow
 
 ---
 
-## `settings.spec.js` — 12 tests
+## `settings.spec.js`: 12 tests
 
 | # | Test | What is verified |
 |---|------|-----------------|
@@ -69,7 +69,7 @@ Classic mode (`showWidgets=false`): the full-screen Nepali date centred on a dar
 
 ---
 
-## `widgets.spec.js` — 10 tests
+## `widgets.spec.js`: 10 tests
 
 Grid-level system tests with all default widgets mounted.
 
@@ -98,7 +98,7 @@ Grid-level system tests with all default widgets mounted.
 
 ---
 
-## `widget-behaviors.spec.js` — 51 tests
+## `widget-behaviors.spec.js`: 51 tests
 
 Each describe block mounts **exactly one widget** in isolation via `widget_instances` in localStorage.
 

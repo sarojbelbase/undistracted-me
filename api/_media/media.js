@@ -1,10 +1,10 @@
 /**
- * Media manifest — assets live in Cloudflare R2 (bucket `undistracted-me-media`),
+ * Media manifest: assets live in Cloudflare R2 (bucket `undistracted-me-media`),
  * served publicly at https://media.undistracted.me (zero egress).
  *
  * Rain audio is ~30 MB, which exceeds Cloudflare Pages static-file limit
  * (25 MiB), so it must be served from R2 rather than Pages static assets.
- * The file is Ogg Vorbis — served as `audio/ogg` with an `.ogg` name so the
+ * The file is Ogg Vorbis: served as `audio/ogg` with an `.ogg` name so the
  * <audio> element decodes it correctly (a previous `.mp3`/`audio/mpeg` upload
  * of the same Ogg bytes broke decoding).
  */

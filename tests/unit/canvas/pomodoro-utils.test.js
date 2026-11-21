@@ -3,13 +3,13 @@
  *
  * What can go wrong:
  *  – formatTime(0) must be '00:00' not '0:0' (the timer UI relies on fixed
- *    character width — variable-width would cause the display to jitter).
+ *    character width: variable-width would cause the display to jitter).
  *  – formatTime(3600) for exactly 60 minutes: minutes = 60, seconds = 00.
  *    Timer countdowns go through 60:00 on the way to presets above 1 hour.
  *  – The PRESETS array drives a picker; if a preset's secs is 0 or negative
  *    the timer would start in an already-expired state.
  *  – The 'Custom' preset has secs = null; code that does `preset.secs * 1000`
- *    must handle null separately — formatTime(null) must not NaN-crash.
+ *    must handle null separately: formatTime(null) must not NaN-crash.
  */
 
 import { describe, it, expect } from 'vitest';

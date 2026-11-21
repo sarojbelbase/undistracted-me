@@ -24,7 +24,7 @@ const getTimeLabel = () => {
 // ─── Ghost text button (no border, no band) ───────────────────────────────────
 
 const GhostBtn = ({ onClick, children, isDark }) => {
-  // Direct DOM style mutation — no React state needed, zero re-renders on hover.
+  // Direct DOM style mutation: no React state needed, zero re-renders on hover.
   const base = isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.28)';
   const hover = isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.72)';
   return (
@@ -72,7 +72,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
     });
     return () => { mounted = false; };
   }, []);
-  // Pick a random palette once per overlay mount — independent of user accent
+  // Pick a random palette once per overlay mount: independent of user accent
   const orbRgb = useMemo(
     () => ORB_RGBS[Math.floor(Math.random() * ORB_RGBS.length)],
     []
@@ -169,7 +169,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
         border: 'none',
       }}
     >
-      {/* ── Orb field — viewport-sized so rotation never compresses them ───── */}
+      {/* ── Orb field: viewport-sized so rotation never compresses them ───── */}
       {/*
         Key insight: orbs are positioned with fixed vw/vh units so they keep
         their true circular shape regardless of the parent's rotation transform.
@@ -186,7 +186,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
           transformOrigin: '50% 50%',
         }}
       >
-        {/* Primary orb — dead centre, large breathing bloom */}
+        {/* Primary orb: dead centre, large breathing bloom */}
         <div style={{
           position: 'absolute',
           width: '70vmin',
@@ -198,7 +198,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
           filter: 'blur(52px)',
           animation: 'lookaway-bloom 8s ease-in-out infinite',
         }} />
-        {/* Secondary orb — offset top-right */}
+        {/* Secondary orb: offset top-right */}
         <div style={{
           position: 'absolute',
           width: '50vmin',
@@ -209,7 +209,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
           background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},${orbOpacity2}) 0%, transparent 65%)`,
           filter: 'blur(64px)',
         }} />
-        {/* Tertiary orb — offset bottom-left, counter-rotation */}
+        {/* Tertiary orb: offset bottom-left, counter-rotation */}
         <div style={{
           position: 'absolute',
           width: '44vmin',
@@ -224,7 +224,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
         }} />
       </div>
 
-      {/* ── Subtle conic shimmer — slow independent counter-rotation ──────── */}
+      {/* ── Subtle conic shimmer: slow independent counter-rotation ──────── */}
       <div
         aria-hidden
         style={{
@@ -236,7 +236,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
         }}
       />
 
-      {/* ── Deep vignette — crushes edges to match background ─────────────── */}
+      {/* ── Deep vignette: crushes edges to match background ─────────────── */}
       <div
         aria-hidden
         style={{
@@ -247,7 +247,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
         }}
       />
 
-      {/* ── Time label — top, orb-tinted ────────────────────────────────────── */}
+      {/* ── Time label: top, orb-tinted ────────────────────────────────────── */}
       <div
         className="la-time-label"
         style={{ color: timelabelRgba }}
@@ -278,7 +278,7 @@ export const LookAway = ({ onDismiss, onSnooze, duration = 60, isDark = true }) 
         </div>
       </div>
 
-      {/* ── Ghost action row — skip + lock screen ─────────────────────────── */}
+      {/* ── Ghost action row: skip + lock screen ─────────────────────────── */}
       <div className="la-actions">
         {/* ── Primary actions: Skip + Lock Screen ── */}
         <div style={{ display: 'flex', gap: 32 }}>

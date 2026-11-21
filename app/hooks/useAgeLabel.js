@@ -16,7 +16,7 @@ export function useAgeLabel(ts) {
   useEffect(() => {
     setLabel(humanizeAge(ts) ?? '');
     if (!ts) return;
-    // onClockTick fires every second — only call humanizeAge when the label
+    // onClockTick fires every second: only call humanizeAge when the label
     // actually changed (it only flips every ~30 s), so this is near-zero overhead.
     return onClockTick(() => {
       const next = humanizeAge(ts) ?? '';

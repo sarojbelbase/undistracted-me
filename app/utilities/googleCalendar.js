@@ -39,12 +39,12 @@ function saveGcalSyncedAt() {
   try { localStorage.setItem(GCAL_SYNCED_AT_KEY, JSON.stringify(Date.now())); } catch { /* ignore */ }
 }
 
-/** Synchronous check — true if cached events exist (non-PII boolean flag). */
+/** Synchronous check: true if cached events exist (non-PII boolean flag). */
 export function hasCachedGcalEvents() {
   return localStorage.getItem(GCAL_HAS_CACHE_FLAG) === '1';
 }
 
-// Module-level memory cache — populated on first chrome.storage.local read,
+// Module-level memory cache: populated on first chrome.storage.local read,
 // updated synchronously on every write/clear so subsequent reads within the
 // same page session are instant (no IPC round-trip).
 let _eventsMemCache = null; // null = not yet loaded
@@ -76,7 +76,7 @@ export async function loadCachedGcalEvents() {
 }
 
 async function saveCachedGcalEvents(events) {
-  _eventsMemCache = events; // update memory immediately — reads are instant after this
+  _eventsMemCache = events; // update memory immediately: reads are instant after this
   await globalThis.chrome?.storage?.local?.set({ [GCAL_CACHE_KEY]: events }); // eslint-disable-line no-undef
   localStorage.setItem(GCAL_HAS_CACHE_FLAG, '1');
 }
@@ -128,7 +128,7 @@ async function clearProfileCache() {
 
 // The service worker (bg.js) prefetches fresh events on its own 30-min alarm and
 // writes them to chrome.storage.local. A page left open >30 min would otherwise
-// keep serving the stale in-memory copy forever — this listener resets the
+// keep serving the stale in-memory copy forever: this listener resets the
 // memory caches so the next loadCachedGcalEvents()/loadCachedProfile() re-reads
 // storage. (Contacts has the same pattern via invalidateContactsCache().)
 if (globalThis.chrome?.storage?.onChanged) {
@@ -201,7 +201,7 @@ async function fetchEventsWithToken(token) {
  *
  * @param {boolean} interactive - Whether to prompt the user for auth.
  *   Pass false (default) for background syncs so the extension never triggers
- *   the OAuth UI silently — Chrome reports those failures to the Errors panel.
+ *   the OAuth UI silently: Chrome reports those failures to the Errors panel.
  *   Pass true only when the user explicitly requests sign-in.
  */
 export async function getCalendarEvents(interactive = false) {
@@ -249,7 +249,7 @@ export async function getCalendarEvents(interactive = false) {
       err.message?.includes('cancelled');
     if (isAuthError) {
       setDisconnectedFlag();
-      throw err; // caller catches and falls back to cache — no unhandled rejection
+      throw err; // caller catches and falls back to cache: no unhandled rejection
     }
     console.warn('[GoogleCalendar]', err.message);
     throw err;
@@ -257,7 +257,7 @@ export async function getCalendarEvents(interactive = false) {
 }
 
 /**
- * Silent check — true if the user has already granted consent.
+ * Silent check: true if the user has already granted consent.
  * Returns false immediately if the user previously explicitly disconnected.
  * Does NOT show a consent prompt.
  */

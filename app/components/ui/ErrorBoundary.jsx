@@ -1,7 +1,7 @@
 import { Component } from 'react';
 
 /**
- * ErrorBoundary — catches render errors in a subtree so one crashing component
+ * ErrorBoundary: catches render errors in a subtree so one crashing component
  * can't blank its parent (e.g. a single widget throwing must not empty the whole
  * grid). Preact's compat layer supports `getDerivedStateFromError` +
  * `componentDidCatch`, so this works in both the extension and web builds.
@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Log for diagnostics — production builds keep console.error for real
+    // Log for diagnostics: production builds keep console.error for real
     // runtime errors (only console.log/warn/debug are stripped).
     console.error('[ErrorBoundary]', error, info?.componentStack ?? '');
   }
@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component {
 }
 
 /**
- * Compact fallback for a single widget cell — quiet, centered, with a reset
+ * Compact fallback for a single widget cell: quiet, centered, with a reset
  * affordance so the user isn't stuck with a dead card after a transient error.
  */
 export const WidgetErrorFallback = ({ reset }) => (

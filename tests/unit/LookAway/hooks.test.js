@@ -50,7 +50,7 @@ const buildChrome = ({
 const advanceTick = (ms = 1000) => act(() => { vi.advanceTimersByTime(ms); });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// useLookAwayScheduler — dev fallback (no Chrome API)
+// useLookAwayScheduler: dev fallback (no Chrome API)
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('useLookAwayScheduler – dev fallback (no Chrome API)', () => {
@@ -124,7 +124,7 @@ describe('useLookAwayScheduler – dev fallback (no Chrome API)', () => {
       useLookAwayScheduler({ enabled: true, intervalMins, onTrigger })
     );
 
-    // Advance 30s — old timer (1 min) hasn't fired yet
+    // Advance 30s: old timer (1 min) hasn't fired yet
     advanceTick(30_000);
     // Switch to 2-minute interval
     intervalMins = 2;
@@ -164,7 +164,7 @@ describe('useLookAwayScheduler – dev fallback (no Chrome API)', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// useLookAwayScheduler — Chrome extension paths
+// useLookAwayScheduler: Chrome extension paths
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('useLookAwayScheduler – Chrome API paths', () => {
@@ -352,7 +352,7 @@ describe('useLookAwayScheduler – Chrome API paths', () => {
   // ── Mount-time stale-flag check ───────────────────────────────────────────
 
   it('triggers immediately when a fresh lookaway_due flag exists on mount', () => {
-    const freshTs = Date.now() - 5_000; // 5 seconds ago — well within any grace period
+    const freshTs = Date.now() - 5_000; // 5 seconds ago: well within any grace period
     const mock = buildChrome({
       localGet: vi.fn((_, cb) => cb({ lookaway_due: freshTs })),
     });

@@ -1,5 +1,5 @@
 /**
- * Undistracted Me — Extension Popup v3
+ * Undistracted Me: Extension Popup v3
  * Thin orchestrator: holds all state / data-fetching logic and delegates
  * rendering to components. Styling lives in _popup.scss.
  */
@@ -37,7 +37,7 @@ import { PopupFooter } from "../components/Popup/PopupFooter";
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** Returns { type, label, duration } for the next solar event, or null. */
+/** Returns { type, label, duration } for the next solar event or null. */
 const relSun = (lat, lon) => {
   if (typeof lat !== "number" || typeof lon !== "number") return null;
   const now = new Date();
@@ -77,11 +77,11 @@ const relSun = (lat, lon) => {
 
 export const PopupApp = () => {
   const [clockTick, setClockTick] = useState(0);
-  // Count a popup open once per mount — the primary "popup usage" signal.
+  // Count a popup open once per mount: the primary "popup usage" signal.
   useEffect(() => {
     track(TELEMETRY_EVENTS.POPUP_OPENED);
   }, []);
-  // The popup clock shows HH:MM — tick at minute granularity, not 60×/minute.
+  // The popup clock shows HH:MM: tick at minute granularity, not 60×/minute.
   const minuteRef = useRef(Math.floor(Date.now() / 60000));
   useEffect(() => onClockTick(() => {
     const m = Math.floor(Date.now() / 60000);
@@ -93,7 +93,7 @@ export const PopupApp = () => {
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const mode = useSettingsStore((s) => s.mode);
-  // Resolve 'auto' once — same sun-time logic that applyTheme + themeInit use.
+  // Resolve 'auto' once: same sun-time logic that applyTheme + themeInit use.
   // Previously isDark used window.matchMedia which could disagree with
   // computeAutoMode (e.g. daytime + OS dark → mismatched CSS vars vs data-mode).
   const resolvedMode = mode === 'auto' ? computeAutoMode() : (mode || 'light');
@@ -160,7 +160,7 @@ export const PopupApp = () => {
   };
 
   // ── Shared bookmarks ──────────────────────────────────────────────────────
-  // Pure read during render — the one-time legacy migration (a localStorage
+  // Pure read during render: the one-time legacy migration (a localStorage
   // write) runs in an effect so the render phase stays side-effect free.
   const [bookmarks, setBookmarks] = useState(() => loadBookmarks());
 

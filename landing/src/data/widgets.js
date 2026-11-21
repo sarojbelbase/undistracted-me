@@ -131,7 +131,7 @@ export const widgets = [
     kind: "shot",
     slot: "hidden",
     title: "A thought, captured.",
-    text: "A sticky note on your new tab — quick to jot, quick to dismiss.",
+    text: "A sticky note on your new tab: quick to jot, quick to dismiss.",
     tooltip: "Notes",
     alt: "The notes widget in its compact mode.",
     images: [noteWidgetMode],

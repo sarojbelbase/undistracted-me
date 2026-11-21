@@ -139,7 +139,7 @@ describe('DateTodayWidget', () => {
 
 import { Widget as ClockWidget } from '../../../app/widgets/clock/Widget';
 
-// ClockWidget uses onClockTick (mocked above) — no fake timers needed.
+// ClockWidget uses onClockTick (mocked above): no fake timers needed.
 // Real timers are used so vi.setSystemTime doesn't interact with dayjs.tz().
 describe('ClockWidget', () => {
   beforeEach(() => {
@@ -162,13 +162,13 @@ describe('ClockWidget', () => {
 
   it('renders a greeting text', () => {
     render(<ClockWidget id="clock" />);
-    // Widget renders clock + greeting — body should have meaningful text
+    // Widget renders clock + greeting: body should have meaningful text
     expect(document.body.textContent.length).toBeGreaterThan(5);
   });
 
   it('renders with 24h format by default', () => {
     render(<ClockWidget id="clock" />);
-    // Default is 24h — no AM/PM period shown, just HH:MM
+    // Default is 24h: no AM/PM period shown, just HH:MM
     const timeEl = screen.getByText(/^\d{1,2}:\d{2}$/);
     expect(timeEl).toBeTruthy();
   });

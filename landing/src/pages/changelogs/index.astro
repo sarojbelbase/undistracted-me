@@ -5,9 +5,9 @@ import Footer from "../../components/Footer.astro";
 import { site } from "../../data/site.js";
 import { changelog, origin, latestVersion } from "../../data/changelog.js";
 
-const title = "Changelog & Release Notes — Undistracted Me";
+const title = "Changelog & Release Notes: Undistracted Me";
 const description =
-  "The release history of Undistracted Me: from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode and dashboard rewrite. Every version, what changed, and why.";
+  "The release history of Undistracted Me: from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode and dashboard rewrite. Every version, what changed and why.";
 
 const graph = {
   "@context": "https://schema.org",
@@ -27,7 +27,7 @@ const graph = {
         itemListElement: changelog.map((r, i) => ({
           "@type": "ListItem",
           position: i + 1,
-          name: `${r.version} — ${r.title}`,
+          name: `${r.version}: ${r.title}`,
           url: `${site.url}/changelogs/#${r.version.slice(1)}`,
         })),
       },
@@ -46,7 +46,7 @@ const graph = {
 
 <BaseLayout title={title} description={description} canonical={`${site.url}/changelogs/`} graph={graph}>
   <header class="chlog-head">
-    <a class="logo" href="/" aria-label="Undistracted Me — home"><Wordmark /></a>
+    <a class="logo" href="/" aria-label="Undistracted Me: home"><Wordmark /></a>
     <a class="chlog-install" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
   </header>
 
@@ -58,8 +58,8 @@ const graph = {
         <h1>Changelog</h1>
         <p class="chlog-sub">
           Every version of Undistracted Me, from the first Nepali-calendar new tab
-          in 2020 to the Focus Mode rewrite. What shipped, what broke, and what we
-          decided along the way — documented for the record.
+          in 2020 to the Focus Mode rewrite. What shipped, what broke and what we
+          decided along the way: documented for the record.
         </p>
         <p class="chlog-latest">Latest release: <strong>{latestVersion}</strong></p>
       </div>

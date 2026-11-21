@@ -3,7 +3,7 @@
 // Dynamic values (JS-computed colors like timelabelRgba, titleColor, etc.)
 // stay inline in JSX. Everything else lives here.
 
-// ── Time label — top of overlay ───────────────────────────────────────────────
+// ── Time label: top of overlay ───────────────────────────────────────────────
 .la-time-label {
   position: absolute;
   top: 32px;

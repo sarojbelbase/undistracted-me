@@ -1,5 +1,5 @@
 /**
- * Weather widget — expressive layout debug spec.
+ * Weather widget: expressive layout debug spec.
  *
  * Mocks Open-Meteo /forecast so the widget always renders a sunny Chicago
  * scenario (matching the inspiration screenshot) regardless of real API data.
@@ -55,7 +55,7 @@ async function setupMocks(page) {
     });
   });
 
-  // Geocoding autocomplete — return empty so it doesn't interfere
+  // Geocoding autocomplete: return empty so it doesn't interfere
   await page.route('**/geocoding-api.open-meteo.com/**', (route) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ results: [] }) });
   });
@@ -90,13 +90,13 @@ async function injectWeatherWidget(page) {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-test.describe('Weather widget — expressive layout', () => {
+test.describe('Weather widget: expressive layout', () => {
 
   test.beforeEach(async ({ page }) => {
     await setupMocks(page);
     await injectWeatherWidget(page);
 
-    // Navigate — mocks are registered before navigation so the first fetch is caught
+    // Navigate: mocks are registered before navigation so the first fetch is caught
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Wait for the widget to finish loading (temperature hero always renders)
@@ -121,14 +121,14 @@ test.describe('Weather widget — expressive layout', () => {
     // falls back to feels-like only when there is no city name. Override the
     // seeded Chicago name (keep coords so no geolocation is attempted).
     // MUST be an addInitScript (registered AFTER injectWeatherWidget's own init
-    // script) so it runs later on reload and wins over the Chicago seed —
+    // script) so it runs later on reload and wins over the Chicago seed -
     // page.evaluate would be clobbered by injectWeatherWidget on navigation.
     await page.addInitScript(() => {
       const ws = JSON.parse(localStorage.getItem('widgetSettings_weather') || '{}');
       ws.location = { lat: 41.85, lon: -87.65 };
       localStorage.setItem('widgetSettings_weather', JSON.stringify(ws));
       // Clear the per-coordinate weather cache so the reload re-fetches with an
-      // empty cityName (otherwise the cached "Chicago" payload — same locKey —
+      // empty cityName (otherwise the cached "Chicago" payload: same locKey -
       // is returned within its TTL and the city branch keeps rendering).
       localStorage.removeItem('weather_cache_v1');
     });
@@ -150,7 +150,7 @@ test.describe('Weather widget — expressive layout', () => {
     console.log('[debug] condition row text:', text);
   });
 
-  test('shows forecast hours as a numeral — dominant condition hours', async ({ page }) => {
+  test('shows forecast hours as a numeral: dominant condition hours', async ({ page }) => {
     const conditionRow = page.locator('[data-testid="weather-condition-row"]');
     await expect(conditionRow).toBeVisible();
     const text = await conditionRow.innerText();

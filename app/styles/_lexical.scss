@@ -13,7 +13,7 @@ dialog[aria-label="Link editor"]::backdrop {
   padding-left: 6px;
 }
 
-// ContentEditable element — flex so it fills available height
+// ContentEditable element: flex so it fills available height
 .lex-content {
   @extend .font-base;
 
@@ -40,7 +40,7 @@ dialog[aria-label="Link editor"]::backdrop {
     display: none;
   }
 
-  // Lexical sets dir="auto" on every block — force LTR
+  // Lexical sets dir="auto" on every block: force LTR
   [dir] {
     direction: ltr !important;
     unicode-bidi: normal !important;
@@ -48,7 +48,7 @@ dialog[aria-label="Link editor"]::backdrop {
   }
 }
 
-// Placeholder — absolutely positioned inside the relative wrapper
+// Placeholder: absolutely positioned inside the relative wrapper
 // Mode modifier classes are applied by LexicalEditor to keep font in sync with the editor.
 .lex-placeholder {
   @extend .font-base;
@@ -122,7 +122,7 @@ dialog[aria-label="Link editor"]::backdrop {
   text-underline-offset: 2px;
 }
 
-// Inline code — backtick
+// Inline code: backtick
 .lex-inline-code {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 0.82em;

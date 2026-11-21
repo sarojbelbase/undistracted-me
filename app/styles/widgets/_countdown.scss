@@ -169,15 +169,15 @@
   margin-bottom: 1rem;
 }
 
-// ── Widget face — Ghost Numeral layout ────────────────────────────────────────
+// ── Widget face: Ghost Numeral layout ────────────────────────────────────────
 //
 // Structure:
-//   .cdn-widget-face  — flex column, fills widget, relative for overlay layers
-//   .cdn-mode-label   — top-left, absolute, compact pill (Countdown/Since)
-//   .cdn-ghost-num    — oversized faint accent numeral, top-right backdrop
-//   .cdn-content-wrap — observed container; text + meta anchored bottom-left
-//   .cdn-title-text   — small secondary label (event name), up to 2 lines
-//   .cdn-time-hero    — the humanized time phrase, bold hero value
+//   .cdn-widget-face : flex column, fills widget, relative for overlay layers
+//   .cdn-mode-label  : inline pill in the header row, left of the actions
+//   .cdn-ghost-num   : oversized faint accent numeral, top-right backdrop
+//   .cdn-content-wrap: observed container; text + meta anchored bottom-left
+//   .cdn-title-text  : small secondary label (event name), up to 2 lines
+//   .cdn-time-hero   : the humanized time phrase, bold hero value
 
 .cdn-widget-face {
   flex: 1;
@@ -187,25 +187,22 @@
   gap: 8px;
   position: relative;
   min-height: 0;
-  padding: 20px 2px 8px;
+  padding: 4px 2px 8px;
 }
 
-// ── Source pill (top-left, glass) ────────────────────────────────────────────
+// ── Source pill (header row, left of the actions) ─────────────────────────────
 
 .cdn-mode-label {
-  position: absolute;
-  top: 0;
-  left: 2px;
-  font-size: 0.45rem;
-  font-weight: 800;
+  font-size: 0.5rem;
+  font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--w-ink-4);
+  color: var(--w-accent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--w-ink-1) 7%, transparent);
-  padding: 2px 6px;
+  background: color-mix(in srgb, var(--w-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w-accent) 30%, transparent);
+  padding: 2px 8px;
   border-radius: 6px;
   flex-shrink: 0;
   max-width: 100%;
@@ -244,9 +241,9 @@
   gap: 4px;
 }
 
-// Ghost numeral — oversized faint accent digit peeking from the top-right.
+// Ghost numeral: oversized faint accent digit peeking from the top-right.
 // Decorative only; content sits above it (z-index 1 on .cdn-content-wrap).
-// Clipping at the card edge is intentional — the numeral is meant to bleed.
+// Clipping at the card edge is intentional: the numeral is meant to bleed.
 .cdn-ghost-num {
   position: absolute;
   right: -8px;
@@ -260,7 +257,7 @@
   user-select: none;
 }
 
-// Title — small secondary label (the event name), clamped to 2 lines
+// Title: small secondary label (the event name), clamped to 2 lines
 .cdn-title-text {
   font-size: 12px;
   font-weight: 600;
@@ -272,7 +269,7 @@
   overflow: hidden;
 }
 
-// Time phrase — the hero value (bold, near-black)
+// Time phrase: the hero value (bold, near-black)
 .cdn-time-hero {
   font-weight: 800;
   line-height: 1.05;

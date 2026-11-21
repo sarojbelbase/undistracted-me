@@ -1,5 +1,5 @@
 /**
- * Pocket quick menu — verifies the "More actions" menu renders "Change Type" and
+ * Pocket quick menu: verifies the "More actions" menu renders "Change Type" and
  * "Change Folder" as hover flyout submenus (not the old flat inline list), and
  * that text/code rows with a source reveal an "Open at quote" quick icon beside
  * Copy.

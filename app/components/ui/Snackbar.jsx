@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
- * Snackbar — a bottom-center transient message with an optional action button,
+ * Snackbar: a bottom-center transient message with an optional action button,
  * rendered through a portal at z-index 10000 (above Popup's 9999). role="status"
  * announces it politely.
  *
  * Two parts:
- *   <SnackbarHost />        — mount once (Pocket renders it in its root)
- *   snackbar(msg, opts)     — imperative: push a message
+ *   <SnackbarHost />       : mount once (Pocket renders it in its root)
+ *   snackbar(msg, opts)    : imperative: push a message
  *
  *   snackbar("Saved to Pocket.", { action: "Undo", onAction: undo, duration: 6000 });
  *
@@ -38,7 +38,7 @@ export function SnackbarHost() {
         delete timersRef.current[msg.id];
       }, msg.duration);
     };
-    // Only the most recently mounted host renders toasts — with multiple Pocket
+    // Only the most recently mounted host renders toasts: with multiple Pocket
     // widgets on the grid, a single shared host prevents duplicate toasts. On
     // unmount the previously-active host is restored (a stack).
     const prev = activeListener;

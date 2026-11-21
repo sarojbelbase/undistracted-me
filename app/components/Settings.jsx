@@ -1,12 +1,12 @@
 /**
- * Settings — tabbed settings modal for Canvas mode.
+ * Settings: tabbed settings modal for Canvas mode.
  *
  * Tabs: General · Appearance · Accounts · Data
  *
  * Props:
  *   onClose            () => void
  *   initialTab         'general' | 'appearance' | 'accounts'
- *   onPreviewLookAway  () => void   — closes modal + shows look-away overlay
+ *   onPreviewLookAway  () => void  : closes modal + shows look-away overlay
  */
 
 
@@ -135,7 +135,7 @@ export const Settings = ({
   const [showScrollFade, setShowScrollFade] = useState(false);
 
   // Show a bottom fade only when the tab body is scrollable AND not yet at the
-  // bottom — a subtle affordance that content continues below the fold.
+  // bottom: a subtle affordance that content continues below the fold.
   const updateScrollFade = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;

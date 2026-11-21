@@ -1,22 +1,22 @@
 /**
- * Look-away & website-blocker messages — displayed during the LookAway
+ * Look-away & website-blocker messages: displayed during the LookAway
  * overlay and the website blocker page.
  *
  * Each entry: { title: string, subtitle: string }
  *
  * These messages serve two contexts:
- *   LookAway — short eye breaks
- *   Website Blocker — timed blocks (30 min to 24 hours)
+ *   LookAway: short eye breaks
+ *   Website Blocker: timed blocks (30 min to 24 hours)
  *
  * Guidelines for every message:
  *   • No time references ("20 seconds", "this minute")
- *   • No desk/office assumptions — works anywhere, any time of day
- *   • Specific and actionable — not vague wellness platitudes
- *   • Human voice — sounds like a thoughtful friend, not a corporate memo
- *   • Occasionally surprising, funny, or deeply personal
+ *   • No desk/office assumptions: works anywhere, any time of day
+ *   • Specific and actionable: not vague wellness platitudes
+ *   • Human voice: sounds like a thoughtful friend, not a corporate memo
+ *   • Occasionally surprising, funny or deeply personal
  *   • Never shaming, never judgmental, never preachy
  *
- * Add new entries freely — each context picks one at random per trigger.
+ * Add new entries freely: each context picks one at random per trigger.
  */
 export const MESSAGES = [
   { title: "The urge will pass", subtitle: "Every craving has a lifespan. You are watching one die right now. Stay with it." },
@@ -49,7 +49,7 @@ export const MESSAGES = [
   { title: "Sigh it out", subtitle: "A real sigh. Loud. Audible. The kind you would be embarrassed to do in a meeting. That is the one. Let it go." },
   { title: "Breathe like you are asleep", subtitle: "Slow. Deep. Belly rising and falling. Your body knows how. Get out of the way." },
   { title: "The exhale is the key", subtitle: "Do not focus on the inhale. Push all the air out. Squeeze it. The inhale will come by itself. It always does." },
-  { title: "Nose only", subtitle: "Close your mouth. Breathe only through your nose. It filters, warms, and humidifies. Your lungs prefer it this way." },
+  { title: "Nose only", subtitle: "Close your mouth. Breathe only through your nose. It filters, warms and humidifies. Your lungs prefer it this way." },
   { title: "Count your breath", subtitle: "In: one. Out: two. In: three. Out: four. Go to ten. If your mind wanders, start over. This is meditation. You just meditated." },
   { title: "The pause between breaths", subtitle: "After the exhale, before the inhale. There is a tiny pause. Find it. Stay there for a moment. That is the still point." },
   { title: "Drink water", subtitle: "Not coffee. Not an energy drink. Actual water. The original beverage. Your brain is mostly made of it." },
@@ -91,7 +91,7 @@ export const MESSAGES = [
 
   { title: "What can you hear?", subtitle: "Not the obvious sounds. The underneath ones. The hum of the refrigerator. The distant traffic. The sound of your own breathing. Listen." },
   { title: "Notice the light", subtitle: "Where is it coming from? What color is it? Warm or cool? Natural or artificial? You have been in this room for hours and never looked." },
-  { title: "Five things you can see", subtitle: "Name them. Actually name them out loud or in your head. Not generic — specific. The chipped paint. The dust on the lampshade. The world is full of details." },
+  { title: "Five things you can see", subtitle: "Name them. Actually name them out loud or in your head. Not generic: specific. The chipped paint. The dust on the lampshade. The world is full of details." },
   { title: "What is the temperature?", subtitle: "Not the thermostat number. How does it actually feel on your skin? Are you too warm? Too cold? Adjust something. Make yourself comfortable." },
   { title: "The room you are in", subtitle: "Look at it like you have never been here before. What would a stranger notice first? What would they miss? You are the stranger right now." },
   { title: "Find something red", subtitle: "In your space. Right now. Do not move. Just scan. Then something blue. Then something yellow. A color scavenger hunt. Presence: activated." },
@@ -106,14 +106,14 @@ export const MESSAGES = [
   { title: "Send a photo memory", subtitle: "Find an old photo of you and someone you care about. Send it to them with no context. Just the photo. Watch what happens." },
   { title: "The friend you lost touch with", subtitle: "No drama. No apology for the gap. Just \"I was thinking about that time we...\" and a specific memory. Reconnection starts with remembering." },
   { title: "Thank someone who helped you", subtitle: "Someone did something kind for you recently and you did not fully thank them. You know who. A message takes very little time and means very much." },
-  { title: "Ask someone how they really are", subtitle: "Not \"how are you?\" — they will say \"fine.\" Ask \"what is taking up your headspace lately?\" Watch the answer be real." },
+  { title: "Ask someone how they really are", subtitle: "Not \"how are you?\": they will say \"fine.\" Ask \"what is taking up your headspace lately?\" Watch the answer be real." },
   { title: "Tell someone you are proud of them", subtitle: "Pick a specific reason. People remember these messages for years. This one takes very little time and costs you nothing." },
   { title: "The voice note", subtitle: "Send someone a voice note instead of a text. Your voice carries warmth that text cannot. They will hear you smile." },
   { title: "What will matter in a year?", subtitle: "This stress. This meeting. This bug. Most of it will dissolve completely. That is not sad. That is freeing." },
   { title: "You have survived everything so far", subtitle: "Every bad day. Every moment you thought you could not handle. You handled all of them. You are still here. That is not luck." },
   { title: "The person you were five years ago", subtitle: "What would they be surprised about? What would they be proud of? You have grown in ways you have not noticed because you are too close to see it." },
-  { title: "What would your future self thank you for?", subtitle: "One thing you could do right now — not work-related — that your future self would be genuinely grateful for. Name it." },
-  { title: "This moment is unrepeatable", subtitle: "This exact configuration of light, sound, temperature, and your consciousness. It has never happened before and will never happen again. Notice it." },
+  { title: "What would your future self thank you for?", subtitle: "One thing you could do right now: not work-related: that your future self would be genuinely grateful for. Name it." },
+  { title: "This moment is unrepeatable", subtitle: "This exact configuration of light, sound, temperature and your consciousness. It has never happened before and will never happen again. Notice it." },
   { title: "The best advice you ever received", subtitle: "From anyone. A teacher, a friend, a stranger, a book. Remember it now. Carry it forward. Someone else needs to hear it today." },
   { title: "Something getting better in the world", subtitle: "One thing. Measurably improving. It exists. Child mortality. Literacy. Renewable energy. Find it. Hold it. The news does not tell you these stories." },
   { title: "What are you most proud of?", subtitle: "Not a work achievement. Something about who you are. A value you held when it was hard. A kindness nobody saw. That is the real resume." },
@@ -162,7 +162,7 @@ export const MESSAGES = [
   { title: "Smile at no one", subtitle: "Just smile. No reason. Hold it. Your brain cannot tell the difference between a real smile and a fake one. It releases dopamine either way. Hack your neurochemistry." },
   { title: "Spin around once", subtitle: "Stand up. Spin in a full circle. Sit back down. The room will settle. You just did something unexpected with your body. That is good for your brain." },
   { title: "Rate your chair", subtitle: "On a scale of one to ten. Is it supporting you? Betraying you? Have you been sitting in it so long you have merged into a single organism? Assess honestly." },
-  { title: "Name your devices", subtitle: "Give your phone, laptop, and any nearby gadget a human name. They are now slightly more accountable for their behavior." },
+  { title: "Name your devices", subtitle: "Give your phone, laptop and any nearby gadget a human name. They are now slightly more accountable for their behavior." },
   { title: "The object origin game", subtitle: "Pick any object near you. Think through every country and factory and truck it passed through to reach your desk. The global supply chain is astonishing." },
   { title: "What noise does your chair make?", subtitle: "Shift your weight. Listen. Every chair has a voice. What is yours saying? Squeaking in protest? Groaning with relief? Creaking with wisdom?" },
   { title: "The font of your soul", subtitle: "If you were a font, what would you be? Serif or sans? Bold or light? There is a correct answer and only you know it." },
@@ -186,9 +186,9 @@ export const MESSAGES = [
   { title: "The infinite scroll was designed", subtitle: "By very smart people paid very well to keep you scrolling. You are not weak for getting caught. You are strong for noticing and stepping away." },
   { title: "Notifications are not urgent", subtitle: "Almost nothing is actually urgent. The red badge is a manipulation. The vibration is a gamblers hook. You can turn them off. You are allowed." },
   { title: "What would you do without a screen?", subtitle: "If all screens disappeared right now, what would you do? The answer is not \"panic.\" There is something under the panic. Find it." },
-  { title: "Your attention is the product", subtitle: "Every free app, every free site, every free service — you are not the customer. Your attention is what is being sold. Guard it like the valuable asset it is." },
+  { title: "Your attention is the product", subtitle: "Every free app, every free site, every free service: you are not the customer. Your attention is what is being sold. Guard it like the valuable asset it is." },
   { title: "The best content is not on a screen", subtitle: "It is in the room with you. In a conversation. In a walk outside. In a book with paper pages. In your own thoughts when you let them wander." },
-  { title: "You are not your online persona", subtitle: "The curated version of you that lives on profiles and posts — that is not the whole truth. The whole truth is more complicated and more interesting." },
+  { title: "You are not your online persona", subtitle: "The curated version of you that lives on profiles and posts: that is not the whole truth. The whole truth is more complicated and more interesting." },
   { title: "Close unused tabs", subtitle: "Not all of them. Just the ones you opened to read later and never did. They are not coming back. Let them go. Feel the lightness." },
   { title: "Tidy one thing", subtitle: "Just one. Straighten one cable. Move one mug. Stack one book. Micro-tidiness is real tidiness. Your environment just got slightly better." },
   { title: "Wash your hands", subtitle: "With attention. Feel the water temperature. Watch the soap lather. This is not just hygiene. This is a sensory reset. You are washing away more than dirt." },
@@ -207,11 +207,11 @@ export const MESSAGES = [
   { title: "The best ideas come in the shower or in bed", subtitle: "Not at a screen. Your brain needs to wander to make connections. Give it space. The screen is crowding out your best thinking." },
   { title: "Morning belongs to you", subtitle: "Before the notifications. Before the demands. Before the world starts pulling at you. This time is yours. Protect it." },
   { title: "What is one thing that would make today good?", subtitle: "Not productive. Not impressive. Good. A walk. A call with a friend. A good meal. Define it now. Then do it." },
-  { title: "Do not check it yet", subtitle: "Whatever \"it\" is — email, social media, news. The world will still be there. Your peace of mind might not be. Guard it first. Engage later." },
+  { title: "Do not check it yet", subtitle: "Whatever \"it\" is: email, social media, news. The world will still be there. Your peace of mind might not be. Guard it first. Engage later." },
   { title: "How do you want to feel tonight?", subtitle: "When the day ends and you look back. What feeling do you want? Proud? Peaceful? Connected? Work backwards from that feeling. Start now." },
   { title: "You are more stubborn than the urge", subtitle: "The urge wants one thing. You want something bigger. Bigger wins. It might take time. It might be uncomfortable. But bigger always wins eventually." },
   { title: "This is not a punishment", subtitle: "This block is not deprivation. It is liberation. You are freeing yourself from something that was taking more than it was giving." },
-  { title: "Every minute you resist is a victory", subtitle: "Not a small one. A real one. You are building something — a habit, a boundary, a clearer mind. One minute at a time. You are winning right now." },
+  { title: "Every minute you resist is a victory", subtitle: "Not a small one. A real one. You are building something: a habit, a boundary, a clearer mind. One minute at a time. You are winning right now." },
   { title: "The version of you on the other side", subtitle: "Of this block. Of this distraction. Of this habit. That version is more focused, more present, more free. You are walking toward them right now." },
   { title: "Discomfort is not danger", subtitle: "The restless feeling. The itch to check. The anxiety of missing something. This is discomfort. It cannot hurt you. It is just a feeling. Feelings pass." },
   { title: "You have done hard things before", subtitle: "Harder than this. Much harder. You got through all of them. This is a screen. It is not a mountain. You can do this." },
@@ -224,7 +224,7 @@ export const MESSAGES = [
   { title: "The past is a story", subtitle: "The future is a guess. The only thing that is actually real is right now. Your senses. Your breath. This exact moment. Everything else is imagination." },
   { title: "Nothing is permanent", subtitle: "Not this feeling. Not this situation. Not this block. Everything flows. Everything changes. You can trust the flow even when you cannot see the destination." },
   { title: "You are not your thoughts", subtitle: "Thoughts are just mental events. They arise and pass like clouds. You are the sky, not the clouds. Watch them drift. Do not climb into every one." },
-  { title: "The body is always in the present", subtitle: "Your mind time-travels constantly — past regrets, future anxieties. Your body is always right here, right now. Come back to it. It is your anchor." },
+  { title: "The body is always in the present", subtitle: "Your mind time-travels constantly: past regrets, future anxieties. Your body is always right here, right now. Come back to it. It is your anchor." },
   { title: "Just breathe", subtitle: "Nothing else. Nothing more. Just the air moving in and out. This is enough. You are enough. Everything else can wait." },
   { title: "Stillness is productive", subtitle: "Not everything that matters produces output. Rest produces resilience. Quiet produces clarity. Stillness produces perspective. These are real outcomes." },
   { title: "Let the world spin without you", subtitle: "For a little while. It will manage. You do not have to hold it up. You do not have to keep track. Let go of the wheel. The car knows how to coast." },
@@ -247,7 +247,7 @@ export const MESSAGES = [
   { title: "Finish strong", subtitle: "Not for anyone else. For yourself. Because you started this and you get to finish it. Completion is a skill. You are practicing it right now." },
   { title: "The last stretch", subtitle: "Everything worth doing has a difficult middle and a rewarding end. You are approaching the end. Stay present. Do not rush. Let it arrive." },
   { title: "You did it", subtitle: "Or you are about to. Either way: you showed up. You stayed. You resisted. That is the whole game. Everything else is commentary." },
-  { title: "You are made of stardust", subtitle: "Literally. The iron in your blood, the calcium in your bones — forged in the heart of a star that exploded billions of years ago. You are the universe observing itself." },
+  { title: "You are made of stardust", subtitle: "Literally. The iron in your blood, the calcium in your bones: forged in the heart of a star that exploded billions of years ago. You are the universe observing itself." },
   { title: "There are more trees on Earth than stars in the Milky Way", subtitle: "About three trillion trees. About one hundred billion stars. Trees are winning. Go look at one. Pay your respects to the dominant life form." },
   { title: "Your atoms are ancient", subtitle: "Every atom in your body has existed for billions of years. They have been part of stars, oceans, dinosaurs, other people. You are a temporary arrangement of ancient materials. Marvel at this." },
   { title: "You share 60% of your DNA with a banana", subtitle: "And about 99% with a chimpanzee. And 99.9% with every other human. The differences feel large. They are not. You are deeply, fundamentally connected to everything alive." },

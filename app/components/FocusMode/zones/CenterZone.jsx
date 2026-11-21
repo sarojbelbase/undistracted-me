@@ -1,6 +1,6 @@
 // ─── Center zone ──────────────────────────────────────────────────────────────
 //
-// Renders the clock, greeting text, and optional search bar.
+// Renders the clock, greeting text and optional search bar.
 // Clock + greeting are pushed to upper-center; search bar floats below.
 // Owns its own clock-tick subscription; receives only `centerOnDark` from the
 // parent (background-dependent, cannot be self-determined here).
@@ -16,7 +16,7 @@ import { ZONES } from '../config';
 
 const CENTER = ZONES.center.items;
 
-// Pre-sorted key list — computed once at module load so the 1Hz clock tick
+// Pre-sorted key list: computed once at module load so the 1Hz clock tick
 // does not re-sort the two-entry list on every render.
 const ORDERED_CENTER_KEYS = Object.entries(CENTER)
   .filter(([, cfg]) => cfg.enable)
@@ -42,7 +42,7 @@ export const CenterZone = ({ clockOnDark = true, searchOnDark = true, greetOnDar
     useShallow(s => ({ clockFormat: s.clockFormat || '24h', focusSearchBar: s.focusSearchBar ?? true })),
   );
   const [parts, setParts] = useState(() => getTimeParts(clockFormat));
-  // Gate on actual change — the clock shows HH:MM (no seconds), so the value
+  // Gate on actual change: the clock shows HH:MM (no seconds), so the value
   // only flips once a minute. Without this guard CenterZone (Clock + SearchBar)
   // re-rendered 60×/minute.
   const update = useCallback(() => {

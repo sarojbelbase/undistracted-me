@@ -1,5 +1,5 @@
 /**
- * WhatsNewNote — small, one-time "What's new" toast shown after an update.
+ * WhatsNewNote: small, one-time "What's new" toast shown after an update.
  *
  * Shown only to returning users (those who have already seen the quick tour),
  * so a fresh install sees the welcome overlay and not this note. Gated by

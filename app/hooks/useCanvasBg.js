@@ -18,7 +18,7 @@ const _cl = (v) => Math.max(0, Math.min(255, Math.round(v)));
 
 // ── Film grain tiles ─────────────────────────────────────────────────────────
 // SVG feTurbulence fractal-noise encoded as a data-URI CSS background layer.
-// When used via url() the SVG is its own document — internal url(#n) resolves
+// When used via url() the SVG is its own document: internal url(#n) resolves
 // to <filter id="n"> within that SVG, not the main HTML page.
 // The tile is 300×300 and CSS background-repeat tiles it to fill the viewport.
 const GRAIN_LIGHT = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E") 0 0 / 300px 300px`;
@@ -28,7 +28,7 @@ const GRAIN_DARK = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 /**
  * Computes the solid-mode canvas background.
  *
- * All three card styles use the same mesh-gradient recipe — 5 radial stops
+ * All three card styles use the same mesh-gradient recipe: 5 radial stops
  * derived from the accent colour placed at the 4 viewport corners + centre,
  * with cinematic film-grain SVG tile on top.
  *
@@ -47,7 +47,7 @@ function getSolidGradientBg(isDark, accent, cardStyle = APP_SETTINGS_DEFAULTS.ca
   // Shade helper: offset each channel by dr/dg/db, clamped to 0–255.
   const c = (dr, dg, db) => `rgb(${_cl(r + dr)},${_cl(g + dg)},${_cl(b + db)})`;
 
-  // Per-style base colour — sits as background-color behind all gradient layers.
+  // Per-style base colour: sits as background-color behind all gradient layers.
   const base =
     cardStyle === "comic"
       ? isDark
@@ -61,11 +61,11 @@ function getSolidGradientBg(isDark, accent, cardStyle = APP_SETTINGS_DEFAULTS.ca
           ? "#12131a"
           : "#e8eaf0"; // glass
 
-  // ── Mesh gradient — shared by all three card styles ──────────────────────
+  // ── Mesh gradient: shared by all three card styles ──────────────────────
   // 4 corner radials + 1 centre radial + directional wash.
   //
   // Key principle for widget readability:
-  //   - Shifts are ~30% of tonal range — the accent whispers, never shouts.
+  //   - Shifts are ~30% of tonal range: the accent whispers, never shouts.
   //   - All stops use low-alpha rgba so blobs blend softly into each other
   //     and into the base paper/card colour behind them.
   //   - Large ellipse radii + early transparency = no hard edges anywhere.
@@ -96,7 +96,7 @@ function computePageBg(bgType, isDark, accent, cardStyle, url, color) {
   }
   if ((bgType === "photo" || bgType === "custom") && url) {
     // The image itself is rendered by CanvasBgImage's crossfade layer (see
-    // CanvasBackground.jsx) so switching backgrounds fades like Focus Mode —
+    // CanvasBackground.jsx) so switching backgrounds fades like Focus Mode -
     // the page background only carries the dominant colour as a placeholder.
     return color || "#18191b";
   }
@@ -107,7 +107,7 @@ function computePageBg(bgType, isDark, accent, cardStyle, url, color) {
 
 /**
  * Canvas background computation. Supported modes: solid (accent mesh gradient),
- * orb (animated gradient), photo (curated image), and custom (image URL).
+ * orb (animated gradient), photo (curated image) and custom (image URL).
  */
 export function useCanvasBg({
   canvasBg,

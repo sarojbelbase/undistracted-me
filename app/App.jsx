@@ -100,8 +100,8 @@ const WidgetCatalog = lazy(catalogImport);
 const preloadCatalog = () => catalogImport();
 
 // ── Dev-only breakpoint indicator ───────────────────────────────────────────
-// Wrapped in import.meta.env.DEV so the hook, component, and resize listener
-// are dead-code-eliminated in production builds — zero runtime cost.
+// Wrapped in import.meta.env.DEV so the hook, component and resize listener
+// are dead-code-eliminated in production builds: zero runtime cost.
 
 const BP_CONFIG = [
   { name: "xxs", maxWidth: 480, color: "#a78bfa" },
@@ -197,7 +197,7 @@ function FMFallback() {
         />
       );
   }
-  // 'default' — show bg.webp (exact match to FocusMode's default state).
+  // 'default': show bg.webp (exact match to FocusMode's default state).
   // Keep an opaque dark base so the canvas never shows through before the image
   // (or the FocusMode chunk) is ready.
   return (
@@ -247,17 +247,17 @@ const App = () => {
   // ── Location (centralized coords, sun times, VPN detection) ─────────────────
   useLocation();
 
-  // ── Google account — silent init (checks for existing token, no OAuth UI) ──
+  // ── Google account: silent init (checks for existing token, no OAuth UI) ──
   useEffect(() => {
     useGoogleAccountStore.getState().init();
   }, []);
 
-  // ── Anonymous widget-usage telemetry — loads PostHog only when a key is set ─
+  // ── Anonymous widget-usage telemetry: loads PostHog only when a key is set ─
   useEffect(() => {
     initTelemetry();
   }, []);
 
-  // ── Cross-device sync — init on mount if previously enabled ──────────────
+  // ── Cross-device sync: init on mount if previously enabled ──────────────
   useEffect(() => {
     initSyncRefresh();
     syncEngine.initSync();
@@ -268,7 +268,7 @@ const App = () => {
     seedWidgetInstancesIfEmpty();
   }, []);
 
-  // ── Review prompt — check once on mount (users already past the threshold) ──
+  // ── Review prompt: check once on mount (users already past the threshold) ──
   useEffect(() => {
     useReviewPromptStore.getState().maybeShowOnMount();
   }, []);
@@ -375,7 +375,7 @@ const App = () => {
     },
   });
 
-  // Stabilized callbacks for the LookAway overlay — inline arrows would change
+  // Stabilized callbacks for the LookAway overlay: inline arrows would change
   // identity every render and re-run the overlay's 1s countdown effect.
   const handleLookAwayDismiss = useCallback(() => {
     setShowLookAway(false);
@@ -389,7 +389,7 @@ const App = () => {
     track(TELEMETRY_EVENTS.LOOKAWAY_SNOOZED, { minutes: mins });
   }, []);
 
-  // Stabilized handlers for ControlCluster — inline arrows change identity every
+  // Stabilized handlers for ControlCluster: inline arrows change identity every
   // render, defeating any memo on the cluster.
   const openCatalog = useCallback(() => {
     setShowCatalog(true);
@@ -409,18 +409,18 @@ const App = () => {
       className="fixed inset-0 overflow-hidden"
       style={{ background: bg.pageBg }}
     >
-      {/* Screen-reader-only H1 — anchors the document heading hierarchy so the
+      {/* Screen-reader-only H1: anchors the document heading hierarchy so the
           widget <h3> titles aren't orphaned (WCAG 1.3.1). */}
-      <h1 className="um-sr-only">Undistracted Me — your distraction-free new tab</h1>
+      <h1 className="um-sr-only">Undistracted Me: your distraction-free new tab</h1>
 
-      {/* Canvas is only mounted while it's the active view — focus/note modes render
+      {/* Canvas is only mounted while it's the active view: focus/note modes render
           on their own, so opening a new tab with `defaultView: focus`/`note` never
           paints (or fetches) the canvas behind the distraction-free screen. */}
       {!showFocusMode && !showNoteMode && (
         <>
           <CanvasBackground {...bg} isDark={isDark} />
 
-          {/* Arrange-mode page scrim — dims the canvas background, sits below widgets */}
+          {/* Arrange-mode page scrim: dims the canvas background, sits below widgets */}
           <div
             className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-2"
             style={{ background: "rgba(0,0,0,0.28)", opacity: arrangeMode ? 1 : 0 }}
@@ -505,29 +505,29 @@ const App = () => {
         </Suspense>
       )}
 
-      {/* Command Palette — Cmd+K / Ctrl+K */}
+      {/* Command Palette: Cmd+K / Ctrl+K */}
       {commandPaletteOpen && !showFocusMode && !showNoteMode && (
         <Suspense fallback={null}>
           <CommandPalette onClose={closeCommandPalette} />
         </Suspense>
       )}
 
-      {/* Quick Tour — shown once per major version on first install / update */}
+      {/* Quick Tour: shown once per major version on first install / update */}
       <Suspense fallback={null}>
         <QuickTour />
       </Suspense>
 
-      {/* What's new — small one-time note for returning users after an update */}
+      {/* What's new: small one-time note for returning users after an update */}
       <WhatsNewNote />
 
-      {/* Review prompt — one-time, shown after 10 focus sessions */}
+      {/* Review prompt: one-time, shown after 10 focus sessions */}
       {reviewPromptOpen && (
         <Suspense fallback={null}>
           <ReviewPrompt />
         </Suspense>
       )}
 
-      {/* Support dialog — dependency-injected; opens on a completion trigger.
+      {/* Support dialog: dependency-injected; opens on a completion trigger.
           Lazy-loaded so its chunk isn't fetched until the first nudge. */}
       {supportOpen && (
         <Suspense fallback={null}>
@@ -535,7 +535,7 @@ const App = () => {
         </Suspense>
       )}
 
-      {/* Dev-only breakpoint badge — bottom-left */}
+      {/* Dev-only breakpoint badge: bottom-left */}
       {import.meta.env.DEV && <BreakpointBadge />}
     </div>
   );

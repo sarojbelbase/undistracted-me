@@ -58,7 +58,7 @@ describe('AD_MONTH_NAMES', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// buildCalendarData('ad') — Gregorian calendar
+// buildCalendarData('ad'): Gregorian calendar
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('buildCalendarData("ad")', () => {
@@ -123,7 +123,7 @@ describe('buildCalendarData("ad")', () => {
   });
 });
 
-describe('buildCalendarData("ad") — February leap year', () => {
+describe('buildCalendarData("ad"): February leap year', () => {
   it('February 2024 (leap) has 29 day entries', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-02-15T12:00:00Z'));
@@ -140,7 +140,7 @@ describe('buildCalendarData("ad") — February leap year', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// buildCalendarData('bs') — Bikram Sambat calendar
+// buildCalendarData('bs'): Bikram Sambat calendar
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('buildCalendarData("bs")', () => {
@@ -212,7 +212,7 @@ describe('buildEventDateSet', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// buildCalendarData with monthOffset — covers the month-walking code paths
+// buildCalendarData with monthOffset: covers the month-walking code paths
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('buildCalendarData("ad") with monthOffset', () => {

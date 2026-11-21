@@ -1,5 +1,5 @@
 /**
- * Notes sync engine — per-note files in the transport (Google Drive appDataFolder).
+ * Notes sync engine: per-note files in the transport (Google Drive appDataFolder).
  *
  * Each note is synced as its own file, discoverable separately from the
  * config file. The config file only holds a lightweight index (`notes_index`)
@@ -16,11 +16,11 @@
  *   - The index entry carries `updatedAt` (the last known modified time).
  *   - Pull when `index.updatedAt > note.updatedAt`; push when the opposite.
  *
- * Sync is NOT continuous — note files are written during the daily auto-sync or
+ * Sync is NOT continuous: note files are written during the daily auto-sync or
  * a manual "Sync now" (via the post-sync hook registered below), never on every
  * keystroke. Editing a note only updates the local index label.
  *
- * The transport is injected via `syncTransport` (dependency-injection seam) —
+ * The transport is injected via `syncTransport` (dependency-injection seam) -
  * this module never talks to a concrete service directly.
  */
 
@@ -109,7 +109,7 @@ function addTombstone(noteId) {
 // ── Transport (per-note files) ──────────────────────────────────────────────
 
 /**
- * Read a note file and return { id, title, body, updatedAt } — or null when the
+ * Read a note file and return { id, title, body, updatedAt }: or null when the
  * file is missing or malformed.
  */
 async function readNoteFile(fileId) {
@@ -138,7 +138,7 @@ function deleteNoteFile(fileId) {
   syncTransport.deleteNote(fileId).catch(() => {});
 }
 
-// ── Local edit hooks (no network — sync happens on the sync window) ──────────
+// ── Local edit hooks (no network: sync happens on the sync window) ──────────
 
 /**
  * Called by the Notes widget after a note's text changes. Updates the index
@@ -157,7 +157,7 @@ function onNoteChanged(noteId, text) {
     const index = readIndex();
     const entry = index[noteId];
     const trimmed = (text ?? "").trim();
-    // Empty and never synced — nothing to index (avoids polluting the config
+    // Empty and never synced: nothing to index (avoids polluting the config
     // index with "Untitled note" placeholders).
     if (!trimmed && !entry?.fileId) return;
     index[noteId] = {
@@ -190,7 +190,7 @@ function onNoteDeleted(noteId) {
 /** Pull one remote note and merge into the local list. */
 async function pullRemoteNote(entry, nextNotes) {
   const remote = await readNoteFile(entry.fileId);
-  if (!remote) return false; // 404 or malformed — treat as absent
+  if (!remote) return false; // 404 or malformed: treat as absent
   const idx = nextNotes.findIndex((n) => n.id === (remote.id || entry.fileId));
   const note = {
     id: remote.id,
@@ -203,19 +203,36 @@ async function pullRemoteNote(entry, nextNotes) {
 }
 
 /**
+ * Whether notes sync is enabled by the "Sync notes" toggle (default on).
+ * Reads the settings store's persisted state; a category is off only when
+ * explicitly `false`.
+ */
+function isNotesSyncEnabled() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
+    return parsed?.state?.syncNotes !== false;
+  } catch {
+    return true;
+  }
+}
+
+/**
  * Reconcile local notes with the per-note files and the synced index.
- * Pulls newer remote notes, pushes newer local notes, and prunes stale entries.
+ * Pulls newer remote notes, pushes newer local notes and prunes stale entries.
  */
 async function syncNotes() {
   if (!syncEngine.isSyncEnabled()) return;
   if (!syncTransport.isConnected()) return;
+  if (!isNotesSyncEnabled()) return;
 
   const { notes, idx } = readLocalNotes();
   const index = readIndex();
   const tombstones = readTombstones();
 
   const nextNotes = notes.map((n) => ({ ...n }));
+  let nextIdx = idx;
   let changed = false;
+  let pulledRemote = false;
 
   // 1. Push / pull each local note.
   for (const note of nextNotes) {
@@ -240,6 +257,7 @@ async function syncNotes() {
           note.text = remote.title ? mergeNote(remote.title, remote.body) : remote.body || '';
           note.updatedAt = remote.updatedAt;
           changed = true;
+          pulledRemote = true;
         }
       } catch (err) {
         console.error('[notes-sync] pull failed:', err.message);
@@ -261,18 +279,34 @@ async function syncNotes() {
   for (const [id, entry] of Object.entries(index)) {
     if (localIds.has(id) || !entry?.fileId) continue;
     const tomb = tombstones[id];
-    if (tomb && entry.updatedAt <= tomb) continue; // locally deleted — don't re-pull
+    if (tomb && entry.updatedAt <= tomb) continue; // locally deleted: don't re-pull
     try {
       const pulled = await pullRemoteNote(entry, nextNotes);
-      if (pulled) changed = true;
+      if (pulled) {
+        changed = true;
+        pulledRemote = true;
+      }
     } catch (err) {
       console.error('[notes-sync] remote pull failed:', err.message);
     }
   }
 
-  // 3. Persist + propagate.
+  // 3. Discard blank local notes when sync pulled in remote content. A blank
+  //    note (empty title + body) is the untouched placeholder, not real data,
+  //    so once remote notes arrive it should not linger as a separate note.
+  if (pulledRemote) {
+    const kept = nextNotes.filter((n) => n.text && n.text.trim());
+    if (kept.length !== nextNotes.length) {
+      nextNotes.length = 0;
+      nextNotes.push(...kept);
+      nextIdx = kept.length ? Math.min(nextIdx, kept.length - 1) : 0;
+      changed = true;
+    }
+  }
+
+  // 4. Persist + propagate.
   if (changed) {
-    writeLocalNotes(nextNotes, idx);
+    writeLocalNotes(nextNotes, nextIdx);
     writeIndex(index);
     syncEngine.pushKey(STORAGE_KEYS.NOTES_INDEX);
   }

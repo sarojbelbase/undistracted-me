@@ -53,7 +53,7 @@ const getPlatformSupport = (widget) => {
   if (p.supported === false) return 'none';
   if (p.supported === 'partial') return 'partial';
   // `supported: true` with limitations (e.g. RSS "background sync unavailable")
-  // is still partial — the caveat should be surfaced, not silently dropped.
+  // is still partial: the caveat should be surfaced, not silently dropped.
   if (p.supported === true && p.limitations?.length) return 'partial';
   return 'full';
 };
@@ -92,7 +92,7 @@ const WidgetRow = ({ widget, count, onAdd, onRemove, support, limitations }) => 
   const Icon = resolveWidgetIcon(widget.icon);
 
   const descText = disabled
-    ? 'Extension only — not available here'
+    ? 'Extension only: not available here'
     : widget.description;
 
   const [iconAnchor, setIconAnchor] = useState(null);

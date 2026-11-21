@@ -106,17 +106,17 @@
   -webkit-box-orient: vertical;
 }
 
-// ── Marquee card layout — solid accent background ─────────────────────────────
+// ── Marquee card layout: solid accent background ─────────────────────────────
 
 .rss-marquee {
   touch-action: pan-y;
   cursor: default;
-  // Pure accent as the base — no mixing, no darkening.
+  // Pure accent as the base: no mixing, no darkening.
   background: var(--w-accent) !important;
   border-radius: inherit;
   // Uniform dark scrim across the entire card. At 40% black this ensures
-  // white text has ≥4.5:1 contrast on all accent colors — from light grey
-  // to dark blue — while keeping the accent identity clearly visible.
+  // white text has ≥4.5:1 contrast on all accent colors: from light grey
+  // to dark blue: while keeping the accent identity clearly visible.
   &::after {
     content: '';
     position: absolute;
@@ -127,7 +127,7 @@
   }
 }
 
-// Hide the separate bg layer divs — background is now on .rss-marquee directly
+// Hide the separate bg layer divs: background is now on .rss-marquee directly
 .rss-marquee-bg,
 .rss-marquee-bg__ink,
 .rss-marquee-bg__glow,
@@ -135,7 +135,7 @@
   display: none;
 }
 
-// ── Marquee loading skeleton — accent base + headlight sweep ──────────────────
+// ── Marquee loading skeleton: accent base + headlight sweep ──────────────────
 //
 // Paints the same accent color the loaded Spotlight card uses, then a dark
 // scrim (matching .rss-marquee::after) so the white placeholder bones read
@@ -146,7 +146,7 @@
   border-radius: inherit;
   overflow: hidden;
 
-  // Dark scrim — same 40% black as the real card, so the placeholder matches
+  // Dark scrim: same 40% black as the real card, so the placeholder matches
   // the loaded look and the white sweep/bones stay legible on any accent.
   &::before {
     content: '';
@@ -202,7 +202,7 @@
   border-radius: 999px;
   // Long feed labels (e.g. "Benita Kolovos Victorian state correspondent")
   // must never push the refresh button or timestamp out of the row. Cap the
-  // pill, let it shrink, and clip the label at rest.
+  // pill, let it shrink and clip the label at rest.
   flex: 0 1 auto;
   min-width: 0;
   max-width: 62%;
@@ -414,7 +414,7 @@
   }
 }
 
-// Source-pill marquee — only runs while an overflowing pill is hovered or
+// Source-pill marquee: only runs while an overflowing pill is hovered or
 // focused. `alternate` bounces back to the start instead of hard-resetting.
 @keyframes rss-source-scroll {
   0%,

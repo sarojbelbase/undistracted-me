@@ -1,15 +1,15 @@
 /**
- * ─── Theme Profiles — Single Source of Truth ─────────────────────────────────
+ * ─── Theme Profiles: Single Source of Truth ─────────────────────────────────
  *
  * Every styling dimension of the app lives here, as a complete self-contained
  * map per theme (paper / glass / comic) × context:
  *
- *   light  — canvas (dashboard) mode, light
- *   dark   — canvas (dashboard) mode, dark
- *   focus  — Focus Mode (ALWAYS renders over a dark photo/orb backdrop)
+ *   light : canvas (dashboard) mode, light
+ *   dark  : canvas (dashboard) mode, dark
+ *   focus : Focus Mode (ALWAYS renders over a dark photo/orb backdrop)
  *
  * Each map is a flat set of CSS custom-property values (`--w-*`, `--card-*`,
- * `--fm-*`). Components reference the vars, never the raw values — so switching
+ * `--fm-*`). Components reference the vars, never the raw values: so switching
  * theme (or mode) swaps the whole profile at once with no component churn and
  * no `[style*="rgba(...)"]` CSS override hacks.
  *
@@ -18,7 +18,7 @@
  * theme/canvas.js and every component read the resulting CSS vars.
  *
  * SEMANTIC colors (success / danger / sunrise / sunset) are shared across
- * themes — a "success" is green regardless of surface style — but their
+ * themes: a "success" is green regardless of surface style: but their
  * tinted bg/border alphas are per-theme where the surface demands it.
  */
 
@@ -97,7 +97,7 @@ const FM_SEMANTIC = {
 
 // ─── The profiles ─────────────────────────────────────────────────────────────
 export const THEME_PROFILES = {
-  // ═══ GLASS — frosted, translucent, cinematic ═══════════════════════════════
+  // ═══ GLASS: frosted, translucent, cinematic ═══════════════════════════════
   glass: {
     light: {
       ...BASE_LIGHT,
@@ -105,6 +105,7 @@ export const THEME_PROFILES = {
       "--card-bg": "rgba(255,255,255,0.65)",
       "--card-border": "rgba(255,255,255,0.50)",
       "--card-border-width": "1px",
+      "--input-border": "rgba(255,255,255,0.50)",
       "--card-radius": "1rem",
       "--card-blur": "blur(28px) saturate(180%) brightness(1.1) contrast(0.95)",
       "--card-shadow":
@@ -125,6 +126,7 @@ export const THEME_PROFILES = {
       "--card-bg": "rgba(255,255,255,0.12)",
       "--card-border": "rgba(255,255,255,0.16)",
       "--card-border-width": "1px",
+      "--input-border": "rgba(255,255,255,0.16)",
       "--card-radius": "1rem",
       "--card-blur": "blur(28px) saturate(150%)",
       "--card-shadow":
@@ -138,7 +140,7 @@ export const THEME_PROFILES = {
         "0 8px 40px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.35)",
       "--modal-overlay-bg": "rgba(0,0,0,0.22)",
       "--modal-overlay-blur": "blur(10px) saturate(150%)",
-      // Ink override — glass dark is translucent (~#2e2e effective bg), needs brighter muted tiers
+      // Ink override: glass dark is translucent (~#2e2e effective bg), needs brighter muted tiers
       "--w-ink-4": "#c8c8c8",
       "--w-ink-5": "#c2c2c2",
       "--w-ink-6": "#b8b8b8",
@@ -181,12 +183,12 @@ export const THEME_PROFILES = {
     },
   },
 
-  // ═══ PAPER — reMarkable-inspired, warm, tactile, calm ══════════════════════
+  // ═══ PAPER: reMarkable-inspired, warm, tactile, calm ══════════════════════
   paper: {
     light: {
       ...BASE_LIGHT,
       ...SEMANTIC.light,
-      // Cream paper — warmer ink tiers read as deliberate ink, not faded grey.
+      // Cream paper: warmer ink tiers read as deliberate ink, not faded grey.
       "--w-ink-5": "#5a5a5a",
       "--w-ink-6": "#767676",
       "--w-divider": "rgba(0,0,0,0.07)",
@@ -194,6 +196,7 @@ export const THEME_PROFILES = {
       "--card-bg": "#f7f2e8",
       "--card-border": "rgba(0,0,0,0.05)",
       "--card-border-width": "1px",
+      "--input-border": "rgba(0,0,0,0.14)",
       "--card-radius": "12px 11px 13px 12px",
       "--card-blur": "none",
       "--card-shadow":
@@ -220,6 +223,7 @@ export const THEME_PROFILES = {
       "--card-bg": "#1c1914",
       "--card-border": "rgba(255,255,255,0.05)",
       "--card-border-width": "1px",
+      "--input-border": "rgba(245,239,228,0.16)",
       "--card-radius": "12px 11px 13px 12px",
       "--card-blur": "none",
       "--card-shadow": "0 2px 8px rgba(0,0,0,0.45)",
@@ -274,7 +278,7 @@ export const THEME_PROFILES = {
     },
   },
 
-  // ═══ COMIC — newsprint, thick ink, hard offset shadows ═════════════════════
+  // ═══ COMIC: newsprint, thick ink, hard offset shadows ═════════════════════
   comic: {
     light: {
       ...BASE_LIGHT,
@@ -286,6 +290,7 @@ export const THEME_PROFILES = {
       "--card-bg": "#faf5ec",
       "--card-border": "#111111",
       "--card-border-width": "2px",
+      "--input-border": "#111111",
       "--card-radius": "14px 13px 15px 14px",
       "--card-blur": "none",
       "--card-shadow": "4px 4px 0 0 #111111",
@@ -308,6 +313,7 @@ export const THEME_PROFILES = {
       "--card-bg": "#1c1710",
       "--card-border": "#d4c9a8",
       "--card-border-width": "2px",
+      "--input-border": "#d4c9a8",
       "--card-radius": "14px 13px 15px 14px",
       "--card-blur": "none",
       "--card-shadow": "4px 4px 0 0 rgba(212,201,168,0.55)",
@@ -361,7 +367,7 @@ export const THEME_PROFILES = {
 
 // ─── The UI-facing list (labels shown in Settings → Appearance) ───────────────
 export const CARD_STYLES = [
-  { id: "paper", label: "Paper", hint: "Warm paper grain" },
-  { id: "glass", label: "Glass", hint: "Frosted glass with depth" },
-  { id: "comic", label: "Comic", hint: "Pop-art panel style" },
+  { id: "paper", label: "Paper", hint: "Warm tactile paper with a soft grain" },
+  { id: "glass", label: "Glass", hint: "Frosted translucent glass with depth" },
+  { id: "comic", label: "Comic", hint: "Bold pop art with thick ink and hard shadows" },
 ];

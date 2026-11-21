@@ -1,6 +1,6 @@
 /**
  * Shared date helpers for the expense widget.
- * Single source of truth for date math — used by useExpenses, Widget, Settings,
+ * Single source of truth for date math: used by useExpenses, Widget, Settings,
  * and ExpenseExpandedView.
  */
 

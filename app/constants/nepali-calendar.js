@@ -7,7 +7,7 @@
  * - NUMBER_MAPPING                   : ASCII digit → Devanagari digit
  */
 
-// Algorithm data — canonical home is app/data/bikramSambatCalendar.js.
+// Algorithm data: canonical home is app/data/bikramSambatCalendar.js.
 // Re-exported here so any existing `from '../constants/nepali-calendar'` paths keep working.
 export { NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../data/bikramSambatCalendar';
 

@@ -1,5 +1,5 @@
 /**
- * MomoMark — a pleated, half-moon momo drawn in one line weight.
+ * MomoMark: a pleated, half-moon momo drawn in one line weight.
  * Bespoke mark for the support dialog (riso print style). Sized by its
  * `.sd-badge` container via CSS; the body path is tinted by `--momo-fill`.
  */

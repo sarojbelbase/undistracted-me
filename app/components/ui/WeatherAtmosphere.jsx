@@ -104,7 +104,7 @@ function ClearNight({ wrap, faster, dk }) {
         background: disc, boxShadow: shadow,
         animation: `wa-moon ${faster('10s')} ease-in-out infinite`,
       }} />
-      {/* star cluster — box-shadow dots, zero animation cost */}
+      {/* star cluster: box-shadow dots, zero animation cost */}
       <div style={{
         position: 'absolute', top: 10, right: 60, width: 2, height: 2, borderRadius: '50%',
         background: starC, boxShadow: starSh,
@@ -181,7 +181,7 @@ function PartlyCloudyNight({ wrap, faster, dk, tier }) {
         position: 'absolute', top: 12, right: 56, width: 2, height: 2, borderRadius: '50%',
         background: starC, boxShadow: starSh,
       }} />
-      {/* cloud blob paints over moon — partial occlusion */}
+      {/* cloud blob paints over moon: partial occlusion */}
       <div style={{
         position: 'absolute', top: -8, right: -18, width: 90, height: 45, borderRadius: '50%',
         background: cloud,
@@ -202,7 +202,7 @@ function DrizzleWeather({ wrap, faster, dk, tier }) {
   const dropC = dk ? 'rgba(160,195,238,.95)' : 'rgba(85,130,210,.60)';
   return (
     <div style={wrap}>
-      {/* ambient mist wash — static, zero animation cost */}
+      {/* ambient mist wash: static, zero animation cost */}
       <div style={{
         position: 'absolute', top: -16, right: -16, width: 130, height: 80,
         background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 72%)`,
@@ -231,7 +231,7 @@ function RainWeather({ wrap, faster, dk, tier }) {
   const dropC = dk ? 'rgba(148,192,248,1.0)' : 'rgba(70,130,220,.72)';
   return (
     <div style={wrap}>
-      {/* ambient rain wash — static */}
+      {/* ambient rain wash: static */}
       <div style={{
         position: 'absolute', top: -16, right: -16, width: 110, height: 72,
         background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 70%)`,
@@ -260,7 +260,7 @@ function SnowWeather({ wrap, faster, dk, tier }) {
   const flakeC = dk ? 'rgba(235,245,255,1.0)' : 'rgba(95,138,218,.62)';
   return (
     <div style={wrap}>
-      {/* cool ambient wash — static */}
+      {/* cool ambient wash: static */}
       <div style={{
         position: 'absolute', top: -16, right: -16, width: 140, height: 88,
         background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 72%)`,
@@ -312,7 +312,7 @@ function ThunderWeather({ wrap, faster, dk, tier }) {
   const flash = dk ? 'rgba(210,220,255,.35)' : 'rgba(55,80,210,.08)';
   return (
     <div style={wrap}>
-      {/* deep indigo wash — static */}
+      {/* deep indigo wash: static */}
       <div style={{
         position: 'absolute', top: -16, right: -16, width: 100, height: 65,
         background: `radial-gradient(ellipse at top right, ${wash} 0%, transparent 68%)`,

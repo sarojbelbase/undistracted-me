@@ -2,7 +2,7 @@ name: update_holidays
 
 on:
   schedule:
-    # Weekly — Mondays at 00:15 UTC (≈ 05:45 NPT).
+    # Weekly: Mondays at 00:15 UTC (≈ 05:45 NPT).
     - cron: "15 0 * * 1"
   workflow_dispatch: {}
 
@@ -32,12 +32,12 @@ jobs:
           git config --global user.name "holidays-bot"
 
           if git diff --quiet -- public/holidays.json; then
-            echo "holidays.json unchanged — nothing to commit"
+            echo "holidays.json unchanged: nothing to commit"
             exit 0
           fi
 
           git add public/holidays.json
           git commit -m "data: update holidays.json"
-          # Push to the same branch that was checked out (branch-agnostic —
+          # Push to the same branch that was checked out (branch-agnostic -
           # `github.ref_name` is the default branch on schedule runs).
           git push origin HEAD:${{ github.ref_name }}

@@ -1,6 +1,6 @@
 // ─── Focus Mode layout configuration ─────────────────────────────────────────
 //
-// Single source of truth for zones, items, and render order.
+// Single source of truth for zones, items and render order.
 // Each zone has `enable` and `items` where every item has `enable` + `order`.
 //
 // ┌──────────────────────── TOP ────────────────────────────┐

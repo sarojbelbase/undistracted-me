@@ -37,7 +37,7 @@ export const StockPanel = ({ stocks }) => {
                   <div style={{ ...SHIMMER, width: 32, height: 10 }} />
                 </div>
               ) : data === 'error' ? (
-                <span style={{ fontSize: 10, color: t.label }}>—</span>
+                <span style={{ fontSize: 10, color: t.label }}>-</span>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: t.text, fontVariantNumeric: 'tabular-nums' }}>

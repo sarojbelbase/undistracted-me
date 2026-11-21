@@ -1,5 +1,5 @@
 /**
- * First-install defaults — the product-level look shipped to new installs.
+ * First-install defaults: the product-level look shipped to new installs.
  * These values are intentionally asserted so a future edit to defaults.js is a
  * conscious decision, not an accidental visual regression.
  */
@@ -8,7 +8,7 @@ import {
   APP_SETTINGS_DEFAULTS as D,
 } from '../../../app/constants/defaults';
 
-describe('APP_SETTINGS_DEFAULTS — first-install appearance', () => {
+describe('APP_SETTINGS_DEFAULTS: first-install appearance', () => {
   it('uses the Cocoa accent by default', () => {
     expect(D.accent).toBe('Cocoa');
   });

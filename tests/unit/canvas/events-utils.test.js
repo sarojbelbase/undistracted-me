@@ -278,7 +278,7 @@ describe('EMPTY_FORM', () => {
 });
 
 describe('DATE_CHIPS', () => {
-  it('has Today, Tomorrow, and Custom chips', () => {
+  it('has Today, Tomorrow and Custom chips', () => {
     const keys = DATE_CHIPS.map((c) => c.key);
     expect(keys).toContain('today');
     expect(keys).toContain('tomorrow');
@@ -335,7 +335,7 @@ describe('calcDuration', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// datePrefixFor — covers the future-date branches
+// datePrefixFor: covers the future-date branches
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('datePrefixFor', () => {
@@ -352,34 +352,28 @@ describe('datePrefixFor', () => {
     expect(datePrefixFor('2025-06-16')).toBe('Tomorrow');
   });
 
-  it('returns "Next Week" for a date in the next calendar week', () => {
-    // June 15 is a Sunday; next week starts June 16 (or next Monday June 23)
-    // Adjust to an unambiguous "Next Week" date
-    expect(datePrefixFor('2025-06-23')).toBe('Next Week');
+  it('returns an explicit date for a date in the next calendar week', () => {
+    expect(datePrefixFor('2025-06-23')).toBe('Mon, Jun 23');
   });
 
-  it('returns "Next Month" for a date in the immediate next month', () => {
-    expect(datePrefixFor('2025-07-10')).toBe('Next Month');
+  it('returns an explicit date for a date in the immediate next month', () => {
+    expect(datePrefixFor('2025-07-10')).toBe('Thu, Jul 10');
   });
 
-  it('returns "Next Year" for a date in January of next year', () => {
-    expect(datePrefixFor('2026-01-10')).toBe('Next Year');
+  it('returns an explicit date with year for a date in January of next year', () => {
+    expect(datePrefixFor('2026-01-10')).toBe('Sat, Jan 10, 2026');
   });
 
-  it('returns "in N years" for a date 2+ years out', () => {
-    const result = datePrefixFor('2028-06-15');
-    expect(result).toBe('in 3 years');
+  it('returns an explicit date with year for a date 2+ years out', () => {
+    expect(datePrefixFor('2028-06-15')).toBe('Thu, Jun 15, 2028');
   });
 
-  it('returns "in N months" for 2+ months out but within a year', () => {
-    const result = datePrefixFor('2025-09-15');
-    expect(result).toMatch(/in \d+ months/);
+  it('returns an explicit date for 2+ months out but within a year', () => {
+    expect(datePrefixFor('2025-09-15')).toBe('Mon, Sep 15');
   });
 
-  it('returns "in N weeks" for 2+ weeks out but within same month', () => {
-    // June 29 is >= endOfNextWeek (June 29) but < startOfNextMonth (July 1)
-    const result = datePrefixFor('2025-06-29');
-    expect(result).toMatch(/in \d+ weeks/);
+  it('returns an explicit date for 2+ weeks out but within same month', () => {
+    expect(datePrefixFor('2025-06-29')).toBe('Sun, Jun 29');
   });
 
   it('returns a weekday+date string for same-week dates beyond tomorrow', () => {

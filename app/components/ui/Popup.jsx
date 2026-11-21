@@ -7,14 +7,14 @@ const MARGIN = 10; // min gap from every viewport edge
  * Generic portal popup anchored near a DOM element.
  *
  * Two-phase positioning: renders invisible first so useLayoutEffect can
- * measure the actual rendered size before the browser paints — no flicker.
+ * measure the actual rendered size before the browser paints: no flicker.
  * Auto-flips above/below based on available viewport space.
  *
  * Props:
- *   anchor      — snapshot of getBoundingClientRect() on the trigger element
- *   preferAbove — hint to prefer showing above the anchor (still auto-flips)
- *   className   — extra classes on the card (e.g. "p-3 gap-2.5 max-w-[260px]")
- *   children    — popup content
+ *   anchor     : snapshot of getBoundingClientRect() on the trigger element
+ *   preferAbove: hint to prefer showing above the anchor (still auto-flips)
+ *   className  : extra classes on the card (e.g. "p-3 gap-2.5 max-w-[260px]")
+ *   children   : popup content
  */
 export const Popup = ({
   anchor,

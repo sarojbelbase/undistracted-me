@@ -54,7 +54,7 @@ const DIR_COLOR = {
   flat: 'var(--w-ink-4)',
 };
 
-// Sparkline — bleeds edge-to-edge at the bottom of the card.
+// Sparkline: bleeds edge-to-edge at the bottom of the card.
 // When `dead` is true it renders a flat baseline along the bottom edge.
 const Sparkline = ({ prices, dir, dead = false }) => {
   const svgRef = useRef(null);
@@ -84,7 +84,7 @@ const Sparkline = ({ prices, dir, dead = false }) => {
     () => (dead ? { line: deadLine, area: deadArea } : buildSparklinePaths(prices, vw, VH)),
     [dead, deadLine, deadArea, prices, vw],
   );
-  // Unique gradient id per widget instance — two duplicated stock widgets on the
+  // Unique gradient id per widget instance: two duplicated stock widgets on the
   // same dashboard otherwise collide on document-global ids like "sg-up", and
   // fill="url(#sg-up)" would resolve to the first instance's gradient.
   const gradId = `sg-${useId().replace(/:/g, '')}-${dead ? 'dead' : dir}`;
@@ -121,7 +121,7 @@ const Sparkline = ({ prices, dir, dead = false }) => {
   );
 };
 
-// Compact row used in list view (2–3 symbols) — 2-line layout so symbol never truncates
+// Compact row used in list view (2–3 symbols): 2-line layout so symbol never truncates
 const StockRow = ({ sym, data, isLast }) => {
   const inkMuted = 'var(--w-ink-5)';
   const isDead = !data;
@@ -138,7 +138,7 @@ const StockRow = ({ sym, data, isLast }) => {
           {displaySymbol(sym)}
         </span>
         <span className={`stk-row__price${isDead ? ' stk-row__price--dead' : ' stk-row__price--live'}`}>
-          {data ? fmtPrice(data.ltp) : '—'}
+          {data ? fmtPrice(data.ltp) : '-'}
         </span>
       </div>
 
@@ -156,7 +156,7 @@ const StockRow = ({ sym, data, isLast }) => {
           }
         </svg>
         <span className="stk-row__pct">
-          {isDead ? '—' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`}
+          {isDead ? '-' : `${stats?.pct > 0 ? '+' : ''}${stats?.pct.toFixed(2)}%`}
         </span>
       </div>
     </div>
@@ -167,7 +167,7 @@ export const Widget = ({ id, onRemove }) => {
   const [settings, updateSetting] = useWidgetSettings(id, DEFAULT_STOCK_SETTINGS);
   const { symbols = [] } = settings;
 
-  // Shared stocks hook — serves chart data from the shared DataHub.
+  // Shared stocks hook: serves chart data from the shared DataHub.
   // Same hook used by Focus Mode, so data is shared across contexts.
   const { stocks, refresh, updatedAt } = useStocks();
 
@@ -233,7 +233,7 @@ export const Widget = ({ id, onRemove }) => {
     <Settings symbols={symbols} onChange={updateSetting} onClose={onClose} />
   );
 
-  // Refresh button + age label — always inline for minimal vertical footprint
+  // Refresh button + age label: always inline for minimal vertical footprint
   const RefreshBtn = (
     <div className="flex items-center gap-1.5">
       {showRetry ? (
@@ -310,12 +310,12 @@ export const Widget = ({ id, onRemove }) => {
         <span
           className={`stk-header-symbol${isDead ? ' stk-header-symbol--dead' : ' stk-header-symbol--live'}`}
         >
-          {displaySymbol(primarySym) || '—'}
+          {displaySymbol(primarySym) || '-'}
         </span>
         {RefreshBtn}
       </div>
 
-      {/* ── Body — natural height, never flex-stretched ── */}
+      {/* ── Body: natural height, never flex-stretched ── */}
       <div className="shrink-0 px-3 pb-0">
         {isFirstLoad ? (
           <StockSingleSkeleton />
@@ -330,7 +330,7 @@ export const Widget = ({ id, onRemove }) => {
                   color: isDead ? inkMuted : 'var(--w-ink-1)',
                 }}
               >
-                {chart ? fmtPrice(chart.ltp) : '—'}
+                {chart ? fmtPrice(chart.ltp) : '-'}
               </span>
             </div>
 
@@ -352,7 +352,7 @@ export const Widget = ({ id, onRemove }) => {
               </span>
             </div>
 
-            {/* O / H / L — always visible in single-stock view */}
+            {/* O / H / L: always visible in single-stock view */}
             <div className="grid grid-cols-3 items-baseline gap-x-2 mt-1.5">
               {[
                 { label: 'O', val: chart?.open },
@@ -362,7 +362,7 @@ export const Widget = ({ id, onRemove }) => {
                 <div key={label} className="flex items-baseline gap-0.5">
                   <span className="font-medium shrink-0" style={{ fontSize: ohlSize, color: inkMuted }}>{label}</span>
                   <span className="tabular-nums shrink-0 transition-colors duration-300" style={{ fontSize: ohlSize, color: isDead ? inkMuted : 'var(--w-ink-3)' }}>
-                    {val != null ? fmtOHL(val) : '—'}
+                    {val != null ? fmtOHL(val) : '-'}
                   </span>
                 </div>
               ))}
@@ -371,10 +371,10 @@ export const Widget = ({ id, onRemove }) => {
         )}
       </div>
 
-      {/* Elastic gap — fills available space when card is tall, collapses to 0 when short */}
+      {/* Elastic gap: fills available space when card is tall, collapses to 0 when short */}
       <div className="flex-1 min-h-0" />
 
-      {/* ── Sparkline — always rendered at full height, never clipped ── */}
+      {/* ── Sparkline: always rendered at full height, never clipped ── */}
       <div className="shrink-0" style={{ lineHeight: 0 }}>
         <Sparkline prices={chart?.prices ?? []} dir={stats?.dir ?? 'flat'} dead={isDead} />
       </div>

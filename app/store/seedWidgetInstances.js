@@ -5,7 +5,7 @@
  * Lives in its own file to break the circular import chain:
  *   useWidgetInstancesStore → widgets → Widget.jsx → useWidgetSettings → useWidgetInstancesStore
  *
- * This file is imported by App.jsx (the top of the tree) — nothing in the
+ * This file is imported by App.jsx (the top of the tree): nothing in the
  * widgets/ or store/ directories imports it back, so there is no cycle.
  */
 

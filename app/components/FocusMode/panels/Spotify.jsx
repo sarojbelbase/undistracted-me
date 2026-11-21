@@ -44,7 +44,7 @@ export const SpotifyPanel = ({ track, onToggle, onNext, onPrev, pending, skipPen
         </div>
       </div>
 
-      {/* Playback controls — TooltipBtn renders the <button>, so no nested button */}
+      {/* Playback controls: TooltipBtn renders the <button>, so no nested button */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
         <TooltipBtn
           tooltip="Previous"

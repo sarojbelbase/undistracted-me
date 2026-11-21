@@ -5,21 +5,21 @@ import { onClockTick } from "../../utilities/sharedClock";
 import { shorthandFromUrl } from "../../utilities/index";
 
 /**
- * Blocked sites section — shows blocked domains as clean pills with favicon + countdown.
+ * Blocked sites section: shows blocked domains as clean pills with favicon + countdown.
  * Block action lives in CurrentTabBookmark (icon next to save button).
  */
 export const BlockedSitesSection = () => {
   const [sites, setSites] = useState(() => getBlockedSites());
   const [now, setNow] = useState(Date.now());
 
-  // Only tick `now` for countdown display — do NOT call getBlockedSites()
+  // Only tick `now` for countdown display: do NOT call getBlockedSites()
   // every second because it destructively writes back to localStorage,
   // which would wipe out infinite-block entries (blockedUntil === null).
   // Driven by the shared clock (no per-component 1s interval).
   useEffect(() => onClockTick(() => setNow(Date.now())), []);
 
   // Periodically refresh to prune expired timed blocks (every 30s).
-  // Does NOT run every second — avoids the destructive write race condition.
+  // Does NOT run every second: avoids the destructive write race condition.
   useEffect(() => {
     const t = setInterval(() => {
       setSites(getBlockedSites());

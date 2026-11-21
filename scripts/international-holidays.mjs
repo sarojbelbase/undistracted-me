@@ -1,5 +1,5 @@
 /**
- * Curated international holidays — global observances + major worldwide
+ * Curated international holidays: global observances + major worldwide
  * festivals with AD-fixed dates.
  *
  * Unlike the Nepali holidays (scraped from Wikipedia as Bikram Sambat dates),

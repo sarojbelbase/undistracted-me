@@ -85,7 +85,7 @@ test('Switching to light mode persists in localStorage', async ({ page }) => {
 });
 
 test('Switching back to dark mode persists in localStorage', async ({ page }) => {
-  // Start in light mode — add a second init script so 'light' wins over 'dark' from beforeEach
+  // Start in light mode: add a second init script so 'light' wins over 'dark' from beforeEach
   await page.addInitScript(() => localStorage.setItem('app_mode', 'light'));
   await page.goto('/', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Settings', exact: true }).waitFor({ state: 'visible', timeout: 5000 });
@@ -102,7 +102,7 @@ test('Switching back to dark mode persists in localStorage', async ({ page }) =>
 test('Accent colour swatches are visible and not clipped', async ({ page }) => {
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Appearance' }).click();
-  // Accent section contains colour circles — look for the swatch container
+  // Accent section contains colour circles: look for the swatch container
   await expect(page.getByText('Accent', { exact: true })).toBeVisible();
 
   // All swatch buttons should be within the viewport

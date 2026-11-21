@@ -2,18 +2,18 @@
 //
 // Focus Mode ALWAYS renders over a dark photo / orb backdrop.
 // All surface tokens originate from THEME_PROFILES[cardStyle].focus
-// (app/theme/profiles.js) — the single source of truth. Paper / glass / comic
+// (app/theme/profiles.js): the single source of truth. Paper / glass / comic
 // each have a complete, self-contained Focus Mode profile.
 //
 // Two application points:
-//   • getFMCardVars(cardStyle) — spread onto the .fm-root div, sets every
+//   • getFMCardVars(cardStyle): spread onto the .fm-root div, sets every
 //     `--fm-*` CSS var so all in-root panels resolve them.
-//   • getDialogStyle(accent, cardStyle) — spread onto portaled dialogs
+//   • getDialogStyle(accent, cardStyle): spread onto portaled dialogs
 //     (rendered outside .fm-root), so their inner elements resolve the same
 //     `--fm-*` vars plus dark-tone accent.
 //
 // The FM_* constants below are CSS-var references (var(--fm-*)), NOT raw
-// values — components that consume them automatically follow the active theme.
+// values: components that consume them automatically follow the active theme.
 //
 // Photo-luminance-adaptive tokens (getPhotoTokens / getTokens) are a separate
 // axis: they handle "text floating directly on the photo" (dark vs light photo),
@@ -22,7 +22,7 @@ import { getFMAccentVars } from "../../constants/accents";
 import { THEME_PROFILES } from "../../theme/profiles";
 import { APP_SETTINGS_DEFAULTS } from "../../constants/defaults";
 
-// ── Card surface token exports — CSS var wrappers ──────────────────────────────
+// ── Card surface token exports: CSS var wrappers ──────────────────────────────
 export const FM_CARD_BG = "var(--fm-card-bg)";
 export const FM_CARD_BORDER = "var(--fm-card-border)";
 export const FM_CARD_BLUR = "var(--fm-card-blur)";
@@ -38,7 +38,7 @@ export const FM_DIVIDER = "var(--fm-divider)";
 export const FM_SECTION_CARD_BG = "var(--fm-section-bg)";
 export const FM_SECTION_CARD_BORDER = "var(--fm-section-border)";
 
-// ── Ink scale (text on cards — always white-on-dark) ───────────────────────────
+// ── Ink scale (text on cards: always white-on-dark) ───────────────────────────
 export const FM_INK_1 = "var(--fm-ink-1)";
 export const FM_INK_2 = "var(--fm-ink-2)";
 export const FM_INK_3 = "var(--fm-ink-3)";
@@ -96,7 +96,7 @@ export function getFMCardVars(cardStyle) {
 }
 
 // ─── FOCUS_THEME ────────────────────────────────────────────────────────────────
-// Legacy-compat object — panels use `const t = FOCUS_THEME`.
+// Legacy-compat object: panels use `const t = FOCUS_THEME`.
 export const FOCUS_THEME = {
   card: {
     background: FM_CARD_BG,
@@ -165,8 +165,8 @@ export const COMIC_DIALOG_STYLE = dialogSurface(THEME_PROFILES.comic.focus);
  * Use this instead of spreading DIALOG_STYLE directly on portalled FM dialogs.
  * Returns the full focus profile surface + dark ink pins + dark-tone accent.
  *
- * @param {string} accentName  — accent key (e.g. "blueberry")
- * @param {string} cardStyle   — "glass" | "paper" | "comic" (defaults to "glass")
+ * @param {string} accentName : accent key (e.g. "blueberry")
+ * @param {string} cardStyle  : "glass" | "paper" | "comic" (defaults to "glass")
  */
 export function getDialogStyle(accentName, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle) {
   const profile = THEME_PROFILES[cardStyle] ?? THEME_PROFILES.glass;
@@ -187,12 +187,11 @@ export const SECTION_CARD_STYLE = {
 // ─── Photo-luminance adaptive tokens ────────────────────────────────────────────
 //
 // Used ONLY for elements floating directly on the photo/orb (not inside a card):
-// clock digits, greeting text, and world clock labels. Theme-independent.
+// clock digits, greeting text and world clock labels. Theme-independent.
 export function getPhotoTokens(centerOnDark) {
   if (centerOnDark) {
     return {
       clockColor: "rgba(255,255,255,0.97)",
-      colonColor: "rgba(255,255,255,0.75)",
       clockShadow: "0 1px 3px rgba(0,0,0,0.50), 0 2px 18px rgba(0,0,0,0.28)",
       periodColor: "rgba(255,255,255,0.65)",
       periodShadow: "0 1px 4px rgba(0,0,0,0.45)",
@@ -208,7 +207,6 @@ export function getPhotoTokens(centerOnDark) {
   }
   return {
     clockColor: "rgba(0,0,0,0.88)",
-    colonColor: "rgba(0,0,0,0.56)",
     clockShadow: "none",
     periodColor: "rgba(0,0,0,0.55)",
     periodShadow: "none",

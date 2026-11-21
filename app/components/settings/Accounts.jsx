@@ -1,5 +1,5 @@
 /**
- * Accounts — Inline Google + Spotify account management.
+ * Accounts: Inline Google + Spotify account management.
  * Self-contained: no AccountsDialog dependency.
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
@@ -103,7 +103,7 @@ const SpotifySection = () => {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export const Accounts = () => {
-  // Narrow selectors — the Google store flips `connecting`/`error`/`initialized`
+  // Narrow selectors: the Google store flips `connecting`/`error`/`initialized`
   // frequently; subscribing to the whole store re-rendered the panel each time.
   const connected = useGoogleAccountStore((s) => s.connected);
   const connecting = useGoogleAccountStore((s) => s.connecting);

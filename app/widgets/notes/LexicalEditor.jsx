@@ -33,7 +33,7 @@ import { $getRoot, $getSelection, $isRangeSelection, $createRangeSelection, $set
 
 // ── Ctrl+Shift+K link editor ──────────────────────────────────────────────────
 // Ctrl+K is reserved by browsers (focus search bar), so we use Ctrl+Shift+K
-// instead — same convention as Notion, Google Docs, and Slack.
+// instead: same convention as Notion, Google Docs and Slack.
 function LinkEditorPlugin() {
   const [editor] = useLexicalComposerContext();
   const [visible, setVisible] = useState(false);
@@ -86,7 +86,7 @@ function LinkEditorPlugin() {
     setVisible(true);
   }, [editor]);
 
-  // Intercept Escape in capture phase — stops it reaching parent Modal's keydown listener
+  // Intercept Escape in capture phase: stops it reaching parent Modal's keydown listener
   useEffect(() => {
     if (!visible) return;
     const handler = (e) => {
@@ -96,7 +96,7 @@ function LinkEditorPlugin() {
     return () => document.removeEventListener('keydown', handler, true);
   }, [visible]);
 
-  // Call showModal() as soon as the dialog element mounts — focus link text first
+  // Call showModal() as soon as the dialog element mounts: focus link text first
   const dialogRefCallback = useCallback((node) => {
     if (!node) return;
     node.showModal();
@@ -137,7 +137,7 @@ function LinkEditorPlugin() {
     const saved = savedSelectionRef.current;
 
     if (linkKey) {
-      // Editing an existing link — directly mutate the LinkNode (avoids TOGGLE fighting insertText)
+      // Editing an existing link: directly mutate the LinkNode (avoids TOGGLE fighting insertText)
       editor.update(() => {
         const linkNode = $getNodeByKey(linkKey);
         if (!$isLinkNode(linkNode)) return;
@@ -189,7 +189,7 @@ function LinkEditorPlugin() {
     if (e.key === 'Enter') { e.preventDefault(); apply(); }
   }, [apply]);
 
-  // Native dialog cancel fires on Escape — prevent default close, use our close()
+  // Native dialog cancel fires on Escape: prevent default close, use our close()
   const handleCancel = useCallback((e) => {
     e.preventDefault();
     close();
@@ -329,7 +329,7 @@ const theme = {
 const NODES = [HeadingNode, QuoteNode, ListNode, ListItemNode, CodeNode, CodeHighlightNode, LinkNode];
 
 // onError + initial config hoisted to module scope so their identity is stable
-// across renders — rebuilding initialConfig every render would make
+// across renders: rebuilding initialConfig every render would make
 // LexicalComposer re-create the editor on each render.
 const onLexError = (err) => console.warn('[LexicalEditor]', err);
 
@@ -338,21 +338,21 @@ const INITIAL_CONFIG = {
   theme,
   nodes: NODES,
   onError: onLexError,
-  // Don't set editorState here — ValueSyncPlugin handles it
+  // Don't set editorState here: ValueSyncPlugin handles it
   editorState: null,
 };
 
-// CHECK_LIST is missing from TRANSFORMERS in @lexical/markdown v0.43 — add it first
+// CHECK_LIST is missing from TRANSFORMERS in @lexical/markdown v0.43: add it first
 const MY_TRANSFORMERS = [CHECK_LIST, ...TRANSFORMERS];
 
 // ── Main component ────────────────────────────────────────────────────────────
 // Props:
-//   value       — raw markdown string (controlled)
-//   onChange    — called with new markdown string on every edit
-//   placeholder — placeholder text
-//   className   — applied to the ContentEditable element
-//   style       — applied to the ContentEditable element
-//   autoFocus   — boolean
+//   value      : raw markdown string (controlled)
+//   onChange   : called with new markdown string on every edit
+//   placeholder: placeholder text
+//   className  : applied to the ContentEditable element
+//   style      : applied to the ContentEditable element
+//   autoFocus  : boolean
 const LexicalEditor = forwardRef(function LexicalEditor(
   { value, onChange, placeholder, className, style, autoFocus },
   ref,
@@ -363,7 +363,7 @@ const LexicalEditor = forwardRef(function LexicalEditor(
   // placeholder inherits the same font-size/line-height as the editor.
   const modeClass = className?.split(' ').find(c => c.startsWith('lex-content--')) ?? '';
 
-  // Load Source Serif 4 on first mount — deferred so it doesn't block initial page load.
+  // Load Source Serif 4 on first mount: deferred so it doesn't block initial page load.
   useEffect(() => { loadSourceSerif(); }, []);
 
   // Expose focus() to parent

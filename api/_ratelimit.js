@@ -4,7 +4,7 @@
  * Why KV and not a real atomic counter: Cloudflare KV has no atomic increment,
  * so a fixed-window counter with read-modify-write is approximate under bursts
  * (two concurrent requests may both pass). That is acceptable for abuse
- * prevention — the goal is to stop a single client from hammering the endpoint
+ * prevention: the goal is to stop a single client from hammering the endpoint
  * hundreds of times a minute, not to be a precise quota system. For hard limits
  * use Cloudflare's WAF rate-limiting rules (paid) or a Durable Object.
  *

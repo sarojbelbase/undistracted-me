@@ -1,5 +1,5 @@
 /**
- * Search engine definitions — shared between the Focus Mode Search Bar
+ * Search engine definitions: shared between the Focus Mode Search Bar
  * and the Canvas Command Palette.
  */
 

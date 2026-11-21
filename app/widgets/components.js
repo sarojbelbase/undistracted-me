@@ -26,7 +26,7 @@ import { Widget as PocketWidget } from "./pocket/Widget";
  * benefit, which visibly degraded load performance.
  *
  * This file lives OUTSIDE config.js so each widget's config.js can remain
- * metadata-only — breaking the `config.js → Widget.jsx → config.js` import
+ * metadata-only: breaking the `config.js → Widget.jsx → config.js` import
  * cycle without resorting to lazy loading. WidgetGrid consumes this map
  * instead of `config.Component`.
  */

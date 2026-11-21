@@ -89,7 +89,7 @@ export const buildCalendarData = (calendarType, monthOffset = 0) => {
     };
   }
 
-  // AD — JS Date handles year roll-over automatically
+  // AD: JS Date handles year roll-over automatically
   const base = new Date(year, month - 1 + monthOffset, 1);
   const targetYear = base.getFullYear();
   const targetMonth = base.getMonth() + 1;

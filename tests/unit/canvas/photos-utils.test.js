@@ -90,7 +90,7 @@ describe('clearPhotoCache', () => {
   });
 });
 
-// NOTE: hasUnsplashKey() was removed — the photo source moved to a Vercel
+// NOTE: hasUnsplashKey() was removed: the photo source moved to a Vercel
 // curated proxy (see downloadCuratedPhotos) and no longer checks a client key.
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ describe('jumpToPhotoById', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// rotatePhoto — no API key so fetchOne returns null
+// rotatePhoto: no API key so fetchOne returns null
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('rotatePhoto', () => {
@@ -206,7 +206,7 @@ describe('rotatePhoto', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// downloadCuratedPhotos — no API key
+// downloadCuratedPhotos: no API key
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('downloadCuratedPhotos', () => {

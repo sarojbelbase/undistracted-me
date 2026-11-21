@@ -17,7 +17,7 @@ export const Widget = ({ id = 'progress', onRemove }) => {
 
   const lastMinuteRef = useRef(-1);
   useEffect(() => {
-    // Commit only when a visible field actually changes — year/month progress
+    // Commit only when a visible field actually changes: year/month progress
     // would otherwise re-render 1,440×/day (every minute) while the integer
     // percentage changes ~every 3.6 days.
     const commit = () => {

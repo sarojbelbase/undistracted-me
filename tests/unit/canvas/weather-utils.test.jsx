@@ -26,7 +26,7 @@ beforeEach(() => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// getWeatherIcon — returns a JSX element; we test the component type / props
+// getWeatherIcon: returns a JSX element; we test the component type / props
 // ─────────────────────────────────────────────────────────────────────────────
 
 const renderIcon = (code, isDay = true, size = 52) => {
@@ -35,7 +35,7 @@ const renderIcon = (code, isDay = true, size = 52) => {
   return container.firstChild; // <svg>
 };
 
-describe("getWeatherIcon — Thunderstorm (200–299)", () => {
+describe("getWeatherIcon: Thunderstorm (200–299)", () => {
   it("returns CloudLightningRain for code 200", () => {
     expect(renderIcon(200)).toBeTruthy();
   });
@@ -47,7 +47,7 @@ describe("getWeatherIcon — Thunderstorm (200–299)", () => {
   });
 });
 
-describe("getWeatherIcon — Drizzle (300–399)", () => {
+describe("getWeatherIcon: Drizzle (300–399)", () => {
   it("returns CloudDrizzle for code 300", () => {
     expect(renderIcon(300)).toBeTruthy();
   });
@@ -56,7 +56,7 @@ describe("getWeatherIcon — Drizzle (300–399)", () => {
   });
 });
 
-describe("getWeatherIcon — Rain (500–531)", () => {
+describe("getWeatherIcon: Rain (500–531)", () => {
   it("returns CloudRain for code 500 (light rain)", () => {
     expect(renderIcon(500)).toBeTruthy();
   });
@@ -71,7 +71,7 @@ describe("getWeatherIcon — Rain (500–531)", () => {
   });
 });
 
-describe("getWeatherIcon — Snow / Sleet (600–699)", () => {
+describe("getWeatherIcon: Snow / Sleet (600–699)", () => {
   it("returns CloudSleet for code 611", () => {
     expect(renderIcon(611)).toBeTruthy();
   });
@@ -83,7 +83,7 @@ describe("getWeatherIcon — Snow / Sleet (600–699)", () => {
   });
 });
 
-describe("getWeatherIcon — Atmosphere (700–799)", () => {
+describe("getWeatherIcon: Atmosphere (700–799)", () => {
   it("returns CloudFog for code 741", () => {
     expect(renderIcon(741)).toBeTruthy();
   });
@@ -104,7 +104,7 @@ describe("getWeatherIcon — Atmosphere (700–799)", () => {
   });
 });
 
-describe("getWeatherIcon — Clear sky (800)", () => {
+describe("getWeatherIcon: Clear sky (800)", () => {
   it("returns Sun icon during the day", () => {
     expect(renderIcon(800, true)).toBeTruthy();
   });
@@ -113,7 +113,7 @@ describe("getWeatherIcon — Clear sky (800)", () => {
   });
 });
 
-describe("getWeatherIcon — Mostly clear (801–802)", () => {
+describe("getWeatherIcon: Mostly clear (801–802)", () => {
   it("returns CloudSun for code 801 during day", () => {
     expect(renderIcon(801, true)).toBeTruthy();
   });
@@ -125,7 +125,7 @@ describe("getWeatherIcon — Mostly clear (801–802)", () => {
   });
 });
 
-describe("getWeatherIcon — Overcast (803+)", () => {
+describe("getWeatherIcon: Overcast (803+)", () => {
   it("returns Clouds for code 803", () => {
     expect(renderIcon(803)).toBeTruthy();
   });
@@ -134,7 +134,7 @@ describe("getWeatherIcon — Overcast (803+)", () => {
   });
 });
 
-describe("getWeatherIcon — Unknown code fallback", () => {
+describe("getWeatherIcon: Unknown code fallback", () => {
   it("returns Cloud for completely unknown code 999", () => {
     expect(renderIcon(999)).toBeTruthy();
   });
@@ -145,7 +145,7 @@ describe("getWeatherIcon — Unknown code fallback", () => {
   });
 });
 
-describe("getWeatherIcon — size prop", () => {
+describe("getWeatherIcon: size prop", () => {
   it("passes size to the icon component (renders without crash for size=14)", () => {
     const el = getWeatherIcon(800, true, 14);
     expect(() => render(el)).not.toThrow();
@@ -157,7 +157,7 @@ describe("getWeatherIcon — size prop", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// parseWeather — parses OWM /weather response
+// parseWeather: parses OWM /weather response
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Open-Meteo format (replaces old OWM format)
@@ -231,7 +231,7 @@ describe("parseWeather", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// fetchWeatherByCoords — mocked fetch
+// fetchWeatherByCoords: mocked fetch
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("fetchOpenMeteo", () => {
@@ -261,7 +261,7 @@ describe("fetchOpenMeteo", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// getCoords was removed — geolocation moved to app/store/useLocationStore.js.
+// getCoords was removed: geolocation moved to app/store/useLocationStore.js.
 // See useLocationStore.refresh() for the current browser geolocation pipeline.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -294,7 +294,7 @@ describe("wmoDescription", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// parseForecast — parses hourly Open-Meteo data for weather narrative
+// parseForecast: parses hourly Open-Meteo data for weather narrative
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("parseForecast", () => {

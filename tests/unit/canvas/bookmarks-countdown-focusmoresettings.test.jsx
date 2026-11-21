@@ -4,7 +4,6 @@
  * - bookmarks/config.js (0%)
  * - countdown/Widget.jsx (50%) - additional tests
  * - countdown/config.js (0%)
- * - countdown/Settings.jsx (0% - null export)
  * - notes/config.js (0%)
  * - FocusMode/Settings.jsx interactions (37.03%)
  * - FocusMode/index.jsx additional paths (53.6%)
@@ -28,7 +27,7 @@ vi.stubGlobal('chrome', {
   action: {},
 });
 
-// Mock react-bootstrap-icons — override the icons asserted on, keep the rest real.
+// Mock react-bootstrap-icons: override the icons asserted on, keep the rest real.
 vi.mock('react-bootstrap-icons', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -93,7 +92,7 @@ vi.mock('../../../app/hooks/useEvents', () => ({
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
-// Mock countdown/utils — keep the real loaders/resolvers, override formatters
+// Mock countdown/utils: keep the real loaders/resolvers, override formatters
 vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -105,7 +104,7 @@ vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
     formatCountdown: vi.fn(() => ({ days: 3, hours: 12, minutes: 30, totalSeconds: 100000 })),
     formatTargetDate: vi.fn(() => 'Aug 15, 2025'),
     // The widget renders one humanized hero phrase ("in 10 days") rather than
-    // separate number/unit nodes — keep it deterministic instead of depending
+    // separate number/unit nodes: keep it deterministic instead of depending
     // on the real calendar-relative humanizer.
     formatCountdownPhrase: vi.fn((days, hours, mins) => {
       if (days > 0) return `${days} days`;
@@ -267,10 +266,6 @@ describe('Config files', () => {
 });
 
 describe('Countdown Settings.jsx', () => {
-  it('exports the CountdownSettings panel component', async () => {
-    const mod = await import('../../../app/widgets/countdown/Settings');
-    expect(mod.CountdownSettings).toBeTypeOf('function');
-  });
   it('dateToday Settings.jsx exports a component', async () => {
     const { Settings } = await import('../../../app/widgets/dateToday/Settings');
     // dateToday/Settings.jsx exports a real component (RadioGroup-based)
@@ -324,7 +319,7 @@ describe('Bookmarks Widget', () => {
     render(<BookmarksWidget id="bm_1" onRemove={vi.fn()} />);
     const addBtn = screen.getByLabelText('Add bookmark');
     fireEvent.click(addBtn);
-    // Modal title should appear — use getAllByText since settings panel may also show it
+    // Modal title should appear: use getAllByText since settings panel may also show it
     expect(screen.getAllByText('Add Bookmark').length).toBeGreaterThan(0);
   });
 
@@ -359,12 +354,12 @@ describe('Bookmarks Widget', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Countdown Widget — additional tests
+// Countdown Widget: additional tests
 // ─────────────────────────────────────────────────────────────────────────────
 import { Widget as CountdownWidget } from '../../../app/widgets/countdown/Widget';
 import { getNextOccurrence, formatCountdown } from '../../../app/widgets/countdown/utils';
 
-describe('Countdown Widget — additional coverage', () => {
+describe('Countdown Widget: additional coverage', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.useFakeTimers();
@@ -392,10 +387,10 @@ describe('Countdown Widget — additional coverage', () => {
   it('auto-picks custom countdown when no events', () => {
     vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
     // Make getNextOccurrence return future date
-    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2025-08-15T00:00:00'));
+    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2027-08-15T00:00:00'));
     vi.mocked(formatCountdown).mockReturnValue({ days: 3, hours: 0, minutes: 0, totalSeconds: 259200 });
 
-    const countdownData = [{ id: 'cd_1', title: 'Summer Festival', targetDate: '2025-08-15', targetTime: '00:00', repeat: 'none' }];
+    const countdownData = [{ id: 'cd_1', title: 'Summer Festival', targetDate: '2027-08-15', targetTime: '00:00', repeat: 'none' }];
     localStorage.setItem('countdown_events', JSON.stringify(countdownData));
     render(<CountdownWidget onRemove={vi.fn()} />);
     expect(screen.getByText('Summer Festival')).toBeTruthy();
@@ -403,10 +398,10 @@ describe('Countdown Widget — additional coverage', () => {
 
   it('shows pinned custom countdown by title', () => {
     vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
-    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2025-09-01T00:00:00'));
+    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2027-09-01T00:00:00'));
     vi.mocked(formatCountdown).mockReturnValue({ days: 50, hours: 0, minutes: 0, totalSeconds: 4320000 });
 
-    const countdownData = [{ id: 'cd_pinned', title: 'Pinned Event', targetDate: '2025-09-01', targetTime: '00:00', repeat: 'none' }];
+    const countdownData = [{ id: 'cd_pinned', title: 'Pinned Event', targetDate: '2027-09-01', targetTime: '00:00', repeat: 'none' }];
     localStorage.setItem('countdown_events', JSON.stringify(countdownData));
     localStorage.setItem('countdown_pinned', JSON.stringify({ type: 'custom', id: 'cd_pinned' }));
     render(<CountdownWidget onRemove={vi.fn()} />);
@@ -465,112 +460,6 @@ describe('Countdown Widget — additional coverage', () => {
     expect(document.querySelector('.cdn-time-hero').textContent).toBe('5 hrs');
   });
 
-  it('renders settings panel with CountdownSettings', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const settingsPanel = screen.getByTestId('settings-panel');
-    expect(settingsPanel).toBeTruthy();
-    // should show "From Calendar" section (renamed from From Events)
-    expect(screen.getByText(/From Calendar/i)).toBeTruthy();
-  });
-
-  it('shows "No upcoming events" in settings when no events', () => {
-    vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    expect(screen.getByText(/No upcoming events/i)).toBeTruthy();
-  });
-
-  it('shows event in settings panel when events exist', () => {
-    vi.mocked(useEvents).mockReturnValue([[
-      { id: 'ev1', title: 'Conference 2027', startDate: '2027-08-15', startTime: '09:00', endDate: '', endTime: '' },
-    ], vi.fn(), vi.fn()]);
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const allConference = screen.getAllByText('Conference 2027');
-    expect(allConference.length).toBeGreaterThan(0);
-  });
-
-  it('shows "Custom" section in settings', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    // Section is now "My Countdowns" not "Custom"
-    expect(screen.getByText('My Countdowns')).toBeTruthy();
-  });
-
-  it('shows empty state when no custom ones', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    expect(screen.getByText('Nothing to track yet')).toBeTruthy();
-  });
-
-  it('shows custom countdown in settings list', () => {
-    vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
-    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2025-09-01T00:00:00'));
-    vi.mocked(formatCountdown).mockReturnValue({ days: 5, hours: 0, minutes: 0, totalSeconds: 432000 });
-
-    const countdownData = [{ id: 'cd_1', title: 'My Custom CD', targetDate: '2025-09-01', targetTime: '00:00', repeat: 'none' }];
-    localStorage.setItem('countdown_events', JSON.stringify(countdownData));
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    expect(screen.getAllByText('My Custom CD').length).toBeGreaterThan(0);
-  });
-
-  it('opens AddModal when + is clicked in settings', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    // Find the + button in the Custom section
-    const plusBtns = screen.getAllByTestId('plus-icon');
-    // Click the last one (usually in settings)
-    fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-    expect(screen.getByText('New Countdown')).toBeTruthy();
-  });
-
-  it('AddModal closes when X is clicked', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const plusBtns = screen.getAllByTestId('plus-icon');
-    fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-    expect(screen.getByText('New Countdown')).toBeTruthy();
-    fireEvent.click(screen.getByLabelText('Close'));
-    expect(screen.queryByText('New Countdown')).toBeNull();
-  });
-
-  it('AddModal Save is disabled when title/date empty', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const plusBtns = screen.getAllByTestId('plus-icon');
-    fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-    expect(screen.getByRole('button', { name: 'Save Countdown' }).disabled).toBe(true);
-  });
-
-  it('AddModal shows repeat options', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const plusBtns = screen.getAllByTestId('plus-icon');
-    fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-    expect(screen.getByText('Repeat')).toBeTruthy();
-    expect(screen.getByText('Once')).toBeTruthy();
-    expect(screen.getByText('Weekly')).toBeTruthy();
-  });
-
-  it('AddModal can set title', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const plusBtns = screen.getAllByTestId('plus-icon');
-    fireEvent.click(plusBtns[plusBtns.length - 1].closest('button'));
-
-    const titleInput = screen.getByPlaceholderText(/Trip to Japan/i);
-    fireEvent.change(titleInput, { target: { value: 'My Birthday' } });
-    expect(titleInput.value).toBe('My Birthday');
-  });
-
-  it('removes custom countdown when remove button is clicked', () => {
-    vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
-    vi.mocked(getNextOccurrence).mockReturnValue(new Date('2025-09-01T00:00:00'));
-    vi.mocked(formatCountdown).mockReturnValue({ days: 5, hours: 0, minutes: 0, totalSeconds: 432000 });
-
-    const countdownData = [{ id: 'cd_del', title: 'Delete Me', targetDate: '2025-09-01', targetTime: '00:00', repeat: 'none' }];
-    localStorage.setItem('countdown_events', JSON.stringify(countdownData));
-    render(<CountdownWidget onRemove={vi.fn()} />);
-
-    // The trash control is a two-step ConfirmButton ("Sure?"), so confirm twice.
-    const removeBtn = screen.getByLabelText('Remove Delete Me');
-    fireEvent.click(removeBtn);
-    fireEvent.click(removeBtn);
-    // After deletion, the list falls back to its empty state
-    expect(screen.getByText('Nothing to track yet')).toBeTruthy();
-  });
-
   it('repeating countdown shows repeat badge', () => {
     vi.mocked(useEvents).mockReturnValue([[], vi.fn(), vi.fn()]);
     vi.mocked(getNextOccurrence).mockReturnValue(new Date('2025-09-01T00:00:00'));
@@ -593,7 +482,7 @@ describe('Countdown Widget — additional coverage', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FocusMode/Settings.jsx — more interaction coverage
+// FocusMode/Settings.jsx: more interaction coverage
 // ─────────────────────────────────────────────────────────────────────────────
 vi.mock('../../../app/components/ui/Modal', () => ({
   Modal: ({ children }) => <div data-testid="fm-modal">{children}</div>,
@@ -605,7 +494,7 @@ vi.mock('../../../app/components/FocusMode/settings/Background', () => ({
 import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
 import { useSettingsStore } from '../../../app/store';
 
-describe('FocusModeSettings — interactions', () => {
+describe('FocusModeSettings: interactions', () => {
   let mockSetDateFormat, mockSetClockFormat;
 
   beforeEach(() => {

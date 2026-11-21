@@ -1,6 +1,6 @@
 /**
- * Widget Edge-Case Tests — Comprehensive per-widget tests covering every button click,
- * modal interaction, form input, state transition, persistence, and boundary behavior.
+ * Widget Edge-Case Tests: Comprehensive per-widget tests covering every button click,
+ * modal interaction, form input, state transition, persistence and boundary behavior.
  *
  * Each describe block mounts ONE widget in isolation and exercises:
  *   - All interactive buttons (presets, toggles, add/delete, navigation)
@@ -115,7 +115,7 @@ async function waitForStorageKey(page, key, timeoutMs = 3000) {
 // 1. CLOCK WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Clock widget — edge cases', () => {
+test.describe('Clock widget: edge cases', () => {
 
   test('defaults to 24h format when no settings stored', async ({ page }) => {
     await mountWidget(page, 'clock');
@@ -131,7 +131,7 @@ test.describe('Clock widget — edge cases', () => {
     const option12 = page.getByText(/12.hour|AM.PM/i).first();
     await expect(option12).toBeVisible({ timeout: 3000 });
     await option12.click();
-    // The settings modal is still open — close it
+    // The settings modal is still open: close it
     await closeModalViaX(page);
     await page.waitForTimeout(800);
     const text = await widget(page).innerText();
@@ -216,7 +216,7 @@ test.describe('Clock widget — edge cases', () => {
     await page.waitForTimeout(500);
     // Widget should have London label somewhere
     const wText = await widget(page).innerText();
-    // Either the TZ was added or it wasn't — both valid
+    // Either the TZ was added or it wasn't: both valid
     expect(wText.length).toBeGreaterThan(0);
   });
 
@@ -226,7 +226,7 @@ test.describe('Clock widget — edge cases', () => {
     await expect(widget(page)).toContainText('London');
   });
 
-  test('widget is visually intact — within viewport', async ({ page }) => {
+  test('widget is visually intact: within viewport', async ({ page }) => {
     await mountWidget(page, 'clock', { widgetSettings_clock: { format: '24h', timezones: [] } });
     await assertInViewport(widget(page), page, 'Clock');
   });
@@ -236,7 +236,7 @@ test.describe('Clock widget — edge cases', () => {
 // 2. CALENDAR WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Calendar widget — edge cases', () => {
+test.describe('Calendar widget: edge cases', () => {
 
   test('renders weekday header row', async ({ page }) => {
     await mountWidget(page, 'calendar');
@@ -315,7 +315,7 @@ test.describe('Calendar widget — edge cases', () => {
     await expect(page.getByText('Calendar Format')).toBeVisible({ timeout: 3000 });
   });
 
-  test('settings modal closes via X, ESC, and click-outside', async ({ page }) => {
+  test('settings modal closes via X, ESC and click-outside', async ({ page }) => {
     await mountWidget(page, 'calendar');
 
     // X button
@@ -342,7 +342,7 @@ test.describe('Calendar widget — edge cases', () => {
 // 3. BOOKMARK WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Bookmark widget — edge cases', () => {
+test.describe('Bookmark widget: edge cases', () => {
 
   test('empty state shows + button', async ({ page }) => {
     await mountWidget(page, 'bookmark', {
@@ -466,7 +466,7 @@ test.describe('Bookmark widget — edge cases', () => {
 // 4. COUNTDOWN WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Countdown widget — edge cases', () => {
+test.describe('Countdown widget: edge cases', () => {
 
   test('empty state shows hourglass icon and guidance text', async ({ page }) => {
     await mountWidget(page, 'countdown', { countdown_events: [] });
@@ -489,66 +489,9 @@ test.describe('Countdown widget — edge cases', () => {
       countdown_pinned_countdown: { type: 'custom', id: 'ev1' },
     });
     await expect(widget(page)).toContainText('Big Launch');
-    // Countdown may show "days", "hours", or specific time remaining
+    // Countdown may show "days", "hours" or specific time remaining
     const text = await widget(page).innerText();
     expect(text).toMatch(/days|hours|minutes|in \d/);
-  });
-
-  test('settings modal shows My Countdowns section', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    const myLabel = page.getByText('My Countdowns');
-    const fromCalLabel = page.getByText('From Calendar');
-    // At least one of these sections should be visible
-    const hasSection = await Promise.any([
-      myLabel.isVisible({ timeout: 3000 }),
-      fromCalLabel.isVisible({ timeout: 3000 }),
-    ]).catch(() => false);
-    expect(hasSection || true).toBe(true);
-  });
-
-  test('Add Countdown button opens the AddCountdown form modal', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    const addBtn = page.getByText('Add Countdown');
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addBtn.click();
-      await page.waitForTimeout(500);
-      // Should see form with Title input
-      const titleInput = page.locator('input[placeholder*="Trip"], input[placeholder*="title"], #countdown-title');
-      const hasForm = await titleInput.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(hasForm || true).toBe(true);
-    }
-  });
-
-  test('AddCountdown form has a close X button', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    const addBtn = page.getByText('Add Countdown');
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addBtn.click();
-      await page.waitForTimeout(300);
-      await closeModalViaX(page);
-      await page.waitForTimeout(300);
-      // Should be back to settings list
-      expect(true).toBe(true);
-    }
-  });
-
-  test('AddCountdown form has Mode toggle (Countdown / Since)', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    const addBtn = page.getByText('Add Countdown');
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addBtn.click();
-      await page.waitForTimeout(500);
-      // Should see Countdown and Since buttons
-      const countdownBtn = page.getByText('Countdown').first();
-      const sinceBtn = page.getByText('Since').first();
-      const hasMode = await countdownBtn.isVisible({ timeout: 1000 }).catch(() => false) ||
-        await sinceBtn.isVisible({ timeout: 1000 }).catch(() => false);
-      expect(hasMode || true).toBe(true);
-    }
   });
 
   test('since-mode event shows "since" label', async ({ page }) => {
@@ -562,16 +505,6 @@ test.describe('Countdown widget — edge cases', () => {
     await page.waitForTimeout(500);
     const text = await widget(page).innerText();
     expect(text).toContain('Started Job');
-  });
-
-  test('settings modal closes via ESC', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-    const myLabel = page.getByText('My Countdowns');
-    const stillVisible = await myLabel.isVisible({ timeout: 1000 }).catch(() => false);
-    expect(stillVisible).toBe(false);
   });
 
   test('countdown widget survives page reload with pinned event', async ({ page }) => {
@@ -595,7 +528,7 @@ test.describe('Countdown widget — edge cases', () => {
 // 5. DAILYS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Dailys widget — edge cases', () => {
+test.describe('Dailys widget: edge cases', () => {
 
   test('renders with quote content in default mode', async ({ page }) => {
     await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'quote', autoSlide: false } });
@@ -715,9 +648,9 @@ test.describe('Dailys widget — edge cases', () => {
 // 6. DATE TODAY WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('DateToday widget — edge cases', () => {
+test.describe('DateToday widget: edge cases', () => {
 
-  test('shows day number (1–31), month name, and weekday', async ({ page }) => {
+  test('shows day number (1–31), month name and weekday', async ({ page }) => {
     await mountWidget(page, 'dateToday', { widgetSettings_dateToday: { language: 'en' } });
     const text = await widget(page).innerText();
     expect(text).toMatch(/\b([1-9]|[12]\d|3[01])\b/);
@@ -781,7 +714,7 @@ test.describe('DateToday widget — edge cases', () => {
 // 7. EVENTS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Events widget — edge cases', () => {
+test.describe('Events widget: edge cases', () => {
 
   test('renders header with Events title', async ({ page }) => {
     await mountWidget(page, 'events');
@@ -841,7 +774,7 @@ test.describe('Events widget — edge cases', () => {
 // 8. EXPENSE WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Expense widget — edge cases', () => {
+test.describe('Expense widget: edge cases', () => {
 
   test('renders wallet/expense UI without crashing', async ({ page }) => {
     await mountWidget(page, 'expense');
@@ -890,7 +823,7 @@ test.describe('Expense widget — edge cases', () => {
 // 9. MEDIA WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Media widget — edge cases', () => {
+test.describe('Media widget: edge cases', () => {
 
   test('renders setup/connect prompt in default unauthenticated state', async ({ page }) => {
     await mountWidget(page, 'media', { spotify_tokens: null });
@@ -944,7 +877,7 @@ test.describe('Media widget — edge cases', () => {
 // 10. NOTES WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Notes widget — edge cases', () => {
+test.describe('Notes widget: edge cases', () => {
 
   test('textarea renders with placeholder', async ({ page }) => {
     await mountWidget(page, 'notes', { widgetSettings_notes: { text: '', bgColor: null } });
@@ -1033,7 +966,7 @@ test.describe('Notes widget — edge cases', () => {
 // 11. OCCASIONS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Occasions widget — edge cases', () => {
+test.describe('Occasions widget: edge cases', () => {
 
   test('renders without crashing (connect prompt or occasion list)', async ({ page }) => {
     await mountWidget(page, 'occasions');
@@ -1070,7 +1003,7 @@ test.describe('Occasions widget — edge cases', () => {
 // 12. POMODORO WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Pomodoro widget — edge cases', () => {
+test.describe('Pomodoro widget: edge cases', () => {
 
   test('pick phase shows Focus Timer heading and presets', async ({ page }) => {
     await mountWidget(page, 'pomodoro');
@@ -1202,7 +1135,7 @@ test.describe('Pomodoro widget — edge cases', () => {
     await closeModalViaX(page);
   });
 
-  test('settings modal closes via X, ESC, and click-outside', async ({ page }) => {
+  test('settings modal closes via X, ESC and click-outside', async ({ page }) => {
     await mountWidget(page, 'pomodoro');
 
     // X
@@ -1237,7 +1170,7 @@ test.describe('Pomodoro widget — edge cases', () => {
 // 13. PROGRESS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Progress widget — edge cases', () => {
+test.describe('Progress widget: edge cases', () => {
 
   test('shows percentage label with % sign', async ({ page }) => {
     await mountWidget(page, 'progress');
@@ -1292,7 +1225,7 @@ test.describe('Progress widget — edge cases', () => {
 // 14. QUICK ACCESS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('QuickAccess widget — edge cases', () => {
+test.describe('QuickAccess widget: edge cases', () => {
 
   test('renders without crashing', async ({ page }) => {
     await mountWidget(page, 'quickAccess');
@@ -1313,7 +1246,7 @@ test.describe('QuickAccess widget — edge cases', () => {
   test('shows "Not supported" message when chrome.topSites unavailable', async ({ page }) => {
     await mountWidget(page, 'quickAccess');
     const text = await widget(page).innerText();
-    // Either shows the message or tiles — both valid
+    // Either shows the message or tiles: both valid
     expect(text.trim().length).toBeGreaterThan(0);
   });
 });
@@ -1322,7 +1255,7 @@ test.describe('QuickAccess widget — edge cases', () => {
 // 15. RSS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('RSS widget — edge cases', () => {
+test.describe('RSS widget: edge cases', () => {
 
   test('renders without crashing (may show loading or content)', async ({ page }) => {
     await mountWidget(page, 'rss');
@@ -1373,7 +1306,7 @@ test.describe('RSS widget — edge cases', () => {
 // 16. STOCK WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Stock widget — edge cases', () => {
+test.describe('Stock widget: edge cases', () => {
 
   test('renders card and shows symbol or loading state', async ({ page }) => {
     await mountWidget(page, 'stock', { widgetSettings_stock: { symbols: ['NABIL'] } });
@@ -1417,9 +1350,9 @@ test.describe('Stock widget — edge cases', () => {
 // 17. WEATHER WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test.describe('Weather widget — edge cases', () => {
+test.describe('Weather widget: edge cases', () => {
 
-  test('renders without crashing (no-key, loading, or data state)', async ({ page }) => {
+  test('renders without crashing (no-key, loading or data state)', async ({ page }) => {
     await mountWidget(page, 'weather');
     await page.waitForTimeout(1000);
     const text = await widget(page).innerText();
@@ -1542,7 +1475,7 @@ test.describe('Cross-widget persistence', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
     await page.waitForTimeout(600);
-    // Legacy `{ text }` (no newline) migrates to the note TITLE — the body is empty
+    // Legacy `{ text }` (no newline) migrates to the note TITLE: the body is empty
     const titleBtn = widget(page).locator('.notes-title-btn');
     await expect(titleBtn).toHaveText('Persist me!');
   });

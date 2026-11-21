@@ -6,9 +6,9 @@
  *    good happens after midnight" because the reverse-scan guard is wrong.
  *  – 12h format: hour 0 must become 12 AM, not 00 AM (the modulo edge case).
  *  – 12h format: hour 12 must become 12 PM, not 00 PM.
- *  – 24h format: period must be null (not undefined) — the UI renders
+ *  – 24h format: period must be null (not undefined): the UI renders
  *    `{period && <span>}` and undefined behaves differently to null.
- *  – Minutes must always be two digits (06 not 6) — a display regression.
+ *  – Minutes must always be two digits (06 not 6): a display regression.
  *  – getTimeInZone with an unknown timezone must not crash the app.
  *  – TIMEZONES must include Kathmandu (the app's home timezone).
  */
@@ -124,10 +124,10 @@ describe('getGreeting', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// getTimeParts — 24h format
+// getTimeParts: 24h format
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('getTimeParts — 24h format', () => {
+describe('getTimeParts: 24h format', () => {
   const mockTime = (h, m) => {
     vi.useFakeTimers();
     const d = new Date(2025, 0, 1, h, m, 0);
@@ -174,10 +174,10 @@ describe('getTimeParts — 24h format', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// getTimeParts — 12h format
+// getTimeParts: 12h format
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('getTimeParts — 12h format', () => {
+describe('getTimeParts: 12h format', () => {
   const mockTime = (h, m) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2025, 0, 1, h, m, 0));
@@ -233,7 +233,7 @@ describe('getTimeParts — 12h format', () => {
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('getTimeInZone', () => {
-  it('returns time, period, and label for a known timezone', () => {
+  it('returns time, period and label for a known timezone', () => {
     const result = getTimeInZone('Asia/Kathmandu', '24h');
     expect(result).toHaveProperty('time');
     expect(result).toHaveProperty('period');

@@ -22,7 +22,7 @@ vi.stubGlobal('chrome', {
 // Mock fetch globally
 vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
-// Mock react-bootstrap-icons — override the icons this suite asserts on and keep
+// Mock react-bootstrap-icons: override the icons this suite asserts on and keep
 // the real exports so any other icon a component imports still resolves.
 vi.mock('react-bootstrap-icons', async (importOriginal) => {
   const actual = await importOriginal();
@@ -101,7 +101,7 @@ vi.mock('../../../app/widgets/useEvents', () => ({
   useGoogleCalendar: vi.fn(() => ({ gcalEvents: [], isLoading: false })),
 }));
 
-// Mock countdown utils — override only the deterministic bits; keep the rest of
+// Mock countdown utils: override only the deterministic bits; keep the rest of
 // the module real so a newly imported helper doesn't break the suite.
 vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
   const actual = await importOriginal();
@@ -125,6 +125,13 @@ vi.mock('../../../app/widgets/countdown/utils', async (importOriginal) => {
 // Mock events utils
 vi.mock('../../../app/widgets/events/utils', () => ({
   todayStr: () => '2025-07-01',
+  fmt12: (time) => {
+    if (!time) return null;
+    const [h, m] = time.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+  },
 }));
 
 import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
@@ -144,7 +151,7 @@ import {
 const TOKEN_KEY = 'spotify_tokens';
 const PROFILE_KEY = 'spotify_profile';
 
-describe('Spotify Utils — media/utils', () => {
+describe('Spotify Utils: media/utils', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -281,19 +288,6 @@ describe('Countdown Widget', () => {
     expect(screen.getByTestId('base-widget')).toBeTruthy();
   });
 
-  it('renders add countdown button', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    expect(screen.getAllByTestId('plus').length).toBeGreaterThan(0);
-  });
-
-  it('opens AddModal when + button is clicked', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    const plusBtn = screen.getAllByTestId('plus')[0];
-    fireEvent.click(plusBtn);
-    // Should show the new countdown modal
-    expect(screen.getByText('New Countdown')).toBeTruthy();
-  });
-
   it('shows empty state when no countdowns', () => {
     render(<CountdownWidget onRemove={vi.fn()} />);
     // Should show hourglass or similar empty state icon
@@ -305,14 +299,14 @@ describe('Countdown Widget', () => {
       {
         id: 'cd_1',
         title: 'Summer Festival',
-        targetDate: '2025-08-15',
+        targetDate: '2027-02-01',
         targetTime: '12:00',
         repeat: 'none',
       },
       {
         id: 'cd_2',
         title: 'New Year',
-        targetDate: '2026-01-01',
+        targetDate: '2027-06-01',
         targetTime: '00:00',
         repeat: 'none',
       }
@@ -320,14 +314,5 @@ describe('Countdown Widget', () => {
     localStorage.setItem('countdown_events', JSON.stringify(countdownData));
     render(<CountdownWidget onRemove={vi.fn()} />);
     expect(screen.getByText('Summer Festival')).toBeTruthy();
-  });
-
-  it('cancels AddModal when Cancel button is clicked', () => {
-    render(<CountdownWidget onRemove={vi.fn()} />);
-    fireEvent.click(screen.getAllByTestId('plus')[0]);
-    expect(screen.getByText('New Countdown')).toBeTruthy();
-    // AddCountdown's footer Cancel button closes the modal without saving.
-    fireEvent.click(screen.getByText('Cancel'));
-    expect(screen.queryByText('New Countdown')).toBeNull();
   });
 });

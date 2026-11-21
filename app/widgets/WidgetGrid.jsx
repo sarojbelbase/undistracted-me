@@ -18,7 +18,7 @@ const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 // Vertical padding per breakpoint is preserved in BP_SPECS for fine-tuning.
 const WIDGETGRID_X_MARGIN = 12;
 
-// Grid row height (px) — matches the RGL `rowHeight`; a widget's `h` spans
+// Grid row height (px): matches the RGL `rowHeight`; a widget's `h` spans
 // `h` rows plus `(h - 1)` inter-row margins.
 const ROW_HEIGHT = 8.5;
 // The canvas scroll container in App.jsx reserves a 64px (`pt-16`) top bar for
@@ -41,7 +41,7 @@ const RGL_COLS = Object.fromEntries(BP_SPECS.map((s) => [s.name, s.cols]));
 const RGL_MARGIN = Object.fromEntries(
   BP_SPECS.map((s) => [s.name, [s.margin, s.margin]]),
 );
-// containerPadding: [horizontal, vertical] — horizontal is the consistent
+// containerPadding: [horizontal, vertical]: horizontal is the consistent
 // WIDGETGRID_X_MARGIN; vertical stays per-breakpoint for layout tuning.
 const RGL_PADDING = Object.fromEntries(
   BP_SPECS.map((s) => [s.name, [WIDGETGRID_X_MARGIN, s.padding]]),
@@ -49,7 +49,7 @@ const RGL_PADDING = Object.fromEntries(
 
 const BP_NAMES = BP_SPECS.map((s) => s.name);
 
-// Stable RGL config objects — hoisted so their identity doesn't change on every
+// Stable RGL config objects: hoisted so their identity doesn't change on every
 // WidgetGrid render (RGL memoizes internally on these references). "vertical"
 // compaction pulls widgets up to fill gaps (gravity); `scale: 1` is the required
 // PositionStrategy field the absolute strategy defaults in practice.
@@ -59,9 +59,9 @@ const GRAVITY_COMPACTOR = getCompactor("vertical");
 const ABSOLUTE_POSITION_STRATEGY = { type: "absolute", scale: 1 };
 
 // Structural equality across every breakpoint's layout items (i, x, y, w, h).
-// Must compare ALL breakpoints — not just lg — because a drag at md/sm/xs/xxs
+// Must compare ALL breakpoints: not just lg: because a drag at md/sm/xs/xxs
 // only mutates that breakpoint's array; an lg-only compare would treat the
-// change as "unchanged", discard it, and the layout would revert on reload.
+// change as "unchanged", discard it and the layout would revert on reload.
 function layoutsEqual(a, b) {
   for (const bp of BP_NAMES) {
     const la = a[bp] || [];
@@ -82,7 +82,7 @@ function quantizeWidth(width) {
   const { cols, margin } =
     BP_SPECS.find((s) => width >= s.minW) ?? BP_SPECS.at(-1);
   const colW = Math.round((width - 2 * WIDGETGRID_X_MARGIN - (cols - 1) * margin) / cols);
-  // Clamp: never exceed the actual container width — otherwise RGL
+  // Clamp: never exceed the actual container width: otherwise RGL
   // over-estimates available space and right-edge items eat into the
   // containerPadding, breaking the symmetrical 12px margin.
   const qw = colW * cols + (cols - 1) * margin + 2 * WIDGETGRID_X_MARGIN;
@@ -103,11 +103,11 @@ const loadLayouts = () => {
   return {};
 };
 
-// Memoized widget cell — isolates each widget subtree from grid re-renders.
+// Memoized widget cell: isolates each widget subtree from grid re-renders.
 // react-grid-layout fires onLayoutChange per drag pixel, re-rendering the whole
 // grid. Without memo that re-rendered all 16 widgets' internals at 60Hz during
 // a drag. The context value + onRemove are memoized per (id) so React.memo
-// actually pays off — otherwise the fresh `{ id, duplicate }` object and inline
+// actually pays off: otherwise the fresh `{ id, duplicate }` object and inline
 // arrows would defeat it and force every BaseWidget subtree to re-render.
 const WidgetCell = React.memo(function WidgetCell({
   id,
@@ -126,7 +126,7 @@ const WidgetCell = React.memo(function WidgetCell({
 
   const Component = WIDGET_COMPONENTS[type];
 
-  // Count this widget type as "rendered" once per session — the clean signal
+  // Count this widget type as "rendered" once per session: the clean signal
   // for "which widgets are actually on people's dashboards". Deduped internally
   // (by type) so breakpoint remounts / drag re-renders don't double-count.
   // Guarded so a telemetry throw can never take down the widget via the boundary.
@@ -166,7 +166,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   arrangeMode = false,
   onExitArrangeMode,
 }) {
-  // No padding on this div — padding lives inside containerPadding on <Responsive> instead.
+  // No padding on this div: padding lives inside containerPadding on <Responsive> instead.
   // This makes offsetWidth === contentRect.width === window.innerWidth, so
   // measureWidth() and ResizeObserver both fire with the same value we seeded,
   // meaning setWidth() is called with an unchanged value and React skips all
@@ -175,7 +175,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // debounceTimeout: when a window resize crosses a breakpoint, react-grid-layout
   // re-renders once per ResizeObserver firing *and* once more in its own
   // breakpoint-detection useEffect (new width + stale cols, then corrected cols).
-  // During a fast resize that's a burst of transient layouts — widgets visibly
+  // During a fast resize that's a burst of transient layouts: widgets visibly
   // flash through wrong positions before settling (worst on frosted-glass cards
   // whose backdrop-filter re-rasterizes every frame). Debouncing the width update
   // coalesces the burst into a single width change → a single, imperceptible
@@ -187,7 +187,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   // Quantize the container width so column widths are always integer CSS pixels.
   // At fractional DPRs (e.g. 125% Windows scaling), a raw width like 1009.6px
-  // gives col = 68.97px — GPU compositing then places text at sub-physical-pixel
+  // gives col = 68.97px: GPU compositing then places text at sub-physical-pixel
   // positions causing persistent blur. Uses breakpoint-specific cols/margin/padding
   // so the snap is accurate at every viewport size, not just lg.
   const quantizedWidth = quantizeWidth(width);
@@ -223,7 +223,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   // Blend widgets into the background until hovered (Appearance → Widget Focus).
   const widgetDim = useSettingsStore((s) => s.widgetDim);
 
-  // Settings → General "Reset layout" — clears the saved layout back to defaults.
+  // Settings → General "Reset layout": clears the saved layout back to defaults.
   const layoutResetRequest = useUIStore((s) => s.layoutResetRequest);
   useEffect(() => {
     if (!layoutResetRequest) return;
@@ -242,7 +242,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
     );
     const lgItems = (instances || []).flatMap(({ id, type }) => {
       const reg = REG_MAP[type];
-      if (!reg) return []; // unknown type — skip to avoid ghost grid cells
+      if (!reg) return []; // unknown type: skip to avoid ghost grid cells
       if (savedLgMap[id]) return [savedLgMap[id]];
       return [{ i: id, x: reg.x, y: reg.y ?? Infinity, w: reg.w, h: reg.h }];
     });
@@ -258,7 +258,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
       );
 
       if (layouts[bp]?.length) {
-        // Enforce config h as a minimum floor — prevents stale saved layouts
+        // Enforce config h as a minimum floor: prevents stale saved layouts
         // from making widgets shorter than their content requires.
         return layouts[bp].map((item) => {
           const minH = configFloor[item.i];
@@ -292,14 +292,14 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   const handleLayoutChange = useCallback((current, allLayouts) => {
     // RGL 2.3.0 calls onLayoutChange only on meaningful changes (mount, drag
-    // stop, resize stop, breakpoint/children change) — never per drag pixel.
+    // stop, resize stop, breakpoint/children change): never per drag pixel.
     // Persist the authoritative full layout here; the previous onDragStop write
     // fired before RGL committed the final layout, saving stale/empty positions
     // (drag positions were silently lost on reload).
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(allLayouts));
     setLayouts((prev) => {
       const next = { ...prev, ...allLayouts };
-      // Fast structural compare across all breakpoints — avoids re-rendering
+      // Fast structural compare across all breakpoints: avoids re-rendering
       // (and returning a new object) when nothing actually changed, but keeps
       // every breakpoint's real changes.
       if (layoutsEqual(prev, next)) return prev;
@@ -325,7 +325,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
   const isDragging = draggingId !== null;
   const showOverlay = isDragging || arrangeMode;
 
-  // Only `enabled` varies with state — memoize the one non-constant config object.
+  // Only `enabled` varies with state: memoize the one non-constant config object.
   const dragConfig = useMemo(
     () => ({ enabled: arrangeMode, handle: DRAG_HANDLE }),
     [arrangeMode],
@@ -345,7 +345,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   // ── Mobile stack (< 480px, not in arrange mode) ────────────────────────────
   // react-grid-layout wraps every item in DraggableCore which registers a
-  // non-passive touchstart listener unconditionally — even when isDraggable=false.
+  // non-passive touchstart listener unconditionally: even when isDraggable=false.
   // On phones, every widget fills the full width so every touch hits one of
   // these listeners, and the browser delays scroll while waiting for JS.
   // Below 480px (xxs breakpoint) we skip RGL entirely and render a plain
@@ -389,7 +389,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
 
   return (
     <div className="w-full relative select-none" ref={containerRef}>
-      {/* Dot grid — visible while dragging or in arrange mode */}
+      {/* Dot grid: visible while dragging or in arrange mode */}
       <div
         className="absolute inset-0 pointer-events-none drag-dot-overlay transition-opacity duration-200"
         style={{ opacity: showOverlay ? 0.5 : 0 }}
@@ -409,7 +409,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
           maxRows={maxRows}
           // react-grid-layout 2.3.0 moved the flat props into composable config
           // objects. The old `isDraggable` / `draggableHandle` / `useCSSTransforms`
-          // props are silently ignored — which previously left drag enabled at all
+          // props are silently ignored: which previously left drag enabled at all
           // times (widgets rearrangeable without entering arrange mode).
           dragConfig={dragConfig}
           resizeConfig={RESIZE_CONFIG}
@@ -435,7 +435,7 @@ export const WidgetGrid = React.memo(function WidgetGrid({
                   touchAction: arrangeMode ? "none" : "pan-y",
                 }}
               >
-                {/* Drag handle — visible only in arrange mode */}
+                {/* Drag handle: visible only in arrange mode */}
                 <div
                   className={`widget-drag-handle absolute top-0 left-1/2 -translate-x-1/2 z-30
                     flex items-center gap-[3.5px] px-2.5 py-1.5 rounded-b-xl

@@ -1,14 +1,14 @@
 /**
- * CanvasBackgroundPicker — canvas-aware curated photo grid + custom URL input.
+ * CanvasBackgroundPicker: canvas-aware curated photo grid + custom URL input.
  *
  * Rendered inside the canvas Appearance tab when the Background segment is set
  * to Photos (`canvasBg.type === 'photo'`) or Custom URL (`canvasBg.type ===
- * 'custom'`). Reuses the shared curated photo library (read-only — canvas and
+ * 'custom'`). Reuses the shared curated photo library (read-only: canvas and
  * Focus Mode keep independent selections) and the canvas `Input` primitive;
  * styled with `--w-*` tokens so it follows light/dark mode.
  *
  * Props:
- *   type      'photo' | 'custom' — which sub-panel to render
+ *   type      'photo' | 'custom': which sub-panel to render
  *   value     current canvasBg object
  *   onChange  (nextCanvasBg) => void
  */
@@ -31,7 +31,7 @@ const classifyUrl = (raw) => {
   const s = raw.trim();
   if (!s) return { ok: false, hint: null };
   if (VALID_EXT.test(s)) return { ok: true, hint: null };
-  if (VALID_HTTPS.test(s)) return { ok: true, hint: 'No image extension detected — will verify on Apply.' };
+  if (VALID_HTTPS.test(s)) return { ok: true, hint: 'No image extension detected: will verify on Apply.' };
   return { ok: false, hint: 'Must be a valid https:// URL.' };
 };
 
@@ -66,7 +66,7 @@ const photoUrl = (ph) => ph.regular || ph.url || ph.small || ph.thumb;
 // ─── Curated photos grid ───────────────────────────────────────────────────────
 
 // Holds its own `loaded` flag so a single image finishing load re-renders only
-// that tile — not the whole grid. The previous grid-level `loadedIds` Set made
+// that tile: not the whole grid. The previous grid-level `loadedIds` Set made
 // every staggered lazy-load repaint all ~20 tiles, which is what made the panel
 // feel laggy while scrolling.
 const PhotoTile = ({ photo, active, dimmed, onSelect }) => {
@@ -251,7 +251,7 @@ const CustomUrlPanel = ({ value, onChange }) => {
     const timeout = setTimeout(() => { img.src = ''; setPreviewUrl(url); setStatus('ok'); }, 5000);
     verifyTimerRef.current = timeout;
     img.onload = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); };
-    img.onerror = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); setErrorMsg('Could not verify — the URL may still work.'); };
+    img.onerror = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); setErrorMsg('Could not verify: the URL may still work.'); };
     img.src = url;
   }, [text]);
 

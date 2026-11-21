@@ -38,7 +38,7 @@ export const Modal = ({
 
   // Register the ESC handler synchronously (useLayoutEffect runs before paint).
   // useEffect is async in Preact, so an Escape pressed immediately after the
-  // modal opens (before the effect flushes) would be missed — the modal would
+  // modal opens (before the effect flushes) would be missed: the modal would
   // render visibly but ignore the first ESC. useLayoutEffect closes that window.
   // Only the topmost open dialog closes on Escape, so a menu/modal stacked on
   // top of this one is dismissed first (§4: Esc closes the topmost layer).
@@ -66,7 +66,7 @@ export const Modal = ({
     else el.focus();
   }, []);
 
-  // Lightweight focus trap — keep Tab/Shift+Tab cycling inside the dialog so
+  // Lightweight focus trap: keep Tab/Shift+Tab cycling inside the dialog so
   // focus can't escape to the page behind the modal.
   useEffect(() => {
     const handler = (e) => {
@@ -120,7 +120,7 @@ export const Modal = ({
       className="fixed inset-0 m-0 p-0 max-w-none max-h-none border-0 flex items-center justify-center"
       style={{ zIndex }}
     >
-      {/* Backdrop overlay — click to dismiss */}
+      {/* Backdrop overlay: click to dismiss */}
       <div
         aria-hidden="true"
         className="absolute inset-0"

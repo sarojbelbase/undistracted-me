@@ -12,7 +12,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
-// WorldClocksPanel uses onClockTick (sharedClock) — mock it so no real timer fires
+// WorldClocksPanel uses onClockTick (sharedClock): mock it so no real timer fires
 vi.mock('../../../app/utilities/sharedClock', () => ({
   onClockTick: vi.fn((fn) => { fn(); return () => { }; }),
 }));
@@ -133,7 +133,7 @@ describe('GreetingDisplay', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WorldClocksPanel and TopBar were removed in the Focus Mode redesign — clock
+// WorldClocksPanel and TopBar were removed in the Focus Mode redesign: clock
 // world-times moved into zones (app/components/FocusMode/zones/*) and the
 // top-bar controls into TopZone.jsx.
 // ─────────────────────────────────────────────────────────────────────────────

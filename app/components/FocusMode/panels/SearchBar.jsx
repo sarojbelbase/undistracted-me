@@ -2,7 +2,7 @@
 //
 // Pill-shaped search bar with engine picker and autocomplete suggestions.
 // Search history stored in localStorage (not in exportable settings).
-// Only rendered inside FocusMode — lives at panels/ per convention.
+// Only rendered inside FocusMode: lives at panels/ per convention.
 
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -116,7 +116,7 @@ const SuggestionsDropdown = ({ urlTarget, goToUrl, urlOffset, suggestions, tabRe
         </button>
       ))}
 
-      {/* Top sites — shown instantly when query matches */}
+      {/* Top sites: shown instantly when query matches */}
       {topSites?.map((site, k) => (
         <button
           key={site.url}
@@ -361,10 +361,10 @@ export const SearchBar = ({ centerOnDark = true }) => {
           animation: bouncing ? 'fmBounce 0.38s cubic-bezier(0.36,0.07,0.19,0.97) both' : 'none',
         }}
       >
-        {/* Engine icon — click or Tab to cycle */}
+        {/* Engine icon: click or Tab to cycle */}
         <TooltipBtn
           onClick={handleCycleEngine}
-          tooltip={`${engine.label} — Tab to switch`}
+          tooltip={`${engine.label}: Tab to switch`}
           style={{
             display: 'flex', alignItems: 'center',
             padding: '0 4px 0 14px', height: '100%',

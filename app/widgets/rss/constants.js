@@ -1,5 +1,5 @@
 /**
- * RSS widget constants — view modes and timing.
+ * RSS widget constants: view modes and timing.
  */
 
 /** Two presentation modes for the RSS widget. */

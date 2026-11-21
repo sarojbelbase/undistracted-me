@@ -3,7 +3,7 @@ export const site = {
   url: "https://undistracted.me",
   title: "Undistracted Me: Site Blocker, Web Clipper & Focus Extension New Tab",
   description:
-    "Free, open-source productivity extension — a site blocker and distraction blocker for your new tab, with a web clipper, Focus Mode, Pomodoro timer & Nepali calendar. A calm deep work tool. No account, offline.",
+    "Free, open-source productivity extension: a site blocker and distraction blocker for your new tab, with a web clipper, Focus Mode, Pomodoro timer & Nepali calendar. A calm deep work tool. No account, offline.",
   // Bump this whenever the landing page content materially changes.
   lastUpdated: "2026-11-20",
   author: {

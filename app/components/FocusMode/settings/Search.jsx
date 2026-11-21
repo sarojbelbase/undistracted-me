@@ -1,6 +1,6 @@
 /**
- * Search — Search Bar settings tab content.
- * No Modal wrapper — intended to be rendered inside the unified FocusModeSettings dialog.
+ * Search: Search Bar settings tab content.
+ * No Modal wrapper: intended to be rendered inside the unified FocusModeSettings dialog.
  */
 
 import { useSettingsStore } from '../../../store';

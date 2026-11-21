@@ -16,7 +16,7 @@ const target = resolve(__dirname, '..', 'dist', 'entries', 'index.html');
 
 if (!existsSync(target)) {
   console.error(
-    `inject-seo: ${target} not found — run \`bun run build\` first.`,
+    `inject-seo: ${target} not found: run \`bun run build\` first.`,
   );
   process.exit(1);
 }

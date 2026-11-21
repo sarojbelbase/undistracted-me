@@ -3,7 +3,7 @@
 // Reads upcoming birthdays/anniversaries from local caches (manual entries +
 // cached Google Contacts). Shared between Focus Mode and the canvas widget.
 //
-// There is no polling interval — it reacts to the underlying cache changes
+// There is no polling interval: it reacts to the underlying cache changes
 // (chrome.storage.onChanged for the contacts/occasions caches, plus the
 // localStorage `storage` event for manual birthdays), mirroring the DataHub's
 // reactive no-polling pattern for non-API data.

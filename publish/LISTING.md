@@ -1,8 +1,8 @@
-# Store Listing — Undistracted Me
+# Store Listing: Undistracted Me
 
 Copy-paste reference for the Chrome Web Store and Firefox AMO dashboards.
 The package is uploaded via CLI (`bun run publish:chrome` / `publish:firefox`);
-**these text fields are entered manually in each store's developer dashboard** —
+**these text fields are entered manually in each store's developer dashboard** -
 the store APIs do not set name / description / category / screenshots.
 
 ---
@@ -15,33 +15,33 @@ the store APIs do not set name / description / category / screenshots.
 | Category | **Productivity** |
 | Developer website | `https://undistracted.me` |
 | Privacy policy URL | `https://undistracted.me/pp-and-tos` |
-| Short description | `Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account.` (96 chars) |
+| Short description | `Block distracting sites, clip what you find and focus. A free, open-source new tab. No account.` (96 chars) |
 
 ### Detailed description
 
 ```
-Undistracted Me replaces your new tab with a calm, distraction-free dashboard — so the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work — with your Google Tasks right there.
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard: so the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work: with your Google Tasks right there.
 
 ✦ Block what distracts you
-• Site blocking — block any site for a set time or permanently, from Settings
-• Private by design — your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
+• Site blocking: block any site for a set time or permanently, from Settings
+• Private by design: your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
 
 ✦ Clip what you find
-• Web clipper — select text on any page, right-click "Add to Pocket", and it lands on your new tab
+• Web clipper: select text on any page, right-click "Save to Pocket" and it lands on your new tab
 • Auto-sorted by type and website, with folders, search and offline access
 
 ✦ What's inside
-• Focus Mode — a full-screen cinematic clock with optional rain and ambient sounds
-• Pomodoro timer — focus and break sessions that keep you in a rhythm
-• Google Tasks — see and check off your to-dos without leaving the new tab
-• Quiet widgets — notes, weather, calendar, world clock, media controls, RSS news, daily quote, and more, all optional and drag-and-drop
-• Themes — light, dark, and auto modes with accent colors
-• Quick access — your top sites and bookmarks, one click away
+• Focus Mode: a full-screen cinematic clock with optional rain and ambient sounds
+• Pomodoro timer: focus and break sessions that keep you in a rhythm
+• Google Tasks: see and check off your to-dos without leaving the new tab
+• Quiet widgets: notes, weather, calendar, world clock, media controls, RSS news, daily quote and more, all optional and drag-and-drop
+• Themes: light, dark and auto modes with accent colors
+• Quick access: your top sites and bookmarks, one click away
 
 ✦ Private by design
 • No account required, no ads and no personal data
 • Google and Spotify tokens are stored only on your device
-• Minimal permissions — each is used only for a feature you turn on
+• Minimal permissions: each is used only for a feature you turn on
 • Free and open source (MIT)
 
 ✦ For Nepali users
@@ -78,29 +78,29 @@ Category → **Productivity**.
 ### Summary (short description)
 
 ```
-Block distracting sites, clip what you find, and focus. A free, open-source new tab. No account.
+Block distracting sites, clip what you find and focus. A free, open-source new tab. No account.
 ```
 
 ### Description
 
 ```
-Undistracted Me replaces your new tab with a calm, distraction-free dashboard — the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work — with your Google Tasks right there.
+Undistracted Me replaces your new tab with a calm, distraction-free dashboard: the first thing you see is quiet, not noise. Block the sites that pull you in, clip the text worth keeping, then start a Pomodoro timer or drop into Focus Mode, a full-screen cinematic clock built for deep work: with your Google Tasks right there.
 
 ✦ Block what distracts you
-• Site blocking — block any site for a set time or permanently, from Settings
-• Private by design — your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
+• Site blocking: block any site for a set time or permanently, from Settings
+• Private by design: your blocklist never leaves your device, and blocking needs no broad "read all sites" permission
 
 ✦ Clip what you find
-• Web clipper — select text on any page, right-click "Add to Pocket", and it lands on your new tab
+• Web clipper: select text on any page, right-click "Save to Pocket" and it lands on your new tab
 • Auto-sorted by type and website, with folders, search and offline access
 
 ✦ What's inside
-• Focus Mode — a full-screen cinematic clock with optional ambient sounds
-• Pomodoro timer — focus and break sessions that keep you in a rhythm
-• Google Tasks — check off to-dos without leaving the new tab
-• Quiet widgets — notes, weather, calendar, world clock, media controls, and more, all optional and drag-and-drop
-• Themes — light, dark, and auto modes with accent colors
-• Quick access — top sites and bookmarks
+• Focus Mode: a full-screen cinematic clock with optional ambient sounds
+• Pomodoro timer: focus and break sessions that keep you in a rhythm
+• Google Tasks: check off to-dos without leaving the new tab
+• Quiet widgets: notes, weather, calendar, world clock, media controls and more, all optional and drag-and-drop
+• Themes: light, dark and auto modes with accent colors
+• Quick access: top sites and bookmarks
 
 ✦ Private by design
 • No account required, no ads and no personal data
@@ -128,7 +128,7 @@ Feedback → https://forms.gle/7vf4VGrB9Loz8hB76
 | Screenshot 4 | `screenshots/04_dashboard_light.png` |
 | Screenshot 5 | `screenshots/05_dashboard_dark.png` |
 
-- Extension ID (gecko): `{1071d037-0f17-4c92-b06c-704050d2e2c3}` — pinned in
+- Extension ID (gecko): `{1071d037-0f17-4c92-b06c-704050d2e2c3}`: pinned in
   `public/manifest.json` `browser_specific_settings.gecko.id`, so uploads land
   as version updates to this same listing.
 - AMO does not use the Chrome promo tiles; screenshots only.
@@ -147,4 +147,4 @@ with the two headline features. Captured via
 | Web clipper | Clip and save text from any page |
 | Focus Mode | Full-screen cinematic clock for deep focus |
 | Dashboard (light) | A calm dashboard of quiet widgets |
-| Dashboard (dark) | Light, dark, and auto themes |
+| Dashboard (dark) | Light, dark and auto themes |

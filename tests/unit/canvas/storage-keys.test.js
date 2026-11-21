@@ -1,9 +1,9 @@
 /**
- * Tests for app/constants/storageKeys.js — STORAGE_KEYS registry
+ * Tests for app/constants/storageKeys.js: STORAGE_KEYS registry
  *
  * What can go wrong:
  *  – A key typo in a component (e.g. STORAGE_KEYS.SETTINGS vs the raw string)
- *    makes storage read/write silently go to different keys — data is lost.
+ *    makes storage read/write silently go to different keys: data is lost.
  *  – widgetSettings('clock') must produce the exact string that
  *    useWidgetSettings writes to, or per-widget settings are orphaned.
  *  – STORAGE_KEYS must be frozen; if it isn't, any module can overwrite a key

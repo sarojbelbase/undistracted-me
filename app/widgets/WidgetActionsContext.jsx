@@ -9,7 +9,7 @@ import { createContext } from "react";
  * context so BaseWidget can offer "Duplicate" without any widget component
  * changing.
  *
- * Shape: { id, type, duplicate } — all null by default so BaseWidget is inert
+ * Shape: { id, type, duplicate }: all null by default so BaseWidget is inert
  * (and safe) anywhere a provider is absent.
  */
 export const WidgetActionsContext = createContext({

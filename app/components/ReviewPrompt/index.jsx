@@ -1,5 +1,5 @@
 /**
- * ReviewPrompt — one-time "rate us" dialog shown after 10 focus sessions.
+ * ReviewPrompt: one-time "rate us" dialog shown after 10 focus sessions.
  * Links to the correct store for the user's browser. No analytics.
  */
 import { createPortal } from "react-dom";
@@ -100,7 +100,7 @@ export function ReviewPrompt() {
           }}
         >
           A quick rating on the {storeLabel} helps others find a calmer new tab.
-          It only takes a few seconds — and it means a lot.
+          It only takes a few seconds: and it means a lot.
         </p>
 
         <div style={{ display: "flex", gap: 8, marginTop: 2 }}>

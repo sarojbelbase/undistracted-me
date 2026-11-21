@@ -1,5 +1,5 @@
 /**
- * Telemetry facade — the app's only analytics entry point.
+ * Telemetry facade: the app's only analytics entry point.
  *
  * Provider-agnostic: every call site talks to this module, never to a vendor
  * SDK. The vendor is isolated behind a small `provider` interface (init /

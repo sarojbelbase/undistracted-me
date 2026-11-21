@@ -1,5 +1,5 @@
 /**
- * WeatherDateStrip — reusable "weather · date" strip used in the center of
+ * WeatherDateStrip: reusable "weather · date" strip used in the center of
  * Focus Mode's top zone and Note Mode's top bar.
  *
  * Presentational: receives `weather` (from useFocusWeather) and `dateParts`

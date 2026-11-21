@@ -1,5 +1,5 @@
 /**
- * Shared media helpers — dark colour util, track parser, artwork ring,
+ * Shared media helpers: dark colour util, track parser, artwork ring,
  * and colour token resolution. Used by Widget, ChromeMediaPlayer, etc.
  */
 
@@ -46,7 +46,7 @@ export function chromeHostPriority(host) {
  *   2. Among equal playback states, prefer the higher-priority host.
  *
  * This is the single source of truth shared by the canvas Media widget and
- * Focus Mode — previously Focus Mode naively used `sessions[0]`, which could be
+ * Focus Mode: previously Focus Mode naively used `sessions[0]`, which could be
  * a stale (most-recently-updated but paused) session and lag behind the widget.
  */
 export function selectActiveSession(sessions) {

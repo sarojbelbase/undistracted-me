@@ -104,7 +104,7 @@ describe('readPomodoro', () => {
     expect(result.label).toBe('Focus');
   });
 
-  it('returns state with remaining=1 (boundary — not ≤0)', () => {
+  it('returns state with remaining=1 (boundary: not ≤0)', () => {
     localStorage.setItem(
       'fm_pomodoro',
       JSON.stringify({ running: true, remaining: 1, total: 1500 })
@@ -334,9 +334,9 @@ describe('getBikramSambatDateParts', () => {
   });
 
   it('returns a graceful fallback when date conversion yields "Invalid date!"', () => {
-    // The function falls back to { month: '—', day: 0, year: 0 } on invalid dates.
+    // The function falls back to { month: '-', day: 0, year: 0 } on invalid dates.
     // We can test by mocking convertEnglishToNepali indirectly: if the utility
-    // returns Invalid date!, month ='—' and day=0.
+    // returns Invalid date!, month ='-' and day=0.
     // Since we can't easily force an invalid date without deeply mocking internals,
     // we verify the normal case and trust the fallback path is covered by the source guard.
     const result = getBikramSambatDateParts();
@@ -365,7 +365,7 @@ describe('getTimeUntilEvent', () => {
 
   it('returns hours notation for 2+ hours away', () => {
     // Use 120 minutes; due to ms elapsed since inFuture() ran, diffMin may be
-    // 119 or 120 — both produce an "in N hours" result.
+    // 119 or 120: both produce an "in N hours" result.
     const s = inFuture(120);
     const event = { startDate: s.date, startTime: s.time };
     const result = getTimeUntilEvent(event);

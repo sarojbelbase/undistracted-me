@@ -50,7 +50,7 @@ vi.mock('../../../app/widgets/useWidgetSettings', () => ({
   useWidgetSettings: vi.fn(),
 }));
 
-// Mock spotify utils (media/utils) — kept for any transitive import
+// Mock spotify utils (media/utils): kept for any transitive import
 vi.mock('../../../app/widgets/media/utils', () => ({
   SPOTIFY_CLIENT_ID: null, // Default: not configured
   connectSpotify: vi.fn(),
@@ -72,9 +72,9 @@ vi.mock('../../../app/widgets/stock/utils', () => ({
   fetchCompanies: vi.fn(() => Promise.resolve([])),
   buildSparklinePaths: vi.fn(() => ({ line: '', area: '' })),
   priceStats: vi.fn(() => ({ dir: 'flat', change: 0, pct: 0 })),
-  fmtPrice: vi.fn(v => (v != null ? String(v) : '—')),
-  fmtOHL: vi.fn(v => (v != null ? String(v) : '—')),
-  fmtVolume: vi.fn(v => (v != null ? String(v) : '—')),
+  fmtPrice: vi.fn(v => (v != null ? String(v) : '-')),
+  fmtOHL: vi.fn(v => (v != null ? String(v) : '-')),
+  fmtVolume: vi.fn(v => (v != null ? String(v) : '-')),
   humanizeAge: vi.fn(() => 'just now'),
   displaySymbol: vi.fn(v => v),
   searchInternational: vi.fn(() => Promise.resolve([])),
@@ -138,7 +138,7 @@ describe('Clock Settings', () => {
 
   it('shows a timezone search input when a slot is free', () => {
     render(<ClockSettings format="24h" timezones={[]} onChange={onChange} />);
-    expect(screen.getByPlaceholderText('Search city, country, or timezone…')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Search city, country or timezone…')).toBeTruthy();
   });
 
   it('calls onChange with timezones when timezone is selected', () => {
@@ -171,7 +171,7 @@ describe('Clock Settings', () => {
 
   it('shows a search input for the second slot when slot 0 is filled', () => {
     render(<ClockSettings format="24h" timezones={['America/New_York']} onChange={onChange} />);
-    expect(screen.getByPlaceholderText('Search city, country, or timezone…')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Search city, country or timezone…')).toBeTruthy();
   });
 
   it('shows "1/2" counter when one timezone is set', () => {
@@ -188,7 +188,7 @@ describe('Clock Settings', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Media Widget (formerly Spotify) — the Spotify player moved into the media
+// Media Widget (formerly Spotify): the Spotify player moved into the media
 // widget (app/widgets/media/Widget.jsx), which is covered by other suites.
 // ─────────────────────────────────────────────────────────────────────────────
 

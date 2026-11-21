@@ -8,7 +8,7 @@ const fade = {
 const expandedStyle = { maxHeight: 240, overflowY: "auto", paddingRight: 2 };
 
 /**
- * ParagraphBody — body text clamped to the preview length with a bottom fade,
+ * ParagraphBody: body text clamped to the preview length with a bottom fade,
  * plus an explicit "Show more" / "Show less" button (list view only; the tiny
  * widget card expands in place on row click instead).
  */

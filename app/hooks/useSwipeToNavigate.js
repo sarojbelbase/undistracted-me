@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
 
 /**
- * useSwipeToNavigate — shared horizontal drag-to-navigate gesture used by the
+ * useSwipeToNavigate: shared horizontal drag-to-navigate gesture used by the
  * RSS MarqueeCard and the Dailys CarouselCard.
  *
  * Applies a resistance curve so the card tracks the finger up to ~60px, then

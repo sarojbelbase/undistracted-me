@@ -1,5 +1,5 @@
 /**
- * Review-prompt store — one-time, permanently dismissible "rate us" nudge
+ * Review-prompt store: one-time, permanently dismissible "rate us" nudge
  * that appears once the user has completed 10 focus sessions.
  *
  * - Counter + dismiss flag are persisted to localStorage (`review_prompt`),

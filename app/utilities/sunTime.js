@@ -1,6 +1,6 @@
 /**
  * Sunrise/Sunset calculation using the USNO algorithm.
- * Pure computation — no external API required. Works offline.
+ * Pure computation: no external API required. Works offline.
  *
  * Reference:
  * https://web.archive.org/web/20161202180207/http://williams.best.vwh.net/sunrise_sunset_algorithm.htm
@@ -9,7 +9,7 @@
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { IP_GEO_API } from '../constants/urls.js';
 
-/** Kathmandu coordinates — used as fallback when geolocation is unavailable */
+/** Kathmandu coordinates: used as fallback when geolocation is unavailable */
 const KATHMANDU = { lat: 27.7172, lon: 85.324 };
 
 /** localStorage key for cached user coordinates */
@@ -25,7 +25,7 @@ const dayOfYear = (date) =>
   Math.ceil((date - new Date(date.getFullYear(), 0, 1)) / 86_400_000) + 1;
 
 /**
- * Core solar equation — returns UTC decimal hours for sunrise or sunset.
+ * Core solar equation: returns UTC decimal hours for sunrise or sunset.
  * Returns null when the sun never crosses the horizon (polar regions).
  */
 const solarHour = (lat, lon, rising, date) => {
@@ -55,7 +55,7 @@ const solarHour = (lat, lon, rising, date) => {
   return ((UT % 24) + 24) % 24;
 };
 
-// Same-day cache — getSunTimes is called every minute by useLocation, but the
+// Same-day cache: getSunTimes is called every minute by useLocation, but the
 // solar calculation only changes once per calendar day.  Caching by date+lat+lon
 // eliminates ~1438 redundant trig computations per day.
 const _sunCache = { key: '', result: null };
@@ -77,7 +77,7 @@ export const getSunTimes = (lat, lon, date = new Date()) => {
   if (riseUTC === null || setUTC === null) return null;
 
   // Derive local midnight using the date's own local-time methods so the result
-  // is correct regardless of the host environment's timezone — including unit tests.
+  // is correct regardless of the host environment's timezone: including unit tests.
   // date.getHours/Minutes/Seconds/Ms return LOCAL time (system TZ in real browsers;
   // overridden via a Proxy in tests to simulate a specific city's timezone).
   const localTimeMs =
@@ -92,7 +92,7 @@ export const getSunTimes = (lat, lon, date = new Date()) => {
     const totalMin = Math.round(utWrapped * 60);
     const base = new Date(date);
     base.setUTCHours(Math.floor(totalMin / 60), totalMin % 60, 0, 0);
-    // Try the same UTC day first, then ±1 day — return the first that lands
+    // Try the same UTC day first, then ±1 day: return the first that lands
     // inside the user's local calendar day.
     for (const offset of [0, -1, 1]) {
       const ts = base.getTime() + offset * 86_400_000;
@@ -119,7 +119,7 @@ export const getEffectiveMode = (sunTimes, now = new Date()) => {
   return now >= sunTimes.sunrise && now < sunTimes.sunset ? 'light' : 'dark';
 };
 
-/** localStorage flag: 'browser' | 'ip' | 'default' — tracks how coords were obtained */
+/** localStorage flag: 'browser' | 'ip' | 'default': tracks how coords were obtained */
 const COORDS_SOURCE_KEY = STORAGE_KEYS.AUTO_THEME_COORDS_SOURCE;
 
 const _saveCoords = (lat, lon, source) => {
@@ -162,7 +162,7 @@ export const getCachedCoordsSource = () => {
  * @returns {Promise<{lat:number,lon:number}|null>}
  */
 const _coordsFromIP = async () => {
-  // Skip if running as a browser extension — the primary IP provider rejects extension origins.
+  // Skip if running as a browser extension: the primary IP provider rejects extension origins.
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
   if (isExtension) return null;
   try {
@@ -178,7 +178,7 @@ const _coordsFromIP = async () => {
 
 /**
  * Requests coordinates using a three-tier priority chain, all non-blocking:
- *   1. Browser Geolocation API (most accurate — GPS/WiFi based)
+ *   1. Browser Geolocation API (most accurate: GPS/WiFi based)
  *   2. IP geolocation (city-level, ~80% within 50 km)
  *   3. Kathmandu hardcoded fallback (last resort, implicit via getCachedCoords)
  *
@@ -202,7 +202,7 @@ export const requestAndCacheCoords = () => {
         _saveCoords(coords.latitude, coords.longitude, 'browser');
       },
       () => {
-        // Geo denied/unavailable — try IP fallback
+        // Geo denied/unavailable: try IP fallback
         tryIPFallback();
       },
       { maximumAge: 86_400_000 },
@@ -216,11 +216,11 @@ export const requestAndCacheCoords = () => {
  * Synchronously compute the effective mode ('light' | 'dark') for 'auto' setting.
  *
  * Priority:
- *   1. Zustand location store persist ('location_state') — always populated with
+ *   1. Zustand location store persist ('location_state'): always populated with
  *      real lat/lon from browser geolocation or IP; computes fresh sun times so
  *      this path is immune to stale stored timestamps.
- *   2. Legacy auto_theme_coords — written by older builds via requestAndCacheCoords.
- *   3. OS color-scheme preference — last resort when no location is available.
+ *   2. Legacy auto_theme_coords: written by older builds via requestAndCacheCoords.
+ *   3. OS color-scheme preference: last resort when no location is available.
  *
  * Safe to call at module init time (no async, no side effects).
  *
@@ -228,7 +228,7 @@ export const requestAndCacheCoords = () => {
  * @returns {'light' | 'dark'}
  */
 export const computeAutoMode = (date = new Date()) => {
-  // Tier 1: Zustand location_state — the canonical source of truth for coords.
+  // Tier 1: Zustand location_state: the canonical source of truth for coords.
   // Always try this first; it is populated even when auto_theme_coords is absent.
   try {
     const locationState = JSON.parse(localStorage.getItem('location_state'));
@@ -248,7 +248,7 @@ export const computeAutoMode = (date = new Date()) => {
     if (sunTimes) return getEffectiveMode(sunTimes, date);
   }
 
-  // Tier 3: OS preference — correct on every platform when no location is known.
+  // Tier 3: OS preference: correct on every platform when no location is known.
   if (globalThis.window?.matchMedia) {
     return globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }

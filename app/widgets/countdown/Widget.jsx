@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from "react";
-import { XLg, HourglassSplit } from "react-bootstrap-icons";
+import { HourglassSplit, ListUl } from "react-bootstrap-icons";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EMPTY_STATES } from "../../constants/emptyStates";
 import { BaseWidget } from "../BaseWidget";
@@ -13,7 +13,6 @@ import {
   humanizeDuration,
   formatTargetDate,
   loadCustom,
-  saveCustom,
   loadPinned,
   savePinned,
   wasNotified,
@@ -21,10 +20,10 @@ import {
   sendNotification,
   resolveTarget,
 } from "./utils";
-import config from "./config";
 import { fmt12 } from "../events/utils";
 import { onClockTick } from "../../utilities/sharedClock";
-import { CountdownSettings } from "./Settings";
+import { CountdownExpandedView } from "./ExpandedView";
+import { IconButton } from "../../components/ui/IconButton";
 
 // ─── Auto-advance helper ─────────────────────────────────────────────────────
 
@@ -74,7 +73,7 @@ function resolveActiveTarget(
       repeat: sorted[0].repeat,
       mode: "countdown",
     };
-  // No next event/countdown to roll over to — keep showing the current target
+  // No next event/countdown to roll over to: keep showing the current target
   // through its final minute rather than flipping to the empty state.
   return target;
 }
@@ -97,8 +96,9 @@ export const Widget = ({ id, onRemove }) => {
   const [custom, setCustom] = useState(loadCustom);
   const [pinned, setPinned] = useState(() => loadPinned(id));
   const [now, setNow] = useState(() => Date.now());
+  const [expanded, setExpanded] = useState(false);
 
-  const [localEvents, , removeEventFromStore] = useEvents();
+  const [localEvents] = useEvents();
   const { gcalEvents } = useGoogleCalendar();
   const today = todayStr();
 
@@ -124,13 +124,6 @@ export const Widget = ({ id, onRemove }) => {
     [allEvents, today],
   );
 
-  // "From Calendar" must not re-list countdowns that were mirrored into the
-  // events store (_fromCountdown) — those already appear under "My Countdowns".
-  const calendarEvents = useMemo(
-    () => upcomingEvents.filter((e) => !e._fromCountdown),
-    [upcomingEvents],
-  );
-
   const setPin = useCallback(
     (p) => {
       setPinned(p);
@@ -140,20 +133,6 @@ export const Widget = ({ id, onRemove }) => {
 
   // Sync pinned state to localStorage on every change
   useEffect(() => { savePinned(id, pinned); }, [pinned, id]);
-
-  const removeCustom = useCallback(
-    (cdId) => {
-      const next = custom.filter((c) => c.id !== cdId);
-      setCustom(next);
-      saveCustom(next);
-      if (pinned?.type === "custom" && pinned?.id === cdId) {
-        setPinned(null);
-        savePinned(id, null);
-      }
-      removeEventFromStore(cdId);
-    },
-    [custom, pinned, removeEventFromStore, id],
-  );
 
   // Clear the post-completion pin-clear timer on unmount so a pending
   // setTimeout can't fire setPin(null) after the widget is gone.
@@ -257,7 +236,7 @@ export const Widget = ({ id, onRemove }) => {
     return formatCountdownPhrase(aDays, aHours, aMins, aTotalSecs);
   }, [isSince, aDays, aHours, aMins, aTotalSecs, activeTarget]);
 
-  // Ghost numeral — the leading number of the phrase ("4" in "in 4 years").
+  // Ghost numeral: the leading number of the phrase ("4" in "in 4 years").
   // Rendered as a faint oversized backdrop digit; hidden for non-numeric
   // phrases ("next week", "tomorrow", "now", "yesterday", "just now").
   const ghostNum = useMemo(() => {
@@ -265,10 +244,10 @@ export const Widget = ({ id, onRemove }) => {
     return m ? m[0] : '';
   }, [timePart]);
 
-  // Only the hero phrase needs measuring — the title label is a fixed size.
+  // Only the hero phrase needs measuring: the title label is a fixed size.
   const measureText = timePart;
 
-  // ── Minimal metadata — time + smart day label (no recurrence on face) ──────
+  // ── Minimal metadata: time + smart day label (no recurrence on face) ──────
   const metaTime = useMemo(() => {
     if (!activeTarget?.startTime) return '';
     return fmt12(activeTarget.startTime);
@@ -361,58 +340,34 @@ export const Widget = ({ id, onRemove }) => {
     setComputedFontSize(Math.min(fs, 26));
   }, [measureText, dims]);
 
-  // Ghost numeral size — scales with the widget height so it "peeks" from the
+  // Ghost numeral size: scales with the widget height so it "peeks" from the
   // top-right corner regardless of card size (dims.h = content-wrap height).
   // Oversized + intentionally clipped at the card edge for a decorative bleed.
   const ghostSize = dims.h > 0
     ? Math.max(182, Math.min(360, Math.round(dims.h * 1.2)))
     : 182;
 
-  const settingsContent = (onClose) => (
-    <>
-      {/* Custom header — matching AllEventsModal style */}
-      <div
-        className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-        style={{ borderBottom: '1.5px solid var(--w-divider)' }}
-      >
-        <div>
-          <p className="text-[15px] font-semibold" style={{ color: 'var(--w-ink-1)' }}>{config.title}</p>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-6 h-6 flex items-center justify-center rounded-full transition-colors cursor-pointer"
-          style={{ color: 'var(--w-ink-3)' }}
-          aria-label={`Close ${config.title}`}
-        >
-          <XLg size={12} />
-        </button>
-      </div>
-      {/* Scrollable body */}
-      <div className="overflow-y-auto flex-1 px-4 py-4">
-        <CountdownSettings
-          custom={custom}
-          pinned={pinned}
-          upcomingEvents={calendarEvents}
-          onRemoveCustom={removeCustom}
-          onPin={setPin}
-          onClose={onClose}
-        />
-      </div>
-    </>
-  );
-
   return (
-    <BaseWidget
-      className="p-4"
-      settingsContent={settingsContent}
-      settingsTitle={config.title}
-      settingsNoHeader
-      modalWidth="w-[26rem]"
-      onRemove={onRemove}
-    >
-      {activeTarget ? (
+    <>
+      <BaseWidget
+        className="p-4"
+        onRemove={onRemove}
+      >
+        <div className="flex items-center gap-2 shrink-0">
+          {activeTarget && (
+            <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
+          )}
+          <IconButton
+            label="All countdowns"
+            size="sm"
+            className="ml-auto"
+            onClick={() => setExpanded(true)}
+          >
+            <ListUl size={14} />
+          </IconButton>
+        </div>
+        {activeTarget ? (
         <div className="cdn-widget-face">
-          <span className="cdn-mode-label">{isSince ? 'Since' : 'Countdown'}</span>
           {ghostNum && (
             <span
               className="cdn-ghost-num"
@@ -466,6 +421,9 @@ export const Widget = ({ id, onRemove }) => {
           />
         </div>
       )}
-    </BaseWidget>
+      </BaseWidget>
+
+      {expanded && <CountdownExpandedView onClose={() => setExpanded(false)} />}
+    </>
   );
 };

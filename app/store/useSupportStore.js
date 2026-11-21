@@ -1,9 +1,9 @@
 /**
- * Support nudge store — dependency-injectable "Help keep growing" prompt.
+ * Support nudge store: dependency-injectable "Help keep growing" prompt.
  *
  * Any "completion" point (event / countdown / occasion saved, a LookAway break
  * finished) calls the imperative `triggerSupportNudge(reason)` helper. The store
- * applies a frequency policy — a cooldown window + a random gate — so the dialog
+ * applies a frequency policy: a cooldown window + a random gate: so the dialog
  * only appears "once in a while" instead of nagging on every single action.
  *
  * This is the injection seam: components never render or own the dialog, they
@@ -63,7 +63,7 @@ export const useSupportStore = create((set, get) => ({
 export const triggerSupportNudge = (reason) =>
   useSupportStore.getState().maybeNudge(reason);
 
-// Debug hook — exposes the store so QA can open the support dialog
+// Debug hook: exposes the store so QA can open the support dialog
 // deterministically from the console (bypasses the random gate + cooldown):
 //   window.__support.open()
 if (typeof window !== "undefined" && import.meta.env.DEV) {

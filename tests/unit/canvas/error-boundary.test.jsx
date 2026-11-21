@@ -54,7 +54,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByRole('button', { name: 'boom' })).toBeInTheDocument();
   });
 
-  it('isolates the error — a sibling outside the boundary is unaffected', () => {
+  it('isolates the error: a sibling outside the boundary is unaffected', () => {
     render(
       <div>
         <ErrorBoundary fallback={<div>widget fallback</div>}>

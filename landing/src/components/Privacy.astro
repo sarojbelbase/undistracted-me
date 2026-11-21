@@ -5,8 +5,8 @@ import { site } from "../data/site.js";
 const points = [
   { b: "No account required", t: "Install and go. Everything works without ever signing in." },
   { b: "Tokens stored locally", t: "Google integrations store your tokens on your device, not on a server." },
-  { b: "Minimal permissions", t: "We only ask for what each feature genuinely needs, and nothing more." },
-  { b: "Your blocklist stays local", t: "The sites you block live on your device only — your blocklist never leaves it." },
+  { b: "Minimal permissions", t: "We only ask for what each feature genuinely needs and nothing more." },
+  { b: "Your blocklist stays local", t: "The sites you block live on your device only: your blocklist never leaves it." },
   { b: "Open source", t: "Read every line on GitHub. There are no surprises because there's nothing hidden." },
 ];
 ---
@@ -15,7 +15,7 @@ const points = [
   <img class="priv-img" src={speak.src} width={speak.width} height={speak.height} alt="A person speaking." loading="lazy" decoding="async" />
   <div>
     <h2>Your new tab is nobody's business.</h2>
-    <p>Undistracted Me is built to be quiet about your data. There's no account to create and no ads. The only analytics we run are anonymous counts of which widgets you use — never your notes, tasks, or browsing history.</p>
+    <p>Undistracted Me is built to be quiet about your data. There's no account to create and no ads. The only analytics we run are anonymous counts of which widgets you use: never your notes, tasks or browsing history.</p>
     <ul>
       {points.map((p) => (
         <li><b>{p.b}</b>{p.t}</li>

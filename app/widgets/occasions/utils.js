@@ -54,7 +54,7 @@ export const enrich = (entry) => {
 /**
  * Sorts and slices a raw entries array into a max-3 upcoming list.
  * Returns enriched entries sorted by daysAway ascending.
- * Deduplicates by (name, type, month, day) — keeping the soonest occurrence
+ * Deduplicates by (name, type, month, day): keeping the soonest occurrence
  * (handles overlap between Google Contacts and manual entries).
  */
 export const computeUpcoming = (raw) => {
@@ -129,5 +129,5 @@ export const avatarColor = (name) => {
 export const avatarLetter = (name) => (name || '?')[0].toUpperCase();
 
 // ─── Age formatting ───────────────────────────────────────────────────────────
-// Sourced from utilities/index.js — single canonical implementation.
+// Sourced from utilities/index.js: single canonical implementation.
 export { humanizeAge } from '../../utilities';

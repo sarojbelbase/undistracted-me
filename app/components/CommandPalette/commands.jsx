@@ -1,14 +1,14 @@
 /**
- * COMMANDS — the app actions surfaced in the CommandPalette.
+ * COMMANDS: the app actions surfaced in the CommandPalette.
  *
  * Each command:
- *   id          string              — stable identifier
- *   label       string              — static label (used for filtering + fallback display)
- *   getLabel    () => string        — optional dynamic display label (e.g. next theme mode)
- *   description string              — short helper text shown next to the label
- *   keywords    string[]            — extra terms matched by filterCommands
- *   icon        React component     — react-bootstrap-icons icon
- *   run         () => void          — executes the action
+ *   id          string             : stable identifier
+ *   label       string             : static label (used for filtering + fallback display)
+ *   getLabel    () => string       : optional dynamic display label (e.g. next theme mode)
+ *   description string             : short helper text shown next to the label
+ *   keywords    string[]           : extra terms matched by filterCommands
+ *   icon        React component    : react-bootstrap-icons icon
+ *   run         () => void         : executes the action
  *
  * Commands are dispatched through the existing intent pattern in `useUIStore`
  * (App.jsx holds the actual UI state in React hooks and reacts via useEffect),

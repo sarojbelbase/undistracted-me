@@ -1,5 +1,5 @@
 /**
- * Bikram Sambat calendar data — days per month for each BS year.
+ * Bikram Sambat calendar data: days per month for each BS year.
  *
  * This is algorithm-critical data consumed by the BS↔AD conversion
  * algorithm in utilities/index.js.  It lives in app/data/ as the canonical
@@ -8,18 +8,18 @@
  *
  * ── Source & cross-reference ──────────────────────────────────────────────────
  * Primary:   Government of Nepal, Department of Federal Affairs and General
- *            Administration — official Bikram Sambat almanac (through BS 2100).
+ *            Administration: official Bikram Sambat almanac (through BS 2100).
  * Secondary: Four independent sources compared row-by-row:
  *
- *   1. bikram-sambat    (phalgunlolchha/bikram-sambat — GON data through 2100)
- *   2. nepali-date      (armaansahni/nepali-date — BS 2000-2082)
+ *   1. bikram-sambat    (phalgunlolchha/bikram-sambat: GON data through 2100)
+ *   2. nepali-date      (armaansahni/nepali-date: BS 2000-2082)
  *   3. @sbmdkl/nepali-date-converter  (independently transcribed, BS 2000-2090)
- *   4. NepaliCalendar Android Library (samAcharya/NepaliCalendarLibrary —
+ *   4. NepaliCalendar Android Library (samAcharya/NepaliCalendarLibrary -
  *      independently computed through BS 2100 using DRK algorithm)
  *
  * ── Format ────────────────────────────────────────────────────────────────────
  * Object key: BS year number.
- * Value: [M1, M2, …, M12]  — 12 elements, 0-indexed (M1 = Baisakh at index 0).
+ * Value: [M1, M2, …, M12] : 12 elements, 0-indexed (M1 = Baisakh at index 0).
  * Valid day counts per month: 29-32.  Valid year total: 364-367 days.
  *
  * ── Lookup ────────────────────────────────────────────────────────────────────
@@ -27,11 +27,11 @@
  * NEPALI_YEARS_AND_DAYS_IN_MONTHS[2083][1]   // → 31
  *
  * ── Coverage tiers ────────────────────────────────────────────────────────────
- * BS 2000-2082  STABLE   — cross-validated against all four sources.
- * BS 2083       FIXED    — Jestha corrected 30→31 (364-day year is impossible;
+ * BS 2000-2082  STABLE  : cross-validated against all four sources.
+ * BS 2083       FIXED   : Jestha corrected 30→31 (364-day year is impossible;
  *                          all three libraries agreed on 31).
- * BS 2084-2100  VERIFIED — sourced from GON data via bikram-sambat npm library.
- * BS 2101-2190  COMPUTED — derived from solar sidereal ephemeris calculations
+ * BS 2084-2100  VERIFIED: sourced from GON data via bikram-sambat npm library.
+ * BS 2101-2190  COMPUTED: derived from solar sidereal ephemeris calculations
  *                          using the Jean Meeus "Astronomical Algorithms" VSOP87
  *                          method, cross-checked against the pattern established
  *                          by BS 2000-2100. These are NOT official GON data.
@@ -50,12 +50,12 @@
  *   M4 (Shrawan) [idx 3]: always 31 or 32
  *   M9 (Poush)   [idx 8]: always 29
  *   M10 (Magh)   [idx 9]: always 29 or 30
- *   M1 (Baisakh) [idx 0]: 30 or 31 (rarely 30 — only when Mesha entry is late)
+ *   M1 (Baisakh) [idx 0]: 30 or 31 (rarely 30: only when Mesha entry is late)
  *   M12 (Chaitra)[idx11]: 30 or 31
  */
 
 export const NEPALI_YEARS_AND_DAYS_IN_MONTHS = {
-  // ── BS 2000-2082 — cross-validated against four sources ──────────────────
+  // ── BS 2000-2082: cross-validated against four sources ──────────────────
   2000: [30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31],
   2001: [31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
   2002: [31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30],
@@ -157,7 +157,7 @@ export const NEPALI_YEARS_AND_DAYS_IN_MONTHS = {
   2098: [31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31],
   2099: [31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30],
   2100: [31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30],
-  // ── BS 2101-2190 — computed via solar sidereal ephemeris (Meeus VSOP87) ──
+  // ── BS 2101-2190: computed via solar sidereal ephemeris (Meeus VSOP87) ──
   // These are NOT official GON data. Each row has been verified to:
   //   (a) sum to 365 or 366 days
   //   (b) obey structural month-length physics (M9≥29, M3/M4≥31, etc.)

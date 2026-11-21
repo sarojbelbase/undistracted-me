@@ -1,6 +1,6 @@
 /**
- * UI flows — integration tests for settings, the unified add dialog, command
- * palette, theme switching, and the Look Away screen-timeout default.
+ * UI flows: integration tests for settings, the unified add dialog, command
+ * palette, theme switching and the Look Away screen-timeout default.
  *
  * These use the CURRENT Zustand storage model (`undistracted_settings`), not the
  * legacy per-key localStorage entries (`app_mode`, `language`, …) that older
@@ -42,7 +42,7 @@ async function loadCanvas(page, { state = {}, local = {} } = {}) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Look Away — reminder interval settings
+// 1. Look Away: reminder interval settings
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Look Away settings', () => {
@@ -55,7 +55,7 @@ test.describe('Look Away settings', () => {
     await lookAwaySwitch.click();
 
     // The "Remind every" presets should include 20m / 30m / 1 hr.
-    // Scope to the settings dialog — the pomodoro widget's "1 hr" preset also
+    // Scope to the settings dialog: the pomodoro widget's "1 hr" preset also
     // lives on the canvas (its "Pick phase" is visible when idle), so an
     // unscoped exact-name lookup is ambiguous.
     const settingsDialog = page.getByRole('dialog', { name: 'Canvas settings' });
@@ -94,7 +94,7 @@ test.describe('Look Away settings', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Unified add dialog — type switching
+// 2. Unified add dialog: type switching
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Unified add dialog', () => {

@@ -1,5 +1,5 @@
 /**
- * Changelog — the SINGLE SOURCE OF TRUTH for Undistracted Me's release history.
+ * Changelog: the SINGLE SOURCE OF TRUTH for Undistracted Me's release history.
  *
  * Newest first. Every surface that shows release notes reads from here:
  *
@@ -13,12 +13,12 @@
 
 export const origin = {
   version: "v1.0.0",
-  period: "May 2020 — November 2020",
+  period: "May 2020 to November 2020",
   title: "The first new tab",
   paragraphs: [
-    "Undistracted Me started as a personal itch. Every browser's default new tab was a grid of shortcuts I never asked for, and none of them showed the date I actually lived by — the Nepali Bikram Sambat calendar. So I built a new tab that opened on today's miti, nothing else.",
-    "The first version was deliberately tiny: plain HTML, CSS and a little JavaScript, no framework, no build step. A Nepali date at the centre, some offline fonts so it never looked broken without a connection, and a couple of easing animations so the load felt considered rather than jarring.",
-    "That restraint became the project's north star — every later decision (Vue, then React, then the Vite rewrite) was judged against the same question: does this help someone glance at their new tab and get on with their day, or does it pull them in?",
+    "Undistracted Me started as a personal itch. Every browser's default new tab was a grid of shortcuts I never asked for, and none of them showed the date I actually lived by: the Nepali Bikram Sambat calendar. So I built a new tab that opened on today's miti, nothing else.",
+    "The first version was deliberately tiny: plain HTML, CSS and a little JavaScript, no framework, no build step. A Nepali date at the centre, some offline fonts so it never looked broken without a connection and a couple of easing animations so the load felt considered rather than jarring.",
+    "That restraint became the project's north star: every later decision (Vue, then React, then the Vite rewrite) was judged against the same question: does this help someone glance at their new tab and get on with their day or does it pull them in?",
   ],
   milestones: [
     {
@@ -27,7 +27,7 @@ export const origin = {
     },
     {
       label: "v1.0.2 · May 10, 2020",
-      text: "Font stability pass — offline font availability, a modern-font fallback stack, a 20% performance bump and 30% smaller images.",
+      text: "Font stability pass: offline font availability, a modern-font fallback stack, a 20% performance bump and 30% smaller images.",
     },
     {
       label: "v1.0.3 · May 16, 2020",
@@ -45,16 +45,16 @@ export const releases = [
     title: "A warmer welcome and a public changelog",
     kind: "feature",
     blurb:
-      "A refreshed first-run tour, an About panel, a review prompt, and a public changelog — the small things that make the extension feel finished.",
+      "A refreshed first-run tour, an About panel, a review prompt and a public changelog: the small things that make the extension feel finished.",
     summary: [
       "A fresh first-run welcome that showcases Focus Mode and the dashboard.",
-      "An About panel, a review prompt after 10 focus sessions, and a public changelog.",
+      "An About panel, a review prompt after 10 focus sessions and a public changelog.",
     ],
     highlights: [
       {
         group: "First-run welcome",
         items: [
-          "Rewrote the Quick Tour to showcase what the extension actually does now — Focus Mode, the dashboard and the headline features — instead of the old widget picker.",
+          "Rewrote the Quick Tour to showcase what the extension actually does now: Focus Mode, the dashboard and the headline features: instead of the old widget picker.",
         ],
       },
       {
@@ -91,7 +91,7 @@ export const releases = [
         group: "International stocks",
         items: [
           "Search and add tickers from NYSE, NASDAQ, LSE, HKEX, XETRA and more, served through api.undistracted.me.",
-          "A new International tab sits beside the NEPSE list — search by name or ticker with live results, same price, change and 3-month sparkline.",
+          "A new International tab sits beside the NEPSE list: search by name or ticker with live results, same price, change and 3-month sparkline.",
         ],
       },
       {
@@ -115,12 +115,12 @@ export const releases = [
     title: "Store packaging",
     kind: "fix",
     blurb:
-      "A plumbing release — no user-facing changes, just the fixes that unblocked the store listings.",
+      "A plumbing release: no user-facing changes, just the fixes that unblocked the store listings.",
     highlights: [
       {
         group: "Chrome Web Store",
         items: [
-          "Corrected the manifest key so the built package derives the same extension ID as the live Chrome item — the previous key blocked the upload with a mismatched-ID error.",
+          "Corrected the manifest key so the built package derives the same extension ID as the live Chrome item: the previous key blocked the upload with a mismatched-ID error.",
         ],
       },
       {
@@ -143,8 +143,8 @@ export const releases = [
       {
         group: "Focus Mode",
         items: [
-          "A cinematic full-screen clock with a curated-photos or custom-URL background, a configurable clock face and greeting, and glass-card styling.",
-          "Pomodoro timer, ambient rain and white noise, and Google Tasks kept front and centre.",
+          "A cinematic full-screen clock with a curated-photos or custom-URL background, a configurable clock face and greeting and glass-card styling.",
+          "Pomodoro timer, ambient rain and white noise and Google Tasks kept front and centre.",
           "Cross-device background sync.",
         ],
       },
@@ -169,7 +169,7 @@ export const releases = [
         group: "Security & fixes",
         items: [
           "Removed the shipped client-side API key in favour of a strict Origin allow-list, plus KV-backed rate limiting and RSS SSRF hardening.",
-          "Tokens and PII moved to chrome.storage.local — never localStorage.",
+          "Tokens and PII moved to chrome.storage.local: never localStorage.",
           "Fixed relative-time across day boundaries and 403s caused by over-strict Origin gating; removed the Motion (orb) background.",
         ],
       },
@@ -198,7 +198,7 @@ export const releases = [
       {
         group: "Calendar",
         items: [
-          "Fixed the number of days in each month for 2082 BS and 2083 BS. Marked as a temporary fix — the rewrite landed the proper solution later.",
+          "Fixed the number of days in each month for 2082 BS and 2083 BS. Marked as a temporary fix: the rewrite landed the proper solution later.",
         ],
       },
     ],
@@ -237,7 +237,7 @@ export const releases = [
     released: "2024-06-09",
     title: "React rewrite",
     kind: "rewrite",
-    blurb: "A second framework migration — Vue gave way to React.",
+    blurb: "A second framework migration: Vue gave way to React.",
     highlights: [
       {
         group: "Migration",

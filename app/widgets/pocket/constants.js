@@ -1,10 +1,10 @@
 /**
- * Pocket widget — pure constants and theme tokens.
+ * Pocket widget: pure constants and theme tokens.
  * Colors and limits live here (never inline in components) so profiles,
  * accents and dark mode restyle the widget for free.
  *
  * This module is imported by the service worker (contextMenu.js), so keep it
- * free of React / DOM / icon imports — only data.
+ * free of React / DOM / icon imports: only data.
  */
 
 export const KINDS = Object.freeze(["link", "sentence", "paragraph", "code"]);
@@ -17,7 +17,7 @@ export const KIND_META = Object.freeze({
 });
 
 // 6 muted folder swatches. Used as small color dots; readable in light + dark.
-// "slate" is the grey swatch — new folders never default to it (§2 P2).
+// "slate" is the grey swatch: new folders never default to it (§2 P2).
 export const FOLDER_COLORS = Object.freeze([
   { id: "slate", value: "#8b98a8" },
   { id: "blue", value: "#6d9ee8" },

@@ -50,7 +50,7 @@
 
 /* ── Layout classes ────────────────────────────────────────────────────────── */
 
-/* ── Center column — the entire content stack ─────────────────────────────── */
+/* ── Center column: the entire content stack ─────────────────────────────── */
 .blocked-center {
   position: relative;
   z-index: 2;
@@ -63,7 +63,7 @@
   animation: lookaway-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ── Domain label — refined but clearly visible ──────────────────────────── */
+/* ── Domain label: refined but clearly visible ──────────────────────────── */
 .blocked-domain-label {
   font-size: 0.85rem;
   font-weight: 500;
@@ -72,7 +72,7 @@
   user-select: none;
 }
 
-/* ── Hero message title — the undisputed focal point ──────────────────────── */
+/* ── Hero message title: the undisputed focal point ──────────────────────── */
 .blocked-hero {
   font-size: clamp(2.2rem, 5vw, 3.4rem);
   font-weight: 600;
@@ -83,7 +83,7 @@
   max-width: 440px;
 }
 
-/* ── Supporting message — the depth, the why ──────────────────────────────── */
+/* ── Supporting message: the depth, the why ──────────────────────────────── */
 .blocked-sub {
   font-size: 0.95rem;
   font-weight: 400;
@@ -93,7 +93,7 @@
   user-select: none;
 }
 
-/* ── Timer — clean, prominent, the anchor ─────────────────────────────────── */
+/* ── Timer: clean, prominent, the anchor ─────────────────────────────────── */
 .blocked-timer {
   font-size: clamp(2.4rem, 5.5vw, 3.6rem);
   font-weight: 600;
@@ -103,7 +103,7 @@
   user-select: none;
 }
 
-/* ── Redirecting message — subtle, small, with a breathing dot ────────────── */
+/* ── Redirecting message: subtle, small, with a breathing dot ────────────── */
 .blocked-redirecting {
   display: flex;
   align-items: center;
@@ -140,7 +140,7 @@
   }
 }
 
-/* ── Progress bar — subtle horizontal track under the timer ───────────────── */
+/* ── Progress bar: subtle horizontal track under the timer ───────────────── */
 .blocked-progress-track {
   width: 120px;
   height: 3px;

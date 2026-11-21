@@ -1,8 +1,8 @@
 /**
- * Time-based greeting pools — displayed in the clock widget greeting line.
+ * Time-based greeting pools: displayed in the clock widget greeting line.
  *
  * Each pool covers a time window (from: hour). Entries are [prefix, label]
- * where prefix renders lighter and label renders bold — the label is the punch.
+ * where prefix renders lighter and label renders bold: the label is the punch.
  *
  * getGreeting() is stable within a calendar day (seeded by day-of-year) so
  * the clock widget's per-second re-renders don't shuffle the text. It cycles
@@ -269,7 +269,7 @@ const GREETING_POOLS = [
       ['the day continues', 'unfortunately for you'],
       ['lunch fixed,', 'temporarily nothing fixed'],
       ['eat first.', 'everything else optional'],
-      ['noon check-in —', 'vibes report: unstable'],
+      ['noon check-in -', 'vibes report: unstable'],
       ['the sun asked,', "you're still here?"],
       ['food break or', 'breakdown, your choice'],
       ['midday madness', 'is just called noon'],

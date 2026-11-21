@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useUIStore } from '../store/useUIStore';
 
-// Platform detection — evaluated once at module load, never changes at runtime.
+// Platform detection: evaluated once at module load, never changes at runtime.
 const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 export const cmdKey = isMac ? '⌘K' : 'Ctrl+K';
 
@@ -26,13 +26,13 @@ export function useCommandPalette() {
 
       const state = useUIStore.getState();
 
-      // In Focus Mode — route to the inline search bar.
+      // In Focus Mode: route to the inline search bar.
       if (state.focusModeActive) {
         globalThis.dispatchEvent(new CustomEvent('um:focus_search_bar'));
         return;
       }
 
-      // In Note Mode — no inline search; suppress the palette (distraction-free).
+      // In Note Mode: no inline search; suppress the palette (distraction-free).
       if (state.noteModeActive) return;
 
       if (state.commandPaletteOpen) state.closeCommandPalette();

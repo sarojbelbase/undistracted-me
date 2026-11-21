@@ -1,7 +1,7 @@
 import { Toggle } from './Toggle';
 
 /**
- * Settings primitives — the shared layout + typography for widget settings
+ * Settings primitives: the shared layout + typography for widget settings
  * panels. Single source of truth for the field-label caption (w-label) and the
  * common field layouts, so every widget settings panel reads the same.
  *

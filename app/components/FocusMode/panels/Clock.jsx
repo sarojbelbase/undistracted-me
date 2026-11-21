@@ -18,7 +18,7 @@ export const Clock = ({ parts, centerOnDark, compact = false }) => {
   return (
     <div
       className={compact ? 'fm-clock-compact flex items-center select-none pointer-events-none' : 'flex items-center select-none pointer-events-none'}
-      role="timer"
+      role="time"
       aria-label={timeLabel}
     >
       <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-start' }} aria-hidden="true">
@@ -36,13 +36,11 @@ export const Clock = ({ parts, centerOnDark, compact = false }) => {
           {parts.time.split('').map((char, i) =>
             char === ':' ? (
               <span
-                key={`sep-${i}-${char}`} // NOSONAR: time string chars at fixed positions — array index is the stable position identifier
+                key={`sep-${i}-${char}`} // NOSONAR: time string chars at fixed positions: array index is the stable position identifier
                 style={{
                   fontFamily: "'Google Sans', ui-sans-serif, sans-serif",
-                  lineHeight: 1, height: '1em', display: 'flex', alignItems: 'center',
-                  paddingBottom: '0.05em',
-                  color: photo.colonColor,
-                  marginInline: '0.015em',
+                  color: photo.clockColor,
+                  marginInline: '0.02em',
                 }}
               >:</span>
             ) : (

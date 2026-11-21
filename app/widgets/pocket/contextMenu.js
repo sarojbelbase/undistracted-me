@@ -1,7 +1,7 @@
 /**
- * Pocket — service-worker side of the context-menu save flow.
+ * Pocket: service-worker side of the context-menu save flow.
  *
- * Creates the "Add to Pocket" context menu (contexts selection | link | page)
+ * Creates the "Save to Pocket" context menu (contexts selection | link | page)
  * with a Bitwarden-style submenu: a top "Default" entry (no folder) followed by
  * every user folder. Selecting a folder files the save into it.
  *
@@ -19,7 +19,7 @@ import { POCKET_KEYS } from "./constants";
 import { addItem, flush, getPrefs, whenHydrated, getSnapshot } from "./pocketStore";
 
 export const POCKET_MENU_ID = "pocket-save";
-export const POCKET_MENU_TITLE = "Add to Pocket";
+export const POCKET_MENU_TITLE = "Save to Pocket";
 export const POCKET_FOLDER_DEFAULT_ID = "pocket-folder-default";
 export const POCKET_FOLDER_PREFIX = "pocket-folder:";
 
@@ -115,11 +115,11 @@ function buildMenu(folders) {
 
 /**
  * Rebuild the submenu whenever folders actually change, from any context (the
- * widget on a new-tab page, another tab, or the SW's own first-run seed).
+ * widget on a new-tab page, another tab or the SW's own first-run seed).
  *
  * Registered at module top level so it survives service-worker restarts. The
  * previous approach wired this through a one-time pocketStore.subscribe() in
- * setupPocketContextMenu(), which only ran on install/startup — Chrome suspends
+ * setupPocketContextMenu(), which only ran on install/startup: Chrome suspends
  * the SW after ~30s idle, and the subscribe was lost on the next wake, so
  * folders created later never appeared in the submenu. A top-level listener
  * re-registers on every wake.
@@ -197,7 +197,7 @@ function showBadge() {
  * `undoId` (when present) renders an "Undo" button that asks the service
  * worker to soft-delete the just-saved item.
  *
- * NOTE: these neutral colors are intentionally hardcoded — the toast is
+ * NOTE: these neutral colors are intentionally hardcoded: the toast is
  * injected into arbitrary pages that have no access to the extension's theme
  * tokens, so it must be self-contained. The extension widget itself uses
  * tokens only.
@@ -266,7 +266,7 @@ function injectToast(tabId, message, undoId) {
           document.body.appendChild(host);
           setTimeout(() => host.remove(), 2500);
         } catch {
-          /* injection failed on a restricted page — the badge fallback covers it */
+          /* injection failed on a restricted page: the badge fallback covers it */
         }
       },
       args: [message, undoId],

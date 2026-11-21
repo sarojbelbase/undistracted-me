@@ -3,7 +3,7 @@ import { addItem, softDelete, getPrefs, getSnapshot } from "./pocketStore";
 import { classifyKind, cleanText } from "./utils";
 
 /**
- * saveText — the single "save a pasted/typed text" flow, shared by the Add
+ * saveText: the single "save a pasted/typed text" flow, shared by the Add
  * dialog and the paste-immediate path. Classifies, cleans, adds (honoring
  * skipDuplicates), then shows the right snackbar.
  *
@@ -46,7 +46,7 @@ export function saveText(text, { kind, folderId, skipDuplicates = true, kindLock
   return res;
 }
 
-/** Folder name for a save notice — null for the default folder or no folder. */
+/** Folder name for a save notice: null for the default folder or no folder. */
 function folderNotice(folderId) {
   if (!folderId) return null;
   if (folderId === getPrefs().defaultFolderId) return null;

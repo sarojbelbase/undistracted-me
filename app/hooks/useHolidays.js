@@ -1,5 +1,5 @@
 /**
- * useHolidays — Nepali + international holidays for the calendar widget.
+ * useHolidays: Nepali + international holidays for the calendar widget.
  *
  * Fetches the committed `holidays.json` from the app's own origin (updated
  * weekly by a GitHub Actions workflow), caches the payload in the shared DataHub
@@ -7,10 +7,10 @@
  * 24h.  Returns two lookups so the calendar can style Nepali and international
  * holidays differently:
  *   {
- *     dates:      Set<'YYYY-MM-DD'>            — Nepali holiday dates
- *     names:      Map<'YYYY-MM-DD' → string[]> — Nepali names per date
- *     intlDates:  Set<'YYYY-MM-DD'>            — international holiday dates
- *     intlNames:  Map<'YYYY-MM-DD' → string[]> — international names per date
+ *     dates:      Set<'YYYY-MM-DD'>           : Nepali holiday dates
+ *     names:      Map<'YYYY-MM-DD' → string[]>: Nepali names per date
+ *     intlDates:  Set<'YYYY-MM-DD'>           : international holiday dates
+ *     intlNames:  Map<'YYYY-MM-DD' → string[]>: international names per date
  *   }
  *
  * Falls back to empty lookups on any error so the calendar still renders.
@@ -47,7 +47,7 @@ export function useHolidays() {
   const { data, updatedAt, hydrated, write } = useDataHub("holidays");
 
   // Fetch only when the hub is hydrated and the entry is missing or stale
-  // (> 24h). There is no polling interval — the timestamp decides.
+  // (> 24h). There is no polling interval: the timestamp decides.
   useEffect(() => {
     if (!hydrated) return;
     const hasData = data && Array.isArray(data.holidays);
@@ -62,7 +62,7 @@ export function useHolidays() {
         write(json);
       })
       .catch(() => {
-        /* keep cached/empty — calendar still renders */
+        /* keep cached/empty: calendar still renders */
       });
 
     return () => {

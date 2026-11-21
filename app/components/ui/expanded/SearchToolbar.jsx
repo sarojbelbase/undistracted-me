@@ -3,7 +3,7 @@ import { Button } from "../Button";
 import { Input } from "../Input";
 
 /**
- * SearchToolbar — the expanded view's main-pane header, shared by Pocket and
+ * SearchToolbar: the expanded view's main-pane header, shared by Pocket and
  * Expense. Two quiet rows:
  *   1. search (grows) + a secondary "Add" button
  *   2. the view title (h2) with a muted count, and an optional `trailing`

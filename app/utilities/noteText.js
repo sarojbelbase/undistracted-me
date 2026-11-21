@@ -6,7 +6,7 @@
  * gist payload. These functions are the single source of truth for that split
  * so the widget and the sync layer can never disagree on the shape.
  *
- * Keep this module PURE — no React / DOM / bootstrap-icons imports.
+ * Keep this module PURE: no React / DOM / bootstrap-icons imports.
  */
 
 /** Split a note string into title (first line) and body (rest). */
@@ -24,7 +24,7 @@ export function mergeNote(title, body) {
 }
 
 /**
- * Human-readable label for a note — used as the gist description and as the
+ * Human-readable label for a note: used as the gist description and as the
  * `note_key` stored in the config index. Rules (at least one of title/body):
  *   - title present        → the title
  *   - no title, body only  → first ~80 chars of the body, flattened to one line

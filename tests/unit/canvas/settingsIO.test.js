@@ -12,14 +12,14 @@
  *  – importSettings accepts both the wrapped { undistracted_me: {...} } format
  *    and the raw flat-object fallback (backwards compat).
  *  – resetSettings clears localStorage before reload.
- *  – window.location.reload is dangerous to call in tests — it must be mocked.
+ *  – window.location.reload is dangerous to call in tests: it must be mocked.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { exportSettings, importSettings, resetSettings } from '../../../app/widgets/settingsIO';
 
 // ────────────────────────────────────────────────────────────────────────────
-// Global mocks — prevent real DOM mutation + reload
+// Global mocks: prevent real DOM mutation + reload
 // ────────────────────────────────────────────────────────────────────────────
 
 const reloadMock = vi.fn();
@@ -45,10 +45,10 @@ afterEach(() => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// importSettings — happy paths
+// importSettings: happy paths
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('importSettings — happy path', () => {
+describe('importSettings: happy path', () => {
   it('accepts wrapped format { undistracted_me: {...} }', () => {
     const payload = JSON.stringify({
       undistracted_me: {
@@ -79,7 +79,7 @@ describe('importSettings — happy path', () => {
 
   it('clears prior portable app keys before restoring (preserves non-app keys)', () => {
     localStorage.setItem('widget_events', '["old"]');
-    localStorage.setItem('stale_key', 'stale_value'); // non-app key — must survive
+    localStorage.setItem('stale_key', 'stale_value'); // non-app key: must survive
     const payload = JSON.stringify({
       undistracted_me: {
         undistracted_settings: '{}',
@@ -118,10 +118,10 @@ describe('importSettings — happy path', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// importSettings — error cases
+// importSettings: error cases
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('importSettings — error cases', () => {
+describe('importSettings: error cases', () => {
   it('throws "not valid JSON" for a non-JSON string', () => {
     expect(() => importSettings('not json at all')).toThrow('File is not valid JSON.');
   });
@@ -301,7 +301,7 @@ describe('export/import filtering', () => {
     expect(wi.state.widgetSettings.notes).toBeUndefined();
   });
 
-  it('excludes secrets, tokens, and sync metadata', async () => {
+  it('excludes secrets, tokens and sync metadata', async () => {
     localStorage.setItem('gcal_access_token', 'gcal-token');
     localStorage.setItem('spotify_tokens', JSON.stringify({ access_token: 'x' }));
     localStorage.setItem('spotify_connected', '1');
@@ -347,7 +347,7 @@ describe('export/import filtering', () => {
     expect(payload.undistracted_me.countdown_events).toBeTruthy();
   });
 
-  it('exports manual occasions, expenses, and blocked sites (user data)', async () => {
+  it('exports manual occasions, expenses and blocked sites (user data)', async () => {
     localStorage.setItem('birthdays_manual', JSON.stringify([{ id: 'm1', name: 'Mom', type: 'birthday', month: 4, day: 8 }]));
     localStorage.setItem('expense_data_expense', JSON.stringify([{ id: 'e1', amount: 10 }]));
     localStorage.setItem('blocked_sites', JSON.stringify([{ domain: 'x.com', blockedUntil: 123 }]));
@@ -366,7 +366,7 @@ describe('export/import filtering', () => {
     const payload = JSON.stringify({
       undistracted_me: {
         undistracted_settings: JSON.stringify({ state: { mode: 'dark' } }),
-        github_connected: '0', // malicious/stale — must be ignored
+        github_connected: '0', // malicious/stale: must be ignored
         widgetSettings_notes: JSON.stringify({ notes: [{ id: 'evil' }], idx: 0 }),
         spotify_tokens: JSON.stringify({ access_token: 'evil' }),
       },
@@ -383,7 +383,7 @@ describe('export/import filtering', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// importFromFile — DOM file input creation
+// importFromFile: DOM file input creation
 // ────────────────────────────────────────────────────────────────────────────
 
 import { importFromFile } from '../../../app/widgets/settingsIO';

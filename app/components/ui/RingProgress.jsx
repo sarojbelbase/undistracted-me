@@ -5,9 +5,9 @@ import React from 'react';
 const RING_R = 7;
 
 // ─── Thin ring progress (accent-tinted) ───────────────────────────────────────
-// Used by LookAway overlay, website blocker blocked page, and Pomodoro widget.
-// LookAway / blocker render over dark backdrops — track stroke adapts to isDark.
-// Pomodoro renders on widget cards — uses `color` prop for CSS variable support.
+// Used by LookAway overlay, website blocker blocked page and Pomodoro widget.
+// LookAway / blocker render over dark backdrops: track stroke adapts to isDark.
+// Pomodoro renders on widget cards: uses `color` prop for CSS variable support.
 
 /**
  * @param {object} props

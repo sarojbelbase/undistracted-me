@@ -1,5 +1,5 @@
 /**
- * BlockedSites — settings section for managing blocked domains.
+ * BlockedSites: settings section for managing blocked domains.
  *
  * Features:
  *   - List of blocked domains with countdown timer
@@ -40,7 +40,7 @@ export const BlockedSites = () => {
   const [adding, setAdding] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  // Tick `now` every second for countdown display — via the shared clock so we
+  // Tick `now` every second for countdown display: via the shared clock so we
   // never add a per-component 1s interval (one timer drives every new tab).
   // Only subscribe while there's at least one site with a finite countdown;
   // otherwise this would re-render the whole section every second for nothing.
@@ -198,7 +198,7 @@ export const BlockedSites = () => {
         </Button>
       )}
 
-      {/* Clear all — always visible when sites exist */}
+      {/* Clear all: always visible when sites exist */}
       {sites.length > 0 && (
         <div style={{
           display: 'flex', justifyContent: 'center',

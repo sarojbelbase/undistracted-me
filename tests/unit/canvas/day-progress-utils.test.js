@@ -227,7 +227,7 @@ describe('getProgress with BS calendar', () => {
   });
 });
 
-describe('getProgress — unknown period falls back to day', () => {
+describe('getProgress: unknown period falls back to day', () => {
   afterEach(() => vi.useRealTimers());
 
   it('"unknown" period returns Day label', () => {

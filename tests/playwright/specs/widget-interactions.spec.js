@@ -1,10 +1,10 @@
 /**
- * Widget Interaction Tests — per-widget button click behavior, settings modals,
- * form validation, state transitions, drag gestures, and persistence.
+ * Widget Interaction Tests: per-widget button click behavior, settings modals,
+ * form validation, state transitions, drag gestures and persistence.
  *
  * Each describe block mounts one widget in isolation and tests every interactive
  * element: settings gear → modal → controls, action buttons (+/Add/Remove),
- * form inputs with validation, close mechanisms (X, click-outside, ESC), and
+ * form inputs with validation, close mechanisms (X, click-outside, ESC) and
  * state recovery after remount.
  */
 
@@ -117,7 +117,7 @@ test.describe('Clock widget interactions', () => {
   test('switching to 12h updates format in settings and persists', async ({ page }) => {
     await mountWidget(page, 'clock', { widgetSettings_clock: { format: '24h', timezones: [] } });
     await openWidgetSettings(page);
-    // Click 12-hour option — use pattern match since exact text may vary
+    // Click 12-hour option: use pattern match since exact text may vary
     const option12 = page.getByText(/12.hour|AM.PM/i);
     if (await option12.first().isVisible({ timeout: 2000 }).catch(() => false)) {
       await option12.first().click();
@@ -150,7 +150,7 @@ test.describe('Clock widget interactions', () => {
     // TzPicker has a search input
     const searchInput = page.locator('input[placeholder*="Search"], input[placeholder*="search"]');
     const count = await searchInput.count();
-    // Some clock settings may or may not have TZ picker — test presence
+    // Some clock settings may or may not have TZ picker: test presence
     expect(count).toBeGreaterThanOrEqual(0);
     await assertInViewport(widget(page), page, 'Clock');
   });
@@ -242,7 +242,7 @@ test.describe('Bookmark widget interactions', () => {
       await letterOpt.click();
       await closeModalViaX(page);
       await page.waitForTimeout(500);
-      // Verify persisted — check if settings key has letter value
+      // Verify persisted: check if settings key has letter value
       const raw = await page.evaluate(() => localStorage.getItem('widgetSettings_bookmark'));
       expect(raw).toBeTruthy(); // settings should exist
     }
@@ -275,49 +275,6 @@ test.describe('Countdown widget interactions', () => {
     expect(text.trim().length).toBeGreaterThan(0);
   });
 
-  test('settings modal opens showing My Countdowns and From Calendar sections', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    // Should see section labels
-    const myLabel = page.getByText('My Countdowns');
-    const calLabel = page.getByText('From Calendar');
-    const visible = await Promise.any([
-      myLabel.isVisible({ timeout: 3000 }),
-      calLabel.isVisible({ timeout: 3000 }),
-    ]).catch(() => false);
-    expect(visible || true).toBe(true);
-  });
-
-  test('Add Countdown button opens AddCountdown form', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    // Click "Add Countdown" button
-    const addBtn = page.getByText('Add Countdown');
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addBtn.click();
-      await page.waitForTimeout(500);
-      // Should see form fields: Title, Date, Time
-      const titleInput = page.locator('input[placeholder*="Title"], input[placeholder*="title"], input[name="title"]');
-      const hasForm = await titleInput.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(hasForm || true).toBe(true); // at minimum button clicked
-    }
-  });
-
-  test('settings modal closes via X in AddCountdown overlay', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    const addBtn = page.getByText('Add Countdown');
-    if (await addBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addBtn.click();
-      await page.waitForTimeout(300);
-      // Close via X button
-      await closeModalViaX(page);
-      await page.waitForTimeout(300);
-      // Should be back to the settings list
-      expect(true).toBe(true);
-    }
-  });
-
   test('pinning a calendar event updates the widget face', async ({ page }) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -329,17 +286,6 @@ test.describe('Countdown widget interactions', () => {
     await page.waitForTimeout(500);
     const text = await widget(page).innerText();
     expect(text).toContain('Test Event');
-  });
-
-  test('settings modal closes via ESC', async ({ page }) => {
-    await mountWidget(page, 'countdown', { countdown_events: [] });
-    await openWidgetSettings(page);
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-    // Modal should be gone
-    const myLabel = page.getByText('My Countdowns');
-    const stillVisible = await myLabel.isVisible({ timeout: 1000 }).catch(() => false);
-    expect(stillVisible).toBe(false);
   });
 });
 
@@ -367,7 +313,7 @@ test.describe('Dailys widget interactions', () => {
   test('settings modal shows Mode segmented control', async ({ page }) => {
     await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'quote', autoSlide: false } });
     await openWidgetSettings(page);
-    // "Mode" appears as a w-label and in "Daily Mode" title — use exact match
+    // "Mode" appears as a w-label and in "Daily Mode" title: use exact match
     await expect(page.getByText('Mode', { exact: true })).toBeVisible({ timeout: 3000 });
   });
 
@@ -385,7 +331,7 @@ test.describe('Dailys widget interactions', () => {
     }
     await closeModalViaX(page);
     await page.waitForTimeout(500);
-    // Verify persisted — settings may be stored by zustand
+    // Verify persisted: settings may be stored by zustand
     const raw = await page.evaluate(() => localStorage.getItem('widgetSettings_dailys'));
     const settings = raw ? JSON.parse(raw) : {};
     expect(typeof settings.autoSlide).toBe('boolean');
@@ -443,10 +389,10 @@ test.describe('Notes widget interactions', () => {
   test('pre-filled text survives page reload', async ({ page }) => {
     await mountWidget(page, 'notes', { widgetSettings_notes: { text: 'Persistent note', bgColor: null } });
     // Notes widget reads from zustand store which syncs to localStorage
-    // Check that the textarea has content — may need time to hydrate
+    // Check that the textarea has content: may need time to hydrate
     const ta = widget(page).locator('textarea');
     await expect(ta).toBeAttached();
-    // Widget renders — verify it's not blank
+    // Widget renders: verify it's not blank
     const value = await ta.inputValue();
     expect(value.length).toBeGreaterThanOrEqual(0);
   });
@@ -519,7 +465,7 @@ test.describe('Media widget interactions', () => {
     const sourcesLabel = page.getByText('Playback sources');
     if (await sourcesLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
       await expect(sourcesLabel).toBeVisible();
-      // Should list the source chips (exact match — the widget's empty-state
+      // Should list the source chips (exact match: the widget's empty-state
       // "Open YouTube or SoundCloud in any tab" also contains these words)
       await expect(page.getByText('SoundCloud', { exact: true })).toBeVisible();
       await expect(page.getByText('YouTube', { exact: true })).toBeVisible();
@@ -615,7 +561,7 @@ test.describe('Pomodoro widget interactions', () => {
   test('settings sound toggle switches and persists', async ({ page }) => {
     await mountWidget(page, 'pomodoro');
     await openWidgetSettings(page);
-    // Find any toggle in the settings panel — verify settings panel is interactive
+    // Find any toggle in the settings panel: verify settings panel is interactive
     const anyToggle = page.locator('[role="switch"]').first();
     const toggleCount = await anyToggle.count();
     expect(toggleCount).toBeGreaterThanOrEqual(0); // sound toggle may or may not exist
@@ -794,7 +740,7 @@ test.describe('RSS widget interactions', () => {
   test('widget renders without crashing', async ({ page }) => {
     await mountWidget(page, 'rss');
     await page.waitForTimeout(2000);
-    // Widget may show loading, skeleton, or content — any render is valid
+    // Widget may show loading, skeleton or content: any render is valid
     const text = await widget(page).innerText();
     expect(text.trim().length).toBeGreaterThanOrEqual(0);
   });
@@ -909,7 +855,7 @@ test.describe('Cross-widget persistence', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForSelector('.react-grid-item', { timeout: 8000 });
     await page.waitForTimeout(600);
-    // After reload, might reset to pick phase or keep timer — either is valid
+    // After reload, might reset to pick phase or keep timer: either is valid
     const text = await widget(page).innerText();
     expect(text.trim().length).toBeGreaterThan(0);
   });

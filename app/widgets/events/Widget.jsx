@@ -19,7 +19,7 @@ import { todayStr } from '../../utilities';
 import { useAgeLabel } from '../../hooks/useAgeLabel';
 import { onClockTick } from '../../utilities/sharedClock';
 import { UnifiedAddDialog } from '../../components/ui/UnifiedAddDialog';
-import { AllEventsModal } from './AllEventsModal';
+import { EventsExpandedView } from './ExpandedView';
 import { isPast } from './utils';
 import config from './config';
 import { EventRow } from '../../components/ui/EventRow';
@@ -37,7 +37,7 @@ export const Widget = ({ onRemove }) => {
   const [now, setNow] = useState(() => new Date());
   const lastMinuteRef = useRef(now.getMinutes());
 
-  // Tick every minute so past events disappear in real-time — uses shared clock
+  // Tick every minute so past events disappear in real-time: uses shared clock
   useEffect(() => onClockTick(() => {
     const d = new Date();
     if (d.getMinutes() !== lastMinuteRef.current) {
@@ -152,7 +152,7 @@ export const Widget = ({ onRemove }) => {
       </BaseWidget>
 
       {showCreate && <UnifiedAddDialog type="event" onClose={() => setShowCreate(false)} />}
-      {showAll && <AllEventsModal events={allEvents} onClose={() => setShowAll(false)} onRemove={removeEvent} />}
+      {showAll && <EventsExpandedView onClose={() => setShowAll(false)} />}
     </>
   );
 };

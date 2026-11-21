@@ -9,17 +9,17 @@ function extraStyle(confirming, danger) {
 }
 
 /**
- * ConfirmButton — single-click shows inline “Sure?”, second click confirms.
+ * ConfirmButton: single-click shows inline “Sure?”, second click confirms.
  * Auto-resets after `timeout` ms (default 3500) if no second click.
  *
  * Props:
- *   onConfirm  – () => void  — called on confirmed second click
- *   label      – string      — label / title for the default state (also aria-label)
- *   children   – ReactNode   — content shown in default state (icon, text, or both)
- *   danger     – bool        — style as danger (red) even in default state
- *   timeout    – number      — ms before auto-reset (default 3500)
- *   className  – string      — extra class(es) for the outer button
- *   style      – object      — extra inline styles for the outer button
+ *   onConfirm  – () => void : called on confirmed second click
+ *   label      – string     : label / title for the default state (also aria-label)
+ *   children   – ReactNode  : content shown in default state (icon, text or both)
+ *   danger     – bool       : style as danger (red) even in default state
+ *   timeout    – number     : ms before auto-reset (default 3500)
+ *   className  – string     : extra class(es) for the outer button
+ *   style      – object     : extra inline styles for the outer button
  */
 export const ConfirmButton = ({
   onConfirm,
@@ -62,7 +62,7 @@ export const ConfirmButton = ({
         ref={btnRef}
         type="button"
         onClick={handleClick}
-        aria-label={confirming ? 'Confirm — click again to proceed' : label}
+        aria-label={confirming ? 'Confirm: click again to proceed' : label}
         onMouseEnter={() => setHoverAnchor(btnRef.current?.getBoundingClientRect() ?? null)}
         onMouseLeave={() => setHoverAnchor(null)}
         className={className}

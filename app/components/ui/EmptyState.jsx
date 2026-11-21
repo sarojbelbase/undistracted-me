@@ -1,5 +1,5 @@
 /**
- * EmptyState — a minimal empty state: an optional icon, one title, one sentence,
+ * EmptyState: a minimal empty state: an optional icon, one title, one sentence,
  * and at most one optional action button. No numbered steps, no emoji.
  *
  * Props:

@@ -1,12 +1,12 @@
 /**
- * /visits — "web app visits" counter.
+ * /visits: "web app visits" counter.
  *
  *   GET  /visits → { visits: N }      read (landing page, cached 60s)
  *   POST /visits → { visits: N+1 }    increment (web app, on first open)
  *
  * The POST is a "simple" CORS request (no custom headers, empty body), so the
  * web app can fire it from app.undistracted.me without a preflight. No PII is
- * sent — the counter is just a number.
+ * sent: the counter is just a number.
  */
 
 import { assertStrictOrigin, corsHeaders, json } from './_config.js';

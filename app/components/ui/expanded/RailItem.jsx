@@ -1,7 +1,7 @@
 /**
- * RailItem — one row in an expanded view's left navigation. A shared primitive
+ * RailItem: one row in an expanded view's left navigation. A shared primitive
  * so Pocket (kinds/folders) and Expense (categories) render identical rows:
- * optional leading icon, optional color dot, a truncated label, and a trailing
+ * optional leading icon, optional color dot, a truncated label and a trailing
  * count. Active state uses the shared `.pocket-rail-item--active` styling.
  *
  * Props:

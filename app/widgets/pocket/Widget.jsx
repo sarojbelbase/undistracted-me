@@ -23,8 +23,8 @@ import { ExpandedView } from "./Expanded/ExpandedView";
 import { Settings } from "./Settings";
 
 /**
- * Widget — Pocket's card face. A calm recent-saves list: header (icon, title,
- * count, plus two icon actions — open + add, matching the Expense widget) and
+ * Widget: Pocket's card face. A calm recent-saves list: header (icon, title,
+ * count, plus two icon actions: open + add, matching the Expense widget) and
  * the newest N saves as compact uniform rows. Organization, search and grouping
  * live in the expanded view. Paste on the focused card (or anywhere in the
  * expanded view) opens the Add dialog.
@@ -54,7 +54,7 @@ export const Widget = ({ id, onRemove }) => {
   const compact = width > 0 && width < 260;
   const widgetItems = prefs.widgetItems ?? DEFAULT_WIDGET_ITEMS;
   // One linear pass: sort the live items once, then reuse it for both the top-N
-  // list and the total count — avoids a second full sort + an un-cached O(n)
+  // list and the total count: avoids a second full sort + an un-cached O(n)
   // count on every save (the Pocket library is unbounded).
   const { recent, total, firstId } = useMemo(() => {
     const live = liveItems(items);
@@ -137,7 +137,7 @@ export const Widget = ({ id, onRemove }) => {
         <IconButton key="open" label="Open Pocket" size="sm" onClick={() => setExpanded(true)}>
           <ListUl size={13} />
         </IconButton>,
-        <IconButton key="add" label="Add to Pocket" size="sm" accent onClick={() => openAdd()}>
+        <IconButton key="add" label="Save to Pocket" size="sm" accent onClick={() => openAdd()}>
           <PlusLg size={14} />
         </IconButton>,
       ]}

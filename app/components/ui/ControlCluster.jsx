@@ -12,7 +12,7 @@ import { useUIStore } from "../../store/useUIStore";
 import { cmdKey } from "../../hooks/useCommandPalette";
 import { DEFAULT_SETTINGS_TAB } from "../../hooks/useSettingsPanel";
 
-// Settings is only ever rendered from within the cluster — lazy-load it here.
+// Settings is only ever rendered from within the cluster: lazy-load it here.
 const settingsImport = () =>
   import("../Settings").then((m) => ({ default: m.Settings }));
 const Settings = lazy(settingsImport);
@@ -24,7 +24,7 @@ const preloadSettings = () => settingsImport();
  * Also renders the Settings panel inline when open.
  *
  * Accepts a forwarded ref so the caller (useSettingsPanel) can detect
- * outside-clicks against the entire container — buttons + open panel.
+ * outside-clicks against the entire container: buttons + open panel.
  */
 export const ControlCluster = memo(forwardRef(function ControlCluster(
   {

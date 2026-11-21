@@ -24,7 +24,7 @@ export const GET: APIRoute = () => {
     "",
     "## Widgets",
     "",
-    ...widgets.map((w) => `- **${w.title}** — ${w.text ?? ""}`),
+    ...widgets.map((w) => `- **${w.title}**: ${w.text ?? ""}`),
     "",
     "## Project",
     "",

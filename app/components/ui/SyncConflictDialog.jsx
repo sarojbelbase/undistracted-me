@@ -1,14 +1,14 @@
 /**
- * SyncConflictDialog — resolve a cross-device sync divergence.
+ * SyncConflictDialog: resolve a cross-device sync divergence.
  *
  * Shown when both this device and the cloud have changed since the last sync
  * (or when a first-connect device already has data on both sides), so the user
  * can explicitly choose the direction instead of silently clobbering one side.
  *
  * Options:
- *   - Pull  (cloud → this device)  — remote wins
- *   - Push  (this device → cloud)  — local wins
- *   - Merge (both, newer edits win)— only offered when the devices share a base
+ *   - Pull  (cloud → this device) : remote wins
+ *   - Push  (this device → cloud) : local wins
+ *   - Merge (both, newer edits win)- only offered when the devices share a base
  *     (a true first-connect can't safely merge, so it's hidden then).
  */
 
@@ -144,12 +144,12 @@ export const SyncConflictDialog = ({ preview, onClose, onResolve }) => {
         {/* ── Body ── */}
         <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
           <DeviceRow
-            label="This device — has unsynced changes"
+            label="This device: has unsynced changes"
             name={localDevice?.name || 'This device'}
             os={localDevice?.os}
           />
           <DeviceRow
-            label="Cloud — will be overwritten or downloaded"
+            label="Cloud: will be overwritten or downloaded"
             name={remoteName}
             os={remoteOs}
             detail={remoteWhen ? `updated ${remoteWhen}` : null}

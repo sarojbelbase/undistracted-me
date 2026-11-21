@@ -30,8 +30,8 @@ const isAppKey = (key) => APP_KEY_PREFIXES.some((p) => key.startsWith(p));
 /**
  * Keys that must NEVER be exported or imported via the settings backup.
  *
- * These are either secrets, regenerable caches, transient runtime state, or —
- * now that notes sync through their own per-note files — note content and its
+ * These are either secrets, regenerable caches, transient runtime state or -
+ * now that notes sync through their own per-note files: note content and its
  * sync metadata. Keeping them out of the backup also means importing a backup
  * never clobbers the user's auth state or their separately-synced notes.
  */
@@ -85,7 +85,7 @@ const EXPORT_EXCLUDED_PREFIXES = [
 
 /**
  * Sync-state keys that live in localStorage under their own names (not covered
- * by APP_KEY_PREFIXES). A "Reset all settings" must clear these too — otherwise
+ * by APP_KEY_PREFIXES). A "Reset all settings" must clear these too: otherwise
  * a stale `drive_sync_connected` flag leaves the Data tab showing "connected to
  * the cloud" even after the account is signed out, and stale notes index/tombstone
  * entries would re-pull deleted notes on the next reconnect.
@@ -113,7 +113,7 @@ const isPortableKey = (key) =>
 /**
  * Strip the notes widget's content from a `widget_instances` snapshot before
  * export. Notes live in per-note files, so the config backup must not carry the
- * note text — but the widget slot itself (its position/type) is preserved.
+ * note text: but the widget slot itself (its position/type) is preserved.
  */
 const stripNotesFromInstances = (value) => {
   if (!value || typeof value !== "object") return value;
@@ -163,7 +163,7 @@ export const exportSettings = () => {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  // Defer revoke — revoking the object URL synchronously can abort the download
+  // Defer revoke: revoking the object URL synchronously can abort the download
   // in some WebKit/Safari timing paths.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
@@ -178,9 +178,9 @@ export const importSettings = (jsonString) => {
   }
   const data = parsed?.undistracted_me ?? parsed;
   if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw new Error("Invalid settings file — expected a JSON object.");
+    throw new Error("Invalid settings file: expected a JSON object.");
   }
-  // Clear only portable keys before restoring — leave auth tokens, sync
+  // Clear only portable keys before restoring: leave auth tokens, sync
   // metadata, and separately-synced notes untouched so an import can't wipe them.
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -218,10 +218,10 @@ export const importFromFile = (onError) => {
 
 /** Clear every localStorage key and reload.
  *  Preserves quickTourSeenVersion so the onboarding tour is not shown again.
- *  Also signs out connected accounts (Google/Spotify) — their tokens live in
+ *  Also signs out connected accounts (Google/Spotify): their tokens live in
  *  chrome.storage.local / sessionStorage, outside the localStorage sweep below. */
 export const resetSettings = () => {
-  // Preserve tour seen status — user has already completed onboarding.
+  // Preserve tour seen status: user has already completed onboarding.
   const tourVersion = useSettingsStore.getState().quickTourSeenVersion;
 
   // ── Flush connected accounts ────────────────────────────────────────────────
@@ -248,13 +248,13 @@ export const resetSettings = () => {
     sessionStorage.removeItem('spotify_tokens');
   } catch { /* ignore */ }
 
-  // Only clear app-owned keys — never touch browser or third-party localStorage entries.
+  // Only clear app-owned keys: never touch browser or third-party localStorage entries.
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (isAppKey(key)) keysToRemove.push(key);
   }
-  // Sync state is kept under its own localStorage keys — clear those explicitly
+  // Sync state is kept under its own localStorage keys: clear those explicitly
   // so resetting doesn't leave a stale "connected to cloud" flag behind.
   keysToRemove.push(...SYNC_RESET_KEYS);
   keysToRemove.forEach((k) => localStorage.removeItem(k));

@@ -1,7 +1,7 @@
 import { Modal } from '../components/ui/Modal';
 
 /**
- * When `noHeader` is true, renders children directly without a default header —
+ * When `noHeader` is true, renders children directly without a default header -
  * the caller provides the full modal layout including its own header.
  */
 export const BaseSettingsModal = ({ title = 'Settings', onClose, children, width = 'w-80', noHeader = false }) => {

@@ -2,7 +2,7 @@ import { createApiCatalog } from "@jdevalk/astro-seo-graph";
 import { site } from "../../data/site.js";
 
 /**
- * RFC 9727 API catalog — lets agent crawlers discover the site's APIs in one
+ * RFC 9727 API catalog: lets agent crawlers discover the site's APIs in one
  * fetch. Schema endpoints are auto-typed to their schema.org URLs.
  */
 export const GET = createApiCatalog({

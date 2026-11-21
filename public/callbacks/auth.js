@@ -45,7 +45,7 @@
       }, 550);
     }
   } else {
-    // No opener — settled state
+    // No opener: settled state
     if (error) {
       showError('Sign-in error: ' + error);
     } else {

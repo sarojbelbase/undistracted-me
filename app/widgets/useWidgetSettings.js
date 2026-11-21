@@ -11,7 +11,7 @@ import { useWidgetInstancesStore } from "../store/useWidgetInstancesStore";
  *   updateSetting('format', '12h');
  *
  * Migration: on first load, settings are read from existing `widgetSettings_*`
- * localStorage keys via the store's `merge` function — so no user data is lost.
+ * localStorage keys via the store's `merge` function: so no user data is lost.
  * The legacy localStorage key is also kept in sync on every write so Playwright
  * tests that seed / read it directly continue to work.
  *

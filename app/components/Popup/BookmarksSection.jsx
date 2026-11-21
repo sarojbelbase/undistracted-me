@@ -3,7 +3,7 @@ import { TrashFill } from "react-bootstrap-icons";
 import { shorthandFromUrl } from "../../utilities/index";
 
 /**
- * Shared bookmarks list — compact inline chips with hover-to-delete.
+ * Shared bookmarks list: compact inline chips with hover-to-delete.
  */
 export const BookmarksSection = ({ bookmarks, onRemove }) => {
     const [confirmingUrl, setConfirmingUrl] = useState(null);

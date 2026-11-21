@@ -117,7 +117,7 @@ export const Settings = ({
             );
           }
           // weather returns several entries with identical name/admin1/country
-          // (differing only by lower admin levels) — de-dupe by display label.
+          // (differing only by lower admin levels): de-dupe by display label.
           const seen = new Set();
           const deduped = results.filter((r) => {
             const key = [r.name, r.admin1, r.country].filter(Boolean).join(", ");
@@ -235,7 +235,7 @@ export const Settings = ({
           {(() => {
             if (location) return `Showing weather for ${location.name}`;
             if (locationDenied)
-              return "Location access denied — search above to set manually";
+              return "Location access denied: search above to set manually";
             return "Using your current location";
           })()}
         </p>

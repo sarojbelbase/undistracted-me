@@ -6,7 +6,7 @@ const hasChromeApi = () =>
 
 // Track the last time the page became hidden (laptop closed / tab switched away).
 // We use this to detect laptop-wake scenarios where the alarm fired while the
-// machine was asleep — the page was hidden for the whole interval, so we should
+// machine was asleep: the page was hidden for the whole interval, so we should
 // NOT ambush the user with an overlay the moment they open their laptop.
 let lastHiddenAt = null;
 if (typeof document !== 'undefined') {
@@ -77,7 +77,7 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
   // "Stale" means the alarm fired but no one was actively at the machine:
   //  a) the flag is older than 1.5× the interval, OR
   //  b) the page was hidden (laptop closed/tab away) for more than half the
-  //     interval — this catches the laptop-wake scenario where Chrome fires
+  //     interval: this catches the laptop-wake scenario where Chrome fires
   //     catch-up alarms the instant the machine wakes up.
   useEffect(() => {
     if (!enabled || !hasChromeApi() || !chrome.storage?.local) return;
@@ -87,14 +87,14 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
       const ageMs = Date.now() - due;
       const intervalMs = intervalMins * 60_000;
 
-      // Too old — definitely stale
+      // Too old: definitely stale
       if (ageMs > intervalMs * 1.5) {
         chrome.storage.local.remove('lookaway_due');
         return;
       }
 
       // Page was hidden (laptop asleep / another app) for most of the interval
-      // right before this mount — this is a wake-up, not an active-use break
+      // right before this mount: this is a wake-up, not an active-use break
       if (lastHiddenAt !== null) {
         const hiddenDurationMs = Date.now() - lastHiddenAt;
         if (hiddenDurationMs > intervalMs * 0.5) {
@@ -120,7 +120,7 @@ export const useLookAwayScheduler = ({ enabled, intervalMins, notify = true, onT
 };
 
 /**
- * Call when the LookAway overlay is dismissed — clears the pending flag so
+ * Call when the LookAway overlay is dismissed: clears the pending flag so
  * the same break doesn't re-trigger on the next new tab open.
  */
 export const clearLookAwayDue = () => {
@@ -131,7 +131,7 @@ export const clearLookAwayDue = () => {
 
 /**
  * Snooze for `mins` minutes. Stores a `lookaway_snooze_until` timestamp that
- * the scheduler checks before triggering. Does NOT reset the alarm schedule —
+ * the scheduler checks before triggering. Does NOT reset the alarm schedule -
  * the next alarm still fires at the same cadence; the trigger is just suppressed
  * while the snooze window is active.
  */

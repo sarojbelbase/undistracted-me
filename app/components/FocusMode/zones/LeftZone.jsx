@@ -24,7 +24,7 @@ import { StockPanel } from '../panels/Stock';
 import { SpotifyPanel } from '../panels/Spotify';
 import { OccasionPanel } from '../panels/Occasion';
 
-// Isolated ticker — owns its own 1-second state so LeftZone itself does not
+// Isolated ticker: owns its own 1-second state so LeftZone itself does not
 // re-render every second, preventing unnecessary cascading into sibling panels.
 // Also detects timer completion (the canvas widget is unmounted in Focus Mode,
 // so its own setInterval can't fire the chime/notification) and finishes the
@@ -36,7 +36,7 @@ const TickingPomodoro = () => {
   // wall-clock endTime without re-reading + JSON.parsing localStorage every
   // second. We only re-read to detect a *new* timer start (idle → running, or a
   // freshly-persisted auto-break). This is safe in Focus Mode because
-  // PomodoroPanel is display-only — no external pause/resume writes happen here.
+  // PomodoroPanel is display-only: no external pause/resume writes happen here.
   const cachedRef = useRef(null);
 
   useEffect(() => onClockTick(() => {
@@ -56,7 +56,7 @@ const TickingPomodoro = () => {
     // positive remaining to null) and fire completion exactly once.
     if (prev && prev.remaining > 0 && (!next || next.remaining <= 0)) {
       firePomodoroComplete(prev);
-      // Record the finished session (empty note — there's no "Done" button here).
+      // Record the finished session (empty note: there's no "Done" button here).
       saveSession({
         id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         preset: prev.preset || 'Custom',
@@ -85,7 +85,7 @@ const TickingPomodoro = () => {
   return pomodoro ? <PomodoroPanel pomodoro={pomodoro} /> : null;
 };
 
-// Isolated media ticker — owns the Spotify/browser-media hooks so their 1s
+// Isolated media ticker: owns the Spotify/browser-media hooks so their 1s
 // progress interval (and 5s poll) re-renders only this leaf + its SpotifyPanel,
 // not the whole LeftZone (which would cascade into EventPanel/OccasionPanel/
 // StockPanel every second during playback). Mirrors TickingPomodoro above.

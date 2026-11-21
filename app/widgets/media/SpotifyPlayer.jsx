@@ -24,7 +24,7 @@ export function SpotifyPlayer({ onRemove, settingsPanel, bgStyle, inkColor, mute
         <div className="flex items-center justify-center gap-3 pt-1">
           <div className="relative">
             {isSkip('prev') && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: spinColor }} aria-hidden="true" />}
-            {/* TooltipBtn renders the <button> — no nested button */}
+            {/* TooltipBtn renders the <button>: no nested button */}
             <TooltipBtn tooltip="Previous" aria-label="Previous" onClick={handlePrev} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ backgroundColor: btnBg, color: inkColor, border: btnBorder, opacity: isSkip('prev') ? 0.6 : 1, transition: 'opacity 0.2s' }}><SkipStartFill size={13} /></TooltipBtn>
           </div>
           <div className="relative">

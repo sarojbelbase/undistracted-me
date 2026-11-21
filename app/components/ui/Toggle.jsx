@@ -1,5 +1,5 @@
 /**
- * Toggle — iOS-style on/off switch used across settings panels.
+ * Toggle: iOS-style on/off switch used across settings panels.
  *
  * Adds subtle depth (inset track + thumb shadow) and an accent-tinted glow to
  * match the SegmentedControl's accent + depth feel.

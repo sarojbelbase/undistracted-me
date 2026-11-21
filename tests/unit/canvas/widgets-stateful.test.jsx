@@ -29,7 +29,7 @@ import { PRESETS } from '../../../app/widgets/pomodoro/utils';
 // Silence chrome.runtime.sendMessage that Pomodoro calls when done
 vi.stubGlobal('chrome', undefined);
 
-describe('PomodoroWidget — pick phase (initial state)', () => {
+describe('PomodoroWidget: pick phase (initial state)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.clear();
@@ -81,7 +81,7 @@ describe('PomodoroWidget — pick phase (initial state)', () => {
   });
 });
 
-describe('PomodoroWidget — timer phase', () => {
+describe('PomodoroWidget: timer phase', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.clear();
@@ -177,7 +177,7 @@ describe('NotesWidget', () => {
 
 import { Widget as CountdownWidget } from '../../../app/widgets/countdown/Widget';
 
-describe('CountdownWidget — empty state', () => {
+describe('CountdownWidget: empty state', () => {
   beforeEach(() => {
     vi.stubGlobal('chrome', undefined);
     localStorage.clear();
@@ -197,7 +197,7 @@ describe('CountdownWidget — empty state', () => {
   });
 });
 
-describe('CountdownWidget — with a saved custom countdown', () => {
+describe('CountdownWidget: with a saved custom countdown', () => {
   beforeEach(() => {
     vi.stubGlobal('chrome', undefined);
     localStorage.clear();

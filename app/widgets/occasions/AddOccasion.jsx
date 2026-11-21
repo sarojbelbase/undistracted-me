@@ -24,7 +24,7 @@ const daysInMonth = (month) => month ? new Date(2000, month, 0).getDate() : 31;
 const selStyle = {
   background: 'var(--panel-bg)',
   color: 'var(--w-ink-1)',
-  border: '1px solid var(--card-border)',
+  border: '1px solid var(--input-border)',
   borderRadius: '0.625rem',
   outline: 'none',
   fontSize: '0.8125rem',
@@ -34,8 +34,8 @@ const selStyle = {
 };
 
 /**
- * AddOccasion — occasion form body + footer only (no modal chrome). Rendered
- * inside UnifiedAddDialog, which supplies the header, type selector, and Modal.
+ * AddOccasion: occasion form body + footer only (no modal chrome). Rendered
+ * inside UnifiedAddDialog, which supplies the header, type selector and Modal.
  */
 export const AddOccasion = ({ onSave, onCancel, initial }) => {
   const [name, setName] = useState(initial?.name ?? '');

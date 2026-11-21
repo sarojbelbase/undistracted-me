@@ -52,7 +52,7 @@ const ResultText = ({ isActive, children }) => (
 // ── CommandPalette ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Search overlay — opened by Cmd+K / Ctrl+K via useCommandPalette hook.
+ * Search overlay: opened by Cmd+K / Ctrl+K via useCommandPalette hook.
  *
  * Supports: URL navigation, open-tab switching, web autocomplete suggestions.
  * Engine: click the icon or press Tab to cycle Google → DDG → YouTube → Perplexity.
@@ -149,12 +149,12 @@ export function CommandPalette({ onClose }) {
       <div style={{
         display: "flex", alignItems: "center", gap: 8,
         padding: "8px 12px",
-        borderBottom: showMenu ? "1px solid var(--card-border)" : "none",
+        borderBottom: showMenu ? "1px solid var(--input-border)" : "none",
         minHeight: 44,
       }}>
         <button
           onClick={handleCycleEngine}
-          title={`${engine.label} — Tab to switch engine`}
+          title={`${engine.label}: Tab to switch engine`}
           aria-label={`Search engine: ${engine.label}. Click or Tab to change.`}
           style={{
             display: "flex", alignItems: "center",

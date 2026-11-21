@@ -1,8 +1,8 @@
-# Undistracted Me — Growth & Scaling Implementation Map
+# Undistracted Me: Growth & Scaling Implementation Map
 
 Source: `Undistracted Me Growth & Scaling Plan.md` (Nov 18, 2026).
 This document maps every item in that plan onto the **actual current state of this
-repo**, separates "already done" from "still to do", and records how each
+repo**, separates "already done" from "still to do" and records how each
 remaining item will be implemented. It is the working plan for the growth push.
 
 ---
@@ -11,13 +11,13 @@ remaining item will be implemented. It is the working plan for the growth push.
 
 The codebase is **ahead of the growth plan** on the product side. Site blocking
 (declarativeNetRequest) and the web clipper (currently called **Pocket**) are
-already built, tested, and registered. The biggest gap is **not the product —
+already built, tested and registered. The biggest gap is **not the product -
 it is that these two features are invisible everywhere that matters**:
 
 - The store listings (`publish/LISTING.md`) and the manifest `description`
   still pitch "Focus Mode, Pomodoro, ambient sounds, Google Tasks & quiet
-  widgets" — **no mention of site blocking or the clipper**.
-- The landing site (`landing/`) headline, meta title/description, and feature
+  widgets": **no mention of site blocking or the clipper**.
+- The landing site (`landing/`) headline, meta title/description and feature
   grid do **not** mention site blocking or the clipper.
 - There is no `vs BlockSite` or `vs StayFocusd` page (only Momentum, Tabliss,
   Bonjourr).
@@ -33,16 +33,16 @@ before spending a single rupee on a launch.**
 | Plan item | Where it lives |
 |---|---|
 | Site blocking on `declarativeNetRequest` (no `<all_urls>`) | `app/utilities/siteBlocker.js`, `app/bg.js` (dynamic rules, ids 1000+), `app/blocked/BlockedPage.jsx` (orb interstitial + countdown), Settings → General → "Blocked Sites", popup `app/components/Popup/BlockedSitesSection.jsx`, `declarativeNetRequest` in `public/manifest.json` |
-| Web clipper (context-menu "Add to Pocket", classify, dedupe, folders, toast/undo) | `app/widgets/pocket/*` (`config.js`, `Widget.jsx`, `pocketStore.js`, `contextMenu.js`, `save.js`, `utils.js`, `selectors.js`), SW wiring in `app/bg.js`, tests `tests/unit/pocket/*` |
-| First-run welcome overlay (Quick Tour) | `app/components/QuickTour/index.jsx` — **informational only** (2 steps), no setup actions yet |
-| Review prompt (post-habit nudge) | `app/components/ReviewPrompt/*` — fires after 10 focus sessions, local only, permanently dismissible |
-| Command palette (Ctrl/Cmd+K) | `app/components/CommandPalette/*` — 6 commands today (settings, add-widget, arrange, focus-mode, theme, replay-tour) |
+| Web clipper (context-menu "Save to Pocket", classify, dedupe, folders, toast/undo) | `app/widgets/pocket/*` (`config.js`, `Widget.jsx`, `pocketStore.js`, `contextMenu.js`, `save.js`, `utils.js`, `selectors.js`), SW wiring in `app/bg.js`, tests `tests/unit/pocket/*` |
+| First-run welcome overlay (Quick Tour) | `app/components/QuickTour/index.jsx`: **informational only** (2 steps), no setup actions yet |
+| Review prompt (post-habit nudge) | `app/components/ReviewPrompt/*`: fires after 10 focus sessions, local only, permanently dismissible |
+| Command palette (Ctrl/Cmd+K) | `app/components/CommandPalette/*`: 6 commands today (settings, add-widget, arrange, focus-mode, theme, replay-tour) |
 | Cross-device sync (Google Drive `appDataFolder`) | `app/utilities/syncEngine*.js`, `syncTransport.js`, `syncEngineFacade.js` |
 | Break nudges (20-20-20) | `app/components/LookAway/*` (chrome.alarm scheduled overlay) |
 | Ambient mixer | `app/utilities` rain stream + `RainNoiseIcon` in Focus Mode TopZone |
 | Nepali calendar / BS–AD / holidays / tithi | `app/data/bikramSambatCalendar.js`, `app/utilities/nepaliDate.js`, `app/hooks/useHolidays.js`, `public/holidays.json`, `dateToday` en/ne toggle |
 | NEPSE stocks | `app/widgets/stock/*` (merolagani + nepalipaisa) |
-| RSS with Nepali news pack | `app/widgets/rss/*` — sample OPML includes BBC Nepali etc. |
+| RSS with Nepali news pack | `app/widgets/rss/*`: sample OPML includes BBC Nepali etc. |
 | Compare pages (Momentum, Tabliss, Bonjourr) | `landing/src/pages/{momentum,tabliss,bonjourr}-alternative.astro`, `landing/src/data/alternatives.js` |
 
 **Net:** the plan's "fix first" §3.3 (blocker on DNR, minimal permissions) is
@@ -58,7 +58,7 @@ Legend: ✅ done · 🟡 partially done · ⬜ not done · 🧭 needs a product 
 | # | Plan item | Status | Action |
 |---|---|---|---|
 | 3.1 | Blocking + clipper headline on both sites | ⬜ | Update manifest `description`, `publish/LISTING.md` (CWS + AMO + captions + screenshots), `landing/src/data/site.js` title/description, `Hero.astro`, `Features.astro`. Add new screenshots (blocked page, Pocket widget). |
-| 3.2 | Rename "Pocket" (trademark) | 🧭 | See decisions below. Mechanical once a name is chosen: `config.js` title, context-menu title "Add to Pocket", all user-facing copy; internal storage keys + context-menu id can stay. |
+| 3.2 | Rename "Pocket" (trademark) | 🧭 | See decisions below. Mechanical once a name is chosen: `config.js` title, context-menu title "Save to Pocket", all user-facing copy; internal storage keys + context-menu id can stay. |
 | 3.3 | Blocker on DNR + optional permissions | 🟡 | DNR blocking is done. Residual: `tabs` is a **required** permission (used by media relay, popup, bookmarks) and triggers the "read your browsing history" warning. Move `tabs` → `optional_permissions` + request on first media-relay use. |
 | 3.4 | Publish Edge/Opera, FF "Recommended", Chrome "Featured" | ⬜ | Non-code (store dashboards) + a small Edge/Opera build script mirroring `patch-manifest-firefox.mjs`. |
 | 3.5 | First-run flow (pack, location, block preset, add task) | 🟡 | Extend `QuickTour` with an actionable onboarding: pack picker → location → one-click social-block preset → "add one task". See §4.1. |
@@ -76,7 +76,7 @@ Legend: ✅ done · 🟡 partially done · ⬜ not done · 🧭 needs a product 
 Ranked by **leverage ÷ risk**. Each is scoped to ship independently (the plan's
 "ship 2–3 at a time, each batch is its own launch angle").
 
-### P0 — Copy & visibility (hours, not days)
+### P0: Copy & visibility (hours, not days)
 The plan's explicit "before any launch". No behavior change, no risk.
 
 1. **Store listing**: rewrite `publish/LISTING.md` (name, short desc, detailed
@@ -87,7 +87,7 @@ The plan's explicit "before any launch". No behavior change, no risk.
 3. **Landing**: `site.js` title/description, `Hero.astro`, `Features.astro`
    (add a "Block" card and a "Clip/Save" card), plus two new compare pages.
 
-> **Status — done (Nov 18).** Manifest description, `publish/LISTING.md`
+> **Status: done (Nov 18).** Manifest description, `publish/LISTING.md`
 > (short + detailed, CWS + AMO, captions), `site.js` title/description,
 > `Hero.astro` lead, `Features.astro` heading, `Privacy.astro` blocklist bullet,
 > `faq.js` (2 new Q&As), `schema.js` keywords/featureList, `Footer.astro` +
@@ -99,21 +99,21 @@ The plan's explicit "before any launch". No behavior change, no risk.
 > leading the 5-slot set (site blocking → web clipper → focus mode → dashboard
 > light → dashboard dark).
 > The CWS/AMO **name** was intentionally left unchanged for brand stability and
-> to avoid a store re-review — revisit if the blocker angle should lead the name too.
+> to avoid a store re-review: revisit if the blocker angle should lead the name too.
 
-### P1 — First-run setup flow (the activation lever)
+### P1: First-run setup flow (the activation lever)
 See §4.1. This is the single biggest product win: turning an install into a
 configured, habit-forming first tab.
 
-### P2 — Retention loop
+### P2: Retention loop
 "Distractions dodged" counter + Sunday recap + daily "one thing" intention
 (§4.2–4.4). These close the plan's stated loop: *daily intention → focus session
 → blocked-attempt counter → Sunday recap*.
 
-### P3 — Nepal & diaspora widgets
+### P3: Nepal & diaspora widgets
 NPR forex/remittance, countdown templates, Nepali UI language (§4.5–4.7).
 
-### P4 — Plus tier (monetization)
+### P4: Plus tier (monetization)
 Strict-mode blocking (schedules + password), weekly recap as a Plus add-on,
 theme/widget packs, payment rails (§4.8).
 
@@ -131,7 +131,7 @@ current welcome. New sequence:
 
 Implementation details:
 
-- **Pack picker** — new module `app/utilities/packs.js` exporting:
+- **Pack picker**: new module `app/utilities/packs.js` exporting:
   ```js
   PACKS = {
     minimal:  { widgets: [clock, dateToday, progress],            accent: 'Blueberry' },
@@ -144,13 +144,13 @@ Implementation details:
   `app/store/seedWidgetInstances.js` already does,
   and sets the countdown templates / RSS OPML for the Developer + Nepal packs
   (reusing the existing Nepali sample OPML in `rss/opmlParser.js`).
-- **Location** — call `useLocationStore.getState().refresh()` (or, if the user
+- **Location**: call `useLocationStore.getState().refresh()` (or, if the user
   skips, leave the existing browser→IP→Kathmandu fallback untouched).
-- **Social block preset** — one button per platform (Facebook, Instagram, X,
+- **Social block preset**: one button per platform (Facebook, Instagram, X,
   TikTok, YouTube). Writing to `siteBlocker` (`blockSite()` →
   `blocked_sites` + DNR rules) gives the user a working block the instant the
   tour ends. This is also the "aha" moment the plan calls out (§10).
-- **Add one task** — a single input that writes a Google Task via
+- **Add one task**: a single input that writes a Google Task via
   `app/utilities/googleTasks.js` if connected, else falls back to the events
   widget or notes (a local "today" entry). No new storage shape needed.
 
@@ -185,7 +185,7 @@ flag) so existing users don't get re-prompted, matching the current
   rates. Respects the no-key/no-analytics rule either way; host behind
   `api.undistracted.me` like other external data (merolagani/nepalipaisa are
   already proxied via `vite.config.ts`).
-- Widget surface: NPR ↔ (USD, AUD, JPY, GBP, EUR, INR, QAR, SAR, MYR) — the
+- Widget surface: NPR ↔ (USD, AUD, JPY, GBP, EUR, INR, QAR, SAR, MYR): the
   diaspora + remittance currencies from the plan.
 
 ### 4.6 Countdown templates (§4)
@@ -194,30 +194,30 @@ flag) so existing users don't get re-prompted, matching the current
   Static future dates, no new data source.
 
 ### 4.7 Nepal & diaspora: Nepali UI + /np page (§5)
-- **Nepali UI language** — a lightweight i18n layer, not a full translation
+- **Nepali UI language**: a lightweight i18n layer, not a full translation
   engine. The `language` field already exists in `useSettingsStore`; add a
   `app/i18n.js` with an `en`/`ne` dictionary for the highest-visibility strings
   (Quick Tour, settings headers, widget titles, common labels) and a
   `t(key)` helper. Scope incrementally; the Nepali date/calendar is already
   fully localised, so the trust signal can ship without translating every widget.
-- **`/np` page + guides** — new Astro pages: a `/np` landing (Nepali-language,
+- **`/np` page + guides**: new Astro pages: a `/np` landing (Nepali-language,
   made-in-Nepal angle) and a BS–AD converter page (SEO capture for "BS to AD" /
   "AD to BS" queries). Reuse the `alternatives.js` / `BaseLayout.astro` pattern.
   Keep "Nepali calendar" out of the main site's visible copy per the plan.
 
 ### 4.8 Plus tier / money (§9)
-- **Strict-mode blocking** — scheduled block windows (block during 9–5) + an
+- **Strict-mode blocking**: scheduled block windows (block during 9–5) + an
   optional password gate on the blocked interstitial. DNR already supports the
   rule side; add schedule + password enforcement in `siteBlocker`/`bg.js`.
 - **Weekly recap** (a richer version of §4.3) and **theme/widget packs** as the
   "things that cost money" the plan describes.
-- **Payments** — Merchant-of-record (Paddle/Lemon Squeezy/Polar) for global;
+- **Payments**: Merchant-of-record (Paddle/Lemon Squeezy/Polar) for global;
   eSewa/Khalti/ConnectIPS for Nepal. **This is a separate, account-level decision
-  and needs an accountant/legal check per the plan — not a code-first task.**
+  and needs an accountant/legal check per the plan: not a code-first task.**
 
 ### 4.9 Command palette → jump to saves (§4)
 - Extend `app/components/CommandPalette/commands.jsx` with dynamic commands that
-  search Pocket saves, notes, and events and jump/focus them. Low effort, high
+  search Pocket saves, notes and events and jump/focus them. Low effort, high
   daily-use value.
 
 ### 4.10 Minimal-permission hardening (§3.3)
@@ -245,14 +245,14 @@ This mirrors plan §12 exactly.
 
 ## 6. Decisions needed before building (blocking)
 
-1. **Pocket rename** — confirm the new name (e.g. "Stash", "Saves", "Keeps",
+1. **Pocket rename**: confirm the new name (e.g. "Stash", "Saves", "Keeps",
    "Clip", "Glom"). Everything else is mechanical.
-2. **Forex data source** — confirm the NPR rate source (NRB vs a no-key FX API)
+2. **Forex data source**: confirm the NPR rate source (NRB vs a no-key FX API)
    and whether to proxy it through `api.undistracted.me`.
-3. **First-run flow scope** — confirm the six-step onboarding (pack → location →
+3. **First-run flow scope**: confirm the six-step onboarding (pack → location →
    social-block preset → task) is wanted as a replacement for the current
    informational two-step tour, or as an added step after it.
-4. **Plus scope** — confirm strict-mode blocking (schedules + password) + weekly
+4. **Plus scope**: confirm strict-mode blocking (schedules + password) + weekly
    recap + packs are the right Plus feature set, and that payments are deferred
    until after an accountant/legal check.
 

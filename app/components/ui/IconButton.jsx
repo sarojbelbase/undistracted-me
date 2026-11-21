@@ -1,7 +1,7 @@
 import { TooltipBtn } from "./TooltipBtn";
 
 /**
- * IconButton — a square icon-only button, the shared replacement for the
+ * IconButton: a square icon-only button, the shared replacement for the
  * per-widget `.pocket-icon-btn` pattern. Built on TooltipBtn, so `label`
  * doubles as the accessible name (aria-label) and the hover tooltip.
  *

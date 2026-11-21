@@ -17,14 +17,14 @@ import { formatTime, saveSession, firePomodoroComplete } from './utils';
 
 // ─── Persistence helpers (keyed per widget instance id) ───────────────────
 const loadTimer = (id) => {
-  // Per-instance state first — the per-widget key is scoped by id so duplicated
+  // Per-instance state first: the per-widget key is scoped by id so duplicated
   // pomodoros restore their own timer, not each other's.
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.pomodoroTimerState(id)));
     if (raw?.phase && raw.phase !== PHASE.PICK) {
       if (raw.running && raw.endTime) {
         const remaining = Math.round((raw.endTime - Date.now()) / 1000);
-        // Already reached zero — the session completed while this widget was
+        // Already reached zero: the session completed while this widget was
         // unmounted. Don't restore a "done" state that would re-fire completion.
         if (remaining <= 0) return null;
         return { ...raw, remaining, running: true };
@@ -33,7 +33,7 @@ const loadTimer = (id) => {
     }
   } catch { /* fall through to the shared key */ }
 
-  // Focus Mode sync fallback — only the canonical "pomodoro" instance reads (and
+  // Focus Mode sync fallback: only the canonical "pomodoro" instance reads (and
   // writes) the shared `fm_pomodoro` key; duplicates must not clobber it.
   if (id === "pomodoro") {
     try {
@@ -73,7 +73,7 @@ const saveTimer = (id, state) => {
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-/** Done state: completion label, note input, and action buttons. */
+/** Done state: completion label, note input and action buttons. */
 const DoneState = React.memo(({ isBreak, note, onNoteChange, autoBreak, breakDuration, onStartBreak, onDone }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-2 min-h-0 overflow-hidden">
     <p className="pom-timer-done-label">
@@ -166,7 +166,7 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
     [id]
   );
 
-  // ── Rain stream (hidden — toggled from settings, not widget face) ─────
+  // ── Rain stream (hidden: toggled from settings, not widget face) ─────
   const rainSound = settings.rainSound ?? DEFAULT_SETTINGS.rainSound;
   const {
     play: playRain,
@@ -203,17 +203,17 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
   const endTimeRef = useRef(null);
   // Throttle the per-second Focus Mode / per-widget mirror: localStorage.setItem
   // is a blocking disk flush, and the wall-clock `endTime` we persist is correct
-  // regardless of cadence — only "fresh enough" matters for remount recovery.
+  // regardless of cadence: only "fresh enough" matters for remount recovery.
   const lastRunningPersistRef = useRef(0);
   const wasRunningRef = useRef(running);
-  // Sync the mirror *after* render (never write refs during render — a discarded
+  // Sync the mirror *after* render (never write refs during render: a discarded
   // concurrent render would otherwise leave the deadline based on stale time).
   useEffect(() => { remainingRef.current = remaining; }, [remaining]);
 
   const done = remaining === 0 && (phase === PHASE.TIMER || phase === PHASE.BREAK);
   const isBreak = sessionType === SESSION_TYPE.BREAK;
 
-  // Sync the `rainSound` setting to actual playback — rain follows the *running*
+  // Sync the `rainSound` setting to actual playback: rain follows the *running*
   // countdown, not just the phase. It starts when a session begins counting down
   // and pauses when the timer is paused, then stops when the session completes
   // (done) or you return to pick.
@@ -297,7 +297,7 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
       pendingSessionRef.current = null;
     }
     const breakSecs = (breakDuration || 5) * 60;
-    // Run immediately — "auto-start" should actually start the countdown, not
+    // Run immediately: "auto-start" should actually start the countdown, not
     // stage a paused break the user must manually resume.
     startTimer(breakSecs, `${breakDuration || 5}m break`, SESSION_TYPE.BREAK, true);
   }, [breakDuration, startTimer]);
@@ -309,7 +309,7 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
       // Capture the wall-clock deadline at the moment the timer starts/resumes.
       // Each tick recomputes `remaining` from Date.now() instead of decrementing
       // a counter, so a background-throttled setInterval (hidden tabs drop to
-      // ~1/min) can't stall the countdown — it self-corrects on the next tick.
+      // ~1/min) can't stall the countdown: it self-corrects on the next tick.
       endTimeRef.current = Date.now() + remainingRef.current * 1000;
       intervalRef.current = setInterval(() => {
         const secsLeft = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
@@ -325,7 +325,7 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
   useEffect(() => {
     const isTimerPhase = phase === PHASE.TIMER || phase === PHASE.BREAK;
 
-    // Persist pause state (discrete event — write immediately)
+    // Persist pause state (discrete event: write immediately)
     if (isTimerPhase && !running && remaining > 0) {
       saveTimer(id, {
         phase, preset, duration, remaining, running: false, sessionType,
@@ -334,7 +334,7 @@ export const Widget = ({ id = "pomodoro", onRemove }) => {
 
     // Sync running state to Focus Mode. Write immediately on start/resume (so a
     // remount right after unpausing restores correctly), then throttle to every
-    // 5 s — the persisted wall-clock `endTime` is correct regardless of cadence,
+    // 5 s: the persisted wall-clock `endTime` is correct regardless of cadence,
     // and a blocking localStorage flush every second would drop frames.
     // Only the canonical "pomodoro" instance touches the shared `fm_pomodoro`
     // key; duplicates keep to their own per-widget key so they don't clobber

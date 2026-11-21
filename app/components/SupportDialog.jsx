@@ -1,5 +1,5 @@
 /**
- * SupportDialog — "Help <app> keep growing" support nudge (riso print style).
+ * SupportDialog: "Help <app> keep growing" support nudge (riso print style).
  *
  * Presentational only: it takes `open` / `onClose` and renders nothing when
  * closed. `SupportNudge` (in ./SupportNudge) is the connected wrapper that
@@ -7,14 +7,14 @@
  * just mounts `<SupportNudge />` once and completion points call
  * `triggerSupportNudge(...)`.
  *
- * Visual language: a warm two-ink riso print — chestnut and marigold on butter
+ * Visual language: a warm two-ink riso print: chestnut and marigold on butter
  * paper, a pleated momo mark on a gold circle, halftone dot corner, film-grain
  * texture, and a bold "Buy Me a Momo" call-to-action. Portrait card (400px max)
  * that fits the viewport; it tightens on short screens and only scrolls as a
  * last resort.
  *
  * Styles live in app/styles/_support.scss (scoped `.sd-*` classes). Font is
- * "Bricolage Grotesque" (500 / 800), loaded once in the app (self-hosted) —
+ * "Bricolage Grotesque" (500 / 800), loaded once in the app (self-hosted) -
  * this component never makes a third-party request.
  */
 

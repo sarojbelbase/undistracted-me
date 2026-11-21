@@ -1,6 +1,6 @@
 /**
- * Tasks — Google Tasks settings tab content.
- * No Modal wrapper — intended to be rendered inside the unified FocusModeSettings dialog.
+ * Tasks: Google Tasks settings tab content.
+ * No Modal wrapper: intended to be rendered inside the unified FocusModeSettings dialog.
  */
 
 import { useSettingsStore } from '../../../store';
@@ -22,7 +22,7 @@ export const Tasks = () => {
       <AccountSection
         icon={<IconGoogle />}
         label="Google Tasks"
-        description="Add, complete, and track tasks from your Google Tasks lists."
+        description="Add, complete and track tasks from your Google Tasks lists."
         privacyLabel="Nothing stored on servers"
       />
 

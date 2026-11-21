@@ -1,6 +1,6 @@
 export const LANGUAGES = Object.freeze({ ne: "ne", en: "en" });
 
-// ── Nepali calendar data — canonical home is constants/nepali-calendar.js ──
+// ── Nepali calendar data: canonical home is constants/nepali-calendar.js ──
 // Re-exported here so all existing `import { … } from '../../constants'` paths
 // continue to work without any changes at the import sites.
 export {

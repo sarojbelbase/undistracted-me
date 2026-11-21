@@ -4,9 +4,9 @@
 
 @use 'widgets/common' as *;
 
-// ── Weather — Minimal mode ────────────────────────────────────────────────────
+// ── Weather: Minimal mode ────────────────────────────────────────────────────
 
-// Root container — negative kerning applied globally
+// Root container: negative kerning applied globally
 .weather-minimal {
   letter-spacing: -0.01em;
 }
@@ -20,7 +20,7 @@
   text-transform: capitalize;
 }
 
-// Hero temperature — large expressive number
+// Hero temperature: large expressive number
 .weather-minimal__temp {
   font-size: 4.5rem;
   font-weight: 600;
@@ -175,7 +175,7 @@
 
 // ── Widget focus / blend ─────────────────────────────────────────────────────
 // When "Dim widgets" is enabled (Appearance → Widget Focus), cards fade toward
-// the background until hovered — or until any descendant receives keyboard
+// the background until hovered: or until any descendant receives keyboard
 // focus (:focus-within covers buttons/inputs/links inside a card). Mirrors
 // Focus Mode's top-bar control clusters (.fm-topbar-ctrl in _focus-mode.scss).
 .widget-dim {

@@ -6,7 +6,7 @@ import { WidgetHeaderFull } from "../WidgetHeaderFull";
 import { ScrollFade } from "../ScrollFade";
 
 /**
- * ExpandedShell — the shared "expanded view" skeleton used by Pocket and
+ * ExpandedShell: the shared "expanded view" skeleton used by Pocket and
  * Expense (and any future list-heavy widget). It owns the cross-cutting chrome
  * and behaviour so each widget only supplies its own data:
  *

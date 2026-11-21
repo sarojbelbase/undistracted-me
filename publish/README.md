@@ -1,4 +1,4 @@
-# Publishing — Undistracted Me
+# Publishing: Undistracted Me
 
 Everything needed to publish the extension to the **Chrome Web Store** and
 **Firefox AMO**, in one folder: listing copy, privacy disclosures, changelog,
@@ -8,7 +8,7 @@ credentials, and store-ready images.
 
 | Path | What it is |
 |---|---|
-| `LISTING.md` | Store listing copy — name, category, short + detailed description (CWS + AMO) |
+| `LISTING.md` | Store listing copy: name, category, short + detailed description (CWS + AMO) |
 | `PRIVACY.md` | Single purpose + permission justifications + data-usage declarations (the "Privacy practices" tab) |
 | `CHANGELOG.md` | Version history / release notes |
 | `CREDENTIALS.md` | API credentials and CLI publish commands for both stores |
@@ -18,10 +18,10 @@ credentials, and store-ready images.
 
 > Raw source images (`store-assets/`) are gitignored. Only `publish/` is the
 > curated, human-maintained set. Store icons (16→512) come automatically from
-> the manifest `icons` field (`public/favicon/lotus*.png`) — no separate icon
+> the manifest `icons` field (`public/favicon/lotus*.png`): no separate icon
 > upload is needed.
 
-## Current status — v4.0.2
+## Current status: v4.0.2
 
 - **Firefox AMO**: published (listed) via CLI. Signed xpi →
   `builds/undistracted_me-4.0.1.xpi`. Listed submissions go through human
@@ -29,7 +29,7 @@ credentials, and store-ready images.
 - **Chrome Web Store**: `builds/chrome.zip` rebuilt with the corrected `key`
   (extension ID `dfgbijakkhepoonhaelocdmcleeehmef`). Remaining manual steps:
   1. Upload `builds/chrome.zip` (or run `bun run publish:chrome` once the CWS
-     refresh token is regenerated — see `CREDENTIALS.md`).
+     refresh token is regenerated: see `CREDENTIALS.md`).
   2. Fill the **Privacy practices** tab from `PRIVACY.md`.
   3. Upload the screenshots + promo tiles from `chrome/`.
 
@@ -64,4 +64,4 @@ and uploads the package. `LISTING.md` has the copy for the dashboard fields.
   the ID changes and the store upload fails with "key doesn't match".
 - Extension ID (Firefox) `{1071d037-0f17-4c92-b06c-704050d2e2c3}` is pinned in
   `browser_specific_settings.gecko.id`.
-- `.env` holds the secrets (AMO JWT, CWS OAuth). It is gitignored — never commit it.
+- `.env` holds the secrets (AMO JWT, CWS OAuth). It is gitignored: never commit it.

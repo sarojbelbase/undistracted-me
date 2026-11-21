@@ -3,9 +3,9 @@
  * Animated orb colour-motion background.
  *
  * Props:
- *  - rgb    (string)   — "r,g,b" override; defaults to --w-accent-rgb CSS var
- *  - isDark (boolean)  — adjusts opacity for light vs dark backdrop
- *  - zIndex (number)   — stack order, default 0
+ *  - rgb    (string)  : "r,g,b" override; defaults to --w-accent-rgb CSS var
+ *  - isDark (boolean) : adjusts opacity for light vs dark backdrop
+ *  - zIndex (number)  : stack order, default 0
  */
 
 export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
@@ -20,7 +20,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
 
   return (
     <>
-      {/* ── Group A — main CW spin (40 s) ── */}
+      {/* ── Group A: main CW spin (40 s) ── */}
       <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbSpin 40s linear infinite',
@@ -28,7 +28,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         pointerEvents: 'none',
         willChange: 'transform',
       }}>
-        {/* Primary — centre bloom */}
+        {/* Primary: centre bloom */}
         <div style={{
           position: 'absolute',
           width: '82vmin', height: '82vmin',
@@ -38,7 +38,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
           filter: 'blur(22px)',
           animation: 'orbBloom 7s ease-in-out infinite',
         }} />
-        {/* Secondary — top-right */}
+        {/* Secondary: top-right */}
         <div style={{
           position: 'absolute',
           width: '64vmin', height: '64vmin',
@@ -49,7 +49,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* ── Group B — CCW spin (28 s) ── */}
+      {/* ── Group B: CCW spin (28 s) ── */}
       <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbCounter 28s linear infinite',
@@ -57,7 +57,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         pointerEvents: 'none',
         willChange: 'transform',
       }}>
-        {/* Tertiary — bottom-left */}
+        {/* Tertiary: bottom-left */}
         <div style={{
           position: 'absolute',
           width: '58vmin', height: '58vmin',
@@ -66,7 +66,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
           background: `radial-gradient(circle at 50% 50%, ${c(op.t)} 0%, transparent 62%)`,
           filter: 'blur(32px)',
         }} />
-        {/* Quaternary — top-left */}
+        {/* Quaternary: top-left */}
         <div style={{
           position: 'absolute',
           width: '52vmin', height: '52vmin',
@@ -77,7 +77,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* ── Group C — slow CW drift (60 s) — fills bottom-right & mid voids ── */}
+      {/* ── Group C: slow CW drift (60 s): fills bottom-right & mid voids ── */}
       <div aria-hidden className="orb-animated" style={{
         position: 'fixed', inset: 0, zIndex,
         animation: 'orbDrift 60s linear infinite',
@@ -85,7 +85,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         pointerEvents: 'none',
         willChange: 'transform',
       }}>
-        {/* Quinary — bottom-right */}
+        {/* Quinary: bottom-right */}
         <div style={{
           position: 'absolute',
           width: '56vmin', height: '56vmin',
@@ -94,7 +94,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
           background: `radial-gradient(circle at 50% 50%, ${c(op.r)} 0%, transparent 60%)`,
           filter: 'blur(30px)',
         }} />
-        {/* Senary — mid-left */}
+        {/* Senary: mid-left */}
         <div style={{
           position: 'absolute',
           width: '46vmin', height: '46vmin',
@@ -105,7 +105,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         }} />
       </div>
 
-      {/* Conic shimmer — CCW (18 s) ── */}
+      {/* Conic shimmer: CCW (18 s) ── */}
       <div aria-hidden style={{
         position: 'absolute', inset: '-20%',
         zIndex,
@@ -116,7 +116,7 @@ export const OrbBackground = ({ zIndex = 0, rgb, isDark = true }) => {
         pointerEvents: 'none',
       }} />
 
-      {/* ── Film grain — static noise texture for perceived depth ── */}
+      {/* ── Film grain: static noise texture for perceived depth ── */}
       <div aria-hidden style={{
         position: 'fixed', inset: 0,
         zIndex: zIndex + 1,

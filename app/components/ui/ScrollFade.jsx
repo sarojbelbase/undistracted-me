@@ -1,5 +1,5 @@
 /**
- * ScrollFade — a decorative gradient overlay that gives a scroll area a
+ * ScrollFade: a decorative gradient overlay that gives a scroll area a
  * "cutout" feel: content fades into the card surface at the edge. Because it
  * fades to `var(--card-bg)`, it is invisible over empty card surface and only
  * reads when content scrolls beneath it. Place it inside a `position: relative`

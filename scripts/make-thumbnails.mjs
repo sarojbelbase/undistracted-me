@@ -14,7 +14,7 @@
  *   - wrangler installed and logged in with R2 write (pages:write / r2 perms)
  *
  * The full-res image is downloaded from its public R2 URL, so no extra R2 read
- * credentials are needed — only `wrangler r2 object put` for the upload.
+ * credentials are needed: only `wrangler r2 object put` for the upload.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -27,7 +27,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const MANIFEST = join(__dirname, '..', 'functions', '_media', 'media.js');
 const BUCKET = 'undistracted-me-media';
 const PUBLIC_BASE = 'https://media.undistracted.me';
-const THUMB_WIDTH = 480;   // px — picker tiles are ~100px, 480 is plenty (2x retina)
+const THUMB_WIDTH = 480;   // px: picker tiles are ~100px, 480 is plenty (2x retina)
 const THUMB_QUALITY = 75;  // webp quality
 
 // Only process the ids passed on the command line, if any.

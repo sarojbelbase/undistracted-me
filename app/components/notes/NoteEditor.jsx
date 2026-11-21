@@ -6,17 +6,17 @@ import {
   Plus,
   DashLg,
   ArrowLeft,
-  ArrowClockwise,
-  ArrowRepeat,
-  CheckCircleFill,
 } from "react-bootstrap-icons";
 import { ConfirmButton } from "../ui/ConfirmButton";
 import { TooltipBtn } from "../ui/TooltipBtn";
 import { useFocusWeather } from "../../hooks/useFocusWeather";
+import { usePomodoroPresence } from "../../hooks/usePomodoroPresence";
 import { getWeatherIcon } from "../../widgets/weather/utils.jsx";
 import { useSettingsStore } from "../../store";
 import { onClockTick } from "../../utilities/sharedClock";
 import { getTimeParts } from "../../widgets/clock/utils";
+import { formatTime } from "../../widgets/pomodoro/utils";
+import { SESSION_TYPE } from "../../widgets/pomodoro/constants";
 import {
   getGregorianDateParts,
   getBikramSambatDateParts,
@@ -26,8 +26,9 @@ import {
 const LexicalEditor = lazy(() => import("../../widgets/notes/LexicalEditor"));
 
 // ─── Note Mode ambient strip (weather + clock + date, centered top bar) ──────
-// Weather always leads, then clock, then date — separated by spacing (no dots),
-// matching Focus Mode's weather-first arrangement.
+// A single quiet line: weather leads, then the time, then the date, each
+// separated by a faint interpunct. Uniform muted ink so it recedes behind the
+// note instead of competing with it.
 
 const computeNoteClock = (clockFormat, dateFormat) => {
   const { time, period } = getTimeParts(clockFormat || "24h");
@@ -46,9 +47,32 @@ const computeNoteClock = (clockFormat, dateFormat) => {
   };
 };
 
+// ─── Running pomodoro presence chip (quiet, non-distracting) ────────────────
+// A single muted dot (accent for focus, neutral for break) and a tabular
+// countdown. No glow, no label: the dot alone carries the state, so the chip
+// reads as part of the ambient line instead of drawing the eye.
+const PomodoroChip = ({ pomodoro }) => {
+  const isFocus = pomodoro.sessionType === SESSION_TYPE.FOCUS;
+  return (
+    <span
+      role="timer"
+      aria-label={`${isFocus ? "Focus" : "Break"} timer, ${formatTime(pomodoro.remaining)} remaining`}
+      className="notes-ambient-pomo"
+    >
+      <span
+        aria-hidden="true"
+        className="notes-ambient-pomo-dot"
+        style={{ backgroundColor: isFocus ? "var(--w-accent)" : "var(--w-ink-4)" }}
+      />
+      <span>{formatTime(pomodoro.remaining)}</span>
+    </span>
+  );
+};
+
 const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
   const clockFormat = useSettingsStore((s) => s.clockFormat);
   const weather = useFocusWeather();
+  const pomodoro = usePomodoroPresence();
   const [state, setState] = useState(() => computeNoteClock(clockFormat, dateFormat));
 
   // onClockTick fires every second; only re-render when the minute or the day
@@ -66,47 +90,42 @@ const NoteAmbientStrip = ({ showClock, showWeather, dateFormat }) => {
   const dateParts = { dow: state.dow, month: state.month, day: state.day, year: state.year };
   const showW = showWeather && weather;
   const showCD = showClock;
+  const showP = !!pomodoro;
 
-  if (!showW && !showCD) return null;
+  if (!showW && !showCD && !showP) return null;
 
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        whiteSpace: "nowrap",
-        fontVariantNumeric: "tabular-nums",
-        userSelect: "none",
-        gap: 10,
-      }}
-    >
+    <span className="notes-ambient">
       {showW && (
-        <span style={{ display: "inline-flex", alignItems: "center" }}>
-          <span style={{ opacity: 0.65, display: "flex", alignItems: "center", marginRight: 5 }}>
+        <span className="notes-ambient-group">
+          <span className="notes-ambient-icon">
             {getWeatherIcon(weather.code, weather.isDay, 12)}
           </span>
-          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--w-ink-1)", letterSpacing: "-0.01em" }}>
+          <span>
             {weather.temperature}°{weather.unit === "imperial" ? "F" : "C"}
           </span>
         </span>
       )}
+      {showW && showCD && (
+        <span className="notes-ambient-sep" aria-hidden="true">·</span>
+      )}
       {showCD && (
-        <span style={{ display: "inline-flex", alignItems: "baseline" }}>
-          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "var(--w-ink-1)", letterSpacing: "-0.02em" }}>
-            {state.time}
-          </span>
+        <span className="notes-ambient-group">
+          <span>{state.time}</span>
           {state.period && (
-            <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "var(--w-ink-3)", marginLeft: 3 }}>
-              {state.period}
-            </span>
+            <span className="notes-ambient-period">{state.period}</span>
           )}
         </span>
       )}
       {showCD && (
-        <span style={{ fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.01em", color: "var(--w-ink-1)" }}>
+        <span className="notes-ambient-sep" aria-hidden="true">·</span>
+      )}
+      {showCD && (
+        <span>
           {dateParts.dow}, {dateParts.month} {dateParts.day}
         </span>
       )}
+      {showP && <PomodoroChip pomodoro={pomodoro} />}
     </span>
   );
 };
@@ -126,14 +145,14 @@ const SegBtn = ({ onClick, disabled, label, children }) => (
 );
 
 /**
- * Full-screen note editor surface — shared by the Notes widget (page mode) and
+ * Full-screen note editor surface: shared by the Notes widget (page mode) and
  * Note Mode. Presentational: all note state + handlers arrive via `notes`
  * (the return value of useNotesState).
  *
- *   notes     — the useNotesState() bundle
- *   onExit    — called on back-button click or Escape
- *   exitLabel — text shown next to the back arrow (e.g. "Notes" / "Canvas")
- *   exitAriaLabel — accessible name for the back button (defaults to "Back to {exitLabel}")
+ *   notes    : the useNotesState() bundle
+ *   onExit   : called on back-button click or Escape
+ *   exitLabel: text shown next to the back arrow (e.g. "Notes" / "Canvas")
+ *   exitAriaLabel: accessible name for the back button (defaults to "Back to {exitLabel}")
  */
 export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, isNoteMode = false }) => {
   const {
@@ -151,10 +170,6 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
     goNext,
     addNote,
     deleteNote,
-    syncConnected,
-    syncing,
-    syncFeedback,
-    handleSyncNow,
     showClock,
     showWeather,
     dateFormat,
@@ -164,7 +179,7 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
   const bodyRef = useRef(null);
   const hasAutoFocusedRef = useRef(false);
 
-  // Auto-focus on first mount — title when empty, else the body editor.
+  // Auto-focus on first mount: title when empty, else the body editor.
   useEffect(() => {
     const timer = setTimeout(() => {
       if (hasAutoFocusedRef.current) return;
@@ -223,47 +238,9 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
     </div>
   );
 
-  // Sync button — shown at the far right of the top bar when sync is connected.
-  const syncControl = syncConnected && (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <div className="notes-nav-divider" />
-      <TooltipBtn
-        type="button"
-        aria-label={syncing ? 'Syncing' : syncFeedback ? 'Sync status' : 'Sync now'}
-        onClick={handleSyncNow}
-        disabled={syncing}
-        tooltip={
-          syncing
-            ? 'Syncing…'
-            : syncFeedback === 'synced'
-              ? 'Synced'
-              : syncFeedback === 'already'
-                ? 'Already synced — no changes'
-                : 'Sync notes now'
-        }
-        className="notes-seg-btn"
-      >
-        {syncing
-          ? <ArrowRepeat size={12} className="animate-spin" />
-          : syncFeedback === 'synced'
-            ? <CheckCircleFill size={12} />
-            : syncFeedback === 'already'
-              ? <CheckCircleFill size={12} style={{ opacity: 0.55 }} />
-              : <ArrowClockwise size={12} />}
-        {syncing
-          ? 'Syncing…'
-          : syncFeedback === 'synced'
-            ? 'Synced'
-            : syncFeedback === 'already'
-              ? 'Already synced'
-              : 'Sync'}
-      </TooltipBtn>
-    </div>
-  );
-
   return createPortal(
     <div className="fixed inset-0 flex flex-col notes-fullscreen">
-      <div className="notes-fullscreen-topbar" style={{ position: 'relative' }}>
+      <div className="notes-fullscreen-topbar">
         <button
           onClick={onExit}
           aria-label={exitAriaLabel || `Back to ${exitLabel}`}
@@ -272,24 +249,12 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
           <ArrowLeft size={13} />
           <span>{exitLabel}</span>
         </button>
-        {navControls}
-        {isNoteMode && (
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              top: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              pointerEvents: 'none',
-            }}
-          >
+        <div className="notes-fullscreen-ambient">
+          {isNoteMode && (
             <NoteAmbientStrip showClock={showClock} showWeather={showWeather} dateFormat={dateFormat} />
-          </div>
-        )}
-        {syncControl}
+          )}
+        </div>
+        {navControls}
       </div>
 
       <div className="notes-fullscreen-editor-wrap">
@@ -311,7 +276,7 @@ export const NoteEditor = ({ notes, onExit, exitLabel = "Notes", exitAriaLabel, 
             placeholder="Title"
             className="notes-title"
           />
-          {/* Lexical WYSIWYG editor — lazy loaded */}
+          {/* Lexical WYSIWYG editor: lazy loaded */}
           <Suspense
             fallback={
               <div style={{ flex: 1, paddingTop: 18, color: "var(--w-ink-5)" }}>

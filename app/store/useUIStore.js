@@ -1,5 +1,5 @@
 /**
- * useUIStore — lightweight global UI state for cross-widget dialogs.
+ * useUIStore: lightweight global UI state for cross-widget dialogs.
  *
  * Allows any deeply-nested component (e.g. an IntegrationRow inside a
  * widget settings panel) to open the Accounts dialog without prop-drilling.

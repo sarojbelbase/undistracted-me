@@ -1,7 +1,7 @@
 // ─── Shared UI primitives ─────────────────────────────────────────────────────
 // Styles for the app/components/ui primitives: Button, IconButton, ActionMenu,
 // Snackbar, EmptyState. All colors reference CSS custom properties so they adapt
-// to light/dark, accent, and card-style (paper/glass/comic) automatically.
+// to light/dark, accent and card-style (paper/glass/comic) automatically.
 
 // ── Button ──────────────────────────────────────────────────────────────────
 
@@ -125,16 +125,16 @@
   height: 28px;
 }
 
-// Filled, circular accent button — the primary action (matches Expense's add).
+// Filled, circular accent button: the primary action (matches Expense's add).
+// At rest it is a dimmed 85% accent tint; on hover it fills solid accent.
 .um-icon-btn--accent {
   border-radius: 14px;
-  background: var(--w-accent);
+  background: color-mix(in srgb, var(--w-accent) 85%, transparent);
   color: var(--w-accent-fg);
 
   &:hover {
     background: var(--w-accent);
     color: var(--w-accent-fg);
-    opacity: 0.88;
   }
 
   &:active {
@@ -194,6 +194,13 @@
 
     &:hover { background: var(--w-danger-bg); }
   }
+
+  &--disabled {
+    color: var(--w-ink-5);
+    cursor: default;
+
+    &:hover { background: transparent; }
+  }
 }
 
 .um-menu__icon {
@@ -206,6 +213,8 @@
 }
 
 .um-menu__item--danger .um-menu__icon { color: var(--w-danger); }
+
+.um-menu__item--disabled .um-menu__icon { color: var(--w-ink-5); }
 
 .um-menu__label-text {
   flex: 1;
@@ -252,7 +261,7 @@
   background: var(--w-divider);
 }
 
-// Flyout submenu — the side panel opened by a submenu parent (Change Type,
+// Flyout submenu: the side panel opened by a submenu parent (Change Type,
 // Change Folder, Change Color). Positioned with fixed coords from JS (flips
 // left when there is no room on the right); shares the menu card's styling.
 .um-submenu {
@@ -739,7 +748,7 @@
   background: color-mix(in srgb, var(--w-ink-1) 5%, transparent);
   box-shadow: inset 0 1px 2px color-mix(in srgb, var(--w-ink-1) 8%, transparent);
 
-  // Sliding thumb — the raised, accent-tinted active pill. Positioned by the
+  // Sliding thumb: the raised, accent-tinted active pill. Positioned by the
   // component to match the active button, then animated on selection change.
   .um-seg-thumb {
     position: absolute;
@@ -788,12 +797,12 @@
   button { flex: 1; }
 }
 
-// Size variants — sm (Pocket "Group by" toolbar) · md · lg (settings rows, default).
+// Size variants: sm (Pocket "Group by" toolbar) · md · lg (settings rows, default).
 .um-seg--sm button { min-height: 26px; }
 .um-seg--md button { min-height: 32px; }
 .um-seg--lg button { min-height: 38px; }
 
-// Subtle (non-accent) variant — quiet raised pill for inline toolbars such as
+// Subtle (non-accent) variant: quiet raised pill for inline toolbars such as
 // Pocket's "Group by", leaving the accent thumb for settings rows.
 .um-seg--subtle button {
   &[aria-checked="true"] {

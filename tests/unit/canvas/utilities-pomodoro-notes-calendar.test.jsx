@@ -13,14 +13,14 @@ import React from 'react';
 global.ResizeObserver = class { observe() { } unobserve() { } disconnect() { } };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1) Utilities/index.js — pure function tests
+// 1) Utilities/index.js: pure function tests
 // ─────────────────────────────────────────────────────────────────────────────
 import {
   convertThisNumberToNepali,
   getTimeZoneAwareDayJsInstance,
 } from '../../../app/utilities/index';
 
-describe('utilities/index.js — main functions', () => {
+describe('utilities/index.js: main functions', () => {
   it('convertThisNumberToNepali converts 0-9 digits', () => {
     // NUMBER_MAPPING maps 0=>0, 1=>1,... in Nepali numerals (or same)
     const result = convertThisNumberToNepali(123);
@@ -41,7 +41,7 @@ describe('utilities/index.js — main functions', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2) Pomodoro Widget — timer controls
+// 2) Pomodoro Widget: timer controls
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Mock react-bootstrap-icons for pomodoro
@@ -129,7 +129,7 @@ vi.mock('../../../app/theme', () => ({
 import { Widget as PomodoroWidget } from '../../../app/widgets/pomodoro/Widget';
 import { PRESETS } from '../../../app/widgets/pomodoro/utils';
 
-describe('PomodoroWidget — timer controls', () => {
+describe('PomodoroWidget: timer controls', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.clear();
@@ -242,11 +242,11 @@ describe('PomodoroWidget — timer controls', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3) Notes Widget — expand modal
+// 3) Notes Widget: expand modal
 // ─────────────────────────────────────────────────────────────────────────────
 import { Widget as NotesWidget } from '../../../app/widgets/notes/Widget';
 
-describe('NotesWidget — expand modal', () => {
+describe('NotesWidget: expand modal', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
 
@@ -273,7 +273,7 @@ describe('NotesWidget — expand modal', () => {
     fireEvent.click(screen.getByLabelText('Open in full screen'));
     fireEvent.click(screen.getByLabelText('Back to widget'));
     expect(document.querySelector('.notes-fullscreen')).toBeNull();
-    // Back to widget mode — its textarea is shown again
+    // Back to widget mode: its textarea is shown again
     expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 
@@ -367,7 +367,7 @@ describe('Calendar Settings', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5) dateToday/Settings.jsx (50% — real component with RadioGroup)
+// 5) dateToday/Settings.jsx (50%: real component with RadioGroup)
 // ─────────────────────────────────────────────────────────────────────────────
 import { Settings as DateTodaySettings } from '../../../app/widgets/dateToday/Settings';
 

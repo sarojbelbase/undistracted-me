@@ -62,7 +62,7 @@ export const CURRENT_PLATFORM = getPlatform();
 
 /**
  * Google OAuth via chrome.identity.launchWebAuthFlow + PKCE (all browsers).
- * Used for Google Calendar, Google Contacts, Google Tasks, and Drive sync.
+ * Used for Google Calendar, Google Contacts, Google Tasks and Drive sync.
  */
 export const FEATURE_GOOGLE_AUTH = CURRENT_PLATFORM === PLATFORMS.EXTENSION;
 

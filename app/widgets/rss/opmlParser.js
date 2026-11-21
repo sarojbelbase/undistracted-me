@@ -1,9 +1,9 @@
 /**
- * opmlParser.js — Parse OPML (Outline Processor Markup Language) files
+ * opmlParser.js: Parse OPML (Outline Processor Markup Language) files
  * to extract RSS/Atom feed subscriptions.
  *
  * OPML is the standard exchange format for feed readers. This parser
- * uses the native DOMParser API — zero dependencies.
+ * uses the native DOMParser API: zero dependencies.
  *
  * OPML structure:
  *   <opml version="2.0">
@@ -24,16 +24,16 @@
 
 /**
  * @typedef {object} OPMLFeed
- * @property {string} label  — feed title (falls back to URL if missing)
- * @property {string} url    — the xmlUrl attribute value
- * @property {boolean} active — always true for parsed feeds
- * @property {boolean} valid — false if URL is malformed (flagged with ⚠️)
+ * @property {string} label : feed title (falls back to URL if missing)
+ * @property {string} url   : the xmlUrl attribute value
+ * @property {boolean} active: always true for parsed feeds
+ * @property {boolean} valid: false if URL is malformed (flagged with ⚠️)
  */
 
 /**
  * Parse an OPML XML string and return extracted feed subscriptions.
  *
- * @param {string} xmlString — raw OPML XML content
+ * @param {string} xmlString: raw OPML XML content
  * @returns {{ feeds: OPMLFeed[], error: string | null }}
  */
 export function parseOPML(xmlString) {
@@ -54,16 +54,16 @@ export function parseOPML(xmlString) {
   const parseError = doc.querySelector('parsererror');
   if (parseError) {
     const msg = parseError.textContent?.replace(/^.*error:\s*/s, '') || 'Invalid XML';
-    return { feeds: [], error: `Invalid OPML — ${msg.trim().slice(0, 120)}` };
+    return { feeds: [], error: `Invalid OPML: ${msg.trim().slice(0, 120)}` };
   }
 
   // ── Validate basic OPML structure ──────────────────────────────────────
   const opmlEl = doc.querySelector('opml');
   if (!opmlEl) {
-    // Some OPML files omit the <opml> wrapper — try finding any outline
+    // Some OPML files omit the <opml> wrapper: try finding any outline
     const anyOutline = doc.querySelector('outline[xmlUrl]');
     if (!anyOutline) {
-      return { feeds: [], error: 'Not a valid OPML file — no <opml> root or feed outlines found.' };
+      return { feeds: [], error: 'Not a valid OPML file: no <opml> root or feed outlines found.' };
     }
   }
 
@@ -109,7 +109,7 @@ export function parseOPML(xmlString) {
       if (xmlUrl) {
         addFeed(outline, xmlUrl, seenUrls, feeds);
       } else {
-        walk(outline); // folder — recurse
+        walk(outline); // folder: recurse
       }
     }
   };
@@ -156,7 +156,7 @@ export const looksLikeOPML = (text) => {
  *
  * @param {Array<{label: string, url: string}>} feeds
  * @param {object} [options]
- * @param {string} [options.title='Undistracted Me Feeds'] — OPML <head> title
+ * @param {string} [options.title='Undistracted Me Feeds']: OPML <head> title
  * @returns {string} formatted OPML XML
  */
 export function generateOPML(feeds, { title = 'Undistracted Me Feeds' } = {}) {
@@ -233,7 +233,7 @@ export function generateSampleOPML() {
 /**
  * Download a string as a file via a temporary anchor element.
  *
- * @param {string} content — file content
+ * @param {string} content: file content
  * @param {string} filename
  * @param {string} [mimeType='text/xml']
  */

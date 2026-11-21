@@ -50,7 +50,7 @@ async function main() {
   const nepali = parseHolidaysFromWikitext(wikitext, { adYears });
 
   // Some AD-fixed observances (Women's Day, Labour Day, Christmas) are already
-  // listed on the Nepal page — drop the international duplicate so the calendar
+  // listed on the Nepal page: drop the international duplicate so the calendar
   // doesn't surface the same name twice on one date.
   const seen = new Set(nepali.map((h) => `${h.date}|${h.name}`));
   const international = buildInternationalHolidays(adYears).filter(
@@ -60,17 +60,17 @@ async function main() {
   const holidays = [...nepali, ...international].sort((a, b) => a.date.localeCompare(b.date));
 
   // Skip writing (and thus the workflow's commit) when the holiday data itself
-  // is unchanged from what's already in the repo — a new timestamp alone is not
+  // is unchanged from what's already in the repo: a new timestamp alone is not
   // a real change.
   if (existsSync(OUT_PATH)) {
     let existing = [];
     try {
       existing = JSON.parse(readFileSync(OUT_PATH, 'utf8')).holidays ?? [];
     } catch {
-      /* unreadable/corrupt — rewrite from scratch below */
+      /* unreadable/corrupt: rewrite from scratch below */
     }
     if (signature(existing) === signature(holidays)) {
-      console.log('holidays.json unchanged — nothing to write');
+      console.log('holidays.json unchanged: nothing to write');
       return;
     }
   }

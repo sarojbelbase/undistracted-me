@@ -1,5 +1,5 @@
 /**
- * General — Launch mode and Look Away settings.
+ * General: Launch mode and Look Away settings.
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  */
 
@@ -32,7 +32,7 @@ const NOTIF_ICONS = {
 };
 
 export const General = ({ onPreviewLookAway }) => {
-  // Narrow selectors — avoid re-rendering the whole panel on any single change.
+  // Narrow selectors: avoid re-rendering the whole panel on any single change.
   const defaultView = useSettingsStore((s) => s.defaultView);
   const setDefaultView = useSettingsStore((s) => s.setDefaultView);
   const lookAwayEnabled = useSettingsStore((s) => s.lookAwayEnabled);

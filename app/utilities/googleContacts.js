@@ -1,5 +1,5 @@
 /**
- * Google People API — contacts birthdays & anniversaries
+ * Google People API: contacts birthdays & anniversaries
  *
  * Auth is handled by googleAuth.js which works on both Chrome and Firefox.
  */
@@ -15,7 +15,7 @@ const HAS_CACHE_FLAG = 'contacts_has_cache';
 
 // ─── Local cache ────────────────────────────────────────────────────────────
 
-// Module-level memory cache — populated on first chrome.storage.local read.
+// Module-level memory cache: populated on first chrome.storage.local read.
 // Updated synchronously on every write/clear so subsequent reads are instant.
 let _contactsMemCache = null; // null = not yet loaded
 
@@ -129,7 +129,7 @@ async function fetchAllConnections(token) {
 /**
  * Parses raw People API contacts into a flat list of date entries.
  * Each entry: { id, name, type, month, day }
- * Deduplicates by (name, type, month, day) — handles contacts synced from
+ * Deduplicates by (name, type, month, day): handles contacts synced from
  * multiple sources (iCloud + Google) that store the same birthday twice.
  */
 function parseContacts(connections) {
@@ -176,7 +176,7 @@ function parseContacts(connections) {
     });
   });
 
-  // Deduplicate by (name, type, month, day) — keep first occurrence
+  // Deduplicate by (name, type, month, day): keep first occurrence
   const seen = new Set();
   return raw.filter(e => {
     const key = `${e.name}|${e.type}|${e.month}|${e.day}`;
@@ -192,7 +192,7 @@ function parseContacts(connections) {
  * Fetches contacts from Google People API and caches them.
  * Returns the processed entries array.
  *
- * @param {boolean} interactive — whether to show the consent prompt
+ * @param {boolean} interactive: whether to show the consent prompt
  */
 export async function getContactBirthdays(interactive = true) {
   let token;
@@ -206,7 +206,7 @@ export async function getContactBirthdays(interactive = true) {
   } catch (err) {
     if (err.message === 'SERVICE_DISABLED') throw err;
     if (err.message === 'TOKEN_EXPIRED' && token) {
-      // Transient 401 — retry against the refresh path WITHOUT wiping the
+      // Transient 401: retry against the refresh path WITHOUT wiping the
       // stored refresh_token (matches bg.js's no-wipe prefetch and the Spotify
       // "don't clear on transient failure" convention). A silent background
       // sync (interactive=false) must not force a re-auth; the caller falls
@@ -238,13 +238,13 @@ export async function getContactBirthdays(interactive = true) {
         return loadCachedContacts();
       }
     }
-    // User denied or other error — rethrow for the widget to handle
+    // User denied or other error: rethrow for the widget to handle
     throw err;
   }
 }
 
 /**
- * Silent check — true if the user has already granted consent and has cached data.
+ * Silent check: true if the user has already granted consent and has cached data.
  * Returns false immediately if the user previously explicitly disconnected.
  */
 export function isContactsConnected() {
@@ -255,7 +255,7 @@ export function isContactsConnected() {
 /**
  * Removes the cached contacts data and sets a disconnected flag so the extension
  * does not silently re-sync on the next reload.
- * Note: Contacts and Calendar share the same Google OAuth token — we don't revoke
+ * Note: Contacts and Calendar share the same Google OAuth token: we don't revoke
  * the token here (that would log out Calendar too). The flag prevents re-syncing.
  */
 export function disconnectContacts() {

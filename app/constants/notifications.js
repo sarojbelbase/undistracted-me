@@ -8,7 +8,7 @@
  * bg.js reads `notif_enabled` (master) and `notif_types` (per-type object)
  * from chrome.storage.local before firing any notification.
  *
- * buildNotification(type, data) — single function to construct the full
+ * buildNotification(type, data): single function to construct the full
  * chrome.notifications payload from structured data. Centralises all copy,
  * formatting rules and priorities in one place so bg.js stays clean.
  */
@@ -29,12 +29,12 @@ const ICON = 'favicon/lotus128.png';
  * Builds a chrome.notifications payload for a given type.
  *
  * Every notification follows three principles:
- *   • No emoji — let the words carry the weight
- *   • Contextual — the user knows immediately what this is about
- *   • Human — sounds like a thoughtful assistant, not a robot reading a spec
+ *   • No emoji: let the words carry the weight
+ *   • Contextual: the user knows immediately what this is about
+ *   • Human: sounds like a thoughtful assistant, not a robot reading a spec
  *
  * @param {'events'|'occasion'|'countdown'|'pomodoro'|'lookaway'} type
- * @param {object} data — type-specific fields (see below)
+ * @param {object} data: type-specific fields (see below)
  *
  * events:    { title, diffMs, endTime? }
  * occasion:  { name, occType }   occType: 'birthday' | 'anniversary' | 'special'

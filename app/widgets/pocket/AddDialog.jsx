@@ -14,7 +14,7 @@ import { CHAR_COUNTER_THRESHOLD, FOLDER_COLOR_MAP, KINDS, KIND_META, MAX_TEXT_LE
 const MAX_ROWS = 6;
 
 /**
- * AddDialog — the "Add to Pocket" dialog (Modal). Opened by the card/expanded
+ * AddDialog: the "Save to Pocket" dialog (Modal). Opened by the card/expanded
  * "Add" button and by paste. Follows the UnifiedAddDialog header/footer pattern.
  * On small screens it becomes a bottom sheet via CSS.
  */
@@ -50,7 +50,7 @@ export function AddDialog({ initialText = "", onClose }) {
     onClose();
   };
 
-  const title = fromPaste ? "Save Pasted Text?" : "Add to Pocket";
+  const title = fromPaste ? "Save Pasted Text?" : "Save to Pocket";
   const subtitle = fromPaste
     ? `Pocket found ${initialText.length} characters.`
     : "Save a link or text snippet to read later.";
@@ -58,7 +58,7 @@ export function AddDialog({ initialText = "", onClose }) {
 
   return (
     <Modal onClose={onClose} className="pocket-add-modal" ariaLabel={title}>
-      {/* Header — shared with every Add/Edit dialog (see AddDialogHeader) */}
+      {/* Header: shared with every Add/Edit dialog (see AddDialogHeader) */}
       <AddDialogHeader
         icon={<PocketIcon size={15} color="var(--w-accent-fg)" strokeWidth={1.4} />}
         title={title}

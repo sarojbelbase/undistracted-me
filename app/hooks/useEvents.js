@@ -38,10 +38,10 @@ const save = (events) => {
   sendToServiceWorker({ type: "EVENTS_UPDATED", events });
 };
 
-// Module-level cache — shared across all useEvents instances
+// Module-level cache: shared across all useEvents instances
 let cache = load();
 
-// Module-level subscriber set — only ONE event listener exists globally,
+// Module-level subscriber set: only ONE event listener exists globally,
 // no matter how many widgets call useEvents().  Each instance gets its own
 // rerender callback stored in the Set; the single listener iterates them all.
 const subscribers = new Set();
@@ -52,9 +52,9 @@ const broadcast = () => {
   // multiple rapid event changes (e.g. bulk import, calendar sync) don't
   // cause N sequential synchronous re-renders blocking the main thread.
   // On low-RAM machines with slow storage (eMMC), the JSON.parse inside
-  // load() can take 5–15ms — doing it once per frame instead of once per
+  // load() can take 5–15ms: doing it once per frame instead of once per
   // event mutation is a significant win.
-  if (broadcast._rafId) return; // already scheduled — coalesce
+  if (broadcast._rafId) return; // already scheduled: coalesce
   broadcast._rafId = requestAnimationFrame(() => {
     broadcast._rafId = null;
     subscribers.forEach((fn) => fn());
@@ -70,7 +70,7 @@ if (typeof globalThis !== "undefined") {
   });
 }
 
-// Returns [events, addEvent, removeEvent] — all components stay in sync via SYNC_EVENT
+// Returns [events, addEvent, removeEvent]: all components stay in sync via SYNC_EVENT
 export const useEvents = () => {
   const [, forceRerender] = useReducer((c) => c + 1, 0);
 
@@ -151,7 +151,7 @@ export const useGoogleCalendar = () => {
   const [syncedAt, setSyncedAt] = useState(() => loadGcalSyncedAt());
   const fetchedRef = useRef(false);
   // Tracks mount state so async callbacks (refresh/connect) never setState on an
-  // unmounted tree — a remount of Focus Mode/Events mid-fetch would otherwise
+  // unmounted tree: a remount of Focus Mode/Events mid-fetch would otherwise
   // clobber the new instance's state via the `finally { setLoading(false) }`.
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -169,7 +169,7 @@ export const useGoogleCalendar = () => {
     };
   }, []);
 
-  // Background sync — non-interactive, never triggers OAuth UI
+  // Background sync: non-interactive, never triggers OAuth UI
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -194,7 +194,7 @@ export const useGoogleCalendar = () => {
     }
   }, []);
 
-  // Explicit user-initiated sign-in — interactive, shows OAuth UI
+  // Explicit user-initiated sign-in: interactive, shows OAuth UI
   const connect = useCallback(async () => {
     setLoading(true);
     setError(null);

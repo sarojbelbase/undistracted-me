@@ -1,9 +1,9 @@
 /**
- * Tasks panel — Google Tasks integration for Focus Mode.
+ * Tasks panel: Google Tasks integration for Focus Mode.
  *
  * States:
- *   • Collapsed pill — shows remaining count, springs open on click.
- *   • Expanded panel — task list (connected) or connect CTA (not connected).
+ *   • Collapsed pill: shows remaining count, springs open on click.
+ *   • Expanded panel: task list (connected) or connect CTA (not connected).
  */
 import { useState, useRef, useEffect } from 'react';
 import {
@@ -19,7 +19,7 @@ import { TrashIcon } from '../../../assets/svg/TrashIcon';
 import { Input } from '../../ui/Input';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-// All surface tokens reference FM_* constants — always dark glass, never CSS vars.
+// All surface tokens reference FM_* constants: always dark glass, never CSS vars.
 
 const PANEL_BG = FM_CARD_BG;
 const PILL_BG = FM_CARD_BG;
@@ -323,7 +323,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add,
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Hide entirely once we know the user isn't connected — no CTA flash
+  // Hide entirely once we know the user isn't connected: no CTA flash
   if (hasAttempted && !gtasksConnected) return null;
 
   const handleRefresh = async () => {
@@ -392,7 +392,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add,
               </span>
             )}
 
-            {/* Refresh — only when connected */}
+            {/* Refresh: only when connected */}
             {gtasksConnected && (
               <button
                 onClick={handleRefresh}
@@ -412,7 +412,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add,
               </button>
             )}
 
-            {/* Info / settings — removed from header; accessible via FocusMode Settings */}
+            {/* Info / settings: removed from header; accessible via FocusMode Settings */}
 
             <button
               onClick={() => setOpen(false)}
@@ -441,7 +441,7 @@ export const TasksPanel = ({ tasks, loading, gtasksConnected, hasAttempted, add,
 
               {!loading && tasks.length === 0 && (
                 <li style={{ padding: '24px 0', textAlign: 'center', color: DIM, fontSize: 12 }}>
-                  No tasks yet — add one below.
+                  No tasks yet: add one below.
                 </li>
               )}
 

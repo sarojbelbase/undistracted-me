@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Platform detection — evaluated once at module load, never changes at runtime.
+// Platform detection: evaluated once at module load, never changes at runtime.
 const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 export const focusShortcut = isMac ? '⌥⇧F' : 'Alt+Shift+F';
 

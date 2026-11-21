@@ -10,7 +10,7 @@ import { ZONES } from '../config';
 
 export const BottomZone = ({ greetOnDark = true }) => {
   const [parts, setParts] = useState(() => getTimeParts('24h'));
-  // The greeting changes hourly, not every second — gate the setState.
+  // The greeting changes hourly, not every second: gate the setState.
   const update = useCallback(() => {
     setParts((prev) => {
       const next = getTimeParts('24h');

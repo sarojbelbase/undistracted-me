@@ -11,16 +11,16 @@ import { changelog, origin, latestVersion } from "../data/changelog.js";
  */
 export const GET: APIRoute = () => {
   const originMd = [
-    `## ${origin.version} — ${origin.title} (${origin.period})`,
+    `## ${origin.version}: ${origin.title} (${origin.period})`,
     "",
     ...origin.paragraphs,
     "",
-    ...origin.milestones.map((m) => `- **${m.label}** — ${m.text}`),
+    ...origin.milestones.map((m) => `- **${m.label}**: ${m.text}`),
     "",
   ];
 
   const entriesMd = changelog.flatMap((r) => [
-    `## ${r.version} — ${r.title}`,
+    `## ${r.version}: ${r.title}`,
     "",
     `_Released ${r.released}_`,
     "",
@@ -38,7 +38,7 @@ export const GET: APIRoute = () => {
     "",
     `Latest release: ${latestVersion}.`,
     "",
-    "The release history of Undistracted Me — from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode and dashboard rewrite.",
+    "The release history of Undistracted Me: from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode and dashboard rewrite.",
     "",
     ...originMd,
     ...entriesMd,
@@ -53,7 +53,7 @@ export const GET: APIRoute = () => {
 
   const { markdown, canonicalHref } = renderMarkdownAlternate({
     frontmatter: {
-      title: "Changelog & Release Notes — Undistracted Me",
+      title: "Changelog & Release Notes: Undistracted Me",
       canonical: `${site.url}/changelogs/`,
       description:
         "Release history of Undistracted Me: from the first Nepali-calendar new tab in 2020, through the Vue and React rewrites, to the Focus Mode rewrite.",

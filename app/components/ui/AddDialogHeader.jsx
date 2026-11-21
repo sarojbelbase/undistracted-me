@@ -1,7 +1,7 @@
 import { XLg } from "react-bootstrap-icons";
 
 /**
- * AddDialogHeader — the standard header for every "Add …" dialog (Event,
+ * AddDialogHeader: the standard header for every "Add …" dialog (Event,
  * Countdown, Occasion, Pocket, …): an accent icon tile, a title, an optional
  * subtitle, and a single close (✕). Extracted from UnifiedAddDialog so all
  * add/edit dialogs share the same chrome.
@@ -12,7 +12,7 @@ import { XLg } from "react-bootstrap-icons";
  *
  * Props:
  *   icon     – ReactNode; glyph rendered in `--w-accent-fg` on the accent tile
- *   title    – string; dialog heading (e.g. "New Event", "Add to Pocket")
+ *   title    – string; dialog heading (e.g. "New Event", "Save to Pocket")
  *   subtitle – string (optional); one-line helper under the title
  *   onClose  – () => void; dismiss handler
  */

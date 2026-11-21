@@ -46,7 +46,7 @@ async function enterNoteMode(page) {
 // Note Mode: entry & exit
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Note Mode — entry and exit', () => {
+test.describe('Note Mode: entry and exit', () => {
   test.beforeEach(async ({ page }) => {
     await loadWith(page, baseStorage());
   });
@@ -76,7 +76,7 @@ test.describe('Note Mode — entry and exit', () => {
 
   test('canvas widgets are not mounted while Note Mode is active', async ({ page }) => {
     await enterNoteMode(page);
-    // The widget grid should be absent — Note Mode mounts only the editor.
+    // The widget grid should be absent: Note Mode mounts only the editor.
     await expect(page.locator('.react-grid-item')).toHaveCount(0);
   });
 });
@@ -85,7 +85,7 @@ test.describe('Note Mode — entry and exit', () => {
 // Note Mode: defaultView launch
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Note Mode — defaultView launch', () => {
+test.describe('Note Mode: defaultView launch', () => {
   test('defaultView=note launches directly into Note Mode', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('showWidgets', 'true');
@@ -107,7 +107,7 @@ test.describe('Note Mode — defaultView launch', () => {
 // Note Mode: shared note data
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Note Mode — shares note data', () => {
+test.describe('Note Mode: shares note data', () => {
   test('pre-seeded note content appears in Note Mode editor', async ({ page }) => {
     await loadWith(page, baseStorage({
       widgetSettings_notes: { notes: [{ id: 'n1', text: 'Meeting notes\nDiscussed roadmap', updatedAt: Date.now() }], idx: 0 },
@@ -127,7 +127,7 @@ test.describe('Note Mode — shares note data', () => {
 
     const title = page.locator('#notes-title');
     await title.fill('Note Mode Title');
-    // Debounced persist is 600ms — wait past it then assert the store key.
+    // Debounced persist is 600ms: wait past it then assert the store key.
     await page.waitForTimeout(900);
 
     const stored = await page.evaluate(() =>

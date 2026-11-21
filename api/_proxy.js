@@ -2,7 +2,7 @@
  * Shared GET forward-proxy factory for third-party APIs.
  *
  * Wraps an upstream base URL so the extension / web app only ever talk to
- * api.undistracted.me — the real provider (Open-Meteo, Nominatim, icanhazdadjoke…)
+ * api.undistracted.me: the real provider (Open-Meteo, Nominatim, icanhazdadjoke…)
  * lives server-side and is never referenced by client code. The incoming query
  * string is forwarded verbatim, so each endpoint is a one-liner and the client
  * keeps its existing URLSearchParams unchanged.

@@ -1,7 +1,7 @@
 # Publish credentials & CLI commands
 
 Secrets live in `.env` (gitignored). The table below lists the **variable
-names** and where each value comes from — never commit real secrets here.
+names** and where each value comes from: never commit real secrets here.
 
 `.env` reference (see also `.env.example`):
 
@@ -54,13 +54,13 @@ bun run publish:chrome    # build:chrome + upload + publish
 
 ### Generating CWS credentials (one-time)
 
-1. **IDs** — from https://chrome.google.com/webstore/devconsole/ :
+1. **IDs**: from https://chrome.google.com/webstore/devconsole/ :
    - `CWS_EXTENSION_ID` = last 32-char segment of the item's store URL
      (`…/detail/undistracted-me/<ID>`).
    - `CWS_PUBLISHER_ID` = the ID in the dev console's own URL
      (`…/devconsole/<PUBLISHER_ID>`), also under **Account** settings.
 
-2. **OAuth client** — https://console.cloud.google.com/ (same Google account that
+2. **OAuth client**: https://console.cloud.google.com/ (same Google account that
    owns the listing):
    - Enable the **Chrome Web Store API**.
    - Create an **OAuth client ID** (application type **Web application**).
@@ -69,7 +69,7 @@ bun run publish:chrome    # build:chrome + upload + publish
      `http://localhost:8080`.
    - Copy Client ID → `CWS_CLIENT_ID`, Client secret → `CWS_CLIENT_SECRET`.
 
-3. **Refresh token** — two options:
+3. **Refresh token**: two options:
 
    **A. Loopback script (recommended, binds token to your client):**
    ```bash
@@ -103,7 +103,7 @@ bun run publish:chrome    # build:chrome + upload + publish
 The Chrome extension ID is **`dfgbijakkhepoonhaelocdmcleeehmef`**, derived from
 the `key` field in `public/manifest.json` (SHA-256 of the DER public key → first
 16 bytes → each nibble mapped to `a`–`p`). **Never regenerate or remove that
-key** — the store upload fails with "key field value in the manifest doesn't
+key**: the store upload fails with "key field value in the manifest doesn't
 match the current item."
 
 Spotify and Google auth both call `chrome.identity.getRedirectURL()` at runtime
@@ -116,20 +116,20 @@ https://dfgbijakkhepoonhaelocdmcleeehmef.chromiumapp.org/
 
 ### Post key-change checklist
 
-If the extension ID ever changes, the ID is baked into the OAuth redirect URIs —
+If the extension ID ever changes, the ID is baked into the OAuth redirect URIs -
 update these dashboards or sign-in breaks:
 
 | Service | Action |
 |---|---|
-| **Chrome Web Store** | Nothing — the ID *is* the store item. Re-upload the rebuilt zip only. |
+| **Chrome Web Store** | Nothing: the ID *is* the store item. Re-upload the rebuilt zip only. |
 | **Spotify Developer Dashboard** | Set redirect URI to `https://dfgbijakkhepoonhaelocdmcleeehmef.chromiumapp.org/` |
 | **Google Cloud OAuth client** | Add `https://dfgbijakkhepoonhaelocdmcleeehmef.chromiumapp.org/` to authorized redirect URIs |
 
 - The backend (`api/auth/google/token.js:32`) validates redirect URIs with a
   wildcard pattern (`…chromiumapp.org` / `…extensions.allizom.org`), so no
   server-side change is needed.
-- Firefox uses a **separate** ID — `{1071d037-0f17-4c92-b06c-704050d2e2c3}`
-  hashed to `https://<sha1>.extensions.allizom.org/` — registered separately in
+- Firefox uses a **separate** ID: `{1071d037-0f17-4c92-b06c-704050d2e2c3}`
+  hashed to `https://<sha1>.extensions.allizom.org/`: registered separately in
   Spotify/Google and unaffected by a Chrome key change.
 
 ---

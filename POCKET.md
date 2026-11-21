@@ -6,12 +6,12 @@ You are extending an existing, shipped browser extension (Chrome + Firefox, Reac
 
 Step 1. Investigate before writing code. Open and read:
 - where widgets are declared/registered
-- the existing RSS Digest widget: component, styles, size handling, settings menu, expanded/full view, empty state, and how it groups items by source
+- the existing RSS Digest widget: component, styles, size handling, settings menu, expanded/full view, empty state and how it groups items by source
 - src/theme/profiles.js (card profiles: paper, glass, comic) and accents.js (default accent: Matte Black)
 - shared UI primitives (card, modal, button, chip, tooltip, toast, icons)
-- the manifest file(s), the background/service worker, and any existing storage helpers
+- the manifest file(s), the background/service worker and any existing storage helpers
 
-Step 2. Reply with at most 15 lines: what you found, what you will reuse, and any conflicts. Ask at most 3 questions, and only if truly blocking. Otherwise state your assumption and proceed.
+Step 2. Reply with at most 15 lines: what you found, what you will reuse and any conflicts. Ask at most 3 questions, and only if truly blocking. Otherwise state your assumption and proceed.
 
 Step 3. Implement Phase 1 completely, then STOP. Give me a summary and a manual test checklist. Do not start Phase 2 until I say so.
 
@@ -25,13 +25,13 @@ Rules:
 
 ## 1. Product in one paragraph
 
-Pocket is where small, text-only things go so you don't lose them: a link, a blog URL, a word, a sentence, a paragraph, a code snippet. Right-click anything on a page, choose "Add to Pocket", and it lands in the Pocket widget on the new tab, auto-sorted by type and by website, and optionally filed into folders you create. Think Instagram's Save with collections, but for text, and calm.
+Pocket is where small, text-only things go so you don't lose them: a link, a blog URL, a word, a sentence, a paragraph, a code snippet. Right-click anything on a page, choose "Save to Pocket" and it lands in the Pocket widget on the new tab, auto-sorted by type and by website and optionally filed into folders you create. Think Instagram's Save with collections, but for text and calm.
 
-Job to be done: "When I come across something worth keeping while reading or working, let me save it in one gesture without leaving the page, and let me find it again in seconds."
+Job to be done: "When I come across something worth keeping while reading or working, let me save it in one gesture without leaving the page and let me find it again in seconds."
 
 Principles:
 1. One gesture to save, zero decisions at save time. Organizing is optional and happens later.
-2. Calm. No red badges, streaks, nags, or "you have 47 unread" pressure.
+2. Calm. No red badges, streaks, nags or "you have 47 unread" pressure.
 3. Text only. Never save images, video, audio or files.
 4. Local-first. Fully works offline. Google Drive sync is opt-in (Phase 2).
 5. Consistent. It must look like it was always part of Undistracted Me.
@@ -46,7 +46,7 @@ Phase 3 (do NOT build; just keep the data model compatible): folder submenu insi
 
 ## 3. Saving flow (service worker)
 
-3.1 Context menu: ONE item. id "pocket-save", title exactly "Add to Pocket", contexts ["selection","link","page"]. Never register image, video or audio contexts. Create it on install/startup the way each browser requires (Chrome contextMenus, Firefox menus/contextMenus). No submenus.
+3.1 Context menu: ONE item. id "pocket-save", title exactly "Save to Pocket", contexts ["selection","link","page"]. Never register image, video or audio contexts. Create it on install/startup the way each browser requires (Chrome contextMenus, Firefox menus/contextMenus). No submenus.
 
 3.2 What gets saved:
 - Selection: the selected text. Prefer window.getSelection().toString() via scripting.executeScript (activeTab) so line breaks and indentation survive (important for code). Fall back to info.selectionText.
@@ -95,13 +95,13 @@ Keys: "pocket:items", "pocket:folders", "pocket:meta". All access goes through O
 
 Built-in "smart folders" are NOT stored. They are derived from kind: Links, Words, Sentences, Paragraphs, Code. Starter user folders on first run (normal, renamable, deletable): "Read later", "Quotes", "Ideas".
 
-So the same items can be viewed four ways: by time (Recent/All), by type (smart folders), by website (Sites), and by user folder.
+So the same items can be viewed four ways: by time (Recent/All), by type (smart folders), by website (Sites) and by user folder.
 
 ## 5. Widget structure and behavior
 
 Mirror the RSS Digest's patterns wherever they exist (header, grouping by source, list rows, expanded view, settings menu). Map: feeds = websites/folders, articles = saves, "digest" = Recent. Where the RSS widget differs from what is written here, the RSS widget wins.
 
-Header: pocket glyph + "Pocket" + muted total count on the left. On the right: search, add (+), expand, and a "..." menu.
+Header: pocket glyph + "Pocket" + muted total count on the left. On the right: search, add (+), expand and a "..." menu.
 
 Tabs (segmented, accent underline): Recent | All | Sites.
 - Recent: newest 20, flat, under sticky labels Today / Yesterday / Earlier this week / Earlier.
@@ -189,7 +189,7 @@ Intent wireframes (not pixel-perfect):
 
 ## 7. Copy (calm, sentence case, no exclamation marks, no emoji)
 
-- Empty (first run): title "Your pocket is empty." Body: "Select text on any page, right-click, and choose Add to Pocket." Show three tiny steps: Select, Right-click, Saved. Below it, the quick-add input labeled "Or paste something here."
+- Empty (first run): title "Your pocket is empty." Body: "Select text on any page, right-click and choose Save to Pocket." Show three tiny steps: Select, Right-click, Saved. Below it, the quick-add input labeled "Or paste something here."
 - Empty folder: "Nothing in {folder} yet. Use Folders on any save to add it."
 - No search results: "Nothing matches "{query}"." with a "Clear search" link.
 - Toasts: "Saved to Pocket" / "Already in your Pocket" / "Saved (trimmed to 20,000 characters)".
@@ -202,7 +202,7 @@ Intent wireframes (not pixel-perfect):
 - Google Drive REST v3, scope https://www.googleapis.com/auth/drive.appdata ONLY (a hidden app folder; the extension never sees the user's other files). No host permissions: Google APIs allow CORS, so call fetch with a Bearer token.
 - Auth: identity.launchWebAuthFlow with a Google OAuth Web-application client (one code path for Chrome and Firefox), redirect from identity.getRedirectURL(). Keep the token in memory/session only. Try interactive:false to refresh silently; if that fails, show "Reconnect". Put the client ID in one config constant with a TODO. Do NOT invent a client ID.
 - Storage: one file "pocket.json" in appDataFolder holding { schema, items, folders, updatedAt }.
-- Sync = pull, merge, push (only if the merged result differs from remote). Triggers: new-tab load, visibilitychange (at least 60 s since last), 5 s debounce after a local change, "Sync now", best-effort right after a context-menu save. The sync module is shared; the new-tab page runs it, and the service worker only flags "dirty" or tries once.
+- Sync = pull, merge, push (only if the merged result differs from remote). Triggers: new-tab load, visibilitychange (at least 60 s since last), 5 s debounce after a local change, "Sync now", best-effort right after a context-menu save. The sync module is shared; the new-tab page runs it and the service worker only flags "dirty" or tries once.
 - Merge: pure function mergeStates(local, remote). Per id the higher updatedAt wins; tombstones beat older edits; purge tombstones older than 30 days; deleting a folder removes its id from items' folderIds. Unit test: concurrent edits, delete vs edit, clock skew, duplicate ids.
 - Failure: offline/429/5xx uses exponential backoff up to 5 minutes, never blocks the UI, never loses local data.
 - UI: menu > "Sync with Google Drive" (Connect/Disconnect), status line, "Sync now", last-synced time. Consent copy: "Pocket keeps one small file in a private Drive folder only this extension can open. Nothing else in your Drive is read." Disconnect keeps local data and offers a second action "Also delete Pocket data from Drive".
@@ -243,4 +243,4 @@ Manual checklist you must give me:
 
 ## 13. Definition of done (Phase 1)
 
-A first-time user can select text, right-click, see "Saved to Pocket", open a new tab, find it under Recent, Sites and its type chip, move it into a folder, copy it, and delete it with undo, with no setup. The widget is visually indistinguishable in style from the RSS Digest widget. Nothing existing broke.
+A first-time user can select text, right-click, see "Saved to Pocket", open a new tab, find it under Recent, Sites and its type chip, move it into a folder, copy it and delete it with undo, with no setup. The widget is visually indistinguishable in style from the RSS Digest widget. Nothing existing broke.

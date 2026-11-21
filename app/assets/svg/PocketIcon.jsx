@@ -1,7 +1,7 @@
 import React from "react";
 
 /**
- * Patch-pocket glyph — rounded-bottom pouch with a stitched seam. Renders a soft
+ * Patch-pocket glyph: rounded-bottom pouch with a stitched seam. Renders a soft
  * accent-tinted fill inside the pouch plus an accent outline, two stitch "knots"
  * at the seam ends, so the mark reads as a crafted pocket. The pouch spans most
  * of the 16px viewBox so it matches the visual weight of the bootstrap-icons

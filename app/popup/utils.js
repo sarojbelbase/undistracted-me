@@ -1,5 +1,5 @@
 /**
- * Popup utility helpers — shared between PopupApp and its child components.
+ * Popup utility helpers: shared between PopupApp and its child components.
  */
 
 /** Capitalize first letter */

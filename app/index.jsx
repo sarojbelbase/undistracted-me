@@ -1,4 +1,4 @@
-import './themeInit.js'; // must be first — sets data-mode & CSS vars before React renders
+import './themeInit.js'; // must be first: sets data-mode & CSS vars before React renders
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -61,7 +61,7 @@ if (
 // Increments the /visits KV counter on api.undistracted.me. Strictly gated to
 // app.undistracted.me so extension new-tab opens never fire it (and never trip
 // the extension CSP). A session cookie dedupes across tabs and refreshes, and
-// no identifier is sent — the counter is just a number.
+// no identifier is sent: the counter is just a number.
 if (location.hostname === 'app.undistracted.me') {
   try {
     if (!document.cookie.includes('um_visited=1')) {
@@ -69,11 +69,11 @@ if (location.hostname === 'app.undistracted.me') {
       fetch(`${API_BASE_URL}/visits`, { method: 'POST' }).catch(() => {});
     }
   } catch (e) {
-    // cookie or fetch blocked — never crash the app
+    // cookie or fetch blocked: never crash the app
   }
 }
 
-// Note: this app runs on Preact — `react`/`react-dom` are aliased to
+// Note: this app runs on Preact: `react`/`react-dom` are aliased to
 // `preact/compat` in vite.config.ts. Preact's compat layer renders
 // <StrictMode> as a passthrough (no double-invocation of updaters/effects), so
 // the wrapper is omitted here to avoid implying a guarantee we don't get.

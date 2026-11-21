@@ -3,11 +3,11 @@ import { ConfirmButton } from './ConfirmButton';
 import { TintedChip } from './TintedChip';
 import { fmt12, calcDuration, datePrefixFor, isLiveNow } from '../../widgets/events/utils';
 
-function EventTitle({ event, live, titleSz, compact, meetLink }) {
+function EventTitle({ event, live, titleSz, compact, meetLink, clickable }) {
   return (
     <div className="flex items-start gap-2">
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
-        {event.htmlLink
+        {event.htmlLink && !clickable
           ? <a
             href={event.htmlLink}
             target="_blank"
@@ -16,13 +16,16 @@ function EventTitle({ event, live, titleSz, compact, meetLink }) {
             style={{ color: live ? 'var(--w-success)' : 'var(--w-accent)' }}
           >{event.title}</a>
           : <p
-            className={`${titleSz} font-semibold leading-snug`}
-            style={{ color: live ? 'var(--w-success)' : 'var(--w-ink-1)' }}
+            className={`${titleSz} font-semibold leading-snug ${clickable ? 'hover:opacity-80 transition-opacity' : ''}`}
+            style={{ color: live ? 'var(--w-success)' : clickable ? 'var(--w-accent)' : 'var(--w-ink-1)' }}
           >{event.title}</p>
         }
       </div>
       {!compact && meetLink && (
-        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+        <div
+          className="flex items-center gap-1.5 shrink-0 mt-0.5"
+          onClick={clickable ? (e) => e.stopPropagation() : undefined}
+        >
           <TintedChip href={meetLink}>Go to Meet</TintedChip>
         </div>
       )}
@@ -64,7 +67,7 @@ function EventMeta({ live, metaParts, endLabel, metaSz }) {
 }
 
 /**
- * EventRow - reusable event row shared across Events widget, AllEventsModal, and Calendar tooltip.
+ * EventRow - reusable event row shared across Events widget, expanded view and Calendar tooltip.
  *
  * Props:
  *  event       - { id, title, htmlLink?, startTime?, endTime?, startDate?, endDate?, meetLink?, _source? }
@@ -72,6 +75,8 @@ function EventMeta({ live, metaParts, endLabel, metaSz }) {
  *  showMeet    - show "Go to Meet" chip (default true)
  *  showPrefix  - prepend Today/Tomorrow/date prefix to meta row (default true)
  *  compact     - compact variant for calendar tooltip - thinner bar, smaller text, no chips/delete
+ *  onOpen      - optional handler; makes the row clickable (goes to the event)
+ *                and renders the title as accent text instead of a link
  */
 export const EventRow = ({
   event,
@@ -79,6 +84,7 @@ export const EventRow = ({
   showMeet = true,
   showPrefix = true,
   compact = false,
+  onOpen,
 }) => {
   const live = !compact && isLiveNow(event);
   const endLabel = fmt12(event.endTime);
@@ -99,8 +105,24 @@ export const EventRow = ({
     : { bar: 'w-[6px]', minH: '38px', title: 'text-[13px]', meta: 'text-[11px]' };
   const { bar: barW, minH, title: titleSz, meta: metaSz } = SIZE;
 
+  const clickable = typeof onOpen === 'function';
+
+  const handleKeyDown = (e) => {
+    if (!clickable) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpen(event);
+    }
+  };
+
   return (
-    <div className="relative flex items-stretch gap-3 group">
+    <div
+      className={`relative flex items-stretch gap-3 group${clickable ? ' cursor-pointer' : ''}`}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? () => onOpen(event) : undefined}
+      onKeyDown={handleKeyDown}
+    >
 
       {/* Accent bar - pulses when live */}
       <div
@@ -111,7 +133,7 @@ export const EventRow = ({
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
 
         {/* Title row */}
-        <EventTitle event={event} live={live} titleSz={titleSz} compact={compact} meetLink={meetLink} />
+        <EventTitle event={event} live={live} titleSz={titleSz} compact={compact} meetLink={meetLink} clickable={clickable} />
 
         {/* Trash - absolutely positioned top-right, never affects row width */}
         {!compact && event._source !== 'gcal' && onRemove && (

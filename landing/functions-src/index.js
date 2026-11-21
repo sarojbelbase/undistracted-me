@@ -3,10 +3,10 @@
 // through to the static asset server (and _redirects/_headers).
 //
 // The markdown body is fetched from the already-built /index.md asset (Astro
-// prerenders it from src/pages/index.md.ts), so this Function stays DRY — the
+// prerenders it from src/pages/index.md.ts), so this Function stays DRY: the
 // negotiated representation is byte-identical to the /index.md alternate.
 //
-// Deployed from ./functions/index.js — see .github/workflows/deploy-landing.yml
+// Deployed from ./functions/index.js: see .github/workflows/deploy-landing.yml
 // "Stage Pages Functions" step. The source lives in ./landing/functions-src
 // (named to avoid the repo-root .gitignore rule that ignores `functions/`).
 

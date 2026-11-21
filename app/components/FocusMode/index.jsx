@@ -30,7 +30,7 @@ import { RightZone } from "./zones/RightZone";
 import { BottomRightZone } from "./zones/BottomRightZone";
 import { ZONES } from "./config";
 
-// Settings panel is only shown on demand — lazy-load to keep the initial chunk small.
+// Settings panel is only shown on demand: lazy-load to keep the initial chunk small.
 const FocusModeSettings = lazy(() =>
   import("./Settings").then((m) => ({ default: m.FocusModeSettings })),
 );
@@ -146,7 +146,7 @@ export const FocusMode = ({ onExit }) => {
     return () =>
       globalThis.removeEventListener("focus_mode_changed", onFocusModeChanged);
   }, []);
-  // Card surface style (glass vs flat) — both are always dark-tinted.
+  // Card surface style (glass vs flat): both are always dark-tinted.
   const { cardStyle, accent, focusBgSync, canvasBg } = useSettingsStore(
     useShallow((s) => ({
       cardStyle: s.cardStyle,
@@ -165,7 +165,7 @@ export const FocusMode = ({ onExit }) => {
 
   // ── Canvas background mirror (one-way) ─────────────────────────────────────
   // When "Mirror canvas background" is on, Focus Mode renders the canvas photo /
-  // custom-URL image. Solid + orb do not sync — they fall back to Focus Mode's
+  // custom-URL image. Solid + orb do not sync: they fall back to Focus Mode's
   // default. Changes only flow canvas → focus (never focus → canvas).
   const syncedUrl =
     focusBgSync &&
@@ -180,12 +180,12 @@ export const FocusMode = ({ onExit }) => {
     : bgSource;
   const effectiveCustomUrl = syncedUrl ?? customBgUrl;
 
-  // Non-curated sources are always dark — prevents white-shadow flash.
+  // Non-curated sources are always dark: prevents white-shadow flash.
   const effectiveClockDark = effectiveBgSource === "curated" ? clockDark : true;
   // The search pill is photo-adaptive (translucent glass) only in glass mode.
   // Paper and comic render the pill as a solid dark surface (see _paper.scss /
   // _comic.scss `:has(> #fm-search)`), so its text must stay light even over a
-  // bright photo — otherwise a light search zone flips the text to black-on-dark.
+  // bright photo: otherwise a light search zone flips the text to black-on-dark.
   const searchAdaptsToPhoto =
     effectiveBgSource === "curated" && effectiveCardStyle === "glass";
   const effectiveSearchDark = searchAdaptsToPhoto ? searchDark : true;

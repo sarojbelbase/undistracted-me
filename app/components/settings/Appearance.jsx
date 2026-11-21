@@ -1,5 +1,5 @@
 /**
- * Appearance — Theme, Accent colour, and Widget Style settings.
+ * Appearance: Theme, Accent colour and Widget Style settings.
  * Canvas mode: uses var(--card-*) / var(--w-*) CSS tokens only.
  *
  * All multi-option selectors use the shared <SegmentedControl> component
@@ -27,7 +27,7 @@ const SectionLabel = ({ children }) => (
 );
 
 // Muted one-line caption that explains what a setting does (WCAG: not the only
-// source of meaning — the control's own label already says what it is).
+// source of meaning: the control's own label already says what it is).
 const Hint = ({ children }) => (
   <p style={{ fontSize: 11, lineHeight: 1.45, color: 'var(--w-ink-5)', marginTop: 6 }}>
     {children}
@@ -40,7 +40,7 @@ const THEME_OPTIONS = [
   { label: 'Dark', value: 'dark' },
 ];
 
-// Static option lists — built once at module scope rather than recreated on
+// Static option lists: built once at module scope rather than recreated on
 // every render of the panel.
 const BACKGROUND_OPTIONS = [
   { id: 'solid', label: 'Solid' },
@@ -52,7 +52,7 @@ const BACKGROUND_SEGMENT_OPTIONS = BACKGROUND_OPTIONS.map(({ id, label }) => ({ 
 const CARD_STYLE_OPTIONS = CARD_STYLES.map(({ id, label }) => ({ label, value: id }));
 
 export const Appearance = () => {
-  // Narrow selectors — avoid re-rendering the whole panel on any single change.
+  // Narrow selectors: avoid re-rendering the whole panel on any single change.
   const mode = useSettingsStore((s) => s.mode);
   const setMode = useSettingsStore((s) => s.setMode);
   const accent = useSettingsStore((s) => s.accent);
@@ -64,12 +64,13 @@ export const Appearance = () => {
   const widgetDim = useSettingsStore((s) => s.widgetDim);
   const setWidgetDim = useSettingsStore((s) => s.setWidgetDim);
 
-  // Canonical auto-mode resolution — resolves 'auto' to the effective light/dark
+  // Canonical auto-mode resolution: resolves 'auto' to the effective light/dark
   // so the accent swatches use the correct tone even during the day. Reads only
   // (`apply: false`); App.jsx is the single place that applies the theme.
   const effectiveMode = useAutoTheme(mode, accent, cardStyle, { apply: false });
 
   const bgType = canvasBg?.type ?? APP_SETTINGS_DEFAULTS.canvasBg.type;
+  const cardStyleHint = CARD_STYLES.find((s) => s.id === cardStyle)?.hint;
 
   // Preserve the full canvasBg shape (url/photoId/color/orbId) across mode
   // switches so a chosen photo or custom URL survives a temporary flip to
@@ -101,7 +102,7 @@ export const Appearance = () => {
           value={cardStyle}
           onChange={setCardStyle}
         />
-        <Hint>How every widget card looks — Paper is warm and textured, Glass is frosted and translucent, Comic is bold and playful.</Hint>
+        <Hint>{cardStyleHint}</Hint>
       </div>
 
       {/* ── Widget Focus ── */}
@@ -167,7 +168,7 @@ export const Appearance = () => {
           value={bgType}
           onChange={setType}
         />
-        <Hint>What fills the canvas behind your widgets — a flat colour, slow ambient motion, or a photo or custom image.</Hint>
+        <Hint>What fills the canvas behind your widgets: a flat colour, slow ambient motion, a photo or a custom image.</Hint>
         {(bgType === 'photo' || bgType === 'custom') && (
           <div style={{ marginTop: 12 }}>
             <CanvasBackgroundPicker type={bgType} value={canvasBg} onChange={setCanvasBg} />

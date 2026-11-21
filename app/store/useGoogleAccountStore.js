@@ -1,8 +1,8 @@
 /**
- * useGoogleAccountStore — centralized Google OAuth state.
+ * useGoogleAccountStore: centralized Google OAuth state.
  *
  * Single source of truth for Google auth across ALL widgets and focus mode.
- * One connect/disconnect action covers Calendar, Contacts, and Tasks.
+ * One connect/disconnect action covers Calendar, Contacts and Tasks.
  *
  * Consumers:
  *  - settings/Accounts  (connect/disconnect UI)
@@ -38,7 +38,7 @@ export const useGoogleAccountStore = create((set, get) => ({
   initialized: false,
 
   /**
-   * Silent init — checks for an existing valid token without showing OAuth UI.
+   * Silent init: checks for an existing valid token without showing OAuth UI.
    * Call once from App root on mount.
    */
   init: async () => {
@@ -53,7 +53,7 @@ export const useGoogleAccountStore = create((set, get) => ({
         const profile = await getGoogleUserProfile();
         set({ connected: true, profile });
         // Mirror connect(): a valid token means the Drive scope is granted, so
-        // mark the transport connected and enable cross-device sync — otherwise
+        // mark the transport connected and enable cross-device sync: otherwise
         // an already-signed-in user shows "not connected" until they re-connect.
         syncTransport.setConnected(true);
         useSettingsStore.getState().setSyncEnabled(true);
@@ -63,13 +63,13 @@ export const useGoogleAccountStore = create((set, get) => ({
     }
   },
 
-  /** Interactive connect — opens Google OAuth UI. */
+  /** Interactive connect: opens Google OAuth UI. */
   connect: async () => {
     if (!isGoogleAuthAvailable()) {
       set({ error: 'Google sign-in is not available in this environment.' });
       return;
     }
-    // User is actively connecting — clear the disconnected flag so init() works again next reload.
+    // User is actively connecting: clear the disconnected flag so init() works again next reload.
     localStorage.removeItem(USER_DISCONNECTED_KEY);
     set({ connecting: true, error: null });
     try {
@@ -77,7 +77,7 @@ export const useGoogleAccountStore = create((set, get) => ({
       const profile = await getGoogleUserProfile();
       set({ connected: true, profile, connecting: false });
       track(TELEMETRY_EVENTS.ACCOUNT_CONNECTED, { service: 'google' });
-      // Google sign-in now also grants the Drive scope — enable cross-device sync.
+      // Google sign-in now also grants the Drive scope: enable cross-device sync.
       syncTransport.setConnected(true);
       useSettingsStore.getState().setSyncEnabled(true);
       globalThis.dispatchEvent(
@@ -88,11 +88,11 @@ export const useGoogleAccountStore = create((set, get) => ({
     }
   },
 
-  /** Disconnect — clears token + all Google service caches. */
+  /** Disconnect: clears token + all Google service caches. */
   disconnect: async () => {
     // Persist user intent so init() skips auto-reconnect on next page load.
     localStorage.setItem(USER_DISCONNECTED_KEY, '1');
-    // Update state immediately so UI responds — don't block on async token/cache cleanup.
+    // Update state immediately so UI responds: don't block on async token/cache cleanup.
     // (Mirroring the earlier approach: set state first, then clean up in the background.)
     set({ connected: false, profile: null, error: null });
     track(TELEMETRY_EVENTS.ACCOUNT_DISCONNECTED, { service: 'google' });

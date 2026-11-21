@@ -1,15 +1,15 @@
 /**
- * useWeather — single shared weather hook for all consumers.
+ * useWeather: single shared weather hook for all consumers.
  *
  * Data comes from the shared DataHub (`weather` namespace) written by the
  * background service worker's UM_PREFETCH alarm, plus a per-unit localStorage
- * cache for instant display.  There is NO page-side polling interval — the SW
+ * cache for instant display.  There is NO page-side polling interval: the SW
  * stamps `updatedAt` on each write and the hub propagates changes live.
  *
  * Cache waterfall (first hit wins):
- *   1. localStorage (readWeatherCache)       — per-city, per-unit, instant
- *   2. DataHub `weather` (SW pre-fetch)      — metric only, coords ~1 km
- *   3. fetchOpenMeteo / fetchAQI             — live network call (first load)
+ *   1. localStorage (readWeatherCache)      : per-city, per-unit, instant
+ *   2. DataHub `weather` (SW pre-fetch)     : metric only, coords ~1 km
+ *   3. fetchOpenMeteo / fetchAQI            : live network call (first load)
  *
  * Consumers:
  *   - Weather widget    (needs weather + forecast + AQI)
@@ -32,7 +32,7 @@ import {
 import { useDataHub } from "./useDataHub";
 
 // Module-level in-flight dedup. useWeather is instantiated independently by the
-// Weather widget (full: true), Focus Mode, and the popup — on a cold start with
+// Weather widget (full: true), Focus Mode and the popup: on a cold start with
 // no SW/DataHub prefetch, all three would otherwise fire their own fetchOpenMeteo.
 // This Map lets concurrent consumers share ONE fetch per (location, unit, full).
 const inFlight = new Map();
@@ -88,7 +88,7 @@ export function useWeather({ lat, lon, unit = "metric", cityName = "", full = fa
       // Tag the payload with the unit it was fetched in so consumers can
       // convert on the fly without a stale ref (see the weather widget).
       applyData({ ...cached.weather, unit }, cached.forecast ?? null, cached.aqi ?? null);
-      if (cached.fresh) return; // still within TTL — no network, no polling
+      if (cached.fresh) return; // still within TTL: no network, no polling
     }
 
     // ── Tier 2: DataHub (SW pre-fetch, metric only) ──────────────────────

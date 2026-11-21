@@ -15,7 +15,7 @@
   animation: panel-in 0.18s #{c.$ease-smooth};
 }
 
-// Keyboard accessibility — focus-visible ring
+// Keyboard accessibility: focus-visible ring
 // Only fires when navigating by keyboard; invisible on mouse/touch.
 button:focus-visible,
 [role="button"]:focus-visible,
@@ -50,7 +50,7 @@ textarea:focus-visible,
   }
 }
 
-// ── Arrange mode — suppress widget option buttons ────────────────────────────
+// ── Arrange mode: suppress widget option buttons ────────────────────────────
 // CSS hover still fires even when pointer-events:none is on a parent, so we
 // must force opacity:0 via a root data attribute rather than a Tailwind class.
 // Applied unconditionally (not only on hover) so the invisible ⋯ button can't

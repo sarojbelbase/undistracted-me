@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the PostHog SDK — we assert on what the telemetry module *would* send
+// Mock the PostHog SDK: we assert on what the telemetry module *would* send
 // without hitting the network. The default export is the singleton instance.
 const mockPostHog = {
   init: vi.fn(),

@@ -51,7 +51,7 @@ const SkeletonRow = ({ isLast = false }) => (
   </div>
 );
 
-// ─── Brief mode — headline row ────────────────────────────────────────────────
+// ─── Brief mode: headline row ────────────────────────────────────────────────
 
 const HeadlineRow = ({ item, isLast = false }) => {
   const time = item.isoDate ? relativeTime(item.isoDate) : "";
@@ -91,7 +91,7 @@ const HeadlineRow = ({ item, isLast = false }) => {
   );
 };
 
-// ─── Marquee mode — single full-bleed story card ──────────────────────────────
+// ─── Marquee mode: single full-bleed story card ──────────────────────────────
 
 const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext, paused, onTogglePause }) => {
   const [navHovered, setNavHovered] = useState(false);
@@ -116,7 +116,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
 
   // ── Source pill overflow ──────────────────────────────────────────────────
   // The pill is capped at a share of the row. If the feed label is longer than
-  // that, it ellipsizes at rest and marquees its full text on hover/focus —
+  // that, it ellipsizes at rest and marquees its full text on hover/focus -
   // never pushing the refresh button or timestamp out of the row.
   const pillRef = useRef(null);
   const pillTextRef = useRef(null);
@@ -143,7 +143,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
 
   if (!item) return null;
 
-  // Direction-aware text drift — background stays static, only text animates
+  // Direction-aware text drift: background stays static, only text animates
   const textAnim = direction === "prev" ? "rss-text-in-prev" : "rss-text-in-next";
 
   return (
@@ -167,9 +167,9 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
       <div className="rss-marquee-bg">
         {/* Deep ink base */}
         <div className="rss-marquee-bg__ink" />
-        {/* Editorial highlight — top-left warm glow */}
+        {/* Editorial highlight: top-left warm glow */}
         <div className="rss-marquee-bg__glow" />
-        {/* Accent color pulse — driven by CSS var (theme-aware) */}
+        {/* Accent color pulse: driven by CSS var (theme-aware) */}
         <div className="rss-marquee-bg__accent" />
       </div>
 
@@ -213,7 +213,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             <RefreshIcon size={10} spinning={isLoading} />
           </button>
 
-          {/* Pause/play auto-advance (WCAG 2.2.2 — pause, stop, hide) */}
+          {/* Pause/play auto-advance (WCAG 2.2.2: pause, stop, hide) */}
           <button
             type="button"
             onMouseDown={(e) => e.stopPropagation()}
@@ -230,7 +230,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
           )}
         </div>
 
-        {/* Title block — fills the remaining space, title anchored top, nav pinned bottom */}
+        {/* Title block: fills the remaining space, title anchored top, nav pinned bottom */}
         <div
           className="rss-marquee__title-block"
           style={{ animation: `${textAnim} 0.35s 0.06s ease-out both` }}
@@ -244,7 +244,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             onClick={(e) => { e.stopPropagation(); if (item.link && /^https?:\/\//.test(item.link)) window.open(item.link, "_blank", "noopener"); }}
           />
 
-          {/* ── Dot nav + arrow buttons row — pinned to bottom via margin-top:auto ── */}
+          {/* ── Dot nav + arrow buttons row: pinned to bottom via margin-top:auto ── */}
           {total > 1 && (
             <div
               className="rss-marquee__nav-row"
@@ -279,7 +279,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
 
               {/* ── Smooth sliding dot indicator ──
                    All background dots are uniform and static.
-                   A single white circle slides via translateX — one animation,
+                   A single white circle slides via translateX: one animation,
                    Material You easing, GPU-composited, zero jank. */}
               {(() => {
                 const DOT = 4;      // background dot diameter
@@ -326,7 +326,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                       />
                     ))}
 
-                    {/* Sliding indicator — single element, single animation */}
+                    {/* Sliding indicator: single element, single animation */}
                     <div
                       style={{
                         position: 'absolute',
@@ -341,7 +341,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
                         // Smooth slide: Material You standard easing
                         transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)',
                         pointerEvents: 'none',
-                        // Subtle ring — marks position without blooming
+                        // Subtle ring: marks position without blooming
                         boxShadow: '0 0 0 1.5px rgba(255,255,255,0.08)',
                       }}
                     />
@@ -386,7 +386,7 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
 
 const MarqueeSkeleton = () => (
   <div className="absolute inset-0 rss-marquee-skeleton">
-    {/* Headlight sweep — bright band travelling across the accent, on top of
+    {/* Headlight sweep: bright band travelling across the accent, on top of
         the scrim + bones (mimics a spotlight sweeping over the card). */}
     <div className="rss-marquee-skeleton__sweep" aria-hidden="true" />
     {/* Source pill placeholder */}
@@ -445,7 +445,7 @@ export const Widget = ({ id, onRemove }) => {
   const sourceMode = settings.sourceMode ?? (customFeeds.length > 0 ? "custom" : "presets");
 
   // Mutually exclusive: only use presets OR custom, never both. Memoized so the
-  // array reference is stable — useRssMulti's ref-sync effect (dep: `feeds`)
+  // array reference is stable: useRssMulti's ref-sync effect (dep: `feeds`)
   // otherwise re-runs on every render.
   const allActiveFeeds = useMemo(() => {
     if (sourceMode === "custom") {
@@ -459,7 +459,7 @@ export const Widget = ({ id, onRemove }) => {
   const feedsKey = allActiveFeeds.map((f) => `${f.label}|${f.url}`).join(",");
   const activeFeedIdsKey = activeFeedIds.join(",");
 
-  // Always use multiResult — useRss (single-feed) was removed as it ran a full
+  // Always use multiResult: useRss (single-feed) was removed as it ran a full
   // fetch+state+interval cycle for a result that was never read.
   const { items, loading, error, refreshedAt, refresh } = useRssMulti(allActiveFeeds);
   const ageLabel = useAgeLabel(refreshedAt);
@@ -481,7 +481,7 @@ export const Widget = ({ id, onRemove }) => {
   // ── Item ordering ────────────────────────────────────────────────────────────
   // `items` is already sorted newest-first by useRssMulti. We preserve that
   // order exactly (never re-order) and only jump to index 0 when the newest
-  // headline's link *actually changes* — i.e. genuinely new content arrived.
+  // headline's link *actually changes*: i.e. genuinely new content arrived.
   //
   // The old "seen-links" logic bubbled any previously-unseen link to the front,
   // so a back-dated or newly-discovered item (e.g. 3 days old) could leapfrog a
@@ -498,7 +498,7 @@ export const Widget = ({ id, onRemove }) => {
     }
     const newestLink = items[0]?.link;
     const isNewestNew = !!newestLink && newestLink !== prevNewestLinkRef.current;
-    // Cap at 100 items — no user scrolls through more in a tiny widget card.
+    // Cap at 100 items: no user scrolls through more in a tiny widget card.
     setOrderedItems(items.slice(0, 100));
     if (isNewestNew) {
       setCurrentIndex(0); // jump to newest
@@ -514,7 +514,7 @@ export const Widget = ({ id, onRemove }) => {
 
   const feedCount = allActiveFeeds.length;
   const feedWord = feedCount === 1 ? "feed" : "feeds";
-  // Digest header is narrower — use a compact variant without story count
+  // Digest header is narrower: use a compact variant without story count
   const digestLabel = feedCount === 1
     ? allActiveFeeds[0]?.label ?? '1 feed'
     : `${feedCount} ${feedWord}`;
@@ -537,7 +537,7 @@ export const Widget = ({ id, onRemove }) => {
   const goNext = useCallback(() => {
     setNavDirection("next");
     // Read the index from the closure (not inside an updater) so the two setters
-    // run side-by-side — never call setState inside another setState updater.
+    // run side-by-side: never call setState inside another setState updater.
     if (currentIndex >= displayItems.length - 2 && hasMore) setVisibleCount((c) => c + 10);
     setCurrentIndex((currentIndex + 1) % displayItems.length);
   }, [currentIndex, displayItems.length, hasMore]);
@@ -669,7 +669,7 @@ export const Widget = ({ id, onRemove }) => {
           />
         ))}
 
-        {/* Sentinel — triggers next batch when scrolled into view */}
+        {/* Sentinel: triggers next batch when scrolled into view */}
         {!showSkeleton && !showError && hasMore && (
           <div ref={sentinelRef} style={{ height: 1, flexShrink: 0 }} aria-hidden="true" />
         )}

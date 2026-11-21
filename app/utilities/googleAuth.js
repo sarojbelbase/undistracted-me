@@ -1,5 +1,5 @@
 /**
- * Unified Google OAuth2 auth helper — ONE "Web application" OAuth client, ONE
+ * Unified Google OAuth2 auth helper: ONE "Web application" OAuth client, ONE
  * PKCE authorization-code flow, works everywhere: Chrome, Brave, Edge, Opera,
  * Vivaldi, Firefox (extension) and the hosted website.
  *
@@ -7,7 +7,7 @@
  *                          redirect URI = chrome.identity.getRedirectURL()
  *                          (https://<id>.chromiumapp.org/ on Chrome/Chromium,
  *                           https://sha1(<gecko-id>).extensions.allizom.org/ on
- *                           Firefox — Firefox hashes the id, it's not the raw id)
+ *                           Firefox: Firefox hashes the id, it's not the raw id)
  * Website                → popup + PKCE
  *                          redirect URI = <origin>/callbacks/auth.html
  *
@@ -21,7 +21,7 @@ import { GOOGLE_SCOPES, GOOGLE_AUTH_ENDPOINT, GOOGLE_USERINFO_API } from '../con
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 // Server-side token-exchange endpoint. Absolute URL so it works from
-// chrome-extension://, moz-extension://, and https:// origins alike.
+// chrome-extension://, moz-extension:// and https:// origins alike.
 // Dev: localhost:3000 (when running a local API); prod: api.undistracted.me.
 const isDev = import.meta.env.DEV || false;
 const TOKEN_ENDPOINT = isDev
@@ -85,7 +85,7 @@ async function clearStoredToken() {
 /**
  * Exchange an authorization code for tokens via /auth/google/token.
  * The client_secret stays server-side; the client sends only the public
- * client_id, the code, and the PKCE verifier.
+ * client_id, the code and the PKCE verifier.
  */
 async function exchangeCodeForTokens({ code, codeVerifier, redirectUri }) {
   const res = await fetch(TOKEN_ENDPOINT, {
@@ -127,7 +127,7 @@ async function refreshStoredToken(refreshToken) {
   };
 }
 
-// In-flight refresh dedup — Calendar, Contacts, Tasks, and Drive all call
+// In-flight refresh dedup: Calendar, Contacts, Tasks and Drive all call
 // getValidStoredToken() on the same page load; without this, each expired-token
 // caller would kick off its own refreshStoredToken round-trip.
 let refreshInFlight = null;
@@ -227,7 +227,7 @@ async function getAuthorizationCodeWeb() {
       authUrl.toString(), 'google-auth',
       `width=${w},height=${h},left=${left},top=${top},popup=1`
     );
-    if (!popup) { reject(new Error('Popup blocked — allow popups for this site')); return; }
+    if (!popup) { reject(new Error('Popup blocked: allow popups for this site')); return; }
 
     const onMessage = (e) => {
       if (e.origin !== globalThis.location.origin) return;
@@ -266,7 +266,7 @@ export async function getGoogleAuthToken(interactive = true) {
   const stored = await getValidStoredToken();
   if (stored) return stored;
   if (!interactive) throw new Error('Not authenticated');
-  if (!CLIENT_ID) throw new Error('Google sign-in not configured — set VITE_GOOGLE_CLIENT_ID');
+  if (!CLIENT_ID) throw new Error('Google sign-in not configured: set VITE_GOOGLE_CLIENT_ID');
 
   const { code, verifier, redirectUri } = isWebPath()
     ? await getAuthorizationCodeWeb()
@@ -279,7 +279,7 @@ export async function getGoogleAuthToken(interactive = true) {
 
 /**
  * Discard the stored token so the next call re-authenticates. The optional
- * `token` argument is accepted for backward compatibility only — it is unused
+ * `token` argument is accepted for backward compatibility only: it is unused
  * (it was only ever needed by chrome.identity.removeCachedAuthToken, which the
  * unified launchWebAuthFlow flow no longer uses).
  */

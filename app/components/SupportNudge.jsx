@@ -1,7 +1,7 @@
 /**
- * SupportNudge — connected wrapper for the support dialog.
+ * SupportNudge: connected wrapper for the support dialog.
  * Mount this once at the app root (App.jsx). It reads the support store and
- * drives `<SupportDialog />`; components never render the dialog themselves —
+ * drives `<SupportDialog />`; components never render the dialog themselves -
  * they call `triggerSupportNudge(reason)` instead.
  */
 

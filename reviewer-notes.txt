@@ -1,4 +1,4 @@
-UNDISTRACTED ME — REVIEWER NOTES
+UNDISTRACTED ME: REVIEWER NOTES
 Extension ID: {1071d037-0f17-4c92-b06c-704050d2e2c3} · Version: 4.0.0
 
 WHAT IT IS
@@ -12,7 +12,7 @@ bun run build:firefox → dist-firefox/
 Source is unminified (Vite + @crxjs/vite-plugin, MV3). No eval or remote
 code; CSP script-src 'self'.
 
-OAUTH — no shared client secret
+OAUTH: no shared client secret
 - Google: PKCE via chrome.identity.launchWebAuthFlow; code exchanged
   server-side at https://api.undistracted.me/auth/google/token (validates
   redirect_uri allowlist + PKCE code_verifier). Bundle has only the public
@@ -45,12 +45,12 @@ declarativeNetRequest `redirect` action: the `declarativeNetRequest` permission
 alone only grants implicit access to `block`/`allow`/`allowAllRequests` rules,
 while `redirect` (to the blocked.html interstitial) requires host permission on
 the blocked host. Without <all_urls> the blocker silently no-ops on any site not
-already in host_permissions. No request data is read — DNR redirects happen in
+already in host_permissions. No request data is read: DNR redirects happen in
 the browser's network stack without exposing request content to the extension.
 
 CONTENT SCRIPTS
 YouTube + SoundCloud (media.js, document_idle): polls mediaSession, routes
-MEDIA_ACTION commands. Messages allowlist-validated. No innerHTML, eval, or
+MEDIA_ACTION commands. Messages allowlist-validated. No innerHTML, eval or
 data exfiltration.
 
 WEB-ACCESSIBLE RESOURCES
@@ -61,7 +61,7 @@ probe the pinned ID to detect install (accepted; no data leaks).
 
 THIRD-PARTY SERVICES
 Weather (open-meteo.com); IP geolocation fallback (nominatim, freeipapi.com,
-ipapi.co — only if geolocation unavailable AND weather on; in privacy policy);
+ipapi.co: only if geolocation unavailable AND weather on; in privacy policy);
 stocks (nepalipaisa.com, merolagani.com); Spotify; Google APIs; search
 (Google/DDG); jokes (icanhazdadjoke.com); backend (api.undistracted.me: FF
 token exchange, photos, favicon, RSS proxy).

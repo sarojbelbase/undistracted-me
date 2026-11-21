@@ -13,11 +13,11 @@ import { FAVICON_TEXT_SHADOW } from '../../theme/canvas';
  * Unified favicon component used by bookmarks and quickAccess widgets.
  *
  * Props:
- *   url        {string}   — full or protocol-relative URL
- *   size       {number}   — pixel dimension for the image (default 40)
- *   onColor    {fn}       — called with dominant brand color extracted from the image
- *   onSettled  {fn}       — called when image loads OR falls back to letter (quickAccess shimmer)
- *   iconMode   {string}   — 'favicon' (default) | 'letter' (bookmarks letter mode)
+ *   url        {string}  : full or protocol-relative URL
+ *   size       {number}  : pixel dimension for the image (default 40)
+ *   onColor    {fn}      : called with dominant brand color extracted from the image
+ *   onSettled  {fn}      : called when image loads OR falls back to letter (quickAccess shimmer)
+ *   iconMode   {string}  : 'favicon' (default) | 'letter' (bookmarks letter mode)
  */
 export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'favicon' }) => {
   const hostname = getHostname(url);
@@ -29,7 +29,7 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
 
   useEffect(() => { setIdx(0); setLoaded(false); }, [url]);
 
-  // Letter mode — no network fetch; design-system accent colour.
+  // Letter mode: no network fetch; design-system accent colour.
   if (iconMode === 'letter') {
     return (
       <span
@@ -49,7 +49,7 @@ export const FaviconIcon = ({ url, size = 40, onColor, onSettled, iconMode = 'fa
 
   const src = sources[idx];
 
-  // Letter fallback — all network sources exhausted.
+  // Letter fallback: all network sources exhausted.
   if (src === '') {
     return <LetterFallback hostname={hostname} letter={letter} size={size} onSettled={onSettled} />;
   }

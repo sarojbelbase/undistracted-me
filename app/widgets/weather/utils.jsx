@@ -1,5 +1,5 @@
 /**
- * Weather widget utilities — forecast + air-quality parsing.
+ * Weather widget utilities: forecast + air-quality parsing.
  * Fetched via the backend proxy (api.undistracted.me); no API key required.
  */
 import {
@@ -22,11 +22,11 @@ import {
   CloudFogFill,
 } from "react-bootstrap-icons";
 
-/** No longer needed — kept so any lingering import doesn't crash. */
+/** No longer needed: kept so any lingering import doesn't crash. */
 const API_KEY = null;
 
 // ── WMO weather interpretation code → human description ──────────────────────
-// (getCoords, reverseGeocode, getCoordsFromIP were removed — superseded by
+// (getCoords, reverseGeocode, getCoordsFromIP were removed: superseded by
 // the centralized useLocationStore. See app/store/useLocationStore.js.)
 const WMO = {
   0: "clear sky",
@@ -96,11 +96,11 @@ export const getWeatherIcon = (code, isDay, size = 52) => {
   return <Icon {...p} />;
 };
 
-// ── (getCoords, reverseGeocode, getCoordsFromIP removed — superseded by
+// ── (getCoords, reverseGeocode, getCoordsFromIP removed: superseded by
 //     the centralized useLocationStore in app/store/useLocationStore.js) ──
 
 /**
- * Single weather call — returns current + 12h hourly forecast.
+ * Single weather call: returns current + 12h hourly forecast.
  * No API key required.
  * @param {'metric'|'imperial'} units
  */
@@ -228,7 +228,7 @@ export const parseForecast = (data) => {
 // from the cache while a background refresh runs if the cache is stale.
 
 const WEATHER_CACHE_KEY = "weather_cache_v1";
-const CACHE_TTL_MS = 30 * 60_000; // 30 min — matches the widget's refresh interval
+const CACHE_TTL_MS = 30 * 60_000; // 30 min: matches the widget's refresh interval
 
 /**
  * Read cached weather result for a given location + unit combination.
@@ -254,7 +254,7 @@ export const readWeatherCache = (locationKey, unit) => {
 
 /**
  * Persist a weather + AQI result to localStorage so the next tab open can skip the fetch.
- * @param {object|null} aqi  parsed AQI object — { value, pm25 } — or null if unavailable
+ * @param {object|null} aqi  parsed AQI object: { value, pm25 }: or null if unavailable
  */
 export const writeWeatherCache = (
   weather,
@@ -276,15 +276,15 @@ export const writeWeatherCache = (
       }),
     );
   } catch {
-    /* storage unavailable — silent */
+    /* storage unavailable: silent */
   }
 };
 
 // ── AQI (Air Quality Index) ───────────────────────────────────────────────────
 
 /**
- * US AQI breakpoints — label, color, and health guidance.
- * Source: EPA AirNow — https://www.airnow.gov/aqi/aqi-basics/
+ * US AQI breakpoints: label, color and health guidance.
+ * Source: EPA AirNow: https://www.airnow.gov/aqi/aqi-basics/
  */
 export const AQI_LEVELS = [
   { max: 50, label: "Good", color: "#22c55e" },
@@ -308,7 +308,7 @@ export const getAQILevel = (value) => {
 
 /**
  * Fetches current US AQI + PM2.5 from the weather air quality API.
- * Free — no API key required. Non-fatal: callers should .catch(() => null).
+ * Free: no API key required. Non-fatal: callers should .catch(() => null).
  */
 export const fetchAQI = (lat, lon) => {
   const params = new URLSearchParams({

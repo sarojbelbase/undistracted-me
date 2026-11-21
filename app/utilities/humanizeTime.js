@@ -1,5 +1,5 @@
 /**
- * humanizeTime — Single source of truth for all time-relative display.
+ * humanizeTime: Single source of truth for all time-relative display.
  *
  * Every widget that shows "in 5 min", "2 years ago", "Next Week", etc.
  * MUST use this function. No more scattered humanizers.
@@ -12,10 +12,10 @@
  *   h.full     // "in 14 hours", "2 years ago", "next week"
  *   h.calendar // "Today", "Tomorrow", "Yesterday", "Next Week", etc.
  *
- * @param {Date|string} date  — target Date object or YYYY-MM-DD string
+ * @param {Date|string} date : target Date object or YYYY-MM-DD string
  * @param {object} [opts]
- * @param {string} [opts.time]  — "HH:MM" time component
- * @param {number} [opts.now]   — current timestamp for render consistency
+ * @param {string} [opts.time] : "HH:MM" time component
+ * @param {number} [opts.now]  : current timestamp for render consistency
  * @returns {{
  *   compact: string,    // list-item label: "14h", "2y", "Yesterday"
  *   full: string,       // widget face phrase: "in 14 hours", "2 years ago"
@@ -129,7 +129,7 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   const absDays = Math.abs(days);
   const calMonths = Math.abs(diffCalMonths(target, now));
 
-  // Sub-24h tiers are keyed on elapsed time, not the calendar day — an event
+  // Sub-24h tiers are keyed on elapsed time, not the calendar day: an event
   // 2 hours away that happens to fall on "tomorrow" should read "in 2 hours".
   if (target - now < 24 * 3600 * 1000) return _futureToday(target, now, isToday);
   if (isTomorrow) return { compact: 'Tomorrow', full: 'tomorrow', calendar: 'Tomorrow' };
@@ -142,7 +142,7 @@ function _humanizeFuture(target, now, days, isToday, isTomorrow) {
   if (_isNextYear(target, now) && calMonths >= 6) return { compact: 'Next Year', full: 'next year', calendar: 'Next Year' };
   if (absDays < 30) return _futureWeeks(absDays);
   if (calMonths < 12) return _futureMonths(calMonths);
-  // Years derived from month count, not calendar-year difference — a date 3.3
+  // Years derived from month count, not calendar-year difference: a date 3.3
   // years out (e.g. Nov 2026 → Mar 2030) is 3 years, not 4.
   return _futureYears(Math.floor(calMonths / 12));
 }
@@ -187,7 +187,7 @@ function _humanizePast(target, now, days, isToday, isYesterday) {
 
   if (totalMin < 1) return { compact: 'just now', full: 'just now', calendar: 'Today' };
   if (totalMin < 60) return { compact: `${fmtMins(totalMin)} ago`, full: `${fullMins(totalMin)} ago`, calendar: isToday ? 'Today' : 'Yesterday' };
-  // Sub-24h tiers are keyed on elapsed time, not the calendar day — a 3h-old
+  // Sub-24h tiers are keyed on elapsed time, not the calendar day: a 3h-old
   // timestamp that falls on "yesterday" should read "3h ago", not "Yesterday".
   if (totalHrs < 24) {
     return { compact: `${fmtHours(totalHrs)} ago`, full: `${fullHours(totalHrs)} ago`, calendar: isToday ? 'Today' : 'Yesterday' };

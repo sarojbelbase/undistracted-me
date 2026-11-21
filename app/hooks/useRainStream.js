@@ -1,13 +1,13 @@
 /**
- * useRainStream — single-file ambient audio player
+ * useRainStream: single-file ambient audio player
  *
  * Fetches the secure OGG URL from /audio/rain on mount, then sets
  * it as the src on the <audio> element via the returned ref. The browser
- * handles HTTP Range Requests and native caching automatically — no manual
+ * handles HTTP Range Requests and native caching automatically: no manual
  * fetch needed.
  *
- * The <audio> element is not guaranteed to be stable — the pomodoro widget
- * renders a fresh <audio> node per phase — so this hook re-applies the src
+ * The <audio> element is not guaranteed to be stable: the pomodoro widget
+ * renders a fresh <audio> node per phase: so this hook re-applies the src
  * whenever the element is swapped out.
  *
  * Usage:
@@ -54,7 +54,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     // node (new element, empty src) must be re-populated.
     if (appliedElRef.current === audio && appliedUrlRef.current === url) return;
     appliedElRef.current = audio;
-    // Don't interrupt active playback with a URL swap — keep the current
+    // Don't interrupt active playback with a URL swap: keep the current
     // stream but remember the fresh URL for the next play session.
     if (audio.src && !audio.paused) {
       appliedUrlRef.current = url;
@@ -65,7 +65,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     setReady(true);
   }, []);
 
-  // 1. Fetch the secure CDN URL — serve stale from localStorage instantly,
+  // 1. Fetch the secure CDN URL: serve stale from localStorage instantly,
   //    then revalidate from API in background.
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +83,7 @@ export function useRainStream(fadeDurationMs = 3000) {
         if (!url || cancelled) return;
         localStorage.setItem(URL_CACHE_KEY, url);
         applyUrl(url);
-      } catch { /* network unavailable — cached URL already applied */ }
+      } catch { /* network unavailable: cached URL already applied */ }
     };
     init();
     return () => { cancelled = true; };
@@ -92,9 +92,9 @@ export function useRainStream(fadeDurationMs = 3000) {
   // Re-populate the <audio> src if the element was swapped out on a later render
   // (e.g. the pomodoro widget remounts its <audio> when the phase changes).
   // Deliberately no dependency array: it must run after *every* render to catch
-  // a freshly-mounted <audio> node — the swap is driven by the parent's DOM (the
+  // a freshly-mounted <audio> node: the swap is driven by the parent's DOM (the
   // pomodoro widget swaps PICK ↔ TIMER branches, each with its own <audio>), not
-  // by any hook state we can observe. Idempotent — the appliedElRef guard in
+  // by any hook state we can observe. Idempotent: the appliedElRef guard in
   // applyUrl makes repeated calls a no-op.
   useEffect(() => {
     if (appliedUrlRef.current) applyUrl(appliedUrlRef.current);
@@ -111,7 +111,7 @@ export function useRainStream(fadeDurationMs = 3000) {
       if (audio.readyState >= 1) doSeek();
       else audio.addEventListener("loadedmetadata", doSeek, { once: true });
     }
-    // Throttle position persistence — `timeupdate` fires ~4×/second; writing
+    // Throttle position persistence: `timeupdate` fires ~4×/second; writing
     // localStorage at that rate hammers disk (and any `storage` listeners).
     let lastPersist = 0;
     const onTimeUpdate = () => {
@@ -190,7 +190,7 @@ export function useRainStream(fadeDurationMs = 3000) {
     }
   }, [isPlaying, ready, fadeVolume]);
 
-  // Deterministic start/stop — safe to call regardless of captured `isPlaying`.
+  // Deterministic start/stop: safe to call regardless of captured `isPlaying`.
   // The pomodoro widget (and any caller syncing a desired on/off state) should
   // use these instead of `toggle()` to avoid stale-closure toggles.
   const play = useCallback(() => {

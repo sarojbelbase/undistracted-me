@@ -1,8 +1,8 @@
 /**
- * chime.js — Web Audio API chime generator for Pomodoro timer completion.
+ * chime.js: Web Audio API chime generator for Pomodoro timer completion.
  *
  * Zero dependencies. Generates a pleasant two-tone chime using oscillators.
- * No external audio file needed — works offline, in extension context, and on web.
+ * No external audio file needed: works offline, in extension context and on web.
  *
  * Usage:
  *   import { playChime } from './chime';
@@ -23,7 +23,7 @@ let audioCtx = null;
  * device stream, which is released when the page unloads).
  */
 const getCtx = () => {
-  // A context can be closed by the platform (e.g. after a long suspend) —
+  // A context can be closed by the platform (e.g. after a long suspend) -
   // recreate it rather than throwing on every future chime.
   if (audioCtx && audioCtx.state === 'closed') audioCtx = null;
   if (!audioCtx) {
@@ -40,7 +40,7 @@ const getCtx = () => {
 /**
  * Play a short, pleasant two-tone completion chime.
  * D4 → G4 (293.66 Hz → 392.00 Hz), each ~120ms with gentle decay.
- * Total duration ~300ms — unobtrusive but noticeable.
+ * Total duration ~300ms: unobtrusive but noticeable.
  */
 export const playChime = () => {
   try {
@@ -68,7 +68,7 @@ export const playChime = () => {
 
     // Two-tone chime: D4 then G4, slightly overlapping
     playTone(293.66, now, 0.18);       // D4
-    playTone(392, now + 0.1, 0.22);    // G4 — slightly louder, slightly longer for pleasant decay
+    playTone(392, now + 0.1, 0.22);    // G4: slightly louder, slightly longer for pleasant decay
 
     // Subtle harmonic octave on the second tone for richness
     const osc2 = ctx.createOscillator();
@@ -83,7 +83,7 @@ export const playChime = () => {
     osc2.start(now + 0.1);
     osc2.stop(now + 0.3);
   } catch {
-    // Silently fail — audio is a nice-to-have, not critical
+    // Silently fail: audio is a nice-to-have, not critical
   }
 };
 

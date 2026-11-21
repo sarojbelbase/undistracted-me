@@ -18,18 +18,18 @@
   );
   --white: #e1e0e4;
 
-  // ── Ink scale (light mode defaults — must match LIGHT_TOKENS in theme.js) ─
-  --w-ink-1: #111111; // 18.4:1 AAA — headlines, strong labels
-  --w-ink-2: #222222; // 14.5:1 AAA — display numbers (clock, large date)
-  --w-ink-3: #3d3d3d; //  9.4:1 AAA — bold value text in title/sub pairs
-  --w-ink-4: #4d4d4d; //  7.7:1 AA  — medium context, captions
-  --w-ink-5: #666666; //  5.7:1 AA  — soft/muted labels
-  --w-ink-6: #8a8a8a; //  3.4:1     — inactive / decorative
+  // ── Ink scale (light mode defaults: must match LIGHT_TOKENS in theme.js) ─
+  --w-ink-1: #111111; // 18.4:1 AAA: headlines, strong labels
+  --w-ink-2: #222222; // 14.5:1 AAA: display numbers (clock, large date)
+  --w-ink-3: #3d3d3d; //  9.4:1 AAA: bold value text in title/sub pairs
+  --w-ink-4: #4d4d4d; //  7.7:1 AA : medium context, captions
+  --w-ink-5: #666666; //  5.7:1 AA : soft/muted labels
+  --w-ink-6: #8a8a8a; //  3.4:1    : inactive / decorative
 
   // ── Surface scale ────────────────────────────────────────────────────────
   --w-surface: #f5f5f5;
   --w-surface-2: #f0f0f0;
-  --w-surface-3: #e8e8e8; // tertiary — icon skeletons
+  --w-surface-3: #e8e8e8; // tertiary: icon skeletons
 
   // ── Border & semantic ────────────────────────────────────────────────────
   --w-border: #e0e0e0;
@@ -55,6 +55,7 @@
   --card-bg: rgba(255, 255, 255, 0.44);
   --card-border: rgba(0, 0, 0, 0.09);
   --card-border-width: 1px;
+  --input-border: rgba(0, 0, 0, 0.14);
   --card-radius: 1rem;
   --card-blur: blur(28px) saturate(180%);
   --card-shadow:

@@ -42,7 +42,7 @@ const ALL_CONFIGS = [
   ['media', mediaConfig],
 ];
 
-describe('Widget config.js files — structural integrity', () => {
+describe('Widget config.js files: structural integrity', () => {
   ALL_CONFIGS.forEach(([name, config]) => {
     describe(`${name} config`, () => {
       it('exports a non-null object', () => {
@@ -82,7 +82,7 @@ describe('Widget config.js files — structural integrity', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// app/store/index.js — re-exports
+// app/store/index.js: re-exports
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as storeExports from '../../../app/store';
@@ -100,7 +100,7 @@ describe('app/store/index.js re-exports', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// app/constants — language/setting constants
+// app/constants: language/setting constants
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { LANGUAGES } from '../../../app/constants';

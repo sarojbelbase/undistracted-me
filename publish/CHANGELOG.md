@@ -4,25 +4,25 @@ Release history for the store listings. Keep the latest at the top.
 
 ---
 
-## 4.0.2 — 2026-11-15
+## 4.0.2: 2026-11-15
 
-- **New**: international stock support — search and track stocks on global
+- **New**: international stock support: search and track stocks on global
   exchanges (via Yahoo Finance) alongside NEPSE. Add international tickers from
   the Stock widget's new "International" tab.
 - The extension new-tab page title now reads "New Tab" (matching the browser's
   native new-tab page) instead of "Undistracted Me".
 
-## 4.0.1 — 2026-11-14
+## 4.0.1: 2026-11-14
 
 - **Chrome**: corrected the manifest `key` so the built package derives the same
   extension ID as the live item (`dfgbijakkhepoonhaelocdmcleeehmef`). Previous
   key produced a mismatched ID, which blocked the store upload with
   "key field value in the manifest doesn't match the current item."
-- **Firefox**: submitted v4.0.1 to AMO (listed) — v4.0.0 was already present on
+- **Firefox**: submitted v4.0.1 to AMO (listed): v4.0.0 was already present on
   AMO, so a version bump was required for re-submission.
 - No user-facing feature changes (version bump + packaging fix only).
 
-## 4.0.0 — 2026-11-14
+## 4.0.0: 2026-11-14
 
 - feat(calendar): add skeleton loading state for Google Calendar events
   (commit `14540c4`).

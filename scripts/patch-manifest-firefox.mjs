@@ -35,13 +35,13 @@ import esbuild from 'esbuild';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
-const srcDir = resolve(rootDir, 'dist');           // Chrome build — kept pristine
-const distDir = resolve(rootDir, 'dist-firefox');  // Firefox build — isolated clone
+const srcDir = resolve(rootDir, 'dist');           // Chrome build: kept pristine
+const distDir = resolve(rootDir, 'dist-firefox');  // Firefox build: isolated clone
 const manifestPath = resolve(distDir, 'manifest.json');
 
 // 0. Verify the Chrome build exists first.
 if (!existsSync(resolve(srcDir, 'manifest.json'))) {
-  throw new Error('dist/manifest.json not found — run `vite build` first.');
+  throw new Error('dist/manifest.json not found: run `vite build` first.');
 }
 
 // 1. Clone the Chrome build into an isolated Firefox directory.

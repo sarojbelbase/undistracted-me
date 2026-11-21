@@ -1,9 +1,9 @@
 /**
- * Sparkline — a generic, self-contained sparkline (area + line + end dot).
+ * Sparkline: a generic, self-contained sparkline (area + line + end dot).
  * Importable from anywhere; depends only on a `data` array of `{ value }`
  * points (plus an optional `label`). Renders a smooth monotone-cubic curve
  * (Steffen / d3 curveMonotoneX style) over a subtle baseline with an accent
- * gradient fill — used by the Expense tracker for spending, and reusable for
+ * gradient fill: used by the Expense tracker for spending, and reusable for
  * any other time-series widget.
  *
  * Props:

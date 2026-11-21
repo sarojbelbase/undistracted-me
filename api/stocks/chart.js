@@ -7,9 +7,9 @@
  *
  * ── Contract (to swap the upstream provider) ─────────────────────────────────
  * INPUT  (client → proxy):
- *   symbol — NEPSE ticker (e.g. NABIL)
- *   from   — range start, unix seconds (defaults to now − 90 days)
- *   to     — range end, unix seconds (defaults to now)
+ *   symbol: NEPSE ticker (e.g. NABIL)
+ *   from  : range start, unix seconds (defaults to now − 90 days)
+ *   to    : range end, unix seconds (defaults to now)
  *
  * OUTPUT (proxy → client, pass-through upstream shape):
  *   { s: 'ok', c: number[], o: number[], h: number[], l: number[], v: number[] }

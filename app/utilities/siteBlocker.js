@@ -1,5 +1,5 @@
 /**
- * Website Blocker — chrome.declarativeNetRequest dynamic rules CRUD.
+ * Website Blocker: chrome.declarativeNetRequest dynamic rules CRUD.
  *
  * Blocks distracting sites by adding dynamic `declarativeNetRequest` rules.
  * Blocked domains are stored in localStorage (`blocked_sites`) and synced to
@@ -46,7 +46,7 @@ export const extractDomain = (urlOrDomain) => {
   // Already a bare domain (no protocol)
   if (!urlOrDomain.includes('://') && !urlOrDomain.startsWith('//')) {
     const cleaned = urlOrDomain.replace(/^www\./, '').split('/')[0].split(':')[0].trim().toLowerCase();
-    // Never block localhost / the extension's own domain — same guard as the URL path.
+    // Never block localhost / the extension's own domain: same guard as the URL path.
     if (NEVER_BLOCK_DOMAINS.has(cleaned)) return null;
     return cleaned || null;
   }
@@ -100,16 +100,16 @@ const writeBlockedSites = (domains) => {
 /**
  * Build a declarativeNetRequest dynamic rule for a domain.
  * Uses `chrome.runtime.getURL()` for the redirect target (not `extensionPath`)
- * — this is the proven approach from working extensions and Chrome samples.
+ *: this is the proven approach from working extensions and Chrome samples.
  */
 const buildRule = (domain, ruleId) => {
   const baseUrl = isExtension()
     ? chrome.runtime.getURL('/entries/blocked.html')
     : '/entries/blocked.html';
-  // Pass the blocked domain as a query param — DNR strips document.referrer
+  // Pass the blocked domain as a query param: DNR strips document.referrer
   const blockedUrl = baseUrl + '?d=' + encodeURIComponent(domain);
 
-  // Use urlFilter — simple, battle-tested, won't match chrome-extension:// URLs.
+  // Use urlFilter: simple, battle-tested, won't match chrome-extension:// URLs.
   // (Previous regexFilter had RE2 "match entire URL" gotchas.)
   return {
     id: ruleId,
@@ -133,7 +133,7 @@ const buildRule = (domain, ruleId) => {
 const updateDynamicRules = async (domains) => {
   if (!isExtension()) return;
 
-  // Only remove rules that actually exist — not all 9000 IDs
+  // Only remove rules that actually exist: not all 9000 IDs
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
   const removeRuleIds = existing
     .filter(r => r.id >= RULE_ID_BASE)
@@ -228,7 +228,7 @@ export const isBlocked = (urlOrDomain) => {
 export const getBlockedSites = () => {
   const now = Date.now();
   const all = readBlockedSites();
-  // Keep infinite entries — blockedUntil is null, and null > now is false
+  // Keep infinite entries: blockedUntil is null, and null > now is false
   const active = all.filter(s => s.infinite || s.blockedUntil > now);
   if (active.length !== all.length) {
     writeBlockedSites(active);

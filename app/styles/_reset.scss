@@ -7,7 +7,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   display: none;
 }
 
-// Hide native number input spinner (up/down arrows) — Chrome / Safari / Edge
+// Hide native number input spinner (up/down arrows): Chrome / Safari / Edge
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;

@@ -30,7 +30,7 @@ describe('LookAway component', () => {
     onDismiss = vi.fn();
     vi.useFakeTimers();
 
-    // jsdom has no requestFullscreen — provide a stub
+    // jsdom has no requestFullscreen: provide a stub
     Object.defineProperty(document.documentElement, 'requestFullscreen', {
       value: vi.fn().mockResolvedValue(undefined),
       writable: true,
@@ -287,7 +287,7 @@ describe('LookAway component', () => {
   it('orbRgb is one of the 7 known ORB_PALETTES values', () => {
     render(<LookAway onDismiss={onDismiss} />);
     const timerEl = screen.getByLabelText('60 seconds remaining');
-    // Inline style: rgba(R,G,B,0.7) — jsdom preserves the raw string
+    // Inline style: rgba(R,G,B,0.7): jsdom preserves the raw string
     const colorStyle = timerEl.style.color;
     const match = colorStyle.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     expect(match).not.toBeNull();

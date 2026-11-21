@@ -1,15 +1,15 @@
 import { CANVAS_DIVIDER, CANVAS_DIVIDER_DARK } from '../../theme/canvas';
 
 /**
- * Divider — a subtle 1px horizontal hairline with optional 20% horizontal inset.
+ * Divider: a subtle 1px horizontal hairline with optional 20% horizontal inset.
  *
  * Works on both glass and flat surfaces in light and dark modes.
  *
  * Props:
- *   inset  — apply 20% horizontal padding (default: true)
- *   isDark — use dark-mode inverted divider color (default: false)
- *   style  — optional additional inline styles
- *   className — optional additional CSS classes
+ *   inset : apply 20% horizontal padding (default: true)
+ *   isDark: use dark-mode inverted divider color (default: false)
+ *   style : optional additional inline styles
+ *   className: optional additional CSS classes
  */
 
 export const Divider = ({ isDark = false, style, className = '' }) => (

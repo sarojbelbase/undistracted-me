@@ -1,6 +1,6 @@
 /**
- * OPMLImport — one-click button that opens the native file picker for OPML import.
- * Does NOT render the preview — the parent handles parsing and preview display.
+ * OPMLImport: one-click button that opens the native file picker for OPML import.
+ * Does NOT render the preview: the parent handles parsing and preview display.
  */
 
 import { useRef } from "react";
@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/Button";
 
 /**
  * @param {object} props
- * @param {(file: File) => void} props.onFileSelected — called when user picks a file
+ * @param {(file: File) => void} props.onFileSelected: called when user picks a file
  */
 export const OPMLImport = ({ onFileSelected }) => {
   const fileRef = useRef(null);

@@ -17,7 +17,7 @@ const hexToRgb = (hex) => {
  * Apply theme + card-style CSS custom properties to :root.
  *
  * Reads the complete per-theme profile from THEME_PROFILES (app/theme/profiles.js)
- * — the single source of truth for every styling dimension. Each profile's
+ *: the single source of truth for every styling dimension. Each profile's
  * light/dark map already includes the base ink/surface scale, semantic colors,
  * and card/panel/modal surface tokens, so applying it wholesale swaps the whole
  * look at once.
@@ -35,7 +35,7 @@ export const applyTheme = (accent, mode, cardStyle = APP_SETTINGS_DEFAULTS.cardS
   const tokens = profile[resolved] ?? profile.light;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
-  // Accent colour — pick the luminous dark-mode tonal variant when in dark mode.
+  // Accent colour: pick the luminous dark-mode tonal variant when in dark mode.
   // Null-safe: if the accent list is empty / the name doesn't resolve, fall back
   // to neutral monochrome tones (matching the "Matte Black" pair) so this never throws.
   const color =
@@ -52,7 +52,7 @@ export const applyTheme = (accent, mode, cardStyle = APP_SETTINGS_DEFAULTS.cardS
   root.style.setProperty("--w-accent-rgb", hexToRgb(accentHex));
   root.dataset.mode = resolved;
 
-  // data-card-style attribute — enables [data-card-style="…"] CSS selectors
+  // data-card-style attribute: enables [data-card-style="…"] CSS selectors
   // in _paper.scss / _glass.scss / _comic.scss for non-token styling
   // (typography weight/letter-spacing, border-radius, scrollbars, etc.).
   root.dataset.cardStyle = cardStyle ?? APP_SETTINGS_DEFAULTS.cardStyle;

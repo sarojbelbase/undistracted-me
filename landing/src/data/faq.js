@@ -3,7 +3,7 @@ import { site } from "./site.js";
 export const faq = [
   {
     q: "Is Undistracted Me free?",
-    a: "Yes, it's free to use today, with no premium unlock and no ads. It's also open source under the MIT license, so the whole thing is yours to inspect, fork and improve. If hosting costs can't be covered it may move to a paid model, and early supporters will be contacted and kept free.",
+    a: "Yes, it's free to use today, with no premium unlock and no ads. It's also open source under the MIT license, so the whole thing is yours to inspect, fork and improve. If hosting costs can't be covered it may move to a paid model and early supporters will be contacted and kept free.",
   },
   {
     q: "Does it work offline?",
@@ -11,11 +11,11 @@ export const faq = [
   },
   {
     q: "Can it block distracting sites?",
-    a: "Yes. Block any site for a set time or permanently, right from Settings. Blocking runs through the browser's own declarative rules, needs no broad \"read all sites\" permission, and your blocklist never leaves your device.",
+    a: "Yes. Block any site for a set time or permanently, right from Settings. Blocking runs through the browser's own declarative rules, needs no broad \"read all sites\" permission and your blocklist never leaves your device.",
   },
   {
     q: "What is the web clipper?",
-    a: "It's a save-for-later tool built into your new tab. Select text on any page, right-click and choose \"Add to Pocket\", and it lands on your new tab — sorted by type and website, with folders, search and offline access. Text only, stored only on your device.",
+    a: "It's a save-for-later tool built into your new tab. Select text on any page, right-click and choose \"Save to Pocket\" and it lands on your new tab: sorted by type and website, with folders, search and offline access. Text only, stored only on your device.",
   },
   {
     q: "What data does it collect?",

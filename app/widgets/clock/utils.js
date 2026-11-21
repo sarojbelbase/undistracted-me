@@ -54,7 +54,7 @@ export const getTimeParts = (format) => {
 
 /**
  * Returns { time, period, label } for an extra TZ clock.
- * @param {string} tz  — IANA timezone string
+ * @param {string} tz : IANA timezone string
  * @param {'24h'|'12h'} format
  */
 export const getTimeInZone = (tz, format) => {
@@ -62,7 +62,7 @@ export const getTimeInZone = (tz, format) => {
   try {
     now = dayjs().tz(tz);
   } catch {
-    // Unknown/legacy IANA zone — degrade gracefully instead of throwing and
+    // Unknown/legacy IANA zone: degrade gracefully instead of throwing and
     // aborting the shared clock tick loop (see sharedClock.js).
     now = dayjs();
   }
@@ -76,7 +76,7 @@ export const getTimeInZone = (tz, format) => {
  * America/Los_Angeles during DST (PDT) and "UTC-08:00" otherwise (PST).
  *
  * dayjs' timezone plugin applies the zone's current DST rules, so this is the
- * DST-correct offset at "now" — unlike the static `offset` in TZ_MAP which only
+ * DST-correct offset at "now": unlike the static `offset` in TZ_MAP which only
  * records standard time.
  *
  * Short-TTL cached: the picker renders ~240 rows per keystroke, so a per-call

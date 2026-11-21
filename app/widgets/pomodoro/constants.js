@@ -1,5 +1,5 @@
 /**
- * Pomodoro widget — constants, option arrays, and display maps.
+ * Pomodoro widget: constants, option arrays and display maps.
  *
  * Never inline these in JSX. Import from here so Settings and Widget
  * stay in sync and option labels are a single source of truth.

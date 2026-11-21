@@ -2,10 +2,10 @@ import { XLg } from "react-bootstrap-icons";
 import { IconButton } from "./IconButton";
 
 /**
- * WidgetHeaderFull — the defacto header for a widget's *expanded* view. Same
+ * WidgetHeaderFull: the defacto header for a widget's *expanded* view. Same
  * structure as WidgetHeader but at a slightly larger scale (16px icon, 14px
  * title, 12px action gap) so the expanded surface reads as a step up from the
- * card. Puts a small set of actions plus a single dismiss (✕) on the right —
+ * card. Puts a small set of actions plus a single dismiss (✕) on the right -
  * nothing more.
  *
  * The host controls the panel width via the Modal's className (e.g. Pocket's

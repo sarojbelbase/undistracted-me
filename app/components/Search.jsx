@@ -1,13 +1,13 @@
 /**
- * useSearchCore — shared search logic for CommandPalette and FocusMode SearchBar.
+ * useSearchCore: shared search logic for CommandPalette and FocusMode SearchBar.
  *
  * Manages: engine selection, debounced autocomplete suggestions, URL detection,
  * open-tab results, and navigation/search actions.
  *
  * Options:
- *   debounceMs      number   — debounce delay for suggestion fetching (default 220)
- *   withHistory     boolean  — include localStorage history in suggestions
- *   fetchSuggestions boolean — whether to hit the suggest API (default true)
+ *   debounceMs      number  : debounce delay for suggestion fetching (default 220)
+ *   withHistory     boolean : include localStorage history in suggestions
+ *   fetchSuggestions boolean: whether to hit the suggest API (default true)
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -192,7 +192,7 @@ export function useSearchCore({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       // Abort the in-flight suggestion fetch on cleanup, not just the next effect
-      // cycle — otherwise a fetch resolving after unmount keeps running.
+      // cycle: otherwise a fetch resolving after unmount keeps running.
       acRef.current?.abort();
     };
   }, [query, engine, debounceMs, withHistory, doFetchSuggestions]);

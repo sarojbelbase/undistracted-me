@@ -1,4 +1,4 @@
-// ─── Quick Tour — Onboarding overlay styles ───────────────────────────────────
+// ─── Quick Tour: Onboarding overlay styles ───────────────────────────────────
 // Two-step dialog shown once per major version.
 // All dynamic values (per-feature colors, JS animation states) stay inline in JSX.
 
@@ -42,7 +42,7 @@
   color: var(--w-ink-4);
 }
 
-// ─── Step 1 — Brand mark ──────────────────────────────────────────────────────
+// ─── Step 1: Brand mark ──────────────────────────────────────────────────────
 
 .qt-brand-icon {
   background: var(--w-accent);
@@ -69,7 +69,7 @@
   display: none; // replaced by ::after mask
 }
 
-// ─── Step 1 — Headlines ───────────────────────────────────────────────────────
+// ─── Step 1: Headlines ───────────────────────────────────────────────────────
 
 .qt-headline {
   color: var(--w-ink-1);
@@ -79,7 +79,7 @@
   color: var(--w-ink-4);
 }
 
-// ─── Step 1 — Focus Mode card ─────────────────────────────────────────────────
+// ─── Step 1: Focus Mode card ─────────────────────────────────────────────────
 
 .qt-focus-card {
   background: rgba(14, 14, 18, 0.92);
@@ -93,7 +93,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-// Subdued elements only set color (no background) — linter skips contrast check
+// Subdued elements only set color (no background): linter skips contrast check
 .qt-focus-icon {
   color: rgba(255, 255, 255, 0.8);
 }
@@ -116,12 +116,12 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
-// Chip inherits white text from .qt-focus-card — no color needed here
+// Chip inherits white text from .qt-focus-card: no color needed here
 .qt-focus-chip {
   background: rgba(255, 255, 255, 0.09);
 }
 
-// ─── Step 1 — Canvas Mode card ────────────────────────────────────────────────
+// ─── Step 1: Canvas Mode card ────────────────────────────────────────────────
 
 .qt-canvas-card {
   background: var(--w-surface);
@@ -160,7 +160,7 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
-// ─── Step 2 — Features grid ───────────────────────────────────────────────────
+// ─── Step 2: Features grid ───────────────────────────────────────────────────
 
 .qt-s2-heading {
   color: var(--w-ink-1);

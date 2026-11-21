@@ -1,5 +1,5 @@
 /**
- * Pocket — pure, unit-tested helpers.
+ * Pocket: pure, unit-tested helpers.
  * No React, no storage, no DOM. Imported by both bg.js (service worker) and
  * the new-tab widget. classifyKind, dedupe, search, grouping and mergeStates
  * all live here so they can be tested in isolation.
@@ -52,7 +52,7 @@ export function isSingleHttpUrl(text) {
 
 /**
  * classifyKind(text, context) → "link" | "sentence" | "paragraph" | "code"
- * context: { fromLink, fromPage, codeContext } — hints from the save origin.
+ * context: { fromLink, fromPage, codeContext }: hints from the save origin.
  */
 export function classifyKind(text, context = {}) {
   const t = (text ?? "").trim();
@@ -118,7 +118,7 @@ export function findDuplicate(items, item) {
   return null;
 }
 
-/** True when a host is an IP, localhost, or empty — where a globe beats a letter. */
+/** True when a host is an IP, localhost or empty: where a globe beats a letter. */
 export function isIpOrLocalHost(host) {
   const h = (host || "").trim();
   if (!h) return true;
@@ -127,7 +127,7 @@ export function isIpOrLocalHost(host) {
 }
 
 /**
- * Next folder color — rotate through the non-grey swatches. Returns the first
+ * Next folder color: rotate through the non-grey swatches. Returns the first
  * palette color not currently in use by a live folder, else cycles by count.
  * Never returns "slate" (the grey swatch).
  */

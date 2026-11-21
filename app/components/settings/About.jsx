@@ -1,5 +1,5 @@
 /**
- * About — app description, version, and external links.
+ * About: app description, version and external links.
  */
 import {
   Globe2,
@@ -76,7 +76,7 @@ export const About = () => (
       Undistracted Me is a free, open-source new tab for Chrome and Firefox. It
       replaces the noisy default page with a calm dashboard of widgets, a
       cinematic Focus Mode with a Pomodoro timer, ambient sounds and Google
-      Tasks — with no account.
+      Tasks: with no account.
     </p>
 
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

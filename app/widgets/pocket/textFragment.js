@@ -1,5 +1,5 @@
 /**
- * textFragment.js — build "Open at Quote" URLs using the WICG Text Fragments
+ * textFragment.js: build "Open at Quote" URLs using the WICG Text Fragments
  * directive (`#:~:text=`). Pure and unit-tested. If the browser ignores the
  * fragment, the page still opens normally.
  *
@@ -36,7 +36,7 @@ export function buildTextFragment(text, kind) {
 
 /**
  * Percent-encode a fragment value. `encodeURIComponent` already encodes "," and
- * "&", but leaves "-" (a prefix/suffix delimiter in the directive) untouched —
+ * "&", but leaves "-" (a prefix/suffix delimiter in the directive) untouched -
  * patch that so a literal dash is matched, not interpreted.
  */
 export function encodeFragment(str) {

@@ -1,5 +1,5 @@
 /**
- * useSpotifyPlayback — Spotify playback state, polling, album colour,
+ * useSpotifyPlayback: Spotify playback state, polling, album colour,
  * account sync, and play/pause/skip controls.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -36,7 +36,7 @@ export function useSpotifyPlayback(connected, setConnected) {
         setTrack(null);
         // Do NOT setConnected(false) here: getAccessToken() returns null (and
         // apiCall throws 'not_authenticated') on a *transient* refresh failure
-        // too — a network hiccup would otherwise flip the widget back to the
+        // too: a network hiccup would otherwise flip the widget back to the
         // "Connect Spotify" onboarding screen. Genuine disconnects are handled
         // by the SPOTIFY_ACCOUNT_CHANGED event (see Accounts.jsx), matching the
         // Focus Mode useSpotify hook's behavior.
@@ -47,7 +47,7 @@ export function useSpotifyPlayback(connected, setConnected) {
   // Cross-window disconnect: `SPOTIFY_ACCOUNT_CHANGED` above only fires in the
   // window that performed the action. `disconnectSpotify()` removes the
   // `spotify_connected` localStorage flag, which emits a `storage` event in
-  // every *other* open tab — so a genuine disconnect in one tab flips this
+  // every *other* open tab: so a genuine disconnect in one tab flips this
   // widget off without reacting to transient poll failures (those no longer
   // touch `connected`). Mirrors useSpotify.js.
   useEffect(() => {
@@ -63,7 +63,7 @@ export function useSpotifyPlayback(connected, setConnected) {
     lastArtRef.current = track.albumArt;
     const req = ++colorReqRef.current;
     extractAlbumColor(track.albumArt).then((color) => {
-      // Ignore stale/out-of-order resolutions — rapid skips can resolve a
+      // Ignore stale/out-of-order resolutions: rapid skips can resolve a
       // previous album's colour after the current one.
       if (req === colorReqRef.current) setAlbumColor(color);
     });

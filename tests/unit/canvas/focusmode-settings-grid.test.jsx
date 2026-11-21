@@ -127,7 +127,7 @@ describe('FocusModeSettings', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WidgetGrid — with instances
+// WidgetGrid: with instances
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { WidgetGrid } from '../../../app/widgets/WidgetGrid';
@@ -157,7 +157,7 @@ describe('WidgetGrid', () => {
   it('renders a notes widget', async () => {
     render(<WidgetGrid instances={[{ id: 'notes', type: 'notes' }]} onRemoveInstance={vi.fn()} />);
     await act(async () => { });
-    // Notes widget renders a textarea — use DOM query since react-grid-layout may affect role detection
+    // Notes widget renders a textarea: use DOM query since react-grid-layout may affect role detection
     expect(document.body.querySelector('textarea')).toBeTruthy();
   });
 

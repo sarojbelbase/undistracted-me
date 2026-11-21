@@ -11,7 +11,7 @@
   }
 }
 
-// Quick Tour card entrance — spring bounce from below
+// Quick Tour card entrance: spring bounce from below
 @keyframes qt-card-in {
   0% {
     opacity: 0;
@@ -43,7 +43,7 @@
   }
 }
 
-// Generic loading spinner (FocusMode dialogs — IconSpinner in dialog/shared.jsx)
+// Generic loading spinner (FocusMode dialogs: IconSpinner in dialog/shared.jsx)
 @keyframes tdSpin {
   to {
     transform: rotate(360deg);
@@ -98,7 +98,7 @@
   }
 }
 
-// Unified dialog — form body slides in when switching type, within the same
+// Unified dialog: form body slides in when switching type, within the same
 // dialog canvas. Direction follows the selector order for spatial continuity.
 @keyframes form-slide-in-next {
   from {
@@ -349,7 +349,7 @@
   }
 }
 
-// bpOrbSpin / bpOrbCounter reuse the shared orb keyframes defined below —
+// bpOrbSpin / bpOrbCounter reuse the shared orb keyframes defined below -
 // kept as aliases so background-picker SCSS can reference either name.
 @keyframes bpOrbSpin {
   to {
@@ -446,7 +446,7 @@
 // ── Respect OS reduced-motion preference ──────────────────────────────────────
 // Disables all continuously-running orb animations so integrated GPUs on
 // low-RAM machines don't waste compositor budget on invisible background layers.
-// The orb blobs remain visible as a static gradient — aesthetics are preserved,
+// The orb blobs remain visible as a static gradient: aesthetics are preserved,
 // only the rotation/bloom motion is paused.
 @media (prefers-reduced-motion: reduce) {
 
@@ -489,7 +489,7 @@
   }
 }
 
-// Rain drops — angle varies by wind tier
+// Rain drops: angle varies by wind tier
 @keyframes wa-drop {
   0% {
     transform: translateY(-22px) rotate(-15deg);
@@ -806,7 +806,7 @@
 
 // ── AQI breathing dot ─────────────────────────────────────────────────────────
 
-// Pulsing scale + opacity — communicates "live" air quality reading.
+// Pulsing scale + opacity: communicates "live" air quality reading.
 // Referenced by the inline style animation property on the AQIBadge dot.
 @keyframes aqi-breathe {
 
@@ -825,7 +825,7 @@
 // ── RSS News Widget ──────────────────────────────────────────────────────────────────────────
 
 // Text transition: directional drift-fade.
-// Background stays static; only the text content animates — giving an editorial "stage" feel.
+// Background stays static; only the text content animates: giving an editorial "stage" feel.
 @keyframes rss-text-in-next {
   from {
     opacity: 0;
@@ -871,7 +871,7 @@
 // ── prefers-reduced-motion ────────────────────────────────────────────────────
 // Stops all infinite animations for users who have enabled "Reduce Motion"
 // in their OS (macOS: Accessibility → Reduce Motion; Windows: ease of access).
-// One-shot entrance animations collapse to 1ms — imperceptibly brief — so
+// One-shot entrance animations collapse to 1ms: imperceptibly brief: so
 // interactive feedback (button clicks, panel opens) is not lost entirely.
 // The animation-play-state: paused approach is avoided intentionally because
 // it freezes mid-frame instead of resetting, producing a jarring snapshot.

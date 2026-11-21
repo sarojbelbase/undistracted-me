@@ -1,5 +1,5 @@
 /**
- * Countdown widget utilities — dual-mode (countdown + since).
+ * Countdown widget utilities: dual-mode (countdown + since).
  */
 
 import { humanizeTime } from '../../utilities/humanizeTime';
@@ -73,7 +73,7 @@ export const formatCountdown = (targetDate, nowTs) => {
 
 /**
  * Returns time elapsed SINCE a past date.
- * { days, months, years, totalSeconds } — all >= 0.
+ * { days, months, years, totalSeconds }: all >= 0.
  */
 export const formatSince = (targetDate, nowTs) => {
   const now = nowTs ?? Date.now();
@@ -227,7 +227,7 @@ export function resolveAutoTarget(upcomingEvents, today, custom) {
     }))
     .filter((cd) => cd._next > now || cd.mode === "since")
     // Prefer the nearest *future* countdown. "Since" countdowns (past dates)
-    // sort last so they only surface when nothing upcoming remains — otherwise
+    // sort last so they only surface when nothing upcoming remains: otherwise
     // their past `_next` would steal the auto-target from a real countdown.
     .sort((a, b) => {
       const aSince = a.mode === "since" ? 1 : 0;

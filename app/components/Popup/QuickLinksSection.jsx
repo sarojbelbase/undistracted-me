@@ -2,7 +2,7 @@ import { shorthandFromUrl } from "../../utilities/index";
 import { FaviconIcon } from "../ui/FaviconIcon";
 
 /**
- * Quick links grid — up to 6 top sites from chrome.topSites.
+ * Quick links grid: up to 6 top sites from chrome.topSites.
  */
 export const QuickLinksSection = ({ topSites }) => {
   if (!topSites || topSites.length === 0) return null;

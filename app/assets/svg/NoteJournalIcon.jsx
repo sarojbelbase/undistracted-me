@@ -1,12 +1,12 @@
 /**
- * NoteJournalIcon — journal-with-bookmark note icon (16×16, Bootstrap Icons
+ * NoteJournalIcon: journal-with-bookmark note icon (16×16, Bootstrap Icons
  * geometry). Inverted from `bi-journal-bookmark-fill`: the notebook cover is
  * solid-filled and the bookmark ribbon is an outline (no fill).
  *
  * The cover's evenodd fill knocks out three regions so they read as holes
  * against the solid cover:
  *   1. the bookmark ribbon silhouette (outlined back on top with a 1px ring),
- *   2. two spiral-binding rings along the left edge — punched through as
+ *   2. two spiral-binding rings along the left edge: punched through as
  *      transparent cutouts (previously filled black, which was invisible
  *      against the filled cover). Two rings, not three, so the binding reads
  *      as a deliberate spiral, not a stitched edge.

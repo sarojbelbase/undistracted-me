@@ -1,8 +1,8 @@
 /**
- * /stats — live tallies for the landing page.
+ * /stats: live tallies for the landing page.
  *
  * Aggregates GitHub stars, Chrome Web Store users and Firefox users via
- * shields.io (the same source as the README badges — the only public source
+ * shields.io (the same source as the README badges: the only public source
  * for Chrome's user count) plus the KV-backed web-app "visits" counter.
  *
  * The response is edge-cached for a minute so we don't hammer shields.io.

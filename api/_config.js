@@ -52,12 +52,12 @@ export function assertOrigin(request) {
  * Origin allow-list for fetch()-based endpoints (photos, rain, token, rss,
  * visits, stats, …).
  *
- * Rejects requests whose Origin is present but NOT allow-listed — the actual
+ * Rejects requests whose Origin is present but NOT allow-listed: the actual
  * abuse vector: a foreign website firing cross-origin requests at the API.
  *
  * Requests with NO Origin are allowed through: the extension calls the API via
  * `host_permissions` (CORS is bypassed at the browser level), so Chrome omits
- * the Origin header — notably from the MV3 background service worker. Rejecting
+ * the Origin header: notably from the MV3 background service worker. Rejecting
  * no-Origin returned 403 for every legitimate extension call. (A non-browser
  * client can forge an Origin anyway; real bot/curl protection lives in
  * Cloudflare Bot Fight Mode / Managed Challenge.)
@@ -86,7 +86,7 @@ export const PRIVATE_HOST_RE =
   /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10\.|^\[?::1\]?$|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\.|^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.|^0\.0\.0\.0$/;
 
 /**
- * Favicon waterfall services — ordered by preference.
+ * Favicon waterfall services: ordered by preference.
  * The server tries each in sequence and returns the first successful image.
  */
 export const FAVICON_SERVICES = [

@@ -1,5 +1,5 @@
 /**
- * actions.js — small DOM/clipboard helpers shared by the row actions and the
+ * actions.js: small DOM/clipboard helpers shared by the row actions and the
  * expanded Details block. Kept separate from utils.js (which stays free of
  * DOM / window references).
  */
@@ -17,7 +17,7 @@ export function openUrl(url) {
 }
 
 /**
- * Open a saved item at its source — like Chrome's "Copy link to highlight".
+ * Open a saved item at its source: like Chrome's "Copy link to highlight".
  * Links open the URL directly; text saves (sentence/paragraph/code) open their
  * source page scrolled to + highlighting the selected text via a text fragment
  * (`#:~:text=…`). Falls back to the plain source page when there's no URL.

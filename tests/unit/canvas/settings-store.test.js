@@ -9,7 +9,7 @@
  *    background). setMode('dark') must auto-correct to Blueberry.
  *  – applyTheme() is called as a side-effect of setAccent / setMode. If the
  *    CSS-variable plumbing is broken the UI silently renders with wrong colours.
- *  – Persisted state survives a reload — we simulate this by writing into
+ *  – Persisted state survives a reload: we simulate this by writing into
  *    localStorage and re-initialising the store.
  *  – Missing or malformed persisted JSON must not throw; fall back to safe defaults.
  *  – Legacy per-key localStorage entries (pre-Zustand build) must be migrated.
@@ -91,10 +91,10 @@ describe('initial state defaults', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// setMode — Dark mode / accent guard
+// setMode: Dark mode / accent guard
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('setMode — dark mode accent guard', () => {
+describe('setMode: dark mode accent guard', () => {
   // NOTE: the "Default accent is invalid in dark mode → auto-correct to Blueberry"
   // guard was removed in the accent redesign. Accents now carry dark-tone
   // variants (darkHex/darkFg), so "Matte Black" (the default) stays readable in
@@ -177,7 +177,7 @@ describe('setDefaultView', () => {
 // ────────────────────────────────────────────────────────────────────────────
 // Language
 // ────────────────────────────────────────────────────────────────────────────
-// The global `language` setting was removed — date formatting language is now
+// The global `language` setting was removed: date formatting language is now
 // per-widget (`dateToday.language`, see WIDGET_SETTINGS_DEFAULTS). Guard against
 // a half-reintroduced global language key.
 describe('language', () => {
@@ -316,7 +316,7 @@ describe('setCanvasBg', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// canvasBg persistence — photo/custom must survive a rehydrate round-trip
+// canvasBg persistence: photo/custom must survive a rehydrate round-trip
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('canvasBg persistence', () => {

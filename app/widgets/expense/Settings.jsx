@@ -111,7 +111,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
         if (newEntries.length > 0) {
           localStorage.setItem(EXPENSE_PREFIX + id, JSON.stringify(newEntries.slice(0, 500)));
           setImportError(null);
-          // Dispatch event instead of reloading — useExpenses will pick it up
+          // Dispatch event instead of reloading: useExpenses will pick it up
           try { globalThis.dispatchEvent(new CustomEvent(EXPENSES_CHANGED, { detail: { widgetId: id } })); } catch { /* ignore */ }
         } else {
           setImportError('No valid expense rows found in CSV.');

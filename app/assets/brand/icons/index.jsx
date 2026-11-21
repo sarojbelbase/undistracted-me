@@ -1,8 +1,8 @@
 /**
- * Brand icons — single source of truth for all third-party service logos.
+ * Brand icons: single source of truth for all third-party service logos.
  *
  * Each component accepts an optional `size` prop (default 18).
- * Import from here everywhere — never inline brand SVGs in component files.
+ * Import from here everywhere: never inline brand SVGs in component files.
  *
  * Usage:
  *   import { GoogleIcon, SpotifyIcon, SoundCloudIcon, YouTubeIcon, YouTubeMusicIcon } from '../../assets/brand/icons';
@@ -10,7 +10,7 @@
 
 
 // ─── Google ───────────────────────────────────────────────────────────────────
-// The official multicolour "G" mark. Renders the paths only — pair with a
+// The official multicolour "G" mark. Renders the paths only: pair with a
 // white/light background container for best visibility on dark surfaces.
 
 export const GoogleIcon = ({ size = 18 }) => (
@@ -66,7 +66,7 @@ export const YouTubeMusicIcon = ({ size = 18 }) => (
 export const SoundCloudIcon = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <rect width="24" height="24" rx="5" fill="#FF5500" />
-    {/* music note — centred in the square */}
+    {/* music note: centred in the square */}
     <path
       fill="white"
       d="M15 6.5v8.08A3 3 0 1 1 13 12V8.27l-5 1.11V15a3 3 0 1 1-2-2.83V8.5a1 1 0 0 1 .78-.976l7-1.556A1 1 0 0 1 15 6.5z"

@@ -52,13 +52,13 @@ export const llmsSections = [
         url: site.githubUrl,
         title: "GitHub",
         description:
-          "Source code, issues, and contributions (MIT license).",
+          "Source code, issues and contributions (MIT license).",
       },
       {
         url: `${site.url}${site.privacyUrl}`,
         title: "Privacy Policy & Terms of Service",
         description:
-          "What data the extension collects, how it is stored, and your rights.",
+          "What data the extension collects, how it is stored and your rights.",
       },
     ],
   },

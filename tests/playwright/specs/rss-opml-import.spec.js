@@ -1,5 +1,5 @@
 /**
- * RSS OPML Import — E2E Playwright tests.
+ * RSS OPML Import: E2E Playwright tests.
  *
  * Covers:
  *  - Opening RSS widget settings
@@ -79,7 +79,7 @@ async function selectCustomMode(page) {
 
 /**
  * Upload an OPML file through the (hidden) native file input that backs the
- * "Import OPML" button. Replaces the old paste-textarea flow — the redesigned
+ * "Import OPML" button. Replaces the old paste-textarea flow: the redesigned
  * import UI is file-upload only.
  */
 async function uploadOPML(page, content, name = 'feeds.opml') {

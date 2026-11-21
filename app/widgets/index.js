@@ -18,7 +18,7 @@ import expenseConfig from "./expense/config";
 import pocketConfig from "./pocket/config";
 
 /**
- * WIDGET_REGISTRY — assembled from each widget's config.js.
+ * WIDGET_REGISTRY: assembled from each widget's config.js.
  *
  * ✅ To enable/disable a widget: set `enabled` in the widget's config.js.
  * 📐 To change grid position or size: edit `x, y, w, h` in the widget's config.js.
@@ -47,7 +47,7 @@ export const WIDGET_REGISTRY = [
 ];
 
 /**
- * WIDGET_TYPES — frozen map of CONSTANT_KEY → widget type, derived from the
+ * WIDGET_TYPES: frozen map of CONSTANT_KEY → widget type, derived from the
  * registry. Kept in sync automatically so a newly registered widget is always
  * reachable by name (and so a typo in a config's `type` surfaces in tests).
  */

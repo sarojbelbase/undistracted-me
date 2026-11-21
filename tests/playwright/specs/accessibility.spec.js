@@ -4,7 +4,7 @@
  * Covers the features added in the "error boundary + heading" work:
  *  - A screen-reader-only <h1> anchors the document heading hierarchy.
  *  - All registered widget types render (a single widget crash must not blank
- *    the grid — the per-widget ErrorBoundary isolates it).
+ *    the grid: the per-widget ErrorBoundary isolates it).
  *  - Every rendered button has an accessible name (no unlabelled controls).
  */
 import { test, expect } from '@playwright/test';

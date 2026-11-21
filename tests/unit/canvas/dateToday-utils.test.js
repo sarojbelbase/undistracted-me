@@ -3,11 +3,11 @@
  *
  * What can go wrong:
  *  – getDateParts for English (default) returns incorrect weekday index because
- *    `dayjs().day()` is 0-based Sunday but the array is also 0-based Sunday —
+ *    `dayjs().day()` is 0-based Sunday but the array is also 0-based Sunday -
  *    an off-by-one error would shift every day name by one.
  *  – Nepali mode calls convertEnglishToNepali; if the Nepali month index is
  *    off-by-one when looking up NEPALI_MONTH_NAMES the month label is wrong.
- *  – The day is zero-padded to 2 digits ("05" not "5") — the widget uses a
+ *  – The day is zero-padded to 2 digits ("05" not "5"): the widget uses a
  *    fixed-width numeric display; a missing pad would cause a layout shift.
  *  – EN_MONTHS and EN_WEEKDAYS must have exactly 12 and 7 entries respectively.
  *  – For English date, year must be a string representation of the 4-digit year.
@@ -60,10 +60,10 @@ describe('EN_MONTHS', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// getDateParts — English
+// getDateParts: English
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('getDateParts — English', () => {
+describe('getDateParts: English', () => {
   it('returns an object with weekday, month, day, year', () => {
     mockDate('2025-06-10T12:00:00Z');
     const result = getDateParts('en');
@@ -105,10 +105,10 @@ describe('getDateParts — English', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// getDateParts — Nepali
+// getDateParts: Nepali
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('getDateParts — Nepali', () => {
+describe('getDateParts: Nepali', () => {
   it('returns an object with weekday, month, day, year', () => {
     mockDate('2025-06-15T12:00:00Z');
     const result = getDateParts('ne');
@@ -119,7 +119,7 @@ describe('getDateParts — Nepali', () => {
   });
 
   it('returns the English weekday name (not converted to Nepali)', () => {
-    // The component itself renders the weekday — it's always English
+    // The component itself renders the weekday: it's always English
     mockDate('2025-06-15T12:00:00Z'); // Sunday
     const { weekday } = getDateParts('ne');
     expect(EN_WEEKDAYS).toContain(weekday);

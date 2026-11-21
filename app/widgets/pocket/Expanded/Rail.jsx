@@ -20,8 +20,8 @@ import { folderNameTaken } from "../utils";
 import { FOLDER_COLORS, FOLDER_COLOR_MAP, KINDS, KIND_META, MAX_FOLDER_NAME_LENGTH } from "../constants";
 
 /**
- * Rail — the left navigation of the expanded view: Library (All + kinds) and a
- * collapsible Folders section (color dot, count, hover rename/delete, and a
+ * Rail: the left navigation of the expanded view: Library (All + kinds) and a
+ * collapsible Folders section (color dot, count, hover rename/delete and a
  * "New folder" action). The Folders section starts collapsed so it doesn't
  * dominate the rail; its color dot is a clickable color key. A "Settings" entry
  * pins the Pocket settings at the bottom. The rail scrolls on its own.

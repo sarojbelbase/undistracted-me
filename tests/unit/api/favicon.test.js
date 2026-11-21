@@ -62,7 +62,7 @@ describe('GET /api/favicon', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('rejects private hostname (localhost) with 204 — no upstream call', async () => {
+  it('rejects private hostname (localhost) with 204: no upstream call', async () => {
     const res = await call(makeReq({ method: 'GET', origin: allowedOrigin, query: { domain: 'localhost' } }));
     expect(res.status).toBe(204);
     expect(fetchSpy).not.toHaveBeenCalled();

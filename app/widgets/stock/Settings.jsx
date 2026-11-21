@@ -7,7 +7,7 @@ import { TooltipBtn } from '../../components/ui/TooltipBtn';
 /**
  * Skeleton rows that mirror the real company row shape (bold symbol on the
  * left, truncated company name on the right) shown while a symbol list is
- * in flight — replacing the previous plain "Loading…" text.
+ * in flight: replacing the previous plain "Loading…" text.
  */
 const CompanyListSkeleton = () => (
   <div aria-hidden="true">
@@ -36,7 +36,7 @@ const MARKET_TABS = [
 ];
 
 /**
- * Stock selector content — rendered inside BaseSettingsModal.
+ * Stock selector content: rendered inside BaseSettingsModal.
  * Supports selecting up to 3 symbols, mixing NEPSE tickers and international
  * tickers (the latter stored with an `INTL:` prefix).
  * onClose is injected by BaseWidget when settingsContent is a function.
@@ -64,7 +64,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Debounced international search — runs when the International tab is active
+  // Debounced international search: runs when the International tab is active
   // and the query is non-empty. A `cancelled` flag drops stale/out-of-order
   // results and prevents setState after unmount.
   useEffect(() => {
@@ -205,7 +205,7 @@ export const Settings = ({ symbols = [], onChange, onClose }) => {
         />
       </div>
 
-      {/* List — bleeds to modal edges so buttons span full width */}
+      {/* List: bleeds to modal edges so buttons span full width */}
       <div className="pb-1 -mx-4">
         {listLoading && <CompanyListSkeleton />}
         {listError && (

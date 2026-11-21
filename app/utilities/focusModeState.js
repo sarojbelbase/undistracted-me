@@ -1,11 +1,11 @@
 /**
- * Focus Mode background state — aggregated for cross-device sync.
+ * Focus Mode background state: aggregated for cross-device sync.
  *
  * The Focus Mode wallpaper lives in several small localStorage keys:
- *   - `fm_bg_source`          — 'default' | 'curated' | 'custom' | 'orb'
- *   - `fm_custom_bg_url`      — custom image URL (or null)
- *   - `fm_orb_palette_id`     — orb colour palette id
- *   - `fm_selected_photo_id`  — the curated photo the user explicitly chose
+ *   - `fm_bg_source`         : 'default' | 'curated' | 'custom' | 'orb'
+ *   - `fm_custom_bg_url`     : custom image URL (or null)
+ *   - `fm_orb_palette_id`    : orb colour palette id
+ *   - `fm_selected_photo_id` : the curated photo the user explicitly chose
  *
  * The sync engine treats the whole background as one sync key (`focus_mode`),
  * so this module aggregates those keys into a single object on read and fans

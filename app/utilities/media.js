@@ -1,5 +1,5 @@
 /**
- * Media Session content script — injected into every page.
+ * Media Session content script: injected into every page.
  *
  * Detects active media playback via two mechanisms:
  *   1. navigator.mediaSession (used by YouTube, Apple Music, Spotify Web, Deezer, Tidal, etc.)
@@ -64,11 +64,11 @@ function detectCanGoPrev() {
  * boundaries, so we do a targeted one-level traversal of the known shadow hosts.
  */
 function isMediaElementPlaying() {
-  // Regular DOM — SoundCloud, Bandcamp, and most sites
+  // Regular DOM: SoundCloud, Bandcamp and most sites
   for (const el of document.querySelectorAll('audio, video')) {
     if (!el.paused && !el.ended && el.readyState >= 2) return true;
   }
-  // YouTube / YouTube Music shadow DOM — walk one level into known player roots
+  // YouTube / YouTube Music shadow DOM: walk one level into known player roots
   for (const host of document.querySelectorAll(
     'ytd-player, ytmusic-player, ytm-player-layout'
   )) {
@@ -155,7 +155,7 @@ function safeSend(msg) {
 //
 // IMPORTANT: YouTube's player JS API (playVideo, pauseVideo, etc.) lives in
 // the PAGE world and is NOT accessible from this isolated-world content script.
-// We use native element .click() calls instead — those work across worlds
+// We use native element .click() calls instead: those work across worlds
 // because click() is a native DOM method, not a page-JS property.
 try {
   chrome.runtime.onMessage.addListener((msg) => {
@@ -204,13 +204,13 @@ try {
     }
 
     // ── YouTube ────────────────────────────────────────────────────────────
-    // IMPORTANT: do NOT use player.playVideo() / pauseVideo() — those are
+    // IMPORTANT: do NOT use player.playVideo() / pauseVideo(): those are
     // page-world JS properties, invisible from this isolated-world script.
     //
     // For play/pause: dispatch the 'k' keyboard shortcut on document.
     //   • 'k' is YouTube's documented play/pause toggle.
     //   • KeyboardEvents created here propagate through the DOM normally and
-    //     are handled by YouTube's page-world shortcut listener — crossing the
+    //     are handled by YouTube's page-world shortcut listener: crossing the
     //     world boundary is fine for DOM events (only JS property access is isolated).
     //   • This avoids the "wrong element" problem: document.querySelector('.ytp-play-button')
     //     can match ad controls or mini-player overlays; the keyboard route is unambiguous.

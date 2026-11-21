@@ -3,13 +3,13 @@
  *
  * Server-side Google OAuth token exchange for website mode.
  * Handles two grant types:
- *   - authorization_code  — initial code→token exchange (needs code + verifier + redirect_uri)
- *   - refresh_token       — silent refresh using a stored refresh token
+ *   - authorization_code : initial code→token exchange (needs code + verifier + redirect_uri)
+ *   - refresh_token      : silent refresh using a stored refresh token
  *
  * The client_secret never leaves the server; the client only sends the
  * authorization code and PKCE verifier it obtained from the popup flow.
  *
- * CORS: allows requests from chrome-extension://, moz-extension://, and
+ * CORS: allows requests from chrome-extension://, moz-extension:// and
  * the production / local origins so all contexts can call this endpoint.
  */
 

@@ -1,6 +1,6 @@
 /**
- * WidgetHeader — the shared, consistently-sized header used at the top of a
- * widget card: an accent icon, a title, an optional muted count, and a set of
+ * WidgetHeader: the shared, consistently-sized header used at the top of a
+ * widget card: an accent icon, a title, an optional muted count and a set of
  * right-aligned action buttons. Standardizes the icon/title/action sizing so
  * every widget header (Expense, Pocket, …) looks the same.
  *

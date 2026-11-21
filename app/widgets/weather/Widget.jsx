@@ -193,7 +193,7 @@ const AQIBadge = ({ value, pm25, variant = 'label' }) => {
         }
         onMouseLeave={() => setAnchor(null)}
       >
-        {/* Breathing dot — colour encodes severity at a glance */}
+        {/* Breathing dot: colour encodes severity at a glance */}
         <span
           aria-hidden
           style={{
@@ -243,7 +243,7 @@ const AQIBadge = ({ value, pm25, variant = 'label' }) => {
         )}
       </div>
 
-      {/* Hover popup — shows level label + PM2.5 */}
+      {/* Hover popup: shows level label + PM2.5 */}
       {anchor && (
         <Popup anchor={anchor} preferAbove className="px-2.5 py-1.5">
           <div
@@ -319,7 +319,7 @@ const ErrorState = ({ onRetry }) => (
   </div>
 );
 
-// ── Minimal mode — Apple Weather-style ───────────────────────────────────────
+// ── Minimal mode: Apple Weather-style ───────────────────────────────────────
 // Layout: condition at top · hero temp centred · bottom row (city+AQI left / sun event right)
 const MinimalView = ({
   weather,
@@ -331,7 +331,7 @@ const MinimalView = ({
   showSunTimes,
 }) => (
   <div className="weather-minimal flex flex-col w-full h-full">
-    {/* Row 1 — icon + condition (left) · AQI (right) */}
+    {/* Row 1: icon + condition (left) · AQI (right) */}
     <div
       className="flex items-center gap-1.5"
       style={{ justifyContent: "space-between" }}
@@ -350,7 +350,7 @@ const MinimalView = ({
       )}
     </div>
 
-    {/* Centre zone — hero temperature, vertically centred */}
+    {/* Centre zone: hero temperature, vertically centred */}
     <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
       <div
         aria-label={`${weather.temperature} degrees ${unitLabel === "C" ? "Celsius" : "Fahrenheit"}`}
@@ -360,7 +360,7 @@ const MinimalView = ({
       </div>
     </div>
 
-    {/* Bottom row — city (left) · sun event (right) */}
+    {/* Bottom row: city (left) · sun event (right) */}
     <div
       style={{
         display: "flex",
@@ -380,7 +380,7 @@ const MinimalView = ({
         )}
       </div>
 
-      {/* Right: next solar event — time on top, tooltip reveals "sunset in Xm" */}
+      {/* Right: next solar event: time on top, tooltip reveals "sunset in Xm" */}
       {showSunTimes && sunEvent && (
         <div
           style={{
@@ -550,7 +550,7 @@ const ExpressiveView = ({
             </div>
           )
         )}
-        {/* Third line: AQI — dot (colour = severity) + number + level label */}
+        {/* Third line: AQI: dot (colour = severity) + number + level label */}
         {aqiLevel && (
           <div style={{ marginTop: "0.12em" }}>
             <AQIBadge value={aqi.value} pm25={aqi.pm25} variant="extended" />
@@ -709,7 +709,7 @@ function getWeatherContent({
       />
     );
   }
-  // 'minimal' (and legacy 'simple') — Apple Weather-style layout
+  // 'minimal' (and legacy 'simple'): Apple Weather-style layout
   if (!weather) return <MinimalSkeleton />;
   return (
     <MinimalView
@@ -761,7 +761,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
     ? (location.name?.split(",")[0]?.trim() || "")
     : (geoCity || "");
 
-  // Shared weather hook — covers SW cache → localStorage → direct fetch waterfall
+  // Shared weather hook: covers SW cache → localStorage → direct fetch waterfall
   const {
     weather: hookWeather,
     forecast: hookForecast,
@@ -795,7 +795,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
     };
   }, [hookWeather, unit]);
 
-  // Location-denied detection — useWeather now clears its own output when coords
+  // Location-denied detection: useWeather now clears its own output when coords
   // go null, so this only needs to drive the denied flag.
   useEffect(() => {
     if (!location && (geoSource === "default" || geoLat == null)) {
@@ -826,7 +826,7 @@ export const Widget = ({ id = "weather", onRemove }) => {
   // City displayed as first comma-segment (safe when weather exists)
   const cityShort = displayWeather?.city?.split(",")?.[0]?.trim() || "";
 
-  // Sunrise/sunset — computed locally (no API needed) from available coords
+  // Sunrise/sunset: computed locally (no API needed) from available coords
   const sunLat = location?.lat ?? geoLat;
   const sunLon = location?.lon ?? geoLon;
   const sunTimes = useMemo(

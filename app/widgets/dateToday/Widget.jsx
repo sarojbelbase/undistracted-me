@@ -13,7 +13,7 @@ export const Widget = ({ id, onRemove }) => {
 
   const [parts, setParts] = useState(() => getDateParts(language));
   // Tracks the last rendered date key so we only re-render when the day actually
-  // rolls over — onClockTick fires every second, but the date changes once/day.
+  // rolls over: onClockTick fires every second, but the date changes once/day.
   const lastKeyRef = useRef('');
 
   useEffect(() => {

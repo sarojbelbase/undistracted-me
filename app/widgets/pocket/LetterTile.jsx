@@ -3,7 +3,7 @@ import { hostHueColor, isIpOrLocalHost } from "./utils";
 import { TILE_TEXT_COLOR } from "./constants";
 
 /**
- * LetterTile — the muted-hue site tile used for link favicon fallbacks and the
+ * LetterTile: the muted-hue site tile used for link favicon fallbacks and the
  * Website group header. The hue is derived from a hash of the host; a fixed
  * white glyph keeps AA contrast on the muted hue in both light and dark mode.
  *

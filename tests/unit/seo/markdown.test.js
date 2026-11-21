@@ -14,7 +14,7 @@ function ctx(path, accept, method = 'GET') {
   };
 }
 
-describe('app-functions/index.js — markdown content negotiation', () => {
+describe('app-functions/index.js: markdown content negotiation', () => {
   it('serves markdown for GET / with Accept: text/markdown', async () => {
     const res = await onRequest(ctx('/', 'text/markdown'));
     expect(res).toBeInstanceOf(Response);

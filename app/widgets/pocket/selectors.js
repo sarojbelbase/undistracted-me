@@ -1,5 +1,5 @@
 /**
- * selectors.js — pure derived-state helpers for Pocket.
+ * selectors.js: pure derived-state helpers for Pocket.
  *
  * Every count shown in the UI (rail, header, settings) MUST come from here so
  * they can never disagree (§2 P1). These functions are pure and storage-free so
@@ -8,12 +8,12 @@
 
 import { timeBucket, TIME_BUCKET_LABELS } from "./utils";
 
-/** Live items — exclude soft-deleted. */
+/** Live items: exclude soft-deleted. */
 export function liveItems(items) {
   return (items || []).filter((i) => !i.deletedAt);
 }
 
-/** Live folders — exclude soft-deleted. */
+/** Live folders: exclude soft-deleted. */
 export function liveFolders(folders) {
   return (folders || []).filter((f) => !f.deletedAt);
 }

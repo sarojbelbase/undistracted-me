@@ -365,7 +365,7 @@ import { buildSchemaGraph } from "../data/schema.js";
           const rate = r && r.rates && r.rates[currency];
           if (rate) { applyLocalCurrency(currency, rate); return; }
         } catch (e) {
-          // rate lookup failed — fall through to USD
+          // rate lookup failed: fall through to USD
         }
       }
       applyRegion("usd");

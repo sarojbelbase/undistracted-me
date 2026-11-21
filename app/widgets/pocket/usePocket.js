@@ -11,7 +11,7 @@ export function usePocket() {
 }
 
 /**
- * Narrow selector hook — subscribes to only the selected slice so a leaf
+ * Narrow selector hook: subscribes to only the selected slice so a leaf
  * component (e.g. RowActions reading `folders`) doesn't re-render on every item
  * mutation. `getSnapshot().folders` keeps the same reference across item-only
  * changes (setSnapshot spreads `{ ...s, items }`), so useSyncExternalStore skips.

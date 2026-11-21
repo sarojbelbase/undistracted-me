@@ -5,7 +5,7 @@ import { useUIStore } from '../../store/useUIStore';
 import { GearFillIcon } from '../../assets/svg/GearFillIcon';
 import { ChevronRightIcon } from '../../assets/svg/ChevronRightIcon';
 
-// One pill container for both states — same shape, same padding, different content.
+// One pill container for both states: same shape, same padding, different content.
 const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel, onConnect }) => {
   if (connected && profile) {
     const subtitle = profileSubtitle ?? profile.email ?? null;
@@ -60,7 +60,7 @@ const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel, on
     );
   }
 
-  // Not connected — pill shows connect label + Settings path
+  // Not connected: pill shows connect label + Settings path
   return (
     <button
       type="button"
@@ -83,16 +83,16 @@ const AccountInfoSlot = ({ connected, profile, profileSubtitle, connectLabel, on
 };
 
 /**
- * IntegrationRow — flat account-status row for widget settings panels.
+ * IntegrationRow: flat account-status row for widget settings panels.
  *
  * Props:
- *  icon          ReactNode   — service icon (renders with its own colour; not overridden here)
- *  label         string      — e.g. "Google Calendar"
- *  description   string|null — data-access summary; merged into the CTA when disconnected
- *  privacyLabel  string|null — e.g. "Nothing stored on servers"
- *  syncedAtLabel string|null — overrides "Connected" status text (e.g. "Synced 2 min ago")
- *  connected     boolean     — override for non-Google integrations (defaults to Google store)
- *  profile       object|null — override for non-Google integrations
+ *  icon          ReactNode  : service icon (renders with its own colour; not overridden here)
+ *  label         string     : e.g. "Google Calendar"
+ *  description   string|null: data-access summary; merged into the CTA when disconnected
+ *  privacyLabel  string|null: e.g. "Nothing stored on servers"
+ *  syncedAtLabel string|null: overrides "Connected" status text (e.g. "Synced 2 min ago")
+ *  connected     boolean    : override for non-Google integrations (defaults to Google store)
+ *  profile       object|null: override for non-Google integrations
  */
 export const IntegrationRow = ({
   icon,
@@ -133,7 +133,7 @@ export const IntegrationRow = ({
         </div>
       </div>
 
-      {/* ── Description — shown when not connected, outside the pill ── */}
+      {/* ── Description: shown when not connected, outside the pill ── */}
       {!connected && description && (
         <p className="text-[11px] leading-snug m-0" style={{ color: 'var(--w-ink-4)' }}>
           {description}

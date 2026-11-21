@@ -48,7 +48,7 @@ export const groupEventsByBucket = (events) => {
 };
 
 // ─── Age label ───────────────────────────────────────────────────────────────
-// Sourced from utilities/index.js — single canonical implementation.
+// Sourced from utilities/index.js: single canonical implementation.
 export { humanizeAge } from '../../utilities';
 
 // ─── Layout constants ────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ export const applyDuration = (startDate, startTime, mins) => {
   };
 };
 
-// ─── Display formatters (shared by Widget + AllEventsModal) ──────────────────
+// ─── Display formatters (shared by Widget + ExpandedView) ────────────────────
 
 /** "8:15 AM" from a 24-hour HH:MM string */
 export const fmt12 = (time) => {
@@ -114,12 +114,28 @@ export const calcDuration = (startTime, endTime, startDate, endDate) => {
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 };
 
-/** Today → null; Tomorrow → 'Tomorrow'; else 'Fri, Apr 3' */
+/** "Fri, Apr 3" from a YYYY-MM-DD string; appends the year when it differs from now */
+export const formatExplicitDate = (dateStr) => {
+  const d = new Date(`${dateStr}T00:00`);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
+};
+
+/** Today → null; Tomorrow → 'Tomorrow'; future → "Fri, Apr 3"; past → humanized */
 export const datePrefixFor = (dateStr) => {
   if (!dateStr) return null;
   const h = humanizeTime(dateStr);
   if (h.isToday) return null;
   if (h.isTomorrow) return 'Tomorrow';
+  // Far-future events ("Next Month", "in 2 months") still show the concrete
+  // date + month instead of a vague relative label.
+  if (h.direction === 'future') return formatExplicitDate(dateStr);
   return h.calendar;
 };
 
@@ -138,7 +154,7 @@ export const isLiveNow = (event) => {
     const end = new Date(`${event.endDate || eDate}T${event.endTime}`);
     return now < end;
   }
-  // No end time — treat the event as live for 30 min after start
+  // No end time: treat the event as live for 30 min after start
   return (now - start) < 30 * 60 * 1000;
 };
 

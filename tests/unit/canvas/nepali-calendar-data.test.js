@@ -12,7 +12,7 @@
  *    historical precedent in the BS calendar.
  *
  * If any of these tests fail after updating the table, treat it as a
- * blocking bug — the date display will be wrong for real users.
+ * blocking bug: the date display will be wrong for real users.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -91,7 +91,7 @@ describe('Known anchor rows', () => {
   // The regression that caused the previous extension update:
   //   Jestha 2083 was 30 → produced a 364-day year → every date after
   //   Jestha 1, 2083 displayed one day too early.
-  it('BS 2083 Jestha = 31 — REGRESSION GUARD (was 30, caused prior update bug)', () => {
+  it('BS 2083 Jestha = 31: REGRESSION GUARD (was 30, caused prior update bug)', () => {
     expect(getMonths(2083)?.[1]).toBe(31);
   });
 
@@ -189,7 +189,7 @@ describe('convertEnglishToNepali integration', () => {
     expect(convertEnglishToNepali(2026, 4, 14)).toBe('2083 1 1');
   });
 
-  it('May 15, 2026 ≈ Jestha 1, 2083 BS (first day of Jestha — month that was wrong)', () => {
+  it('May 15, 2026 ≈ Jestha 1, 2083 BS (first day of Jestha: month that was wrong)', () => {
     // Jestha starts 31 days after Baisakh 1, 2083 (Baisakh has 31 days)
     // Apr 14 + 31 = May 15
     expect(convertEnglishToNepali(2026, 5, 15)).toBe('2083 2 1');

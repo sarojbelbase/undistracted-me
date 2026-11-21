@@ -1,5 +1,5 @@
 /**
- * TintedChip — accent-tinted label chip.
+ * TintedChip: accent-tinted label chip.
  *
  * Renders as <a> when `href` is provided, otherwise as <button>.
  * Used for "Go to Meet", "View All", etc.

@@ -11,7 +11,7 @@
  */
 import { NEPALI_YEARS_AND_DAYS_IN_MONTHS } from '../data/bikramSambatCalendar.js';
 
-// Base anchor — the day-count origin shared with the AD→BS converter.
+// Base anchor: the day-count origin shared with the AD→BS converter.
 const BASE_BS_YEAR = 2000;
 const BASE_BS_MONTH = 9; // Poush
 const BASE_BS_DAY = 17; // Poush 17, 2000 === 1944-01-01

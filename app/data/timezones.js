@@ -2,11 +2,11 @@
  * Comprehensive IANA timezone list with display metadata.
  *
  * Fields:
- *   tz      — IANA identifier (used by dayjs/Intl)
- *   name    — Primary display name (city / region)
- *   offset  — Standard UTC offset string, e.g. "-08:00", "+05:30"
- *   region  — Grouping bucket for UI rendering
- *   cities  — Comma-separated searchable city/country hints (not displayed)
+ *   tz     : IANA identifier (used by dayjs/Intl)
+ *   name   : Primary display name (city / region)
+ *   offset : Standard UTC offset string, e.g. "-08:00", "+05:30"
+ *   region : Grouping bucket for UI rendering
+ *   cities : Comma-separated searchable city/country hints (not displayed)
  */
 export const TIMEZONES = [
   // ── Americas ─────────────────────────────────────────────────────────────

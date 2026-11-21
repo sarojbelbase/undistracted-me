@@ -4,24 +4,24 @@
  * Generates production-quality screenshots at 1280×800 (Chrome Store format).
  * Saves to: store-assets/showcase/ (kept out of `public/` so they never ship in the extension build)
  *
- * ⚠️  MUST run in headed mode — the canvas/WebGL background doesn't render in
+ * ⚠️  MUST run in headed mode: the canvas/WebGL background doesn't render in
  *     chrome-headless-shell:
  *
  *   npx playwright test showcase-screenshots --reporter=list --headed
  *
  * Captured views:
- *  01_dashboard_light.png      — Dashboard, Blueberry accent, light
- *  02_dashboard_dark.png       — Dashboard, dark mode
- *  03_focus_mode.png           — Focus Mode, fullscreen clock
- *  04_quick_tour_step1.png     — Quick Tour overlay, Step 1
- *  05_quick_tour_step2.png     — Quick Tour overlay, Step 2
+ *  01_dashboard_light.png     : Dashboard, Blueberry accent, light
+ *  02_dashboard_dark.png      : Dashboard, dark mode
+ *  03_focus_mode.png          : Focus Mode, fullscreen clock
+ *  04_quick_tour_step1.png    : Quick Tour overlay, Step 1
+ *  05_quick_tour_step2.png    : Quick Tour overlay, Step 2
  *
  * Widget close-ups (element-level screenshots):
- *  06_widget_clock.png         — Clock widget, dark/Coral
- *  07_widget_notes.png         — Notes widget, light/Blueberry, seeded text
- *  08_widget_pomodoro.png      — Pomodoro timer, dark/Mint
- *  09_widget_progress.png      — Year progress, light/Blueberry
- *  10_widget_datetoday.png     — Date Today, dark/Rose
+ *  06_widget_clock.png        : Clock widget, dark/Coral
+ *  07_widget_notes.png        : Notes widget, light/Blueberry, seeded text
+ *  08_widget_pomodoro.png     : Pomodoro timer, dark/Mint
+ *  09_widget_progress.png     : Year progress, light/Blueberry
+ *  10_widget_datetoday.png    : Date Today, dark/Rose
  */
 
 import { test } from '@playwright/test';
@@ -39,7 +39,7 @@ function ensureDir(dir) {
 }
 
 /** Inject localStorage settings BEFORE React mounts.
- *  Uses Playwright's arg parameter — closure variables don't serialize, so
+ *  Uses Playwright's arg parameter: closure variables don't serialize, so
  *  we pass settings as the second argument to addInitScript. */
 function injectSettings(settings) {
   // initFn receives settings as its first argument (Playwright arg mechanism)
@@ -49,7 +49,7 @@ function injectSettings(settings) {
     existing.state = { ...existing.state, ...s };
     localStorage.setItem(key, JSON.stringify(existing));
 
-    // Mirror to legacy keys — existing tests use these reliably
+    // Mirror to legacy keys: existing tests use these reliably
     if (s.mode) localStorage.setItem('app_mode', s.mode);
     if (s.accent) localStorage.setItem('app_accent', s.accent);
     localStorage.setItem('language', s.language || 'en');

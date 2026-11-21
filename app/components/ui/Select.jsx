@@ -11,7 +11,7 @@ import {
 } from "../../theme/canvas";
 
 /**
- * Select — the themed dropdown primitive. A fully custom menu (not the native
+ * Select: the themed dropdown primitive. A fully custom menu (not the native
  * OS options list), styled to match `Input`'s pill wrapper so selects and text
  * inputs are visually interchangeable in settings panels and dialogs.
  *
@@ -21,14 +21,14 @@ import {
  * any enclosing Modal's own handler), or selection.
  *
  * Props:
- *   options     — [{ value, label, color? }]; `color` renders a small swatch dot
- *   value       — currently selected value
- *   onChange    — (value) => void
- *   placeholder — label shown when nothing matches `value` (default "Select…")
- *   ariaLabel   — accessible name for the trigger + listbox
- *   icon        — leading icon element
- *   disabled    — disable the trigger
- *   wrapperStyle— extra styles for the pill trigger
+ *   options    : [{ value, label, color? }]; `color` renders a small swatch dot
+ *   value      : currently selected value
+ *   onChange   : (value) => void
+ *   placeholder: label shown when nothing matches `value` (default "Select…")
+ *   ariaLabel  : accessible name for the trigger + listbox
+ *   icon       : leading icon element
+ *   disabled   : disable the trigger
+ *   wrapperStyle- extra styles for the pill trigger
  */
 export function Select({
   options = [],

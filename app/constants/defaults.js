@@ -1,21 +1,21 @@
 /**
- * ─── Defaults — Single Source of Truth ────────────────────────────────────────
+ * ─── Defaults: Single Source of Truth ────────────────────────────────────────
  *
  * Every default value in the app lives here so it can be read and modified from
- * one place. Components, stores, and hooks import from this module instead of
+ * one place. Components, stores and hooks import from this module instead of
  * hardcoding fallbacks inline.
  *
- * ⚠️  Keep this file PURE — no React / bootstrap-icons / DOM imports. It is
+ * ⚠️  Keep this file PURE: no React / bootstrap-icons / DOM imports. It is
  *     transitively imported by the service worker (`bg.js` via
  *     `constants/notifications.js`), which must stay lean. UI-only decorations
  *     (e.g. expense category icons) live in their own feature module and are
  *     attached to the data defined here.
  *
  * Sections:
- *   • APP_SETTINGS_DEFAULTS    — global settings store (useSettingsStore)
- *   • WIDGET_SETTINGS_DEFAULTS — per-widget-type default settings
- *   • NOTIFICATION_TYPES       — notification type registry + enabled defaults
- *   • Widget constants          — default symbols, periods, categories, etc.
+ *   • APP_SETTINGS_DEFAULTS   : global settings store (useSettingsStore)
+ *   • WIDGET_SETTINGS_DEFAULTS: per-widget-type default settings
+ *   • NOTIFICATION_TYPES      : notification type registry + enabled defaults
+ *   • Widget constants         : default symbols, periods, categories, etc.
  */
 
 // ─── App settings (useSettingsStore) ──────────────────────────────────────────
@@ -38,6 +38,8 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
   quickTourSeenVersion: null,
   whatsNewSeenVersion: null,
   syncEnabled: false,
+  syncNotes: true,
+  syncPocket: true,
 
   // Focus Mode
   clockFormat: "24h",
@@ -58,7 +60,7 @@ export const APP_SETTINGS_DEFAULTS = Object.freeze({
 // ─── Widget settings defaults (keyed by widget type) ──────────────────────────
 
 // Frozen (shallow) so callers can't accidentally mutate the shared defaults by
-// reference — `useWidgetSettings` returns a copy, and any in-place mutation of
+// reference: `useWidgetSettings` returns a copy, and any in-place mutation of
 // a default would otherwise corrupt the value for every widget instance.
 export const WIDGET_SETTINGS_DEFAULTS = Object.freeze({
   clock: { format: "24h", timezones: [] },
@@ -129,7 +131,7 @@ export const DEFAULT_PROGRESS_PERIOD = "day";
 export const DEFAULT_PROGRESS_CALENDAR = "ad";
 
 /**
- * Default expense categories — pure identity data (id / label / description).
+ * Default expense categories: pure identity data (id / label / description).
  * Icons are React components and are attached in `widgets/expense/useExpenses.js`
  * to keep this module importable from the service worker.
  */

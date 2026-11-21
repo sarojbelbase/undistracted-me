@@ -1,8 +1,8 @@
-# Undistracted Me — Landing Page
+# Undistracted Me: Landing Page
 
 An **Astro** marketing site for the **Undistracted Me** browser extension. SEO-first,
 static output, with a small client-side script for the masonry layout, scroll
-reveals, browser detection, and the live Focus Mode clock.
+reveals, browser detection and the live Focus Mode clock.
 
 - **Marketing site:** `https://undistracted.me` and `https://www.undistracted.me`
 - **Web app:** `https://app.undistracted.me`
@@ -11,7 +11,7 @@ reveals, browser detection, and the live Focus Mode clock.
 
 ## Stack
 
-- **Astro** (static output) — `@astrojs/sitemap` + `@jdevalk/astro-seo-graph` for build-time SEO validation.
+- **Astro** (static output): `@astrojs/sitemap` + `@jdevalk/astro-seo-graph` for build-time SEO validation.
 - Plain CSS design system (hex tokens, fixed light design with dark sections), no UI framework.
 - Product screenshots (PNG) optimized to WebP, plus photos extracted from the reference design.
 
@@ -55,7 +55,7 @@ bun run preview  # serve the build
 > **Node requirement:** Astro 7 needs Node **≥ 22.23.4**. The `dev` / `build` /
 > `preview` scripts run Astro under Bun's bundled runtime (`bun run --bun`), so
 > `bun run build` works even on a machine whose system Node is older. If you run
-> Astro directly (or via `npm` / `node`), use Node 24 — see `.nvmrc` /
+> Astro directly (or via `npm` / `node`), use Node 24: see `.nvmrc` /
 > `.node-version` at the repo root.
 
 ## SEO
@@ -70,7 +70,7 @@ The build ships and validates, via `@jdevalk/astro-seo-graph`, at every build:
 
 ## Deploy
 
-The build outputs plain static files to `dist/` — deploy them to any static host
+The build outputs plain static files to `dist/`: deploy them to any static host
 (Cloudflare Pages, Netlify, GitHub Pages, S3 + CDN, …). There are no server functions
 or runtime dependencies.
 
@@ -99,7 +99,7 @@ or runtime dependencies.
 The reference design (single HTML page) is the source of truth; the tokens and
 content rules are recorded in `artifacts/docs/DESIGN.md`.
 
-- **Style:** "unplug the noise" — a calm paper-and-ink single page with pinned
+- **Style:** "unplug the noise": a calm paper-and-ink single page with pinned
   scroll sections (the "why" and the four-step "story"), a notification ticker,
   and a masonry widget gallery with a tooltip on hover.
 - **Colors:** cream `#f4f1ec` / white `#f7f7f7` / near-black `#0b0b0b` /
@@ -108,6 +108,6 @@ content rules are recorded in `artifacts/docs/DESIGN.md`.
   (body/UI), `Bebas Neue` (labels/caps), `DM Mono` (numbering/meta),
   `Fraunces` italic (storytelling only), via Google Fonts.
 - **Modes:** light design with hardcoded dark sections (Focus, Privacy, footer)
-  — no manual toggle.
-- **Motion:** scroll-scrubbed reveals, staggered entrances, and a live Focus
+ : no manual toggle.
+- **Motion:** scroll-scrubbed reveals, staggered entrances and a live Focus
   Mode clock, all disabled under `prefers-reduced-motion`.

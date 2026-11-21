@@ -1,5 +1,5 @@
 /**
- * Theme initialisation — runs as the very first module import in index.jsx.
+ * Theme initialisation: runs as the very first module import in index.jsx.
  * Sets data-mode and CSS variables on <html> from localStorage before React
  * renders, preventing a light-flash on dark-mode page loads.
  *
@@ -14,7 +14,7 @@ import { APP_SETTINGS_DEFAULTS } from './constants/defaults';
 import { loadCardStyle } from './styles/cardStyleLoader';
 
 try {
-  // Prefer the Zustand persist key — this is where settings live after first run.
+  // Prefer the Zustand persist key: this is where settings live after first run.
   // Fall back to legacy per-key entries for first-time users migrating from older builds.
   let mode = APP_SETTINGS_DEFAULTS.mode;
   let accentName = APP_SETTINGS_DEFAULTS.accent;
@@ -31,7 +31,7 @@ try {
     accentName = localStorage.getItem('app_accent') || APP_SETTINGS_DEFAULTS.accent;
   }
 
-  // Resolve 'auto' synchronously before painting — uses cached coords or Kathmandu
+  // Resolve 'auto' synchronously before painting: uses cached coords or Kathmandu
   if (mode === 'auto') mode = computeAutoMode();
 
   const accent = ACCENT_COLORS.find(a => a.name === accentName) || ACCENT_COLORS[0];
@@ -54,7 +54,7 @@ try {
   const accentHex = dark ? (accent.darkHex ?? accent.hex) : accent.hex;
   const accentFg  = dark ? (accent.darkFg  ?? accent.fg)  : accent.fg;
 
-  // Same hex→rgb derivation as theme.js applyTheme — OrbBackground / comic
+  // Same hex→rgb derivation as theme.js applyTheme: OrbBackground / comic
   // textures read it as rgba(var(--w-accent-rgb), …).
   const hexToRgb = (hex) => {
     const r = Number.parseInt(hex.slice(1, 3), 16);

@@ -216,7 +216,7 @@ export const Widget = ({ id, onRemove }) => {
   // ── Settings panel ─────────────────────────────────────────────────────────
   const settingsContent = (onClose) => (
     <>
-      {/* Custom header — matching AllEventsModal style */}
+      {/* Custom header: matching AllEventsModal style */}
       <div
         className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
         style={{ borderBottom: '1.5px solid var(--w-divider)' }}
@@ -329,7 +329,7 @@ export const Widget = ({ id, onRemove }) => {
           {RefreshRow}
         </div>
 
-        {/* ── Error banner — only shown when already connected (retry errors) ─────────── */}
+        {/* ── Error banner: only shown when already connected (retry errors) ─────────── */}
         {error && connected && (
           <div
             className="mx-3 mb-2 px-3 py-2 rounded-xl text-[11px]"

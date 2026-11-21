@@ -11,7 +11,7 @@
  *    returning user loses all widgets after the migration build ships.
  *  – restoreInstances is used by settings-import; if it doesn't fully replace
  *    the array extra phantom widgets will appear.
- *  – addInstance on an unknown type should still work (defensive — future widgets).
+ *  – addInstance on an unknown type should still work (defensive: future widgets).
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -140,7 +140,7 @@ describe('restoreInstances', () => {
     expect(useWidgetInstancesStore.getState().instances).toHaveLength(0);
   });
 
-  it('restoring does not merge with existing — old instances are gone', () => {
+  it('restoring does not merge with existing: old instances are gone', () => {
     resetStore([{ id: 'clock', type: 'clock' }]);
     useWidgetInstancesStore.getState().restoreInstances([{ id: 'calendar', type: 'calendar' }]);
     const { instances } = useWidgetInstancesStore.getState();

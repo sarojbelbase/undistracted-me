@@ -4,9 +4,9 @@ import { Button } from './Button';
 import { ConfirmButton } from './ConfirmButton';
 
 /**
- * DataTransfer — the shared Import/Export block for settings "Data" sections.
+ * DataTransfer: the shared Import/Export block for settings "Data" sections.
  * Single source of truth for the import/export button pair, the sample-file
- * download ("examples"), the guidance note, the info tooltip, and the
+ * download ("examples"), the guidance note, the info tooltip and the
  * destructive clear-all action, so every widget's Data section reads the same.
  *
  * Props:

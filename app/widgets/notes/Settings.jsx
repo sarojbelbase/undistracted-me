@@ -1,5 +1,5 @@
 /**
- * Notes widget settings — the "⋯ → Settings" panel for the Notes widget.
+ * Notes widget settings: the "⋯ → Settings" panel for the Notes widget.
  *
  * These settings drive the Note Mode full-screen top bar (weather + clock +
  * date), which reads the same per-widget settings slot for widgetId "notes".

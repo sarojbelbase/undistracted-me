@@ -1,11 +1,11 @@
 /**
- * Store screenshots — blocked-site interstitial + web clipper (Pocket).
+ * Store screenshots: blocked-site interstitial + web clipper (Pocket).
  *
  * Two full-page 1280×800 PNGs for the Chrome Web Store + Firefox AMO listings,
  * covering the two headline features from the growth plan:
  *
- *   site_blocking.png   — the blocked-site interstitial (dark, timed block)
- *   web_clipper.png     — the Pocket widget as the dashboard's hero
+ *   site_blocking.png  : the blocked-site interstitial (dark, timed block)
+ *   web_clipper.png    : the Pocket widget as the dashboard's hero
  *
  * Outputs to: store-assets/showcase/ (gitignored), then copied into
  * publish/chrome/screenshots/ + publish/firefox/screenshots/.
@@ -112,10 +112,10 @@ test('web_clipper · Pocket widget', async ({ page }) => {
     localStorage.setItem(
       'pocket:items',
       JSON.stringify([
-        { id: 'pk1', kind: 'link', text: 'https://react.dev/reference/react/useState', title: 'useState — React', host: 'react.dev', sourceUrl: 'https://react.dev/reference/react/useState', folderIds: [], createdAt: t - 3 * m, updatedAt: t - 3 * m, deletedAt: null },
+        { id: 'pk1', kind: 'link', text: 'https://react.dev/reference/react/useState', title: 'useState: React', host: 'react.dev', sourceUrl: 'https://react.dev/reference/react/useState', folderIds: [], createdAt: t - 3 * m, updatedAt: t - 3 * m, deletedAt: null },
         { id: 'pk2', kind: 'sentence', text: 'Make it work, make it right, make it fast.', title: '', host: 'paulgraham.com', sourceUrl: 'https://paulgraham.com/worked.html', folderIds: ['fq'], createdAt: t - 2 * h, updatedAt: t - 2 * h, deletedAt: null },
         { id: 'pk3', kind: 'code', text: 'const sum = (a, b) => a + b;', title: '', host: 'github.com', sourceUrl: 'https://github.com/sarojbelbase/undistracted-me', folderIds: [], createdAt: t - 5 * h, updatedAt: t - 5 * h, deletedAt: null },
-        { id: 'pk4', kind: 'paragraph', text: 'The best way to predict the future is to invent it. Most people build their lives around the assumption that tomorrow will look like today, but the future is not something that happens to you — it is something you make.', title: '', host: 'alan.cx', sourceUrl: 'https://alan.cx/notes', folderIds: ['fr'], createdAt: t - 1 * d, updatedAt: t - 1 * d, deletedAt: null },
+        { id: 'pk4', kind: 'paragraph', text: 'The best way to predict the future is to invent it. Most people build their lives around the assumption that tomorrow will look like today, but the future is not something that happens to you: it is something you make.', title: '', host: 'alan.cx', sourceUrl: 'https://alan.cx/notes', folderIds: ['fr'], createdAt: t - 1 * d, updatedAt: t - 1 * d, deletedAt: null },
         { id: 'pk5', kind: 'link', text: 'https://news.ycombinator.com/item?id=41234567', title: 'Ask HN: What are you building this month?', host: 'news.ycombinator.com', sourceUrl: 'https://news.ycombinator.com/item?id=41234567', folderIds: ['fr'], createdAt: t - 2 * d, updatedAt: t - 2 * d, deletedAt: null },
         { id: 'pk6', kind: 'sentence', text: 'The quieter you become, the more you are able to hear.', title: '', host: 'goodreads.com', sourceUrl: 'https://www.goodreads.com/quotes', folderIds: ['fq'], createdAt: t - 3 * d, updatedAt: t - 3 * d, deletedAt: null },
       ]),

@@ -132,7 +132,7 @@ describe("loadCachedProfile", () => {
   });
 });
 
-// NOTE: clearProfileCache was made private (module-internal) — profile cache
+// NOTE: clearProfileCache was made private (module-internal): profile cache
 // clearing is now only reachable via disconnectCalendar(), which is covered below.
 
 describe("getGoogleProfile", () => {
@@ -264,14 +264,14 @@ describe("getCalendarEvents", () => {
     expect(result.events[0].title).toBe("Regular event");
   });
 
-  it("does NOT wipe the stored token on a 401 — retries via refresh, then rethrows", async () => {
+  it("does NOT wipe the stored token on a 401: retries via refresh, then rethrows", async () => {
     seedValidToken();
     global.fetch
       .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" })
       .mockResolvedValueOnce({ ok: false, status: 401, statusText: "Unauthorized" });
     await expect(getCalendarEvents()).rejects.toThrow();
     // A transient 401 must not remove the shared `google_tokens` key (access +
-    // refresh token) — wiping it would force a full interactive re-auth and
+    // refresh token): wiping it would force a full interactive re-auth and
     // silently log out Contacts/Drive, which share the same key.
     expect(chromeMockStorage[TOKEN_KEY]).toBeDefined();
     expect(chromeMockStorage[TOKEN_KEY].refresh_token).toBe("refresh-token");

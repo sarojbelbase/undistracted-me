@@ -1,7 +1,7 @@
 @use 'common' as *;
 
 // ---------------------------------------------------------------------------
-// Pocket widget — text-saving. Consumes theme tokens only; no hardcoded
+// Pocket widget: text-saving. Consumes theme tokens only; no hardcoded
 // colors/radii/shadows/spacing. 4px spacing base. Chips/tabs/icon-buttons/
 // dividers come from the shared ui/ primitives (.um-btn, .um-icon-btn).
 // ---------------------------------------------------------------------------
@@ -298,7 +298,7 @@
 }
 
 // Row actions are quiet at rest: revealed on hover, keyboard focus, an expanded
-// row or an open menu — and always visible on touch.
+// row or an open menu: and always visible on touch.
 .pocket-row__actions {
   opacity: 0;
   transition: opacity 0.14s ease;
@@ -504,7 +504,7 @@
   padding: 16px 10px 6px;
 }
 
-// Folders section header — a button with a chevron so the section collapses.
+// Folders section header: a button with a chevron so the section collapses.
 .pocket-rail__title--btn {
   display: flex;
   align-items: center;
@@ -611,7 +611,7 @@
   outline-offset: 2px;
 }
 
-// Folder row — color key + name button, hover reveals rename/delete; touch
+// Folder row: color key + name button, hover reveals rename/delete; touch
 // reveals a "Folder actions" menu.
 .pocket-folder-row {
   position: relative;
@@ -620,7 +620,7 @@
   flex-wrap: wrap;
 }
 
-// The color "key" — a clickable swatch that opens an inline color picker.
+// The color "key": a clickable swatch that opens an inline color picker.
 .pocket-folder-row__key {
   width: 8px;
   height: 8px;
@@ -762,6 +762,12 @@
   display: none;
 }
 
+// Shared list inset for expanded views (events, countdown, expense): aligns the
+// rows with the toolbar/pocket list rhythm.
+.pocket-expanded__list {
+  padding: 4px 12px 12px;
+}
+
 .pocket-expanded__body--compact .pocket-row {
   padding-top: 6px;
   padding-bottom: 6px;
@@ -893,7 +899,7 @@
   width: 100%;
   box-sizing: border-box;
   resize: none;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   background: var(--panel-bg);
   color: var(--w-ink-1);

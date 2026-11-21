@@ -1,6 +1,6 @@
 /**
- * useChromeSessionManager — Chrome media session state, album colour
- * extraction, pending/skip timeouts, and action handlers.
+ * useChromeSessionManager: Chrome media session state, album colour
+ * extraction, pending/skip timeouts and action handlers.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { extractAlbumColor, sendChromeMediaAction } from '../utils';
@@ -19,7 +19,7 @@ export function useChromeSessionManager(sessions) {
   const updateArtColor = useCallback((s) => {
     if (!s.artwork || artRef.current[s.tabId] === s.artwork) return;
     artRef.current[s.tabId] = s.artwork;
-    // Per-tab token — ignore stale/out-of-order resolutions when a session's
+    // Per-tab token: ignore stale/out-of-order resolutions when a session's
     // artwork changes rapidly (skip/advance).
     const req = (colorReqRef.current[s.tabId] || 0) + 1;
     colorReqRef.current[s.tabId] = req;
@@ -32,7 +32,7 @@ export function useChromeSessionManager(sessions) {
 
   useEffect(() => { sessions.forEach(updateArtColor); }, [sessions, updateArtColor]);
 
-  // Clear pending/skip timers on unmount — otherwise a play/skip action that
+  // Clear pending/skip timers on unmount: otherwise a play/skip action that
   // unmounts within 6s fires setState on a dead component.
   useEffect(() => () => {
     clearTimeout(pendingTimeoutRef.current);

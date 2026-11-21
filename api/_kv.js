@@ -9,7 +9,7 @@
  *      → Functions → KV namespace bindings). That's what makes `env.TRIES`
  *      resolve to the namespace. The binding is also used by `_ratelimit.js`
  *      as a shared KV bucket, so its name is historical.
- *   2. The key inside that namespace (below, `APP_VISITS`) — already created.
+ *   2. The key inside that namespace (below, `APP_VISITS`): already created.
  *
  * Until the binding is added, every read resolves to 0 and every increment is
  * a no-op, so nothing throws and the tally simply shows "0".

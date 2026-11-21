@@ -1,8 +1,8 @@
 // ─── Top zone ─────────────────────────────────────────────────────────────────
 //
 // Renders two layers:
-//   1. TopBar      — back button (left) + fullscreen + settings (right)
-//   2. InfoStrip   — weather + date, absolutely centered between the two buttons
+//   1. TopBar     : back button (left) + fullscreen + settings (right)
+//   2. InfoStrip  : weather + date, absolutely centered between the two buttons
 //
 // They are split so InfoStrip can be `pointerEvents: none` while TopBar buttons
 // remain interactive.
@@ -58,13 +58,13 @@ const BROWSER_START_KEY = 'um_browser_start_time';
 
 const isExtension = typeof chrome !== 'undefined' && chrome?.storage?.local;
 
-/** Reads browser start time — chrome.storage in extension, Date.now() in dev. */
+/** Reads browser start time: chrome.storage in extension, Date.now() in dev. */
 const getStartTime = async () => {
   if (isExtension) {
     const result = await chrome.storage.local.get(BROWSER_START_KEY);
     return result?.[BROWSER_START_KEY] || Date.now();
   }
-  // Dev mode — always start from page load (no chrome.runtime.onStartup to reset)
+  // Dev mode: always start from page load (no chrome.runtime.onStartup to reset)
   return Date.now();
 };
 
@@ -82,7 +82,7 @@ const ScreenTime = () => {
 
   const tick = useCallback(() => {
     if (!startTime) return;
-    // The label shows whole minutes/hours — only re-render when the minute flips.
+    // The label shows whole minutes/hours: only re-render when the minute flips.
     const minute = Math.floor((Date.now() - startTime) / 60000);
     if (minute === lastMinuteRef.current) return;
     lastMinuteRef.current = minute;
@@ -192,7 +192,7 @@ const NavBar = ({
         </span>
       </TooltipBtn>
 
-      {/* Hidden audio element — always mounted so ref is stable */}
+      {/* Hidden audio element: always mounted so ref is stable */}
       <audio ref={audioRef} loop preload="metadata" style={{ display: "none" }} />
 
       {/* Right pill: rain toggle · fullscreen · settings */}
@@ -205,7 +205,7 @@ const NavBar = ({
           WebkitBackdropFilter: FM_CARD_BLUR,
         }}
       >
-        {/* Rain & white-noise toggle — TooltipBtn with appearance:none + React-driven bg */}
+        {/* Rain & white-noise toggle: TooltipBtn with appearance:none + React-driven bg */}
         <TooltipBtn
           tooltip={isPlayingRain ? "Fade out rain & noise" : "Rain & white noise"}
           onClick={() => {
@@ -240,7 +240,7 @@ const NavBar = ({
           className="p-2.5 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:bg-white/10"
           tooltip={(() => {
             if (settingsActive) return null;
-            return isFullscreen ? "Exit fullscreen" : "Fullscreen — keeps screen awake";
+            return isFullscreen ? "Exit fullscreen" : "Fullscreen: keeps screen awake";
           })()}
         >
           {isFullscreen

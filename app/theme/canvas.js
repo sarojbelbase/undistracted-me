@@ -1,12 +1,12 @@
 // ─── Canvas Mode Token System ──────────────────────────────────────────────────
 //
 // Single source of truth for ALL hardcoded color values used in canvas-mode
-// widget components, shared UI components, and the settings panel.
+// widget components, shared UI components and the settings panel.
 //
 // Philosophy:
 //   • Canvas mode is light-by-default but supports dark mode and glass/flat style.
 //   • Every component that needs a mode-aware color MUST source it here.
-//   • CSS vars (var(--card-*), var(--w-*)) are the primary mechanism — these
+//   • CSS vars (var(--card-*), var(--w-*)) are the primary mechanism: these
 //     constants supplement where CSS vars alone aren't sufficient (e.g. mode-
 //     dependent JSX style objects, JS-only logic, semantic fixed colors).
 //
@@ -23,14 +23,14 @@
 // They work because the alpha blends with the surface to produce consistent
 // contrast on both #fff (flat) and rgba(255,255,255,0.44) (glass).
 
-/** Section hairline / modal inner divider — theme-aware (var resolves per mode+theme) */
+/** Section hairline / modal inner divider: theme-aware (var resolves per mode+theme) */
 export const CANVAS_DIVIDER = "var(--w-divider)";
-export const CANVAS_DIVIDER_DARK = "var(--w-divider)"; // alias — same token handles dark
+export const CANVAS_DIVIDER_DARK = "var(--w-divider)"; // alias: same token handles dark
 
 /** Hover overlay for interactive cells (calendar days, list rows) */
 export const CANVAS_HOVER_OVERLAY = "rgba(0,0,0,0.06)";
 
-/** Cancel / secondary button border — gentle, readable on any surface */
+/** Cancel / secondary button border: gentle, readable on any surface */
 export const CANVAS_BORDER_SOFT = "rgba(0,0,0,0.12)";
 
 // ── Overlay/cluster icon tints (mode-aware helpers) ──────────────────────────
@@ -38,11 +38,11 @@ export const CANVAS_BORDER_SOFT = "rgba(0,0,0,0.12)";
 // ControlCluster) where the background surface varies between glass / flat × dark.
 // Helpers take a boolean `isDark` and return the correct rgba.
 
-/** Default icon color — muted, gentle on the canvas background */
+/** Default icon color: muted, gentle on the canvas background */
 export const CANVAS_ICON_COLOR = (isDark) =>
   isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.5)";
 
-/** Active/focused icon color — strong, pressed / open state */
+/** Active/focused icon color: strong, pressed / open state */
 export const CANVAS_ICON_ACTIVE = (isDark) =>
   isDark ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.8)";
 
@@ -50,7 +50,7 @@ export const CANVAS_ICON_ACTIVE = (isDark) =>
 export const CANVAS_ICON_LABEL = (isDark) =>
   isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.55)";
 
-/** Muted moon / status icon — softer than ICON_COLOR, used for icon-only cues */
+/** Muted moon / status icon: softer than ICON_COLOR, used for icon-only cues */
 export const CANVAS_ICON_MUTED = (isDark) =>
   isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.45)";
 
@@ -78,9 +78,9 @@ export const CANVAS_INPUT_BG = (isDark, isGlass) => {
 export const CANVAS_INPUT_BORDER = (isDark, isGlass, isComic) => {
   if (isComic) return "1.5px solid var(--card-border)";
   if (isDark && isGlass) return "1px solid rgba(255,255,255,0.16)";
-  if (isDark) return "1px solid var(--card-border)";
+  if (isDark) return "1px solid var(--input-border)";
   if (isGlass) return "1px solid rgba(0,0,0,0.09)";
-  return undefined;
+  return "1px solid var(--input-border)";
 };
 
 /** Input text / WebkitTextFillColor */
@@ -96,7 +96,7 @@ export const CANVAS_INPUT_PREFIX = (isDark) =>
   isDark ? "rgba(255,255,255,0.28)" : "var(--w-ink-6)";
 
 // ── Clock widget ─────────────────────────────────────────────────────────────
-/** Subtle divider above extra timezone clocks — theme-aware */
+/** Subtle divider above extra timezone clocks: theme-aware */
 export const CLOCK_TIMEZONE_DIVIDER = "var(--w-divider)";
 
 // ── Notes widget (macOS traffic-light controls) ───────────────────────────────
@@ -108,11 +108,11 @@ export const NOTES_BUTTON_SHADOW = "inset 0 0 0 0.5px rgba(0,0,0,0.18)";
 export const FAVICON_TEXT_SHADOW = "0 1px 4px rgba(0,0,0,0.18)";
 
 // ── Semantic occasion / event colors ─────────────────────────────────────────
-// Fixed brand colors — not theme-adaptive, chosen for emotional resonance.
+// Fixed brand colors: not theme-adaptive, chosen for emotional resonance.
 // Birthday uses var(--w-accent) so it adapts to user's chosen accent.
 
-/** Anniversary (heart) — warm rose pink */
+/** Anniversary (heart): warm rose pink */
 export const OCCASION_ANNIVERSARY_COLOR = "#e05c8a";
 
-/** Special / other (star) — warm amber gold */
+/** Special / other (star): warm amber gold */
 export const OCCASION_SPECIAL_COLOR = "#f59e0b";

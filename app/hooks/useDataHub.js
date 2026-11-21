@@ -1,5 +1,5 @@
 /**
- * useDataHub — subscribe a React component to one datahub namespace.
+ * useDataHub: subscribe a React component to one datahub namespace.
  *
  * Returns { data, updatedAt, meta, hydrated, write }. Reads are synchronous
  * (via useSyncExternalStore) once the snapshot is hydrated, so live background
@@ -40,7 +40,7 @@ export function useDataHub(namespace) {
     updatedAt: entry?.updatedAt ?? null,
     // The full namespace entry ({ data, updatedAt, ...customMeta }). Named
     // `entry` (not `meta`) because `entry.data` and `data` above are the SAME
-    // reference — this is not a separate small metadata object.
+    // reference: this is not a separate small metadata object.
     entry: entry ?? null,
     hydrated,
     write,

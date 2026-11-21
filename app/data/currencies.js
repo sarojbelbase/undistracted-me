@@ -1,7 +1,7 @@
 /**
  * Curated list of world currencies for the Expense Tracker widget.
  *
- * Each entry includes the ISO 4217 code, symbol, display name, and
+ * Each entry includes the ISO 4217 code, symbol, display name and
  * locale used for Intl.NumberFormat formatting.
  */
 
@@ -85,7 +85,7 @@ export function formatAmount(amount, currencyCode, locale) {
   const currency = CURRENCIES.find((c) => c.code === currencyCode);
   const symbol = currency?.symbol ?? currencyCode;
 
-  // Always use en-US number formatting — only the symbol changes per currency
+  // Always use en-US number formatting: only the symbol changes per currency
   const numberPart = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,

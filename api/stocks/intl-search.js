@@ -6,7 +6,7 @@
  *
  * ── Contract (to swap the upstream provider) ─────────────────────────────────
  * INPUT  (client → proxy):
- *   q — search text
+ *   q: search text
  *
  * OUTPUT (proxy → client, normalized):
  *   { quotes: [{ symbol: string, name: string, exchange: string }] }

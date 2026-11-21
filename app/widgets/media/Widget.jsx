@@ -52,7 +52,7 @@ export const Widget = ({ onRemove }) => {
   const hasBg = !!track?.albumArt;
   const { bgStyle, ink: inkColor, mute: muteColor, btnBg, btnBorder } = resolveColors(albumColor, hasBg);
 
-  // Function form so the settings content receives `onClose` — lets the connect
+  // Function form so the settings content receives `onClose`: lets the connect
   // CTA close the Media modal before opening the Accounts dialog (no stacked dialogs).
   const settingsPanel = (onClose) => <SpotifySettings onClose={onClose} />;
 
@@ -95,7 +95,7 @@ export const Widget = ({ onRemove }) => {
     );
   }
 
-  // Chrome media fallback — also takes over when Spotify is connected but idle
+  // Chrome media fallback: also takes over when Spotify is connected but idle
   // (is_playing: false), so a stale last-played track can't mask live browser
   // media (SoundCloud, YouTube, etc.).
   if ((!connected || !track?.isPlaying) && chromeMediaSessions.length) {

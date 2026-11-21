@@ -1,5 +1,5 @@
 /**
- * Button — the shared labelled button. Replaces the inline `primaryBtn` /
+ * Button: the shared labelled button. Replaces the inline `primaryBtn` /
  * `secondaryBtn` objects and the `.pocket-action-btn` class.
  *
  * Variants:

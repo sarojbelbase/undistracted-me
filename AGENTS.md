@@ -4,7 +4,7 @@ Project guide for AI agents working in this repo.
 
 ## What this is
 
-**Undistracted Me** — a Chrome/Firefox Manifest V3 extension that replaces the
+**Undistracted Me**: a Chrome/Firefox Manifest V3 extension that replaces the
 new tab page with a Nepali-date dashboard: Focus Mode (cinematic clock) and
 Dashboard (draggable widget grid).
 
@@ -14,7 +14,7 @@ Dashboard (draggable widget grid).
 - **Backend**: Cloudflare Pages Functions in `api/` → `api.undistracted.me`
 - **Landing**: Astro site in `landing/` → `undistracted.me`
 - **Tests**: Vitest (unit) + Playwright (E2E)
-- **Package manager**: **Bun** — use `bun`, not `npm`/`yarn`
+- **Package manager**: **Bun**: use `bun`, not `npm`/`yarn`
 - **Source of truth for architecture**: `.docs/CONTEXT.md`
 
 ## Commands
@@ -34,7 +34,7 @@ bun run test:unit:coverage
 ## Skill routing
 
 `.docs/SKILLS.md` inventories the 87 active skills (104 non-applicable ones are
-archived in `skills-archive/`) with ✅/◐/— relevance and a per-task load table.
+archived in `skills-archive/`) with ✅/◐/- relevance and a per-task load table.
 Defaults for this repo:
 
 - Feature/UI work → `brainstorming`, `react-state-management`, `tailwind-design-system`, `interaction-design`
@@ -56,35 +56,43 @@ Custom subagents live in `.opencode/agents/`: `react-guru`,
   incompatible with dark/auto mode.
 - **Widget settings**: read/write via `useWidgetSettings(id)` (Zustand-backed).
   Do not read `widgetSettings_${id}` from localStorage in new code.
-- **Modals**: always `createPortal(…, document.body)` — grid transforms break
+- **Modals**: always `createPortal(…, document.body)`: grid transforms break
   `position: fixed`.
 - **Clock**: use `onClockTick(fn)` from `sharedClock.js`, never a per-component
   `setInterval(fn, 1000)`.
 - **Google auth**: trigger OAuth through `useGoogleAccountStore.connect()`,
   never `getGoogleAuthToken(true)` straight from UI.
 - **Tokens/PII**: `chrome.storage.local` for Spotify/Google tokens and
-  calendar/contacts caches — never `localStorage`.
+  calendar/contacts caches: never `localStorage`.
 - **Spotify refresh failure**: do not clear tokens; only
   `disconnectSpotify()` wipes them.
 - **Runtime is Preact, not React**: `react`/`react-dom` are aliased to
   `preact/compat` in `vite.config.ts` and are dev-only deps (Vitest runs on real
   React). Preact's `compat` does NOT implement `React.StrictMode` double-invocation,
-  `use`, or `useOptimistic` — don't rely on those in app code.
+  `use`, or `useOptimistic`: don't rely on those in app code.
 - **Pure render**: never call `setState` inside another `setState` updater, and
   never write to localStorage/refs during render (future-proofs a return to React
   19 dev, where these become real bugs).
 - **Per-breakpoint layouts**: persist `allLayouts` from `onLayoutChange`.
 - **Widgets**: register in `app/widgets/index.js` (`WIDGET_TYPES`,
-  `WIDGET_REGISTRY`) and add a folder under `app/widgets/<name>/`.
+  `WIDGET_REGISTRY`) and add a folder under `app/widgets/<name>/`. When a task
+  says "make a new widget", follow `.docs/WIDGET-BUILDING.md` from the start:
+  build on the shared `app/components/ui/` primitives (never hand-roll a button,
+  dropdown, empty state, settings row or import/export block), keep Phase 1 to
+  a bare-minimum card, and complete all registration touchpoints.
 - **Add dialogs**: any "Add …" / "Edit …" dialog must inherit the shared
   `app/components/ui/AddDialogHeader` (accent icon tile + title + subtitle + ✕).
   Do not hand-roll dialog headers.
 - **No `React.lazy` / code-splitting for perf**: do not lazy-load widget/component
   chunks to "render better". It does not help this extension (single bundled
   new-tab page; MV3 loads the whole bundle once) and only adds Suspense
-  complexity. Optimize via memoization, virtualization, and shared components
-  instead — never by lazy-loading. (Existing `lazy()` in FocusMode's settings is
+  complexity. Optimize via memoization, virtualization and shared components
+  instead: never by lazy-loading. (Existing `lazy()` in FocusMode's settings is
   a deliberate, isolated exception for the heavy settings panel.)
+- **No em-dashes**: do not use the em-dash character (U+2014, typed as `--`) in
+  code, comments or user-facing copy. Use a comma, colon or period instead.
+- **No Oxford comma**: in a list, drop the serial comma before the final
+  `and`/`or` (write "a, b and c", not "a, b, and c").
 
 ## Before saying "done"
 

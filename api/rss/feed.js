@@ -1,10 +1,10 @@
 /**
  * GET /rss/feed?url=<encodedFeedUrl>
  *
- * Cloudflare Pages Function — fetches an RSS/Atom feed server-side (CORS bypass),
+ * Cloudflare Pages Function: fetches an RSS/Atom feed server-side (CORS bypass),
  * parses with rss-parser and returns clean JSON.
  *
- * Supports RSS 2.0, Atom 1.0, and most feed variants (media:*, enclosures, etc.).
+ * Supports RSS 2.0, Atom 1.0 and most feed variants (media:*, enclosures, etc.).
  * Returns: { items: [{ title, link, pubDate, isoDate, source, image? }], fetchedAt: ISO }
  * Cache-Control: s-maxage=1800, stale-while-revalidate=300 (30 min CDN cache)
  *
@@ -17,7 +17,7 @@ import { assertStrictOrigin, json, corsHeaders, PRIVATE_HOST_RE } from '../_conf
 import { rateLimit } from '../_ratelimit.js';
 import { PRESET_FEEDS } from '../../app/widgets/rss/feeds.js';
 
-// ── Source label mapping (derived from PRESET_FEEDS — single source of truth) ─
+// ── Source label mapping (derived from PRESET_FEEDS: single source of truth) ─
 
 const SOURCE_NAMES = Object.fromEntries(
   PRESET_FEEDS.flatMap(f => {

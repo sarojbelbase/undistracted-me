@@ -6,15 +6,15 @@
  * The browser never makes the individual service requests directly, so
  * there are no 404s logged in the DevTools console.
  *
- * Works for: Chrome extension, Firefox extension, and website mode.
- * CORS: allows GET from chrome-extension://, moz-extension://, and production origins.
+ * Works for: Chrome extension, Firefox extension and website mode.
+ * CORS: allows GET from chrome-extension://, moz-extension:// and production origins.
  */
 
 import { assertOrigin, corsHeaders, FAVICON_SERVICES, PRIVATE_HOST_RE } from './_config.js';
 
-/** Rough hostname validation — rejects obvious junk before hitting any upstream */
+/** Rough hostname validation: rejects obvious junk before hitting any upstream */
 const VALID_DOMAIN_RE = /^[a-z0-9][a-z0-9\-_.]{0,252}[a-z0-9]$/i;
-/** Allowed icon sizes — cap to prevent callers requesting huge images */
+/** Allowed icon sizes: cap to prevent callers requesting huge images */
 const ALLOWED_SIZES = new Set(['16', '32', '48', '64', '96', '128']);
 
 export async function onRequest(context) {
@@ -69,6 +69,6 @@ export async function onRequest(context) {
     }
   }
 
-  // All services failed — client falls through to letter-initial fallback
+  // All services failed: client falls through to letter-initial fallback
   return new Response(null, { status: 204, headers: cors });
 }

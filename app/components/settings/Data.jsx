@@ -1,5 +1,5 @@
 /**
- * Data — Cross-device sync, import, export, and reset.
+ * Data: Cross-device sync, import, export and reset.
  *
  * Own tab in the main Settings panel.
  * Groups all data management concerns: sync, backup, restore, reset.
@@ -15,6 +15,8 @@ import { Divider } from '../ui/Divider';
 import { ConfirmButton } from '../ui/ConfirmButton';
 import { SyncStatusBadge } from '../ui/SyncStatusBadge';
 import { SyncConflictDialog } from '../ui/SyncConflictDialog';
+import { Toggle } from '../ui/Toggle';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import syncTransport from '../../utilities/syncTransport';
 import syncEngine from '../../utilities/syncEngineFacade';
 import { exportSettings, importFromFile, resetSettings } from '../../widgets/settingsIO';
@@ -28,14 +30,25 @@ const SectionLabel = ({ children }) => (
   </p>
 );
 
+const SyncToggleRow = ({ label, description, checked, onChange }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--w-ink-2)', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: 10, color: 'var(--w-ink-5)', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
+    </div>
+    <Toggle checked={checked} onChange={onChange} ariaLabel={label} />
+  </div>
+);
+
 export const Data = ({ onNavigateToAccounts }) => {
   const [importOk, setImportOk] = useState(false);
   const [importError, setImportError] = useState(null);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const { syncNotes, syncPocket, setSyncNotes, setSyncPocket } = useSettingsStore();
 
   // ── Sync state ─────────────────────────────────────────────────────
   const [syncConnected, setSyncConnected] = useState(() => syncTransport.isConnected());
-  // Sync runs only inside the extension — its Drive appDataFolder backend needs
+  // Sync runs only inside the extension: its Drive appDataFolder backend needs
   // the `drive.appdata` scope, which Google won't grant to web apps. Constant for
   // the page's lifetime, so read it once instead of holding it in state.
   const syncAvailable = syncEngine.getSyncStatus().available;
@@ -104,7 +117,7 @@ export const Data = ({ onNavigateToAccounts }) => {
         }, 2500);
       }
     } catch {
-      /* best-effort — engine logs failures */
+      /* best-effort: engine logs failures */
     } finally {
       setSyncing(false);
     }
@@ -179,7 +192,7 @@ export const Data = ({ onNavigateToAccounts }) => {
         <div>
           <SectionLabel>Cross-Device Sync</SectionLabel>
           <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
-            Mirror settings, widgets, and events across your devices
+            Mirror settings, widgets and events across your devices
           </p>
         </div>
 
@@ -197,7 +210,7 @@ export const Data = ({ onNavigateToAccounts }) => {
               </div>
             </div>
 
-            {/* Sync now — primary action */}
+            {/* Sync now: primary action */}
             <Button
               variant="primary"
               size="sm"
@@ -209,8 +222,24 @@ export const Data = ({ onNavigateToAccounts }) => {
               {syncButtonLabel}
             </Button>
 
+            {/* Category toggles */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 2 }}>
+              <SyncToggleRow
+                label="Sync notes"
+                description="Notes and their text"
+                checked={syncNotes}
+                onChange={setSyncNotes}
+              />
+              <SyncToggleRow
+                label="Sync pocket entries"
+                description="Saved links, snippets and folders"
+                checked={syncPocket}
+                onChange={setSyncPocket}
+              />
+            </div>
+
             <p style={{ fontSize: 10, color: 'var(--w-ink-5)', lineHeight: 1.4, margin: 0, textAlign: 'center' }}>
-              {syncHint || 'Auto-syncs once a day — or tap Sync now.'}
+              {syncHint || 'Auto-syncs once a day: or tap Sync now.'}
             </p>
           </div>
         ) : (
@@ -279,7 +308,7 @@ export const Data = ({ onNavigateToAccounts }) => {
                   zIndex: 20,
                 }}
               >
-                Importing will replace all current settings, widgets, and data. Notes, connected accounts, and sync state are not included in backups. Export first to keep a backup.
+                Importing will replace all current settings, widgets and data. Notes, connected accounts and sync state are not included in backups. Export first to keep a backup.
               </div>
             )}
           </button>
@@ -343,7 +372,7 @@ export const Data = ({ onNavigateToAccounts }) => {
         <div>
           <SectionLabel>Reset</SectionLabel>
           <p style={{ fontSize: 10.5, color: 'var(--w-ink-5)', marginTop: -4, lineHeight: '1.4' }}>
-            Clear all settings, widgets, and cached data. This cannot be undone.
+            Clear all settings, widgets and cached data. This cannot be undone.
           </p>
         </div>
 

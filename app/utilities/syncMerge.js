@@ -12,12 +12,12 @@
  *   }
  *
  * Semantics (LWW element set):
- *   - For each id, the *highest-timestamp* event wins — a write at time `t`
+ *   - For each id, the *highest-timestamp* event wins: a write at time `t`
  *     beats an earlier delete, and a delete at time `t` beats an earlier write.
  *   - Deletions survive as tombstones so a deleted item isn't resurrected by a
  *     stale write from another device.
  *
- * Keep this module PURE — no DOM / storage / network access, fully unit-testable.
+ * Keep this module PURE: no DOM / storage / network access, fully unit-testable.
  */
 
 /** Stable identity for an item in an array key (events id, bookmark url, etc.). */
@@ -60,11 +60,11 @@ export function arrayToElementSet(array, meta, ts) {
     seen.add(id);
     const prev = meta?.items?.[id];
     if (prev && deepEqual(prev.v, item)) {
-      items[id] = prev; // unchanged — preserve timestamp
+      items[id] = prev; // unchanged: preserve timestamp
     } else {
       items[id] = { v: item, t: ts }; // new or edited
     }
-    delete deleted[id]; // re-added — clear any tombstone
+    delete deleted[id]; // re-added: clear any tombstone
   }
 
   // Previously-known ids that are now absent → tombstone them.

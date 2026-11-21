@@ -1,10 +1,10 @@
 /**
- * useRssMulti — fetches multiple RSS feeds in parallel, merges and sorts
+ * useRssMulti: fetches multiple RSS feeds in parallel, merges and sorts
  * all items by date descending. Used for both preset and custom feeds.
  *
  * Data is served from the shared DataHub (`rss` namespace) written by the
  * background service worker's UM_RSS prefetch alarm. There is NO page-side
- * polling interval — the SW stamps `updatedAt` on each write and the hub
+ * polling interval: the SW stamps `updatedAt` on each write and the hub
  * propagates changes live via chrome.storage.onChanged.
  */
 
@@ -22,7 +22,7 @@ const sortNewest = (items) =>
 export function useRssMulti(feeds = []) {
   const feedsKey = feeds.map((f) => f.url).join("|");
   const feedsRef = useRef(feeds);
-  // Keep the ref in sync via an effect — writing refs during render is unsafe
+  // Keep the ref in sync via an effect: writing refs during render is unsafe
   // under concurrent rendering (a discarded render could observe a stale ref).
   useEffect(() => {
     feedsRef.current = feeds;

@@ -1,5 +1,5 @@
 /**
- * Widget mode tests — grid layout, individual widget rendering, and clipping.
+ * Widget mode tests: grid layout, individual widget rendering and clipping.
  *
  * Covers:
  *  - Widget grid is present when showWidgets=true
@@ -26,7 +26,7 @@ function ensureDir(dir) {
 
 /**
  * Returns true if the element's rendered scroll dimensions exceed its client
- * dimensions — i.e. content is being clipped/hidden by overflow:hidden.
+ * dimensions: i.e. content is being clipped/hidden by overflow:hidden.
  */
 async function isContentClipped(locator) {
   return locator.evaluate((el) => ({
@@ -114,7 +114,7 @@ test('No widget card clips its inner content', async ({ page }) => {
     const clip = await isContentClipped(card);
     if (clip.hClip) {
       const text = await card.innerText().catch(() => '').then(t => t.slice(0, 60).replace(/\n/g, ' '));
-      clippingIssues.push(`card[${i}] horizontal clip — scrollW=${clip.scrollW} clientW=${clip.clientW} — "${text}"`);
+      clippingIssues.push(`card[${i}] horizontal clip: scrollW=${clip.scrollW} clientW=${clip.clientW}: "${text}"`);
     }
   }
 
@@ -146,7 +146,7 @@ test('Screenshot every widget for visual review', async ({ page }) => {
     }
   }
 
-  // All screenshots captured — just assert the directory now has files
+  // All screenshots captured: just assert the directory now has files
   const files = fs.readdirSync(SCREENSHOT_DIR).filter(f => f.endsWith('.png'));
   expect(files.length).toBeGreaterThan(0);
 });
@@ -179,7 +179,7 @@ test('Widget catalog drawer closes via its close button', async ({ page }) => {
   await page.getByRole('button', { name: 'Widgets', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Widget catalog' })).toBeVisible();
 
-  // The drawer closes via the X button (aria-label "Close (Esc)") — the backdrop
+  // The drawer closes via the X button (aria-label "Close (Esc)"): the backdrop
   // no longer closes it (backdrop has pointer-events: none).
   await page.getByRole('button', { name: 'Close (Esc)' }).click();
 

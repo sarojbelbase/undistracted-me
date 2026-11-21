@@ -97,7 +97,7 @@ test('reset requires a confirming second click', async ({ page }) => {
   const resetBtn = dialog.getByRole('button', { name: 'Reset', exact: true });
   await resetBtn.click();
 
-  // First click only arms the confirm — the layout must NOT change yet.
+  // First click only arms the confirm: the layout must NOT change yet.
   await expect(dialog.getByRole('button', { name: 'Confirm reset' })).toBeVisible();
   expect(await readOrder(page)).toEqual(before);
 });

@@ -1,7 +1,7 @@
 // ─── Shared Spotify hook ──────────────────────────────────────────────────────
 //
 // Used by both Focus Mode (LeftPanel → Spotify.jsx) and can be adopted by the
-// canvas Spotify widget. Encapsulates playback polling, progress tracking, and
+// canvas Spotify widget. Encapsulates playback polling, progress tracking and
 // play/pause/skip controls in one place.
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -24,7 +24,7 @@ export const useSpotify = () => {
   }, []);
 
   // Poll every 5s while a track is playing (to track progress / next-track), but
-  // back off to 30s when idle — Spotify's /me/player is rate-limited, and a
+  // back off to 30s when idle: Spotify's /me/player is rate-limited, and a
   // dashboard left open all day should not hit it ~17k times while nothing plays.
   const playingRef = useRef(false);
   useEffect(() => { playingRef.current = !!spotify?.isPlaying; }, [spotify?.isPlaying]);
@@ -66,7 +66,7 @@ export const useSpotify = () => {
   }, [connected]);
 
   const durationRef = useRef(spotify?.durationMs);
-  // Mirror the duration in an effect, not during render — a discarded concurrent
+  // Mirror the duration in an effect, not during render: a discarded concurrent
   // render would otherwise leave the ref pointing at a stale duration (the 1s
   // progress interval reads durationRef.current at tick time).
   useEffect(() => { durationRef.current = spotify?.durationMs; }, [spotify?.durationMs]);

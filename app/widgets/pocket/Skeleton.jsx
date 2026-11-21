@@ -1,5 +1,5 @@
 /**
- * SkeletonRows — the loading state for Pocket's save lists (widget card and
+ * SkeletonRows: the loading state for Pocket's save lists (widget card and
  * expanded view). Shimmering placeholder rows that mirror the real row height.
  */
 export function SkeletonRows({ count = 5, widget = false }) {

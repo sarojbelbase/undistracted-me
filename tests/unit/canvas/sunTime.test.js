@@ -25,7 +25,7 @@ afterEach(() => {
 // ── getSunTimes ───────────────────────────────────────────────────────────────
 
 describe('getSunTimes', () => {
-  // Kathmandu (27.72°N, 85.32°E) — well within temperate zone, always has sunrise/sunset
+  // Kathmandu (27.72°N, 85.32°E): well within temperate zone, always has sunrise/sunset
   const LAT = 27.72;
   const LON = 85.32;
   const DATE = new Date('2025-06-21T00:00:00Z'); // summer solstice
@@ -204,7 +204,7 @@ describe('getCachedCoords', () => {
 // ── 30-city day/night accuracy (May 11 2026) ─────────────────────────────────
 //
 // Strategy: construct each Date with correct LOCAL getFullYear/Month/Date values
-// by using a Proxy — the algorithm reads local date fields to anchor the
+// by using a Proxy: the algorithm reads local date fields to anchor the
 // local-midnight window, while getTime() provides the real UTC instant.
 // This mirrors exactly how getSunTimes runs inside a real browser for a user
 // whose system clock is in the given timezone.
@@ -268,9 +268,9 @@ const CITIES_MAY_11_2026 = [
   ['Karachi, Pakistan', 24.8607, 67.0011, 5],
 ];
 
-describe('getSunTimes — 30-city day/night accuracy (May 11 2026)', () => {
+describe('getSunTimes: 30-city day/night accuracy (May 11 2026)', () => {
   // 10:00 AM in any city should always be DAY (after sunrise, before sunset)
-  it.each(CITIES_MAY_11_2026)('%s — 10:00 AM local is daytime', (name, lat, lon, tz) => {
+  it.each(CITIES_MAY_11_2026)('%s: 10:00 AM local is daytime', (name, lat, lon, tz) => {
     const date = makeFakeLocalDate(2026, 4, 11, 10, tz);
     const sunTimes = getSunTimes(lat, lon, date);
     expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
@@ -279,7 +279,7 @@ describe('getSunTimes — 30-city day/night accuracy (May 11 2026)', () => {
   });
 
   // 11:00 PM in any city should always be NIGHT
-  it.each(CITIES_MAY_11_2026)('%s — 11:00 PM local is nighttime', (name, lat, lon, tz) => {
+  it.each(CITIES_MAY_11_2026)('%s: 11:00 PM local is nighttime', (name, lat, lon, tz) => {
     const date = makeFakeLocalDate(2026, 4, 11, 23, tz);
     const sunTimes = getSunTimes(lat, lon, date);
     expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
@@ -288,7 +288,7 @@ describe('getSunTimes — 30-city day/night accuracy (May 11 2026)', () => {
   });
 
   // Sunrise must always precede sunset (sanity check)
-  it.each(CITIES_MAY_11_2026)('%s — sunrise is before sunset', (name, lat, lon, tz) => {
+  it.each(CITIES_MAY_11_2026)('%s: sunrise is before sunset', (name, lat, lon, tz) => {
     const date = makeFakeLocalDate(2026, 4, 11, 12, tz);
     const sunTimes = getSunTimes(lat, lon, date);
     expect(sunTimes, `${name}: getSunTimes returned null`).not.toBeNull();
@@ -296,7 +296,7 @@ describe('getSunTimes — 30-city day/night accuracy (May 11 2026)', () => {
   });
 
   // Both rise/set must land inside the local calendar day
-  it.each(CITIES_MAY_11_2026)('%s — sunrise and sunset are within the local calendar day', (name, lat, lon, tz) => {
+  it.each(CITIES_MAY_11_2026)('%s: sunrise and sunset are within the local calendar day', (name, lat, lon, tz) => {
     const date = makeFakeLocalDate(2026, 4, 11, 12, tz);
     const localMidnight = Date.UTC(2026, 4, 11, -tz, 0, 0, 0);
     const localEnd = localMidnight + 24 * 3600 * 1000;

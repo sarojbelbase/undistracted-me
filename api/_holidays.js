@@ -1,12 +1,12 @@
 /**
  * Wikipedia holiday parsing (Nepal public holidays + festivals).
  *
- * Pure functions — no route handler — so the parsing/date-conversion logic can
+ * Pure functions: no route handler: so the parsing/date-conversion logic can
  * be unit-tested in isolation.  Underscore-prefixed so Pages does not expose
  * this file as an HTTP endpoint.
  *
  * Note: this module is consumed by scripts/scrape-holidays.mjs (and unit
- * tests), not by any live Pages Function — it is ported here for completeness
+ * tests), not by any live Pages Function: it is ported here for completeness
  * and parity with the Vercel `api/_holidays.js`.
  */
 import { bsToAd } from '../app/utilities/nepaliDate.js';
@@ -103,7 +103,7 @@ export function parseHolidaysFromWikitext(wikitext, opts = {}) {
   }
   if (current) rows.push(current);
 
-  // BS years to expand BS-dated holidays into — a generous window around now.
+  // BS years to expand BS-dated holidays into: a generous window around now.
   const minAd = Math.min(...adYears);
   const maxAd = Math.max(...adYears);
   const bsYears = [];

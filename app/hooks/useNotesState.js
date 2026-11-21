@@ -3,8 +3,6 @@ import { useWidgetSettings } from "../widgets/useWidgetSettings";
 import { WIDGET_SETTINGS_DEFAULTS } from "../constants/defaults.js";
 import { splitNote, mergeNote, migrateNotes, makeNoteId } from "../utilities/noteText";
 import notesSync, { NOTES_SYNC_EVENT } from "../utilities/notesSync";
-import syncEngine from "../utilities/syncEngineFacade";
-import syncTransport from "../utilities/syncTransport";
 
 // ─── Migrate old string[] notes → { id, text, updatedAt }[] ─────────────────
 // (splitNote / mergeNote / migrateNotes / makeNoteId come from noteText.js)
@@ -29,7 +27,7 @@ function resolveSettings(raw) {
 }
 
 /**
- * Shared notes state + handlers — single source of truth for both the Notes
+ * Shared notes state + handlers: single source of truth for both the Notes
  * widget and Note Mode. Both read/write the same per-widget settings slot
  * (`widgetId`), so a note edited in one surface appears in the other and syncs
  * identically.
@@ -40,7 +38,7 @@ function resolveSettings(raw) {
 export function useNotesState(widgetId) {
   const [settings, updateSetting] = useWidgetSettings(widgetId, WIDGET_SETTINGS_DEFAULTS.notes);
 
-  // Resolve + migrate exactly once (lazy initializer — runs once, not during
+  // Resolve + migrate exactly once (lazy initializer: runs once, not during
   // render) so makeNoteId() assigning stable ids to legacy string notes never
   // fires on a discarded render.
   const [init] = useState(() => resolveSettings(settings));
@@ -51,7 +49,7 @@ export function useNotesState(widgetId) {
   const saveTimerRef = useRef(null);
 
   // Bumped on "Clear note" so the LexicalEditor (keyed by note id) remounts and
-  // re-syncs to empty — its ValueSyncPlugin only imports markdown on first mount.
+  // re-syncs to empty: its ValueSyncPlugin only imports markdown on first mount.
   const [clearNonce, setClearNonce] = useState(0);
 
   // Persist the string→object migration once so localStorage holds stable ids,
@@ -98,7 +96,7 @@ export function useNotesState(widgetId) {
   );
 
   // Latest-list mirror so the change handlers can read the current notes without
-  // depending on `localNotes` — avoids recreating the LexicalEditor onChange
+  // depending on `localNotes`: avoids recreating the LexicalEditor onChange
   // callbacks (and re-rendering the editor) on every keystroke.
   const localNotesRef = useRef(localNotes);
   useEffect(() => {
@@ -137,7 +135,7 @@ export function useNotesState(widgetId) {
     [localIdx, persist],
   );
 
-  // Widget card textarea — preserves the title (first line), updates body only
+  // Widget card textarea: preserves the title (first line), updates body only
   const handleWidgetTextChange = useCallback(
     (e) => {
       const val = e.target.value;
@@ -184,7 +182,7 @@ export function useNotesState(widgetId) {
   const deleteNote = useCallback(() => {
     const removed = localNotes[localIdx];
     if (total <= 1) {
-      // "Clear note" — empty the current note but keep its identity.
+      // "Clear note": empty the current note but keep its identity.
       const cleared = removed
         ? { ...removed, text: "", updatedAt: Date.now() }
         : { id: makeNoteId(), text: "", updatedAt: Date.now() };
@@ -206,35 +204,6 @@ export function useNotesState(widgetId) {
     if (removed) notesSync.onNoteDeleted(removed.id);
   }, [localNotes, localIdx, total, updateSetting]);
 
-  // ── Sync indicator (full-screen) ──────────────────────────────────────────
-  const [syncConnected, setSyncConnected] = useState(() => syncTransport.isConnected());
-  const [syncing, setSyncing] = useState(false);
-  const [syncFeedback, setSyncFeedback] = useState(null); // 'synced' | 'already' | null
-  const syncTimerRef = useRef(null);
-
-  useEffect(() => {
-    const refresh = () => setSyncConnected(syncTransport.isConnected());
-    return syncEngine.onSyncChange(refresh);
-  }, []);
-
-  useEffect(() => () => clearTimeout(syncTimerRef.current), []);
-
-  const handleSyncNow = async () => {
-    if (syncing || !syncConnected) return;
-    setSyncing(true);
-    setSyncFeedback(null);
-    clearTimeout(syncTimerRef.current);
-    try {
-      const result = await syncEngine.forceSync();
-      setSyncFeedback(result?.changed ? 'synced' : 'already');
-    } catch {
-      setSyncFeedback('already');
-    } finally {
-      setSyncing(false);
-      syncTimerRef.current = setTimeout(() => setSyncFeedback(null), 2500);
-    }
-  };
-
   return {
     localNotes,
     localIdx,
@@ -253,11 +222,7 @@ export function useNotesState(widgetId) {
     goNext,
     addNote,
     deleteNote,
-    syncConnected,
-    syncing,
-    syncFeedback,
-    handleSyncNow,
-    // Note Mode display settings (weather + clock + date) — read from the same
+    // Note Mode display settings (weather + clock + date): read from the same
     // per-widget settings slot so the Notes widget settings drive Note Mode.
     showClock: settings.showClock,
     showWeather: settings.showWeather,

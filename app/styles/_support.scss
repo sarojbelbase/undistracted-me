@@ -1,8 +1,8 @@
-// ─── Support dialog — "Help keep growing" nudge (riso print style) ──────────────
+// ─── Support dialog: "Help keep growing" nudge (riso print style) ──────────────
 // Presentational styling for app/components/SupportDialog.jsx. Kept here (not
 // inline in JSX) so it participates in the shared SCSS build and can use the
 // config module. The warm two-ink palette (butter / chestnut / marigold) is
-// intentionally bespoke — it does not follow the accent/dark theme, so it lives
+// intentionally bespoke: it does not follow the accent/dark theme, so it lives
 // on local custom properties scoped to the `.sd-backdrop` root.
 
 @use "config" as c;
@@ -92,7 +92,7 @@
   margin: 0;
 }
 
-/* momo badge — must stay display:block (it's a <span>), or the SVG sizes itself
+/* momo badge: must stay display:block (it's a <span>), or the SVG sizes itself
    to the whole card width and floats in the middle */
 .sd-badge {
   --momo-fill: var(--paper);

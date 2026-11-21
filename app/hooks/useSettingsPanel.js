@@ -12,7 +12,7 @@ export function useSettingsPanel() {
   // a stale closure (its dep list is []) and without nesting a setState inside a
   // setState updater (which React double-invokes in StrictMode).
   const showSettingsRef = useRef(false);
-  // Keep the ref in sync via an effect — writing refs during render is unsafe
+  // Keep the ref in sync via an effect: writing refs during render is unsafe
   // under concurrent rendering (a discarded render could observe a stale ref).
   useEffect(() => {
     showSettingsRef.current = showSettings;
@@ -38,7 +38,7 @@ export function useSettingsPanel() {
 
   const toggleSettings = useCallback(() => {
     if (!showSettingsRef.current) track(TELEMETRY_EVENTS.SETTINGS_OPENED);
-    // Reset the initial tab when closing (read the current value from the ref —
+    // Reset the initial tab when closing (read the current value from the ref -
     // setState-in-setState is an impure updater).
     if (showSettingsRef.current) setSettingsInitialTab(DEFAULT_SETTINGS_TAB);
     setShowSettings((s) => !s);

@@ -14,20 +14,20 @@ const ScopePill = ({ label }) => (
 );
 
 /**
- * AccountCard — account connection card for the Accounts dialog.
+ * AccountCard: account connection card for the Accounts dialog.
  *
  * Connected state: avatar + service badge overlay → name → subtitle (email / tier) → Disconnect link
  * Not connected state: service icon → name → status → scope pills → connect CTA
  *
  * Props:
- *  icon            ReactNode          — service logo (full-colour, includes own bg if applicable)
+ *  icon            ReactNode         : service logo (full-colour, includes own bg if applicable)
  *  serviceName     string
- *  scopes          string[]           — capability bullets shown when not connected
+ *  scopes          string[]          : capability bullets shown when not connected
  *  connected       boolean
  *  connecting      boolean
  *  error           string|null
  *  profile         { name, email?, picture?, avatar?, product? } | null
- *  profileSubtitle string|null        — explicit subtitle; falls back to profile.email
+ *  profileSubtitle string|null       : explicit subtitle; falls back to profile.email
  *  connectLabel    string
  *  onConnect       () => void
  *  onDisconnect    () => void
@@ -104,7 +104,7 @@ export const AccountCard = ({
           )}
         </div>
 
-        {/* Disconnect — unobtrusive text link */}
+        {/* Disconnect: unobtrusive text link */}
         <button
           type="button"
           onClick={onDisconnect}
@@ -140,7 +140,7 @@ export const AccountCard = ({
         </div>
       </div>
 
-      {/* Scope pills — horizontal wrapping row */}
+      {/* Scope pills: horizontal wrapping row */}
       {scopes.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {scopes.map(scope => <ScopePill key={scope} label={scope} />)}

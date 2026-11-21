@@ -16,14 +16,14 @@ import {
 } from "../utilities/sunTime";
 import { useLocationStore } from "../store/useLocationStore";
 
-/** Pure helper — no React. Computes ms until the next dark↔light transition. */
+/** Pure helper: no React. Computes ms until the next dark↔light transition. */
 const msUntilNext = (effective, sunTimes, lat, lon, now) => {
   if (!sunTimes) return 60 * 60 * 1000;
   if (effective === "light") {
     const ms = sunTimes.sunset - now;
     return ms > 0 ? ms + 30_000 : 60 * 60 * 1000;
   }
-  // Night — next transition is tomorrow's sunrise.
+  // Night: next transition is tomorrow's sunrise.
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowSun = getSunTimes(lat, lon, tomorrow);
@@ -35,7 +35,7 @@ const msUntilNext = (effective, sunTimes, lat, lon, now) => {
 };
 
 export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.cardStyle, opts = {}) => {
-  // `apply: false` turns this into a pure mode-reader — resolves 'auto' to the
+  // `apply: false` turns this into a pure mode-reader: resolves 'auto' to the
   // effective light/dark (and keeps it fresh) WITHOUT calling applyTheme or
   // duplicating the document-level theme side effect. The Appearance settings
   // panel uses this to tint accent swatches while App.jsx stays the single
@@ -78,8 +78,8 @@ export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.car
       // Guard: location store sun times may be absent (Zustand not yet hydrated)
       // or from a previous calendar day (persisted from yesterday's session and
       // the async location refresh hasn't completed yet). In either case, use
-      // computeAutoMode() — the same fresh, localStorage-based computation that
-      // themeInit.js and the useState initializer use — so we never flash the
+      // computeAutoMode(): the same fresh, localStorage-based computation that
+      // themeInit.js and the useState initializer use: so we never flash the
       // wrong mode while waiting for the async refresh to land.
       const sunriseDate = sunrise ? new Date(sunrise) : null;
       const sunsetDate = sunset ? new Date(sunset) : null;
@@ -90,7 +90,7 @@ export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.car
 
       if (stale) {
         // If we have lat/lon from the Zustand store, compute today's sun times
-        // directly — this is instant and immune to the async refresh delay.
+        // directly: this is instant and immune to the async refresh delay.
         if (lat != null && lon != null) {
           const freshSunTimes = getSunTimes(lat, lon, now);
           if (freshSunTimes) {
@@ -103,7 +103,7 @@ export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.car
             return;
           }
         }
-        // No coords yet — use computeAutoMode() which reads from localStorage directly.
+        // No coords yet: use computeAutoMode() which reads from localStorage directly.
         applyEffective(computeAutoMode(now));
         timer = setTimeout(computeAndSchedule, 60 * 60 * 1000);
         return;
@@ -120,7 +120,7 @@ export const useAutoTheme = (mode, accent, cardStyle = APP_SETTINGS_DEFAULTS.car
     };
 
     const handleMediaChange = () => {
-      // OS color-scheme changed — re-derive mode using the same stale-guard logic
+      // OS color-scheme changed: re-derive mode using the same stale-guard logic
       // so we only apply OS preference when there are no valid sun times.
       const now = new Date();
       const sunriseDate = sunrise ? new Date(sunrise) : null;

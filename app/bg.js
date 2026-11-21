@@ -1,10 +1,10 @@
 /**
- * Undistracted Me — Background Service Worker
+ * Undistracted Me: Background Service Worker
  *
  * Responsibilities:
- *   1. Event reminders — alarm fires every minute; checks localStorage-synced events
+ *   1. Event reminders: alarm fires every minute; checks localStorage-synced events
  *      and fires a notification 5 minutes before each upcoming event.
- *   2. Pomodoro — page sends a POMODORO_DONE message; SW fires a completion notification.
+ *   2. Pomodoro: page sends a POMODORO_DONE message; SW fires a completion notification.
  */
 
 import {
@@ -35,7 +35,7 @@ const ALARM_PREFETCH = "UM_PREFETCH"; // fires every 30 min for background data 
 const ALARM_RSS = "UM_RSS";           // fires every 30 min for RSS queue pre-fetch
 const ALARM_STOCKS = "UM_STOCKS";     // fires every 15 min for stock chart pre-fetch
 
-// Freshness window for the on-open prefetch — matches the ALARM_PREFETCH cadence.
+// Freshness window for the on-open prefetch: matches the ALARM_PREFETCH cadence.
 const PREFETCH_TTL_MS = 30 * 60_000;
 
 // ─── Event reminder helpers ───────────────────────────────────────────────────
@@ -63,7 +63,7 @@ async function loadEventsFired() {
         if (day === today) notified.add(key);
       }
     }
-  } catch { /* storage unavailable — rely on in-memory only */ }
+  } catch { /* storage unavailable: rely on in-memory only */ }
 }
 
 /** Persist the in-memory `notified` set (pruned to today). */
@@ -89,7 +89,7 @@ let notifConfig = {
  * Restore media sessions from storage, validating that each tab still exists
  * AND its content script is reachable.  Zombie content scripts (extension
  * reloaded during dev, tab never refreshed) cannot receive messages from the
- * new SW, so chrome.tabs.sendMessage fails — we drop those sessions.
+ * new SW, so chrome.tabs.sendMessage fails: we drop those sessions.
  */
 async function _restoreMediaSessions(stored) {
   if (!stored.length) return;
@@ -99,7 +99,7 @@ async function _restoreMediaSessions(stored) {
     // Keep only entries whose tabs still exist
     let valid = stored.filter(s => existingIds.has(s.tabId));
 
-    // Ping each valid tab's content script — if it's unreachable
+    // Ping each valid tab's content script: if it's unreachable
     // (zombie from a previous extension reload), drop the session.
     const pingResults = await Promise.allSettled(
       valid.map(s =>
@@ -123,7 +123,7 @@ async function _restoreMediaSessions(stored) {
       }
     }
   } catch {
-    // tabs.query may fail early in SW startup — keep all stored entries
+    // tabs.query may fail early in SW startup: keep all stored entries
     for (const s of stored) {
       chromeSessions[s.tabId] = s;
       chromeSessionOrder.push(s.tabId);
@@ -180,7 +180,7 @@ function checkEventReminders() {
 
 // ─── Storage sync via chrome.storage.local ────────────────────────────────────
 // The page writes events to localStorage; the SW can't read localStorage directly.
-// We sync via chrome.storage.local — the page mirrors widget_events there on change,
+// We sync via chrome.storage.local: the page mirrors widget_events there on change,
 // and the SW reads chrome.storage.local.
 
 async function syncEventsFromStorage() {
@@ -205,11 +205,11 @@ async function checkOccasionReminders() {
   const todayHour = today.getHours();
   const year = today.getFullYear();
 
-  // Only fire at 9 AM or later — never at midnight or random wake-up times.
+  // Only fire at 9 AM or later: never at midnight or random wake-up times.
   if (todayHour < 9) return;
 
   let all = [];
-  let firedSet; // NOSONAR — reassigned in try block, initial value never read
+  let firedSet; // NOSONAR: reassigned in try block, initial value never read
   try {
     const result = await chrome.storage.local.get(['contacts_birthdays_cache', 'occasions_manual', 'occasions_fired']);
     all = [
@@ -279,7 +279,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({ um_browser_start_time: Date.now() });
 });
 
-// Also inject on service worker startup — covers the case where Chrome restarts
+// Also inject on service worker startup: covers the case where Chrome restarts
 // or the extension is reloaded while tabs are already open.
 chrome.runtime.onStartup.addListener(() => {
   injectMediaScript();
@@ -321,11 +321,11 @@ function injectMediaScript() {
 // the machine was not in active use, so a break only ever fires after a full
 // interval of real, awake, in-browser time.
 
-// Safely above normal alarm jitter — Chrome may delay alarms by up to ~1 min,
+// Safely above normal alarm jitter: Chrome may delay alarms by up to ~1 min,
 // but a gap this large means the browser/OS was genuinely not running.
 const LOOKAWAY_LATE_RESET_MS = 2 * 60_000;
 
-/** Restart the LookAway countdown from now — a full interval of active use. */
+/** Restart the LookAway countdown from now: a full interval of active use. */
 function resetLookAwayCountdown(periodInMinutes) {
   const period = Math.max(1, periodInMinutes ?? 1);
   chrome.alarms.clear(ALARM_LOOKAWAY, () => {
@@ -341,7 +341,7 @@ function fireLookAway(now) {
     chrome.storage.local.set({ lookaway_due: now });
     // Only show OS notification if no new tab page is visible AND user wants
     // notifications. If the user already has a new tab open, the in-page overlay
-    // fires via storage.onChanged — a system notification on top is redundant.
+    // fires via storage.onChanged: a system notification on top is redundant.
     chrome.storage.local.get("lookaway_notify", ({ lookaway_notify }) => {
       if (lookaway_notify === false) return; // user opted out
       if (!notifAllowed('lookaway')) return; // master/type toggle off
@@ -375,10 +375,10 @@ function handleLookAwayAlarm(alarm) {
   }
 
   // Cross-check the OS idle/locked state (chrome.idle / browser.idle). If the
-  // user is away or the screen is locked, don't nag — reset the countdown.
+  // user is away or the screen is locked, don't nag: reset the countdown.
   const idleApi = globalThis.chrome?.idle ?? globalThis.browser?.idle;
   if (idleApi?.queryState) {
-    // 60s detection window — a brief pause isn't mistaken for being away.
+    // 60s detection window: a brief pause isn't mistaken for being away.
     idleApi.queryState(60, (state) => {
       if (state === 'idle' || state === 'locked') {
         resetLookAwayCountdown(alarm.periodInMinutes);
@@ -412,7 +412,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   // ── Site blocker auto-unblock alarm ──────────────────────────────────────
   if (alarm.name.startsWith('UM_UNBLOCK_')) {
     const domain = alarm.name.replace('UM_UNBLOCK_', '').replaceAll('_', '.');
-    // Remove the DNR rule directly — we can't use unblockSite() here because
+    // Remove the DNR rule directly: we can't use unblockSite() here because
     // it reads localStorage which is unavailable in the service worker.
     try {
       const existing = await chrome.declarativeNetRequest.getDynamicRules();
@@ -468,15 +468,15 @@ async function runWeatherPrefetch() {
     const data = weatherResult.value;
     const aqiData = aqiResult.status === 'fulfilled' ? aqiResult.value : null;
 
-    // Write to the shared DataHub — both canvas and Focus Mode read this.
+    // Write to the shared DataHub: both canvas and Focus Mode read this.
     await writeEntry('weather', data, { aqiData, lat, lon });
   } catch {
-    // Network unavailable — skip silently
+    // Network unavailable: skip silently
   }
 }
 
 function handlePrefetchSync(msg) {
-  // msg.lat, msg.lon — store in module state
+  // msg.lat, msg.lon: store in module state
   prefetchCoords = { lat: msg.lat, lon: msg.lon };
   // Create/update the prefetch alarm
   chrome.alarms.get(ALARM_PREFETCH, (existing) => {
@@ -485,7 +485,7 @@ function handlePrefetchSync(msg) {
     }
   });
   // Run an immediate prefetch only when the cached data is stale (or the coords
-  // moved) — the 30-min alarm covers periodic refresh, so opening N tabs must
+  // moved): the 30-min alarm covers periodic refresh, so opening N tabs must
   // not fire N redundant weather/AQI/GCAL round-trips on top of it.
   readEntry('weather')
     .then((weather) => {
@@ -509,7 +509,7 @@ function handlePrefetchSync(msg) {
 /**
  * Returns a valid Google OAuth access token for use in the service worker, or null.
  * Reads the unified PKCE token from chrome.storage.local (written by googleAuth.js).
- * The service worker never triggers an interactive flow — if no valid token is
+ * The service worker never triggers an interactive flow: if no valid token is
  * stored, it returns null and lets the page handle auth on the next open.
  */
 async function getGcalToken() {
@@ -578,7 +578,7 @@ async function runGcalPrefetch() {
 
     await chrome.storage.local.set({ gcal_events_cache: events, gcal_prefetched_at: Date.now() });
   } catch {
-    // Network or auth error — skip silently
+    // Network or auth error: skip silently
   }
 }
 
@@ -642,10 +642,10 @@ async function runStocksPrefetch() {
       r.status === 'fulfilled' ? r.value : { sym: symbols[i], data: 'error' },
     );
 
-    // Write to the shared DataHub — both canvas and Focus Mode read this.
+    // Write to the shared DataHub: both canvas and Focus Mode read this.
     await writeEntry('stocks', data, { symbolsKey: JSON.stringify(symbols) });
   } catch {
-    // Network unavailable — skip silently
+    // Network unavailable: skip silently
   }
 }
 
@@ -655,7 +655,7 @@ async function runStocksPrefetch() {
 const RSS_QUEUE_MAX = 20;
 
 /**
- * Lightweight XML helpers (same logic as rss/feed.js — kept inline to
+ * Lightweight XML helpers (same logic as rss/feed.js: kept inline to
  * avoid ES module import issues in the MV3 service worker build).
  */
 function _rssGetTag(xml, tag) {
@@ -735,7 +735,7 @@ async function runRssPrefetch() {
 
     await writeEntry('rss', sorted, { feedsKey: config.map((c) => c.url).join('|') });
   } catch {
-    // Network unavailable or malformed — skip silently
+    // Network unavailable or malformed: skip silently
   }
 }
 
@@ -828,7 +828,7 @@ function handleChromeMediaAction(msg) {
 }
 
 /** Schedule alarms to auto-unblock sites when their timers expire.
- *  Reads from chrome.storage.local (not localStorage — SW has no DOM access). */
+ *  Reads from chrome.storage.local (not localStorage: SW has no DOM access). */
 async function scheduleUnblockAlarms() {
   const { blocked_sites } = await chrome.storage.local.get('blocked_sites');
   const sites = blocked_sites || [];
@@ -852,7 +852,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-/** Handles BLOCK_SITE message from the popup — blocks and schedules unblock alarm. */
+/** Handles BLOCK_SITE message from the popup: blocks and schedules unblock alarm. */
 async function handleBlockSite(msg, sendResponse) {
   try {
     const { siteBlocker } = await import('./utilities/siteBlocker.js');
@@ -864,7 +864,7 @@ async function handleBlockSite(msg, sendResponse) {
   }
 }
 
-/** Handles UNBLOCK_SITE message — removes the block and clears any pending unblock alarm. */
+/** Handles UNBLOCK_SITE message: removes the block and clears any pending unblock alarm. */
 async function handleUnblockSite(msg, sendResponse) {
   try {
     const { siteBlocker } = await import('./utilities/siteBlocker.js');
@@ -898,7 +898,7 @@ async function _validateAndSendSessions(candidates, sendResponse) {
     const existingIds = new Set(existingTabs.map(t => t.id));
     valid = sessions.filter(s => existingIds.has(s.tabId));
 
-    // Ping each valid tab's content script — unreachable = zombie, drop it.
+    // Ping each valid tab's content script: unreachable = zombie, drop it.
     if (valid.length) {
       const pings = await Promise.allSettled(
         valid.map(s =>
@@ -918,7 +918,7 @@ async function _validateAndSendSessions(candidates, sendResponse) {
       }
       _persistMediaSessions();
     }
-  } catch { /* tabs.query failed — return as-is */ }
+  } catch { /* tabs.query failed: return as-is */ }
 
   sendResponse(valid);
 }
@@ -947,7 +947,7 @@ const MESSAGE_HANDLERS = {
   MEDIA_SESSION_CLEAR: (_msg, sender) => handleMediaSessionClear(sender),
   GET_CHROME_MEDIA: (_msg, _sender, sendResponse) => {
     const live = chromeSessionOrder.map((id) => chromeSessions[id]).filter(Boolean);
-    // Validate live sessions — restored storage entries may reference tabs
+    // Validate live sessions: restored storage entries may reference tabs
     // whose content scripts are unreachable (zombie from extension reload).
     _validateAndSendSessions(live, sendResponse);
     return true;
@@ -966,7 +966,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (handler) return handler(msg, sender, sendResponse);
 });
 
-// Pocket context menu — save the click info on right-click, routing the
+// Pocket context menu: save the click info on right-click, routing the
 // selected folder (if any) so the save is filed correctly.
 getMenus()?.onClicked?.addListener((info, tab) => {
   const id = info.menuItemId;
@@ -980,7 +980,7 @@ getMenus()?.onClicked?.addListener((info, tab) => {
 });
 
 // Clear stored Chrome media state when the source tab is closed.
-// Must persist to storage — otherwise stale sessions survive SW restarts
+// Must persist to storage: otherwise stale sessions survive SW restarts
 // and get restored, causing phantom media cards after tabs are gone.
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (chromeSessions[tabId]) {

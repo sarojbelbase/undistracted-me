@@ -9,7 +9,7 @@ import { liveFolders } from "./selectors";
 import { FOLDER_COLOR_MAP } from "./constants";
 
 /**
- * FolderPicker — a popover for toggling which folders an item belongs to.
+ * FolderPicker: a popover for toggling which folders an item belongs to.
  * Rendered on Popup with a transparent backdrop; multi-select checkboxes plus
  * an inline "New folder" input. Used by the "Add to Folder" menu item and the
  * expanded Details "Add to folder" button.

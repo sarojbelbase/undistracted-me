@@ -93,7 +93,7 @@ const TzPicker = ({ usedTzs, onSelect }) => {
       <Input pill
         ref={inputRef}
         icon={<Search size={11} style={{ color: 'var(--w-ink-4)' }} />}
-        placeholder="Search city, country, or timezone…"
+        placeholder="Search city, country or timezone…"
         aria-label="Search timezones"
         value={query}
         onChange={e => setQuery(e.target.value)}
@@ -213,7 +213,7 @@ export const Settings = ({ format, timezones = [], onChange }) => {
           );
         })}
 
-        {/* Picker — open when a slot is free */}
+        {/* Picker: open when a slot is free */}
         {openSlot !== null && (
           <TzPicker
             usedTzs={usedTzs}

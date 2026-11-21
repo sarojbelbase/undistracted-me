@@ -8,7 +8,7 @@
  * INPUT  (client → proxy): none
  *
  * OUTPUT (proxy → client, pass-through; field the client parses):
- *   joke — string, the joke text
+ *   joke: string, the joke text
  *
  * To replace the provider: return `{ joke: string }` (map here if the
  * replacement names the field differently).

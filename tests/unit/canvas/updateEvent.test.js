@@ -1,5 +1,5 @@
 /**
- * Tests for useEvents.updateEvent — editing local events.
+ * Tests for useEvents.updateEvent: editing local events.
  *
  * What can go wrong:
  *  – updateEvent overwrites the whole event instead of merging a patch,
@@ -16,7 +16,7 @@ vi.stubGlobal('chrome', undefined);
 // module-level cache, which is stale until the rAF-driven re-render fires.
 const stored = () => JSON.parse(localStorage.getItem('widget_events') || '[]');
 
-describe('useEvents — updateEvent', () => {
+describe('useEvents: updateEvent', () => {
   it('updates an existing event by id and preserves other fields', () => {
     const { result } = renderHook(() => useEvents());
 

@@ -1,8 +1,8 @@
 /**
  * Tests for:
- * - calendar/Widget.jsx with events (DayCell hover tooltip) — 67.44%
- * - FocusMode/Settings.jsx photo library interactions — 48.14%
- * - stock/Settings.jsx — 51.16%
+ * - calendar/Widget.jsx with events (DayCell hover tooltip): 67.44%
+ * - FocusMode/Settings.jsx photo library interactions: 48.14%
+ * - stock/Settings.jsx: 51.16%
  * - WidgetCatalog.jsx (52.7%)
  * - FocusMode/index.jsx additional conditional paths
  */
@@ -204,11 +204,11 @@ import { useWidgetSettings } from '../../../app/widgets/useWidgetSettings';
 import { useEvents, useGoogleCalendar } from '../../../app/hooks/useEvents';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Calendar Widget — with events for tooltip coverage
+// Calendar Widget: with events for tooltip coverage
 // ─────────────────────────────────────────────────────────────────────────────
 import { Widget as CalendarWidget } from '../../../app/widgets/calendar/Widget';
 
-describe('CalendarWidget — with events', () => {
+describe('CalendarWidget: with events', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
@@ -296,11 +296,11 @@ describe('CalendarWidget — with events', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FocusMode/Settings.jsx — photo library interactions
+// FocusMode/Settings.jsx: photo library interactions
 // ─────────────────────────────────────────────────────────────────────────────
 import { FocusModeSettings } from '../../../app/components/FocusMode/Settings';
 
-describe('FocusModeSettings — photo library', () => {
+describe('FocusModeSettings: photo library', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -466,7 +466,7 @@ describe('Stock Settings', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WidgetCatalog — basic coverage
+// WidgetCatalog: basic coverage
 // ─────────────────────────────────────────────────────────────────────────────
 import { WidgetCatalog } from '../../../app/widgets/WidgetCatalog';
 

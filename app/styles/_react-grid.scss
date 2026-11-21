@@ -1,7 +1,7 @@
 @use 'config' as c;
 
 // ─── React Grid Layout ────────────────────────────────────────────────────────
-// No transitions at all — widgets appear in place instantly
+// No transitions at all: widgets appear in place instantly
 .react-grid-item,
 .react-grid-item.cssTransforms,
 .react-grid-item.react-draggable-dragging,
@@ -15,7 +15,7 @@
 // Mobile scroll fix: DraggableCore registers a non-passive touchstart listener
 // on every .react-grid-item unconditionally (even when disabled). Browsers see
 // a non-passive listener and delay scroll gesture recognition while waiting for
-// JS — making touch-scroll feel broken. Setting touch-action: pan-y bypasses
+// JS: making touch-scroll feel broken. Setting touch-action: pan-y bypasses
 // the JS listener entirely for vertical gestures: the browser handles vertical
 // pan as scroll immediately without waiting for JS.
 //
@@ -55,7 +55,7 @@
   pointer-events: none !important;
 }
 
-// Ghost notch during drag — semi-transparent
+// Ghost notch during drag: semi-transparent
 .react-draggable-dragging .widget-drag-handle {
   opacity: 0.35 !important;
   cursor: grabbing !important;

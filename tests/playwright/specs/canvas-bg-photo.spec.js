@@ -2,8 +2,8 @@
  * canvas-bg-photo.spec.js
  *
  * Verifies the canvas Background section (Settings → Appearance). The canvas
- * scope exposes four modes — Solid (accent tint), Motion (animated orb),
- * Photos (curated gallery), and Custom URL — as segment buttons. Photos and
+ * scope exposes four modes: Solid (accent tint), Motion (animated orb),
+ * Photos (curated gallery), and Custom URL: as segment buttons. Photos and
  * Custom URL share the curated photo library / URL input that Focus Mode uses,
  * but write to the canvas `canvasBg` store (independent selection).
  */

@@ -1,15 +1,15 @@
 /**
- * Curated witty, sarcastic, and funny quotes — displayed in the Dailys widget.
+ * Curated witty, sarcastic and funny quotes: displayed in the Dailys widget.
  * ~365 entries: one per day for a full year.
  *
- * Tone: dry, clever, observational, sarcastic — no generic hustle inspiration.
+ * Tone: dry, clever, observational, sarcastic: no generic hustle inspiration.
  */
 export const QUOTES = [
   // ── Oscar Wilde ────────────────────────────────────────────────────────────
   { text: "I am so clever that sometimes I don't understand a single word of what I am saying.", author: "Oscar Wilde", category: "Self-Aware" },
   { text: "I can resist everything except temptation.", author: "Oscar Wilde", category: "Honesty" },
   { text: "To lose one parent may be regarded as a misfortune; to lose both looks like carelessness.", author: "Oscar Wilde", category: "Observations" },
-  { text: "Always forgive your enemies — nothing annoys them so much.", author: "Oscar Wilde", category: "Strategy" },
+  { text: "Always forgive your enemies: nothing annoys them so much.", author: "Oscar Wilde", category: "Strategy" },
   { text: "Work is the curse of the drinking classes.", author: "Oscar Wilde", category: "Priorities" },
   { text: "The truth is rarely pure and never simple.", author: "Oscar Wilde", category: "Realism" },
   { text: "I never travel without my diary. One should always have something sensational to read in the train.", author: "Oscar Wilde", category: "Preparedness" },
@@ -44,7 +44,7 @@ export const QUOTES = [
   { text: "Outside of a dog, a book is a man's best friend. Inside of a dog it's too dark to read.", author: "Groucho Marx", category: "Logic" },
   { text: "The secret of life is honesty and fair dealing. If you can fake that, you've got it made.", author: "Groucho Marx", category: "Strategy" },
   { text: "I've had a perfectly wonderful evening, but this wasn't it.", author: "Groucho Marx", category: "Reviews" },
-  { text: "No man goes before his time — unless the boss leaves early.", author: "Groucho Marx", category: "Work" },
+  { text: "No man goes before his time: unless the boss leaves early.", author: "Groucho Marx", category: "Work" },
   { text: "I find television very educational. Every time someone turns it on, I go into the other room and read a book.", author: "Groucho Marx", category: "Culture" },
   { text: "Military intelligence is a contradiction in terms.", author: "Groucho Marx", category: "Logic" },
   { text: "A child of five could understand this. Fetch me a child of five.", author: "Groucho Marx", category: "Logic" },
@@ -55,7 +55,7 @@ export const QUOTES = [
   { text: "This is not a novel to be tossed aside lightly. It should be thrown with great force.", author: "Dorothy Parker", category: "Reviews" },
   { text: "If you want to know what God thinks of money, just look at the people he gave it to.", author: "Dorothy Parker", category: "Observations" },
   { text: "The cure for boredom is curiosity. There is no cure for curiosity.", author: "Dorothy Parker", category: "Curiosity" },
-  { text: "I require three things in a man: he must be handsome, ruthless, and stupid.", author: "Dorothy Parker", category: "Standards" },
+  { text: "I require three things in a man: he must be handsome, ruthless and stupid.", author: "Dorothy Parker", category: "Standards" },
   { text: "Beauty is only skin deep, but ugly goes clear to the bone.", author: "Dorothy Parker", category: "Beauty" },
   { text: "Take care of the luxuries and the necessities will take care of themselves.", author: "Dorothy Parker", category: "Priorities" },
   { text: "You can't teach an old dogma new tricks.", author: "Dorothy Parker", category: "Realism" },
@@ -67,7 +67,7 @@ export const QUOTES = [
   { text: "I intend to live forever. So far, so good.", author: "Steven Wright", category: "Optimism" },
   { text: "I'm writing a book. I've got the page numbers done.", author: "Steven Wright", category: "Progress" },
   { text: "Hard work pays off in the future. Laziness pays off now.", author: "Steven Wright", category: "Priorities" },
-  { text: "I have a map of the United States — actual size. It says, 'Scale: 1 mile = 1 mile.'", author: "Steven Wright", category: "Logic" },
+  { text: "I have a map of the United States: actual size. It says, 'Scale: 1 mile = 1 mile.'", author: "Steven Wright", category: "Logic" },
   { text: "I bought some batteries, but they weren't included.", author: "Steven Wright", category: "Logic" },
   { text: "I'm a peripheral visionary. I can see into the future, just way off to the side.", author: "Steven Wright", category: "Self-Aware" },
   { text: "Everywhere is within walking distance if you have the time.", author: "Steven Wright", category: "Perspective" },
@@ -98,7 +98,7 @@ export const QUOTES = [
 
   // ── Woody Allen ───────────────────────────────────────────────────────────
   { text: "I'm not afraid of death; I just don't want to be there when it happens.", author: "Woody Allen", category: "Optimism" },
-  { text: "Life is full of misery, loneliness, and suffering — and it's all over much too soon.", author: "Woody Allen", category: "Realism" },
+  { text: "Life is full of misery, loneliness and suffering: and it's all over much too soon.", author: "Woody Allen", category: "Realism" },
   { text: "I'd call him a sadistic, hippophilic necrophile, but that would be beating a dead horse.", author: "Woody Allen", category: "Insults" },
   { text: "Money is better than poverty, if only for financial reasons.", author: "Woody Allen", category: "Economics" },
   { text: "If you want to make God laugh, tell him about your plans.", author: "Woody Allen", category: "Humility" },
@@ -107,7 +107,7 @@ export const QUOTES = [
 
   // ── Winston Churchill ─────────────────────────────────────────────────────
   { text: "A lie gets halfway around the world before the truth has a chance to get its pants on.", author: "Winston Churchill", category: "Observations" },
-  { text: "You can always count on Americans to do the right thing — after they've tried everything else.", author: "Winston Churchill", category: "Diplomacy" },
+  { text: "You can always count on Americans to do the right thing: after they've tried everything else.", author: "Winston Churchill", category: "Diplomacy" },
   { text: "I may be drunk, Miss, but in the morning I will be sober and you will still be ugly.", author: "Winston Churchill", category: "Insults" },
   { text: "History will be kind to me for I intend to write it.", author: "Winston Churchill", category: "Confidence" },
   { text: "The best argument against democracy is a five-minute conversation with the average voter.", author: "Winston Churchill", category: "Politics" },
@@ -147,7 +147,7 @@ export const QUOTES = [
   { text: "Patience: A minor form of despair, disguised as a virtue.", author: "Ambrose Bierce", category: "Definitions" },
 
   // ── H.L. Mencken ─────────────────────────────────────────────────────────
-  { text: "For every complex problem there is an answer that is clear, simple, and wrong.", author: "H.L. Mencken", category: "Solutions" },
+  { text: "For every complex problem there is an answer that is clear, simple and wrong.", author: "H.L. Mencken", category: "Solutions" },
   { text: "The whole aim of practical politics is to keep the populace alarmed.", author: "H.L. Mencken", category: "Politics" },
   { text: "Nobody ever went broke underestimating the intelligence of the American public.", author: "H.L. Mencken", category: "Culture" },
   { text: "Democracy is the theory that the common people know what they want, and deserve to get it good and hard.", author: "H.L. Mencken", category: "Politics" },
@@ -171,7 +171,7 @@ export const QUOTES = [
 
   // ── Robert Benchley ──────────────────────────────────────────────────────
   { text: "Drawing on my fine command of the English language, I said nothing.", author: "Robert Benchley", category: "Communication" },
-  { text: "In America there are two classes of travel — first class, and with children.", author: "Robert Benchley", category: "Travel" },
+  { text: "In America there are two classes of travel: first class, and with children.", author: "Robert Benchley", category: "Travel" },
   { text: "The surest way to make a monkey of a man is to quote him.", author: "Robert Benchley", category: "Communication" },
   { text: "It took me fifteen years to discover I had no talent for writing, but I couldn't give it up because by that time I was too famous.", author: "Robert Benchley", category: "Self-Aware" },
   { text: "There are two kinds of people in the world: those who believe there are two kinds of people in the world, and those who don't.", author: "Robert Benchley", category: "Logic" },
@@ -188,7 +188,7 @@ export const QUOTES = [
   { text: "Too bad all the people who know how to run the country are busy driving taxis and cutting hair.", author: "George Burns", category: "Politics" },
   { text: "Happiness is having a large, loving, caring, close-knit family in another city.", author: "George Burns", category: "Family" },
   { text: "Nice to be here? At my age it's nice to be anywhere.", author: "George Burns", category: "Aging" },
-  { text: "The secret to a long life is to stay busy, get plenty of exercise, and don't drink too much. Then again, don't drink too little.", author: "George Burns", category: "Health" },
+  { text: "The secret to a long life is to stay busy, get plenty of exercise and don't drink too much. Then again, don't drink too little.", author: "George Burns", category: "Health" },
 
   // ── Fran Lebowitz ────────────────────────────────────────────────────────
   { text: "The opposite of talking isn't listening. The opposite of talking is waiting.", author: "Fran Lebowitz", category: "Communication" },
@@ -199,7 +199,7 @@ export const QUOTES = [
   { text: "Life is something to do when you can't get to sleep.", author: "Fran Lebowitz", category: "Realism" },
 
   // ── Jerry Seinfeld ────────────────────────────────────────────────────────
-  { text: "People who read the menu from left to right — this is a person with a problem.", author: "Jerry Seinfeld", category: "Observations" },
+  { text: "People who read the menu from left to right: this is a person with a problem.", author: "Jerry Seinfeld", category: "Observations" },
   { text: "A two-year-old is kind of like having a blender, but you don't have a top for it.", author: "Jerry Seinfeld", category: "Family" },
   { text: "Men want the same thing from their underwear that they want from women: a little bit of support, and a little bit of freedom.", author: "Jerry Seinfeld", category: "Observations" },
   { text: "Why do they call it rush hour when nothing moves?", author: "Jerry Seinfeld", category: "Observations" },
@@ -222,7 +222,7 @@ export const QUOTES = [
   { text: "I used to play sports. Then I realized you can buy trophies. Now I'm good at everything.", author: "Demetri Martin", category: "Efficiency" },
 
   // ── John Mulaney ─────────────────────────────────────────────────────────
-  { text: "I was once on the phone with Blockbuster Video — which is a sentence that has not been true for anyone in the last ten years.", author: "John Mulaney", category: "Nostalgia" },
+  { text: "I was once on the phone with Blockbuster Video: which is a sentence that has not been true for anyone in the last ten years.", author: "John Mulaney", category: "Nostalgia" },
   { text: "Do you want to feel like you're on the right side of history? Or do you want to be happy?", author: "John Mulaney", category: "Choices" },
   { text: "I'm very small and I have no money. So you can imagine the kind of stress I'm under.", author: "John Mulaney", category: "Self-Deprecation" },
 
@@ -239,7 +239,7 @@ export const QUOTES = [
   // ── Rita Rudner ──────────────────────────────────────────────────────────
   { text: "I love being married. It's so great to find that one special person you want to annoy for the rest of your life.", author: "Rita Rudner", category: "Marriage" },
   { text: "Before I met my husband, I'd never fallen in love. I'd stepped in it a few times.", author: "Rita Rudner", category: "Romance" },
-  { text: "Men who have a pierced ear are better prepared for marriage — they've experienced pain and bought jewelry.", author: "Rita Rudner", category: "Marriage" },
+  { text: "Men who have a pierced ear are better prepared for marriage: they've experienced pain and bought jewelry.", author: "Rita Rudner", category: "Marriage" },
 
   // ── Phyllis Diller ────────────────────────────────────────────────────────
   { text: "I want my children to have all the things I couldn't afford. Then I want to move in with them.", author: "Phyllis Diller", category: "Family" },
@@ -260,7 +260,7 @@ export const QUOTES = [
   // ── P.J. O'Rourke ────────────────────────────────────────────────────────
   { text: "There are just two rules of governance in a free society: Mind your own business. Keep your hands to yourself.", author: "P.J. O'Rourke", category: "Politics" },
   { text: "Giving money and power to government is like giving whiskey and car keys to teenage boys.", author: "P.J. O'Rourke", category: "Politics" },
-  { text: "The Democrats are the party that says government will make you smarter, taller, richer. The Republicans are the party that says government doesn't work — and then they get elected and prove it.", author: "P.J. O'Rourke", category: "Politics" },
+  { text: "The Democrats are the party that says government will make you smarter, taller, richer. The Republicans are the party that says government doesn't work: and then they get elected and prove it.", author: "P.J. O'Rourke", category: "Politics" },
 
   // ── Henny Youngman ────────────────────────────────────────────────────────
   { text: "Take my wife... please.", author: "Henny Youngman", category: "Marriage" },
@@ -285,11 +285,11 @@ export const QUOTES = [
   { text: "When you come to a fork in the road, take it.", author: "Yogi Berra", category: "Advice" },
   { text: "The future ain't what it used to be.", author: "Yogi Berra", category: "Observations" },
   { text: "In theory, there is no difference between theory and practice. In practice, there is.", author: "Yogi Berra", category: "Logic" },
-  { text: "A word to the wise ain't necessary — it's the stupid ones that need the advice.", author: "Bill Cosby", category: "Advice" },
+  { text: "A word to the wise ain't necessary: it's the stupid ones that need the advice.", author: "Bill Cosby", category: "Advice" },
   { text: "People say nothing is impossible, but I do nothing every day.", author: "A.A. Milne", category: "Achievements" },
   { text: "If you think you are too small to make a difference, try sleeping with a mosquito.", author: "Dalai Lama XIV", category: "Scale" },
   { text: "Behind every great man is a woman rolling her eyes.", author: "Jim Carrey", category: "Realism" },
-  { text: "Before you criticize someone, walk a mile in their shoes. That way, you'll be a mile from them, and you'll have their shoes.", author: "Jack Handey", category: "Strategy" },
+  { text: "Before you criticize someone, walk a mile in their shoes. That way, you'll be a mile from them and you'll have their shoes.", author: "Jack Handey", category: "Strategy" },
   { text: "The road to success is dotted with many tempting parking places.", author: "Will Rogers", category: "Success" },
   { text: "Even if you're on the right track, you'll get run over if you just sit there.", author: "Will Rogers", category: "Progress" },
   { text: "Everything is funny, as long as it's happening to someone else.", author: "Will Rogers", category: "Perspective" },
@@ -302,7 +302,7 @@ export const QUOTES = [
   { text: "If I had known I was going to live this long, I'd have taken better care of myself.", author: "Mickey Mantle", category: "Health" },
   { text: "I'm an excellent housekeeper. Every time I get a divorce, I keep the house.", author: "Zsa Zsa Gabor", category: "Marriage" },
   { text: "I never hated a man enough to give his diamonds back.", author: "Zsa Zsa Gabor", category: "Standards" },
-  { text: "The secret of staying young is to live honestly, eat slowly, and lie about your age.", author: "Lucille Ball", category: "Aging" },
+  { text: "The secret of staying young is to live honestly, eat slowly and lie about your age.", author: "Lucille Ball", category: "Aging" },
   { text: "I'd rather regret the things I've done than regret the things I haven't done.", author: "Lucille Ball", category: "Priorities" },
   { text: "If I were two-faced, would I be wearing this one?", author: "Abraham Lincoln", category: "Self-Aware" },
   { text: "Whatever you are, be a good one.", author: "Abraham Lincoln", category: "Advice" },
@@ -331,7 +331,7 @@ export const QUOTES = [
   { text: "I am not a vegetarian because I love animals; I am a vegetarian because I hate plants.", author: "A. Whitney Brown", category: "Logic" },
   { text: "Age is not important unless you're a cheese.", author: "Helen Hayes", category: "Aging" },
   { text: "The secret of eternal youth is arrested development.", author: "Alice Roosevelt Longworth", category: "Aging" },
-  { text: "I'm writing a book. I've got the page numbers done — now I just need to fill in the rest.", author: "Steven Wright", category: "Progress" },
+  { text: "I'm writing a book. I've got the page numbers done: now I just need to fill in the rest.", author: "Steven Wright", category: "Progress" },
   { text: "I've been on a diet for two weeks and all I've lost is two weeks.", author: "Totie Fields", category: "Health" },
   { text: "I told the doctor I broke my leg in two places. He told me to quit going to those places.", author: "Henny Youngman", category: "Advice" },
   { text: "Never go to a doctor whose office plants have died.", author: "Erma Bombeck", category: "Advice" },
@@ -355,7 +355,7 @@ export const QUOTES = [
   { text: "There are only two industries that refer to their customers as 'users': illegal drugs and software.", author: "Edward Tufte", category: "Technology" },
   { text: "Software is like sex: it's better when it's free.", author: "Linus Torvalds", category: "Technology" },
   { text: "The most disastrous thing that you can ever learn is your first programming language.", author: "Alan Kay", category: "Technology" },
-  { text: "There are two hard things in computer science: cache invalidation, naming things, and off-by-one errors.", author: "Unknown", category: "Technology" },
+  { text: "There are two hard things in computer science: cache invalidation, naming things and off-by-one errors.", author: "Unknown", category: "Technology" },
   { text: "A computer once beat me at chess, but it was no match for me at kick boxing.", author: "Emo Philips", category: "Technology" },
   { text: "To err is human, but to really foul things up you need a computer.", author: "Paul R. Ehrlich", category: "Technology" },
   { text: "The best way to lie is to tell the truth, carefully edited.", author: "Unknown", category: "Communication" },
@@ -372,7 +372,7 @@ export const QUOTES = [
   { text: "I'm not sarcastic. I'm just intelligent beyond your understanding.", author: "Unknown", category: "Self-Aware" },
   { text: "Of course I talk to myself. Sometimes I need expert advice.", author: "Unknown", category: "Self-Aware" },
   { text: "The road to hell is paved with good intentions and poor execution.", author: "Unknown", category: "Realism" },
-  { text: "I'm not clumsy. The floor just hates me, the table and chairs are bullies, and the walls get in my way.", author: "Unknown", category: "Self-Aware" },
+  { text: "I'm not clumsy. The floor just hates me, the table and chairs are bullies and the walls get in my way.", author: "Unknown", category: "Self-Aware" },
   { text: "I love deadlines. I like the whooshing sound they make as they fly by.", author: "Douglas Adams", category: "Work" },
   { text: "I may not have gone where I intended to go, but I think I have ended up where I needed to be.", author: "Douglas Adams", category: "Perspective" },
   { text: "A common mistake that people make when trying to design something completely foolproof is to underestimate the ingenuity of complete fools.", author: "Douglas Adams", category: "Engineering" },
@@ -404,14 +404,14 @@ export const QUOTES = [
   { text: "I am ready to meet my Maker. Whether my Maker is prepared for the great ordeal of meeting me is another matter.", author: "Winston Churchill", category: "Confidence" },
   { text: "The length of a film should be directly related to the endurance of the human bladder.", author: "Alfred Hitchcock", category: "Film" },
   { text: "I never said all actors are cattle; what I said was that all actors should be treated like cattle.", author: "Alfred Hitchcock", category: "Film" },
-  { text: "Give them pleasure — the same pleasure they have when they wake up from a nightmare.", author: "Alfred Hitchcock", category: "Film" },
-  { text: "In Italy for thirty years under the Borgias they had warfare, terror, murder, and bloodshed, but they produced Michelangelo, Leonardo da Vinci, and the Renaissance. In Switzerland they had brotherly love — they had 500 years of democracy and peace, and what did that produce? The cuckoo clock.", author: "Orson Welles", category: "History" },
+  { text: "Give them pleasure: the same pleasure they have when they wake up from a nightmare.", author: "Alfred Hitchcock", category: "Film" },
+  { text: "In Italy for thirty years under the Borgias they had warfare, terror, murder and bloodshed, but they produced Michelangelo, Leonardo da Vinci and the Renaissance. In Switzerland they had brotherly love: they had 500 years of democracy and peace, and what did that produce? The cuckoo clock.", author: "Orson Welles", category: "History" },
   { text: "Asking a writer what she thinks about criticism is like asking a lamppost what it feels about dogs.", author: "John Osborne", category: "Reviews" },
   { text: "A diplomat is someone who can tell you to go to hell in such a way that you actually look forward to the trip.", author: "Caskie Stinnett", category: "Diplomacy" },
   { text: "Lead me not into temptation; I can find the way myself.", author: "Rita Mae Brown", category: "Honesty" },
   { text: "If you want to know what God thinks of money, look at the people he gave it to.", author: "Dorothy Parker", category: "Economics" },
   { text: "You can lead a horticulture, but you can't make her think.", author: "Dorothy Parker", category: "Wordplay" },
-  { text: "Four be the things I'd have been better without: Love, curiosity, freckles, and doubt.", author: "Dorothy Parker", category: "Self-Aware" },
+  { text: "Four be the things I'd have been better without: Love, curiosity, freckles and doubt.", author: "Dorothy Parker", category: "Self-Aware" },
   { text: "The first day after a diet is always the hardest. After that, easier to quit.", author: "Unknown", category: "Health" },
   { text: "My doctor told me to watch my drinking. Now I drink in front of a mirror.", author: "Rodney Dangerfield", category: "Health" },
   { text: "I know the answer! The answer lies within the heart of all mankind! The answer is twelve? I think I'm in the wrong building.", author: "Charles M. Schulz", category: "Logic" },

@@ -74,7 +74,7 @@
 
 // ── Circle icon button ────────────────────────────────────────────────────────
 //
-// Used by: pomodoro (.pom-circle-btn), events (.evt-add-btn — overrides bg)
+// Used by: pomodoro (.pom-circle-btn), events (.evt-add-btn: overrides bg)
 //
 // The shared pattern is the 50% border-radius + flex-centered icon layout.
 // Override colors, border, shadow after @include for widget-specific styles.
@@ -113,7 +113,7 @@
   }
 }
 
-// ── Empty state — centred flex column ─────────────────────────────────────────
+// ── Empty state: centred flex column ─────────────────────────────────────────
 //
 // Used by: countdown (.cdn-empty-state, via empty-state-card)
 
@@ -125,7 +125,7 @@
   text-align: center;
 }
 
-// ── Empty state — card with dashed border ─────────────────────────────────────
+// ── Empty state: card with dashed border ─────────────────────────────────────
 //
 // Used by: countdown (.cdn-empty-state)
 

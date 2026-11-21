@@ -59,12 +59,12 @@ describe('priceStats', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('fmtPrice', () => {
-  it('returns "—" for null', () => {
-    expect(fmtPrice(null)).toBe('—');
+  it('returns "-" for null', () => {
+    expect(fmtPrice(null)).toBe('-');
   });
 
-  it('returns "—" for undefined', () => {
-    expect(fmtPrice(undefined)).toBe('—');
+  it('returns "-" for undefined', () => {
+    expect(fmtPrice(undefined)).toBe('-');
   });
 
   it('formats a number to 2 decimal places', () => {
@@ -86,8 +86,8 @@ describe('fmtPrice', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('fmtOHL', () => {
-  it('returns "—" for null', () => {
-    expect(fmtOHL(null)).toBe('—');
+  it('returns "-" for null', () => {
+    expect(fmtOHL(null)).toBe('-');
   });
 
   it('formats to 1 decimal place', () => {
@@ -102,12 +102,12 @@ describe('fmtOHL', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('fmtVolume', () => {
-  it('returns "—" for null', () => {
-    expect(fmtVolume(null)).toBe('—');
+  it('returns "-" for null', () => {
+    expect(fmtVolume(null)).toBe('-');
   });
 
-  it('returns "—" for NaN', () => {
-    expect(fmtVolume(NaN)).toBe('—');
+  it('returns "-" for NaN', () => {
+    expect(fmtVolume(NaN)).toBe('-');
   });
 
   it('returns K suffix for thousands', () => {
@@ -210,7 +210,7 @@ describe('buildSparklinePaths', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// fetchChart — mocked fetch
+// fetchChart: mocked fetch
 // ─────────────────────────────────────────────────────────────────────────────
 
 const makeMockOHLCV = (length = 5) => ({
@@ -279,7 +279,7 @@ describe('fetchChart', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// fetchCompanies — mocked fetch
+// fetchCompanies: mocked fetch
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('fetchCompanies', () => {

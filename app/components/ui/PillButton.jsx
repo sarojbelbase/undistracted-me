@@ -1,5 +1,5 @@
 /**
- * PillButton — a toggle button with active/inactive states.
+ * PillButton: a toggle button with active/inactive states.
  *
  * Props:
  *  active    – Whether this option is currently selected

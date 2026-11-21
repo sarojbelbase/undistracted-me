@@ -1,5 +1,5 @@
 /**
- * pocketStore — the single access point for Pocket data (storage.local).
+ * pocketStore: the single access point for Pocket data (storage.local).
  * UI components and the service worker go through here; nothing touches
  * chrome.storage / localStorage directly. Mirrors app/data/dataHub.js.
  *
@@ -143,7 +143,7 @@ function writeLocal(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    /* quota / private mode — data stays in memory only */
+    /* quota / private mode: data stays in memory only */
   }
 }
 
@@ -275,6 +275,21 @@ export async function flush() {
   await writeChain;
 }
 
+// --- Sync (cross-device) -------------------------------------------------
+
+/**
+ * Apply a merged pocket state ({ items, folders }) pulled from cross-device
+ * sync, then persist. Synchronous from the caller's view (setSnapshot is
+ * synchronous; persist is debounced). Used by syncEngine's pocket merge.
+ */
+export function syncApply(next) {
+  const s = getSnapshot();
+  const items = Array.isArray(next?.items) ? next.items : s.items;
+  const folders = Array.isArray(next?.folders) ? next.folders : s.folders;
+  setSnapshot({ ...s, items, folders });
+  schedulePersist();
+}
+
 // --- Items ---------------------------------------------------------------
 
 /**
@@ -369,7 +384,7 @@ export function updateFolder(id, patch) {
   return updated;
 }
 
-/** Soft-delete a folder; never deletes items — just removes its id from their folderIds. */
+/** Soft-delete a folder; never deletes items: just removes its id from their folderIds. */
 export function deleteFolder(id) {
   const s = getSnapshot();
   const folder = s.folders.find((f) => f.id === id);
@@ -427,7 +442,7 @@ export function exportJson() {
   );
 }
 
-/** importJson(json) → { added, updated } | { error } — validates, sanitizes, merges via mergeStates. */
+/** importJson(json) → { added, updated } | { error }: validates, sanitizes, merges via mergeStates. */
 export function importJson(json) {
   let data;
   try {

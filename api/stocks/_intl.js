@@ -6,12 +6,12 @@
  * same normalization code that runs in production.
  */
 
-/** Realistic browser UA — Yahoo rejects the default Workers UA with a 429. */
+/** Realistic browser UA: Yahoo rejects the default Workers UA with a 429. */
 export const YAHOO_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 /**
- * Fetch from Yahoo with a browser UA and a single retry on 429 — Yahoo
+ * Fetch from Yahoo with a browser UA and a single retry on 429: Yahoo
  * rate-limits aggressively and intermittently, and a retry usually succeeds.
  */
 export async function fetchYahoo(url) {
@@ -30,7 +30,7 @@ export async function fetchYahoo(url) {
  *   { prices, ltp, prevClose, open, high, low, volume }
  * Returns null when the response has no usable candles.
  *
- * Yahoo pads arrays with `null` on non-trading days — those indices are
+ * Yahoo pads arrays with `null` on non-trading days: those indices are
  * dropped while keeping open/high/low/volume aligned with the closes.
  */
 export function parseYahooChart(json) {
@@ -68,7 +68,7 @@ export function parseYahooChart(json) {
 
 /**
  * Normalize a Yahoo Finance v1 search response into [{ symbol, name, exchange }].
- * Only equity results are kept (matches "stocks" — not ETFs/indices/funds).
+ * Only equity results are kept (matches "stocks": not ETFs/indices/funds).
  */
 export function parseYahooSearch(json) {
   const quotes = json?.quotes ?? [];

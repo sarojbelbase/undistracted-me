@@ -11,7 +11,7 @@ import { Popup } from './Popup';
  *   </TooltipBtn>
  *
  * All standard button props are forwarded. Existing onMouseEnter/onMouseLeave
- * handlers are composed — not replaced.
+ * handlers are composed: not replaced.
  */
 export const TooltipBtn = ({ tooltip, children, onMouseEnter, onMouseLeave, ...rest }) => {
   const ref = useRef(null);

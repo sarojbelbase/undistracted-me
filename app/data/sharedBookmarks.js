@@ -2,7 +2,7 @@
  * Shared Bookmark Store
  *
  * Single source of truth for bookmarks across the popup and canvas dashboard.
- * Uses localStorage key `um_bookmarks` — persisted as a JSON array.
+ * Uses localStorage key `um_bookmarks`: persisted as a JSON array.
  *
  * Both the popup and the canvas bookmark widget read from and write to
  * this store, ensuring full bidirectional sync.
@@ -35,7 +35,7 @@ const saveBookmarks = (list) => {
 };
 
 /**
- * Add a bookmark — prevents duplicates by URL.
+ * Add a bookmark: prevents duplicates by URL.
  * Returns the updated list.
  */
 export const addBookmark = (bm) => {

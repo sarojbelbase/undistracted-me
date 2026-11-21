@@ -4,7 +4,7 @@
  * What can go wrong:
  *  – The day-count anchor is off by one, shifting every converted date.
  *  – The conversion disagrees with the existing AD→BS converter
- *    (convertEnglishToNepali) — they must be exact inverses.
+ *    (convertEnglishToNepali): they must be exact inverses.
  *  – Out-of-range / invalid BS dates throw instead of returning null.
  */
 import { describe, it, expect } from 'vitest';
@@ -94,7 +94,7 @@ describe('parseHolidaysFromWikitext', () => {
     expect(byName.has('Nepali New Year')).toBe(true);
     expect(byName.has('Vijayadashami')).toBe(true);
 
-    // Lunar (Shawwal), empty-date (Ram Nawami), and Optional-section (Gai Jatra) excluded
+    // Lunar (Shawwal), empty-date (Ram Nawami) and Optional-section (Gai Jatra) excluded
     expect(byName.has('Eid al-Fitr')).toBe(false);
     expect(byName.has('Ram Nawami')).toBe(false);
     expect(byName.has('Gai Jatra')).toBe(false);

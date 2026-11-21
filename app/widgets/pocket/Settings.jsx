@@ -12,9 +12,9 @@ import { liveFolders, storageSize, totalCount, formatBytes } from './selectors';
 import { FOLDER_COLOR_MAP } from './constants';
 
 /**
- * Settings — the Pocket settings body, rendered inside BaseSettingsModal (from
+ * Settings: the Pocket settings body, rendered inside BaseSettingsModal (from
  * the ⋯ menu and the expanded header gear). All prefs live in pocket:meta
- * (chrome.storage.local) so the service worker can read them — not
+ * (chrome.storage.local) so the service worker can read them: not
  * useWidgetSettings. Changes apply right away.
  */
 export function Settings() {

@@ -17,7 +17,7 @@ import { useGoogleAccountStore } from "../../store/useGoogleAccountStore";
 
 const HISTORY_KEY = "fm_search_history";
 
-// ─── Weather (shared hook — also used by Note Mode) ──────────────────────────
+// ─── Weather (shared hook: also used by Note Mode) ──────────────────────────
 
 export { useFocusWeather } from "../../hooks/useFocusWeather";
 
@@ -28,7 +28,7 @@ export { useStocks as useFocusStocks } from "../../widgets/stock/useStocks";
 // ─── Photo (crossfade slots) ──────────────────────────────────────────────────
 
 export const useFocusPhoto = () => {
-  // Read the cached photo once via a lazy initializer — avoids a localStorage
+  // Read the cached photo once via a lazy initializer: avoids a localStorage
   // read + ref write during render (a discarded concurrent render would
   // otherwise observe a stale ref).
   const [cached] = useState(() => getCachedPhotoSync() ?? null);
@@ -38,7 +38,7 @@ export const useFocusPhoto = () => {
   const [activeSlot, setActiveSlot] = useState("a");
   // Seed with the already-displayed URL so the mount effect's applyPhoto
   // short-circuits when getCachedPhotoSync and getCurrentPhoto return the same
-  // photo — preventing a spurious slot-switch on first render.
+  // photo: preventing a spurious slot-switch on first render.
   const cachedUrl = cached?.regular ?? cached?.url ?? null;
   const prevUrlRef = useRef(cachedUrl);
   // Mirror of activeSlot so applyPhoto can decide which slot to write without
@@ -61,7 +61,7 @@ export const useFocusPhoto = () => {
 
   // Called with no args: advance to next photo (shuffle).
   // Called with a photo id (+ optional photo object): jump to that specific photo.
-  // The photo object, when provided, is used directly — skipping the cache lookup
+  // The photo object, when provided, is used directly: skipping the cache lookup
   // that was prone to returning the wrong photo when a concurrent download
   // rewrote the cache between the user's click and the timer firing.
   const rotate = useCallback(
@@ -92,7 +92,7 @@ export const useFocusPhoto = () => {
     let mounted = true;
     const init = async () => {
       // Always restore the user's last explicit selection to cache head before
-      // reading — handles the 45-min auto-rotate and concurrent download cases.
+      // reading: handles the 45-min auto-rotate and concurrent download cases.
       const p = await getCurrentPhoto();
       if (mounted && p) applyPhoto(p);
     };
@@ -144,7 +144,7 @@ export const useWakeLock = (active) => {
 // ─── Center-zone contrast sampler ─────────────────────────────────────────────
 
 /**
- * Per-zone luminance detection — samples three image regions independently
+ * Per-zone luminance detection: samples three image regions independently
  * so each text element can adapt to the background directly behind it.
  *
  * Approach (Samsung / iOS lock screen pattern):
@@ -163,7 +163,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
   });
   useEffect(() => {
     // slotA/slotB hold CDN image URLs (p.regular). Never use the provider's page
-    // URL (p.url) here — that origin blocks cross-origin canvas reads.
+    // URL (p.url) here: that origin blocks cross-origin canvas reads.
     const url = activeSlot === "a" ? slotA : slotB;
     if (!url || url.includes("unsplash.com/photos/")) return;
 
@@ -188,7 +188,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
         // Helper: compute a perceptual luminance estimate for a pixel rectangle.
         //
         // Algorithm: percentile-weighted blend with complexity bias.
-        //  • p20 (dark quintile) weighted most  — ensures text stays readable
+        //  • p20 (dark quintile) weighted most : ensures text stays readable
         //    against the brightest patches too, not just the average.
         //  • Median (p50) for the "typical" look of the zone.
         //  • p80 (bright quintile) weighted least.
@@ -217,7 +217,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
           const p20 = vals[Math.floor(n * 0.2)];
           const p50 = vals[Math.floor(n * 0.5)];
           const p80 = vals[Math.floor(n * 0.8)];
-          // Clamp bias to 0.10 — prevents overcorrection on very contrasty images.
+          // Clamp bias to 0.10: prevents overcorrection on very contrasty images.
           const complexityBias = Math.min((p80 - p20) * 0.4, 0.1);
           return 0.35 * p20 + 0.45 * p50 + 0.2 * p80 - complexityBias;
         };
@@ -227,7 +227,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 
         // Search bar zone: center 64% wide × band at 52–70% of height.
         // The search bar sits just below the clock, often over the horizon or
-        // water — a region that can be much lighter than the sky above.
+        // water: a region that can be much lighter than the sky above.
         const searchLum = lumOf(W * 0.18, H * 0.52, W * 0.64, H * 0.18);
 
         // Greeting zone: center 72% wide × bottom 22% of height.
@@ -235,7 +235,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
         const greetLum = lumOf(W * 0.14, H * 0.74, W * 0.72, H * 0.22);
 
         setZones({
-          // Use 0.45 threshold (slightly below midpoint) — biases toward
+          // Use 0.45 threshold (slightly below midpoint): biases toward
           // keeping white text on ambiguous backgrounds for safety.
           clock: clockLum < 0.45,
           search: searchLum < 0.45,
@@ -256,7 +256,7 @@ export const useCenterOnDark = (slotA, slotB, activeSlot) => {
 // ─── Focus Mode world clocks (reads from the first clock widget's settings) ──
 
 export const useFocusTimezones = () => {
-  // Read directly from Zustand widgetSettings — reactive to same-tab changes,
+  // Read directly from Zustand widgetSettings: reactive to same-tab changes,
   // no polling interval or storage event listener needed.
   const timezones = useWidgetInstancesStore(
     useShallow((s) => {
@@ -295,12 +295,12 @@ export function switchToTab(tab) {
 // ─── Browser media sessions (SoundCloud, YouTube Music, Apple Music, etc.) ───
 
 /**
- * Shared browser-media hook — re-exported for Focus Mode.
+ * Shared browser-media hook: re-exported for Focus Mode.
  *
  * Reads live sessions from chrome.storage.local['chrome_media_sessions']
  * (written by bg.js) and returns the actively-playing session as a normalized
  * `track` (same smart selection the canvas Media widget uses), plus `sessions`,
- * `sendAction`, `pending`, and `skipPending`. See
+ * `sendAction`, `pending` and `skipPending`. See
  * `app/widgets/media/hooks/useChromeMedia.js` for the implementation.
  */
 export { useChromeMedia } from "../../widgets/media/hooks/useChromeMedia";
@@ -310,7 +310,7 @@ export { useChromeMedia } from "../../widgets/media/hooks/useChromeMedia";
 const gtasks = () => import("../../utilities/googleTasks");
 
 export function useFocusTasks() {
-  // Single source of truth — read directly from the Zustand store.
+  // Single source of truth: read directly from the Zustand store.
   // When connected flips (connect/disconnect from anywhere in the app),
   // this hook re-renders and the effect below responds immediately.
   const connected = useGoogleAccountStore((s) => s.connected);
@@ -323,7 +323,7 @@ export function useFocusTasks() {
   // Until this is true the panel shows skeleton instead of "Connect Tasks".
   const [hasAttempted, setHasAttempted] = useState(false);
 
-  // Ref mirror of tasks — lets mutation callbacks read the current list without
+  // Ref mirror of tasks: lets mutation callbacks read the current list without
   // being in their dependency arrays (avoids recreating on every task change).
   const tasksRef = useRef(tasks);
   useEffect(() => {
@@ -341,7 +341,7 @@ export function useFocusTasks() {
       const list = await fetchGoogleTasks();
       setTasks(list);
       setGtasksConnected(true);
-      // Fetch profile lazily — non-blocking, don't await
+      // Fetch profile lazily: non-blocking, don't await
       getGoogleUserProfile()
         .then((p) => {
           if (p) setUserProfile(p);
@@ -356,7 +356,7 @@ export function useFocusTasks() {
     }
   }, []);
 
-  // React directly to Zustand auth state — no DOM event relay needed.
+  // React directly to Zustand auth state: no DOM event relay needed.
   // connected=true  → load tasks from API
   // connected=false → wipe all local state immediately, show "not connected"
   useEffect(() => {

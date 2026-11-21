@@ -23,11 +23,11 @@ import { usePocketFolders } from "./usePocket";
 import { FolderPicker } from "./FolderPicker";
 
 /**
- * RowActions — the primary action icon button + the "More actions" menu for a
+ * RowActions: the primary action icon button + the "More actions" menu for a
  * single row. Kept out of ItemRow so the shell stays lean.
  *
  * Primary action: Open link (link) · Open at Quote + Copy (sentence / paragraph
- * with a source) · Copy (code) — one consistent primary cluster per row, so the
+ * with a source) · Copy (code): one consistent primary cluster per row, so the
  * icon is never a mystery.
  *
  * More actions: Copy Link (link) · Open at Quote / Open Source Page / Change

@@ -1,4 +1,4 @@
-# Undistracted Me — Widgets Reference
+# Undistracted Me: Widgets Reference
 
 Complete reference for every widget and the shared widget infrastructure.
 
@@ -93,14 +93,14 @@ Hosts all widget instances using `react-grid-layout`'s `<Responsive>` grid.
 
 **Key implementation details:**
 
-- **Breakpoints**: 5 tiers — `lg` (≥1200, 48 cols), `md` (≥996, 40 cols), `sm` (≥768, 24 cols), `xs` (≥480, 16 cols), `xxs` (≥0, 8 cols). `rowHeight = 8.5 px`.
+- **Breakpoints**: 5 tiers: `lg` (≥1200, 48 cols), `md` (≥996, 40 cols), `sm` (≥768, 24 cols), `xs` (≥480, 16 cols), `xxs` (≥0, 8 cols). `rowHeight = 8.5 px`.
 - **Width quantization** (`quantizeWidth`): Snaps container width to integer column widths at the active breakpoint. Prevents sub-pixel blur at fractional DPRs (e.g. 125% Windows scaling).
 - **Layout persistence**: Saved to `localStorage[STORAGE_KEYS.WIDGET_LAYOUT]` on every change. On load, saved layouts are merged with config defaults. Config `h` is enforced as a minimum floor so stale saved layouts cannot make widgets shorter than their content.
 - **Arrange mode** (`isDraggable` prop): Passed down from `App`. In arrange mode, a drag-handle pill appears at the top centre of each widget; `pointer-events: none` is set on widget content to prevent accidental interaction.
 - **Dot-grid overlay**: A `div` with class `drag-dot-overlay` that fades in at `opacity: 0.5` while dragging or in arrange mode.
-- `useCSSTransforms={false}` — uses `top/left` absolute positioning instead of CSS transforms, which avoids the blurriness from sub-pixel `transform: translate()`.
+- `useCSSTransforms={false}`: uses `top/left` absolute positioning instead of CSS transforms, which avoids the blurriness from sub-pixel `transform: translate()`.
 - **Safety net**: `document.addEventListener('mouseup')` clears `draggingId` in case `onDragStop` is never fired (mouse released outside viewport).
-- Widget render is self-registering: `renderWidget(id, type, onRemove)` looks up `REG_MAP[type].Component` — no switch/case needed.
+- Widget render is self-registering: `renderWidget(id, type, onRemove)` looks up `REG_MAP[type].Component`: no switch/case needed.
 
 ---
 
@@ -131,7 +131,7 @@ updateSetting('format', '12h');
 
 - Reads per-widget settings from `useWidgetInstancesStore` (Zustand), merging stored values over the provided `defaults`.
 - Uses `useShallow` so only real changes trigger re-renders.
-- Writes via `updateWidgetSetting(widgetId, key, value)` in the store — which also mirrors to `widgetSettings_${id}` in `localStorage` for Playwright test compatibility.
+- Writes via `updateWidgetSetting(widgetId, key, value)` in the store: which also mirrors to `widgetSettings_${id}` in `localStorage` for Playwright test compatibility.
 - `widgetId` is the **instance ID** (from `instances[]`), not the type string.
 
 ---
@@ -169,9 +169,9 @@ export {
 
 The actual implementations live in `app/hooks/useEvents.js`. All widgets that need local events or Google Calendar data import from this path (or `../useEvents` from within the widget folder, which resolves here).
 
-**`useEvents()`** returns `[localEvents, addEvent, removeEvent]` — reads from `useWidgetInstancesStore`.
+**`useEvents()`** returns `[localEvents, addEvent, removeEvent]`: reads from `useWidgetInstancesStore`.
 
-**`useGoogleCalendar()`** returns `{ gcalEvents, loading, connected, syncedAt, refresh }` — polls Google Calendar and caches results in `chrome.storage.local['gcal_events_cache']`.
+**`useGoogleCalendar()`** returns `{ gcalEvents, loading, connected, syncedAt, refresh }`: polls Google Calendar and caches results in `chrome.storage.local['gcal_events_cache']`.
 
 ---
 
@@ -198,10 +198,10 @@ The actual implementations live in `app/hooks/useEvents.js`. All widgets that ne
 **Files:**
 ```
 clock/
-  Widget.jsx   — main component
-  Settings.jsx — format selector + timezone picker
-  config.js    — grid position, icon, type
-  utils.js     — getTimeParts, getTimeInZone, formatTime
+  Widget.jsx  : main component
+  Settings.jsx: format selector + timezone picker
+  config.js   : grid position, icon, type
+  utils.js    : getTimeParts, getTimeInZone, formatTime
 ```
 
 **Key implementation details:**
@@ -226,18 +226,18 @@ clock/
 **Files:**
 ```
 dateToday/
-  Widget.jsx   — main component
-  Settings.jsx — calendar toggle
+  Widget.jsx  : main component
+  Settings.jsx: calendar toggle
   config.js
-  utils.js     — getDateParts(language)
+  utils.js    : getDateParts(language)
 ```
 
 **Key implementation details:**
 
 - `getDateParts(language)` returns `{ weekday, month, day, year }`. For BS, it calls `convertEnglishToNepali(y, m, d)` from `app/utilities` (the core Nepali calendar conversion library) and maps the BS month number to `NEPALI_MONTH_NAMES[]`.
 - Uses `getTimeZoneAwareDayJsInstance()` to read the current date in the configured timezone.
-- Updates via `setInterval(update, 60_000)` (every minute) — not on `onClockTick` since sub-minute updates are unnecessary.
-- Day number rendered at `clamp(4rem, 9vw, 7rem)` — the dominant visual element.
+- Updates via `setInterval(update, 60_000)` (every minute): not on `onClockTick` since sub-minute updates are unnecessary.
+- Day number rendered at `clamp(4rem, 9vw, 7rem)`: the dominant visual element.
 
 **Settings:** `language: 'en'|'ne'` (Gregorian vs. BS).
 
@@ -248,23 +248,23 @@ dateToday/
 **Category:** `time` · **Type:** `progress`  
 **Config file location:** `progress/config.js` (note: the folder is named `progress`, not `dayProgress`)
 
-**What it does:** Shows a 4×6 grid of 24 dots where filled dots represent the percentage of the current period (day, week, month, or year) that has elapsed.
+**What it does:** Shows a 4×6 grid of 24 dots where filled dots represent the percentage of the current period (day, week, month or year) that has elapsed.
 
 **Files:**
 ```
 progress/
-  Widget.jsx   — main component
-  Settings.jsx — period + calendar pickers
+  Widget.jsx  : main component
+  Settings.jsx: period + calendar pickers
   config.js
-  utils.js     — getProgress, period calculators
+  utils.js    : getProgress, period calculators
 ```
 
-**dayProgress/** folder only contains a `config.js` re-pointing to the same Widget — it exists as a legacy path but `WIDGET_REGISTRY` uses `progress/config.js`.
+**dayProgress/** folder only contains a `config.js` re-pointing to the same Widget: it exists as a legacy path but `WIDGET_REGISTRY` uses `progress/config.js`.
 
 **Key implementation details:**
 
 - `getProgress(period, calendar)` returns `{ percentage, filledDots, label, subtitle }`.
-- For **month/year** periods in BS mode, it calls the Nepali calendar conversion logic, reads `NEPALI_YEARS_AND_DAYS_IN_MONTHS` for the total days, and computes the ratio from elapsed minutes.
+- For **month/year** periods in BS mode, it calls the Nepali calendar conversion logic, reads `NEPALI_YEARS_AND_DAYS_IN_MONTHS` for the total days and computes the ratio from elapsed minutes.
 - `bsYearTotals` is pre-computed at module load time (a simple accumulation of the 12-month array) to avoid redundant work on every minute tick.
 - Updates tick only when the minute changes: `onClockTick` fires every second, but the inner handler is gated on `m !== lastMinuteRef.current`.
 - When `period === 'day'` or `'week'`, the Calendar setting is hidden (irrelevant).
@@ -282,28 +282,30 @@ progress/
 **Files:**
 ```
 countdown/
-  Widget.jsx       — main component + all logic
-  Settings.jsx     — exports null (no settings panel; logic lives inline in Widget)
-  AddCountdown.jsx — modal form to create a new custom countdown
+  Widget.jsx      : main component + all logic
+  ExpandedView.jsx: full library (ExpandedShell) with Countdown + Since rail
+  Settings.jsx    : exports null (no settings panel; logic lives inline in Widget)
+  AddCountdown.jsx: modal form to create a new custom countdown
   config.js
-  utils.js         — getNextOccurrence, formatCountdown, formatTargetDate, REPEAT_OPTIONS
+  utils.js        : getNextOccurrence, formatCountdown, formatTargetDate, REPEAT_OPTIONS
 ```
 
 **Key implementation details:**
 
 - **Two data sources merge**: custom countdowns (from `STORAGE_KEYS.COUNTDOWN_EVENTS` in `localStorage`) and calendar events (from `useEvents()` + `useGoogleCalendar()`).
 - **Pin system**: `STORAGE_KEYS.countdownPinned(id)` stores `{ type: 'custom'|'event', id|eventId }` per widget instance. If the pinned target is in the past (and non-repeating), the pin is auto-cleared.
-- **Auto-target resolution** (`resolveTarget`): Complex priority chain — pinned custom → pinned event → nearest event → nearest custom. Falls back to showing the most imminent of either pool.
+- **Auto-target resolution** (`resolveTarget`): Complex priority chain: pinned custom → pinned event → nearest event → nearest custom. Falls back to showing the most imminent of either pool.
 - **Repeat modes**: `none | weekly | monthly | yearly`. `getNextOccurrence` advances the base date in a `while (next <= now)` loop until the next future occurrence.
 - **Notifications**: `sendNotification` (via `notifyUser` from `app/utilities/chrome`) fires once per calendar day per countdown. Keyed in `STORAGE_KEYS.COUNTDOWN_NOTIFIED` (`{ [id]: 'YYYY-MM-DD' }`). Old entries pruned on each write.
 - **Live countdown**: Driven by `onClockTick`. Uses a tier system: months → days → hours → minutes display (`monthsTier`, `daysTier`, `hoursTier`, `minsTier`).
 - **Title font size** scales with title length via `getTitleFontSize(len)`.
 - Custom countdowns created via `AddCountdown.jsx` are stored as `Event` objects with `_fromCountdown: true` flag, so they don't pollute the Events widget.
 - `useReducer` with `forceUpdate` is used to trigger re-renders on tick without storing time in state.
+- **Expanded view** (`ExpandedView.jsx`): opened via the header "All countdowns" button. Shared search + add toolbar, a mode rail (All/Countdown/Since) and rows in the `ListPanelRow` style (soonest countdowns first, "since" entries most-recent-first). Clicking a row opens the edit dialog; deleting also drops the mirrored `_fromCountdown` event so the Events widget does not orphan it.
 
-**Settings:** None exposed — all configuration (add/remove/pin) happens inside the `CountdownSettings` panel embedded in the ⋯ modal.
+**Settings:** None: there is no ⋯ settings panel. Add/remove/pin happens via the header "Add countdown" button and the expanded view ("All countdowns" button).
 
-**Unusual:** `Settings.jsx` exports `null`, which is unusual among all widgets. The settings UI is instead an inline component `CountdownSettings` inside `Widget.jsx` that gets passed as `settingsContent` to `BaseWidget`.
+**Unusual:** The header omits the standard `WidgetHeader` (icon + title), rendering only two right-aligned `IconButton`s: "All countdowns" (ListUl) and "Add countdown" (PlusLg, accent). The mode pill (`.cdn-mode-label`) uses the accent tinted-chip look (accent text + 14% accent bg + 30% accent border).
 
 ---
 
@@ -316,22 +318,22 @@ countdown/
 **Files:**
 ```
 events/
-  Widget.jsx        — main component
-  Settings.jsx      — Google Calendar integration row
-  AddEvent.jsx      — modal form (title + start + optional end/duration)
-  AllEventsModal.jsx — grouped Today/Tomorrow/Later view of all events
+  Widget.jsx       : main component
+  Settings.jsx     : Google Calendar integration row
+  AddEvent.jsx     : modal form (title + start + optional end/duration)
+  ExpandedView.jsx : full library (ExpandedShell) with Local + Calendar rail
   config.js
-  utils.js          — many helpers (see below)
+  utils.js         : many helpers (see below)
 ```
 
 **Key implementation details:**
 
 - Merges `localEvents` (from `useEvents()`) and `gcalEvents` (from `useGoogleCalendar()`). Past events are filtered out using a real-time `now` state updated every 60 seconds.
 - **Filtering**: Events without a `startDate` always show; events with only a date (no time) show while `startDate >= today`; timed events show while their end time (or start time if no end) is in the future.
-- **Sort**: `aKey = startDate + 'T' + (startTime || '99:99')` — all-day events sort after timed events on the same day.
+- **Sort**: `aKey = startDate + 'T' + (startTime || '99:99')`: all-day events sort after timed events on the same day.
 - `AddEvent.jsx` has quick date chips (Today/Tomorrow/Custom) and duration pills (30 min/1 hr/2 hr/Custom). Duration pills call `applyDuration(startDate, startTime, mins)` to compute `endDate/endTime`.
-- `AllEventsModal.jsx` buckets events into Today/Tomorrow/Later using `bucketLabel(dateStr)`. Past events are rendered with reduced opacity.
-- `utils.js` is the richest utilities file in the project, exporting ~15 helpers including `datePrefixFor`, `isLiveNow`, `getNextEventToShow`, `getTimeUntilEvent`, and `fmt12`.
+- `ExpandedView.jsx` is the full events library: shared search + add toolbar, a source rail (All/Local/Calendar) and event rows (upcoming soonest-first, past dimmed at the bottom). Clicking a row opens it (Google events open their link, local events open the edit dialog).
+- `utils.js` is the richest utilities file in the project, exporting ~15 helpers including `datePrefixFor`, `isLiveNow`, `getNextEventToShow`, `getTimeUntilEvent` and `fmt12`.
 - **Sync age label**: `humanizeAge(syncedAt)` is polled every 30 seconds to show "synced X ago".
 
 **Settings:** `Settings.jsx` renders only an `IntegrationRow` pointing to Google Calendar (connect/disconnect handled in `AccountsDialog`).
@@ -347,16 +349,16 @@ events/
 **Files:**
 ```
 calendar/
-  Widget.jsx   — main component + DayCell, DayTooltip, AddTooltip
-  Settings.jsx — calendar type toggle
+  Widget.jsx  : main component + DayCell, DayTooltip, AddTooltip
+  Settings.jsx: calendar type toggle
   config.js
-  utils.js     — buildCalendarData, buildEventDateSet, WEEK_DAYS
+  utils.js    : buildCalendarData, buildEventDateSet, WEEK_DAYS
 ```
 
 **Key implementation details:**
 
 - `buildCalendarData(calendarType, monthOffset)` returns `{ label, sublabel, days[], year, month }`. For BS, it manually walks the `NEPALI_YEARS_AND_DAYS_IN_MONTHS` lookup table month by month to find day-1 of the target month, then uses `dayjs` for the `firstOfTarget.day()` (weekday index). Days include `{ date, isCurrent, adDate }` where `adDate` is the Gregorian ISO string used for event matching.
-- **`monthOffset`** is intentionally kept in local component state (never persisted) — always resets to 0 on mount.
+- **`monthOffset`** is intentionally kept in local component state (never persisted): always resets to 0 on mount.
 - **DayCell** hover effect: number fades out and a `+` icon fades in. A `DayTooltip` shows the event list if the day has events; an `AddTooltip` shows "Add new event" always on hover.
 - Both tooltips are rendered using the shared `Popup` component (two-phase portal positioning).
 - Events are matched by `e.startDate === dateStr` where `dateStr` is the Gregorian ISO date for BS cells or `YYYY-MM-DD` for AD cells.
@@ -376,24 +378,24 @@ calendar/
 **Files:**
 ```
 weather/
-  Widget.jsx   — main component + views (MinimalView, ExpressiveView, skeletons)
-  Settings.jsx — display style, unit, location search
+  Widget.jsx  : main component + views (MinimalView, ExpressiveView, skeletons)
+  Settings.jsx: display style, unit, location search
   config.js
-  utils.jsx    — fetchOpenMeteo, parseWeather, parseForecast, icons, cache
+  utils.jsx   : fetchOpenMeteo, parseWeather, parseForecast, icons, cache
 ```
 
 **Key implementation details:**
 
-- **Data source**: `fetchOpenMeteo(lat, lon, units)` — single call returning current + 12h hourly. No API key needed.
+- **Data source**: `fetchOpenMeteo(lat, lon, units)`: single call returning current + 12h hourly. No API key needed.
 - **Location resolution**: reads `geoLat/geoLon/geoCity/geoSource` from `useLocationStore` (centralized 3-tier pipeline: browser GPS → IP geo → hardcoded Kathmandu default). Manual override stored as `{ name, lat, lon }` in widget settings.
 - **Cache**: `readWeatherCache(cacheKey, unit)` / `writeWeatherCache(...)` in `localStorage['weather_cache_v1']`. Cache key includes coords so it naturally invalidates on VPN switch. Fresh if < 30 min old.
 - **Forecast logic** (`parseForecast`): 4-case analysis of the next 12h hourly data. Returns `{ description, code, hours, type }` where `type` is one of `'clearing' | 'incoming' | 'persist'`.
 - **PrecipBars**: Mini horizontal bar chart (5px bars, height proportional to `pop%`) shown alongside clearing/incoming forecasts. Each bar is an accessible `<button>` with a Popup tooltip.
-- **Weather quips**: `getWeatherQuip(forecast, weather, opts)` from `app/data/weatherQuips.js` — returns a witty one-liner based on conditions.
+- **Weather quips**: `getWeatherQuip(forecast, weather, opts)` from `app/data/weatherQuips.js`: returns a witty one-liner based on conditions.
 - **WeatherAtmosphere**: Animated canvas/CSS component (`app/components/ui/WeatherAtmosphere.jsx`) shown in Expressive mode. Hoverable area in top-right reveals atmosphere label via Popup.
 - Location search in Settings debounces at 350 ms, calls Open-Meteo geocoding API, sorts results by Haversine distance from the user's current location, renders a portalled dropdown.
 - Legacy `style === 'simple'` is normalised to `'minimal'` on read.
-- `API_KEY = null` exported from `utils.jsx` — kept so lingering imports don't crash.
+- `API_KEY = null` exported from `utils.jsx`: kept so lingering imports don't crash.
 
 **Settings:** `location: { name, lat, lon } | null`, `unit: 'metric'|'imperial'`, `style: 'minimal'|'expressive'`.
 
@@ -403,13 +405,13 @@ weather/
 
 **Category:** `planning` · **Type:** `notes`
 
-**What it does:** A sticky-note widget supporting multiple notes (pages), Markdown-like rich text via Lexical editor, and three viewing modes: inline card (widget view), overlay modal, and full-page takeover.
+**What it does:** A sticky-note widget supporting multiple notes (pages), Markdown-like rich text via Lexical editor and three viewing modes: inline card (widget view), overlay modal and full-page takeover.
 
 **Files:**
 ```
 notes/
-  Widget.jsx        — main component + TrafficLights, SegBtn, CircleBtn, NavDot, nav controls
-  LexicalEditor.jsx — full Lexical rich-text editor with markdown transformers
+  Widget.jsx       : main component + TrafficLights, SegBtn, CircleBtn, NavDot, nav controls
+  LexicalEditor.jsx: full Lexical rich-text editor with markdown transformers
   config.js
 ```
 
@@ -418,8 +420,8 @@ notes/
 - **Storage shape**: `{ notes: string[], idx: number }` stored via `useWidgetSettings`. Migration from old `{ text: string }` shape handled by `resolveSettings()` on load.
 - **Note format**: Each note is a Markdown string (plain text). `splitNote(text)` separates the first line (title) from the body. `mergeNote(title, body)` recombines them.
 - **Three modes** controlled by local `mode` state: `null` (widget card), `'modal'` (BaseSettingsModal-like overlay), `'page'` (full-screen takeover at `z-index: 9999`).
-- **LexicalEditor**: Built on `@lexical/react`. Supports headings (H1–H3), bold, italic, underline, strikethrough, code, blockquote, ordered/unordered lists, check lists, and hyperlinks.
-  - Custom `LinkEditorPlugin` — intercepts Cmd+K / right-click on links; shows a floating inline dialog to insert/edit/remove links with text and URL fields.
+- **LexicalEditor**: Built on `@lexical/react`. Supports headings (H1–H3), bold, italic, underline, strikethrough, code, blockquote, ordered/unordered lists, check lists and hyperlinks.
+  - Custom `LinkEditorPlugin`: intercepts Cmd+K / right-click on links; shows a floating inline dialog to insert/edit/remove links with text and URL fields.
   - `ValueSyncPlugin` serialises the editor state to Markdown on every change and calls `onChange`. Skips the first mount to avoid overwriting the seeded initial value.
   - `RefPlugin` exposes a `focus()` method via `useImperativeHandle`.
   - Source Serif Pro font is lazy-loaded from `fonts.gstatic.com` on first render.
@@ -436,14 +438,14 @@ notes/
 
 **Category:** `tools` · **Type:** `bookmark`
 
-**What it does:** A single-site bookmark widget. Displays the site's favicon (or a generated letter icon) as a large centred button. Clicking opens the URL in a new tab. An inline settings panel (via both the ⋯ menu and an initial `+` button) lets the user set the URL, display name, and icon style.
+**What it does:** A single-site bookmark widget. Displays the site's favicon (or a generated letter icon) as a large centred button. Clicking opens the URL in a new tab. An inline settings panel (via both the ⋯ menu and an initial `+` button) lets the user set the URL, display name and icon style.
 
 **Files:**
 ```
 bookmarks/
-  Widget.jsx — main component + BookmarkSettings inline panel
+  Widget.jsx: main component + BookmarkSettings inline panel
   config.js
-  utils.js   — re-exports from app/utilities/favicon.js
+  utils.js  : re-exports from app/utilities/favicon.js
 ```
 
 **Key implementation details:**
@@ -470,7 +472,7 @@ bookmarks/
 **Files:**
 ```
 quickAccess/
-  Widget.jsx — main component + Tile sub-component
+  Widget.jsx: main component + Tile sub-component
   config.js
 ```
 
@@ -480,7 +482,7 @@ quickAccess/
 - Each `Tile` renders a `FaviconIcon` with `onColor` callback. On colour resolution, the tile background changes to `color-mix(in srgb, ${color} 16%, transparent)` and the border to `color-mix(in srgb, ${color} 38%, transparent)`.
 - Loading state: tile container pulses via Tailwind `animate-pulse` while the favicon is still resolving.
 - `cleanTitle(raw, url)` strips notification counts like `(3)` and publisher suffixes (`· Site Name`).
-- No settings — no `onRemove` mechanism either (uses `BaseWidget` default which still shows the ⋯ remove option from `onRemove`).
+- No settings: no `onRemove` mechanism either (uses `BaseWidget` default which still shows the ⋯ remove option from `onRemove`).
 - Grid layout: `grid-cols-6` with hover `scale-110` and active `scale-95` on the icon `div`.
 
 **Settings:** None.
@@ -491,34 +493,34 @@ quickAccess/
 
 **Category:** `planning` · **Type:** `pomodoro`
 
-**What it does:** A full-featured focus timer with preset durations (25 min, 30 min, 1 hr, Custom), auto-break support, session notes, ambient rain sounds, completion chime, and session history with stats. Two phases: **pick** (select duration) and **timer** (countdown with play/pause/reset/back). Persists across tab closes and syncs running state to Focus Mode.
+**What it does:** A full-featured focus timer with preset durations (25 min, 30 min, 1 hr, Custom), auto-break support, session notes, ambient rain sounds, completion chime and session history with stats. Two phases: **pick** (select duration) and **timer** (countdown with play/pause/reset/back). Persists across tab closes and syncs running state to Focus Mode.
 
 **Files:**
 ```
 pomodoro/
-  Widget.jsx   — main component + PickPhase, DoneState sub-components
-  Settings.jsx — chime, rain, auto-break toggles; break duration; session stats with weekly chart
-  config.js    — grid position, icon, type, settingsComponent
-  constants.js — PRESETS, BREAK_OPTIONS, PHASE, SESSION_TYPE, DEFAULT_SETTINGS
-  chime.js     — Web Audio API two-tone completion chime (zero dependencies)
-  utils.js     — formatTime, readPomodoro, loadHistory, saveSession, getStreak, getTodayMinutes, getWeeklyStats
+  Widget.jsx  : main component + PickPhase, DoneState sub-components
+  Settings.jsx: chime, rain, auto-break toggles; break duration; session stats with weekly chart
+  config.js   : grid position, icon, type, settingsComponent
+  constants.js: PRESETS, BREAK_OPTIONS, PHASE, SESSION_TYPE, DEFAULT_SETTINGS
+  chime.js    : Web Audio API two-tone completion chime (zero dependencies)
+  utils.js    : formatTime, readPomodoro, loadHistory, saveSession, getStreak, getTodayMinutes, getWeeklyStats
 ```
 
 **Key implementation details:**
 
-- **Persistence**: `loadTimer(id)` / `saveTimer(id, state)` use `STORAGE_KEYS.pomodoroTimerState(id)` (per-instance key). When saving a running timer, the absolute `endTime` (epoch ms) is stored. On restore, `remaining = max(0, round((endTime - Date.now()) / 1000))` — so time elapsed while the tab was closed is correctly accounted for. State includes `sessionType` ('focus'|'break') for break mode restore.
+- **Persistence**: `loadTimer(id)` / `saveTimer(id, state)` use `STORAGE_KEYS.pomodoroTimerState(id)` (per-instance key). When saving a running timer, the absolute `endTime` (epoch ms) is stored. On restore, `remaining = max(0, round((endTime - Date.now()) / 1000))`: so time elapsed while the tab was closed is correctly accounted for. State includes `sessionType` ('focus'|'break') for break mode restore.
 - **Interval**: `setInterval(..., 1000)` decrements remaining. Saves every 5 seconds for crash recovery. On reaching 0: fires completion side-effects (history save, chime, SW notification).
-- **Chime**: `chime.js` uses Web Audio API to generate a pleasant D4→G4 two-tone chime for focus complete, and a softer C5 tone for break complete. Zero external files — works offline.
+- **Chime**: `chime.js` uses Web Audio API to generate a pleasant D4→G4 two-tone chime for focus complete, and a softer C5 tone for break complete. Zero external files: works offline.
 - **Auto-break**: Configurable 5/10/15 min break timer auto-offered after focus sessions complete. Controlled by `autoBreak` + `breakDuration` settings. Break phase uses muted styling (gray preset pill) and a separate Break Complete chime.
 - **Session notes**: A textarea appears in the Done state allowing the user to journal what they accomplished. Saved to history along with session metadata.
 - **Session history**: `saveSession()` writes to `localStorage['pomodoro_history']` (max 500 entries, oldest trimmed). Each entry: `{ id, preset, duration, completedAt, note, type }`.
-- **Stats** (in Settings): Session count, consecutive-day streak, today's focus minutes, and a CSS-only weekly bar chart (7 columns, accent bars). Uses `getStreak()`, `getTodayMinutes()`, `getWeeklyStats()` from utils.js.
+- **Stats** (in Settings): Session count, consecutive-day streak, today's focus minutes and a CSS-only weekly bar chart (7 columns, accent bars). Uses `getStreak()`, `getTodayMinutes()`, `getWeeklyStats()` from utils.js.
 - **Rain sounds**: Integrated via `useRainStream` hook. Toggled from Settings (not visible on widget face). Hidden `<audio>` element managed by the hook with 3s crossfade.
-- **Focus Mode sync**: While running, `localStorage['fm_pomodoro']` is written with `{ running, remaining, total, preset, sessionType }`. `readPomodoro()` in `utils.js` reads this — used by Focus Mode's LeftZone `PomodoroPanel`. Cleared when paused or in pick phase.
+- **Focus Mode sync**: While running, `localStorage['fm_pomodoro']` is written with `{ running, remaining, total, preset, sessionType }`. `readPomodoro()` in `utils.js` reads this: used by Focus Mode's LeftZone `PomodoroPanel`. Cleared when paused or in pick phase.
 - **Custom input**: Appears when the "Custom" preset pill is clicked. Accepts decimal minutes (e.g. `1.5` → 90 seconds). `Enter` key starts the timer.
-- **Done state**: Shows "Session Complete" / "Break Complete" label (sentence case), note textarea, and action buttons. If auto-break is enabled, a "Start {X}m Break" button appears alongside "Done".
-- `PRESETS = [{ label: '25 min', secs: 1500 }, ...]` — `secs: null` signals the "Custom" special case. Defined in `constants.js`, re-exported via `utils.js` for backward compatibility with Focus Mode.
-- Sub-components extracted to keep cognitive complexity in check: `PickPhase`, `DoneState`, and the timer display is rendered inline with a clean centered countdown (no progress ring — removed per design review).
+- **Done state**: Shows "Session Complete" / "Break Complete" label (sentence case), note textarea and action buttons. If auto-break is enabled, a "Start {X}m Break" button appears alongside "Done".
+- `PRESETS = [{ label: '25 min', secs: 1500 }, ...]`: `secs: null` signals the "Custom" special case. Defined in `constants.js`, re-exported via `utils.js` for backward compatibility with Focus Mode.
+- Sub-components extracted to keep cognitive complexity in check: `PickPhase`, `DoneState` and the timer display is rendered inline with a clean centered countdown (no progress ring: removed per design review).
 
 **Settings:** `soundEnabled: boolean`, `autoBreak: boolean`, `breakDuration: 5|10|15`, `rainSound: boolean`. All read via `useWidgetSettings(id, DEFAULT_SETTINGS)`.
 
@@ -528,15 +530,15 @@ pomodoro/
 
 **Category:** `tools` · **Type:** `media`
 
-**What it does:** A media player widget with two layers: (1) **Spotify** — OAuth PKCE integration, album art, artist/title, play/pause/skip, colour-extracted gradient background; (2) **Chrome Media Sessions** — shows non-Spotify browser media (YouTube, SoundCloud, etc.) from the background service worker's `chromeSessions` map.
+**What it does:** A media player widget with two layers: (1) **Spotify**: OAuth PKCE integration, album art, artist/title, play/pause/skip, colour-extracted gradient background; (2) **Chrome Media Sessions**: shows non-Spotify browser media (YouTube, SoundCloud, etc.) from the background service worker's `chromeSessions` map.
 
 **Files:**
 ```
 media/
-  Widget.jsx    — main component (625 lines, very complex)
+  Widget.jsx   : main component (625 lines, very complex)
   config.js
-  useSpotify.js — shared Spotify hook (polling + playback controls)
-  utils.js      — full Spotify OAuth/PKCE, token management, API calls, Chrome media helpers, album art colour extraction
+  useSpotify.js: shared Spotify hook (polling + playback controls)
+  utils.js     : full Spotify OAuth/PKCE, token management, API calls, Chrome media helpers, album art colour extraction
 ```
 
 **Key implementation details:**
@@ -553,7 +555,7 @@ media/
 - `getChromeMedia()` sends `{ type: 'GET_CHROME_MEDIA' }` to the background SW, which responds with up to 3 active media sessions.
 - `ChromeMediaStrip`: Compact row for non-active sessions. Clicking the strip body promotes that session to the main player slot (stored in `chromePendingTabId` with a 500 ms debounce via `chromePendingTimeoutRef`).
 - `SOURCE_META` maps hostnames (e.g. `'music.youtube.com'`) to `{ color, label }` for the coloured artwork ring (CSS `outline`).
-- `DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true'` — exposes extra logging in development.
+- `DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true'`: exposes extra logging in development.
 
 **SpotifySettings panel** (inside the ⋯ modal): Shows connect/disconnect. Displays Spotify plan tier (`spotifyTierLabel`). On connect, a `storage` event listener detects the `spotify_connected` key change.
 
@@ -565,16 +567,16 @@ media/
 
 **Category:** `info` · **Type:** `stock`
 
-**What it does:** Shows NEPSE stock data for 1–3 symbols. Single-symbol mode shows a sparkline chart (90-day daily closes), price, change, and O/H/L row. Multi-symbol mode shows a compact watchlist with symbol, price, and % change per row.
+**What it does:** Shows NEPSE stock data for 1–3 symbols. Single-symbol mode shows a sparkline chart (90-day daily closes), price, change and O/H/L row. Multi-symbol mode shows a compact watchlist with symbol, price and % change per row.
 
 **Files:**
 ```
 stock/
-  Widget.jsx    — main component + Sparkline + StockRow
-  Settings.jsx  — symbol search + selection (up to 3, auto-closes on 3rd pick)
+  Widget.jsx   : main component + Sparkline + StockRow
+  Settings.jsx : symbol search + selection (up to 3, auto-closes on 3rd pick)
   config.js
-  useStocks.js  — shared hook for Focus Mode (reads from Zustand, polls every 5 min)
-  utils.js      — fetchChart, fetchCompanies, buildSparklinePaths, priceStats, LTTB
+  useStocks.js : shared hook for Focus Mode (reads from Zustand, polls every 5 min)
+  utils.js     : fetchChart, fetchCompanies, buildSparklinePaths, priceStats, LTTB
 ```
 
 **Key implementation details:**
@@ -585,7 +587,7 @@ stock/
   - Both routed through env-aware URL builders: `dev → Vite proxy`, `extension → direct (host_permissions)`, `web → backend API (api.undistracted.me)`.
 - `fetchChart(symbol)` extracts: `prices = c[]` (all closes for sparkline), `ltp = c[n-1]`, `prevClose = c[n-2]`, `open/high/low = o/h/l[n-1]`.
 - **Sparkline** (`buildSparklinePaths`): LTTB (Largest Triangle Three Buckets) downsampling to 40 points, then Catmull-Rom bezier curve. Enforces a 1.5% minimum visual range to prevent low-volatility stocks from appearing as noise.
-- The `Sparkline` SVG uses a `ResizeObserver` on itself to set its `viewBox` width — making it truly responsive.
+- The `Sparkline` SVG uses a `ResizeObserver` on itself to set its `viewBox` width: making it truly responsive.
 - Price font size scales with digit count: 6+ digits → `1.05rem`, 5 → `1.2rem`, narrow card → `1.35rem`, otherwise `clamp`.
 - `useStocks.js` (for Focus Mode): reads the first `stock` instance's settings from Zustand, polls every 5 min.
 - `priceStats(chart)` derives `{ change, pct, dir }` from `ltp - prevClose`.
@@ -598,17 +600,17 @@ stock/
 
 **Category:** `planning` · **Type:** `ocasions`
 
-**What it does:** Shows up to 3 upcoming birthdays, anniversaries, or special days. Pulls from Google Contacts (People API) + manually added entries. Each row has a coloured avatar, type icon, name, and a days-away chip.
+**What it does:** Shows up to 3 upcoming birthdays, anniversaries or special days. Pulls from Google Contacts (People API) + manually added entries. Each row has a coloured avatar, type icon, name and a days-away chip.
 
 **Files:**
 ```
 occasions/
-  Widget.jsx      — main component + Avatar, DaysChip, TypeIcon, ListRow
-  Settings.jsx    — OccasionsSettings (Google Contacts integration row + manual entries list)
-  AddOccasion.jsx — modal form (name, type, month, day)
+  Widget.jsx     : main component + Avatar, DaysChip, TypeIcon, ListRow
+  Settings.jsx   : OccasionsSettings (Google Contacts integration row + manual entries list)
+  AddOccasion.jsx: modal form (name, type, month, day)
   config.js
-  useOccasions.js — shared hook for Focus Mode (reads cache, no sync)
-  utils.js        — nextOccurrence, daysAway, enrich, computeUpcoming, display helpers, avatarColor
+  useOccasions.js: shared hook for Focus Mode (reads cache, no sync)
+  utils.js       : nextOccurrence, daysAway, enrich, computeUpcoming, display helpers, avatarColor
 ```
 
 **Key implementation details:**
@@ -617,7 +619,7 @@ occasions/
 - `nextOccurrence(month, day)` returns the same month/day this year if still in the future, else next year. Year-independent (no stored birth year needed).
 - **Google Contacts sync**: calls `getContactBirthdays(interactive)` from `app/utilities/googleContacts.js`. Results cached in `chrome.storage.local`. `loadCachedContacts()` is async; called on mount and after `GOOGLE_ACCOUNT_CHANGED` event.
 - `avatarColor(name)`: deterministic hash of the name string → index into `AVATAR_PALETTE` (8 warm/earthy colour pairs).
-- **Hero row** (index 0): highlighted with accent-tinted background, accent-coloured left bar, and accent-coloured name text.
+- **Hero row** (index 0): highlighted with accent-tinted background, accent-coloured left bar and accent-coloured name text.
 - `DaysChip`: Today → accent fill + "🎉"; Tomorrow → muted chip; ≤7 days → accent text; further → gray text.
 - `useOccasions.js`: Shared hook for Focus Mode's `OccasionPanel`. Reads cache only (no interactive sync). Refreshes every hour.
 
@@ -629,19 +631,19 @@ occasions/
 
 **Category:** `info` · **Type:** `dailys`
 
-**What it does:** Shows one piece of daily content in three modes: **Wit** (witty/sarcastic quote), **Joke** (dad joke from `icanhazdadjoke.com`), or **Fact** (interesting fact). The shown item is deterministic per calendar day.
+**What it does:** Shows one piece of daily content in three modes: **Wit** (witty/sarcastic quote), **Joke** (dad joke from `icanhazdadjoke.com`) or **Fact** (interesting fact). The shown item is deterministic per calendar day.
 
 **Files:**
 ```
 dailys/
-  Widget.jsx      — main component + WitDisplay, JokeDisplay, FactDisplay
+  Widget.jsx     : main component + WitDisplay, JokeDisplay, FactDisplay
   config.js
-  useDailyJoke.js — fetches + caches one dad joke per day
+  useDailyJoke.js: fetches + caches one dad joke per day
 ```
 
 **Key implementation details:**
 
-- `getDailyIndex(len) = floor(Date.now() / 86_400_000) % len` — produces a stable index that changes exactly at UTC midnight.
+- `getDailyIndex(len) = floor(Date.now() / 86_400_000) % len`: produces a stable index that changes exactly at UTC midnight.
 - **Quote data**: `app/data/quotes.js` (static bundled array of `{ text, author, category }`).
 - **Fact data**: `app/data/facts.js` (static bundled array of `{ text, category }`).
 - **Joke data** (`useDailyJoke`): Fetches `https://icanhazdadjoke.com/` once per day. Response cached in `localStorage['dailys_joke_cache']` as `{ date: 'YYYY-MM-DD', joke }`. Subsequent loads are instant. Timeout is 6 seconds (`AbortSignal.timeout(6000)`). `User-Agent` header set to avoid 403.
@@ -662,32 +664,32 @@ dailys/
 **Files:**
 ```
 rss/
-  Widget.jsx      — main component (750 lines) + MarqueeCard, HeadlineRow, skeletons
-  Settings.jsx    — preset toggles + OPML import/export Data section
+  Widget.jsx     : main component (750 lines) + MarqueeCard, HeadlineRow, skeletons
+  Settings.jsx   : preset toggles + OPML import/export Data section
   config.js
-  constants.js    — VIEW_MODES, AUTO_ADVANCE_MS (20s)
-  opmlParser.js   — DOMParser-based OPML parser + generateOPML export + sample OPML
-  OPMLImport.jsx  — collapsible OPML import panel (File picker + Paste XML with preview)
-  useRss.js       — single-feed hook with cache + polling
-  useRssMulti.js  — multi-feed hook (parallel fetch, merge, sort by date)
-  utils.js        — rssUrl, PRESET_FEEDS, cache, fetchFeed, relativeTime
+  constants.js   : VIEW_MODES, AUTO_ADVANCE_MS (20s)
+  opmlParser.js  : DOMParser-based OPML parser + generateOPML export + sample OPML
+  OPMLImport.jsx : collapsible OPML import panel (File picker + Paste XML with preview)
+  useRss.js      : single-feed hook with cache + polling
+  useRssMulti.js : multi-feed hook (parallel fetch, merge, sort by date)
+  utils.js       : rssUrl, PRESET_FEEDS, cache, fetchFeed, relativeTime
 ```
 
 **Key implementation details:**
 
 - **17 preset feeds** across 3 categories: International (BBC, Guardian, Al Jazeera, DW, NPR, NY Times), Tech (Hacker News, The Verge, TechCrunch, Ars Technica, Wired, MIT Tech Review), Nepal (Online Khabar, Setopati, Ratopati, Nagarik News, Kathmandu Post). Default active: `['hn', 'bbc', 'guardian']`.
-- **OPML Import**: Pure `DOMParser`-based parser (`opmlParser.js`) — zero dependencies. Supports nested folder flattening, URL deduplication, and URL validation (invalid URLs flagged with ⚠️). Two methods: file picker (`.opml`/`.xml`) and paste XML text. Shows a preview with per-feed checkboxes before importing. Already-existing feeds are grayed out and disabled. Merges with custom feeds, skipping duplicates.
+- **OPML Import**: Pure `DOMParser`-based parser (`opmlParser.js`): zero dependencies. Supports nested folder flattening, URL deduplication and URL validation (invalid URLs flagged with ⚠️). Two methods: file picker (`.opml`/`.xml`) and paste XML text. Shows a preview with per-feed checkboxes before importing. Already-existing feeds are grayed out and disabled. Merges with custom feeds, skipping duplicates.
 - **OPML Export**: `generateOPML()` creates valid OPML XML from the current custom feeds with proper XML escaping. Downloaded via `downloadFile()` blob helper.
 - **Sample OPML**: `generateSampleOPML()` produces a ready-to-use OPML with real Nepali news feeds organized in "News" and "Podcasts" folders, demonstrating the nested outline structure.
-- **JSON support removed**: Only OPML is supported for import/export. The Data section has Export OPML + Import OPML buttons, a guidance callout mentioning online OPML generators and podcast support, and footer actions (Sample OPML | Clear All).
+- **JSON support removed**: Only OPML is supported for import/export. The Data section has Export OPML + Import OPML buttons, a guidance callout mentioning online OPML generators and podcast support and footer actions (Sample OPML | Clear All).
 - **CORS proxy**: RSS feeds are CORS-blocked. The proxy at `https://api.undistracted.me/rss/feed?url=...` is used in both web and extension contexts. Dev uses the Vite dev server middleware.
-- **Cache**: `localStorage['rss_cache_{feedId}']` — TTL 10 min. Cache is read instantly on mount; network fetch skipped if cache is fresh.
+- **Cache**: `localStorage['rss_cache_{feedId}']`: TTL 10 min. Cache is read instantly on mount; network fetch skipped if cache is fresh.
 - `useRssMulti`: Fetches all active feeds in `Promise.allSettled`, injects a `source` label into each item, sorts by `isoDate` descending, merges into a flat list. Each feed's cache key is `custom_${url}`. Epoch counter prevents slow initial loads from overwriting faster manual refreshes.
 - **Seen-links deduplication**: `seenLinksRef` tracks links already shown; new items from a refresh are prepended without duplicating existing ones.
 - **IntersectionObserver** on a `sentinelRef` at the bottom of the Digest list triggers loading more items when scrolled into view (`visibleCount` incremented).
 - **Spotlight / MarqueeCard**: Touch/mouse drag support (`handlePointerDown/Move/Up`) with resistance. Swipes > 40px navigate; smaller ones snap back. Auto-advance via a 20s `setInterval`. Scrolling dot pagination indicator.
 - **Source mode**: `'presets'` (from `PRESET_FEEDS`) and `'custom'` (from OPML imports) are mutually exclusive. Custom feeds are stored as `[{ label, url, active }]`.
-- **Data section** (in Settings): Follows the expense tracker pattern with `w-label` "Data" header, InfoCircle disclaimer tooltip ("Importing replaces all existing feeds..."), Export OPML + Import OPML accent buttons, guidance callout about OPML format, and footer with Sample OPML and Clear All (ConfirmButton, danger style).
+- **Data section** (in Settings): Follows the expense tracker pattern with `w-label` "Data" header, InfoCircle disclaimer tooltip ("Importing replaces all existing feeds..."), Export OPML + Import OPML accent buttons, guidance callout about OPML format and footer with Sample OPML and Clear All (ConfirmButton, danger style).
 
 **Settings:** `activeFeedIds: string[]`, `customFeeds: {label, url, active}[]`, `sourceMode: 'presets'|'custom'`, `viewMode: 'marquee'|'brief'`.
 
@@ -727,37 +729,37 @@ Every widget exports a default config object from its `config.js`:
 
 | Widget | localStorage key(s) | chrome.storage.local key(s) |
 |---|---|---|
-| All widgets | `widgetSettings_${id}` (via Zustand mirror) | — |
-| All widgets | `widget_layout` | — |
-| Countdown | `countdown_events`, `countdown_pinned_${id}`, `countdown_notified` | — |
+| All widgets | `widgetSettings_${id}` (via Zustand mirror) |: |
+| All widgets | `widget_layout` |: |
+| Countdown | `countdown_events`, `countdown_pinned_${id}`, `countdown_notified` |: |
 | Events / Calendar | `local_events` (via Zustand) | `gcal_events_cache` |
-| Pomodoro | `pomodoro_timer_state_${id}`, `fm_pomodoro` (while running) | — |
+| Pomodoro | `pomodoro_timer_state_${id}`, `fm_pomodoro` (while running) |: |
 | Spotify | `spotify_connected`, `spotify_profile` | `spotify_tokens` |
 | Occasions | `manual_birthdays` | `contacts_cache`, `contacts_synced_at` |
-| Notes | (via `widgetSettings_${id}`) | — |
-| RSS | `rss_cache_${feedId}` (TTL 10 min) | — |
-| Weather | `weather_cache_v1` (TTL 30 min) | — |
-| Dailys | `dailys_joke_cache` (TTL 1 day) | — |
-| All | `widget_instances` (Zustand persisted) | — |
+| Notes | (via `widgetSettings_${id}`) |: |
+| RSS | `rss_cache_${feedId}` (TTL 10 min) |: |
+| Weather | `weather_cache_v1` (TTL 30 min) |: |
+| Dailys | `dailys_joke_cache` (TTL 1 day) |: |
+| All | `widget_instances` (Zustand persisted) |: |
 
 ---
 
 ## Cross-cutting Patterns
 
-### 1. `onClockTick` — Zero-drift updates
+### 1. `onClockTick`: Zero-drift updates
 Widgets that update on the second (`Clock`, `Countdown`, `Pomodoro`) or minute (`Progress`, `DateToday`) use `onClockTick(fn)` from `app/utilities/sharedClock.js`. A Web Locks leader-election mechanism picks one tab to hold the lock and broadcast second-aligned ticks via `BroadcastChannel`. All other tabs receive ticks without running their own intervals.
 
-### 2. Popup — Portal tooltip positioning
-The shared `Popup` component (`app/components/ui/Popup.jsx`) uses a two-phase mount: first render at an off-screen position to measure its own size, then flip above/below and clamp to viewport edges. Used by Calendar day tooltips, BookmarkCard hover, Weather precip bars, and Quick Access tiles.
+### 2. Popup: Portal tooltip positioning
+The shared `Popup` component (`app/components/ui/Popup.jsx`) uses a two-phase mount: first render at an off-screen position to measure its own size, then flip above/below and clamp to viewport edges. Used by Calendar day tooltips, BookmarkCard hover, Weather precip bars and Quick Access tiles.
 
-### 3. `useAgeLabel(timestamp)` — "synced 2 min ago"
-`app/hooks/useAgeLabel.js` wraps `humanizeAge` from `app/utilities/index.js`. Used by Events, Occasions, and Stock to show a human-readable sync age. Updates every 30 seconds.
+### 3. `useAgeLabel(timestamp)`: "synced 2 min ago"
+`app/hooks/useAgeLabel.js` wraps `humanizeAge` from `app/utilities/index.js`. Used by Events, Occasions and Stock to show a human-readable sync age. Updates every 30 seconds.
 
 ### 4. Settings always via `useWidgetSettings(id, defaults)`
-Every widget reads and writes its own settings through this hook. The `id` is the widget instance UUID — supporting multiple independent instances of the same widget type with separate settings.
+Every widget reads and writes its own settings through this hook. The `id` is the widget instance UUID: supporting multiple independent instances of the same widget type with separate settings.
 
-### 5. `IntegrationRow` — OAuth integration cards
-`app/components/ui/IntegrationRow.jsx` is a standardised connect/disconnect row used in Settings panels for Google Calendar (Events), Google Contacts (Occasions), and Spotify (Media). The actual connect/disconnect logic opens `AccountsDialog` via `useUIStore`.
+### 5. `IntegrationRow`: OAuth integration cards
+`app/components/ui/IntegrationRow.jsx` is a standardised connect/disconnect row used in Settings panels for Google Calendar (Events), Google Contacts (Occasions) and Spotify (Media). The actual connect/disconnect logic opens `AccountsDialog` via `useUIStore`.
 
 ### 6. Dual-mode: Preset + Custom
 Both RSS and Stock follow the pattern of offering curated preset options (preset feeds / NEPSE top companies) while also allowing fully custom user-defined options (JSON upload / symbol search).

@@ -13,7 +13,7 @@
  *   https://media.undistracted.me/backgrounds/<filename>
  *
  * IMPORTANT: `api/_media/media.js` is a *static* manifest consumed by
- * /api/photos/curated — not a dynamic listing. After uploading new files you
+ * /api/photos/curated: not a dynamic listing. After uploading new files you
  * must also add them to that manifest for the endpoint to serve them.
  *
  * To remove a background, delete it from R2:
@@ -58,7 +58,7 @@ function runWrangler(args) {
 }
 
 if (!process.env.CLOUDFLARE_API_TOKEN && !process.env.CLOUDFLARE_ACCOUNT_ID) {
-  console.log('Note: no CLOUDFLARE_API_TOKEN set — relying on `wrangler login` if available.\n');
+  console.log('Note: no CLOUDFLARE_API_TOKEN set: relying on `wrangler login` if available.\n');
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -117,4 +117,4 @@ if (failed.length > 0) {
   console.log(`⚠️  Failed: ${failed.join(', ')}`);
 }
 console.log('\nRemember: /api/photos/curated serves from the static manifest in');
-console.log('api/_media/media.js — add any new files there too.\n');
+console.log('api/_media/media.js: add any new files there too.\n');

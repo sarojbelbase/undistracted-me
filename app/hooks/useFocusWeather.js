@@ -1,8 +1,8 @@
 /**
- * useFocusWeather — reads the Weather widget's location/unit and fetches current
+ * useFocusWeather: reads the Weather widget's location/unit and fetches current
  * conditions via weather. Shared by Focus Mode's top zone and Note Mode's
  * ambient strip (kept out of FocusMode/hooks.js so importing it doesn't pull in
- * the rest of the Focus Mode module — Spotify, tasks, media, etc.).
+ * the rest of the Focus Mode module: Spotify, tasks, media, etc.).
  */
 
 import { useMemo } from "react";
@@ -12,7 +12,7 @@ import { useWidgetInstancesStore } from "../store";
 import { useLocationStore } from "../store/useLocationStore";
 
 export const useFocusWeather = () => {
-  // Read from Zustand widgetSettings — reactive to same-tab setting changes.
+  // Read from Zustand widgetSettings: reactive to same-tab setting changes.
   // Two-step selector to avoid creating a new reference on every unrelated
   // store mutation (e.g. notes keystrokes, RSS refresh).
   const weatherInstId = useWidgetInstancesStore((s) => {

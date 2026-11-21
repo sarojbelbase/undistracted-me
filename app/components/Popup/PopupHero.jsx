@@ -2,7 +2,7 @@ import { SunriseFill, SunsetFill } from "react-bootstrap-icons";
 import { getWeatherIcon } from "../../widgets/weather/utils.jsx";
 
 /**
- * Hero section of the popup — matched to the reference design.
+ * Hero section of the popup: matched to the reference design.
  *
  *   Thu, May 28                      [weather card]
  *   18:45
@@ -55,7 +55,7 @@ export const PopupHero = ({
 
   return (
     <div className="popup-hero">
-      {/* ── Top row: left (date + clock) · right (weather) — same height ── */}
+      {/* ── Top row: left (date + clock) · right (weather): same height ── */}
       <div className="popup-hero__top">
         <div className="popup-hero__left">
           <span className="popup-hero__date">
@@ -70,7 +70,7 @@ export const PopupHero = ({
         </div>
       </div>
 
-      {/* ── Bottom row: greeting (left) · sun chip (right) — same height ── */}
+      {/* ── Bottom row: greeting (left) · sun chip (right): same height ── */}
       <div className="popup-hero__bottom">
         <div className="popup-hero__greeting">
           <span className="popup-hero__greeting-prefix">{greet.prefix}</span>

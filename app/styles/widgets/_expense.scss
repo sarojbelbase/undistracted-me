@@ -84,7 +84,7 @@
     outline-offset: 2px;
   }
 
-  // Circular add button — the primary action
+  // Circular add button: the primary action
   &--add {
     border-radius: 14px;
     background: var(--w-accent);
@@ -511,11 +511,6 @@
   flex-shrink: 0;
 }
 
-// The expense rows share the recent-expenses row format; this container adds
-// the horizontal inset so rows align with the toolbar/pocket list rhythm.
-.exp-expanded__list {
-  padding: 4px 12px 12px;
-}
 
 // Row actions (edit/delete) are hover-revealed; keep them visible on touch.
 @media (hover: none) {

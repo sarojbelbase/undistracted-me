@@ -6,7 +6,7 @@ import { CANVAS_ICON_MUTED, CANVAS_ICON_LABEL } from "../../theme/canvas";
  * Top-left pill button that opens Focus Mode.
  * Expands on hover to show the keyboard shortcut label.
  *
- * When `bare` is true the pill chrome (background/border/shadow) is omitted —
+ * When `bare` is true the pill chrome (background/border/shadow) is omitted -
  * the parent cluster (App.jsx renders both FocusModeButton and NoteModeButton
  * inside one shared pill container) supplies it.
  */

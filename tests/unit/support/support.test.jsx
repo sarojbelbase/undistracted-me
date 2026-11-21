@@ -13,7 +13,7 @@ import { SupportDialog } from '../../../app/components/SupportDialog';
 
 const resetStore = () => useSupportStore.setState({ open: false, reason: null });
 
-describe('useSupportStore — frequency policy', () => {
+describe('useSupportStore: frequency policy', () => {
   beforeEach(() => {
     localStorage.clear();
     resetStore();

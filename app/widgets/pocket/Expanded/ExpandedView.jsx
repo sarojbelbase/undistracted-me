@@ -16,7 +16,7 @@ import { ExpandedShell } from "../../../components/ui/expanded/ExpandedShell";
 import { SearchToolbar } from "../../../components/ui/expanded/SearchToolbar";
 
 /**
- * ExpandedView — the full Pocket library, rendered through the shared
+ * ExpandedView: the full Pocket library, rendered through the shared
  * ExpandedShell. Owns the filter, search query, pagination and website
  * collapse state; composes Pocket's Rail + the shared SearchToolbar +
  * Pocket's GroupedList.

@@ -1,5 +1,5 @@
 /**
- * QuickTour — two-step first-run welcome overlay.
+ * QuickTour: two-step first-run welcome overlay.
  *
  * Steps:
  *   1. Welcome → brand + the two modes (Focus Mode / Canvas), side by side
@@ -73,7 +73,7 @@ const FEATURES = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Step 0 — mode overview */
+/** Step 0: mode overview */
 const StepWelcome = () => (
   <div className="flex flex-col items-center gap-4 text-center">
     {/* Brand mark */}
@@ -92,7 +92,7 @@ const StepWelcome = () => (
           Your new tab, undistracted.
         </h1>
         <p className="text-[12.5px] leading-snug qt-subtitle">
-          Focus Mode or Canvas — switch anytime. No account.
+          Focus Mode or Canvas: switch anytime. No account.
         </p>
       </div>
     </div>
@@ -171,7 +171,7 @@ const StepWelcome = () => (
   </div>
 );
 
-/** Step 1 — features showcase */
+/** Step 1: features showcase */
 const StepFeatures = () => (
   <div className="flex flex-col gap-4 flex-1">
     <div className="text-center flex flex-col gap-1">
@@ -282,7 +282,7 @@ export function QuickTour() {
         className={`relative flex flex-col w-full mx-4 rounded-2xl overflow-hidden qt-card ${exiting ? '' : 'qt-card--enter'}`}
         style={cardStyle}
       >
-        {/* Step content — min-height locks card size between steps */}
+        {/* Step content: min-height locks card size between steps */}
         <div className="px-6 pt-6 pb-2 qt-content" style={stepStyle}>
           {step === 0 ? <StepWelcome /> : <StepFeatures />}
         </div>

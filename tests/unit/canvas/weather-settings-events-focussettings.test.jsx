@@ -101,7 +101,7 @@ vi.mock('../../../app/widgets/events/utils', async (importOriginal) => {
   };
 });
 
-// Mock CreateModal and AllEventsModal to avoid heavy dependencies
+// Mock CreateModal and EventsExpandedView to avoid heavy dependencies
 vi.mock('../../../app/widgets/events/CreateModal', () => ({
   CreateModal: ({ onSave, onClose }) => (
     <div data-testid="create-modal">
@@ -111,9 +111,9 @@ vi.mock('../../../app/widgets/events/CreateModal', () => ({
   ),
 }));
 
-vi.mock('../../../app/widgets/events/AllEventsModal', () => ({
-  AllEventsModal: ({ onClose }) => (
-    <div data-testid="all-events-modal">
+vi.mock('../../../app/widgets/events/ExpandedView', () => ({
+  EventsExpandedView: ({ onClose }) => (
+    <div data-testid="events-expanded-view">
       <button onClick={onClose}>Close</button>
     </div>
   ),
@@ -240,7 +240,7 @@ describe('WeatherSettings', () => {
     fireEvent.change(input, { target: { value: 'Kathm' } });
 
     // Advance past the 350ms debounce. Use advanceTimersByTimeAsync (not
-    // runAllTimersAsync) — runAllTimersAsync can spin forever because the
+    // runAllTimersAsync): runAllTimersAsync can spin forever because the
     // Zustand useLocationStore re-render schedules fresh timers each flush.
     await act(async () => { await vi.advanceTimersByTimeAsync(500); });
 
@@ -303,7 +303,7 @@ describe('Events Widget', () => {
     expect(screen.getByText('View All')).toBeTruthy();
   });
 
-  it('opens AllEventsModal when "View All" is clicked', () => {
+  it('opens EventsExpandedView when "View All" is clicked', () => {
     vi.mocked(useEvents).mockReturnValue([[
       { id: 'e1', title: 'Event 1', startDate: '2099-07-01', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
       { id: 'e2', title: 'Event 2', startDate: '2099-07-02', startTime: '09:00', endDate: '', endTime: '', _source: 'local' },
@@ -311,7 +311,7 @@ describe('Events Widget', () => {
     ], mockAddEvent, mockRemoveEvent]);
     render(<EventsWidget onRemove={vi.fn()} />);
     fireEvent.click(screen.getByText('View All'));
-    expect(screen.getByTestId('all-events-modal')).toBeTruthy();
+    expect(screen.getByTestId('events-expanded-view')).toBeTruthy();
   });
 
   it('shows delete button for local events', () => {

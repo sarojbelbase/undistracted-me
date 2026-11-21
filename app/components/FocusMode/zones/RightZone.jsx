@@ -1,6 +1,6 @@
 // ─── Right zone ───────────────────────────────────────────────────────────────
 //
-// Ambient world clocks — rendered as right-side floating text (no glass card).
+// Ambient world clocks: rendered as right-side floating text (no glass card).
 // Hidden on screens narrower than 900 px via .fm-world-panel CSS.
 
 import { useState, useEffect } from 'react';
@@ -24,7 +24,7 @@ export const RightZone = ({ centerOnDark = true }) => {
     const tick = () =>
       setTimes((prev) => {
         const next = timezones.map((tz) => getTimeInZone(tz, fmt));
-        // World clocks display HH:MM — the value changes once a minute. Skip the
+        // World clocks display HH:MM: the value changes once a minute. Skip the
         // per-second re-render (and allocation) when the formatted times match.
         if (
           prev.length === next.length &&

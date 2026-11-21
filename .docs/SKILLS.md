@@ -1,4 +1,4 @@
-# Skills Inventory & Routing — Undistracted Me
+# Skills Inventory & Routing: Undistracted Me
 
 Inventory of every agent skill available in this session, scored against the
 actual work in this repo: a **React 19 + Vite 8 Manifest V3 browser extension**
@@ -6,7 +6,7 @@ actual work in this repo: a **React 19 + Vite 8 Manifest V3 browser extension**
 **Cloudflare Pages Functions** API, an **Astro** marketing site, **Vitest** unit
 tests and **Playwright** E2E tests.
 
-Legend: ✅ = use by default · ◐ = situational · — = archived (not loaded)
+Legend: ✅ = use by default · ◐ = situational · - = archived (not loaded)
 
 ## How skills are loaded
 
@@ -20,14 +20,14 @@ Legend: ✅ = use by default · ◐ = situational · — = archived (not loaded)
 
 The original 165 vendored skills were validated (every `SKILL.md` has `name` +
 `description` frontmatter) before 104 non-applicable ones were moved to
-`skills-archive/`. Nothing was deleted — restore with
+`skills-archive/`. Nothing was deleted: restore with
 `mv skills-archive/<name> .agents/skills/`.
 
-Rows marked **—** below are archived and will not load.
+Rows marked **-** below are archived and will not load.
 
 ---
 
-## 1. Frontend / React / UI — ✅ primary
+## 1. Frontend / React / UI: ✅ primary
 
 | Skill | | Use when |
 |---|---|---|
@@ -45,12 +45,12 @@ Rows marked **—** below are archived and will not load.
 | `ui-ux-pro-max` | ✅ | Style/palette/font/layout lookup, UX rules |
 | `web-design-guidelines` | ✅ | Reviewing UI against Web Interface Guidelines |
 | `brand-landingpage` | ◐ | New landing/marketing page direction |
-| `nextjs-app-router-patterns` | — | No Next.js in this repo |
-| `angular-migration` | — | n/a |
-| `react-native-architecture` / `react-native-design` | — | n/a |
-| `mobile-android-design` / `mobile-ios-design` | — | n/a |
+| `nextjs-app-router-patterns` |: | No Next.js in this repo |
+| `angular-migration` |: | n/a |
+| `react-native-architecture` / `react-native-design` |: | n/a |
+| `mobile-android-design` / `mobile-ios-design` |: | n/a |
 
-## 2. Styling, design system & graphics — ✅ primary
+## 2. Styling, design system & graphics: ✅ primary
 
 | Skill | | Use when |
 |---|---|---|
@@ -67,11 +67,11 @@ Rows marked **—** below are archived and will not load.
 | `ckm-design` | ◐ | Brand/CIP/mockup generation |
 | `ckm-brand` | ◐ | Brand voice/messaging for landing + store copy |
 | `ckm-banner-design` | ◐ | Chrome/Firefox store banners, social assets |
-| `ckm-slides` | — | No deck deliverables |
+| `ckm-slides` |: | No deck deliverables |
 | `canvas-design` | ◐ | Store screenshots / static art |
-| `brand-guidelines` | — | Anthropic brand only |
+| `brand-guidelines` |: | Anthropic brand only |
 
-## 3. Accessibility — ✅ must-check
+## 3. Accessibility: ✅ must-check
 
 | Skill | | Use when |
 |---|---|---|
@@ -80,7 +80,7 @@ Rows marked **—** below are archived and will not load.
 | `screen-reader-testing` | ◐ | VoiceOver/NVDA passes on overlays |
 | `web-design-guidelines` | ✅ | Also covers a11y in UI review |
 
-## 4. Testing & QA — ✅ primary
+## 4. Testing & QA: ✅ primary
 
 | Skill | | Use when |
 |---|---|---|
@@ -90,7 +90,7 @@ Rows marked **—** below are archived and will not load.
 | `cross-browser-testing` | ✅ | Chrome/Firefox matrix, `dist-firefox/` parity |
 | `agent-browser` | ◐ | Ad-hoc browser automation/inspection |
 
-## 5. Debugging, review & delivery workflow — ✅ primary
+## 5. Debugging, review & delivery workflow: ✅ primary
 
 | Skill | | Use when |
 |---|---|---|
@@ -107,7 +107,7 @@ Rows marked **—** below are archived and will not load.
 | `dependency-upgrade` | ◐ | React/Vite/Tailwind major bumps |
 | `error-handling-patterns` | ✅ | Fetch failures, OAuth retries, fallbacks |
 
-## 6. Planning & agent workflow — ✅ process skills
+## 6. Planning & agent workflow: ✅ process skills
 
 | Skill | | Use when |
 |---|---|---|
@@ -118,11 +118,11 @@ Rows marked **—** below are archived and will not load.
 | `dispatching-parallel-agents` | ◐ | 2+ independent workstreams |
 | `parallel-feature-development` | ◐ | Layered features across files |
 | `task-coordination-strategies` | ◐ | Multi-agent decomposition |
-| `team-composition-patterns` / `team-communication-protocols` / `team-composition-analysis` | — | Team-of-agents orchestration not used |
+| `team-composition-patterns` / `team-communication-protocols` / `team-composition-analysis` |: | Team-of-agents orchestration not used |
 | `context-driven-development` | ◐ | Refreshing project context artifacts |
 | `track-management` | ◐ | Spec/plan/track lifecycle |
 | `workflow-patterns` | ◐ | TDD checkpoints |
-| `workflow-orchestration-patterns` | — | Temporal workflows |
+| `workflow-orchestration-patterns` |: | Temporal workflows |
 | `using-superpowers` | ◐ | Skill-discovery protocol |
 | `skill-creator` / `writing-skills` / `find-skills` | ◐ | Adding project skills |
 | `hads` | ◐ | Human/AI-readable docs format |
@@ -130,7 +130,7 @@ Rows marked **—** below are archived and will not load.
 | `opencode` | ✅ | Questions about OpenCode itself |
 | `report` | ◐ | Filing OpenCode bugs |
 
-## 7. Extension security, auth & compliance — ✅ important
+## 7. Extension security, auth & compliance: ✅ important
 
 | Skill | | Use when |
 |---|---|---|
@@ -144,10 +144,10 @@ Rows marked **—** below are archived and will not load.
 | `gdpr-data-handling` | ◐ | PII in `chrome.storage.local` (calendar/contacts) |
 | `accessibility-compliance` | ✅ | See §3 |
 | `block-no-verify-hook` | ◐ | Commit quality gates |
-| `protect-mcp-setup` / `review-agent-setup` / `signed-audit-trails-recipe` | — | Claude Code MCP gating, not used |
-| `pci-compliance` | — | No card data |
+| `protect-mcp-setup` / `review-agent-setup` / `signed-audit-trails-recipe` |: | Claude Code MCP gating, not used |
+| `pci-compliance` |: | No card data |
 
-## 8. Backend, API & CI — ◐ situational
+## 8. Backend, API & CI: ◐ situational
 
 | Skill | | Use when |
 |---|---|---|
@@ -155,31 +155,31 @@ Rows marked **—** below are archived and will not load.
 | `api-design-principles` | ◐ | New `/api/*` endpoints, CORS, error shapes |
 | `openapi-spec-generation` | ◐ | Documenting the API |
 | `github-actions-templates` | ◐ | `.github/workflows/*` (build, deploy-api, deploy-landing) |
-| `gitlab-ci-patterns` | — | No GitLab |
+| `gitlab-ci-patterns` |: | No GitLab |
 | `deployment-pipeline-design` | ◐ | Release gates, store publishing flow |
 | `architecture-decision-records` | ◐ | Recording storage/sync decisions |
 | `architecture-patterns` | ◐ | Layering `hooks/` · `utilities/` · `widgets/` |
-| `microservices-patterns` | — | Single extension + small API |
-| `cqrs-implementation` / `event-store-design` / `projection-patterns` / `saga-orchestration` | — | No event sourcing |
-| `monorepo-management` / `nx-workspace-patterns` / `turborepo-caching` / `bazel-build-optimization` | — | Folder-based multi-app repo, no monorepo tool |
-| `dotnet-backend-patterns` | — | n/a |
-| `fastapi-templates` | — | n/a |
-| `sql-optimization-patterns` / `postgresql-table-design` / `database-migration` | — | No SQL database |
-| `grafana-dashboards` / `prometheus-configuration` / `slo-implementation` / `distributed-tracing` / `service-mesh-observability` | — | Cloudflare analytics + Umami only |
-| `k8s-*` / `helm-chart-scaffolding` / `istio-traffic-management` / `linkerd-patterns` / `gitops-workflow` / `mtls-configuration` / `hybrid-cloud-networking` / `multi-cloud-architecture` / `terraform-module-library` / `cost-optimization` | — | No Kubernetes/IaC |
-| `incident-runbook-templates` / `on-call-handoff-patterns` / `postmortem-writing` | — | Solo project |
+| `microservices-patterns` |: | Single extension + small API |
+| `cqrs-implementation` / `event-store-design` / `projection-patterns` / `saga-orchestration` |: | No event sourcing |
+| `monorepo-management` / `nx-workspace-patterns` / `turborepo-caching` / `bazel-build-optimization` |: | Folder-based multi-app repo, no monorepo tool |
+| `dotnet-backend-patterns` |: | n/a |
+| `fastapi-templates` |: | n/a |
+| `sql-optimization-patterns` / `postgresql-table-design` / `database-migration` |: | No SQL database |
+| `grafana-dashboards` / `prometheus-configuration` / `slo-implementation` / `distributed-tracing` / `service-mesh-observability` |: | Cloudflare analytics + Umami only |
+| `k8s-*` / `helm-chart-scaffolding` / `istio-traffic-management` / `linkerd-patterns` / `gitops-workflow` / `mtls-configuration` / `hybrid-cloud-networking` / `multi-cloud-architecture` / `terraform-module-library` / `cost-optimization` |: | No Kubernetes/IaC |
+| `incident-runbook-templates` / `on-call-handoff-patterns` / `postmortem-writing` |: | Solo project |
 | `shellcheck-configuration` / `bash-defensive-patterns` / `bats-testing-patterns` / `changelog-automation` | ◐ | `scripts/*.mjs`, `Makefile` |
 
-## 9. Astro marketing site — ◐
+## 9. Astro marketing site: ◐
 
 | Skill | | Use when |
 |---|---|---|
 | `astro-seo` | ✅ | `landing/` metadata, JSON-LD, sitemap, IndexNow |
 | `frontend-design` / `brand-landingpage` | ◐ | Landing page design |
-| `data-storytelling` / `kpi-dashboard-design` / `data-quality-frameworks` | — | No dashboards/data pipeline |
-| `competitive-landscape` / `market-sizing-analysis` / `startup-financial-modeling` / `startup-metrics-framework` / `team-composition-*` / `employment-contract-templates` / `billing-automation` | — | Business/HR docs, not code |
+| `data-storytelling` / `kpi-dashboard-design` / `data-quality-frameworks` |: | No dashboards/data pipeline |
+| `competitive-landscape` / `market-sizing-analysis` / `startup-financial-modeling` / `startup-metrics-framework` / `team-composition-*` / `employment-contract-templates` / `billing-automation` |: | Business/HR docs, not code |
 
-## 10. Data, ML & AI — — (reserve for future AI features)
+## 10. Data, ML & AI: - (reserve for future AI features)
 
 `rag-implementation`, `embedding-strategies`, `similarity-search-patterns`,
 `vector-index-tuning`, `hybrid-search-implementation`, `langchain-architecture`,
@@ -187,7 +187,7 @@ Rows marked **—** below are archived and will not load.
 `dbt-transformation-patterns`, `spark-optimization`, `data-quality-frameworks`,
 `evaluation-methodology`, `data-storytelling`, `kpi-dashboard-design`.
 
-## 11. Languages, engines & chains not used — —
+## 11. Languages, engines & chains not used: -
 
 `python-*` (14 skills), `go-concurrency-patterns`, `rust-async-patterns`,
 `async-python-patterns`, `uv-package-manager`, `python-packaging`,
@@ -196,7 +196,7 @@ Rows marked **—** below are archived and will not load.
 `backtesting-frameworks`, `risk-metrics-calculation`, `paypal-integration`,
 `stripe-integration`, `pci-compliance`, `billing-automation`.
 
-## 12. Security research / forensics — —
+## 12. Security research / forensics: -
 
 `memory-forensics`, `binary-analysis-patterns`, `anti-reversing-techniques`,
 `protocol-reverse-engineering`, `attack-tree-construction` (kept for threat

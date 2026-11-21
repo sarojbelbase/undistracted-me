@@ -1,5 +1,5 @@
 /**
- * Unit tests for opmlParser.js — pure DOMParser-based OPML parser.
+ * Unit tests for opmlParser.js: pure DOMParser-based OPML parser.
  *
  * Covers:
  *  - Valid OPML with top-level feeds
@@ -77,8 +77,8 @@ const emptyBodyOPML = `<?xml version="1.0"?>
 <opml version="2.0">
   <head><title>Empty</title></head>
   <body>
-    <outline text="Just a folder — no feeds here">
-      <outline text="Nested folder — still no feeds"/>
+    <outline text="Just a folder: no feeds here">
+      <outline text="Nested folder: still no feeds"/>
     </outline>
   </body>
 </opml>`;

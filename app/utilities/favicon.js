@@ -4,7 +4,7 @@ const PRIVATE_HOST_RE = /^localhost$|\.local$|\.internal$|^127\.|^192\.168\.|^10
 
 // ── Shared favicon helpers ────────────────────────────────────────────────────
 
-// External favicon service URLs — ordered by priority (Google → DDG → Icon Horse)
+// External favicon service URLs: ordered by priority (Google → DDG → Icon Horse)
 export const FAVICON_SERVICES = Object.freeze({
   google: (domain, size) => `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`,
   duckduckgo: (domain) => `https://icons.duckduckgo.com/ip3/${domain}.ico`,
@@ -13,7 +13,7 @@ export const FAVICON_SERVICES = Object.freeze({
 
 // In-session favicon cache: hostname → resolved src URL ('' means letter fallback was used)
 // Capped at MAX_FAVICON_CACHE entries. Map preserves insertion order, so the
-// first key is always the oldest — we evict it when the cap is reached.
+// first key is always the oldest: we evict it when the cap is reached.
 export const faviconCache = new Map();
 const MAX_FAVICON_CACHE = 500;
 export const cacheFavicon = (hostname, src) => {
@@ -31,13 +31,13 @@ export const getDefaultName = (url) => getHostname(url).replace(/^www\./, '');
 
 // Strip one subdomain level: app.example.com → example.com
 // Returns null when already a bare domain, or when the result would be a
-// known public suffix (e.g. com.np, co.uk) — those aren't real origins.
+// known public suffix (e.g. com.np, co.uk): those aren't real origins.
 const PUBLIC_SUFFIX_RE = /^(com|co|org|net|gov|edu|ac|mil)\.[a-z]{2}$/;
 export const parentDomain = (hostname) => {
   const parts = hostname.split('.');
   if (parts.length <= 2) return null;
   const parent = parts.slice(1).join('.');
-  // Don't use a public suffix as a favicon origin — it will always 404
+  // Don't use a public suffix as a favicon origin: it will always 404
   if (PUBLIC_SUFFIX_RE.test(parent)) return null;
   return parent;
 };
@@ -62,16 +62,16 @@ export const buildFaviconSources = (url, size = 64) => {
   const hostname = getHostname(url);
   if (faviconCache.has(hostname)) {
     const cached = faviconCache.get(hostname);
-    // '' means letter fallback was used — skip network entirely
+    // '' means letter fallback was used: skip network entirely
     return cached ? [cached, ''] : [''];
   }
   if (PRIVATE_HOST_RE.test(hostname)) return [''];
   // Guard: non-web hostnames (e.g. chrome-extension, moz-extension) must never
-  // be sent to external favicon services — they always 400/404.
+  // be sent to external favicon services: they always 400/404.
   const isWebHostname = hostname.includes('.') && !hostname.startsWith('chrome-') && !hostname.startsWith('moz-');
   if (!isWebHostname) return [''];
   return [
-    // Server-side waterfall (Google → DDG → Icon Horse) — zero client-side 404s
+    // Server-side waterfall (Google → DDG → Icon Horse): zero client-side 404s
     `${_faviconApiBase}/favicon?domain=${hostname}&sz=${size}`,
     // Direct Icon Horse as offline fallback for extension (virtually never 404s)
     ...(_isExt ? [FAVICON_SERVICES.iconHorse(hostname)] : []),
@@ -106,7 +106,7 @@ const wcagY = (r, g, b) =>
 export const extractColorFromUrl = (src, onColor) => {
   if (!src) return;
   const img = new Image();
-  // Only request CORS in extension context — in a normal web page this blocks
+  // Only request CORS in extension context: in a normal web page this blocks
   // favicon.ico requests and produces console errors with no benefit.
   if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     img.crossOrigin = 'anonymous';
@@ -168,7 +168,7 @@ function runExtraction(img, onColor) {
     const entries = Object.values(buckets);
 
     // 1. Mostly-transparent icon (e.g. Spotify green logo on transparent background).
-    //    Don't synthesise a flat black/white — run the vibrant selector on the brand
+    //    Don't synthesise a flat black/white: run the vibrant selector on the brand
     //    pixels themselves so Spotify gets its green, GitHub gets its dark grey, etc.
     if (transparentCount / totalPixels > 0.45) {
       // Skip the dark-dominant early exit; just do vibrant/fallback directly on opaque pixels
@@ -192,7 +192,7 @@ function runExtraction(img, onColor) {
     // 3. Vibrant-zone: WCAG Y ≤ 0.5 excludes perceptually over-bright colours
     //    (yellow Y≈0.93, Instagram bright orange-yellow Y≈0.53) so richer hues
     //    (pink, purple, orange-red) win first. If nothing passes, fall back to
-    //    any non-dark pixel — bright fills like saroj amber win by pixel count.
+    //    any non-dark pixel: bright fills like saroj amber win by pixel count.
     const vibrantPool = entries.filter(
       (e) => e.lum >= 0.2 && e.sat > 0.3 && wcagY(e.r, e.g, e.b) <= 0.5,
     );
@@ -200,5 +200,5 @@ function runExtraction(img, onColor) {
     if (pool.length === 0) pool = entries;
     const best = pickBestColor(entries, pool);
     if (best) onColor(`rgb(${best.r},${best.g},${best.b})`);
-  } catch { /* CORS blocked — no background colour */ }
+  } catch { /* CORS blocked: no background colour */ }
 }

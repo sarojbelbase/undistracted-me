@@ -10,8 +10,8 @@ import { trackWidgetEvent } from '../../utilities/telemetry';
 const makeId = () => makeUid('cd');
 
 /**
- * AddCountdown — countdown form body + footer only (no modal chrome). Rendered
- * inside UnifiedAddDialog, which supplies the header, type selector, and Modal.
+ * AddCountdown: countdown form body + footer only (no modal chrome). Rendered
+ * inside UnifiedAddDialog, which supplies the header, type selector and Modal.
  */
 export const AddCountdown = ({ onSave, onCancel, initial }) => {
   const [title, setTitle] = useState(initial?.title ?? '');
@@ -61,7 +61,7 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
           style={{ fontSize: '14px', fontWeight: 500 }}
         />
 
-        {/* Mode — Countdown or Since */}
+        {/* Mode: Countdown or Since */}
         <div>
           <div style={{ marginBottom: 8 }}>
             <span className="w-label" style={{ color: 'var(--w-ink-3)' }}>Mode</span>
@@ -77,7 +77,7 @@ export const AddCountdown = ({ onSave, onCancel, initial }) => {
           <SegmentedDateTime mode="datetime" date={date} onDateChange={setDate} time={time} onTimeChange={setTime} />
         </div>
 
-        {/* Repeat — only for countdown mode */}
+        {/* Repeat: only for countdown mode */}
         {!isSince && (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>

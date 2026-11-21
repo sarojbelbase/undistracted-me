@@ -3,7 +3,7 @@ import { isCodeClamped } from "../previewLines";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace";
 
 /**
- * CodeBody — the code entry: a quiet inset block (no border, no header bar —
+ * CodeBody: the code entry: a quiet inset block (no border, no header bar -
  * Copy is the row's primary action) with a mono body that clamps to WHOLE
  * lines. The clamp height is computed in CSS from the line count and the line
  * height, so a line is never cut in half. Horizontally scrolls when wrapCode is

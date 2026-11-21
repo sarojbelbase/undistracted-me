@@ -7,7 +7,7 @@ import { computeAutoMode } from '../utilities/sunTime';
 // ─── Module-level: read blocked domain + info once, before React mounts ──────
 
 // The value is later used in `location.href = 'https://' + domain`, so it must
-// be a bare hostname — no scheme, path, port, query, or fragment. Reject
+// be a bare hostname: no scheme, path, port, query or fragment. Reject
 // anything else to prevent an open redirect via the web-accessible page.
 const HOSTNAME_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i;
 
@@ -32,7 +32,7 @@ const readBlockInfo = (domain) => {
         return {
           remainingMs,
           totalDurationMs: s.totalDurationMs || remainingMs,
-          // Wall-clock deadline — the countdown is derived from this on every
+          // Wall-clock deadline: the countdown is derived from this on every
           // tick instead of decrementing, so a throttled/backgrounded tab still
           // shows (and expires) the true remaining time.
           deadline: s.blockedUntil,
@@ -80,7 +80,7 @@ const readSettings = () => {
   }
 };
 
-/** Resolve 'auto' mode using sun-time math — same logic as themeInit + applyTheme. */
+/** Resolve 'auto' mode using sun-time math: same logic as themeInit + applyTheme. */
 const resolveMode = (mode) => {
   if (mode === 'auto') return computeAutoMode();
   return mode === 'dark' ? 'dark' : 'light';
@@ -100,7 +100,7 @@ const getThemeTokens = (isDark, orbRgb) => ({
   vignetteEnd: isDark ? 'rgba(2,2,4,0.92)' : 'rgba(240,240,242,0.90)',
 });
 
-/** Check localStorage — is the current domain still blocked as infinite? */
+/** Check localStorage: is the current domain still blocked as infinite? */
 const isNowInfinite = (blockedDomain) => {
   try {
     const raw = localStorage.getItem('blocked_sites');
@@ -125,7 +125,7 @@ const removeBlockedEntry = (blockedDomain) => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-/** Crypto-secure random integer in [0, max) — replaces Math.random() for picks. */
+/** Crypto-secure random integer in [0, max): replaces Math.random() for picks. */
 const randomInt = (max) => {
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);
@@ -158,11 +158,11 @@ const BlockedPage = () => {
   const [remainingMs, setRemainingMs] = useState(() => initialRemaining);
   const [redirecting, setRedirecting] = useState(false);
 
-  // Countdown tick — only for timed blocks with a valid entry in storage.
+  // Countdown tick: only for timed blocks with a valid entry in storage.
   // Skip if infinite, or if the entry was not found (site was unblocked).
   const tick = !infinite && !notFound;
 
-  // Stable 1s interval — recompute the countdown from the stored wall-clock
+  // Stable 1s interval: recompute the countdown from the stored wall-clock
   // deadline rather than decrementing. A hidden/backgrounded tab is throttled
   // to ~1 tick/minute, so a decrementing counter would fall behind real time
   // and delay the redirect. Recomputing also makes focus/visibility jumps
@@ -245,7 +245,7 @@ const BlockedPage = () => {
           transformOrigin: '50% 50%',
         }}
       >
-        {/* Primary orb — center bloom */}
+        {/* Primary orb: center bloom */}
         <div style={{
           position: 'absolute',
           width: '70vmin',
@@ -257,7 +257,7 @@ const BlockedPage = () => {
           filter: 'blur(52px)',
           animation: 'lookaway-bloom 8s ease-in-out infinite',
         }} />
-        {/* Secondary orb — top-right */}
+        {/* Secondary orb: top-right */}
         <div style={{
           position: 'absolute',
           width: '50vmin',
@@ -268,7 +268,7 @@ const BlockedPage = () => {
           background: `radial-gradient(circle at 50% 50%, rgba(${orbRgb},${orbOpacity2}) 0%, transparent 65%)`,
           filter: 'blur(64px)',
         }} />
-        {/* Tertiary orb — bottom-left counter-rotation */}
+        {/* Tertiary orb: bottom-left counter-rotation */}
         <div style={{
           position: 'absolute',
           width: '44vmin',
@@ -296,7 +296,7 @@ const BlockedPage = () => {
 
       {/* ── Center content ───────────────────────────────────────────────── */}
       <div className="blocked-center">
-        {/* Domain label — clean, visible, shorthandFromUrl handles capitalization */}
+        {/* Domain label: clean, visible, shorthandFromUrl handles capitalization */}
         <p className="blocked-domain-label">
           <span style={{ color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)' }}>
             {shorthandFromUrl('https://' + blockedDomain)}
@@ -306,17 +306,17 @@ const BlockedPage = () => {
           </span>
         </p>
 
-        {/* Hero message — the focal point */}
+        {/* Hero message: the focal point */}
         <h1 className="blocked-hero" style={{ color: titleColor }}>
           {notFound ? 'All clear' : msg.title}
         </h1>
 
-        {/* Supporting message — the depth */}
+        {/* Supporting message: the depth */}
         <p className="blocked-sub" style={{ color: msgColor }}>
           {notFound ? 'This site was unblocked. You can visit it now.' : msg.subtitle}
         </p>
 
-        {/* Timer and progress — only for timed blocks, hidden for infinite / not-found */}
+        {/* Timer and progress: only for timed blocks, hidden for infinite / not-found */}
         {(!infinite && !notFound) && (
           <>
             {redirecting ? (

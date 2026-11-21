@@ -3,7 +3,7 @@
  *
  * Each `describe` block mounts exactly ONE widget in isolation by seeding
  * `widget_instances` in localStorage, then asserts widget-specific rendering,
- * interactions, settings persistence, and clipping.
+ * interactions, settings persistence and clipping.
  *
  * Widgets covered:
  *   clock · dateToday · progress · countdown · notes · dailys
@@ -53,7 +53,7 @@ const widget = (page) => page.locator('.react-grid-item').first();
  *
  * Only horizontal overflow is checked. Vertical scrollHeight can exceed
  * clientHeight due to font glyph ascenders/descenders on leading-none elements
- * — nothing is visually clipped since those containers have no overflow:hidden.
+ *: nothing is visually clipped since those containers have no overflow:hidden.
  * `assertInViewport` separately verifies the bounding box is on-screen.
  */
 async function assertNoClip(locator, label) {
@@ -75,7 +75,7 @@ async function assertNoClip(locator, label) {
 async function assertInViewport(locator, page, label) {
   const vp = page.viewportSize();
   const box = await locator.boundingBox();
-  if (!box) return; // not mounted — skip
+  if (!box) return; // not mounted: skip
   expect(box.x + box.width, `${label}: right overflow`).toBeLessThanOrEqual(vp.width + 2);
   expect(box.y + box.height, `${label}: bottom overflow`).toBeLessThanOrEqual(vp.height + 2);
 }
@@ -218,7 +218,7 @@ test.describe('Countdown widget', () => {
     await mountWidget(page, 'countdown', {
       countdown_events: [],
     });
-    // Empty state text in the settings panel fallback — check widget renders
+    // Empty state text in the settings panel fallback: check widget renders
     await expect(widget(page)).toBeVisible();
     // When no events and no countdowns the widget shows the empty hourglass state
     const text = await widget(page).innerText();
@@ -234,7 +234,7 @@ test.describe('Countdown widget', () => {
     futureDate.setDate(futureDate.getDate() + 4);
     const dateStr = futureDate.toISOString().slice(0, 10); // YYYY-MM-DD
     const event = { id: 'cd_test_1', title: 'Big Launch', targetDate: dateStr, targetTime: '', repeat: 'none' };
-    // Widget uses pinnedKey(id) = `countdown_pinned_${widgetId}` — widget id is 'countdown'
+    // Widget uses pinnedKey(id) = `countdown_pinned_${widgetId}`: widget id is 'countdown'
     await mountWidget(page, 'countdown', {
       countdown_events: [event],
       countdown_pinned_countdown: { type: 'custom', id: 'cd_test_1' },
@@ -311,10 +311,10 @@ test.describe('Dailys widget (fact mode)', () => {
 
   test('shows a mode badge', async ({ page }) => {
     await mountWidget(page, 'dailys', { widgetSettings_dailys: { mode: 'fact', autoSlide: false } });
-    // The footer badge shows the current mode ("Fact") — it always renders.
+    // The footer badge shows the current mode ("Fact"): it always renders.
     const card = widget(page).locator('.overflow-hidden').first();
     const text = await card.innerText();
-    // Badge is the last line — text + "Fact" badge = at least 2 lines
+    // Badge is the last line: text + "Fact" badge = at least 2 lines
     const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
     expect(lines.length).toBeGreaterThanOrEqual(2);
   });
@@ -405,7 +405,7 @@ test.describe('Stock widget', () => {
     // Allow time for the fetch (or show loading/error)
     await page.waitForTimeout(1500);
     const text = await widget(page).innerText();
-    // Either the symbol is shown, or a loading/error state — card must be non-empty
+    // Either the symbol is shown, or a loading/error state: card must be non-empty
     expect(text.trim().length).toBeGreaterThan(0);
   });
 
@@ -466,7 +466,7 @@ test.describe('Pomodoro widget', () => {
     // The back arrow is a ConfirmButton: first click arms it ("Sure?"), second confirms.
     const backBtn = widget(page).getByRole('button', { name: 'Back to timer selection' });
     await backBtn.click();
-    await widget(page).getByRole('button', { name: 'Confirm — click again to proceed' }).click();
+    await widget(page).getByRole('button', { name: 'Confirm: click again to proceed' }).click();
     await expect(widget(page)).toContainText('Focus Timer');
   });
 
@@ -496,7 +496,7 @@ test.describe('Events widget', () => {
   test('shows today date chip or empty state', async ({ page }) => {
     await mountWidget(page, 'events');
     const text = await widget(page).innerText();
-    // Either shows Today chip, a date, or empty state — must render non-empty
+    // Either shows Today chip, a date or empty state: must render non-empty
     expect(text.trim().length).toBeGreaterThan(0);
   });
 

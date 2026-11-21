@@ -3,7 +3,7 @@
  *
  * Single source of truth for every user-facing setting. Zustand's `persist`
  * middleware automatically serialises the state to `localStorage` under the
- * key `undistracted_settings`, so all components always see the same value —
+ * key `undistracted_settings`, so all components always see the same value -
  * no prop-drilling required.
  *
  * First-time migration: if the new key is absent the initial-state function
@@ -37,7 +37,7 @@ export const STORE_KEY = STORAGE_KEYS.SETTINGS;
 
 /**
  * Seed initial state. Reads from the Zustand persist key first so accents
- * and mode are correct on the very first render — before async rehydration.
+ * and mode are correct on the very first render: before async rehydration.
  * Falls back to legacy per-key entries for first-time migration.
  */
 const fromLegacy = () => {
@@ -68,7 +68,7 @@ const fromLegacy = () => {
               ? { ...cb, orbId: "accent" }
               : cb;
           }
-          // Photo + custom-URL backgrounds were re-added — preserve them when
+          // Photo + custom-URL backgrounds were re-added: preserve them when
           // they carry a usable url. Legacy 'default' | 'curated' (and any
           // photo/custom without a url) fall back to solid.
           if (type === "custom" && cb.url) {
@@ -96,6 +96,8 @@ const fromLegacy = () => {
         whatsNewSeenVersion:
           stored.state.whatsNewSeenVersion ?? D.whatsNewSeenVersion,
         syncEnabled: stored.state.syncEnabled ?? D.syncEnabled,
+        syncNotes: stored.state.syncNotes ?? D.syncNotes,
+        syncPocket: stored.state.syncPocket ?? D.syncPocket,
       };
   } catch {
     /* ignore */
@@ -119,6 +121,8 @@ const fromLegacy = () => {
     quickTourSeenVersion: D.quickTourSeenVersion,
     whatsNewSeenVersion: D.whatsNewSeenVersion,
     syncEnabled: D.syncEnabled,
+    syncNotes: D.syncNotes,
+    syncPocket: D.syncPocket,
   };
 };
 
@@ -191,11 +195,11 @@ export const useSettingsStore = create(
 
       setMode: (mode) => {
         const accent = get().accent;
-        // cardStyle is a global preference — never overwritten by mode changes
+        // cardStyle is a global preference: never overwritten by mode changes
         const cardStyle = get().cardStyle;
         if (mode !== get().mode) track(TELEMETRY_EVENTS.MODE_CHANGED, { mode });
         set({ mode });
-        // Mirror to legacy key — Playwright tests assert localStorage.getItem('app_mode').
+        // Mirror to legacy key: Playwright tests assert localStorage.getItem('app_mode').
         try {
           localStorage.setItem(STORAGE_KEYS._LEGACY.MODE, mode);
         } catch {
@@ -234,17 +238,17 @@ export const useSettingsStore = create(
 
       /**
        * Canvas background.
-       *   - { type: 'solid', orbId? }            — accent mesh gradient
-       *   - { type: 'orb', orbId? }              — animated orb
-       *   - { type: 'photo', url, photoId?, color? } — curated photo
-       *   - { type: 'custom', url }              — custom image URL
+       *   - { type: 'solid', orbId? }           : accent mesh gradient
+       *   - { type: 'orb', orbId? }             : animated orb
+       *   - { type: 'photo', url, photoId?, color? }: curated photo
+       *   - { type: 'custom', url }             : custom image URL
        */
       setCanvasBg: (canvasBg) => {
         set({ canvasBg });
         track(TELEMETRY_EVENTS.BACKGROUND_CHANGED, { type: canvasBg?.type });
       },
 
-      /** Widget surface style — 'paper' | 'glass' */
+      /** Widget surface style: 'paper' | 'glass' */
       setCardStyle: (cardStyle) => {
         const key = resolvedModeKey(get().mode);
         const modePrefs = {
@@ -271,6 +275,12 @@ export const useSettingsStore = create(
           track(syncEnabled ? TELEMETRY_EVENTS.SYNC_ENABLED : TELEMETRY_EVENTS.SYNC_DISABLED);
         }
       },
+
+      /** Toggle whether notes content syncs across devices (default on). */
+      setSyncNotes: (syncNotes) => set({ syncNotes }),
+
+      /** Toggle whether pocket entries sync across devices (default on). */
+      setSyncPocket: (syncPocket) => set({ syncPocket }),
     }),
     {
       name: STORE_KEY,
@@ -306,7 +316,7 @@ export const useSettingsStore = create(
 );
 
 // After hydration, subscribe to all state changes and schedule sync pushes.
-// Debounced at 500ms — rapid changes (e.g., dragging a slider) result in a
+// Debounced at 500ms: rapid changes (e.g., dragging a slider) result in a
 // single push. The _sync_ts stamp prevents ping-pong loops between devices.
 let _settingsHydrated = false;
 useSettingsStore.persist.onFinishHydration(() => {

@@ -180,13 +180,16 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   // Set when "Previous week" crosses into the previous month, so we can land on
   // its *last* two weeks once the new month's data (and totalWeeks) has loaded.
   const pendingPrevCross = useRef(false);
+  // Tracks the month we've anchored startWeek to today; reset on change so the
+  // view re-centres on today's week after switching calendar type.
+  const anchoredOffsetRef = useRef(null);
 
   const [calendarData, setCalendarData] = useState(() => buildCalendarData(DEFAULTS.calendarType, 0));
   const [localEvents] = useEvents();
   const { gcalEvents, loading: gcalLoading } = useGoogleCalendar();
   const events = useMemo(() => [...localEvents, ...gcalEvents], [localEvents, gcalEvents]);
   // Bucket events once per date (O(n)) instead of re-filtering the full list per
-  // day cell (O(cells × n)) — matters as a synced GCal list grows.
+  // day cell (O(cells × n)): matters as a synced GCal list grows.
   const eventsByDay = useMemo(() => {
     const m = new Map();
     for (const e of events) {
@@ -225,7 +228,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
     return () => clearInterval(timer);
   }, [rebuild, monthOffset]);
 
-  useEffect(() => { setMonthOffset(0); }, [calendarType]);
+  useEffect(() => { setMonthOffset(0); anchoredOffsetRef.current = null; }, [calendarType]);
 
   // ── Compute week geometry ──────────────────────────────────────────────────
   const totalWeeks = Math.ceil(calendarData.days.length / 7);
@@ -234,7 +237,6 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   // Guarded by anchoredOffsetRef so the hourly rebuild (which regenerates the same
   // month's data and changes `calendarData`'s reference) does NOT re-anchor and
   // silently snap the user's week paging back to today.
-  const anchoredOffsetRef = useRef(null);
   useEffect(() => {
     if (monthOffset !== 0) {
       anchoredOffsetRef.current = null;
@@ -273,7 +275,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
       setStartWeek(startWeek - 1);
       return;
     }
-    // Cross into previous month — flag so we land at its last weeks on load.
+    // Cross into previous month: flag so we land at its last weeks on load.
     pendingPrevCross.current = true;
     setMonthOffset(m => m - 1);
     setStartWeek(0);
@@ -292,7 +294,7 @@ export const Widget = ({ id = 'calendar', onRemove }) => {
   const goToday = () => {
     setMonthOffset(0);
     // If we're already on the current month, setMonthOffset(0) is a no-op and
-    // the anchoring effect below won't re-run — so set startWeek directly.
+    // the anchoring effect below won't re-run: so set startWeek directly.
     // Otherwise (cross-month) todayIdx is -1 and the rebuild + anchor effect
     // will handle it once the current month's data loads.
     const todayIdx = calendarData.days.findIndex((d) => d.isCurrent);

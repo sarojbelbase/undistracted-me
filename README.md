@@ -17,24 +17,24 @@ A chrome/firefox extension that replaces your new tab with a beautiful, distract
 
 ## Screenshots
 
-### Canvas mode — the dashboard
+### Canvas mode: the dashboard
 
 Your new tab as a calm, rearrangeable grid: the Nepali calendar and clock up
-top, then the widgets you care about — weather, notes, countdown, stocks,
-events, occasions, top sites and more — dragged into place exactly how you like.
+top, then the widgets you care about: weather, notes, countdown, stocks,
+events, occasions, top sites and more: dragged into place exactly how you like.
 
 <p align="center">
-  <img src="landing/src/assets/screenshots/canvas_mode.webp" alt="Canvas mode — the Undistracted Me dashboard with its draggable widget grid" width="85%">
+  <img src="landing/src/assets/screenshots/canvas_mode.webp" alt="Canvas mode: the Undistracted Me dashboard with its draggable widget grid" width="85%">
 </p>
 
-### Focus mode — the cinematic clock
+### Focus mode: the cinematic clock
 
 A fullscreen, distraction-free clock: the time set against a quiet background,
 with ambient context panels (Pomodoro, upcoming events, stocks, weather, world
 clocks) that surface only when you need them.
 
 <p align="center">
-  <img src="landing/src/assets/screenshots/focus_mode.webp" alt="Focus mode — the Undistracted Me cinematic fullscreen clock" width="85%">
+  <img src="landing/src/assets/screenshots/focus_mode.webp" alt="Focus mode: the Undistracted Me cinematic fullscreen clock" width="85%">
 </p>
 
 ## Deployments
@@ -68,7 +68,7 @@ The app requests the following Google OAuth scopes when you connect your Google 
 | `userinfo.email` | Display your email in the Settings panel |
 | `calendar.readonly` | Sync and display upcoming events from Google Calendar in the Upcoming Events widget |
 | `contacts.readonly` | Read birthdays and anniversaries from Google Contacts for the Occasions widget |
-| `tasks` | Add, complete, and manage Google Tasks from the Tasks panel in Focus Mode |
+| `tasks` | Add, complete and manage Google Tasks from the Tasks panel in Focus Mode |
 
 ## Build Setup
 

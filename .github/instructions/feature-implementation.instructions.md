@@ -1,5 +1,5 @@
 ---
-description: "Implementation guide for the 6 planned features: cross-device sync, YouTube Watch Later, OPML import, website blocker, enriched Pomodoro, expense tracker. Covers architecture decisions, file structure, shared component reuse, Karpathy principles, and React Guru patterns."
+description: "Implementation guide for the 6 planned features: cross-device sync, YouTube Watch Later, OPML import, website blocker, enriched Pomodoro, expense tracker. Covers architecture decisions, file structure, shared component reuse, Karpathy principles and React Guru patterns."
 applyTo: "app/widgets/**,app/utilities/**,app/store/**,app/components/**,app/bg.js,public/**"
 ---
 
@@ -29,7 +29,7 @@ Every widget uses `BaseWidget` from `app/widgets/BaseWidget.jsx`. It provides:
 
 ### State: Zustand Selector Pattern
 ```js
-// Two-step selector — prevents re-renders from unrelated store mutations
+// Two-step selector: prevents re-renders from unrelated store mutations
 const instId = useWidgetInstancesStore(
   useShallow((s) => s.instances.find(i => i.type === 'mytype')?.id ?? 'mytype')
 );
@@ -51,7 +51,7 @@ All Google API features share `useGoogleAccountStore`:
 
 ### Clock: sharedClock
 - If widget needs per-second ticks → `onClockTick(fn)` from `app/utilities/sharedClock.js`
-- Returns unsubscribe function — perfect for useEffect cleanup
+- Returns unsubscribe function: perfect for useEffect cleanup
 - Never run your own `setInterval` for per-second updates
 
 ---
@@ -59,18 +59,18 @@ All Google API features share `useGoogleAccountStore`:
 ## 2. Feature-Specific Rules
 
 ### Cross-Device Sync (`chrome.storage.sync`)
-- **Sync engine:** `app/utilities/syncEngine.js` — single source of truth
+- **Sync engine:** `app/utilities/syncEngine.js`: single source of truth
 - **Strategy:** Last-write-wins with per-key timestamps
 - **What syncs:** Settings, widget instances, events, bookmarks, RSS feed URLs, Pomodoro history
 - **What does NOT sync:** Weather cache, Unsplash photos, RSS items, location state, auth tokens
 - **Zustand integration:** Add sync push to `onRehydrateStorage` callback in persist config
-- **Conflict UI:** `SyncConflictBanner.jsx` — non-blocking banner, never a modal dialog
+- **Conflict UI:** `SyncConflictBanner.jsx`: non-blocking banner, never a modal dialog
 - **Limit awareness:** 100KB total, 8KB/item, ~1 write/sec. Debounce writes 500ms.
 
 ### Expense Tracker Widget
-- **Data model:** `{ id, amount, currency, category, note, createdAt }` — stored as JSON array in `widgetSettings_${id}.expenses`
+- **Data model:** `{ id, amount, currency, category, note, createdAt }`: stored as JSON array in `widgetSettings_${id}.expenses`
 - **Currency:** Curated list of ~50 world currencies in `app/data/currencies.js`. Format via `Intl.NumberFormat` (native, no deps).
-- **Hook:** `app/widgets/expense/useExpenses.js` — CRUD + weekly summary. Cap 500 entries, auto-trim oldest.
+- **Hook:** `app/widgets/expense/useExpenses.js`: CRUD + weekly summary. Cap 500 entries, auto-trim oldest.
 - **Quick-add:** Amount input + category Popup + add button. 3-second logging flow.
 - **Categories:** Default set (Food 🍔, Transport 🚌, Shopping 🛍, Entertainment 🎬, Health 💊, Education 📚, Bills 💡, Other 💰). Custom categories in settings.
 - **Weekly summary:** CSS-only horizontal bars per category. No Chart.js.
@@ -78,37 +78,37 @@ All Google API features share `useGoogleAccountStore`:
 - **Icons:** Emoji for categories (zero SVG burden). `WalletFill` for widget icon.
 
 ### YouTube Watch Later Widget
-- **Scope:** `youtube.readonly` — read Watch Later playlist
+- **Scope:** `youtube.readonly`: read Watch Later playlist
 - **Playlist ID:** Always `WL` for authenticated user
 - **API:** `GET https://www.googleapis.com/youtube/v3/playlistItems?playlistId=WL`
-- **Thumbnails:** Use `snippet.thumbnails.medium.url` (320×180) — scaled to 120×68 in CSS
-- **Hook:** `app/widgets/youtube/useWatchLater.js` — fetch every 30 min
+- **Thumbnails:** Use `snippet.thumbnails.medium.url` (320×180): scaled to 120×68 in CSS
+- **Hook:** `app/widgets/youtube/useWatchLater.js`: fetch every 30 min
 
 ### OPML Import (RSS Enhancement)
-- **Parser:** `app/widgets/rss/opmlParser.js` — uses `DOMParser` (native, zero deps)
+- **Parser:** `app/widgets/rss/opmlParser.js`: uses `DOMParser` (native, zero deps)
 - **Import flow:** File picker OR paste text → parse → preview → confirm → merge
 - **Merge:** Skip feeds whose URL already exists. Deduplicate within OPML.
 - **UI:** Inline panel inside RSS settings (NOT a separate modal). Checkboxes for each feed.
 - **Edge cases:** Empty OPML, nested folders (flatten), invalid URLs (flag with ⚠️)
 
 ### Website Blocker
-- **Engine:** `app/utilities/siteBlocker.js` — CRUD + `chrome.declarativeNetRequest` dynamic rules
+- **Engine:** `app/utilities/siteBlocker.js`: CRUD + `chrome.declarativeNetRequest` dynamic rules
 - **Rule IDs:** Start at 1000 (avoid collisions). Map rule ID → domain in storage.
-- **Blocked page:** `public/blocked.html` — static page, matches Undistracted Me aesthetic
+- **Blocked page:** `public/blocked.html`: static page, matches Undistracted Me aesthetic
 - **Popup integration:** Add "Block [domain]" to `CurrentTabBookmark.jsx`
-- **Settings:** New `BlockedSites.jsx` section — list + add input + import/export
+- **Settings:** New `BlockedSites.jsx` section: list + add input + import/export
 - **Permission:** `declarativeNetRequest` in manifest.json
 - **Never block:** `chrome://`, `chrome-extension://`, the extension's own new-tab page
 
 ### Enriched Pomodoro
-- **Progress ring:** `ProgressRing.jsx` — SVG circle with `stroke-dasharray` animation
+- **Progress ring:** `ProgressRing.jsx`: SVG circle with `stroke-dasharray` animation
   - Consider making it a shared component: `app/components/ui/ProgressRing.jsx`
   - Reusable for Countdown widget, LookAway timer
-- **Sound:** Add `public/sounds/chime.mp3` — play on timer end via existing audio pattern
-- **History:** `usePomodoroHistory.js` — localStorage, max 500 sessions, trim oldest
+- **Sound:** Add `public/sounds/chime.mp3`: play on timer end via existing audio pattern
+- **History:** `usePomodoroHistory.js`: localStorage, max 500 sessions, trim oldest
 - **Stats:** Streak (consecutive days), today's minutes, weekly bar chart (CSS-only)
-- **Break messages:** Reuse `app/data/lookawayMessages.js` — one source for break content
-- **Rain sounds:** Reuse `api/audio/rain.js` — already implemented, just add toggle
+- **Break messages:** Reuse `app/data/lookawayMessages.js`: one source for break content
+- **Rain sounds:** Reuse `api/audio/rain.js`: already implemented, just add toggle
 
 ---
 
@@ -117,7 +117,7 @@ All Google API features share `useGoogleAccountStore`:
 2. **Native APIs over dependencies.** `DOMParser`, `chrome.storage.sync`, `chrome.declarativeNetRequest`, `fetch`. No new npm packages.
 3. **Reuse before rebuild.** Every feature reuses existing stores, hooks, BaseWidget, PillButton, ConfirmButton, sharedClock.
 4. **Data model before UI.** Define data shapes (sync wrapper, OPML outline, blocked site) before JSX.
-5. **Test happy path first.** Parsing, merging, blocking logic — testable without browser/React. UI tests come after.
+5. **Test happy path first.** Parsing, merging, blocking logic: testable without browser/React. UI tests come after.
 
 ---
 

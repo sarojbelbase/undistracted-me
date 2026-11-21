@@ -2,7 +2,7 @@ import { useNotesState } from "../hooks/useNotesState";
 import { NoteEditor } from "./notes/NoteEditor";
 
 /**
- * Note Mode — a third launch view alongside Canvas and Focus.
+ * Note Mode: a third launch view alongside Canvas and Focus.
  *
  * Mounts only the shared note editor, nothing else (no widgets, no clock, no
  * search). Reads/writes the canonical note data (`widgetId` "notes") so it is

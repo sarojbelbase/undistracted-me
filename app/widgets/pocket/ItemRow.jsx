@@ -19,10 +19,10 @@ import { RowActions, deleteWithUndo } from "./RowActions";
 import { FolderPicker } from "./FolderPicker";
 
 /**
- * ItemRow — the shell for one save: layout, click handling, expanded state.
+ * ItemRow: the shell for one save: layout, click handling, expanded state.
  *
- * variant: "widget" (small card — compact uniform row, no site icons, hover
- * actions, click opens the expanded view) | "list" (expanded view — the rich
+ * variant: "widget" (small card: compact uniform row, no site icons, hover
+ * actions, click opens the expanded view) | "list" (expanded view: the rich
  * per-kind entry design with an expandable Details block).
  */
 export const ItemRow = memo(function ItemRow({
@@ -63,7 +63,7 @@ export const ItemRow = memo(function ItemRow({
   };
 
   const handleKey = (e) => {
-    // Only react when the row itself is focused — not a descendant button
+    // Only react when the row itself is focused: not a descendant button
     // (More actions, Copy, Open link), whose own activation must win.
     if (e.target !== e.currentTarget) return;
     if (e.key === "Enter") {
@@ -148,8 +148,8 @@ export const ItemRow = memo(function ItemRow({
 });
 
 /**
- * WidgetRow — the compact, uniform row used on the small card face. Content
- * first (single ellipsized line), a leading accent-tinted kind-glyph tile, and
+ * WidgetRow: the compact, uniform row used on the small card face. Content
+ * first (single ellipsized line), a leading accent-tinted kind-glyph tile and
  * a quiet meta line beneath. No site icons. Actions are revealed only on hover.
  * Every kind shares the same height and structure.
  *
@@ -256,7 +256,7 @@ function WidgetRow({ item, isNew, onOpen }) {
 }
 
 /**
- * SourceLine — the one quiet line under a text entry: site icon, host, age.
+ * SourceLine: the one quiet line under a text entry: site icon, host, age.
  * Code adds its language. Everything else (page title, kind, full date) lives
  * in the expanded Details block, so a collapsed row stays calm.
  */
@@ -282,7 +282,7 @@ function SourceLine({ item, showSiteIcons, inWebsiteGroup }) {
 }
 
 /**
- * Details — the less-used information, shown only when a row is expanded, as
+ * Details: the less-used information, shown only when a row is expanded, as
  * quiet label/value rows: Source (page title, path, actions), Folders, Saved.
  */
 function Details({ item }) {

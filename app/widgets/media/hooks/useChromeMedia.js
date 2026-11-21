@@ -1,5 +1,5 @@
 /**
- * useChromeMedia — shared hook for Chrome media session playback.
+ * useChromeMedia: shared hook for Chrome media session playback.
  *
  * Used by both the canvas Media widget and Focus Mode.  Single source of truth
  * for browser-tab media (YouTube, SoundCloud, Apple Music, etc.).

@@ -12,8 +12,8 @@ import {
 } from './utils';
 
 /**
- * AddEvent — event form body + footer only (no modal chrome). Rendered inside
- * UnifiedAddDialog, which supplies the header, type selector, and Modal shell.
+ * AddEvent: event form body + footer only (no modal chrome). Rendered inside
+ * UnifiedAddDialog, which supplies the header, type selector and Modal shell.
  */
 export const AddEvent = ({ onSave, onCancel, initialDate, initial }) => {
   const startDate = initial?.startDate ?? initialDate ?? todayStr();

@@ -19,11 +19,11 @@ export const Widget = ({ id, onRemove }) => {
   const { url, name, iconMode = "favicon" } = settings;
 
   // Reset / recompute background colour whenever url or iconMode changes.
-  // (Do NOT key on `name` — renaming re-runs this and clears the favicon-derived
+  // (Do NOT key on `name`: renaming re-runs this and clears the favicon-derived
   // tint, which FaviconIcon only re-emits on a url/iconMode remount.)
   useEffect(() => {
     if (iconMode === "letter") {
-      // Use accent CSS variable — set as string so BaseWidget inlines it.
+      // Use accent CSS variable: set as string so BaseWidget inlines it.
       // The letter colour uses var(--w-accent-fg) which is guaranteed to contrast.
       setBgColor("var(--w-accent)");
     } else {
@@ -96,7 +96,7 @@ export const Widget = ({ id, onRemove }) => {
             />
           </a>
         ) : (
-          // Empty state — + button, opens same central modal
+          // Empty state: + button, opens same central modal
           <button
             onClick={() => setShowSettings(true)}
             onMouseDown={(e) => e.stopPropagation()}
@@ -111,7 +111,7 @@ export const Widget = ({ id, onRemove }) => {
           </button>
         )}
 
-        {/* Hover popup — portalled via Popup, so it escapes overflow:hidden */}
+        {/* Hover popup: portalled via Popup, so it escapes overflow:hidden */}
         {anchor && (
           <Popup anchor={anchor} className="px-3 py-2.5 max-w-50">
             <span

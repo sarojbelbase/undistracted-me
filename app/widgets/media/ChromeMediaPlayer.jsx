@@ -8,7 +8,7 @@ function ChromePlayPauseBtn({ session, pending, onClick }) {
   return (
     <div className="relative">
       {pending && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(0,0,0,0.08)', borderTopColor: 'rgba(0,0,0,0.55)' }} aria-hidden="true" />}
-      {/* TooltipBtn renders the <button> — no nested button */}
+      {/* TooltipBtn renders the <button>: no nested button */}
       <TooltipBtn tooltip={isPlaying ? 'Pause' : 'Play'} onClick={onClick}
         aria-label={isPlaying ? 'Pause' : 'Play'}
         className="w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
@@ -28,7 +28,7 @@ function ChromeSkipBtn({ direction, session, pending, onClick, btnBg, ink, borde
   return (
     <div className="relative">
       {pending && <div className="absolute animate-spin pointer-events-none rounded-full" style={{ inset: '-3px', border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.7)' }} aria-hidden="true" />}
-      {/* TooltipBtn renders the <button> — no nested button */}
+      {/* TooltipBtn renders the <button>: no nested button */}
       <TooltipBtn tooltip={direction === 'prev' ? 'Previous' : 'Next'} onClick={onClick} disabled={disabled}
         aria-label={direction === 'prev' ? 'Previous' : 'Next'}
         className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 active:scale-90"

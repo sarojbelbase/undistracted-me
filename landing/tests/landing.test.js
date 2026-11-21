@@ -7,7 +7,7 @@ describe("Organization schema", () => {
   const graph = buildSchemaGraph();
   const org = graph["@graph"].find((e) => e["@type"] === "Organization");
 
-  it("has name, url, and a logo", () => {
+  it("has name, url and a logo", () => {
     expect(org.name).toBe(site.name);
     expect(org.url).toBe(site.url);
     expect(org.logo["@type"]).toBe("ImageObject");

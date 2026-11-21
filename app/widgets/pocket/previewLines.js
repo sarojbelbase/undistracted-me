@@ -1,5 +1,5 @@
 /**
- * previewLines.js — how many lines each kind clamps to before "Show more",
+ * previewLines.js: how many lines each kind clamps to before "Show more",
  * plus the shared line-clamp style object.
  *
  * The widget card uses fixed clamps (WIDGET_CLAMPS) regardless of the pref.

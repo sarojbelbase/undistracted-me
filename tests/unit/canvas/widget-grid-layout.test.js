@@ -1,5 +1,5 @@
 /**
- * Tests for app/widgets/WidgetGrid.jsx — pure utility logic
+ * Tests for app/widgets/WidgetGrid.jsx: pure utility logic
  *
  * The WidgetGrid component itself is large and relies on react-grid-layout,
  * so we focus on the testable pure-function layer:
@@ -46,7 +46,7 @@ beforeEach(() => localStorage.clear());
 afterEach(() => localStorage.clear());
 
 // ────────────────────────────────────────────────────────────────────────────
-// loadLayouts — pure function contract
+// loadLayouts: pure function contract
 // ────────────────────────────────────────────────────────────────────────────
 
 describe('loadLayouts (LAYOUT_KEY = widget_grid_layouts)', () => {

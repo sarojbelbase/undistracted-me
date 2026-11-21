@@ -1,7 +1,7 @@
 /**
- * Background — FocusMode background settings tab.
+ * Background: FocusMode background settings tab.
  * Self-contained: curated photo grid + custom URL input.
- * Dark glass style throughout — no dependency on BackgroundPicker.jsx.
+ * Dark glass style throughout: no dependency on BackgroundPicker.jsx.
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -37,7 +37,7 @@ const classifyUrl = (raw) => {
   const s = raw.trim();
   if (!s) return { ok: false, hint: null };
   if (VALID_EXT.test(s)) return { ok: true, hint: null };
-  if (VALID_HTTPS.test(s)) return { ok: true, hint: 'No image extension detected — will verify on Apply.' };
+  if (VALID_HTTPS.test(s)) return { ok: true, hint: 'No image extension detected: will verify on Apply.' };
   return { ok: false, hint: 'Must be a valid https:// URL.' };
 };
 
@@ -106,7 +106,7 @@ const photoMatchesUrl = (ph, url) =>
 // ─── Curated photo tile ──────────────────────────────────────────────────────────────────────
 
 // Holds its own `loaded` flag so a single image finishing load re-renders only
-// that tile — not the whole grid. The previous grid-level `loadedIds` Set made
+// that tile: not the whole grid. The previous grid-level `loadedIds` Set made
 // every staggered lazy-load repaint all ~20 tiles (the same anti-pattern
 // CanvasBackgroundPicker.jsx already fixed). Colour extraction is also skipped
 // when the photo already carries a cached dominant colour.
@@ -397,7 +397,7 @@ const CustomPanel = ({ isActive, initialCustomUrl, onApply }) => {
     const timeout = setTimeout(() => { img.src = ''; setPreviewUrl(url); setStatus('ok'); }, 5000);
     verifyTimerRef.current = timeout;
     img.onload = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); };
-    img.onerror = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); setErrorMsg('Could not verify — the URL may still work.'); };
+    img.onerror = () => { clearTimeout(timeout); setPreviewUrl(url); setStatus('ok'); setErrorMsg('Could not verify: the URL may still work.'); };
     img.src = url;
   }, [value]);
 

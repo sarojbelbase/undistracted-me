@@ -50,7 +50,7 @@ async function checkFeed(feed) {
   } catch (err) {
     const ms = Date.now() - start;
     const reason = err.name === 'AbortError' ? `Timed out (>${TIMEOUT_MS}ms)` : err.message;
-    return { ...feed, ok: false, status: '—', ms, reason };
+    return { ...feed, ok: false, status: '-', ms, reason };
   } finally {
     clearTimeout(timer);
   }

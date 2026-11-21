@@ -1,9 +1,9 @@
 /**
- * SyncTransport — the swappable cross-device sync backend.
+ * SyncTransport: the swappable cross-device sync backend.
  *
  * Dependency-injection seam: `syncEngine.js` and `notesSync.js` depend ONLY on
  * this interface, never on a concrete service. To switch backends (Google Drive
- * → Dropbox → anything), change this file's internals only — the callers, their
+ * → Dropbox → anything), change this file's internals only: the callers, their
  * merge logic, and the UI all keep calling the same methods.
  *
  * Current implementation: Google Drive `appDataFolder` (hidden, per-app), using
@@ -21,7 +21,7 @@ import {
   isGoogleAuthAvailable,
 } from "./googleAuth";
 
-/** Schema version of the config payload — shared with syncEngine. */
+/** Schema version of the config payload: shared with syncEngine. */
 export const SYNC_SCHEMA_VERSION = 3;
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
@@ -136,7 +136,7 @@ export const syncTransport = {
     }
   },
 
-  /** Interactive connect — prompts for the Drive scope, then marks connected. */
+  /** Interactive connect: prompts for the Drive scope, then marks connected. */
   connect: async () => {
     await getGoogleAuthToken(true);
     syncTransport.setConnected(true);
@@ -163,7 +163,7 @@ export const syncTransport = {
 
   getProfile: () => getGoogleUserProfile(),
 
-  /** Drive's appDataFolder is hidden — there is no browsable link. */
+  /** Drive's appDataFolder is hidden: there is no browsable link. */
   getUrl: async () => null,
 
   /**

@@ -7,7 +7,7 @@ import { groupByPage, groupBySite, middleEllipsis } from "../utils";
 import { openUrl } from "../actions";
 
 /**
- * GroupedList — renders the expanded view's list in one of several shapes:
+ * GroupedList: renders the expanded view's list in one of several shapes:
  *   - a flat results list while searching,
  *   - time-bucketed groups (Date), or
  *   - website groups with optional per-page sub-headings (Website).
@@ -106,7 +106,7 @@ function WebsiteGroups({ items, rowProps, showSiteIcons, collapsedHosts, onToggl
 function PageGroups({ group, rowProps }) {
   const { pages, ungrouped, multiPage } = groupByPage(group.items);
   if (!multiPage) {
-    // Single page (or none) — render the whole host group flat.
+    // Single page (or none): render the whole host group flat.
     return group.items.map((it) => <ItemRow key={it.id} {...rowProps(it)} inWebsiteGroup />);
   }
   return (

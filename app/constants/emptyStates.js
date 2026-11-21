@@ -1,5 +1,5 @@
 /**
- * ─── Empty-state copy — single source of truth ───────────────────────────────
+ * ─── Empty-state copy: single source of truth ───────────────────────────────
  *
  * One title, one sentence, at most one action button. No numbered steps, no
  * emoji. Rendered by `app/components/ui/EmptyState.jsx`.
@@ -15,27 +15,27 @@ export const EMPTY_STATES = Object.freeze({
   pocket: {
     all: {
       title: "Nothing saved yet.",
-      text: "Select text on any page, right-click, and choose Add to Pocket.",
+      text: "Select text on any page, right-click and choose Save to Pocket.",
     },
     widget: {
       title: "Nothing saved yet",
-      text: "Select text on any page and Add to Pocket.",
+      text: "Select text on any page and Save to Pocket.",
     },
     link: {
       title: "No links yet.",
-      text: "Right-click a link or a page and choose Add to Pocket.",
+      text: "Right-click a link or a page and choose Save to Pocket.",
     },
     sentence: {
       title: "No sentences yet.",
-      text: "Select a sentence on any page and choose Add to Pocket.",
+      text: "Select a sentence on any page and choose Save to Pocket.",
     },
     paragraph: {
       title: "No paragraphs yet.",
-      text: "Select a few sentences on any page and choose Add to Pocket.",
+      text: "Select a few sentences on any page and choose Save to Pocket.",
     },
     code: {
       title: "No code yet.",
-      text: "Select code on any page and choose Add to Pocket.",
+      text: "Select code on any page and choose Save to Pocket.",
     },
   },
 

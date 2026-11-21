@@ -1,5 +1,5 @@
 /**
- * Sync refresh bridge — rehydrates the Zustand stores after a sync pull/merge
+ * Sync refresh bridge: rehydrates the Zustand stores after a sync pull/merge
  * writes incoming changes to localStorage.
  *
  * The settings and widget-instances stores hydrate from localStorage once at

@@ -187,7 +187,7 @@ export const Widget = ({ id, onRemove }) => {
               className="exp-card__progress-pct"
               style={{ color: budget === null ? 'var(--w-ink-6)' : overBudget ? 'var(--w-danger)' : undefined }}
             >
-              {budget === null ? '—' : `${pct}%`}
+              {budget === null ? '-' : `${pct}%`}
             </span>
           </div>
 

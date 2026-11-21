@@ -8,7 +8,7 @@
 // must never run before the deploy step.
 //
 // The landing site (undistracted.me) submits via the seoGraph `indexNow`
-// integration in landing/astro.config.mjs instead — it already runs at build
+// integration in landing/astro.config.mjs instead: it already runs at build
 // time and auto-discovers every built URL.
 
 const KEY = '0ed82e1a15ca0a0fc7ffbfab4a27276c';

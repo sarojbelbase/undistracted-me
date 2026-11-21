@@ -1,9 +1,9 @@
 /**
- * RSS feed definitions — single source of truth.
+ * RSS feed definitions: single source of truth.
  *
  * Imported by:
  *   app/widgets/rss/utils.js   (client-side)
- *   rss/feed.js                (Cloudflare Pages Function — derives SOURCE_NAMES from this)
+ *   rss/feed.js                (Cloudflare Pages Function: derives SOURCE_NAMES from this)
  *
  * No imports allowed here. Keep this file pure data so it is safe to import
  * from any environment (browser, Node.js, Cloudflare Pages Functions).

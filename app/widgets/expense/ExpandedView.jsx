@@ -15,7 +15,7 @@ import { Sparkline } from '../../components/ui/Sparkline';
 const PAGE_SIZE = 50;
 
 /**
- * ExpenseExpandedView — the full expense library, rendered in the shared
+ * ExpenseExpandedView: the full expense library, rendered in the shared
  * ExpandedShell. Left rail: "All" + the expense categories (counts per
  * category). Main pane: search + add, a spending graph for the current period
  * (filtered by the selected category), and the full expense list in the
@@ -197,7 +197,7 @@ export function ExpenseExpandedView({
 }
 
 /**
- * ExpenseGraphCard — the pinned spending graph for the current period
+ * ExpenseGraphCard: the pinned spending graph for the current period
  * (week/month/year), drawn from the category-filtered expense set.
  */
 function ExpenseGraphCard({ expenses, currency, timeRange }) {
@@ -236,13 +236,13 @@ function ExpenseGraphCard({ expenses, currency, timeRange }) {
 }
 
 /**
- * ExpenseList — the expense rows in the Recent Expenses format, grouped by a
+ * ExpenseList: the expense rows in the Recent Expenses format, grouped by a
  * quiet date divider (Today / Yesterday / weekday, date).
  */
 function ExpenseList({ expenses, onEdit, onDelete }) {
   let lastDate = null;
   return (
-    <div className="exp-expanded__list">
+    <div className="pocket-expanded__list">
       {expenses.map((exp) => {
         const thisDate = formatDate(exp.createdAt);
         const showDateDivider = thisDate !== lastDate;

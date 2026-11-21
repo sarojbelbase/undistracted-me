@@ -14,7 +14,7 @@ export { PRESETS } from './constants';
  * pomodoro session. Shared by the canvas widget and Focus Mode so completion
  * works regardless of which view is currently active.
  *
- * Does NOT write session history — the canvas widget defers that to the "Done"
+ * Does NOT write session history: the canvas widget defers that to the "Done"
  * button (to capture the note), while Focus Mode saves it immediately itself.
  */
 export function firePomodoroComplete({ sessionType, preset, soundEnabled = true }) {
@@ -31,7 +31,7 @@ export function firePomodoroComplete({ sessionType, preset, soundEnabled = true 
 /**
  * Persist a freshly-started break timer to the shared datahub (both the Focus
  * Mode sync key and the per-widget persist key). Used by Focus Mode to auto-start
- * a break when a focus session completes there — the canvas widget isn't mounted,
+ * a break when a focus session completes there: the canvas widget isn't mounted,
  * so the break state must be written directly so it ticks correctly on remount.
  */
 export function persistBreakTimer({ breakDuration = 5, soundEnabled = true }) {
@@ -96,7 +96,7 @@ export const readPomodoro = () => {
 
 /**
  * Load the full session history array from localStorage.
- * Returns an array (always — empty array on any error).
+ * Returns an array (always: empty array on any error).
  */
 export const loadHistory = () => {
   try {
@@ -129,7 +129,7 @@ export const saveSession = (session) => {
     while (history.length > MAX_HISTORY) history.shift();
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
   } catch {
-    // Storage full or unavailable — degrade silently
+    // Storage full or unavailable: degrade silently
   }
   trackWidgetEvent('completed', 'pomodoro', {
     session_type: session.type,
@@ -171,7 +171,7 @@ export const getStreak = (history) => {
     if (days.has(key)) {
       streak++;
     } else if (i === 0) {
-      // Today doesn't have a session yet — that's fine, check from yesterday
+      // Today doesn't have a session yet: that's fine, check from yesterday
       continue;
     } else {
       break;
@@ -196,7 +196,7 @@ export const getTodayMinutes = (history) => {
 };
 
 /**
- * Weekly focus minutes — last 7 days (including today).
+ * Weekly focus minutes: last 7 days (including today).
  * Returns array of { day: 'Mon'|'Tue'|..., minutes: number } for CSS bar chart.
  */
 export const getWeeklyStats = (history) => {

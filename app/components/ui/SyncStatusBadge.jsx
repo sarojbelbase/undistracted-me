@@ -1,5 +1,5 @@
 /**
- * SyncStatusBadge — small indicator showing cross-device sync status.
+ * SyncStatusBadge: small indicator showing cross-device sync status.
  *
  * Displays:
  *   - "Synced just now" / "Synced Xm ago" when sync is active

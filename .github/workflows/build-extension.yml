@@ -25,7 +25,7 @@ jobs:
 
       # VITE_GOOGLE_CLIENT_ID and VITE_SPOTIFY_CLIENT_ID must be configured as
       # repo secrets (Settings → Secrets and variables → Actions).
-      # No client-side API key any more — endpoints are gated by Origin +
+      # No client-side API key any more: endpoints are gated by Origin +
       # Cloudflare bot protection.
       # VITE_POSTHOG_KEY is also a repo secret (the PostHog public client key).
       - name: Build for Firefox

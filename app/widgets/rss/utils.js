@@ -1,5 +1,5 @@
 /**
- * RSS widget utilities — URL routing, preset feeds, localStorage cache, fetch helper,
+ * RSS widget utilities: URL routing, preset feeds, localStorage cache, fetch helper,
  * and relative-time formatter.
  *
  * Three-environment URL routing (mirrors the stock widget pattern):
@@ -34,7 +34,7 @@ export function rssUrl(feedUrl) {
 
 /**
  * Fetch a feed via the CORS proxy.
- * Returns `{ items, fetchedAt }` — `fetchedAt` is the proxy's server-side fetch
+ * Returns `{ items, fetchedAt }`: `fetchedAt` is the proxy's server-side fetch
  * timestamp (the "current date of fetching"), persisted alongside the items.
  * Throws on HTTP error or if the JSON body contains an `error` field.
  */
@@ -54,7 +54,7 @@ export async function fetchFeed(feedId, feedUrl) {
 /**
  * Safe timestamp (ms) for an item's ISO date. Returns 0 for missing or invalid
  * dates so sorting never produces `NaN` (which makes Array.sort return
- * implementation-dependent, non-chronological order — e.g. an old item surfacing
+ * implementation-dependent, non-chronological order: e.g. an old item surfacing
  * ahead of a fresh one).
  */
 export function rssItemTime(isoDate) {

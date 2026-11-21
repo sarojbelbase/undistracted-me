@@ -1,12 +1,12 @@
 /**
- * Tests for app/widgets/useEvents.js — useEvents hook and formatEventTime
+ * Tests for app/widgets/useEvents.js: useEvents hook and formatEventTime
  *
  * What can go wrong:
  *  – load() returning [] when localStorage is empty is essential;
  *    any throw here crashes the entire widget on first load.
- *  – addEvent must assign a numeric id via Date.now() — if id is missing,
+ *  – addEvent must assign a numeric id via Date.now(): if id is missing,
  *    removeEvent can never match and the event cannot be deleted.
- *  – removeEvent must filter by id, not by array index — removing the first
+ *  – removeEvent must filter by id, not by array index: removing the first
  *    event must not accidentally remove the second.
  *  – Cross-tab sync via the SYNC_EVENT window event: if the listener is
  *    removed prematurely events dispatched after unmount silently fail.
@@ -96,7 +96,7 @@ describe('formatEventTime', () => {
 // useEvents hook
 // ────────────────────────────────────────────────────────────────────────────
 
-describe('useEvents — initial state', () => {
+describe('useEvents: initial state', () => {
   it('returns an array as the first element', () => {
     const { result } = renderHook(() => useEvents());
     const [events] = result.current;
@@ -118,7 +118,7 @@ describe('useEvents — initial state', () => {
   });
 });
 
-describe('useEvents — addEvent', () => {
+describe('useEvents: addEvent', () => {
   beforeEach(() => {
     localStorage.clear();
     // Force cache reset by renderHook after clearing
@@ -155,7 +155,7 @@ describe('useEvents — addEvent', () => {
   });
 });
 
-describe('useEvents — removeEvent', () => {
+describe('useEvents: removeEvent', () => {
   it('removeEvent uses id to remove the correct event', () => {
     const { result } = renderHook(() => useEvents());
 

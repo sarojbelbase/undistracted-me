@@ -49,6 +49,17 @@ describe('SegmentedControl', () => {
     expect(screen.getByText('Time Format')).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Date' }).getAttribute('aria-checked')).toBe('true');
   });
+
+  it('renders the sliding thumb for boolean option values', () => {
+    const boolOptions = [
+      { label: 'Show', value: true },
+      { label: 'Hide', value: false },
+    ];
+    render(<SegmentedControl label="Holidays" options={boolOptions} value={true} onChange={() => {}} />);
+    expect(screen.getByRole('radio', { name: 'Show' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Hide' }).getAttribute('aria-checked')).toBe('false');
+    expect(document.querySelector('.um-seg-thumb')).toBeTruthy();
+  });
 });
 
 describe('ItemRow list entries', () => {

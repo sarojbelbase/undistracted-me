@@ -50,7 +50,7 @@ export const BaseWidget = forwardRef(
     const menuRef = useRef(null);
     const btnRef = useRef(null);
     const dropRef = useRef(null);
-    // Computed drop position — null until measured
+    // Computed drop position: null until measured
     const [dropStyle, setDropStyle] = useState(null);
 
     // Per-widget-instance actions (duplicate) provided by WidgetGrid.
@@ -138,7 +138,7 @@ export const BaseWidget = forwardRef(
           {children}
         </div>
 
-        {/* Three-dots button — absolute top-right corner of the widget */}
+        {/* Three-dots button: absolute top-right corner of the widget */}
         {hasMenu && (
           <div
             ref={menuRef}
@@ -180,7 +180,7 @@ export const BaseWidget = forwardRef(
           </div>
         )}
 
-        {/* Dropdown — rendered via portal so it escapes the grid-item CSS transform */}
+        {/* Dropdown: rendered via portal so it escapes the grid-item CSS transform */}
         {hasMenu &&
           menuOpen &&
           createPortal(

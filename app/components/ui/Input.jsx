@@ -9,7 +9,7 @@ import {
 } from '../../theme/canvas';
 
 /**
- * Input — the single text-input primitive.
+ * Input: the single text-input primitive.
  *
  * Bare mode (default) renders a borderless, transparent <input> that fills its
  * container; callers supply their own wrapper (CommandPalette search bar,
@@ -20,14 +20,14 @@ import {
  * with optional icon / prefix / suffix. This replaces the former SettingsInput.
  *
  * Props:
- *   pill        — render the pill wrapper (default false)
- *   icon        — leading icon element
- *   prefix      — leading text prefix
- *   suffix      — trailing element
- *   gap         — gap between icon/prefix and input (default: 4px icon, 2px prefix, 6px otherwise)
- *   wrapperRef  — ref forwarded to the outer div
- *   wrapperStyle — extra styles for the wrapper div
- *   dark        — use a dark (inverted) surface
+ *   pill       : render the pill wrapper (default false)
+ *   icon       : leading icon element
+ *   prefix     : leading text prefix
+ *   suffix     : trailing element
+ *   gap        : gap between icon/prefix and input (default: 4px icon, 2px prefix, 6px otherwise)
+ *   wrapperRef : ref forwarded to the outer div
+ *   wrapperStyle: extra styles for the wrapper div
+ *   dark       : use a dark (inverted) surface
  *   All other props (including style) are forwarded to the inner <input>.
  */
 export const Input = React.forwardRef(function Input(
@@ -45,7 +45,7 @@ export const Input = React.forwardRef(function Input(
   },
   ref,
 ) {
-  // Narrow selectors — subscribing to the whole store would re-render every
+  // Narrow selectors: subscribing to the whole store would re-render every
   // mounted Input on ANY settings change (slider drag, accent toggle, etc.).
   const mode = useSettingsStore((s) => s.mode);
   const cardStyle = useSettingsStore((s) => s.cardStyle);

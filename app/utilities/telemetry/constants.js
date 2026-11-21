@@ -1,5 +1,5 @@
 /**
- * Telemetry event names — single source of truth.
+ * Telemetry event names: single source of truth.
  *
  * Every event the app sends is defined here as a constant, so call sites never
  * hardcode magic strings (and renaming an event touches exactly one place).

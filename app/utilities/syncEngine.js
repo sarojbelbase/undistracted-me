@@ -1,7 +1,7 @@
 /**
- * Cross-device Sync Engine — transport-agnostic (Google Drive backend)
+ * Cross-device Sync Engine: transport-agnostic (Google Drive backend)
  *
- * Syncs settings, widget instances, events, and bookmarks across devices via a
+ * Syncs settings, widget instances, events and bookmarks across devices via a
  * single config file in the transport (Google Drive appDataFolder). Last-write-wins
  * with per-key timestamps. The config file holds one JSON payload whose shape is:
  *
@@ -17,23 +17,23 @@
  *     throttle blocks rapid/continuous syncing. Changes are accumulated and
  *     pushed on the next sync window.
  *   - Writes are serialized through a promise queue to avoid races.
- *   - The transport is injected via `syncTransport` (dependency-injection seam) —
+ *   - The transport is injected via `syncTransport` (dependency-injection seam) -
  *     this engine never talks to a concrete service directly.
  *
  * What syncs:
  *   - Settings (undistracted_settings)
  *   - Widget instances + per-widget settings (widget_instances)
- *   - Events (widget_events) — native only, GCal events are stripped
+ *   - Events (widget_events): native only, GCal events are stripped
  *   - Bookmarks (widget_bookmarks)
  *   - Countdown pinned (countdown_pinned)
- *   - Focus Mode background (focus_mode) — source, custom URL, orb palette,
+ *   - Focus Mode background (focus_mode): source, custom URL, orb palette,
  *     selected photo (aggregated from the `fm_*` keys)
- *   - Notes index (notes_index) — note_id → file metadata; the note *content*
+ *   - Notes index (notes_index): note_id → file metadata; the note *content*
  *     itself is NOT synced here (it lives in per-note files managed by
  *     `notesSync.js`).
  *
  * What does NOT sync:
- *   - Notes content (widgetSettings.notes) — stripped from widget_instances and
+ *   - Notes content (widgetSettings.notes): stripped from widget_instances and
  *     synced separately via per-note files.
  *   - Pomodoro history, per-instance pomodoro timers
  *   - Weather cache, curated photos, RSS items, location state, auth tokens,
@@ -53,11 +53,13 @@ import {
   elementSetToObject,
 } from './syncMerge';
 import { readFocusModeState, writeFocusModeState } from './focusModeState';
+import { getSnapshot as getPocketSnapshot, syncApply as applyPocketSync } from '../widgets/pocket/pocketStore';
+import { mergeStates as mergePocketStates } from '../widgets/pocket/utils';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000; // auto-sync once a day
-const SYNC_THROTTLE_MS = 5 * 60 * 1000; // block continuous sync — min 5 min between auto-syncs
+const SYNC_THROTTLE_MS = 5 * 60 * 1000; // block continuous sync: min 5 min between auto-syncs
 
 /** Max entries per array-type key when syncing (oldest trimmed first). */
 const MAX_SYNC_ENTRIES = {
@@ -70,7 +72,7 @@ const MAX_SYNC_ENTRIES = {
  * syncKey → localStorage key. The sync key names the entry inside the sync file's
  * `keys` map; the storage key is where the value lives locally. Fixes the
  * phantom-key bug: bookmarks live in `um_bookmarks`, countdowns in
- * `countdown_events` — not the old `widget_bookmarks`/`countdown_pinned`.
+ * `countdown_events`: not the old `widget_bookmarks`/`countdown_pinned`.
  */
 const SYNC_MAP = {
   'undistracted_settings': 'undistracted_settings',
@@ -80,6 +82,7 @@ const SYNC_MAP = {
   'countdown_events': STORAGE_KEYS.COUNTDOWN_EVENTS,
   'notes_index': STORAGE_KEYS.NOTES_INDEX,
   'focus_mode': 'focus_mode',
+  'pocket': 'pocket',
 };
 const SYNC_KEYS = Object.keys(SYNC_MAP);
 
@@ -88,6 +91,31 @@ const ARRAY_KEYS = new Set(['widget_events', 'widget_bookmarks', 'countdown_even
 
 /** localStorage key holding per-key merge metadata (element/field sets). */
 const MERGE_META_KEY = 'sync_merge_meta';
+
+/**
+ * Read a per-category sync toggle from the settings store (default on). The
+ * settings store persists to localStorage under `undistracted_settings` as
+ * `{ state: { ... } }`, so a category is disabled only when explicitly `false`.
+ */
+const readSyncCategory = (category) => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
+    return parsed?.state?.[category] !== false;
+  } catch {
+    return true;
+  }
+};
+
+/**
+ * Sync keys currently active. `notes_index` and `pocket` can be toggled off
+ * from Settings → Data; when off, they are skipped so the cloud copy is left
+ * untouched (non-destructive) rather than overwritten.
+ */
+const activeSyncKeys = () => SYNC_KEYS.filter((k) => {
+  if (k === 'notes_index' && !readSyncCategory('syncNotes')) return false;
+  if (k === 'pocket' && !readSyncCategory('syncPocket')) return false;
+  return true;
+});
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -339,17 +367,25 @@ const writeFingerprint = (local, remote) => {
  */
 const readLocalForKey = (localKey) => {
   if (localKey === 'focus_mode') return readFocusModeState();
+  if (localKey === 'pocket') return readPocketState();
   return readLocal(SYNC_MAP[localKey]);
+};
+
+/** Read the syncable pocket state ({ items, folders }) from the pocket store. */
+const readPocketState = () => {
+  const { items, folders } = getPocketSnapshot();
+  if ((!items || items.length === 0) && (!folders || folders.length === 0)) return null;
+  return { items: items || [], folders: folders || [] };
 };
 
 /**
  * Content hash of the *local* syncable state (all sync keys, raw values). This
- * is only compared against itself over time — it detects "did anything change
+ * is only compared against itself over time: it detects "did anything change
  * locally since the last sync" without needing the wire format.
  */
 const hashLocalState = () => {
   const parts = [];
-  for (const localKey of SYNC_KEYS) {
+  for (const localKey of activeSyncKeys()) {
     const raw = readLocalForKey(localKey);
     parts.push(localKey + ':' + (raw === null || raw === undefined ? '∅' : hashValue(raw)));
   }
@@ -363,7 +399,7 @@ const recordFingerprint = () => {
 
 /**
  * True when neither the local state nor the remote sync file has changed since the
- * last sync — i.e. there is nothing to pull or push. Both hashes must be known
+ * last sync: i.e. there is nothing to pull or push. Both hashes must be known
  * (non-null); a null remote hash (sync file missing/corrupt) forces a real sync.
  */
 const isSyncClean = () => {
@@ -511,7 +547,7 @@ const trimElementSet = (set, maxEntries) => {
 
 /**
  * Strip Google Calendar events from an events array.
- * GCal events have a `calendarId` field or `source === 'gcal'` — they're
+ * GCal events have a `calendarId` field or `source === 'gcal'`: they're
  * auto-populated on sign-in, so syncing them is redundant.
  */
 const stripGcalEvents = (events) => {
@@ -546,7 +582,7 @@ const mergeArrayKey = (localKey, remoteSet) => {
 
   const changed = !deepEqual(next, localArray);
 
-  // Always persist the merged metadata (timestamps + tombstones) — even when the
+  // Always persist the merged metadata (timestamps + tombstones): even when the
   // array content is unchanged, so the next sync doesn't re-stamp every item.
   writeMeta(localKey, trimmed);
   if (changed) {
@@ -637,7 +673,7 @@ const normalizeWidgetInstances = (v, outerT) => {
 
 /**
  * Merge widget_instances (per-instance + per-widget-setting LWW). The notes
- * widget's settings are excluded — notes sync via per-note sync files — and the local
+ * widget's settings are excluded: notes sync via per-note sync files: and the local
  * notes settings are preserved on rebuild.
  * Returns { wire, changed }.
  */
@@ -668,11 +704,11 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
   const mergedInstances = mergeElementSets(localInstSet, remoteWire?.instances || { items: {}, deleted: {} });
   const mergedWidgetSettings = mergeElementSets(localWsSet, remoteWire?.widgetSettings || { items: {}, deleted: {} });
 
-  // Notes content must NEVER ride inside the config sync file — it syncs through
+  // Notes content must NEVER ride inside the config sync file: it syncs through
   // per-note private sync files (notesSync.js). The local side is stripped above, but
   // a stale `notes` entry from a previously-polluted sync file would survive the
   // union. Drop it unconditionally: the wire/remoteWire diff in pushAll then
-  // detects the difference and writes a cleaned sync file. No tombstone is needed —
+  // detects the difference and writes a cleaned sync file. No tombstone is needed -
   // every device strips `notes` locally, so it can never be re-added via merge.
   delete mergedWidgetSettings.items.notes;
 
@@ -703,8 +739,8 @@ const mergeWidgetInstancesKey = (localKey, remoteWire) => {
 
 /**
  * Merge focus_mode (the Focus Mode background: source, custom URL, orb palette,
- * selected photo). Field-level LWW — the same independent-field union used by
- * settings — so a wallpaper change on one device never clobbers an unrelated
+ * selected photo). Field-level LWW: the same independent-field union used by
+ * settings: so a wallpaper change on one device never clobbers an unrelated
  * background field changed concurrently on another. The local side reads from
  * and writes to the individual `fm_*` keys via focusModeState.js.
  * Returns { wire, changed }.
@@ -754,7 +790,7 @@ const pullFromSync = async () => {
   // If the remote was written by a newer app version we don't understand, don't
   // blindly parse/overwrite it (that risks corrupting the shared state).
   if (typeof remote.v === 'number' && remote.v > SYNC_SCHEMA_VERSION) {
-    console.error('[sync] remote sync file uses a newer schema (v' + remote.v + ') — skipping pull');
+    console.error('[sync] remote sync file uses a newer schema (v' + remote.v + '): skipping pull');
     reportError('Sync data was written by a newer version of the app. Please update the app.');
     return {};
   }
@@ -762,7 +798,7 @@ const pullFromSync = async () => {
   clearError();
 
   const changes = {};
-  for (const localKey of SYNC_KEYS) {
+  for (const localKey of activeSyncKeys()) {
     const entry = remote.keys?.[localKey];
     if (!entry || typeof entry.t !== 'number') continue;
 
@@ -778,6 +814,8 @@ const pullFromSync = async () => {
       changed = mergeWidgetInstancesKey(localKey, normalizeWidgetInstances(entry.v, entry.t)).changed;
     } else if (localKey === 'focus_mode') {
       changed = mergeFocusModeKey(localKey, normalizeSettings(entry.v, entry.t)).changed;
+    } else if (localKey === 'pocket') {
+      changed = mergePocketKey(localKey, entry.v).changed;
     } else if (localKey === 'notes_index') {
       const storageKey = SYNC_MAP[localKey];
       const merged = mergeNotesIndex(readLocal(storageKey), entry.v);
@@ -824,6 +862,25 @@ const mergeNotesIndex = (localIndex, remoteIndex) => {
     }
   }
   return merged;
+};
+
+/**
+ * Merge the pocket state (items + folders, per-id last-write-wins) using the
+ * pocket module's pure `mergeStates`, then apply the merged result to the
+ * pocket store (chrome.storage.local). Returns { wire, changed }.
+ */
+const mergePocketKey = (localKey, remoteValue) => {
+  const { items, folders } = getPocketSnapshot();
+  const local = { items: items || [], folders: folders || [] };
+  const remote = {
+    items: Array.isArray(remoteValue?.items) ? remoteValue.items : [],
+    folders: Array.isArray(remoteValue?.folders) ? remoteValue.folders : [],
+  };
+  const merged = mergePocketStates(local, remote);
+  const changed =
+    !deepEqual(merged.items, local.items) || !deepEqual(merged.folders, local.folders);
+  if (changed) applyPocketSync(merged);
+  return { wire: merged, changed };
 };
 
 /**
@@ -881,7 +938,7 @@ const pushKey = (localKey) => {
 /**
  * Cross-device sync is intentionally not continuous. Changes to settings,
  * widgets, events, etc. are pushed on the next automatic (daily) sync or a
- * manual "Sync now" — never immediately on every edit. Kept as a no-op for API
+ * manual "Sync now": never immediately on every edit. Kept as a no-op for API
  * compatibility with the stores that call it.
  */
 const schedulePush = () => {};
@@ -905,10 +962,10 @@ const pushAll = async () => {
 
       const keys = { ...(remote?.keys || {}) };
       let changed = false;
-      for (const localKey of SYNC_KEYS) {
+      for (const localKey of activeSyncKeys()) {
         const storageKey = SYNC_MAP[localKey];
 
-        // Array keys — element-set merge; write only if the merged set differs.
+        // Array keys: element-set merge; write only if the merged set differs.
         if (ARRAY_KEYS.has(localKey)) {
           const remoteEntry = keys[localKey];
           const remoteSet = normalizeElementSet(remoteEntry?.v, remoteEntry?.t);
@@ -922,7 +979,7 @@ const pushAll = async () => {
           continue;
         }
 
-        // Settings — field-level merge.
+        // Settings: field-level merge.
         if (localKey === 'undistracted_settings') {
           const remoteEntry = keys[localKey];
           const remoteWire = normalizeSettings(remoteEntry?.v, remoteEntry?.t);
@@ -936,7 +993,7 @@ const pushAll = async () => {
           continue;
         }
 
-        // Widget instances — per-instance + per-widget-setting merge.
+        // Widget instances: per-instance + per-widget-setting merge.
         if (localKey === 'widget_instances') {
           const remoteEntry = keys[localKey];
           const remoteWire = normalizeWidgetInstances(remoteEntry?.v, remoteEntry?.t);
@@ -950,7 +1007,7 @@ const pushAll = async () => {
           continue;
         }
 
-        // Focus mode background — field-level merge.
+        // Focus mode background: field-level merge.
         if (localKey === 'focus_mode') {
           const remoteEntry = keys[localKey];
           const remoteWire = normalizeSettings(remoteEntry?.v, remoteEntry?.t);
@@ -964,7 +1021,20 @@ const pushAll = async () => {
           continue;
         }
 
-        // Notes index — union merge (local wins where newer).
+        // Pocket: per-id last-write-wins merge (whole-value blob).
+        if (localKey === 'pocket') {
+          const remoteEntry = keys[localKey];
+          const { wire } = mergePocketKey(localKey, remoteEntry?.v);
+          if (!deepEqual(wire, remoteEntry?.v ?? null)) {
+            const ts = now();
+            keys[localKey] = { v: wire, t: ts };
+            setLocalTs(localKey, ts);
+            changed = true;
+          }
+          continue;
+        }
+
+        // Notes index: union merge (local wins where newer).
         const local = readLocal(storageKey);
         if (local === null || local === undefined) continue;
         const mergedIndex = mergeNotesIndex(local, keys[localKey]?.v);
@@ -1004,8 +1074,8 @@ const pushAll = async () => {
 
 /** True when any syncable key holds non-trivial local data. */
 const hasLocalData = () => {
-  for (const localKey of SYNC_KEYS) {
-    // Read through the virtual-key indirection — `focus_mode` is an aggregate of
+  for (const localKey of activeSyncKeys()) {
+    // Read through the virtual-key indirection: `focus_mode` is an aggregate of
     // the `fm_*` keys (readLocalForKey), NOT a literal `focus_mode` storage key.
     // Using readLocal(SYNC_MAP[localKey]) here returned null for focus_mode, so a
     // fresh install that had *only* changed its Focus Mode wallpaper was treated
@@ -1113,7 +1183,7 @@ const adoptRemote = (localKey, entry) => {
 
   if (localKey === 'widget_instances') {
     const { instances, widgetSettings, version } = normalizeWidgetInstances(entry.v, entry.t);
-    // Preserve local notes settings — notes are never synced in the config sync file.
+    // Preserve local notes settings: notes are never synced in the config sync file.
     const localRaw = readLocal(storageKey);
     const localNotes = localRaw?.state?.widgetSettings?.notes;
     const newWs = elementSetToObject(widgetSettings);
@@ -1131,6 +1201,12 @@ const adoptRemote = (localKey, entry) => {
     const { fields } = normalizeSettings(entry.v, entry.t);
     writeFocusModeState(elementSetToObject({ items: fields, deleted: {} }));
     writeMeta(localKey, { fields: { items: fields, deleted: {} } });
+    return;
+  }
+
+  if (localKey === 'pocket') {
+    const v = entry.v && typeof entry.v === 'object' ? entry.v : { items: [], folders: [] };
+    applyPocketSync({ items: Array.isArray(v.items) ? v.items : [], folders: Array.isArray(v.folders) ? v.folders : [] });
     return;
   }
 
@@ -1163,7 +1239,7 @@ const pullSync = async () => {
   clearError();
   let changed = false;
   const changedKeys = {};
-  for (const localKey of SYNC_KEYS) {
+  for (const localKey of activeSyncKeys()) {
     const entry = remote.keys?.[localKey];
     if (!entry) continue;
     adoptRemote(localKey, entry);
@@ -1210,7 +1286,7 @@ const pushSync = async () => {
   const keys = {};
   const metaUpdates = {};
   const ts = now();
-  for (const localKey of SYNC_KEYS) {
+  for (const localKey of activeSyncKeys()) {
     const raw = readLocalForKey(localKey);
     if (raw == null) continue;
 
@@ -1239,6 +1315,8 @@ const pushSync = async () => {
       const set = mapToElementSet(state, { items: {}, deleted: {} }, ts);
       keys[localKey] = { v: { fields: set.items, version: 0 }, t: ts };
       metaUpdates[localKey] = { fields: set };
+    } else if (localKey === 'pocket') {
+      keys[localKey] = { v: raw, t: ts };
     } else if (localKey === 'notes_index') {
       keys[localKey] = { v: raw, t: ts };
     }
@@ -1300,7 +1378,7 @@ const runAutoSync = async () => {
   } else if (preview.status === 'ahead') {
     changed = (await pushSync()).changed;
   } else if (preview.status === 'diverged') {
-    // Never auto-resolve a divergence — surface it for a manual choice.
+    // Never auto-resolve a divergence: surface it for a manual choice.
     pendingConflict = preview;
     onChangeCallbacks.forEach((cb) => {
       try { cb('_conflict', preview); } catch { /* ignore */ }
@@ -1351,16 +1429,16 @@ const teardownPolling = () => {
  * - Classifies local vs remote against the last-synced base.
  * - Fast-forwards (pull or push) when only one side changed.
  * - On a divergence (including first-connect with data on both sides), does NOT
- *   auto-merge — it surfaces a conflict for an explicit pull/push/merge choice.
+ *   auto-merge: it surfaces a conflict for an explicit pull/push/merge choice.
  * - Starts daily auto-sync (throttled to block continuous syncing).
  */
 const enableSync = async () => {
   if (!isExtension()) {
-    console.log('[sync] Not available — not running as extension');
+    console.log('[sync] Not available: not running as extension');
     return;
   }
   if (!syncTransport.isConnected()) {
-    console.log('[sync] Enable skipped — Google Drive not connected');
+    console.log('[sync] Enable skipped: Google Drive not connected');
     return;
   }
 
@@ -1394,11 +1472,11 @@ const enableSync = async () => {
   }
 
   lastAutoSyncAt = now(); // start the 5-min throttle from connect
-  console.log('[sync] Enabled — device:', deviceId);
+  console.log('[sync] Enabled: device:', deviceId);
 };
 
 /**
- * Disable cross-device sync — stops polling and clears pending push timers.
+ * Disable cross-device sync: stops polling and clears pending push timers.
  * Does NOT delete the sync file (user may reconnect later).
  */
 const disableSync = () => {
@@ -1478,7 +1556,7 @@ const runSyncHooks = async () => {
 /**
  * Force a manual sync cycle: classify the local↔remote relationship against the
  * base, then fast-forward (pull or push) when only one side changed. A true
- * divergence is NOT auto-resolved — it's returned so the UI can offer a
+ * divergence is NOT auto-resolved: it's returned so the UI can offer a
  * pull/push/merge choice. Post-sync hooks (notes sync) run regardless.
  *
  * Resolves to:
@@ -1542,7 +1620,7 @@ const initSync = async () => {
   if (wasEnabled && syncTransport.isConnected()) {
     await enableSync();
   } else if (wasEnabled && !syncTransport.isConnected()) {
-    // Token was cleared elsewhere — reset the flag so we stop trying.
+    // Token was cleared elsewhere: reset the flag so we stop trying.
     writeLocal('sync_enabled', false);
   }
 };

@@ -1,9 +1,9 @@
 /**
- * RSS Feed Settings panel — rendered inside BaseWidget's settings modal.
+ * RSS Feed Settings panel: rendered inside BaseWidget's settings modal.
  *
  * Source mode (explicit):
- *   "presets"  — pick from curated preset feeds (default)
- *   "custom"   — manage your own feeds via OPML import/export
+ *   "presets" : pick from curated preset feeds (default)
+ *   "custom"  : manage your own feeds via OPML import/export
  *
  * These are mutually exclusive modes so the UX is unambiguous.
  */
@@ -191,7 +191,7 @@ export const Settings = ({
         {/* ── CUSTOM panel ── */}
         {sourceMode === "custom" && (
           <div className="flex flex-col gap-3">
-            {/* Feed chips — same style as presets, click to toggle */}
+            {/* Feed chips: same style as presets, click to toggle */}
             {customFeeds.length > 0 && (
               <>
                 <div className="flex items-center gap-1">
@@ -222,7 +222,7 @@ export const Settings = ({
               </>
             )}
 
-            {/* Empty state — shown when no feeds */}
+            {/* Empty state: shown when no feeds */}
             {customFeeds.length === 0 && (
               <div
                 style={{
@@ -348,7 +348,7 @@ export const Settings = ({
               >
                 <InfoCircle size={13} style={{ color: "var(--w-ink-4)", flexShrink: 0, marginTop: 0.5 }} />
                 <p className="text-[10px] font-medium leading-relaxed" style={{ color: "var(--w-ink-3)" }}>
-                  OPML is the universal format for sharing RSS feed subscriptions between readers. Import from Feedly, NetNewsWire, or use an online OPML generator to bring in your favourite news sites and podcasts. Download a sample below to see the expected format.
+                  OPML is the universal format for sharing RSS feed subscriptions between readers. Import from Feedly, NetNewsWire or use an online OPML generator to bring in your favourite news sites and podcasts. Download a sample below to see the expected format.
                 </p>
               </div>
 

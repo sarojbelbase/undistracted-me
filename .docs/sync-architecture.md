@@ -1,11 +1,11 @@
-# Cross-Device Sync — Architecture & Edge-Case Handling
+# Cross-Device Sync: Architecture & Edge-Case Handling
 
-> **Status:** Superseded (transport) — cross-device sync now uses **Google Drive `appDataFolder`**, not GitHub gists. See [`google-drive-sync.md`](./google-drive-sync.md) and [`app/utilities/syncTransport.js`](../app/utilities/syncTransport.js). The **merge logic** (LWW element sets, tombstones, schema versioning) described below is unchanged and still accurate — only the transport (gist vs Drive file) differs.
+> **Status:** Superseded (transport): cross-device sync now uses **Google Drive `appDataFolder`**, not GitHub gists. See [`google-drive-sync.md`](./google-drive-sync.md) and [`app/utilities/syncTransport.js`](../app/utilities/syncTransport.js). The **merge logic** (LWW element sets, tombstones, schema versioning) described below is unchanged and still accurate: only the transport (gist vs Drive file) differs.
 > **Applies to:** `app/utilities/syncEngine.js`, `app/utilities/syncTransport.js`, `app/utilities/notesSync.js`
 
 This document explains how the current sync works, the edge cases it does and does
 not handle, and the target architecture. It answers, concretely, the four questions:
-first-time pull/push, key update vs config override, multi-device behaviour, and
+first-time pull/push, key update vs config override, multi-device behaviour and
 local versioning.
 
 ---
@@ -24,7 +24,7 @@ One **private gist** holds one file `undistracted-me-sync.json`:
 
 ### The four questions, answered
 
-**Q1 — "Does sync pull or push on first time?"**
+**Q1: "Does sync pull or push on first time?"**
 
 `enableSync()` (runs on connect and on app load) does **pull first, then push**:
 
@@ -37,9 +37,9 @@ So first time is **remote-wins for pre-existing keys, local-pushes for keys the
 remote doesn't have**. This means: if *two* devices already hold *different* data for
 the same key (e.g. different bookmarks) and the second device connects, the second
 device's local data for that key is **silently discarded** (remote wins). This is the
-"first-time clobber" edge case — see §3.
+"first-time clobber" edge case: see §3.
 
-**Q2 — "Does it update keys, or override the whole config?"**
+**Q2: "Does it update keys, or override the whole config?"**
 
 Both, at the wrong granularity in places:
 
@@ -50,9 +50,9 @@ Both, at the wrong granularity in places:
 - `undistracted_settings`, `widget_instances` → **whole object** replaced. Concurrent
   edits to *different fields* (e.g. accent on A, language on B) lose one side.
 
-**Q3 — "How do multiple devices work?"**
+**Q3: "How do multiple devices work?"**
 
-**They don't, reliably — there is a critical bug.** The gist id is stored in
+**They don't, reliably: there is a critical bug.** The gist id is stored in
 `localStorage` (`github_gist_id`), which is **per-device**. On the second device,
 `ensureGist()` sees no cached id and **creates a brand-new gist**. The two devices
 therefore each have their own gist and never see each other's data.
@@ -60,7 +60,7 @@ therefore each have their own gist and never see each other's data.
 Fix (§4.1): after connect, **discover** the existing gist by listing the user's gists
 and matching `description === "Undistracted Me Sync"` + `undistracted-me-sync.json`.
 
-**Q4 — "Can we account for a version number locally?"**
+**Q4: "Can we account for a version number locally?"**
 
 Not yet. The gist has a `v` field but nothing reads it, and local storage has no sync
 schema version. Fix (§4.2): add `GIST_SCHEMA_VERSION`, store it in the gist *and* in a
@@ -110,32 +110,32 @@ local `sync_version` key, and run a migration hook when they mismatch.
 
 ## 4. Phased tasks
 
-### Phase 1 — Multi-device correctness (foundational) ✅ done
-- [x] **Task 1.1 — Gist discovery.** `ensureGist` lists the user's gists and adopts the
+### Phase 1: Multi-device correctness (foundational) ✅ done
+- [x] **Task 1.1: Gist discovery.** `ensureGist` lists the user's gists and adopts the
   existing sync gist (match description + filename, prefer oldest); verifies a cached id
   and rediscovers on 404; creates only when nothing is found.
-- [x] **Task 1.2 — Schema versioning.** `GIST_SCHEMA_VERSION` written into the gist `v`
+- [x] **Task 1.2: Schema versioning.** `GIST_SCHEMA_VERSION` written into the gist `v`
   and a local `sync_version`; `migrateSync(fromVersion)` runs on enable; pull refuses a
   newer-schema gist.
 
-### Phase 2 — Merge granularity (data safety) ✅ done
-- [x] **Task 2.1 — Per-item merge for arrays.** events/bookmarks/countdown are now a
-  *LWW element set* (`{ items: { id → { v, t } }, deleted: { id → deletedAt } }`) — union
+### Phase 2: Merge granularity (data safety) ✅ done
+- [x] **Task 2.1: Per-item merge for arrays.** events/bookmarks/countdown are now a
+  *LWW element set* (`{ items: { id → { v, t } }, deleted: { id → deletedAt } }`): union
   by identity, per-item LWW, `id`/`url`/`name` as the stable key. See `syncMerge.js`.
-- [x] **Task 2.3 — Generalize tombstones.** Deletions are tombstones that survive sync
+- [x] **Task 2.3: Generalize tombstones.** Deletions are tombstones that survive sync
   and beat stale writes (no resurrection).
-- [x] **Task 2.2 — Field/instance merge for objects.** settings → per-field LWW;
+- [x] **Task 2.2: Field/instance merge for objects.** settings → per-field LWW;
   widget_instances → per-instance + per-widget-setting LWW (notes settings excluded and
   preserved locally).
 - [x] **Phantom-key fix.** `widget_bookmarks` → `um_bookmarks`, `countdown_pinned` →
   `countdown_events` (the sync keys pointed at non-existent localStorage keys).
 
-### Phase 3 — Robustness & UX ✅ done
-- [x] **Task 3.1 — Conflict surfacing.** "Sync now" reports "Merged N changes from other
+### Phase 3: Robustness & UX ✅ done
+- [x] **Task 3.1: Conflict surfacing.** "Sync now" reports "Merged N changes from other
   devices" (via `forceSync().pullCount`).
-- [x] **Task 3.2 — Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
+- [x] **Task 3.2: Clock-skew policy.** `Date.now()`-based LWW accepted as a documented
   limitation; a Lamport clock is a possible later upgrade.
-- [x] **Task 3.3 — Duplicate-gist cleanup.** Discovery deletes duplicate sync gists
+- [x] **Task 3.3: Duplicate-gist cleanup.** Discovery deletes duplicate sync gists
   (best-effort), adopting the oldest.
 
 ---

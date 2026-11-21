@@ -13,9 +13,9 @@
  * detected automatically when the store refreshes via IP every 30 minutes.
  *
  * Resolution pipeline (in priority order):
- *   1. navigator.geolocation — GPS/WiFi, most accurate
- *   2. IP-based fallback     — works from extension origins
- *   3. Kathmandu hardcoded  — last resort (source = 'default')
+ *   1. navigator.geolocation: GPS/WiFi, most accurate
+ *   2. IP-based fallback    : works from extension origins
+ *   3. Kathmandu hardcoded : last resort (source = 'default')
  */
 
 import { create } from 'zustand';
@@ -75,11 +75,11 @@ const reverseGeocodeCity = async (lat, lon) => {
   }
 };
 
-/** IP geolocation — tries the primary IP provider, then a CORS-enabled fallback. */
+/** IP geolocation: tries the primary IP provider, then a CORS-enabled fallback. */
 const getCoordsFromIP = async () => {
   const isExtension = typeof chrome !== 'undefined' && !!chrome.runtime?.id;
 
-  // Primary IP provider — blocked by CORS in extension origins; only try in web context
+  // Primary IP provider: blocked by CORS in extension origins; only try in web context
   if (!isExtension) {
     try {
       const r = await fetch(IP_GEO_API, { signal: AbortSignal.timeout(5000) });
@@ -97,7 +97,7 @@ const getCoordsFromIP = async () => {
     } catch { /* fall through */ }
   }
 
-  // Fallback IP provider — CORS-enabled, works from extension origins
+  // Fallback IP provider: CORS-enabled, works from extension origins
   try {
     const r = await fetch(IP_GEO_FALLBACK_API, { signal: AbortSignal.timeout(5000) });
     if (r.ok) {
@@ -166,7 +166,7 @@ export const useLocationStore = create(
        * so widgets can re-fetch their data immediately.
        */
       refresh: async () => {
-        // In-flight guard — refresh() is triggered by mount, a 30-min interval,
+        // In-flight guard: refresh() is triggered by mount, a 30-min interval,
         // and visibilitychange. Overlapping runs race each other with
         // last-write-wins, so a slow IP lookup can overwrite a fresher GPS fix.
         if (get().status === 'loading') return;
@@ -174,7 +174,7 @@ export const useLocationStore = create(
         const { lat: prevLat, lon: prevLon, source: prevSource } = get();
 
         try {
-          // Tier 1 — Browser geolocation (GPS/WiFi, most accurate)
+          // Tier 1: Browser geolocation (GPS/WiFi, most accurate)
           const fromBrowser = await new Promise((resolve) => {
             if (!navigator?.geolocation) return resolve(null);
             try {
@@ -212,7 +212,7 @@ export const useLocationStore = create(
             return;
           }
 
-          // Tier 2 — IP geolocation
+          // Tier 2: IP geolocation
           const fromIP = await getCoordsFromIP();
           if (fromIP) {
             const { lat, lon, timezone: ipTz } = fromIP;
@@ -248,7 +248,7 @@ export const useLocationStore = create(
             return;
           }
 
-          // Tier 3 — Kathmandu hardcoded fallback
+          // Tier 3: Kathmandu hardcoded fallback
           set({
             lat: KATHMANDU.lat,
             lon: KATHMANDU.lon,
@@ -275,13 +275,13 @@ export const useLocationStore = create(
               status: 'ready',
               lastUpdated: Date.now(),
             });
-          } catch { /* computeSunFields itself threw — nothing more we can do */ }
+          } catch { /* computeSunFields itself threw: nothing more we can do */ }
         }
       },
     }),
     {
       name: STORAGE_KEYS.LOCATION_STATE,
-      // Do not persist status — always recalculate on next load
+      // Do not persist status: always recalculate on next load
       partialize: (s) => ({
         lat: s.lat,
         lon: s.lon,

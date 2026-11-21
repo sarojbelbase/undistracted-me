@@ -36,7 +36,7 @@ function migrateIfNeeded(widgetId) {
     if (localStorage.getItem(markerKey)) return; // already migrated
 
     // If new key already has data (e.g. from CSV import before first load),
-    // preserve it — just mark migration done and clean old key.
+    // preserve it: just mark migration done and clean old key.
     const existingNew = localStorage.getItem(newKey);
     if (existingNew) {
       // Still strip old key so future clears don't resurrect old data
@@ -159,7 +159,7 @@ export const RANGE_CONFIG = {
   year: { budgetKey: 'yearBudget', label: 'Yearly', periodLabel: 'This year spending' },
 };
 
-// Pure read — no side effects (safe to call during render).
+// Pure read: no side effects (safe to call during render).
 function read(widgetId) {
   try {
     const raw = localStorage.getItem(PREFIX + widgetId);
@@ -170,7 +170,7 @@ function read(widgetId) {
 }
 
 function load(widgetId) {
-  // Only run migration once — check marker before calling the function
+  // Only run migration once: check marker before calling the function
   const markerKey = MIGRATED_MARKER + widgetId;
   if (!localStorage.getItem(markerKey)) {
     migrateIfNeeded(widgetId);
@@ -237,7 +237,7 @@ export function computeDayComparison(list) {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday', timeRange = 'week') {
-  // Pure read during render — the one-time legacy migration (a localStorage
+  // Pure read during render: the one-time legacy migration (a localStorage
   // write) is deferred to an effect so the render phase stays side-effect free.
   const [expenses, setExpenses] = useState(() => read(widgetId));
 
@@ -276,7 +276,7 @@ export function useExpenses(widgetId, currency = 'USD', weekStartsOn = 'monday',
         createdAt: Date.now(),
       };
       const next = [entry, ...expenses];
-      // Persist (and truncate) OUTSIDE the state updater — setState updaters must
+      // Persist (and truncate) OUTSIDE the state updater: setState updaters must
       // be pure; save() performs a synchronous localStorage write.
       setExpenses(save(widgetId, next));
     },

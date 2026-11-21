@@ -1,5 +1,5 @@
 // ─── Orb background palette definitions ──────────────────────────────────────
-// Single source of truth — used by both useCanvasBg (canvas mode) and
+// Single source of truth: used by both useCanvasBg (canvas mode) and
 // FocusMode (index.jsx). Add new palettes here and both consumers update.
 
 export const ORB_PALETTES = [

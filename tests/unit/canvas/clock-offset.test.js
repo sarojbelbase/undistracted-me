@@ -27,7 +27,7 @@ describe('getUtcOffset', () => {
     expect(getUtcOffset('America/New_York')).toMatch(OFFSET_RE);
   });
 
-  it('reflects DST — LA is -08:00 in January and -07:00 in July', () => {
+  it('reflects DST: LA is -08:00 in January and -07:00 in July', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2025, 0, 15, 12, 0, 0)); // January → PST
     expect(getUtcOffset('America/Los_Angeles')).toBe('UTC-08:00');

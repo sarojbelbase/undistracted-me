@@ -2,7 +2,7 @@
  * Shared primitives for Focus Mode dialogs (Tasks, SearchBar, etc.)
  *
  * All colors come from theme.jsx (the dark glass source of truth).
- * Never hardcode colors here — import FM_* constants from '../theme'.
+ * Never hardcode colors here: import FM_* constants from '../theme'.
  */
 
 import { XLg } from 'react-bootstrap-icons';
@@ -123,14 +123,14 @@ export const ToggleRow = ({ label, description, checked, onChange, borderTop = f
 
 // ─── Google Account section ───────────────────────────────────────────────────
 //
-// Mirrors IntegrationRow structure exactly — header row + description outside +
-// pill — but uses FM_* tokens since these dialogs always sit on dark glass.
+// Mirrors IntegrationRow structure exactly: header row + description outside +
+// pill: but uses FM_* tokens since these dialogs always sit on dark glass.
 //
 // Props:
-//  icon          ReactNode   — service logo to show in the header
-//  label         string      — e.g. "Google Tasks"
-//  description   string|null — shown outside pill when not connected
-//  privacyLabel  string|null — shown in footer with lock icon
+//  icon          ReactNode  : service logo to show in the header
+//  label         string     : e.g. "Google Tasks"
+//  description   string|null: shown outside pill when not connected
+//  privacyLabel  string|null: shown in footer with lock icon
 
 export const AccountSection = ({ icon, label = 'Google', description = null, privacyLabel = null }) => {
   const connected = useGoogleAccountStore((s) => s.connected);
@@ -162,7 +162,7 @@ export const AccountSection = ({ icon, label = 'Google', description = null, pri
         </div>
       </div>
 
-      {/* ── Description — outside the pill, only when not connected ── */}
+      {/* ── Description: outside the pill, only when not connected ── */}
       {!connected && description && (
         <div style={{ fontSize: 11, color: FM_INK_4, lineHeight: '1.45' }}>{description}</div>
       )}

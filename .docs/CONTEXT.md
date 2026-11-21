@@ -1,18 +1,18 @@
-# Undistracted Me — Context
+# Undistracted Me: Context
 
 ## Overview
 React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab page. Two modes:
-1. **Focus Mode** (`showWidgets=false`): Cinematic fullscreen view — Unsplash/orb/custom background with text-behind-image clock, ambient context panels (Pomodoro, Events, Stocks, Spotify, Weather, World Clocks)
+1. **Focus Mode** (`showWidgets=false`): Cinematic fullscreen view: Unsplash/orb/custom background with text-behind-image clock, ambient context panels (Pomodoro, Events, Stocks, Spotify, Weather, World Clocks)
 2. **Dashboard** (`showWidgets=true`): Themed bg via `--w-page-bg`, draggable widget grid
 3. **LookAway**: Eye-break fullscreen overlay, triggered by scheduled `chrome.alarm`, shown over whichever mode is active
 
 ## Tech Stack
 - **React 19**, **Vite v8**, **@crxjs/vite-plugin**
-- **Tailwind CSS v4** — `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
-- **Zustand** + `persist` middleware — global settings & widget instances stores
-- **react-grid-layout** — `Responsive` + `useContainerWidth()` (NOT WidthProvider — Vite CJS incompatibility)
-- **react-bootstrap-icons** — default icon library; use fill variants (e.g. `GearFill`, `ClockFill`)
-- **Custom SVG icons** — stored in `app/assets/svg/` as named `.jsx` exports (e.g. `SearchIcon`, `RainNoiseIcon`). Use stroke-based SVGs here when bootstrap-icons fill style doesn't fit. Props: `size`, `color`.
+- **Tailwind CSS v4**: `@import "tailwindcss"` in App.css (NOT `@tailwind base/components/utilities`)
+- **Zustand** + `persist` middleware: global settings & widget instances stores
+- **react-grid-layout**: `Responsive` + `useContainerWidth()` (NOT WidthProvider: Vite CJS incompatibility)
+- **react-bootstrap-icons**: default icon library; use fill variants (e.g. `GearFill`, `ClockFill`)
+- **Custom SVG icons**: stored in `app/assets/svg/` as named `.jsx` exports (e.g. `SearchIcon`, `RainNoiseIcon`). Use stroke-based SVGs here when bootstrap-icons fill style doesn't fit. Props: `size`, `color`.
 - **dayjs** + timezone plugin (Asia/Kathmandu)
 
 ## State Management (Zustand)
@@ -21,11 +21,11 @@ React 19 browser extension (Chrome + Firefox, Manifest V3) replacing the new tab
 Persistence key: `undistracted_settings`
 Fields: `language`, `accent`, `mode` (`'light'|'dark'|'auto'`), `defaultView`, `dateFormat`, `clockFormat` (`'24h'|'12h'`), `lookAwayEnabled`, `lookAwayInterval` (default 20 min), `lookAwayNotify`, `canvasBg` (`{ type: 'solid'|'orb'|'curated'|'custom', orbId?, url? }`), `cardStyle` (`'flat'|'glass'`), `modePrefs` (`{ light: { cardStyle }, dark: { cardStyle } }`), `focusSearchBar` (bool, default true), `focusTasks` (bool, default true), `focusSearchTopSites`, `focusSearchWeb`
 Actions: `setLanguage`, `setAccent`, `setMode`, `setDefaultView`, `setDateFormat`, `setClockFormat`, `setLookAwayEnabled`, `setLookAwayInterval`, `setLookAwayNotify`, `setCanvasBg`, `setCardStyle`, `setFocusSearchBar`, `setFocusTasks`, `setFocusSearchTopSites`, `setFocusSearchWeb`
-- `setAccent` / `setMode` call `applyTheme()` immediately (skipped when `mode='auto'` — `useAutoTheme` applies theme after mount)
+- `setAccent` / `setMode` call `applyTheme()` immediately (skipped when `mode='auto'`: `useAutoTheme` applies theme after mount)
 - `onRehydrateStorage` re-applies theme CSS vars after hydration (prevents FOUC)
 - First-run migration: reads legacy per-key localStorage entries if `undistracted_settings` absent
 - **`mode='auto'`**: resolved to light/dark by `useAutoTheme` using sunrise/sunset; falls back to OS `prefers-color-scheme` when location is unavailable
-- **Constraint**: `'Default'` accent is incompatible with `'dark'` or `'auto'` mode — auto-switches to Blueberry
+- **Constraint**: `'Default'` accent is incompatible with `'dark'` or `'auto'` mode: auto-switches to Blueberry
 
 ### `useWidgetInstancesStore` (`app/store/useWidgetInstancesStore.js`)
 Persistence key: `widget_instances`
@@ -44,21 +44,21 @@ Actions: `refresh` (full 3-tier pipeline), `refreshSunTimes` (no-network sun rec
 - `source='browser'` TTL: 6 h; `source='ip'` TTL: 30 min; managed by `useLocation` hook in `app/hooks/useLocation.js`
 
 ### `useGoogleAccountStore` (`app/store/useGoogleAccountStore.js`)
-Not persisted — in-memory only.
+Not persisted: in-memory only.
 Fields: `connected`, `profile` (`{ name, email, picture }|null`), `connecting`, `disconnecting`, `error`, `initialized`
 Actions: `init` (silent token check on mount), `connect` (interactive OAuth UI), `disconnect` (signs out from Calendar + Contacts + Tasks)
 - Dispatches `google_account_changed` window event on connect/disconnect so hooks can react without prop-drilling
 - `USER_DISCONNECTED_KEY` (`localStorage`) prevents auto-reconnect after explicit user sign-out
 
 ### `useUIStore` (`app/store/useUIStore.js`)
-Not persisted — in-memory only.
+Not persisted: in-memory only.
 Fields: `accountsDialogOpen`
 Actions: `openAccountsDialog`, `closeAccountsDialog`
 - Allows any nested component to open the Accounts dialog without prop-drilling
 
 ## Theme System (`app/theme.js`)
-- `ACCENT_COLORS` — 13 colors ordered by spectrum: Matte Black, Strawberry, Rose, Orange, Banana, Lime, Emerald, Mint, Cyan, Blueberry, Indigo, Grape, Cocoa
-- `LIGHT_TOKENS` / `DARK_TOKENS` — full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
+- `ACCENT_COLORS`: 13 colors ordered by spectrum: Matte Black, Strawberry, Rose, Orange, Banana, Lime, Emerald, Mint, Cyan, Blueberry, Indigo, Grape, Cocoa
+- `LIGHT_TOKENS` / `DARK_TOKENS`: full CSS var maps applied to `:root` via `applyTheme(accent, mode)`
 - CSS vars set: `--w-accent`, `--w-accent-fg`, `--w-accent-rgb`, `--w-ink-1..6`, `--w-surface`, `--w-surface-2`, `--w-border`, `--w-page-bg`
 - `data-mode` attribute on `<html>` drives `[data-mode="dark"]` overrides in `App.css`
 - **Constraint**: `"Default"` accent is incompatible with dark mode. Switching to dark auto-selects Blueberry.
@@ -75,142 +75,150 @@ Actions: `openAccountsDialog`, `closeAccountsDialog`
 ## Key Files
 ```
 app/
-  App.jsx              — root, mode toggle, LookAway scheduler, settings overlay
-  App.css              — design tokens, typography classes, grid overrides, dark mode patches
-  theme.js             — ACCENT_COLORS, applyTheme(), useTheme()
-  bg.js                — background service worker: event reminders, Pomodoro done
+  App.jsx             : root, mode toggle, LookAway scheduler, settings overlay
+  App.css             : design tokens, typography classes, grid overrides, dark mode patches
+  theme.js            : ACCENT_COLORS, applyTheme(), useTheme()
+  bg.js               : background service worker: event reminders, Pomodoro done
                          notification, LookAway chrome.alarm (UM_LOOKAWAY)
                          SW messages: POMODORO_DONE, EVENTS_UPDATED, COUNTDOWN_DONE,
                          LOOKAWAY_SYNC, LOOKAWAY_FIRE, MEDIA_SESSION_UPDATE,
                          MEDIA_SESSION_CLEAR, GET_CHROME_MEDIA, CHROME_MEDIA_ACTION
                          chromeSessions: in-memory map of up to 3 browser media sessions
   store/
-    useSettingsStore.js        — Zustand persist: all app settings incl. LookAway fields
-    useWidgetInstancesStore.js — Zustand persist: active widget instances
-    useLocationStore.js        — Zustand persist: centralized coords + sun times + city
-    useGoogleAccountStore.js   — in-memory: Google OAuth connected/profile state; connect/disconnect actions
-    useUIStore.js              — in-memory: accountsDialogOpen (avoids prop-drilling into Accounts dialog)
+    useSettingsStore.js       : Zustand persist: all app settings incl. LookAway fields
+    useWidgetInstancesStore.js: Zustand persist: active widget instances
+    useLocationStore.js       : Zustand persist: centralized coords + sun times + city
+    useGoogleAccountStore.js  : in-memory: Google OAuth connected/profile state; connect/disconnect actions
+    useUIStore.js             : in-memory: accountsDialogOpen (avoids prop-drilling into Accounts dialog)
   hooks/
-    useLocation.js       — called once in App root; drives useLocationStore lifecycle (TTL, VPN re-check, sun tick)
-    useEvents.js         — canonical: useEvents, useGoogleCalendar, useGoogleProfile, formatEventTime
-    useAutoTheme.js      — reads useLocationStore; drives light/dark via sunrise/sunset
-    useArrangeMode.js    — widget arrange/edit mode state
-    useSettingsPanel.js  — settings overlay open/close
-    useCanvasBg.js       — canvas-based background effects
-    useAgeLabel.js       — age string formatting helper
-    useFocusMode.js      — Focus Mode toggle + keyboard shortcut (Alt+Shift+F)
+    useLocation.js      : called once in App root; drives useLocationStore lifecycle (TTL, VPN re-check, sun tick)
+    useEvents.js        : canonical: useEvents, useGoogleCalendar, useGoogleProfile, formatEventTime
+    useAutoTheme.js     : reads useLocationStore; drives light/dark via sunrise/sunset
+    useArrangeMode.js   : widget arrange/edit mode state
+    useSettingsPanel.js : settings overlay open/close
+    useCanvasBg.js      : canvas-based background effects
+    useAgeLabel.js      : age string formatting helper
+    useFocusMode.js     : Focus Mode toggle + keyboard shortcut (Alt+Shift+F)
   utilities/
-    index.js           — convertEnglishToNepali, getTimeZoneAwareDayJsInstance
-    unsplash.js        — Unsplash photo library (see Unsplash section below)
-    googleAuth.js      — Unified Google OAuth2: single "Web application" client + PKCE
+    index.js          : convertEnglishToNepali, getTimeZoneAwareDayJsInstance
+    unsplash.js       : Unsplash photo library (see Unsplash section below)
+    googleAuth.js     : Unified Google OAuth2: single "Web application" client + PKCE
                          via launchWebAuthFlow (all browsers) or popup (web), server-side exchange
-    googleCalendar.js  — Google Calendar OAuth integration + event cache
-    googleContacts.js  — Google People API: contacts birthdays/anniversaries, pagination,
+    googleCalendar.js : Google Calendar OAuth integration + event cache
+    googleContacts.js : Google People API: contacts birthdays/anniversaries, pagination,
                          chrome.storage.local cache, manual birthdays localStorage
-    googleTasks.js     — Google Tasks API v1 wrapper: fetchGoogleTaskLists, fetchGoogleTasks,
-                         createTask, updateTask, deleteTask — all with auto-retry on 401/403
-    sharedClock.js     — leader-election shared clock tick (Web Locks API + BroadcastChannel
+    googleTasks.js    : Google Tasks API v1 wrapper: fetchGoogleTaskLists, fetchGoogleTasks,
+                         createTask, updateTask, deleteTask: all with auto-retry on 401/403
+    sharedClock.js    : leader-election shared clock tick (Web Locks API + BroadcastChannel
                          "um:clock"); one tab holds lock and broadcasts second-aligned ticks
                          to all others; falls back to per-tab aligned interval;
-                         API: `onClockTick(fn) → unsubscribeFn` — used by zones + clock widget
-    chrome.js          — Chrome extension API helpers
-    telemetry.js       — PostHog anonymous widget-usage tracking (gated on VITE_POSTHOG_KEY;
+                         API: `onClockTick(fn) → unsubscribeFn`: used by zones + clock widget
+    chrome.js         : Chrome extension API helpers
+    telemetry.js      : PostHog anonymous widget-usage tracking (gated on VITE_POSTHOG_KEY;
                           tracks widget_added/removed/duplicated/rendered/settings_opened)
-    media.js           — media session content script (injected into SoundCloud pages) +
+    media.js          : media session content script (injected into SoundCloud pages) +
                          SW utility; detects playback via navigator.mediaSession + audio/video fallback
   components/
     FocusMode/
-      index.jsx        — Cinematic focus mode root (see Focus Mode section below)
-      config.js        — ZONES: single source of truth for all zone/item enable flags + order
-      theme.jsx        — Focus Mode design tokens (FM_CARD_BG, FM_CARD_BLUR, FM_INK_1..4,
+      index.jsx       : Cinematic focus mode root (see Focus Mode section below)
+      config.js       : ZONES: single source of truth for all zone/item enable flags + order
+      theme.jsx       : Focus Mode design tokens (FM_CARD_BG, FM_CARD_BLUR, FM_INK_1..4,
                          FM_SURFACE, FM_BORDER) + AnimatedCard, getPhotoTokens, getFMCardVars
-      hooks.js         — useFocusWeather, useFocusStocks (re-export of widgets/stock/useStocks),
+      hooks.js        : useFocusWeather, useFocusStocks (re-export of widgets/stock/useStocks),
                          useFocusPhoto, useFocusSpotify, useChromeMedia, useFocusTasks,
                          useWakeLock, useCenterOnDark (returns { clock, search, greet }),
                          useFocusTimezones + search utilities (fetchSuggestions, suggestUrl,
                          getHistory, pushHistory)
-      Settings.jsx     — wrapper that lazy-loads dialog/Settings.jsx
+      Settings.jsx    : wrapper that lazy-loads dialog/Settings.jsx
       zones/
-        TopZone.jsx    — NavBar (canvas/fullscreen/settings buttons) + InfoStrip
+        TopZone.jsx   : NavBar (canvas/fullscreen/settings buttons) + InfoStrip
                          (weatherIcon + weatherTemp + date + year)
-        CenterZone.jsx — Clock (digit roller odometer) + SearchBar pill (if focusSearchBar)
-        LeftZone.jsx   — Glass panel cards: Pomodoro, Event, Occasion, Stock, Spotify
-        RightZone.jsx  — World clocks ambient panel
-        BottomZone.jsx — Greeting text
-        BottomRightZone.jsx — Google Tasks collapsible pill (if focusTasks, bottom-right)
+        CenterZone.jsx: Clock (digit roller odometer) + SearchBar pill (if focusSearchBar)
+        LeftZone.jsx  : Glass panel cards: Pomodoro, Event, Occasion, Stock, Spotify
+        RightZone.jsx : World clocks ambient panel
+        BottomZone.jsx: Greeting text
+        BottomRightZone.jsx: Google Tasks collapsible pill (if focusTasks, bottom-right)
       panels/
-        Clock.jsx      — Digit roller clock (odometer animation)
-        Greetings.jsx  — Greeting text
+        Clock.jsx     : Digit roller clock (odometer animation)
+        Greetings.jsx : Greeting text
         Event.jsx, Pomodoro.jsx, Occasion.jsx, Stock.jsx, Spotify.jsx, Tasks.jsx, SearchBar.jsx
       dialog/
-        Settings.jsx   — Glass settings panel: dateFormat, clockFormat, focusSearchBar toggle,
+        Settings.jsx  : Glass settings panel: dateFormat, clockFormat, focusSearchBar toggle,
                          focusTasks toggle, "Backgrounds" button
-        SearchBar.jsx  — Full-screen search dialog: web autocomplete (Google/DDG), top sites, search history (fm_search_history, max 12)
-        Tasks.jsx      — Google Tasks account dialog
-        shared.jsx     — shared dialog primitives
+        SearchBar.jsx : Full-screen search dialog: web autocomplete (Google/DDG), top sites, search history (fm_search_history, max 12)
+        Tasks.jsx     : Google Tasks account dialog
+        shared.jsx    : shared dialog primitives
     LookAway/
-      index.jsx        — Fullscreen eye-break overlay: 70+ messages, 7 orb color palettes,
+      index.jsx       : Fullscreen eye-break overlay: 70+ messages, 7 orb color palettes,
                          ring progress timer, dismiss / snooze
-      hooks.js         — useLookAwayScheduler: syncs chrome.alarm via SW LOOKAWAY_SYNC
+      hooks.js        : useLookAwayScheduler: syncs chrome.alarm via SW LOOKAWAY_SYNC
                          message; falls back to setInterval in dev; stale-break detection
-    Settings.jsx       — Dashboard global settings overlay (tabs: Appearance · General · Background · Accounts · Data)
+    Settings.jsx      : Dashboard global settings overlay (tabs: Appearance · General · Background · Accounts · Data)
                          General: Launch Mode, Look Away, Blocked Sites, Notifications.
                          Data: Cross-Device Sync (toggle + SyncStatusBadge), Backup & Restore
                          (Export/Import .json), Reset (ConfirmButton with 4s hold).
                          Import/export/reset migrated here from WidgetCatalog.
-  ui/                  — shared UI components (see app/components/ui/ section below)
+  ui/                 : shared UI components (see app/components/ui/ section below)
   widgets/
-    WidgetGrid.jsx     — Responsive grid, per-breakpoint layout persistence
-    BaseWidget.jsx     — forwardRef card, GearWide settings popover, cardStyle prop
-    BaseSettingsModal.jsx — role="dialog", aria-modal, shared settings modal shell
-    useWidgetSettings.js — backed by Zustand `useWidgetInstancesStore.widgetSettings`;
+    WidgetGrid.jsx    : Responsive grid, per-breakpoint layout persistence
+    BaseWidget.jsx    : forwardRef card, GearWide settings popover, cardStyle prop
+    BaseSettingsModal.jsx: role="dialog", aria-modal, shared settings modal shell
+    useWidgetSettings.js: backed by Zustand `useWidgetInstancesStore.widgetSettings`;
                            mirrored to `widgetSettings_${id}` localStorage for legacy compat
-    useEvents.js       — @deprecated re-export stub; canonical path is app/hooks/useEvents.js
-    WidgetCatalog.jsx  — widget picker drawer with categories (import/export/reset moved to Data tab)
-    settingsIO.js      — settings import/export helpers
-    index.js           — WIDGET_TYPES, WIDGET_REGISTRY (15 widgets), all exports
-    clock/             — live 1s clock, 24h/12h, extra timezone rows, time-aware greetings
-    dateToday/         — weekday + date, BS/AD toggle
-    progress/          — day progress (type: 'progress'); visual bar for day elapsed
-    events/            — CreateModal (Today/Tomorrow/Custom chips), AllEventsModal,
-                         Google Calendar sync, both modals use createPortal(…, document.body)
-    countdown/         — own dedicated event store (COUNTDOWN_EVENTS); supports repeating countdowns;
-                         per-instance pinned event (COUNTDOWN_PINNED_${id}); notification dedup (CD_NOTIFIED)
-    calendar/          — BS/AD, event dots + tooltip portal, today = accent fill + white text
-    weather/           — **Open-Meteo API** (free, no API key); reads coords from useLocationStore;
+    useEvents.js      : @deprecated re-export stub; canonical path is app/hooks/useEvents.js
+    WidgetCatalog.jsx : widget picker drawer with categories (import/export/reset moved to Data tab)
+    settingsIO.js     : settings import/export helpers
+    index.js          : WIDGET_TYPES, WIDGET_REGISTRY (15 widgets), all exports
+    clock/            : live 1s clock, 24h/12h, extra timezone rows, time-aware greetings
+    dateToday/        : weekday + date, BS/AD toggle
+    progress/         : day progress (type: 'progress'); visual bar for day elapsed
+    events/           : AddEvent form (Today/Tomorrow/Custom chips), ExpandedView
+                         (Local + Calendar source rail), Google Calendar sync
+    countdown/        : own dedicated event store (COUNTDOWN_EVENTS); supports repeating countdowns;
+                         per-instance pinned event (COUNTDOWN_PINNED_${id}); notification dedup (CD_NOTIFIED);
+                          ExpandedView (Countdown + Since mode rail)
+    calendar/         : BS/AD, event dots + tooltip portal, today = accent fill + white text
+    weather/          : **Open-Meteo API** (free, no API key); reads coords from useLocationStore;
                          current + 12h hourly forecast; °C/°F toggle; animated WeatherAtmosphere
                          component; geocoding via geocoding-api.open-meteo.com for manual location
-    notes/             — textarea, localStorage, accent color picker, hide/expand/collapse
-    bookmarks/         — Google Favicon API, chrome.topSites + manual Pinned, AddModal
-    quickAccess/       — Top 6 chrome.topSites dock: favicon tiles with color extraction,
+    notes/            : textarea, localStorage, accent color picker, hide/expand/collapse
+    bookmarks/        : Google Favicon API, chrome.topSites + manual Pinned, AddModal
+    quickAccess/      : Top 6 chrome.topSites dock: favicon tiles with color extraction,
                          letter fallback, hover scale animation
-    pomodoro/          — enriched focus timer: pick (preset pills) → timer; Web Audio chime;
+    pomodoro/         : enriched focus timer: pick (preset pills) → timer; Web Audio chime;
                          auto-break (5/10/15 min); session notes; rain sounds; session history with stats.
-                         TWO storage keys: (1) `pomodoro_timer_state_${id}` — full state incl.
+                         TWO storage keys: (1) `pomodoro_timer_state_${id}`: full state incl.
                          `endTime`, `sessionType` for elapsed-time recovery on tab restore; (2) `fm_pomodoro`
-                         — written ONLY while timer is running (for Focus Mode PanelCard);
+                        : written ONLY while timer is running (for Focus Mode PanelCard);
                          removed when paused or in pick phase. Settings panel with chime/rain/break toggles,
                          break duration selector, and stats (sessions, streak, today minutes, weekly chart).
-    spotify/           — PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas
+    spotify/          : PKCE OAuth2 via chrome.identity.launchWebAuthFlow, album art Canvas
                          color extraction, 5s polling + local tick between polls.
                          Multi-player: ChromeMediaStrip for browser media sessions (YouTube,
                          SoundCloud, etc.) via getChromeMedia / sendChromeMediaAction.
                          Tokens stored in chrome.storage.local (not localStorage).
-                         NOTE: token refresh failure does NOT clear tokens —
+                         NOTE: token refresh failure does NOT clear tokens -
                          only disconnectSpotify() wipes them. not_authenticated → setTrack(null)
                          NOT setConnected(false), to avoid re-showing the onboarding screen.
-    facts/             — daily interesting fact widget
-    rss/               — RSS news headlines: Spotlight + Digest layouts; OPML import/export;
+    facts/            : daily interesting fact widget
+    rss/              : RSS news headlines: Spotlight + Digest layouts; OPML import/export;
                          pure DOMParser parser (zero deps); sample OPML with Nepali news + podcasts.
                          Data section in Settings with Export OPML + Import OPML, guidance callout,
                          and Sample OPML download.
-    stock/             — NEPSE stock tickers (see Stock Widget section)
-    occasions/         — Birthdays, anniversaries, special days widget.
+    stock/            : NEPSE stock tickers (see Stock Widget section)
+    occasions/        : Birthdays, anniversaries, special days widget.
                          Sources: Google Contacts (People API) + manual entries.
                          Shows 3 next upcoming, sorted by daysAway.
                          Types: birthday (balloon), anniversary (heart), other (star).
                          Deduplicates between Google Contacts and manual entries.
 ```
+
+## Building a New Widget
+
+The authoritative playbook for adding a widget (workflow, bare minimum,
+registration touchpoints, shared primitives, empty states, settings, spacing,
+definition of done, and the anti-patterns that made the Pocket build costly) is
+`.docs/WIDGET-BUILDING.md`. Read it before any "make a new widget" task.
 
 ## Widget Registry (16 widgets)
 ```
@@ -233,7 +241,7 @@ Fullscreen overlay that interrupts work for 20-second eye breaks (20-20-20 rule 
 - **Dev (no extension)**: falls back to plain `setInterval`.
 - **Stale-break detection**: skips firing if the alarm fired while laptop was asleep (page was hidden for most of the interval).
 - SW writes `lookaway_due` timestamp to `chrome.storage.local` when alarm fires. New tab reacts via `chrome.storage.onChanged`.
-- Settings: `lookAwayEnabled`, `lookAwayInterval` (min, default 20), `lookAwayNotify` — all in `useSettingsStore`.
+- Settings: `lookAwayEnabled`, `lookAwayInterval` (min, default 20), `lookAwayNotify`: all in `useSettingsStore`.
 
 ### Overlay (`index.jsx`)
 - Full-page portal over everything, dark or light depending on app mode
@@ -279,24 +287,24 @@ Zone-based layout driven by `config.js` ZONES object. Each zone is a separate co
 ### TopZone (`zones/TopZone.jsx`)
 - **NavBar**: Canvas-mode button, fullscreen toggle, rain/noise audio toggle, settings button
 - **Rain audio**: Ambient rain & white-noise audio powered by `useRainStream`. Uses the Web Audio API to stream segments dynamically from the media R2 store (`audio/rain.js` proxy returns the URL). The hook prefetches segments to ensure gapless playback and handles a 3-second ease-in-out master GainNode volume crossfade. Playback position is persisted to `localStorage['rain_seg_pos']` and resumes exactly where left off. The toggle button is a custom inline SVG component (`RainNoiseIcon.jsx`) styled dynamically via React state, evading browser `:active` bugs.
-- **InfoStrip**: weatherIcon (SVG) + temp + `·` + date + year (smaller) — item-based rendering driven by ZONES.top
+- **InfoStrip**: weatherIcon (SVG) + temp + `·` + date + year (smaller): item-based rendering driven by ZONES.top
 - Reads weather from Zustand `useWidgetInstancesStore`; falls back to `useLocationStore` coords
-- Polls **Open-Meteo** via `useFocusWeather()` — NOT OpenWeatherMap
+- Polls **Open-Meteo** via `useFocusWeather()`: NOT OpenWeatherMap
 
 ### CenterZone (`zones/CenterZone.jsx`)
 - Clock digit roller (odometer animation) via `panels/Clock.jsx`
-- Search bar pill (below clock) when `focusSearchBar=true` — opens `dialog/SearchBar.jsx`
+- Search bar pill (below clock) when `focusSearchBar=true`: opens `dialog/SearchBar.jsx`
 
 ### LeftZone (`zones/LeftZone.jsx`)
 Glass panel cards (order driven by ZONES.left.items):
-- `PomodoroPanel` — reads `fm_pomodoro` localStorage; shows timer + drain bar + sessionType
-- `EventPanel` — active event (priority) or soonest upcoming; title + time-until
-- `OccasionPanel` — next upcoming birthday/anniversary from occasions widget
-- `StockPanel` — reads from Zustand `useWidgetInstancesStore`, polls every 5min; symbol + price + ↑↓%
-- `SpotifyPanel` — album art, progress bar, prev/play/next; local 1s tick between 5s polls
+- `PomodoroPanel`: reads `fm_pomodoro` localStorage; shows timer + drain bar + sessionType
+- `EventPanel`: active event (priority) or soonest upcoming; title + time-until
+- `OccasionPanel`: next upcoming birthday/anniversary from occasions widget
+- `StockPanel`: reads from Zustand `useWidgetInstancesStore`, polls every 5min; symbol + price + ↑↓%
+- `SpotifyPanel`: album art, progress bar, prev/play/next; local 1s tick between 5s polls
 
 ### RightZone (`zones/RightZone.jsx`)
-- World clocks ambient panel — city name + time, 1s tick via `onClockTick`
+- World clocks ambient panel: city name + time, 1s tick via `onClockTick`
 - Reads timezones from Zustand `useWidgetInstancesStore` (clock widget settings) via `useFocusTimezones()`
 - Staggered spring entrance animation (`worldClockIn` keyframe)
 
@@ -304,7 +312,7 @@ Glass panel cards (order driven by ZONES.left.items):
 - Greeting text (`panels/Greetings.jsx`)
 
 ### BottomRightZone (`zones/BottomRightZone.jsx`)
-- Google Tasks collapsible pill — bottom-right corner, z22
+- Google Tasks collapsible pill: bottom-right corner, z22
 - Visible when `focusTasks=true` in `useSettingsStore`
 - Full CRUD via `useFocusTasks()` hook (optimistic add/toggle/edit/delete)
 - Opens `dialog/Tasks.jsx` for account management
@@ -332,20 +340,20 @@ Shared component used in both Focus Mode and Dashboard canvas mode.
 - **`orb`**: animated 3-orb dark background; 7 color palettes (ORB_PALETTES)
 
 ### Data Hooks (`hooks.js`)
-- `useFocusWeather()` — reads weather widget from Zustand `useWidgetInstancesStore`; fetches **Open-Meteo**
-- `useFocusStocks()` — re-export of `widgets/stock/useStocks`
-- `useFocusPhoto()` — manages slotA/slotB crossfade with Unsplash utility
-- `useFocusSpotify()` — alias of shared `useSpotify` hook
-- `useChromeMedia()` — reads SW-cached browser media sessions (YouTube, SoundCloud, etc.)
-- `useFocusTasks()` — Google Tasks CRUD + loading state for BottomRightZone
-- `useWakeLock()` — Wake Lock API while in fullscreen
-- `useCenterOnDark()` — Canvas pixel-sample; returns `{ clock, search, greet }` booleans
-- `useFocusTimezones()` — reads clock widget timezones from Zustand `useWidgetInstancesStore`
+- `useFocusWeather()`: reads weather widget from Zustand `useWidgetInstancesStore`; fetches **Open-Meteo**
+- `useFocusStocks()`: re-export of `widgets/stock/useStocks`
+- `useFocusPhoto()`: manages slotA/slotB crossfade with Unsplash utility
+- `useFocusSpotify()`: alias of shared `useSpotify` hook
+- `useChromeMedia()`: reads SW-cached browser media sessions (YouTube, SoundCloud, etc.)
+- `useFocusTasks()`: Google Tasks CRUD + loading state for BottomRightZone
+- `useWakeLock()`: Wake Lock API while in fullscreen
+- `useCenterOnDark()`: Canvas pixel-sample; returns `{ clock, search, greet }` booleans
+- `useFocusTimezones()`: reads clock widget timezones from Zustand `useWidgetInstancesStore`
 
 ## Unsplash Photo Library (`app/utilities/unsplash.js`)
-- **Source**: Curated proxy — `/photos/curated` on api.undistracted.me (no direct Unsplash key needed in extension)
-- **Auth**: None. Access is gated by the request `Origin` (`assertStrictOrigin`) — no API key is shipped in the bundle.
-- localStorage key: `fm_unsplash_cache` — stores up to `LIBRARY_MAX=10` photo objects
+- **Source**: Curated proxy: `/photos/curated` on api.undistracted.me (no direct Unsplash key needed in extension)
+- **Auth**: None. Access is gated by the request `Origin` (`assertStrictOrigin`): no API key is shipped in the bundle.
+- localStorage key: `fm_unsplash_cache`: stores up to `LIBRARY_MAX=10` photo objects
 - Each item: `{ id, url, regular, color, author, authorUrl, photoUrl, cachedAt }`
 - Library model: `library[0]` = current photo. `rotatePhoto()` cycles head→tail (never discards). `downloadNewPhoto()` force-fetches and prepends. `deletePhoto(id)` removes. `jumpToPhotoById(id)` promotes to head.
 - Pre-fetches in background when library runs low
@@ -366,43 +374,43 @@ Token storage:
 - Extension (all browsers): `chrome.storage.local` under key `google_tokens`
 - Web mode: `sessionStorage` under key `google_tokens` (session-scoped; cleared on tab close)
 
-High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT call `getGoogleAuthToken` directly from UI components; go through the store.
+High-level connect/disconnect managed via `useGoogleAccountStore`: do NOT call `getGoogleAuthToken` directly from UI components; go through the store.
 
 ## Google Contacts (`app/utilities/googleContacts.js`)
 - **API**: `https://people.googleapis.com/v1/people/me/connections` with `personFields=names,birthdays,events`
-- Paginated fetch — up to 2000 contacts
+- Paginated fetch: up to 2000 contacts
 - Cache: `contacts_birthdays_cache` in `chrome.storage.local` (migrated from localStorage)
 - Synced-at: `contacts_birthdays_synced_at` in localStorage
-- Manual entries: `manual_birthdays` in localStorage — `[{ id, name, type, month, day }]`
+- Manual entries: `manual_birthdays` in localStorage: `[{ id, name, type, month, day }]`
 - Exports: `getContactBirthdays`, `loadCachedContacts`, `loadContactsSyncedAt`, `isContactsConnected`, `disconnectContacts`, `loadManualBirthdays`, `addManualBirthday`, `removeManualBirthday`, `clearContactsDisconnectedFlag`
 
 ## Cross-Device Sync (`app/utilities/syncEngine*.js`, `syncTransport.js`)
 - **Transport**: Google Drive `appDataFolder` (migrated from a GitHub Gist transport in `04cac41`). Requires the `drive.appdata` scope, which is part of the normal Google connect flow.
-- **Entry point**: `syncEngineFacade.js` — lazily imports the heavy engine (`syncEngine.js`) only when `localStorage.sync_enabled === '1'`, so the new tab page pays nothing for an unused feature.
+- **Entry point**: `syncEngineFacade.js`: lazily imports the heavy engine (`syncEngine.js`) only when `localStorage.sync_enabled === '1'`, so the new tab page pays nothing for an unused feature.
 - **Gates**:
-  - `sync_enabled` (localStorage) — user toggle.
-  - `drive_sync_connected` (the transport's `CONNECTED_FLAG`) — set by `syncTransport` once Drive access is verified.
+  - `sync_enabled` (localStorage): user toggle.
+  - `drive_sync_connected` (the transport's `CONNECTED_FLAG`): set by `syncTransport` once Drive access is verified.
   - `enableSync()` refuses to start unless `syncTransport.isConnected()`.
-- **UI**: Settings → Data. Reads `useGoogleAccountStore` (`connected`/`syncEnabled`), and **must subscribe to `google_account_changed`** — it re-renders on connect/disconnect. (Bug fixed in this pass: the panel read `githubConnected` once at mount and never updated after the GitHub→Drive migration, so the toggle stayed permanently disabled.)
+- **UI**: Settings → Data. Reads `useGoogleAccountStore` (`connected`/`syncEnabled`), and **must subscribe to `google_account_changed`**: it re-renders on connect/disconnect. (Bug fixed in this pass: the panel read `githubConnected` once at mount and never updated after the GitHub→Drive migration, so the toggle stayed permanently disabled.)
 - `useGoogleAccountStore.setSyncEnabled(true)` runs on connect/init; `false` on disconnect.
-- `SyncStatusBadge` polls status every 30 s while mounted (intentional — not the shared clock).
+- `SyncStatusBadge` polls status every 30 s while mounted (intentional: not the shared clock).
 
 ## Media Session / Browser Media Integration
-- `app/utilities/media.js` — serves as both the SoundCloud/YouTube content script (injected into `*://*.soundcloud.com/*` and `*://*.youtube.com/*`) and a shared utility module
+- `app/utilities/media.js`: serves as both the SoundCloud/YouTube content script (injected into `*://*.soundcloud.com/*` and `*://*.youtube.com/*`) and a shared utility module
 - Detects playback via `navigator.mediaSession` + `<audio>/<video>` element fallback
 - Reports to background SW via `chrome.runtime.sendMessage({ type: 'MEDIA_SESSION_UPDATE', ... })`
 - SW manages `chromeSessions` in-memory map (keyed by tabId, max 3 entries ordered by activity)
 - `GET_CHROME_MEDIA` → SW returns ordered sessions array to requester
 - `CHROME_MEDIA_ACTION` → SW sends play/pause/next/prev to the source tab
 - `Spotify widget: getChromeMedia()` reads SW-cached sessions; `sendChromeMediaAction()` sends commands
-- `ChromeMediaStrip` in Spotify widget — compact strip for non-promoted browser sessions (YouTube, SoundCloud, Apple Music, etc.)
+- `ChromeMediaStrip` in Spotify widget: compact strip for non-promoted browser sessions (YouTube, SoundCloud, Apple Music, etc.)
 
 ## Stock Widget (`app/widgets/stock/`)
 
 ### Data Source
 - **API**: `https://www.merolagani.com/handlers/TechnicalChartHandler.ashx`
 - **Range**: 90 days rolling, dynamic Unix timestamps
-- **Response**: `{ t, o, h, l, c, v, s }` — OHLCV arrays; `s === "ok"` on success
+- **Response**: `{ t, o, h, l, c, v, s }`: OHLCV arrays; `s === "ok"` on success
 - `c[n-1]` → LTP, `c[n-2]` → prevClose; OHL at `[n-1]`
 - Company list: `https://nepalipaisa.com/api/GetCompanies` (POST)
 
@@ -414,35 +422,35 @@ High-level connect/disconnect managed via `useGoogleAccountStore` — do NOT cal
 `fetchChart`, `fetchCompanies`, `buildSparklinePaths` (LTTB + Catmull-Rom), `priceStats`, `fmtPrice`, `fmtOHL`, `fmtVolume`, `humanizeAge`
 
 ## Drag System (WidgetGrid.jsx)
-- `draggableHandle=".widget-drag-handle"` — only the 3-dot pill notch triggers drag
-- `LAYOUT_VERSION = ACTIVE_WIDGETS.length` — auto-busts saved layout when widget count changes
+- `draggableHandle=".widget-drag-handle"`: only the 3-dot pill notch triggers drag
+- `LAYOUT_VERSION = ACTIVE_WIDGETS.length`: auto-busts saved layout when widget count changes
 - `document.addEventListener('mouseup', clearDragging)` safety net prevents grid freeze
 
 ## Google Calendar / Profile Integration
 - OAuth via unified `googleAuth.js` (single client + PKCE, every browser)
 - Scopes: `calendar.readonly`, `contacts.readonly`, `tasks`, `userinfo.profile`, `userinfo.email`, `drive.appdata`
 - Calendar events (PII) stored in **`chrome.storage.local`** under `gcal_events_cache`; one-time migration from legacy localStorage on first load
-- `gcal_has_cache` — localStorage boolean flag for synchronous cache-existence checks
-- `gcal_synced_at` — localStorage timestamp of last sync
+- `gcal_has_cache`: localStorage boolean flag for synchronous cache-existence checks
+- `gcal_synced_at`: localStorage timestamp of last sync
 - `useGoogleCalendar()` returns `{ gcalEvents, loading, connected, error, syncedAt, refresh, connect }`
-- `useGoogleProfile()` — avatar + name + email; exported from `app/hooks/useEvents.js`
+- `useGoogleProfile()`: avatar + name + email; exported from `app/hooks/useEvents.js`
 
 ## Shared UI Components (`app/components/ui/`)
 Key shared components:
-- `AccountsDialog` — Google + Spotify account connect/disconnect sheet (opened via `useUIStore.openAccountsDialog()`)
-- `AccountCard` — single service row within AccountsDialog
-- `IntegrationRow` — status badge for integration health in widget settings
-- `BackgroundPicker` — 4-mode background selector (shared by Focus Mode + Dashboard canvas)
-- `CanvasBackground` — animated canvas orb background for Dashboard mode
-- `OrbBackground` — pure CSS 3-orb animation (used in LookAway + BackgroundPicker)
-- `WeatherAtmosphere` — animated SVG weather illustration (sun, rain, snow, cloud, fog, thunder)
-- `PillButton` — pill-shaped toggle button (design system primitive)
-- `SegmentedControl` — multi-option radio-style control
-- `SegmentedDateTime` — date/time segment picker
-- `ControlCluster` — grouped settings controls
-- `Modal` — generic portal modal shell
-- `Popup` — lightweight anchor-positioned floating panel
-- `TabRow` — tabbed navigation row
+- `AccountsDialog`: Google + Spotify account connect/disconnect sheet (opened via `useUIStore.openAccountsDialog()`)
+- `AccountCard`: single service row within AccountsDialog
+- `IntegrationRow`: status badge for integration health in widget settings
+- `BackgroundPicker`: 4-mode background selector (shared by Focus Mode + Dashboard canvas)
+- `CanvasBackground`: animated canvas orb background for Dashboard mode
+- `OrbBackground`: pure CSS 3-orb animation (used in LookAway + BackgroundPicker)
+- `WeatherAtmosphere`: animated SVG weather illustration (sun, rain, snow, cloud, fog, thunder)
+- `PillButton`: pill-shaped toggle button (design system primitive)
+- `SegmentedControl`: multi-option radio-style control
+- `SegmentedDateTime`: date/time segment picker
+- `ControlCluster`: grouped settings controls
+- `Modal`: generic portal modal shell
+- `Popup`: lightweight anchor-positioned floating panel
+- `TabRow`: tabbed navigation row
 - `FaviconIcon`, `RefreshIcon`, `TooltipBtn`, `ConfirmButton`, `Input`, `RadioGroup`, `TintedChip`, `EventRow`, `FocusModeButton`, `SettingsInput`
 
 ## Accessibility
@@ -450,7 +458,7 @@ Key shared components:
 - BaseSettingsModal: `role="dialog"`, `aria-modal`, `aria-label` on close
 - Global `button:focus-visible` ring using `var(--w-accent)`
 
-## Manifest v3 (`public/manifest.json`) — version 4.0.0
+## Manifest v3 (`public/manifest.json`): version 4.0.0
 ```json
 "permissions": ["identity", "storage", "geolocation", "topSites", "notifications",
                  "alarms", "idle", "tabs", "scripting", "declarativeNetRequest"]
@@ -479,7 +487,7 @@ Key shared components:
   "https://free.freeipapi.com/*"                   // IP geolocation (extension mode)
 ]
 ```
-There is **no `*://*/*` wide host permission** — the site blocker uses
+There is **no `*://*/*` wide host permission**: the site blocker uses
 `declarativeNetRequest` dynamic rules, which need no host access. `tabs` is kept
 for the media relay (enumerating audible tabs). `favicon` was dropped; the
 favicon proxy endpoint is a plain HTTPS fetch to `api.undistracted.me`.
@@ -496,15 +504,15 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
   Fetch-based endpoints use `assertStrictOrigin` (rejects a missing `Origin`, so
   bare `curl` is refused); `/favicon` uses the relaxed `assertOrigin` because an
   `<img>` request carries no `Origin`. No API key is shipped to clients.
-- **Rate limiting**: `api/_ratelimit.js` — KV-backed fixed-window limiter
+- **Rate limiting**: `api/_ratelimit.js`: KV-backed fixed-window limiter
   keyed on `CF-Connecting-IP` + pathname (30 req/min for the OAuth token
   endpoint, 120 req/min elsewhere). Fails open if KV is unavailable. It is an
   approximate (non-atomic) counter; real bot protection is Cloudflare's job
-  (Bot Fight Mode — **Managed Challenge must stay OFF**, it breaks extension
+  (Bot Fight Mode: **Managed Challenge must stay OFF**, it breaks extension
   fetch traffic because no browser challenge can be solved there).
-- `photos/curated.js` — Lists photos from the media R2 store (`backgrounds/` prefix).
-- `auth/google/token.js` — Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser.
-- `favicon.js` — Favicon proxy helper (SSRF-guarded via `PRIVATE_HOST_RE`).
+- `photos/curated.js`: Lists photos from the media R2 store (`backgrounds/` prefix).
+- `auth/google/token.js`: Server-side Google OAuth token exchange (authorization_code + refresh_token grant types). Client secret never sent to browser.
+- `favicon.js`: Favicon proxy helper (SSRF-guarded via `PRIVATE_HOST_RE`).
 
 ## Dev Proxy (`vite.config.ts`)
 ```js
@@ -524,22 +532,22 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 | `EVENTS` | `widget_events` | Events array `[{ id, title, startDate, startTime, endDate, endTime }]` |
 | `COUNTDOWN_EVENTS` | `countdown_events` | Countdown widget's own event list |
 | `countdownPinned(id)` | `countdown_pinned_${id}` | Per-instance pinned countdown event |
-| `COUNTDOWN_NOTIFIED` | `cd_notified` | `{ [eventId]: 'YYYY-MM-DD' }` — per-day dedup; old dates pruned on read |
+| `COUNTDOWN_NOTIFIED` | `cd_notified` | `{ [eventId]: 'YYYY-MM-DD' }`: per-day dedup; old dates pruned on read |
 | `POMODORO` | `fm_pomodoro` | `{ running, remaining, total, preset, sessionType }` written ONLY while timer is running |
 | `pomodoroTimerState(id)` | `pomodoro_timer_state_${id}` | Full per-instance timer state incl. `endTime`, `sessionType` for recovery on tab restore |
-| `pomodoro_history` | — | `[{ id, preset, duration, completedAt, note, type }]` — max 500 entries, oldest trimmed |
+| `pomodoro_history` |: | `[{ id, preset, duration, completedAt, note, type }]`: max 500 entries, oldest trimmed |
 | `LOCATION_STATE` | `location_state` | Zustand persist for useLocationStore (`{ lat, lon, city, timezone, source, sunrise, sunset, isDay, status, lastUpdated }`) |
 | `UNSPLASH_CACHE` | `fm_unsplash_cache` | `[{ id, url, regular, color, author, ... }]` max 10 items |
-| `FOCUS_TIMEZONES` | `fm_world_clocks` | Legacy key — defined in STORAGE_KEYS but not actively used; RightZone reads from Zustand directly |
-| — | `fm_bg_source` | `'default' \| 'curated' \| 'custom' \| 'orb'` |
-| — | `fm_custom_bg_url` | Custom background image URL |
-| — | `gcal_has_cache` | Boolean flag `'1'` — GCal events cache exists in chrome.storage.local |
-| — | `gcal_synced_at` | Timestamp of last Google Calendar sync |
+| `FOCUS_TIMEZONES` | `fm_world_clocks` | Legacy key: defined in STORAGE_KEYS but not actively used; RightZone reads from Zustand directly |
+|: | `fm_bg_source` | `'default' \| 'curated' \| 'custom' \| 'orb'` |
+|: | `fm_custom_bg_url` | Custom background image URL |
+|: | `gcal_has_cache` | Boolean flag `'1'`: GCal events cache exists in chrome.storage.local |
+|: | `gcal_synced_at` | Timestamp of last Google Calendar sync |
 | `GCAL_ACCESS_TOKEN` | `gcal_access_token` | Unused legacy constant (never written by current code) |
-| `contacts_birthdays_synced_at` | — | Timestamp of last Google Contacts sync |
-| `contacts_has_cache` | — | Boolean flag — contacts cache exists in chrome.storage.local |
-| `contacts_disconnected` | — | Flag set when user disconnects Google Contacts |
-| `manual_birthdays` | — | `[{ id, name, type, month, day }]` manual occasion entries |
+| `contacts_birthdays_synced_at` |: | Timestamp of last Google Contacts sync |
+| `contacts_has_cache` |: | Boolean flag: contacts cache exists in chrome.storage.local |
+| `contacts_disconnected` |: | Flag set when user disconnects Google Contacts |
+| `manual_birthdays` |: | `[{ id, name, type, month, day }]` manual occasion entries |
 | `AUTO_THEME_COORDS` | `auto_theme_coords` | Legacy coords; superseded by `location_state` |
 | `AUTO_THEME_COORDS_SOURCE` | `auto_theme_coords_source` | Legacy source flag; superseded by `location_state` |
 | `INSTALL_ID` | `um_install_id` | Anonymous random install id (PostHog widget-usage telemetry unique-install counts). Not PII. |
@@ -547,19 +555,19 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 ### chrome.storage.local
 | Key (constant) | Key string | Contents |
 |---|---|---|
-| `SPOTIFY_TOKENS` | `spotify_tokens` | `{ access_token, refresh_token, expires_at }` — Spotify OAuth tokens |
+| `SPOTIFY_TOKENS` | `spotify_tokens` | `{ access_token, refresh_token, expires_at }`: Spotify OAuth tokens |
 | `SPOTIFY_PROFILE` | `spotify_profile` | Cached Spotify user profile `{ name, avatar }` |
 | `GCAL_CACHE` | `gcal_events_cache` | Cached Google Calendar events (PII; migrated from localStorage) |
 | `GCAL_PROFILE_CACHE` | `gcal_profile_cache` | Cached Google user profile (migrated from localStorage) |
-| — | `contacts_birthdays_cache` | `[{ id, name, type, month, day }]` from Google People API |
-| — | `google_tokens` | Google OAuth tokens (unified PKCE — extension + web) |
-| — | `lookaway_due` | Timestamp when LookAway break is due (written by SW) |
-| — | `lookaway_notify` | Boolean — whether to fire OS notification on break |
+|: | `contacts_birthdays_cache` | `[{ id, name, type, month, day }]` from Google People API |
+|: | `google_tokens` | Google OAuth tokens (unified PKCE: extension + web) |
+|: | `lookaway_due` | Timestamp when LookAway break is due (written by SW) |
+|: | `lookaway_notify` | Boolean: whether to fire OS notification on break |
 
 ### sessionStorage
 | Key | Contents |
 |---|---|
-| `google_tokens` | Google OAuth tokens `{ access_token, refresh_token, expires_at }` — `chrome.storage.local` (extension) or `sessionStorage` (web) |
+| `google_tokens` | Google OAuth tokens `{ access_token, refresh_token, expires_at }`: `chrome.storage.local` (extension) or `sessionStorage` (web) |
 
 ### Other localStorage keys (not in STORAGE_KEYS constants)
 | Key | Contents |
@@ -567,17 +575,17 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 | `fm_search_history` | Last 12 Focus Mode search queries (array of strings) |
 
 ## Event Shape
-`{ id, title, startDate, startTime, endDate, endTime }` — dates `YYYY-MM-DD`, times `HH:MM` 24h
+`{ id, title, startDate, startTime, endDate, endTime }`: dates `YYYY-MM-DD`, times `HH:MM` 24h
 
 ## ENV Variables
 | Variable | Used by |
 |---|---|
 | `VITE_PHOTOS_API_URL` | Curated photos proxy URL (default: production URL) |
-| `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID — used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website |
+| `VITE_GOOGLE_CLIENT_ID` | Single Google "Web application" OAuth client ID: used by the extension (Chrome/Brave/Edge/Firefox via launchWebAuthFlow) and website |
 | `VITE_WEBSITE_MODE` | Set to `'true'` for the hosted website (disables extension-only features) |
-| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID — same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
+| `GOOGLE_CLIENT_ID` | Server-side Google OAuth client ID: same value as `VITE_GOOGLE_CLIENT_ID` (Cloudflare env var, not bundled) |
 | `GOOGLE_CLIENT_SECRET` | Server-side Google OAuth client secret (Cloudflare env var, never in bundle) |
-| `VITE_POSTHOG_KEY` | Anonymous widget-usage telemetry — PostHog public (client) key; telemetry is a no-op when unset |
+| `VITE_POSTHOG_KEY` | Anonymous widget-usage telemetry: PostHog public (client) key; telemetry is a no-op when unset |
 | `VITE_POSTHOG_HOST` | PostHog ingestion host (default `https://us.i.posthog.com`) |
 
 > No client-side API key exists any more: the old `VITE_API_KEY` / `API_KEY`
@@ -588,39 +596,39 @@ Firefox-specific: `scripts/patch-manifest-firefox.mjs` clones `dist/` → `dist-
 > Weather uses **Open-Meteo** (free, no API key required).
 
 ## Key Patterns & Gotchas
-- **Events double-add bug**: NEVER mutate state inside `setX(prev => ...)` when calling `dispatchEvent` — StrictMode calls updaters twice. Use module-level cache + direct mutation.
-- **Modal portals**: MUST use `createPortal(…, document.body)` — CSS `transform` in react-grid-layout breaks `position:fixed` stacking context
+- **Events double-add bug**: NEVER mutate state inside `setX(prev => ...)` when calling `dispatchEvent`: StrictMode calls updaters twice. Use module-level cache + direct mutation.
+- **Modal portals**: MUST use `createPortal(…, document.body)`: CSS `transform` in react-grid-layout breaks `position:fixed` stacking context
 - **Cross-widget sync**: `window.dispatchEvent(new Event('widget_events_changed'))` same-page; `storage` event cross-tab
 - **Per-breakpoint layout**: save `allLayouts` (2nd arg of `onLayoutChange`), not `currentLayout`
 - **Drag stopPropagation**: `onMouseDown={e => e.stopPropagation()}` on buttons inside widgets
 - **Spotify re-auth loop**: refresh token failure must NOT clear `chrome.storage.local` tokens. Only `disconnectSpotify()` wipes them. `not_authenticated` in fetchPlayback → `setTrack(null)`, NOT `setConnected(false)`
 - **Focus Mode zone z-index**: CenterZone z25 sits ABOVE the foreground photo overlay at z15. Clock is not behind the image anymore.
-- **LookAway stale break**: skip if page was hidden (laptop asleep) for most of the interval — `lastHiddenAt` tracked via `document.visibilitychange`
-- **Token security**: Spotify tokens + Google Calendar/Contacts cache stored in `chrome.storage.local`, not `localStorage` — prevents other extensions from reading them
-- **Key obfuscation**: removed. The old `obscureEnvKeys` Vite plugin (XOR-encoded `VITE_GOOGLE_CLIENT_ID`) was deleted — a public OAuth client ID is not a secret, and the XOR value was trivially recoverable.
-- **Widget settings**: `useWidgetSettings` is backed by Zustand `useWidgetInstancesStore.widgetSettings` — do NOT read `widgetSettings_${id}` from localStorage directly in new code; call `useWidgetSettings(id)` instead
-- **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)` — only one tab runs the real timer. This applies to settings popovers and the extension popup too; the blocked interstitial (`blocked/BlockedPage.jsx`) is the only exception, and it derives its countdown from the stored `blockedUntil` wall-clock deadline (not a decrement) so background-tab throttling can't stretch the block.
-- **`useGoogleAccountStore.connect()`**: call this to trigger interactive Google OAuth — do NOT call `getGoogleAuthToken(true)` from UI components directly
-- **`mode='auto'`**: `setMode('auto')` does NOT call `applyTheme` directly — `useAutoTheme` does it after mount once sunrise/sunset is resolved
-- **Data tab**: Global settings → Data tab hosts Cross-Device Sync, Backup & Restore (Export/Import .json), and Reset. Import/export/reset were migrated here from WidgetCatalog to reduce tab-bar clutter.
-- **OPML import/export**: RSS widget only supports OPML (no JSON). Uses native `DOMParser` for parsing, supports file picker + paste XML, preview with checkboxes, nested folder flattening, and URL deduplication. Export generates valid OPML with proper XML escaping. Sample OPML includes real Nepali news feeds organized in folders.
-- **Web Audio chime**: `pomodoro/chime.js` uses the Web Audio API (`OscillatorNode` + `GainNode`) for a D4→G4 completion chime — zero external audio files, works offline. The `AudioContext` is a module-level singleton and is deliberately **not** closed after each chime (browsers cap concurrent contexts at ~6; oscillators self-disconnect after `stop()`). A context closed by the platform is recreated on the next call.
+- **LookAway stale break**: skip if page was hidden (laptop asleep) for most of the interval: `lastHiddenAt` tracked via `document.visibilitychange`
+- **Token security**: Spotify tokens + Google Calendar/Contacts cache stored in `chrome.storage.local`, not `localStorage`: prevents other extensions from reading them
+- **Key obfuscation**: removed. The old `obscureEnvKeys` Vite plugin (XOR-encoded `VITE_GOOGLE_CLIENT_ID`) was deleted: a public OAuth client ID is not a secret, and the XOR value was trivially recoverable.
+- **Widget settings**: `useWidgetSettings` is backed by Zustand `useWidgetInstancesStore.widgetSettings`: do NOT read `widgetSettings_${id}` from localStorage directly in new code; call `useWidgetSettings(id)` instead
+- **Shared clock**: use `onClockTick(fn)` from `sharedClock.js` instead of per-component `setInterval(fn, 1000)`: only one tab runs the real timer. This applies to settings popovers and the extension popup too; the blocked interstitial (`blocked/BlockedPage.jsx`) is the only exception and it derives its countdown from the stored `blockedUntil` wall-clock deadline (not a decrement) so background-tab throttling can't stretch the block.
+- **`useGoogleAccountStore.connect()`**: call this to trigger interactive Google OAuth: do NOT call `getGoogleAuthToken(true)` from UI components directly
+- **`mode='auto'`**: `setMode('auto')` does NOT call `applyTheme` directly: `useAutoTheme` does it after mount once sunrise/sunset is resolved
+- **Data tab**: Global settings → Data tab hosts Cross-Device Sync, Backup & Restore (Export/Import .json) and Reset. Import/export/reset were migrated here from WidgetCatalog to reduce tab-bar clutter.
+- **OPML import/export**: RSS widget only supports OPML (no JSON). Uses native `DOMParser` for parsing, supports file picker + paste XML, preview with checkboxes, nested folder flattening and URL deduplication. Export generates valid OPML with proper XML escaping. Sample OPML includes real Nepali news feeds organized in folders.
+- **Web Audio chime**: `pomodoro/chime.js` uses the Web Audio API (`OscillatorNode` + `GainNode`) for a D4→G4 completion chime: zero external audio files, works offline. The `AudioContext` is a module-level singleton and is deliberately **not** closed after each chime (browsers cap concurrent contexts at ~6; oscillators self-disconnect after `stop()`). A context closed by the platform is recreated on the next call.
 - **CSS-only bar charts**: Pomodoro's weekly stats and Expense widget both use CSS-only horizontal/vertical bars (no Chart.js). The `.pom-stats-chart` uses `grid-template-columns: repeat(7, 1fr)` for the weekly view; `.pom-stats-grid` uses `grid-template-columns: repeat(3, 1fr)` for stat chips spanning full width.
 
 ## Data (`app/data/`)
-- `bikramSambatCalendar.js` — BS calendar data (used by Nepali date conversion utilities)
-- `facts.js` — daily facts pool for the Facts widget
-- `greetings.js` — time-aware greeting messages for Focus Mode BottomZone
-- `lookawayMessages.js` — 70+ message pool for LookAway overlay (by category)
-- `timezones.js` — timezone list for world clock picker in clock widget settings
-- `weatherQuips.js` — condition-based quip strings imported by weather Widget.jsx
+- `bikramSambatCalendar.js`: BS calendar data (used by Nepali date conversion utilities)
+- `facts.js`: daily facts pool for the Facts widget
+- `greetings.js`: time-aware greeting messages for Focus Mode BottomZone
+- `lookawayMessages.js`: 70+ message pool for LookAway overlay (by category)
+- `timezones.js`: timezone list for world clock picker in clock widget settings
+- `weatherQuips.js`: condition-based quip strings imported by weather Widget.jsx
 
 ## Commands
-- `bun run dev` — Vite dev server
-- `bun run build` — Chrome extension build (outputs to `dist/`)
-- `bun run build:chrome` — Chrome Web Store zip (`builds/chrome.zip`)
-- `bun run build:firefox` — Firefox Addons zip (`builds/*.zip`); patches an isolated `dist-firefox/` clone
-- `bun run start:firefox` — run Firefox build locally via web-ext
-- `bun run test` — Playwright E2E tests
-- `bun run test:unit` — Vitest unit tests
+- `bun run dev`: Vite dev server
+- `bun run build`: Chrome extension build (outputs to `dist/`)
+- `bun run build:chrome`: Chrome Web Store zip (`builds/chrome.zip`)
+- `bun run build:firefox`: Firefox Addons zip (`builds/*.zip`); patches an isolated `dist-firefox/` clone
+- `bun run start:firefox`: run Firefox build locally via web-ext
+- `bun run test`: Playwright E2E tests
+- `bun run test:unit`: Vitest unit tests
 

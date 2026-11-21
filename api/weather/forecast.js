@@ -6,23 +6,23 @@
  *
  * ── Contract (to swap the upstream provider) ─────────────────────────────────
  * INPUT  (client → proxy, forwarded as-is):
- *   latitude, longitude      — coordinates
- *   current                  — "temperature_2m,apparent_temperature,weather_code,
+ *   latitude, longitude     : coordinates
+ *   current                 : "temperature_2m,apparent_temperature,weather_code,
  *                               wind_gusts_10m,precipitation,is_day"
- *   hourly                   — "precipitation_probability,weather_code,wind_gusts_10m"
- *   forecast_hours           — 12
- *   temperature_unit         — celsius | fahrenheit
- *   wind_speed_unit          — kmh | mph
- *   timezone                 — auto
+ *   hourly                  : "precipitation_probability,weather_code,wind_gusts_10m"
+ *   forecast_hours          : 12
+ *   temperature_unit        : celsius | fahrenheit
+ *   wind_speed_unit         : kmh | mph
+ *   timezone                : auto
  *
  * OUTPUT (proxy → client, pass-through; fields the client parses):
- *   current.temperature_2m        — °C/°F
- *   current.apparent_temperature  — feels-like
- *   current.weather_code          — WMO code
- *   current.is_day                — 0|1
- *   current.precipitation         — mm
- *   current.wind_gusts_10m        — kmh/mph
- *   hourly.time[]                 — ISO timestamps
+ *   current.temperature_2m       : °C/°F
+ *   current.apparent_temperature : feels-like
+ *   current.weather_code         : WMO code
+ *   current.is_day               : 0|1
+ *   current.precipitation        : mm
+ *   current.wind_gusts_10m       : kmh/mph
+ *   hourly.time[]                : ISO timestamps
  *   hourly.precipitation_probability[]
  *   hourly.weather_code[]
  *   hourly.wind_gusts_10m[]

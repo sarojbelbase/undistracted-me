@@ -1,11 +1,11 @@
 /**
- * UnifiedAddDialog — a single add/edit dialog for Events, Countdowns, and
+ * UnifiedAddDialog: a single add/edit dialog for Events, Countdowns and
  * Occasions, replacing the three separate AddEvent/AddCountdown/AddOccasion
  * dialogs.
  *
  * The dialog owns the modal shell, a standard header (icon + title + subtitle +
  * close), and a type selector (Event | Countdown | Occasion) locked to the type
- * it was launched from — double-clicking the selector unlocks switching. The
+ * it was launched from: double-clicking the selector unlocks switching. The
  * lower type-specific form body is reused from the Add* components, which now
  * render only their form + footer (no modal chrome).
  *
@@ -137,7 +137,7 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
     saveCustom(exists ? list.map((c) => (c.id === cd.id ? cd : c)) : [...list, cd]);
 
     // Mirror into the events store (same id) so countdowns appear in the Events
-    // widget and participate in auto-targeting — matching addCustom's behaviour.
+    // widget and participate in auto-targeting: matching addCustom's behaviour.
     const mirror = {
       title: cd.title,
       startDate: cd.targetDate,
@@ -160,7 +160,7 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
 
   return (
     <Modal onClose={onClose} style={{ width: 340 }} ariaLabel={title}>
-      {/* Header — shared with every Add/Edit dialog (see AddDialogHeader) */}
+      {/* Header: shared with every Add/Edit dialog (see AddDialogHeader) */}
       <AddDialogHeader
         icon={<meta.Icon size={14} style={{ color: 'var(--w-accent-fg)' }} />}
         title={title}
@@ -180,7 +180,7 @@ export const UnifiedAddDialog = ({ type, initial, initialDate, onClose, onSaved 
 
       <div style={{ height: 1, background: 'var(--card-border)' }} />
 
-      {/* Type-specific form body — keyed by active type so switching slides
+      {/* Type-specific form body: keyed by active type so switching slides
           within this same dialog canvas (see _animations.scss) */}
       <div key={active} className={slideClass}>
         {active === 'event' && (

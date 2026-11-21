@@ -1,5 +1,5 @@
 /**
- * Changelog for the /changelogs page — thin wrapper over the single source of
+ * Changelog for the /changelogs page: thin wrapper over the single source of
  * truth at `changelog/index.js`. This file only adds the image resolution that
  * Astro's asset pipeline needs (the shared data is intentionally text-only so
  * the extension and the release script can import it too).

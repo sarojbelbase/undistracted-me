@@ -1,4 +1,4 @@
-// ── Theme init (blocks FOUC — must execute before React mount) ──────────────
+// ── Theme init (blocks FOUC: must execute before React mount) ──────────────
 import "../themeInit";
 import "../App.css";
 import "../styles/main.scss";
