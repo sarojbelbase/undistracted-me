@@ -179,7 +179,7 @@
 // focus (:focus-within covers buttons/inputs/links inside a card). Mirrors
 // Focus Mode's top-bar control clusters (.fm-topbar-ctrl in _focus-mode.scss).
 .widget-dim {
-  opacity: 0.65;
+  opacity: 0.75;
   transition: opacity 0.25s ease;
 
   &:hover,
