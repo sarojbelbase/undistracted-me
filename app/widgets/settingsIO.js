@@ -1,4 +1,5 @@
 import { useSettingsStore } from "../store/useSettingsStore";
+import { todayStr } from "../utilities";
 
 /** Check whether a localStorage key belongs to the app. */
 const APP_KEY_PREFIXES = [
@@ -159,7 +160,7 @@ export const exportSettings = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `undistracted-me-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `undistracted-me-${todayStr()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -17,6 +17,7 @@ import {
 } from './constants/urls.js';
 import { buildNotification } from './constants/notifications.js';
 import { initSiteBlocker } from './utilities/siteBlocker.js';
+import { todayStr } from './utilities/date.js';
 import { writeEntry, readEntry } from './data/dataHub.js';
 import {
   setupPocketContextMenu,
@@ -58,7 +59,7 @@ async function loadEventsFired() {
   try {
     const { events_fired } = await chrome.storage.local.get(EVENTS_FIRED_KEY);
     if (events_fired && typeof events_fired === 'object') {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayStr();
       for (const [key, day] of Object.entries(events_fired)) {
         if (day === today) notified.add(key);
       }
@@ -69,7 +70,7 @@ async function loadEventsFired() {
 /** Persist the in-memory `notified` set (pruned to today). */
 function persistEventsFired() {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayStr();
     const map = {};
     for (const key of notified) map[key] = today;
     chrome.storage.local.set({ [EVENTS_FIRED_KEY]: map });

@@ -14,6 +14,7 @@ import { VIEW_MODES } from "./constants";
 import { OPMLImport } from "./OPMLImport";
 import { trackWidgetEvent } from "../../utilities/telemetry";
 import { parseOPML, generateOPML, generateSampleOPML, downloadFile } from "./opmlParser";
+import { todayStr } from "../../utilities";
 import { PillButton } from "../../components/ui/PillButton";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
@@ -90,7 +91,7 @@ export const Settings = ({
   const handleExportOPML = () => {
     if (!customFeeds.length) return;
     const content = generateOPML(customFeeds);
-    downloadFile(content, `rss_feeds_${new Date().toISOString().slice(0, 10)}.opml`, 'text/xml');
+    downloadFile(content, `rss_feeds_${todayStr()}.opml`, 'text/xml');
   };
 
   // ── Sample OPML ─────────────────────────────────────────────────────────

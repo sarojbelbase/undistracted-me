@@ -7,6 +7,7 @@ import { DataTransfer } from '../../components/ui/DataTransfer';
 import { SettingsField } from '../../components/ui/SettingsSection';
 import { CURRENCIES } from '../../data/currencies';
 import { DEFAULT_EXPENSE_SETTINGS, RANGE_CONFIG } from './useExpenses';
+import { todayStr, toLocalDateStr } from '../../utilities';
 
 const EXPENSE_PREFIX = 'expense_data_';
 const EXPENSES_CHANGED = 'expense_data_changed';
@@ -64,7 +65,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
       const items = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(items) || !items.length) return;
       const rows = items.map((e) => {
-        const d = new Date(e.createdAt).toISOString().slice(0, 10);
+        const d = toLocalDateStr(new Date(e.createdAt));
         const n = (e.note ?? '').replaceAll('"', '""');
         return `${d},${e.amount},${e.currency},${e.category},"${n}"`;
       });
@@ -72,7 +73,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `expenses_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.href = url; a.download = `expenses_${todayStr()}.csv`;
       a.click(); URL.revokeObjectURL(url);
     } catch { /* ignore */ }
   };
@@ -135,7 +136,7 @@ export const ExpenseSettings = ({ id, onClose }) => {
       const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
       for (let day = 1; day <= daysInMonth; day += Math.max(1, Math.floor(Math.random() * 5) + 1)) {
         const dd = new Date(d.getFullYear(), d.getMonth(), day);
-        const dateStr = dd.toISOString().slice(0, 10);
+        const dateStr = toLocalDateStr(dd);
         const cat = cats[Math.floor(Math.random() * cats.length)];
         const amt = (Math.random() * 2000 + 50).toFixed(2);
         const notes = ['', 'Lunch', 'Groceries run', 'Bus fare', 'Netflix', 'Coffee', 'Snacks', ''];
