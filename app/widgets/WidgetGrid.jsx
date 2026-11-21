@@ -10,7 +10,6 @@ import { useSettingsStore } from "../store";
 import { useUIStore } from "../store/useUIStore";
 import { WidgetActionsContext } from "./WidgetActionsContext";
 import { ErrorBoundary, WidgetErrorFallback } from "../components/ui/ErrorBoundary";
-import { trackWidgetRendered } from "../utilities/telemetry";
 
 const LAYOUT_KEY = STORAGE_KEYS.WIDGET_LAYOUT;
 
@@ -125,15 +124,6 @@ const WidgetCell = React.memo(function WidgetCell({
   );
 
   const Component = WIDGET_COMPONENTS[type];
-
-  // Count this widget type as "rendered" once per session: the clean signal
-  // for "which widgets are actually on people's dashboards". Deduped internally
-  // (by type) so breakpoint remounts / drag re-renders don't double-count.
-  // Guarded so a telemetry throw can never take down the widget via the boundary.
-  useEffect(() => {
-    if (!Component) return;
-    try { trackWidgetRendered(type); } catch { /* telemetry must never break UI */ }
-  }, [Component, type]);
 
   if (!Component) return null;
 

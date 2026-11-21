@@ -39,7 +39,6 @@ import {
   FM_BORDER,
 } from "../theme";
 import { useRainStream } from "../../../hooks/useRainStream";
-import { track, TELEMETRY_EVENTS } from "../../../utilities/telemetry";
 import { ChevronLeftIcon } from '../../../assets/svg/ChevronLeftIcon';
 
 const TOP = ZONES.top.items;
@@ -209,7 +208,6 @@ const NavBar = ({
         <TooltipBtn
           tooltip={isPlayingRain ? "Fade out rain & noise" : "Rain & white noise"}
           onClick={() => {
-            track(TELEMETRY_EVENTS.RAIN_TOGGLED, { enabled: !isPlayingRain });
             toggleRain();
           }}
           onMouseEnter={() => setRainHovered(true)}

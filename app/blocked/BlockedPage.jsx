@@ -3,6 +3,7 @@ import { FALLBACK_MESSAGES, loadLookawayMessages } from '../data/lookawayMessage
 import { ORB_PALETTES } from '../constants/orbPalettes';
 import { shorthandFromUrl } from '../utilities/index';
 import { computeAutoMode } from '../utilities/sunTime';
+import { initTelemetry, track, TELEMETRY_EVENTS } from '../utilities/telemetry';
 
 // ─── Module-level: read blocked domain + info once, before React mounts ──────
 
@@ -136,6 +137,12 @@ const BlockedPage = () => {
   const isDark = resolveMode(readSettings().mode) === 'dark';
   const blockedDomain = BLOCKED_DOMAIN;
   const { remainingMs: initialRemaining, totalDurationMs, deadline, infinite, notFound } = BLOCK_INFO;
+
+  // ── Telemetry: count one block-page impression per visit ───────────────────
+  useEffect(() => {
+    initTelemetry({ appOpened: false });
+    track(TELEMETRY_EVENTS.BLOCK_PAGE_SHOWN);
+  }, []);
 
   // ── Pick a random orb palette for visual variety (matching LookAway) ───
   const orbRgb = useMemo(

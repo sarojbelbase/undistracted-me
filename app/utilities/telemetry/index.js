@@ -31,7 +31,6 @@ let provider = createProvider();
 let ready = false; // true once the SDK is loaded and initialised
 let initPromise = null;
 const pendingEvents = [];
-const renderedThisSession = new Set();
 
 /**
  * Stable anonymous install id, persisted in localStorage. Used as the vendor's
@@ -54,8 +53,11 @@ function getInstallId() {
  * Load and initialise the analytics provider (idempotent). Flushes any events
  * buffered before the SDK was ready, pins the distinct_id to our install id,
  * and emits one guaranteed `app_opened` event per session.
+ *
+ * `appOpened: false` skips the session ping: used by auxiliary surfaces (the
+ * blocked-site page) that share the install id but are not the app itself.
  */
-export function initTelemetry() {
+export function initTelemetry({ appOpened = true } = {}) {
   if (!KEY) return Promise.resolve();
   if (initPromise) return initPromise;
 
@@ -71,7 +73,9 @@ export function initTelemetry() {
         provider.capture(event, props);
       }
 
-      provider.capture(TELEMETRY_EVENTS.APP_OPENED, { platform: getPlatform() });
+      if (appOpened) {
+        provider.capture(TELEMETRY_EVENTS.APP_OPENED, { platform: getPlatform() });
+      }
     } catch {
       provider = createProvider();
       ready = false;
@@ -111,15 +115,4 @@ export function track(eventName, props = {}) {
  */
 export function trackWidgetEvent(verb, widgetType, props = {}) {
   track(widgetEvent(verb), { widget_type: widgetType, ...props });
-}
-
-/**
- * Capture a widget render, deduplicated to once per session per widget type.
- * This is the "is this widget on people's dashboards" signal.
- */
-export function trackWidgetRendered(widgetType) {
-  if (!KEY) return;
-  if (renderedThisSession.has(widgetType)) return;
-  renderedThisSession.add(widgetType);
-  send(widgetEvent('rendered'), { widget_type: widgetType });
 }

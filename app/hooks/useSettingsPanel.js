@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { track, TELEMETRY_EVENTS } from '../utilities/telemetry';
 
 /** Single source of truth for the default settings tab. */
 export const DEFAULT_SETTINGS_TAB = 'general';
@@ -37,7 +36,6 @@ export function useSettingsPanel() {
   }, [showSettings]);
 
   const toggleSettings = useCallback(() => {
-    if (!showSettingsRef.current) track(TELEMETRY_EVENTS.SETTINGS_OPENED);
     // Reset the initial tab when closing (read the current value from the ref -
     // setState-in-setState is an impure updater).
     if (showSettingsRef.current) setSettingsInitialTab(DEFAULT_SETTINGS_TAB);
@@ -48,7 +46,6 @@ export function useSettingsPanel() {
     setSettingsInitialTab(DEFAULT_SETTINGS_TAB);
   }, []);
   const openAtTab = useCallback((tab) => {
-    track(TELEMETRY_EVENTS.SETTINGS_OPENED);
     setSettingsInitialTab(tab);
     setShowSettings(true);
   }, []);

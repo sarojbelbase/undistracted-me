@@ -24,8 +24,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   WIDGET_ADDED: widgetEvent('added'),
   WIDGET_REMOVED: widgetEvent('removed'),
   WIDGET_DUPLICATED: widgetEvent('duplicated'),
-  WIDGET_RENDERED: widgetEvent('rendered'),
-  WIDGET_SETTINGS_OPENED: widgetEvent('settings_opened'),
 
   // ── Widget actions (generic verbs + `widget_type` prop) ───────────────
   WIDGET_STARTED: widgetEvent('started'),
@@ -33,7 +31,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   WIDGET_CREATED: widgetEvent('created'),
   WIDGET_IMPORTED: widgetEvent('imported'),
   WIDGET_COMPLETED: widgetEvent('completed'),
-  WIDGET_USED: widgetEvent('used'),
 
   // ── Accounts / integrations ───────────────────────────────────────────
   ACCOUNT_CONNECTED: 'account_connected',
@@ -47,11 +44,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
   LOOKAWAY_ENABLED: 'lookaway_enabled',
   LOOKAWAY_DISABLED: 'lookaway_disabled',
   LOOKAWAY_TRIGGERED: 'lookaway_triggered',
-  LOOKAWAY_DISMISSED: 'lookaway_dismissed',
-  LOOKAWAY_SNOOZED: 'lookaway_snoozed',
-
-  // ── Extension popup ───────────────────────────────────────────────────
-  POPUP_OPENED: 'popup_opened',
 
   // ── Site blocking ─────────────────────────────────────────────────────
   BLOCK_SITE_ADDED: 'block_site_added',
@@ -60,7 +52,6 @@ export const TELEMETRY_EVENTS = Object.freeze({
 
   // ── Views / modes ─────────────────────────────────────────────────────
   FOCUS_MODE_ENTERED: 'focus_mode_entered',
-  FOCUS_MODE_EXITED: 'focus_mode_exited',
   NOTE_MODE_ENTERED: 'note_mode_entered',
   CANVAS_ENTERED: 'canvas_entered',
 
@@ -70,13 +61,10 @@ export const TELEMETRY_EVENTS = Object.freeze({
   MODE_CHANGED: 'mode_changed',
 
   // ── Dialogs / overlays ────────────────────────────────────────────────
-  SETTINGS_OPENED: 'settings_opened',
   WIDGET_CATALOG_OPENED: 'widget_catalog_opened',
-  ACCOUNTS_DIALOG_OPENED: 'accounts_dialog_opened',
 
   // ── Misc features ─────────────────────────────────────────────────────
   SEARCH_USED: 'search_used',
-  RAIN_TOGGLED: 'rain_toggled',
   QUICK_TOUR_SHOWN: 'quick_tour_shown',
   CLIP_SAVED: 'clip_saved',
   TASK_ADDED: 'task_added',

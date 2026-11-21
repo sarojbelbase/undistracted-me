@@ -13,7 +13,6 @@ import { BaseSettingsModal } from "./BaseSettingsModal";
 import { ConfirmButton } from "../components/ui/ConfirmButton";
 import { TooltipBtn } from "../components/ui/TooltipBtn";
 import { WidgetActionsContext } from "./WidgetActionsContext";
-import { trackWidgetEvent } from "../utilities/telemetry";
 
 /**
  * Base card wrapper for all widgets.
@@ -44,19 +43,22 @@ export const BaseWidget = forwardRef(
   ) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
-    // Stable close callback so the Modal's Escape-key listener doesn't re-register
-    // on every widget render (clock widgets re-render once a second).
-    const closeModal = useCallback(() => setModalOpen(false), []);
-    const menuRef = useRef(null);
-    const btnRef = useRef(null);
-    const dropRef = useRef(null);
-    // Computed drop position: null until measured
-    const [dropStyle, setDropStyle] = useState(null);
 
     // Per-widget-instance actions (duplicate) provided by WidgetGrid.
     // Absent (null defaults) when BaseWidget renders outside a grid context.
     const actions = useContext(WidgetActionsContext);
     const hasDuplicate = !!(actions && actions.duplicate);
+
+    // Stable close callback so the Modal's Escape-key listener doesn't re-register
+    // on every widget render (clock widgets re-render once a second).
+    const closeModal = useCallback(() => {
+      setModalOpen(false);
+    }, []);
+    const menuRef = useRef(null);
+    const btnRef = useRef(null);
+    const dropRef = useRef(null);
+    // Computed drop position: null until measured
+    const [dropStyle, setDropStyle] = useState(null);
 
     // Close context menu on outside click or Escape
     useEffect(() => {
@@ -213,7 +215,6 @@ export const BaseWidget = forwardRef(
                   onClick={() => {
                     setMenuOpen(false);
                     setModalOpen(true);
-                    trackWidgetEvent('settings_opened', actions.type);
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-opacity hover:opacity-70"

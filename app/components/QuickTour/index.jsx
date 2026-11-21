@@ -25,6 +25,7 @@ import {
 } from 'react-bootstrap-icons';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { APP_VERSION } from '../../constants/version';
+import { track, TELEMETRY_EVENTS } from '../../utilities/telemetry';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -236,6 +237,7 @@ export function QuickTour() {
   // Mount after a short delay so the app renders first (smooth experience)
   useEffect(() => {
     if (!shouldShow) return;
+    track(TELEMETRY_EVENTS.QUICK_TOUR_SHOWN);
     const t = setTimeout(() => { setVisible(true); setExiting(false); }, 600);
     return () => clearTimeout(t);
   }, [shouldShow]);

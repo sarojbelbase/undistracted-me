@@ -388,12 +388,10 @@ const App = () => {
     setShowLookAway(false);
     clearLookAwayDue();
     triggerSupportNudge('lookaway');
-    track(TELEMETRY_EVENTS.LOOKAWAY_DISMISSED);
   }, []);
   const handleLookAwaySnooze = useCallback((mins) => {
     setShowLookAway(false);
     snoozeLookAway(mins);
-    track(TELEMETRY_EVENTS.LOOKAWAY_SNOOZED, { minutes: mins });
   }, []);
 
   // Stabilized handlers for ControlCluster: inline arrows change identity every
