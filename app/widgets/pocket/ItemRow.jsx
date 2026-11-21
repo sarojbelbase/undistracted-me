@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, memo } from "react";
-import { BoxArrowUpRight, Check2, Copy, TextLeft, Trash, XLg } from "react-bootstrap-icons";
+import { BoxArrowUpRight, Check2, Copy, TextLeft, Trash3Fill, XLg } from "react-bootstrap-icons";
 import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
 import { KIND_ICONS } from "./kindIcons";
@@ -233,7 +233,7 @@ function WidgetRow({ item, isNew, onOpen }) {
               {copied ? <Check2 size={12} /> : <Copy size={12} />}
             </IconButton>
             <IconButton label="Delete" size="sm" onClick={(e) => { e.stopPropagation(); deleteWithUndo(item); }}>
-              <Trash size={12} />
+              <Trash3Fill size={12} />
             </IconButton>
           </>
         ) : (
@@ -242,7 +242,7 @@ function WidgetRow({ item, isNew, onOpen }) {
               {copied ? <Check2 size={12} /> : <Copy size={12} />}
             </IconButton>
             <IconButton label="Delete" size="sm" onClick={(e) => { e.stopPropagation(); deleteWithUndo(item); }}>
-              <Trash size={12} />
+              <Trash3Fill size={12} />
             </IconButton>
           </>
         )}

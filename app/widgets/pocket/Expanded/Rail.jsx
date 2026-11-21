@@ -4,8 +4,8 @@ import {
   ChevronDown,
   FolderPlus,
   GearFill,
-  Pencil,
-  Trash,
+  PencilFill,
+  Trash3Fill,
   ThreeDots,
 } from "react-bootstrap-icons";
 import { IconButton } from "../../../components/ui/IconButton";
@@ -271,7 +271,7 @@ function FolderRow({ folder, count, active, onPick, onRename, onDelete }) {
 
       <div className="pocket-folder-row__actions">
         <IconButton label="Rename folder" onClick={onRename}>
-          <Pencil size={12} />
+          <PencilFill size={12} />
         </IconButton>
         <ConfirmButton
           danger
@@ -280,7 +280,7 @@ function FolderRow({ folder, count, active, onPick, onRename, onDelete }) {
           style={{ width: 32, height: 32, borderRadius: 8 }}
           onConfirm={onDelete}
         >
-          <Trash size={12} />
+          <Trash3Fill size={12} />
         </ConfirmButton>
       </div>
 
@@ -303,7 +303,7 @@ function FolderRow({ folder, count, active, onPick, onRename, onDelete }) {
           triggerRef={touchRef}
           onClose={() => setTouchAnchor(null)}
           items={[
-            { label: "Rename Folder", icon: <Pencil size={13} />, onSelect: onRename },
+            { label: "Rename Folder", icon: <PencilFill size={13} />, onSelect: onRename },
             {
               label: "Change Color",
               icon: <span style={{ width: 10, height: 10, borderRadius: 3, background: FOLDER_COLOR_MAP[folder.color] || FOLDER_COLOR_MAP.slate }} />,
@@ -314,7 +314,7 @@ function FolderRow({ folder, count, active, onPick, onRename, onDelete }) {
               })),
             },
             { divider: true },
-            { label: "Delete Folder", icon: <Trash size={13} />, danger: true, onSelect: onDelete },
+            { label: "Delete Folder", icon: <Trash3Fill size={13} />, danger: true, onSelect: onDelete },
           ]}
         />
       )}

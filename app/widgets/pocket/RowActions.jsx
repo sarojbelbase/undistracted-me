@@ -9,7 +9,7 @@ import {
   Quote,
   TextLeft,
   ThreeDots,
-  Trash,
+  Trash3Fill,
 } from "react-bootstrap-icons";
 import { IconButton } from "../../components/ui/IconButton";
 import { ActionMenu } from "../../components/ui/ActionMenu";
@@ -116,7 +116,7 @@ export function RowActions({ item, copied, onCopy }) {
         { divider: true },
         folderMenu,
         { divider: true },
-        { label: "Delete", icon: <Trash size={13} />, danger: true, onSelect: doDelete },
+        { label: "Delete", icon: <Trash3Fill size={13} />, danger: true, onSelect: doDelete },
       ]
     : [
         ...(hasSource && !isCode
@@ -132,7 +132,7 @@ export function RowActions({ item, copied, onCopy }) {
           submenu: KINDS.map((k) => ({ label: KIND_META[k].label, onSelect: () => changeType(k) })),
         },
         { divider: true },
-        { label: "Delete", icon: <Trash size={13} />, danger: true, onSelect: doDelete },
+        { label: "Delete", icon: <Trash3Fill size={13} />, danger: true, onSelect: doDelete },
       ];
 
   const showQuote = hasSource && !isCode;

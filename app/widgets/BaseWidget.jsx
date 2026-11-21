@@ -8,7 +8,7 @@ import {
   forwardRef,
 } from "react";
 import { createPortal } from "react-dom";
-import { GearFill, Files, TrashFill } from "react-bootstrap-icons";
+import { GearFill, Files, Trash3Fill } from "react-bootstrap-icons";
 import { BaseSettingsModal } from "./BaseSettingsModal";
 import { ConfirmButton } from "../components/ui/ConfirmButton";
 import { TooltipBtn } from "../components/ui/TooltipBtn";
@@ -270,7 +270,7 @@ export const BaseWidget = forwardRef(
                     background: "none",
                   }}
                 >
-                  <TrashFill size={14} aria-hidden="true" />
+                  <Trash3Fill size={14} aria-hidden="true" />
                   Remove
                 </ConfirmButton>
               )}

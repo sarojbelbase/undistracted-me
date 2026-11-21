@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { TrashFill } from "react-bootstrap-icons";
+import { Trash3Fill } from "react-bootstrap-icons";
 import { shorthandFromUrl } from "../../utilities/index";
 
 /**
@@ -60,7 +60,7 @@ export const BookmarksSection = ({ bookmarks, onRemove }) => {
                                 {isConfirming ? (
                                     <span className="popup-bookmarks__confirm">Sure?</span>
                                 ) : (
-                                    <TrashFill size={10} />
+                                    <Trash3Fill size={10} />
                                 )}
                             </button>
                         </a>
