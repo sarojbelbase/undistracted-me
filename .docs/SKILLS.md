@@ -12,10 +12,10 @@ Legend: ✅ = use by default · ◐ = situational · - = archived (not loaded)
 
 | Location | Count | Notes |
 |---|---|---|
-| `.agents/skills/<name>/SKILL.md` | 61 | Active, project-scoped |
+| `.agents/skills/<name>/SKILL.md` | 62 | Active, project-scoped |
 | `~/.config/opencode/skills/` | 16 | Global, shared across projects |
 | Built-in / plugin skills | 10 | Available but not vendored (listed at the bottom) |
-| **Total active** | **87** | |
+| **Total active** | **88** | |
 | `skills-archive/` | 104 | Curated out; kept on disk, gitignored |
 
 The original 165 vendored skills were validated (every `SKILL.md` has `name` +
@@ -204,6 +204,12 @@ modeling only).
 
 ---
 
+## 13. Research & market intelligence: ◐
+
+| Skill | | Use when |
+|---|---|---|
+| `agent-reach` | ◐ | Read-only platform research (competitor, feature/API, SEO keyword, mention monitoring) when built-in search fails or needs body/comments/subtitles |
+
 ## Available but not vendored (10)
 
 These are exposed by built-in/plugin sources and are **not** in
@@ -239,5 +245,6 @@ These are exposed by built-in/plugin sources and are **not** in
 | Extension security review | `stride-analysis-patterns` → `security-requirement-extraction` (+ `extension-security-reviewer` agent) |
 | API endpoint | `nodejs-backend-patterns` → `api-design-principles` → `openapi-spec-generation` |
 | Landing page / SEO | `astro-seo` → `frontend-design` |
+| Research / competitor / market | `agent-reach` (→ `seo-strategist` agent to act on SEO findings) |
 | Release / CI | `github-actions-templates` → `dependency-upgrade` → `changelog-automation` |
 | Big multi-step change | `writing-plans` → `executing-plans` (→ `dispatching-parallel-agents`) |

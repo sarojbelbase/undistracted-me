@@ -33,7 +33,7 @@ bun run test:unit:coverage
 
 ## Skill routing
 
-`.docs/SKILLS.md` inventories the 87 active skills (104 non-applicable ones are
+`.docs/SKILLS.md` inventories the 88 active skills (104 non-applicable ones are
 archived in `skills-archive/`) with ✅/◐/- relevance and a per-task load table.
 Defaults for this repo:
 
@@ -43,6 +43,7 @@ Defaults for this repo:
 - A11y → `accessibility-compliance`, `wcag-audit-patterns`
 - Auth/secrets → `auth-implementation-patterns`, `secrets-management`
 - Landing/SEO → `astro-seo`
+- Research/competitor/market → `agent-reach` (→ `seo-strategist` agent to act on findings)
 
 Custom subagents live in `.opencode/agents/`: `react-guru`,
 `extension-security-reviewer`, `mechanic` (SonarQube cleanup).
