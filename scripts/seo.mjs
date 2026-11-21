@@ -12,7 +12,7 @@ export const APP_SEO = {
   name: 'Undistracted Me',
   url: BASE_URL,
   description:
-    'Undistracted Me is a free, open-source new tab for Chrome and Firefox: a calm dashboard with a Nepali calendar, Focus Mode and quiet widgets. Works offline.',
+    'Undistracted Me is a free, open-source focus new tab for Chrome and Firefox: a site blocker, Pomodoro timer, ambient sounds, Google Tasks and quiet widgets. No account, works offline.',
   author: {
     name: 'Saroj Belbase',
     url: 'https://github.com/sarojbelbase',
@@ -42,6 +42,8 @@ export const APP_SEO = {
   image: `${BASE_URL}/og.png`,
   softwareVersion: '4.0.2',
   lastModified: '2026-11-16',
+  googleSiteVerification: '',
+  bingSiteVerification: '',
 };
 
 export function buildSchemaGraph() {
@@ -198,9 +200,21 @@ export function injectSeo(html) {
   if (html.includes('application/ld+json')) {
     return html;
   }
+  const verificationTags = [];
+  if (APP_SEO.googleSiteVerification) {
+    verificationTags.push(
+      `<meta name="google-site-verification" content="${APP_SEO.googleSiteVerification}" />`,
+    );
+  }
+  if (APP_SEO.bingSiteVerification) {
+    verificationTags.push(
+      `<meta name="msvalidate.01" content="${APP_SEO.bingSiteVerification}" />`,
+    );
+  }
   const json = JSON.stringify(buildSchemaGraph()).replace(/</g, '\\u003c');
   const tag = `<script type="application/ld+json">${json}</script>`;
-  return html.replace('</head>', `${tag}\n  </head>`);
+  const additions = [...verificationTags, tag].join('\n  ');
+  return html.replace('</head>', `${additions}\n  </head>`);
 }
 
 /**

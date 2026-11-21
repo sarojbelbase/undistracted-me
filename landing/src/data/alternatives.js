@@ -226,6 +226,129 @@ export const alternatives = [
     whenToChoose:
       "Choose StayFocusd instead if you want a lean, free, open-source time-limiter and nothing more: it has earned its reputation. Choose Undistracted Me if you want that same free and open-source blocking as part of a complete focus new tab, with a web clipper, Pomodoro, ambient sounds and Google Tasks built in.",
   },
+  {
+    slug: "forest",
+    name: "Forest",
+    title: "Forest Alternative: Free, Open-Source Pomodoro & Focus New Tab",
+    description:
+      "Forest alternative: Undistracted Me brings the same Pomodoro focus and app blocking to your browser new tab, free and open source, with ambient sounds and Google Tasks.",
+    h1: "Forest alternative",
+    subline:
+      "A free, open-source Pomodoro and focus new tab for your browser: app blocking, ambient sounds and Google Tasks, no account.",
+    intro: [
+      "Forest is one of the most loved focus apps around: plant a virtual tree, start a timer and the tree grows while you work. It's built for your phone, with a free tier that covers the core timer and app blocking, plus a Forest Plus subscription for the extras. Undistracted Me takes the same idea and puts it where you actually get distracted: your browser's new tab.",
+      "The big difference is the surface. Forest lives on your phone and guards your mobile apps. Undistracted Me lives in your new tab and guards your browser: a Pomodoro timer, a fullscreen Focus Mode and site blocking, all free and open source.",
+    ],
+    comparison: {
+      // [VERIFY] Forest Plus is $5.99/mo or $35.99/yr (US App Store, "Early Bird") per forestapp.cc + App Store
+      price: "Free; Forest Plus is $5.99/mo or $35.99/yr",
+      // [VERIFY] Account used for sync, leaderboard and Plant Together per forestapp.cc
+      account: "Account for sync and social features",
+      // [VERIFY] Forest is proprietary
+      openSource: "No: proprietary",
+      // [VERIFY] Focus timer in countdown and stopwatch form is a free core feature
+      pomodoro: "Yes: focus timer, countdown and stopwatch",
+      // [VERIFY] Mindful Space soundscapes: one free, all with Plus
+      ambient: "Yes: soundscapes (one free, all with Plus)",
+      // [VERIFY] Forest is a phone app with no browser new-tab dashboard
+      widgets: "No new-tab dashboard",
+      // [VERIFY] Deep Focus blocks mobile apps; free tier
+      blocking: "Yes: blocks phone apps",
+      // [VERIFY] No web clipper
+      clipper: "No",
+      // [VERIFY] No to-do list or Google Tasks integration
+      tasks: "No task list or Google Tasks",
+    },
+    differences: [
+      "The core idea is shared: both make focus tangible with a Pomodoro-style timer. Forest grows a tree; Undistracted Me counts down in a fullscreen Focus Mode. The difference is where the focus happens: Forest is a phone app, Undistracted Me is your browser's new tab.",
+      "On blocking, Forest's Deep Focus guards the apps on your phone. Undistracted Me blocks distracting websites with the browser's own rules, for a set timer or permanently, and your blocklist never leaves your device.",
+      "On price and openness, Forest's free tier is genuinely useful but the extras sit behind Forest Plus. Undistracted Me is entirely free and open source: Pomodoro, ambient rain and white noise, Google Tasks and site blocking all built in, with no account.",
+    ],
+    whenToChoose:
+      "Choose Forest instead if you get distracted on your phone and want its polished tree-growing ritual, or if you specifically want to plant real trees. It's a beautiful app. Choose Undistracted Me if your distractions live in the browser and you want a free, open-source Pomodoro, site blocker and focus new tab in one place.",
+  },
+  {
+    slug: "startme",
+    name: "Start.me",
+    title: "Start.me Alternative: Free, Open-Source Focus New Tab",
+    description:
+      "Start.me alternative: Undistracted Me is a free, open-source new tab with a Pomodoro timer, ambient sounds and Google Tasks, no account and no ads.",
+    h1: "Start.me alternative",
+    subline:
+      "A free, open-source start page and focus new tab: Pomodoro, ambient sounds and Google Tasks, no account, no ads.",
+    intro: [
+      "Start.me is a capable cloud start page: a grid of bookmarks, RSS feeds, notes and widgets that syncs across your devices. It's a solid bookmark manager, and its free tier is generous. Undistracted Me starts from a different question: what if your new tab helped you focus, not just organise links?",
+      "The two share a love of widgets, but diverge on the point of the page. Start.me is about collecting and organising everything you visit. Undistracted Me is about doing less, deliberately: a quiet dashboard plus Focus Mode, a Pomodoro timer, ambient sounds and your Google Tasks.",
+    ],
+    comparison: {
+      // [VERIFY] Start.me free = ad-supported, 3 pages; PRO $26/yr per start.me/pricing
+      price: "Free (ads, 3 pages); PRO is $26/yr",
+      // [VERIFY] A free account is required per start.me onboarding
+      account: "Account required",
+      // [VERIFY] Start.me is proprietary
+      openSource: "No: proprietary",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] Tasks widget is standard; Google Tasks is a PRO widget per start.me/pricing
+      tasks: "Tasks widget; Google Tasks on PRO",
+      // [VERIFY] 30+ standard widgets, 9 more on PRO per start.me/pricing
+      widgets: "30+ standard widgets; 9 more on PRO",
+      // [VERIFY] No site-blocking feature
+      blocking: "No",
+      // [VERIFY] Bookmark save only, no read-it-later text clipper
+      clipper: "No text clipper",
+    },
+    differences: [
+      "Start.me's strength is bookmarks: unlimited on the free tier, synced through your account. Undistracted Me treats bookmarks as one quiet widget among many, and keeps everything local with no account at all.",
+      "The clearest difference is focus. Start.me has no Pomodoro timer, no Focus Mode and no ambient sounds. Undistracted Me builds the whole page around them, with rain and white noise built in.",
+      "On privacy, Start.me runs in the cloud and shows ads on the free plan. Undistracted Me runs offline, stores your settings in your browser and has no ads and no account.",
+    ],
+    whenToChoose:
+      "Choose Start.me instead if you want a cloud-synced bookmark manager and don't mind ads on the free tier, or if organising links across devices is your main goal. Choose Undistracted Me if you want a free, open-source focus new tab with Pomodoro, ambient sounds and Google Tasks and no account or ads.",
+  },
+  {
+    slug: "toby",
+    name: "Toby",
+    title: "Toby Alternative: Free, Open-Source Focus New Tab",
+    description:
+      "Toby alternative: Undistracted Me is a free, open-source new tab for managing tabs, staying focused and getting things done: Pomodoro, ambient sounds and Google Tasks, no account.",
+    h1: "Toby alternative",
+    subline:
+      "A free, open-source new tab for tabs, focus and tasks: Pomodoro, ambient sounds and Google Tasks, no account.",
+    intro: [
+      "Toby turns your new tab into a tidy shelf of saved tabs: collections of cards you can open again later, synced through your Toby account. It's a clean, well-liked tab manager. Undistracted Me takes the same new-tab slot and asks it to do more: manage your attention, not just your tabs.",
+      "Where Toby is a tab manager, Undistracted Me is a focus dashboard. Both replace your new tab. Undistracted Me adds a Pomodoro timer, a fullscreen Focus Mode, ambient sounds, Google Tasks and site blocking, all free and open source.",
+    ],
+    comparison: {
+      // [VERIFY] Toby Starter = free up to 60 saved tabs; Productivity $6/mo ($4.50/mo yearly) per gettoby.com/pricing
+      price: "Free (60 saved tabs); Productivity from $4.50/mo",
+      // [VERIFY] A Toby account is required (Google sign-on) per gettoby.com help
+      account: "Account required",
+      // [VERIFY] Toby is proprietary
+      openSource: "No: proprietary",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] Notes and to-links only, no Google Tasks per gettoby.com/pricing
+      tasks: "Notes only; no Google Tasks",
+      // [VERIFY] Tab cards and collections, not a widget dashboard
+      widgets: "No widget dashboard",
+      // [VERIFY] No site-blocking feature
+      blocking: "No",
+      // [VERIFY] Saves tabs, not read-it-later text
+      clipper: "No text clipper",
+    },
+    differences: [
+      "Toby's strength is tab triage: save tabs into collections and reopen them later. Undistracted Me keeps quick links and a bookmarks widget, but its real work is the other direction: closing the distracting tabs, not saving them.",
+      "On focus, Toby has no Pomodoro timer, no Focus Mode and no ambient sounds. Undistracted Me is built around them, with site blocking that stops you opening the tab in the first place.",
+      "On price and privacy, Toby's free plan caps at 60 saved tabs and needs an account. Undistracted Me is free with no limits, no account and everything stored locally.",
+    ],
+    whenToChoose:
+      "Choose Toby instead if you live in many tabs and want a synced shelf to park them in, and you're happy with an account. Choose Undistracted Me if you want to spend less time in tabs altogether: a free, open-source focus new tab with Pomodoro, ambient sounds, Google Tasks and site blocking.",
+  },
 ];
 
 export function getAlternative(slug) {

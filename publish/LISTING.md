@@ -11,7 +11,7 @@ the store APIs do not set name / description / category / screenshots.
 
 | Field | Value |
 |---|---|
-| Name | `Undistracted Me: Focus New Tab with Pomodoro & Widgets` |
+| Name | `Undistracted Me: Focus New Tab & Site Blocker` |
 | Category | **Productivity** |
 | Developer website | `https://undistracted.me` |
 | Privacy policy URL | `https://undistracted.me/pp-and-tos` |

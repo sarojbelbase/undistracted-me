@@ -19,6 +19,15 @@ const {
 
 const fontsUrl =
   "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Fraunces:ital,opsz,wght@1,9..144,500..800&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap";
+
+const verificationMeta = [
+  ...(site.googleSiteVerification
+    ? [{ name: "google-site-verification", content: site.googleSiteVerification }]
+    : []),
+  ...(site.bingSiteVerification
+    ? [{ name: "msvalidate.01", content: site.bingSiteVerification }]
+    : []),
+];
 ---
 
 <!doctype html>
@@ -48,6 +57,7 @@ const fontsUrl =
         { rel: "preconnect", href: "https://cloud.umami.is" },
       ]}
       extraMeta={[
+        ...verificationMeta,
         { name: "theme-color", content: "#f7f7f7" },
         { name: "color-scheme", content: "light" },
       ]}

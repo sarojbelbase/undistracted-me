@@ -13,6 +13,9 @@ const PAGES = [
   { url: `${site.url}/bonjourr-alternative/`, file: "src/pages/bonjourr-alternative.astro" },
   { url: `${site.url}/blocksite-alternative/`, file: "src/pages/blocksite-alternative.astro" },
   { url: `${site.url}/stayfocusd-alternative/`, file: "src/pages/stayfocusd-alternative.astro" },
+  { url: `${site.url}/forest-alternative/`, file: "src/pages/forest-alternative.astro" },
+  { url: `${site.url}/startme-alternative/`, file: "src/pages/startme-alternative.astro" },
+  { url: `${site.url}/toby-alternative/`, file: "src/pages/toby-alternative.astro" },
 ];
 
 /**

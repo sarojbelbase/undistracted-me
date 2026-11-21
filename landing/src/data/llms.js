@@ -95,6 +95,24 @@ export const llmsSections = [
         description:
           "Undistracted Me vs Bonjourr: ambient sounds, Google Tasks and a bigger widget grid.",
       },
+      {
+        url: `${site.url}/forest-alternative/`,
+        title: "vs Forest",
+        description:
+          "Undistracted Me vs Forest: a free, open-source Pomodoro and focus new tab for your browser.",
+      },
+      {
+        url: `${site.url}/startme-alternative/`,
+        title: "vs Start.me",
+        description:
+          "Undistracted Me vs Start.me: a free, open-source focus new tab with no account and no ads.",
+      },
+      {
+        url: `${site.url}/toby-alternative/`,
+        title: "vs Toby",
+        description:
+          "Undistracted Me vs Toby: tab management plus Pomodoro, ambient sounds and Google Tasks.",
+      },
     ],
   },
 ];
