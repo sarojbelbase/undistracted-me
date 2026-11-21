@@ -117,7 +117,7 @@
   > _Feasibility: High: No dependencies; `DOMParser` is native. OPML structure is simple XML. ~80 lines of import logic in RSS settings._
 
 - [x] **Website Blocker (Popup → Block)**: Block distracting sites directly from the popup. "Block this site" button next to the current tab card. Uses `chrome.declarativeNetRequest` dynamic rules. Blocked sites list in Settings with manual add/remove. Blocked page shows tasteful "This site is blocked" overlay with unblock option.
-  > _Feasibility: High: declarativeNetRequest is the MV3-native approach, no host permissions needed. 5000-dynamic-rule limit is ample. New utility `siteBlocker.js` + Popup UI + Settings section._
+  > _Feasibility: High: declarativeNetRequest is the MV3-native approach. Note: dynamic rules need `host_permissions` (`<all_urls>`) to block arbitrary sites, only session rules are exempt. 5000-dynamic-rule limit is ample. New utility `siteBlocker.js` + Popup UI + Settings section._
 
 - [x] **Enriched Pomodoro**: Phase 1: sound chime on timer end, circular progress ring during timer. Phase 2: auto-start breaks (5/10/15 min), session notes, rain-sound toggle (reuses `api/audio/rain.js`).
   > _Feasibility: Very High: Incremental on existing pomodoro widget. Sound already wired (`api/audio/`). Stats stored in localStorage with same pattern as events._

@@ -32,7 +32,7 @@ before spending a single rupee on a launch.**
 
 | Plan item | Where it lives |
 |---|---|
-| Site blocking on `declarativeNetRequest` (no `<all_urls>`) | `app/utilities/siteBlocker.js`, `app/bg.js` (dynamic rules, ids 1000+), `app/blocked/BlockedPage.jsx` (orb interstitial + countdown), Settings → General → "Blocked Sites", popup `app/components/Popup/BlockedSitesSection.jsx`, `declarativeNetRequest` in `public/manifest.json` |
+| Site blocking on `declarativeNetRequest` dynamic rules (requires `<all_urls>` host permission) | `app/utilities/siteBlocker.js`, `app/bg.js` (dynamic rules, ids 1000+), `app/blocked/BlockedPage.jsx` (orb interstitial + countdown), Settings → General → "Blocked Sites", popup `app/components/Popup/BlockedSitesSection.jsx`, `declarativeNetRequest` + `<all_urls>` in `public/manifest.json` |
 | Web clipper (context-menu "Save to Pocket", classify, dedupe, folders, toast/undo) | `app/widgets/pocket/*` (`config.js`, `Widget.jsx`, `pocketStore.js`, `contextMenu.js`, `save.js`, `utils.js`, `selectors.js`), SW wiring in `app/bg.js`, tests `tests/unit/pocket/*` |
 | First-run welcome overlay (Quick Tour) | `app/components/QuickTour/index.jsx`: **informational only** (2 steps), no setup actions yet |
 | Review prompt (post-habit nudge) | `app/components/ReviewPrompt/*`: fires after 10 focus sessions, local only, permanently dismissible |

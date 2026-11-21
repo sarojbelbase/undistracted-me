@@ -463,34 +463,17 @@ Key shared components:
 "permissions": ["identity", "storage", "geolocation", "topSites", "notifications",
                  "alarms", "idle", "tabs", "scripting", "declarativeNetRequest"]
 "host_permissions": [
-  "https://app.undistracted.me/*",  // Web app (holidays.json, OAuth callback)
-  "https://api.undistracted.me/*",  // Backend API
-  "https://api.spotify.com/*",
-  "https://accounts.spotify.com/*",
-  "*://*.youtube.com/*",                          // media relay content script
-  "*://*.soundcloud.com/*",                       // media relay content script
-  "https://nepalipaisa.com/*",                     // NEPSE company list
-  "https://www.merolagani.com/*",                  // NEPSE chart data
-  "https://people.googleapis.com/*",               // Contacts API
-  "https://www.googleapis.com/*",                  // Calendar, userinfo + other Google APIs
-  "https://tasks.googleapis.com/*",                // Google Tasks API
-  "https://oauth2.googleapis.com/*",               // Token exchange
-  "https://content.googleapis.com/*",              // Calendar API (legacy host)
-  "https://suggestqueries.google.com/*",           // Search suggestions
-  "https://ac.duckduckgo.com/*",                   // Search suggestions (fallback)
-  "https://api.open-meteo.com/*",                  // Weather data (no API key)
-  "https://air-quality-api.open-meteo.com/*",      // Air quality
-  "https://geocoding-api.open-meteo.com/*",        // Weather manual location search
-  "https://nominatim.openstreetmap.org/*",         // Reverse-geocode city name
-  "https://icanhazdadjoke.com/*",                  // Jokes widget
-  "https://ipapi.co/*",                            // IP geolocation (web mode only)
-  "https://free.freeipapi.com/*"                   // IP geolocation (extension mode)
+  "<all_urls>"
 ]
 ```
-There is **no `*://*/*` wide host permission**: the site blocker uses
-`declarativeNetRequest` dynamic rules, which need no host access. `tabs` is kept
-for the media relay (enumerating audible tabs). `favicon` was dropped; the
-favicon proxy endpoint is a plain HTTPS fetch to `api.undistracted.me`.
+`host_permissions` is `<all_urls>`, which is **required by the site blocker**:
+`declarativeNetRequest` **dynamic** rules only modify requests for URLs the
+extension has host access to. Only **session** rules are exempt from that
+requirement, and the blocker deliberately uses dynamic rules so blocks persist
+across restarts. Without `<all_urls>` the blocker silently fails on sites not
+otherwise listed in `host_permissions`. `tabs` is kept for the media relay
+(enumerating audible tabs). `favicon` was dropped; the favicon proxy endpoint is
+a plain HTTPS fetch to `api.undistracted.me`.
 Content scripts: `app/utilities/media.js` injected into **SoundCloud and YouTube**
 (`*://*.soundcloud.com/*`, `*://*.youtube.com/*`).
 `scripting` permission: `bg.js` uses `chrome.scripting.executeScript` to inject media.js into SoundCloud/YouTube tabs already open when the extension installs.

@@ -39,14 +39,17 @@ Each justification maps to a section of the live policy at
 > name manually.
 
 **host permission use**
-> Most host permissions are narrowly scoped to the specific third-party APIs the
-> widgets call directly from the extension: Google (Calendar/Tasks/Contacts/Drive
+> The extension requests `<all_urls>` host access, used only by the optional
+> Website Blocker: `declarativeNetRequest` dynamic rules can only redirect a site
+> the extension has host access to, and because users may block any site they
+> choose, broad host access is required. This permission does not cause any data
+> to be read or transmitted. Network fetches remain narrowly scoped to the
+> third-party APIs each widget calls: Google (Calendar/Tasks/Contacts/Drive
 > app-data sync), Spotify (playback), Open-Meteo (weather), Nepali stock sources
 > (nepalipaisa.com, merolagani.com) and public IP-geolocation fallbacks
-> (ipapi.co, free.freeipapi.com). The two broader entries: *.youtube.com and
-> *.soundcloud.com: are for an optional media panel that reads the
-> currently-playing track via a content script and forwards it to Focus Mode; that
-> script does not modify those pages or transmit data.
+> (ipapi.co, free.freeipapi.com). The *.youtube.com and *.soundcloud.com content
+> script powers an optional media panel that reads the currently-playing track
+> and does not modify those pages or transmit data.
 
 **identity**
 > Used for the optional Google and Spotify sign-ins via OAuth 2.0
