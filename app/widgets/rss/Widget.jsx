@@ -93,10 +93,17 @@ const HeadlineRow = ({ item, isLast = false }) => {
 
 // ─── Marquee mode: single full-bleed story card ──────────────────────────────
 
-const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext, paused, onTogglePause }) => {
+const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPrev, onNext, paused, onTogglePause, onHoverChange }) => {
   const [navHovered, setNavHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const time = item?.isoDate ? relativeTime(item.isoDate) : "";
+
+  // Report hover/focus state to the parent so the auto-advance timer pauses
+  // while the user is reading or interacting with the card (WCAG 2.2.2).
+  const interacting = navHovered || focused;
+  useEffect(() => {
+    onHoverChange(interacting);
+  }, [interacting, onHoverChange]);
 
   // Measure actual card pixel dimensions for the layout engine.
   const cardRef = useRef(null);
@@ -211,17 +218,6 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
             className="rss-marquee__refresh-btn"
           >
             <RefreshIcon size={10} spinning={isLoading} />
-          </button>
-
-          {/* Pause/play auto-advance (WCAG 2.2.2: pause, stop, hide) */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onTogglePause(); }}
-            aria-label={paused ? "Resume auto-advance" : "Pause auto-advance"}
-            className="rss-marquee__pause-btn"
-          >
-            {paused ? <PlayFill size={10} /> : <PauseFill size={10} />}
           </button>
 
           {/* Timestamp */}
@@ -373,6 +369,29 @@ const MarqueeCard = ({ item, index, total, direction, onRefresh, isLoading, onPr
               >
                 <ChevronRightIcon size={11} color="white" />
               </button>
+
+              {/* Pause/play auto-advance. Always visible (unlike the arrows) so
+                  the WCAG 2.2.2 pause control is discoverable at rest. */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onTogglePause(); }}
+                aria-label={paused ? "Resume auto-advance" : "Pause auto-advance"}
+                aria-pressed={paused}
+                style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  cursor: "pointer", color: "#fff",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              >
+                {paused ? <PlayFill size={11} color="white" /> : <PauseFill size={11} color="white" />}
+              </button>
             </div>
           )}
         </div>
@@ -475,8 +494,13 @@ export const Widget = ({ id, onRemove }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(10);
   const [navDirection, setNavDirection] = useState("next"); // for swipe animation
-  const [paused, setPaused] = useState(false); // auto-advance pause (WCAG 2.2.2)
   const sentinelRef = useRef(null);
+
+  // Auto-advance pause state: an explicit user pause (persists across stories)
+  // and a transient hover/focus pause (WCAG 2.2.2). The timer below skips when
+  // either is active.
+  const [paused, setPaused] = useState(false);
+  const [hoverPaused, setHoverPaused] = useState(false);
 
   // ── Item ordering ────────────────────────────────────────────────────────────
   // `items` is already sorted newest-first by useRssMulti. We preserve that
@@ -533,7 +557,7 @@ export const Widget = ({ id, onRemove }) => {
     if (displayItems.length > 0 && currentIndex >= displayItems.length) setCurrentIndex(0);
   }, [displayItems.length, currentIndex]);
 
-  // Auto-advance for Marquee (WCAG 2.2.2: pausable via the card's pause button)
+  // Auto-advance for Marquee (spotlight)
   const goNext = useCallback(() => {
     setNavDirection("next");
     // Read the index from the closure (not inside an updater) so the two setters
@@ -543,10 +567,10 @@ export const Widget = ({ id, onRemove }) => {
   }, [currentIndex, displayItems.length, hasMore]);
 
   useEffect(() => {
-    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError || paused) return;
+    if (viewMode !== "marquee" || displayItems.length <= 1 || showSkeleton || showError || paused || hoverPaused) return;
     const timer = setTimeout(goNext, AUTO_ADVANCE_MS);
     return () => clearTimeout(timer);
-  }, [goNext, viewMode, displayItems.length, showSkeleton, showError, paused]);
+  }, [goNext, viewMode, displayItems.length, showSkeleton, showError, paused, hoverPaused]);
 
   const goPrev = useCallback(() => {
     setNavDirection("prev");
@@ -603,6 +627,7 @@ export const Widget = ({ id, onRemove }) => {
             onPrev={goPrev}
             paused={paused}
             onTogglePause={() => setPaused((p) => !p)}
+            onHoverChange={setHoverPaused}
           />
         )}
         {!showSkeleton && !showError && displayItems.length === 0 && !loading && (
