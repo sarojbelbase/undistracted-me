@@ -125,29 +125,6 @@ export function getCategoryInfo(catId) {
   );
 }
 
-// ─── Category colors (keyed by category id, not index) ──────────────────────
-
-export const CAT_COLORS = {
-  bills: { bg: 'hsla(210, 60%, 50%, 0.13)', fg: 'hsla(210, 60%, 48%, 1)' },
-  rent: { bg: 'hsla(25, 55%, 50%, 0.13)', fg: 'hsla(25, 55%, 48%, 1)' },
-  groceries: { bg: 'hsla(150, 45%, 42%, 0.13)', fg: 'hsla(150, 45%, 40%, 1)' },
-  health: { bg: 'hsla(350, 55%, 52%, 0.13)', fg: 'hsla(350, 55%, 50%, 1)' },
-  food: { bg: 'hsla(40, 60%, 48%, 0.13)', fg: 'hsla(40, 60%, 46%, 1)' },
-  shopping: { bg: 'hsla(300, 35%, 48%, 0.13)', fg: 'hsla(300, 35%, 46%, 1)' },
-  tech: { bg: 'hsla(190, 55%, 45%, 0.13)', fg: 'hsla(190, 55%, 43%, 1)' },
-  gifts: { bg: 'hsla(330, 50%, 55%, 0.13)', fg: 'hsla(330, 50%, 53%, 1)' },
-  transport: { bg: 'hsla(10, 50%, 48%, 0.13)', fg: 'hsla(10, 50%, 46%, 1)' },
-  travel: { bg: 'hsla(200, 65%, 50%, 0.13)', fg: 'hsla(200, 65%, 48%, 1)' },
-  work: { bg: 'hsla(270, 40%, 48%, 0.13)', fg: 'hsla(270, 40%, 46%, 1)' },
-  insurance: { bg: 'hsla(120, 38%, 42%, 0.13)', fg: 'hsla(120, 38%, 40%, 1)' },
-  entertainment: { bg: 'hsla(50, 65%, 45%, 0.13)', fg: 'hsla(50, 65%, 43%, 1)' },
-  other: { bg: 'hsla(0, 0%, 50%, 0.10)', fg: 'hsla(0, 0%, 42%, 1)' },
-};
-
-export function getCatColor(catId) {
-  return CAT_COLORS[catId] ?? CAT_COLORS.other;
-}
-
 // ─── Shared settings defaults ───────────────────────────────────────────────
 
 // Defined in constants/defaults.js (WIDGET_SETTINGS_DEFAULTS.expense).
