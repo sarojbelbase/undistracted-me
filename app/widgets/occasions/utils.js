@@ -91,17 +91,6 @@ export const typeLabel = (type) => {
   return 'Birthday';
 };
 
-/**
- * Left-bar / chip urgency color based on days remaining.
- * Today → accent; within week → slightly muted; further → border color.
- */
-export const urgencyColor = (n) => {
-  if (n === 0) return 'var(--w-accent)';
-  if (n <= 7) return 'var(--w-accent)';
-  if (n <= 30) return 'var(--w-ink-5)';
-  return 'var(--w-border)';
-};
-
 // ─── Avatar color ─────────────────────────────────────────────────────────────
 
 // Warm, earthy palette that reads well on #fff surface

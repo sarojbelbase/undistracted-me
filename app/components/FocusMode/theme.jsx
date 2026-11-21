@@ -68,16 +68,6 @@ export const FM_SUCCESS_DOT = "var(--fm-success-dot)";
 export const FM_SYNC_BG = "var(--fm-sync-bg)";
 export const FM_SYNC_BORDER = "var(--fm-sync-border)";
 
-export const FM_DANGER = "var(--fm-danger)";
-export const FM_DANGER_BG = "var(--fm-danger-bg)";
-export const FM_DANGER_BORDER = "var(--fm-danger-border)";
-export const FM_DANGER_HOVER_BG = "var(--fm-danger-hover-bg)";
-
-// ── Popover / caret-dropdown panel ─────────────────────────────────────────────
-export const FM_POPOVER_BG = "var(--fm-popover-bg)";
-export const FM_POPOVER_BORDER = "var(--fm-popover-border)";
-export const FM_POPOVER_SHADOW = "var(--fm-popover-shadow)";
-
 // ── Orb scene / stock direction ────────────────────────────────────────────────
 export const FM_ORB_BG = "var(--fm-orb-bg)";
 export const FM_STOCK_UP = "var(--fm-stock-up)";
@@ -155,15 +145,9 @@ function dialogSurface(focus) {
   };
 }
 
-/** Legacy glass dialog style (glass profile). */
-export const DIALOG_STYLE = dialogSurface(THEME_PROFILES.glass.focus);
-
-/** Legacy comic dialog style (comic profile). */
-export const COMIC_DIALOG_STYLE = dialogSurface(THEME_PROFILES.comic.focus);
-
 /**
- * Use this instead of spreading DIALOG_STYLE directly on portalled FM dialogs.
  * Returns the full focus profile surface + dark ink pins + dark-tone accent.
+ * Use this on portalled FM dialogs so they resolve the active theme correctly.
  *
  * @param {string} accentName : accent key (e.g. "blueberry")
  * @param {string} cardStyle  : "glass" | "paper" | "comic" (defaults to "glass")

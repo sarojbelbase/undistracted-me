@@ -51,12 +51,6 @@ export const groupEventsByBucket = (events) => {
 // Sourced from utilities/index.js: single canonical implementation.
 export { humanizeAge } from '../../utilities';
 
-// ─── Layout constants ────────────────────────────────────────────────────────
-
-export const ITEM_HEIGHT = 57;
-export const HEADER_H = 40;
-export const FOOTER_H = 52;
-
 // ─── Form constants ──────────────────────────────────────────────────────────
 
 export const EMPTY_FORM = { title: '', startDate: '', startTime: '', endDate: '', endTime: '' };

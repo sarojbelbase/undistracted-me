@@ -30,9 +30,6 @@ export const CANVAS_DIVIDER_DARK = "var(--w-divider)"; // alias: same token hand
 /** Hover overlay for interactive cells (calendar days, list rows) */
 export const CANVAS_HOVER_OVERLAY = "rgba(0,0,0,0.06)";
 
-/** Cancel / secondary button border: gentle, readable on any surface */
-export const CANVAS_BORDER_SOFT = "rgba(0,0,0,0.12)";
-
 // ── Overlay/cluster icon tints (mode-aware helpers) ──────────────────────────
 // Used for icon buttons that float directly on the canvas (FocusModeButton,
 // ControlCluster) where the background surface varies between glass / flat × dark.
@@ -98,10 +95,6 @@ export const CANVAS_INPUT_PREFIX = (isDark) =>
 // ── Clock widget ─────────────────────────────────────────────────────────────
 /** Subtle divider above extra timezone clocks: theme-aware */
 export const CLOCK_TIMEZONE_DIVIDER = "var(--w-divider)";
-
-// ── Notes widget (macOS traffic-light controls) ───────────────────────────────
-/** Inset shadow on the circular traffic-light control buttons */
-export const NOTES_BUTTON_SHADOW = "inset 0 0 0 0.5px rgba(0,0,0,0.18)";
 
 // ── FaviconIcon widget ────────────────────────────────────────────────────────
 /** Text-shadow for the letter-mode favicon fallback */

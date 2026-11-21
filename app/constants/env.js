@@ -56,35 +56,6 @@ export const getPlatform = () => {
 
 export const CURRENT_PLATFORM = getPlatform();
 
-// ─── Extension-only features ───────────────────────────────────────────────────
-// All of these require chrome.* APIs. They are automatically disabled outside the extension
-// context (chrome.action, chrome.identity, etc. are absent on web/phone).
-
-/**
- * Google OAuth via chrome.identity.launchWebAuthFlow + PKCE (all browsers).
- * Used for Google Calendar, Google Contacts, Google Tasks and Drive sync.
- */
-export const FEATURE_GOOGLE_AUTH = CURRENT_PLATFORM === PLATFORMS.EXTENSION;
-
-/**
- * chrome.identity.launchWebAuthFlow (PKCE)
- * Used for Spotify OAuth authentication.
- */
-export const FEATURE_SPOTIFY_AUTH = CURRENT_PLATFORM === PLATFORMS.EXTENSION;
-
-/**
- * chrome.storage.local
- * Used to persist OAuth tokens and cached data between browser sessions
- * without exposing them in localStorage.
- */
-export const FEATURE_CHROME_STORAGE = CURRENT_PLATFORM === PLATFORMS.EXTENSION;
-
-/**
- * chrome.runtime.sendMessage / onMessage
- * Used in the background script to relay media-session data from content scripts.
- */
-export const FEATURE_CHROME_MESSAGING = CURRENT_PLATFORM === PLATFORMS.EXTENSION;
-
 // ─── Website-mode alternatives ────────────────────────────────────────────────
 
 

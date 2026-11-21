@@ -33,9 +33,6 @@ let initPromise = null;
 const pendingEvents = [];
 const renderedThisSession = new Set();
 
-/** True once the SDK is loaded AND a key is configured. */
-export const isTelemetryEnabled = () => ready && !!KEY;
-
 /**
  * Stable anonymous install id, persisted in localStorage. Used as the vendor's
  * `distinct_id` so "unique users" == "unique installs". A random id, not
