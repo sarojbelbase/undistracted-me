@@ -415,15 +415,8 @@ export default defineConfig(({ mode }) => {
             // ── Vendor libs ──────────────────────────────────────────────
             if (id.includes("node_modules/react-grid-layout"))
               return "grid";
-            if (id.includes("node_modules/react-bootstrap-icons"))
-              return "icons";
             if (id.includes("node_modules/dayjs")) return "datetime";
             if (id.includes("node_modules/zustand")) return "store";
-            if (
-              id.includes("node_modules/lexical") ||
-              id.includes("node_modules/@lexical")
-            )
-              return "editor";
           },
         },
       },
