@@ -4,6 +4,22 @@ Release history for the store listings. Keep the latest at the top.
 
 ---
 
+## 4.5.0: 2026-11-21
+
+- **New**: Pocket widget saves links, text and code snippets into colour-coded
+  folders, with quick actions and a full expanded view.
+- **New**: Note Mode, a full-screen notepad with an ambient clock, weather and a
+  running focus-timer chip.
+- **New**: site blocker (block distracting sites from the new tab) and a web
+  clipper that saves pages to Pocket.
+- **New**: five new accents and a reworked Appearance panel with canvas
+  backgrounds, depth-lit toggles and unified segmented controls.
+- Pin any event or custom countdown to a countdown face.
+- Anonymous, provider-agnostic usage analytics (disclosed in the privacy
+  policy); third-party calls now route through api.undistracted.me.
+- Faster rendering and a lighter build, plus an accessibility pass (focus
+  traps, keyboard navigation and labelled controls).
+
 ## 4.0.2: 2026-11-15
 
 - **New**: international stock support: search and track stocks on global

@@ -4,4 +4,4 @@
  *
  * Bump this together with `public/manifest.json` and `package.json` on release.
  */
-export const APP_VERSION = "4.1.0";
+export const APP_VERSION = "4.5.0";

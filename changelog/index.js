@@ -40,6 +40,55 @@ const GH = "https://github.com/sarojbelbase/undistracted-me";
 
 export const releases = [
   {
+    version: "v4.5.0",
+    released: "2026-11-21",
+    title: "Pocket, Note Mode and a site blocker",
+    kind: "feature",
+    blurb:
+      "Pocket saves anything you find, Note Mode turns the new tab into a distraction-free notepad, and a site blocker plus web clipper keep the noise out. Behind them: a reworked appearance panel, anonymous usage analytics and a faster, lighter build.",
+    summary: [
+      "Pocket: save links, notes and snippets into folders, then pin anything to a countdown face.",
+      "Note Mode: a full-screen notepad with an ambient clock, weather and running focus timer.",
+      "A site blocker, a web clipper and a reworked appearance panel with five new accents.",
+    ],
+    highlights: [
+      {
+        group: "Pocket",
+        items: [
+          "A new Pocket widget that saves links, text and code snippets into colour-coded folders, with quick actions, a full expanded view and an animated website-group rail.",
+          "Pin any event or custom countdown to a countdown face, straight from the Events list or the Countdown expanded view.",
+        ],
+      },
+      {
+        group: "Note Mode",
+        items: [
+          "A full-screen notepad with an ambient clock, weather and a running pomodoro chip that opens a session popup, plus per-widget settings.",
+        ],
+      },
+      {
+        group: "Site blocker & web clipper",
+        items: [
+          "A headline site blocker that blocks distracting sites from the new tab, and a web clipper that saves what you find to Pocket.",
+        ],
+      },
+      {
+        group: "Appearance",
+        items: [
+          "Five new accents, a colour-spectrum ordering, and a Cocoa default after retiring Latte, Teal and Bubblegum.",
+          "A reworked Appearance panel with unified segmented controls, depth-lit toggle switches and canvas backgrounds.",
+        ],
+      },
+      {
+        group: "Under the hood",
+        items: [
+          "Anonymous, provider-agnostic usage analytics (disclosed in the privacy policy) and a proxy that routes third-party calls through api.undistracted.me.",
+          "Faster widget rendering, a gated countdown tick and isolated photo loading, plus an accessibility pass covering focus traps, keyboard navigation and labelled controls.",
+        ],
+      },
+    ],
+    diff: `${GH}/compare/v4.1.0...v4.5.0`,
+  },
+  {
     version: "v4.1.0",
     released: "2026-11-16",
     title: "A warmer welcome and a public changelog",
