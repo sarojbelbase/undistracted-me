@@ -1,0 +1,171 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Wordmark from "../../components/Wordmark.astro";
+import Footer from "../../components/Footer.astro";
+import { site } from "../../data/site.js";
+import { blogPosts, blogCategories } from "../../data/blog.js";
+
+const title = "The Undistracted Me Blog: Nepali Calendar & Focus";
+const description =
+  "Guides and comparisons on the Nepali date, the Bikram Sambat calendar, the best Nepali extensions and focus new tabs. Written to help, not to sell.";
+
+const active = Astro.url.searchParams.get("category");
+const posts = active ? blogPosts.filter((p) => p.category === active) : blogPosts;
+
+const graph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": `${site.url}/blog/#page`,
+      url: `${site.url}/blog/`,
+      name: title,
+      description,
+      inLanguage: "en",
+      isPartOf: { "@id": `${site.url}/#website` },
+      about: { "@id": `${site.url}/#app` },
+      breadcrumb: { "@id": `${site.url}/blog/#breadcrumb` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${site.url}/blog/#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site.url}/blog/` },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout title={title} description={description} canonical={`${site.url}/blog/`} graph={graph}>
+  <header class="blg-head">
+    <a class="logo" href="/" aria-label="Undistracted Me: home"><Wordmark /></a>
+    <a class="blg-install" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
+  </header>
+
+  <main id="main">
+    <section class="blg-hero">
+      <div class="blg-wrap">
+        <p class="blg-kicker">Blog</p>
+        <h1>Nepali calendar, made in Nepal, and focus</h1>
+        <p class="blg-sub">
+          Guides and honest comparisons to help you keep the Nepali date and stay focused, written the way a product owner would: useful first, with a recommendation at the end.
+        </p>
+      </div>
+    </section>
+
+    <nav class="blg-cats">
+      <div class="blg-wrap">
+        <a class:list={[active ? "" : "on", "blg-cat"]} href="/blog/">All</a>
+        {blogCategories.map((c) => (
+          <a class:list={[active === c.slug ? "on" : "", "blg-cat"]} href={`/blog/?category=${c.slug}`}>
+            {c.name}
+          </a>
+        ))}
+      </div>
+    </nav>
+
+    <section class="blg-list">
+      <div class="blg-wrap">
+        {posts.length === 0 ? (
+          <p class="blg-empty">No posts in this category yet.</p>
+        ) : (
+          <ol class="blg-grid">
+            {posts.map((post) => (
+              <li>
+                <a class="blg-card" href={`/blog/${post.slug}/`}>
+                  <span class="blg-cat-tag">{blogCategories.find((c) => c.slug === post.category).name}</span>
+                  <h2>{post.title}</h2>
+                  <p>{post.description}</p>
+                  <time datetime={post.date}>{post.date}</time>
+                </a>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .blg-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 1rem) var(--pad);
+    background: var(--cream) var(--tc);
+    border-bottom: 1px solid rgba(11, 11, 11, 0.08);
+  }
+  .blg-head .logo svg { height: 1.55rem; width: auto; display: block; }
+  .blg-install {
+    background: var(--ink);
+    color: var(--white);
+    padding: 0.65rem 1rem;
+    border-radius: 0.35rem;
+    font: 600 0.95rem var(--sans);
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .blg-install:hover { background: var(--sun); color: var(--ink); }
+
+  .blg-wrap { max-width: 72rem; margin: 0 auto; }
+
+  .blg-hero { padding: calc(var(--sec) * 1.1) var(--pad); background: var(--cream) var(--tc); }
+  .blg-kicker {
+    font: 400 1.2rem/1 var(--caps);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin: 0;
+  }
+  .blg-hero h1 { font-size: clamp(2.6rem, 7vw, 5.5rem); margin-top: 0.4rem; line-height: 1.02; }
+  .blg-sub { max-width: 46rem; font-size: 1.15rem; color: #3d3d3a; margin-top: var(--s2); }
+
+  .blg-cats { padding: var(--s2) var(--pad) 0; background: var(--white) var(--tw); }
+  .blg-cats .blg-wrap { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .blg-cat {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid rgba(11, 11, 11, 0.14);
+    border-radius: 999px;
+    font: 600 0.9rem var(--sans);
+    color: var(--ink);
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .blg-cat.on, .blg-cat:hover { background: var(--ink); color: var(--white); }
+
+  .blg-list { padding: var(--sec) var(--pad); background: var(--white) var(--tw); }
+  .blg-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--g); }
+  .blg-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1.5rem 1.5rem 1.4rem;
+    border: 1px solid rgba(11, 11, 11, 0.12);
+    border-radius: var(--r);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.3s;
+  }
+  .blg-card:hover { border-color: var(--sun); }
+  .blg-cat-tag {
+    font: 500 0.72rem/1 var(--caps);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .blg-card h2 { font-size: 1.4rem; margin: 0; line-height: 1.15; }
+  .blg-card p { font-size: 0.98rem; color: #3d3d3a; margin: 0; }
+  .blg-card time { margin-top: auto; font: 500 0.78rem var(--mono); color: var(--mute); }
+  .blg-empty { color: var(--mute); }
+
+  @media (max-width: 800px) {
+    .blg-grid { grid-template-columns: 1fr; }
+  }
+</style>

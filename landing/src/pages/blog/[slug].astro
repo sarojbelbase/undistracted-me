@@ -1,0 +1,193 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Wordmark from "../../components/Wordmark.astro";
+import Footer from "../../components/Footer.astro";
+import { site } from "../../data/site.js";
+import { blogPosts, getPost, getCategory } from "../../data/blog.js";
+
+export function getStaticPaths() {
+  return blogPosts.map((post) => ({ params: { slug: post.slug } }));
+}
+
+const { slug } = Astro.params;
+const post = getPost(slug);
+const category = getCategory(post.category);
+const canonical = `${site.url}/blog/${post.slug}/`;
+
+const graph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": `${canonical}#article`,
+      headline: post.title,
+      description: post.description,
+      inLanguage: "en",
+      datePublished: post.date,
+      dateModified: post.updated ?? post.date,
+      author: { "@id": `${site.url}/#author` },
+      publisher: { "@id": `${site.url}/#org` },
+      mainEntityOfPage: { "@id": `${canonical}#webpage` },
+      articleSection: category.name,
+      keywords: post.tags.join(", "),
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${canonical}#webpage`,
+      url: canonical,
+      name: post.title,
+      description: post.description,
+      inLanguage: "en",
+      isPartOf: { "@id": `${site.url}/#website` },
+      about: { "@id": `${site.url}/#app` },
+      breadcrumb: { "@id": `${canonical}#breadcrumb` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${canonical}#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site.url}/blog/` },
+        { "@type": "ListItem", position: 3, name: post.title, item: canonical },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout title={post.title} description={post.description} canonical={canonical} graph={graph}>
+  <header class="post-head">
+    <a class="logo" href="/" aria-label="Undistracted Me: home"><Wordmark /></a>
+    <a class="post-install" href={site.chromeUrl} rel="noopener" target="_blank">Install free</a>
+  </header>
+
+  <main id="main">
+    <article class="post-hero">
+      <div class="post-wrap">
+        <p class="post-kicker">
+          <a href="/blog/">Blog</a>
+          <span aria-hidden="true">/</span>
+          <a href={`/blog/?category=${category.slug}`}>{category.name}</a>
+        </p>
+        <h1>{post.title}</h1>
+        <p class="post-sub">{post.description}</p>
+        <p class="post-meta">
+          <time datetime={post.date}>{post.date}</time>
+          {post.tags.map((t) => <span class="post-tag">{t}</span>)}
+        </p>
+      </div>
+    </article>
+
+    <article class="post-body">
+      <div class="post-wrap">
+        {post.content.map((block) => {
+          if (block.h) return <h2>{block.h}</h2>;
+          if (block.p) return <p>{block.p}</p>;
+          if (block.ul) return <ul>{block.ul.map((li) => <li>{li}</li>)}</ul>;
+          if (block.cta) {
+            return (
+              <aside class="post-cta">
+                <h2>Try Undistracted Me</h2>
+                <p>
+                  Free and open source, no account and no ads. See today's Nepali date
+                  on your new tab alongside a site blocker, a Pomodoro timer, ambient
+                  sounds and quiet widgets.
+                </p>
+                <div class="post-cta-row">
+                  <a class="btn pulse" href={site.chromeUrl} rel="noopener" target="_blank">Add to Chrome</a>
+                  <a class="btn ghost" href={site.firefoxUrl} rel="noopener" target="_blank">Get it for Firefox</a>
+                </div>
+              </aside>
+            );
+          }
+          return null;
+        })}
+      </div>
+    </article>
+
+    <nav class="post-back">
+      <div class="post-wrap">
+        <a href="/blog/">All posts</a>
+      </div>
+    </nav>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .post-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 1rem) var(--pad);
+    background: var(--cream) var(--tc);
+    border-bottom: 1px solid rgba(11, 11, 11, 0.08);
+  }
+  .post-head .logo svg { height: 1.55rem; width: auto; display: block; }
+  .post-install {
+    background: var(--ink);
+    color: var(--white);
+    padding: 0.65rem 1rem;
+    border-radius: 0.35rem;
+    font: 600 0.95rem var(--sans);
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .post-install:hover { background: var(--sun); color: var(--ink); }
+
+  .post-wrap { max-width: 44rem; margin: 0 auto; }
+
+  .post-hero { padding: calc(var(--sec) * 1.1) var(--pad) var(--s3); background: var(--cream) var(--tc); }
+  .post-kicker {
+    font: 400 0.95rem/1 var(--caps);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin: 0;
+  }
+  .post-kicker a { color: var(--mute); text-decoration: none; }
+  .post-kicker a:hover { color: var(--ink); }
+  .post-hero h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); margin-top: 0.4rem; line-height: 1.05; }
+  .post-sub { font-size: 1.15rem; color: #3d3d3a; margin-top: var(--s2); }
+  .post-meta { margin-top: var(--s2); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font: 500 0.82rem var(--mono); color: var(--mute); }
+  .post-tag {
+    background: rgba(11, 11, 11, 0.06);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    color: var(--ink);
+  }
+
+  .post-body { padding: var(--sec) var(--pad); background: var(--white) var(--tw); }
+  .post-body h2 { font-size: clamp(1.6rem, 3vw, 2rem); margin: var(--s4) 0 0.6rem; }
+  .post-body p { font-size: 1.05rem; line-height: 1.7; color: #3d3d3a; margin: 0 0 var(--s2); }
+  .post-body ul { margin: 0 0 var(--s2); padding-left: 1.3rem; display: grid; gap: 0.5rem; }
+  .post-body li { font-size: 1.05rem; line-height: 1.6; color: #3d3d3a; }
+  .post-body li::marker { color: var(--sun); }
+
+  .post-cta {
+    margin-top: var(--s4);
+    padding: 1.8rem 1.8rem 2rem;
+    border: 1px solid rgba(11, 11, 11, 0.12);
+    border-radius: var(--r);
+    background: var(--cream) var(--tc);
+  }
+  .post-cta h2 { margin-top: 0; }
+  .post-cta-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.2rem; }
+  .post-cta .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 0.4rem;
+    font: 600 0.95rem var(--sans);
+    text-decoration: none;
+  }
+  .post-cta .btn.pulse { background: var(--ink); color: var(--white); }
+  .post-cta .btn.ghost { border: 1px solid rgba(11, 11, 11, 0.3); color: var(--ink); }
+  .post-cta .btn:hover { background: var(--sun); color: var(--ink); border-color: var(--sun); }
+
+  .post-back { padding: 0 var(--pad) var(--sec); background: var(--white) var(--tw); }
+  .post-back a { font: 600 0.95rem var(--sans); color: var(--ink); text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 2px; text-underline-offset: 0.25em; }
+</style>
