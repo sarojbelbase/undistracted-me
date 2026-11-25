@@ -11,6 +11,24 @@
         "parse an RSS feed for my news widget",
         "get Nepali stock chart data"
       ]
+    },
+    {
+      "identifier": "urn:air:undistracted.me:product",
+      "displayName": "Undistracted Me",
+      "type": "text/html",
+      "url": "https://undistracted.me",
+      "description": "Undistracted Me is a free, open-source focus new tab for Chrome and Firefox: a Nepali (Bikram Sambat) calendar, site blocker, Pomodoro timer, ambient sounds, Google Tasks and quiet widgets. No account, works offline.",
+      "representativeQueries": [
+        "what is the Nepali date today",
+        "aaja kati gate",
+        "best focus new tab extension",
+        "free website blocker with a Pomodoro timer",
+        "Hamro Patro alternative",
+        "Nepali Patro alternative",
+        "how to block distracting websites",
+        "best Nepali extension",
+        "made in Nepal apps"
+      ]
     }
   ]
 }

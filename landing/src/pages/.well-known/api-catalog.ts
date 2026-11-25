@@ -12,6 +12,7 @@ export const GET = createApiCatalog({
   ],
   schemaMap: { path: "/schemamap.xml" },
   additional: [
+    { anchor: "https://undistracted.me", type: "https://schema.org/SoftwareApplication" },
     { anchor: "https://app.undistracted.me", type: "https://schema.org/WebApplication" },
     { anchor: "https://api.undistracted.me", type: "https://schema.org/WebAPI" },
   ],
