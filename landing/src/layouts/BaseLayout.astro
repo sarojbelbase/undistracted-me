@@ -28,6 +28,17 @@ const verificationMeta = [
     ? [{ name: "msvalidate.01", content: site.bingSiteVerification }]
     : []),
 ];
+
+// PostHog web analytics (replaces Umami). A no-op unless PUBLIC_POSTHOG_KEY is
+// set; point it at the same PostHog project as the extension's VITE_POSTHOG_KEY
+// for a single analytics dashboard.
+const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
+const posthogHost =
+  import.meta.env.PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
+const posthogAssetHost = posthogHost.replace(
+  ".i.posthog.com",
+  "-assets.i.posthog.com",
+);
 ---
 
 <!doctype html>
@@ -54,7 +65,12 @@ const verificationMeta = [
         { rel: "privacy-policy", href: site.privacyUrl },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
-        { rel: "preconnect", href: "https://cloud.umami.is" },
+        ...(posthogKey
+          ? [
+              { rel: "preconnect", href: posthogAssetHost },
+              { rel: "preconnect", href: posthogHost, crossorigin: "anonymous" },
+            ]
+          : []),
       ]}
       extraMeta={[
         ...verificationMeta,
@@ -69,44 +85,47 @@ const verificationMeta = [
     <link rel="stylesheet" href={fontsUrl} media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href={fontsUrl} /></noscript>
 
-    <!-- Umami Web Analytics -->
-    <script
-      defer
-      src="https://cloud.umami.is/script.js"
-      data-website-id="c2b2368b-72f8-4771-b615-f78ce2c2168c"
-    ></script>
+    {posthogKey && (
+      <>
+        <!-- PostHog Web Analytics (replaces Umami) -->
+        <script is:inline define:vars={{ posthogKey, posthogHost }}>
+          !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatureEnrollment onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+          posthog.init(posthogKey, { api_host: posthogHost });
+        </script>
 
-    <!-- Track every link & button click with Umami so we can see what visitors
-         do next: and, combined with UTM tags, which post sent them. One
-         delegated listener covers every anchor and button automatically.
-         Prefers an explicit data-umami-event name, then the element's
-         accessible label (aria-label, or visible text with screen-reader-only
-         text stripped). No-op until Umami's deferred script loads. -->
-    <script is:inline>
-      function umamiEvent(name, data) {
-        if (typeof window.umami === "undefined" || typeof window.umami.track !== "function") return;
-        window.umami.track(name, data);
-      }
-      function labelOf(el) {
-        const aria = el.getAttribute("aria-label");
-        if (aria) return aria.replace(/\s+/g, " ").trim();
-        const clone = el.cloneNode(true);
-        clone.querySelectorAll(".sr").forEach((n) => n.remove());
-        return (clone.textContent || "").replace(/\s+/g, " ").trim();
-      }
-      document.addEventListener(
-        "click",
-        (e) => {
-          const el = e.target.closest("a[href], button");
-          if (!el) return;
-          const name = (el.dataset.umamiEvent || labelOf(el)).slice(0, 80);
-          if (!name) return;
-          const url = el.getAttribute("href");
-          umamiEvent(name, url ? { url } : undefined);
-        },
-        true,
-      );
-    </script>
+        <!-- Track every link & button click with a meaningful name so we can see
+             what visitors do next: and, combined with UTM tags, which post sent
+             them. One delegated listener covers every anchor and button. Prefers
+             an explicit data-ph-event name, then the element's accessible label
+             (aria-label, or visible text with screen-reader-only text stripped).
+             No-op until PostHog loads. -->
+        <script is:inline>
+          function phEvent(name, data) {
+            if (typeof window.posthog === "undefined" || typeof window.posthog.capture !== "function") return;
+            window.posthog.capture(name, data);
+          }
+          function labelOf(el) {
+            const aria = el.getAttribute("aria-label");
+            if (aria) return aria.replace(/\s+/g, " ").trim();
+            const clone = el.cloneNode(true);
+            clone.querySelectorAll(".sr").forEach((n) => n.remove());
+            return (clone.textContent || "").replace(/\s+/g, " ").trim();
+          }
+          document.addEventListener(
+            "click",
+            (e) => {
+              const el = e.target.closest("a[href], button");
+              if (!el) return;
+              const name = (el.dataset.phEvent || labelOf(el)).slice(0, 80);
+              if (!name) return;
+              const url = el.getAttribute("href");
+              phEvent(name, url ? { url } : undefined);
+            },
+            true,
+          );
+        </script>
+      </>
+    )}
 
     <script is:inline>
       // JS-gated reveal/motion: elements start hidden only when JS runs.

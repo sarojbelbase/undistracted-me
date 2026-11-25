@@ -11,7 +11,7 @@ const stats = [
 
 <div class="tally" id="tally" data-api="https://api.undistracted.me/stats" role="group" aria-label="Usage numbers">
   {stats.map((s) => (
-    <a class="tally-cell" href={s.href} rel="noopener" target="_blank" data-k={s.key} data-umami-event={`Stats · ${s.top}`}>
+    <a class="tally-cell" href={s.href} rel="noopener" target="_blank" data-k={s.key} data-ph-event={`Stats · ${s.top}`}>
       <span class="tally-n">-</span>
       <span class="tally-l">
         <svg class="ic" aria-hidden="true"><use href={`#i-${s.icon}`} /></svg>

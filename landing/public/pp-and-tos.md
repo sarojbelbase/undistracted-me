@@ -4,7 +4,7 @@ Undistracted Me is a free, open-source new-tab extension for Chrome and Firefox.
 
 ## What we collect
 
-Nothing personal. We do not operate a user database, do not collect your name or email and do not track your browsing history. All widget configuration stays in your browser's local storage. The only data that leaves your device is anonymous, aggregate widget-usage analytics (which widgets you add and use) to help towards feature retention which is sent to PostHog (US-hosted): a random install id plus the widget type, never your notes, tasks or browsing history.
+Nothing personal. We do not operate a user database, do not collect your name or email and do not track your browsing history. All widget configuration stays in your browser's local storage. The only data that leaves your device is anonymous, aggregate widget-usage analytics (which widgets you add and use) to help towards feature retention which is sent to PostHog (US-hosted): a random install id plus the widget type, never your notes, tasks or browsing history. The undistracted.me website uses the same PostHog service for anonymous page-view and link-click analytics.
 
 ## Data storage
 
