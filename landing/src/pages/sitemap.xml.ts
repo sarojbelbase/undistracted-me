@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { gitLastmod } from "@jdevalk/astro-seo-graph";
 import { site } from "../data/site.js";
+import { blogPosts } from "../data/blog.js";
 
 // Indexable pages, with the source file that produces each, so <lastmod>
 // reflects real git history rather than CI checkout timestamps.
@@ -16,6 +17,14 @@ const PAGES = [
   { url: `${site.url}/forest-alternative/`, file: "src/pages/forest-alternative.astro" },
   { url: `${site.url}/startme-alternative/`, file: "src/pages/startme-alternative.astro" },
   { url: `${site.url}/toby-alternative/`, file: "src/pages/toby-alternative.astro" },
+  { url: `${site.url}/hamropatro-alternative/`, file: "src/pages/hamropatro-alternative.astro" },
+  { url: `${site.url}/nepalipatro-alternative/`, file: "src/pages/nepalipatro-alternative.astro" },
+  { url: `${site.url}/leechblock-alternative/`, file: "src/pages/leechblock-alternative.astro" },
+  { url: `${site.url}/freedom-alternative/`, file: "src/pages/freedom-alternative.astro" },
+  { url: `${site.url}/coldturkey-alternative/`, file: "src/pages/coldturkey-alternative.astro" },
+  { url: `${site.url}/compare/`, file: "src/pages/compare/index.astro" },
+  { url: `${site.url}/blog/`, file: "src/pages/blog/index.astro" },
+  ...blogPosts.map((p) => ({ url: `${site.url}/blog/${p.slug}/`, file: "src/pages/blog/[slug].astro" })),
 ];
 
 /**

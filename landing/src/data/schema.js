@@ -71,7 +71,7 @@ export function buildSchemaGraph() {
         isAccessibleForFree: true,
         inLanguage: "en",
         keywords:
-          "site blocker, focus mode, new tab, web clipper, pomodoro timer, focus extension, productivity extension, distraction blocker, deep work tool, google tasks, ambient sounds, focus timer, nepali calendar, bikram sambat, nepali date, new tab extension, chrome extension, firefox addon, distraction free, nepali patro, block distracting sites, save for later, pocket alternative",
+          "site blocker, focus mode, new tab, web clipper, pomodoro timer, focus extension, productivity extension, distraction blocker, deep work tool, google tasks, ambient sounds, focus timer, nepali calendar, bikram sambat, nepali date, new tab extension, chrome extension, firefox addon, distraction free, nepali patro, hamro patro alternative, nepali patro alternative, aaja kati gate, nepali date today, made in nepal, nepali extension, nepali new tab, nepali chrome extension, nepali firefox extension, nepali apps, best nepali extension, block distracting sites, save for later, pocket alternative",
         featureList: [...widgets.map((w) => w.title), "Site blocking", "Web clipper"],
         author: { "@id": `${site.url}/#author` },
         publisher: { "@id": `${site.url}/#org` },

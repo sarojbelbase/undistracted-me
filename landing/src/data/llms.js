@@ -1,4 +1,5 @@
 import { site } from "./site.js";
+import { blogPosts } from "./blog.js";
 
 /**
  * Numbered navigation sections for /llms.txt.
@@ -66,6 +67,12 @@ export const llmsSections = [
     name: "4. Compare",
     links: [
       {
+        url: `${site.url}/compare/`,
+        title: "Compare hub",
+        description:
+          "Every Undistracted Me comparison in one place: Momentum, Tabliss, Bonjourr, BlockSite, StayFocusd, Forest, Start.me, Toby, Hamro Patro and Nepali Patro.",
+      },
+      {
         url: `${site.url}/blocksite-alternative/`,
         title: "vs BlockSite",
         description:
@@ -113,6 +120,52 @@ export const llmsSections = [
         description:
           "Undistracted Me vs Toby: tab management plus Pomodoro, ambient sounds and Google Tasks.",
       },
+      {
+        url: `${site.url}/hamropatro-alternative/`,
+        title: "vs Hamro Patro",
+        description:
+          "Undistracted Me vs Hamro Patro: today's Nepali date (aaja kati gate) and a Bikram Sambat calendar on your focus new tab.",
+      },
+      {
+        url: `${site.url}/nepalipatro-alternative/`,
+        title: "vs Nepali Patro",
+        description:
+          "Undistracted Me vs Nepali Patro: a Nepali date and calendar on your new tab, plus Pomodoro, site blocking and widgets.",
+      },
+      {
+        url: `${site.url}/leechblock-alternative/`,
+        title: "vs LeechBlock NG",
+        description:
+          "Undistracted Me vs LeechBlock NG: the same free, open-source blocking plus a Pomodoro, ambient sounds and a focus new tab.",
+      },
+      {
+        url: `${site.url}/freedom-alternative/`,
+        title: "vs Freedom",
+        description:
+          "Undistracted Me vs Freedom: a free, open-source browser blocker and focus new tab, no subscription.",
+      },
+      {
+        url: `${site.url}/coldturkey-alternative/`,
+        title: "vs Cold Turkey",
+        description:
+          "Undistracted Me vs Cold Turkey: free, open-source blocking plus a Pomodoro, ambient sounds and quiet widgets.",
+      },
+    ],
+  },
+  {
+    name: "5. Blog",
+    links: [
+      {
+        url: `${site.url}/blog/`,
+        title: "Blog",
+        description:
+          "Guides and comparisons on the Nepali date, the Bikram Sambat calendar, the best Nepali extensions and focus new tabs.",
+      },
+      ...blogPosts.map((p) => ({
+        url: `${site.url}/blog/${p.slug}/`,
+        title: p.title,
+        description: p.description,
+      })),
     ],
   },
 ];
