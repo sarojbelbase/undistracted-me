@@ -12,6 +12,60 @@ interface Props {
 
 const { slug } = Astro.props;
 const alt = getAlternative(slug);
+const canonical = `${site.url}/${slug}-alternative/`;
+
+// Generic FAQ for comparison pages that don't define their own `faq`.
+const defaultFaq = [
+  {
+    q: "Is Undistracted Me free?",
+    a: "Yes. Undistracted Me is free and open source under the MIT license, with no account, no ads and no paid tier.",
+  },
+  {
+    q: "Does Undistracted Me work offline?",
+    a: "Yes. The clock, calendar and dashboard all work fully offline. Only optional widgets like weather and stocks need a connection.",
+  },
+  {
+    q: "What makes Undistracted Me different?",
+    a: "It's a focus new tab, not a single tool: a site blocker, Pomodoro timer, ambient sounds, Google Tasks and quiet widgets in one free, open-source package.",
+  },
+];
+
+// Per-page JSON-LD: WebPage + BreadcrumbList (+ FAQPage when the entry defines
+// `faq`). Nepali calendar/date terms are permitted here (JSON-LD) but never in
+// visible body copy (rule #1).
+const graph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": `${canonical}#webpage`,
+      url: canonical,
+      name: alt.title,
+      description: alt.description,
+      inLanguage: "en",
+      isPartOf: { "@id": `${site.url}/#website` },
+      about: { "@id": `${site.url}/#app` },
+      breadcrumb: { "@id": `${canonical}#breadcrumb` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${canonical}#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+        { "@type": "ListItem", position: 2, name: `${alt.name} alternative`, item: canonical },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${canonical}#faq`,
+      mainEntity: (alt.faq ?? defaultFaq).map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    },
+  ],
+};
 
 const rows = [
   ["Price", alt.comparison.price, ours.price],
@@ -29,7 +83,8 @@ const rows = [
 <BaseLayout
   title={alt.title}
   description={alt.description}
-  canonical={`${site.url}/${slug}-alternative/`}
+  canonical={canonical}
+  graph={graph}
 >
   <Sprite />
 

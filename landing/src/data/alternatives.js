@@ -349,6 +349,239 @@ export const alternatives = [
     whenToChoose:
       "Choose Toby instead if you live in many tabs and want a synced shelf to park them in, and you're happy with an account. Choose Undistracted Me if you want to spend less time in tabs altogether: a free, open-source focus new tab with Pomodoro, ambient sounds, Google Tasks and site blocking.",
   },
+  {
+    slug: "hamropatro",
+    name: "Hamro Patro",
+    title: "Hamro Patro Alternative: Nepali Calendar on a Free Focus New Tab",
+    description:
+      "Hamro Patro alternative: Undistracted Me puts today's Nepali date (aaja kati gate) and a Bikram Sambat calendar on your new tab, plus Pomodoro and site blocking. Free and open source.",
+    h1: "Hamro Patro alternative",
+    subline:
+      "Today's date and a monthly calendar on your new tab: plus Pomodoro, site blocking and quiet widgets, all free and open source.",
+    intro: [
+      "Hamro Patro is the biggest calendar app in its home market: a super-app that began in 2010 as a simple calendar and grew to bundle news, horoscopes, foreign exchange rates, weather and a notes app. It's genuinely useful and free. Ads show by default, and a small yearly subscription removes them. Undistracted Me starts from a different question: what if today's date lived on the new tab you already open all day, next to your focus tools?",
+      "The headline difference is breadth versus focus. Hamro Patro is a super-app: the date plus news, horoscopes, foreign exchange rates, weather and radio, with ads and a small subscription to go ad-free. Undistracted Me is deliberately narrow: today's date and a monthly calendar, then a Pomodoro timer, site blocking and quiet widgets, with no ads and no account.",
+    ],
+    comparison: {
+      // [VERIFY] Free with ads; ~$2.99/yr ($1.99/6mo) removes them per App Store
+      price: "Free with ads; ~$2.99/yr removes them",
+      // [VERIFY] No account required to use the calendar
+      account: "No account required",
+      // [VERIFY] Hamro Patro is proprietary, not open source
+      openSource: "No: proprietary",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] No site-blocking feature
+      blocking: "No",
+      // [VERIFY] No read-it-later / web clipper
+      clipper: "No",
+      // [VERIFY] Notes and reminders built in
+      tasks: "Notes and reminders built in",
+      // [VERIFY] Feature set per hamropatro.com/apps
+      widgets: "Calendar, horoscope, news, foreign exchange, weather, radio, notes",
+    },
+    differences: [
+      "The clearest difference is the job each one does. Hamro Patro is a calendar and news super-app: open it when you want the date, the headlines or a horoscope. Undistracted Me is a new tab, so today's date and a monthly calendar sit next to a Pomodoro timer, site blocking, ambient sounds and your tasks: the page you open a hundred times a day is already useful.",
+      "On privacy and price, Undistracted Me is free with no ads and no account, and everything stays in your browser. Hamro Patro is free but shows ads, and removing them needs a small yearly subscription.",
+      "On focus, Hamro Patro has no focus tools: no timer, no blocking and no ambient sounds. Undistracted Me is built around them, with a fullscreen Focus Mode and rain and white noise built in.",
+    ],
+    whenToChoose:
+      "Choose Hamro Patro instead if you want a dedicated calendar and news app with horoscopes, foreign exchange rates and radio, and you don't mind ads or a small subscription to remove them. It's the most popular option in its market for good reason. Choose Undistracted Me if you want today's date and a monthly calendar on the new tab you already open, alongside Pomodoro, site blocking and quiet widgets: free, open source, no account.",
+    faq: [
+      {
+        q: "What is the Nepali date today?",
+        a: "Undistracted Me shows today's Bikram Sambat (BS) date alongside the Gregorian one, right on your new tab, so the answer to aaja kati gate is always one tab away.",
+      },
+      {
+        q: "Is Undistracted Me a free Hamro Patro alternative?",
+        a: "Yes. Undistracted Me is free and open source with no account and no ads. It shows today's date and a monthly calendar on your new tab, plus Pomodoro, site blocking and widgets.",
+      },
+      {
+        q: "What does Hamro Patro have that Undistracted Me does not?",
+        a: "Hamro Patro is a full calendar and news super-app with horoscopes, foreign exchange rates, weather and radio. Undistracted Me is a focus new tab: it shows the date and calendar, then adds Pomodoro, site blocking and ambient sounds.",
+      },
+    ],
+  },
+  {
+    slug: "nepalipatro",
+    name: "Nepali Patro",
+    title: "Nepali Patro Alternative: Nepali Date & Calendar on a Focus New Tab",
+    description:
+      "Nepali Patro alternative: Undistracted Me shows today's Nepali date (aaja kati gate) and a Bikram Sambat calendar on your new tab, plus Pomodoro and site blocking. Free and open source.",
+    h1: "Nepali Patro alternative",
+    subline:
+      "Today's date, festivals and holidays on your new tab: plus Pomodoro, site blocking and quiet widgets, all free and open source.",
+    intro: [
+      "Nepali Patro is a cleaner, calendar-first alternative to the biggest name in its category. It shows today's date, festivals, holidays and a monthly calendar, with a simple My Calendar for saving dates and reminders. It's free, works offline and its fans praise a less cluttered design. Undistracted Me shares the calendar-first instinct, then puts it somewhere more useful.",
+      "The headline difference is where the calendar lives. Nepali Patro is a standalone calendar app you open to check today's date, festivals and holidays. Undistracted Me puts the same date and a monthly calendar on the new tab you open all day, next to a Pomodoro timer, site blocking and quiet widgets: no account, no ads, open source.",
+    ],
+    comparison: {
+      // [VERIFY] Free app per Google Play listing
+      price: "Free",
+      // [VERIFY] No account required
+      account: "No account required",
+      // [VERIFY] Nepali Patro is proprietary, not open source
+      openSource: "No: proprietary",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] No site-blocking feature
+      blocking: "No",
+      // [VERIFY] No read-it-later / web clipper
+      clipper: "No",
+      // [VERIFY] My Calendar saves dates with reminders per nepalipatro.com.np
+      tasks: "My Calendar dates and reminders",
+      // [VERIFY] Feature set per nepalipatro.com.np
+      widgets: "Calendar, festivals, holidays, date conversion, more",
+    },
+    differences: [
+      "The clearest difference is the focus. Nepali Patro centres on the calendar: today's date, festivals, holidays and a My Calendar for dates you want to remember. Undistracted Me is a new tab first, so the date and a monthly calendar sit next to a Pomodoro timer, site blocking and your tasks.",
+      "On privacy and price both are free with no account. Undistracted Me is also open source, stores everything locally and shows no ads.",
+      "On focus, Nepali Patro has no focus tools. Undistracted Me is built around them: a fullscreen Focus Mode, a Pomodoro timer, site blocking and ambient rain and white noise.",
+    ],
+    whenToChoose:
+      "Choose Nepali Patro instead if you want a focused, calendar-first app with a clean design and a place to save dates and reminders. Choose Undistracted Me if you want today's date and a monthly calendar on the new tab you already open, alongside Pomodoro, site blocking and quiet widgets: free, open source, no account.",
+    faq: [
+      {
+        q: "What is the Nepali date today?",
+        a: "Undistracted Me shows today's Bikram Sambat (BS) date alongside the Gregorian one on your new tab, so the answer to aaja kati gate is always one tab away.",
+      },
+      {
+        q: "Does Undistracted Me show festivals and holidays?",
+        a: "Yes. The calendar widget marks festivals and holidays on the relevant dates, and a full monthly calendar is one click away on the same new tab as your Pomodoro and tasks.",
+      },
+      {
+        q: "Is Undistracted Me a free Nepali Patro alternative?",
+        a: "Yes. Undistracted Me is free and open source with no account and no ads. It puts today's date and a monthly calendar on your new tab, plus Pomodoro, site blocking and widgets.",
+      },
+    ],
+  },
+  {
+    slug: "leechblock",
+    name: "LeechBlock NG",
+    title: "LeechBlock NG Alternative: A Blocker That Is Also a Focus New Tab",
+    description:
+      "Looking for a LeechBlock alternative? Undistracted Me pairs a free, open-source site blocker with a full focus new tab: Pomodoro, ambient sounds, Google Tasks and widgets. No account.",
+    h1: "LeechBlock NG alternative",
+    subline:
+      "The same free, open-source blocking spirit as LeechBlock: plus a Pomodoro, ambient sounds and a whole focus new tab.",
+    intro: [
+      "LeechBlock NG is the free, open-source blocker that power users love: up to 30 block sets, each with its own sites, schedules, time limits and lock-down rules. It has no account and holds a strong rating on the Chrome Web Store. Undistracted Me shares that free, open-source, no-account ethos, then wraps it in a full new-tab page.",
+      "The difference is the surface. LeechBlock lives in a toolbar and does blocking only, through a dense options page that rewards patience. Undistracted Me is a new tab: the same blocking engine meets you every time you open a tab, alongside a Pomodoro timer, ambient sounds and your tasks.",
+    ],
+    comparison: {
+      // [VERIFY] Free and open source under MPL-2.0 per proginosko.com/leechblock
+      price: "Free: open source (MPL-2.0)",
+      // [VERIFY] No account; rules stored in the browser
+      account: "No account required",
+      // [VERIFY] MPL-2.0 licence
+      openSource: "Yes: MPL-2.0",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] Up to 30 block sets with schedules, time limits and lock-down
+      blocking: "Yes: schedules, time limits and lock-down",
+      // [VERIFY] No read-it-later / web clipper
+      clipper: "No",
+      // [VERIFY] No task integration
+      tasks: "No",
+      // [VERIFY] No new-tab dashboard
+      widgets: "No new-tab dashboard",
+    },
+    differences: [
+      "On blocking power the two are close. LeechBlock's strength is granular control: up to 30 block sets with schedules, time limits and lock-down. Undistracted Me blocks sites for a set timer or permanently, with a calm countdown interstitial instead of a hard wall.",
+      "On privacy and price both are free, open source and account-free, and both keep your blocklist local. LeechBlock's options page is powerful but famously dense; Undistracted Me's settings live in the new tab you already open.",
+      "On scope, LeechBlock does blocking only. Undistracted Me adds a Pomodoro timer, ambient rain and white noise, Google Tasks and a rearrangeable widget grid, all open source.",
+    ],
+    whenToChoose:
+      "Choose LeechBlock NG instead if you want maximum granular blocking rules and don't need a Pomodoro, ambient sounds or a new-tab dashboard. It's the power-user pick for good reason. Choose Undistracted Me if you want that same free, open-source blocking as part of a complete focus new tab.",
+  },
+  {
+    slug: "freedom",
+    name: "Freedom",
+    title: "Freedom Alternative: A Free, Open-Source Focus New Tab",
+    description:
+      "Freedom alternative: Undistracted Me is a free, open-source new tab with site blocking, a Pomodoro timer, ambient sounds and Google Tasks. No account, no subscription.",
+    h1: "Freedom alternative",
+    subline:
+      "A free, open-source new tab that blocks distractions, times your focus and plays ambient sounds: no subscription.",
+    intro: [
+      "Freedom is a cross-platform blocker that syncs sessions across Mac, Windows, iOS, Android and Chrome, blocking apps, websites or the entire internet. It has a free tier and a Premium plan at $39.99 a year, with a one-time forever price as an option. Undistracted Me starts from a narrower place: your browser's new tab.",
+      "The headline difference is platform and price. Freedom is a subscription that guards every device; Undistracted Me is a free, open-source new tab that guards your browser, with a Pomodoro, ambient sounds and Google Tasks built in and no account.",
+    ],
+    comparison: {
+      // [VERIFY] Free + Premium $39.99/yr or $99.50 forever per freedom.to/premium
+      price: "Free tier; Premium $39.99/yr or $99.50 forever",
+      // [VERIFY] Account used to sync sessions across devices
+      account: "Account for cross-device sync",
+      // [VERIFY] Freedom is proprietary, not open source
+      openSource: "No: proprietary",
+      // [VERIFY] No built-in Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature in the blocker
+      ambient: "No",
+      // [VERIFY] Blocks apps, websites or the whole internet
+      blocking: "Yes: apps, sites or the whole internet",
+      // [VERIFY] No read-it-later / web clipper
+      clipper: "No",
+      // [VERIFY] No Google Tasks integration
+      tasks: "No Google Tasks",
+      // [VERIFY] No new-tab dashboard
+      widgets: "No new-tab dashboard",
+    },
+    differences: [
+      "The clearest difference is where the focus happens. Freedom blocks distractions across your computer, phone and tablet at once, synced from one account. Undistracted Me lives in your new tab and blocks distracting websites with the browser's own rules.",
+      "On price, Freedom's free tier is useful but the extras sit behind Premium. Undistracted Me is entirely free and open source, with site blocking, a Pomodoro, ambient sounds and Google Tasks all built in and no account.",
+      "On scope, Freedom is a dedicated blocker. Undistracted Me is a blocker plus a whole new-tab dashboard: a web clipper, quiet widgets and a fullscreen Focus Mode.",
+    ],
+    whenToChoose:
+      "Choose Freedom instead if you need to block across every device at once and are happy with a subscription. It's the right tool for whole-device focus. Choose Undistracted Me if your distractions live in the browser and you want a free, open-source blocker plus focus tools in one place.",
+  },
+  {
+    slug: "coldturkey",
+    name: "Cold Turkey",
+    title: "Cold Turkey Alternative: A Free, Open-Source Focus New Tab",
+    description:
+      "Cold Turkey alternative: Undistracted Me is a free, open-source new tab with site blocking, a Pomodoro timer, ambient sounds and Google Tasks. No account, no lockout.",
+    h1: "Cold Turkey alternative",
+    subline:
+      "A free, open-source new tab that blocks distractions and times your focus: with ambient sounds and Google Tasks built in.",
+    intro: [
+      "Cold Turkey is the self-described toughest website and app blocker: it blocks distractions like social media, games and YouTube, with a Pro tier that adds schedules and hard lock-downs. Undistracted Me starts from the same promise, block what distracts you, but wraps it in a calmer new tab.",
+      "The headline difference is the philosophy. Cold Turkey leans on hard blocks you can't switch off. Undistracted Me blocks for a set timer or permanently with a calm countdown, and pairs it with a Pomodoro, ambient sounds and quiet widgets.",
+    ],
+    comparison: {
+      // [VERIFY] Free tier blocks sites for a set time; Pro adds schedules and lock-down per getcoldturkey.com
+      price: "Free tier; Pro for schedules and lock-down",
+      // [VERIFY] No account required
+      account: "No account required",
+      // [VERIFY] Cold Turkey is proprietary, not open source
+      openSource: "No: proprietary",
+      // [VERIFY] No Pomodoro or focus timer
+      pomodoro: "No",
+      // [VERIFY] No ambient-sound feature
+      ambient: "No",
+      // [VERIFY] Blocks apps, websites or the whole internet
+      blocking: "Yes: apps, sites or the whole internet",
+      // [VERIFY] No read-it-later / web clipper
+      clipper: "No",
+      // [VERIFY] No Google Tasks integration
+      tasks: "No Google Tasks",
+      // [VERIFY] No new-tab dashboard
+      widgets: "No new-tab dashboard",
+    },
+    differences: [
+      "On blocking, Cold Turkey is built for hard, unbreakable blocks: schedules, lock-downs and the ability to freeze you out. Undistracted Me blocks for a set timer or permanently, with a countdown interstitial that lets you pause with intent.",
+      "On price and privacy, Undistracted Me is free and open source with no account, and your blocklist never leaves your device. Cold Turkey is a proprietary desktop app with a paid Pro tier.",
+      "On scope, Cold Turkey is a dedicated desktop blocker. Undistracted Me is a blocker plus a whole new-tab page: a Pomodoro timer, ambient sounds, Google Tasks and a rearrangeable widget grid.",
+    ],
+    whenToChoose:
+      "Choose Cold Turkey instead if you want the hardest possible block and don't mind a desktop-only app or paying for Pro. Choose Undistracted Me if you want blocking built into a free, open-source focus new tab, with a Pomodoro and ambient sounds alongside it.",
+  },
 ];
 
 export function getAlternative(slug) {

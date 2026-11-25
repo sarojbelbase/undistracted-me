@@ -8,7 +8,7 @@ import { ours, getAlternative, alternatives } from "../data/alternatives.js";
  * /<slug>-alternative.md (e.g. /momentum-alternative.md).
  *
  * The homepage (/index.md) and changelog (/changelogs.md) have their own
- * static handlers; this dynamic route covers the five comparison pages so the
+ * static handlers; this dynamic route covers every comparison page so the
  * auto-emitted <link rel="alternate" type="text/markdown"> resolves to a real
  * file instead of being stripped at build time.
  */
