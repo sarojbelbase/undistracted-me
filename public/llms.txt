@@ -1,16 +1,24 @@
 # Undistracted Me
 
-> Undistracted Me is a free, open-source focus new tab for Chrome and Firefox: a site blocker, Pomodoro timer, ambient sounds, Google Tasks and quiet widgets. No account, works offline.
+> Undistracted Me is a free, open-source focus new tab for Chrome and Firefox: a Nepali (Bikram Sambat) calendar, site blocker, Pomodoro timer, ambient sounds, Google Tasks and quiet widgets. No account, works offline.
 
 ## Pages
 
 - [Web app](https://app.undistracted.me/): The dashboard web app: open it in any browser.
-- [Landing site](https://undistracted.me/): Product overview, FAQ and download links.
+- [Landing site](https://undistracted.me/): Product overview, FAQ, comparisons and download links.
 
 ## Install
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/undistracted-me/dfgbijakkhepoonhaelocdmcleeehmef)
 - [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/undistracted-me/)
+
+## For agents
+
+- [Schema graph](https://app.undistracted.me/schema/page.json): JSON-LD knowledge graph.
+- [Schema map](https://app.undistracted.me/schemamap.xml): schema endpoint discovery.
+- [Markdown](https://app.undistracted.me/index.md): machine-readable page.
+- [API catalog](https://app.undistracted.me/.well-known/api-catalog): RFC 9727 API catalog.
+- [Resource description](https://app.undistracted.me/.well-known/ard.json): Agentic Resource Description.
 
 ## Source
 

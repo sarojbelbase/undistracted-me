@@ -43,6 +43,9 @@ jobs:
       - name: Inject SEO JSON-LD
         run: bun scripts/inject-seo.mjs
 
+      - name: Generate agent-readiness files
+        run: bun scripts/build-agent-files.mjs
+
       - name: Copy headers and redirects
         run: cp _headers _redirects dist/
 

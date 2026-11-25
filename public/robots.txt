@@ -1,4 +1,27 @@
 User-agent: *
 Allow: /
 
+# AI crawlers are welcome. They are already covered by the `*` rule above; the
+# named groups below make the intent explicit for AI-visibility checkers.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
 Sitemap: https://app.undistracted.me/sitemap.xml

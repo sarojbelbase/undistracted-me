@@ -5,8 +5,36 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), camera=(), microphone=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Link: </sitemap.xml>; rel="sitemap", </llms.txt>; rel="alternate"; type="text/plain", </llms-full.txt>; rel="alternate"; type="text/plain", </index.md>; rel="alternate"; type="text/markdown", </.well-known/api-catalog>; rel="api-catalog", </schemamap.xml>; rel="schemamap", </.well-known/ard.json>; rel="ard"
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' https://media.undistracted.me; connect-src 'self' https://api.undistracted.me https://*.googleapis.com https://accounts.spotify.com https://api.spotify.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://nominatim.openstreetmap.org https://ipapi.co https://free.freeipapi.com https://icanhazdadjoke.com https://cdn.jsdelivr.net https://www.merolagani.com https://nepalipaisa.com https://suggestqueries.google.com https://ac.duckduckgo.com https://media.undistracted.me https://static.cloudflareinsights.com https://cloudflareinsights.com; frame-ancestors 'none'
 
 /llms.txt
   Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/llms-full.txt
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=3600
+  X-Robots-Tag: noindex, follow
+
+/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=3600
+  X-Robots-Tag: noindex, follow
+  Link: <https://app.undistracted.me/>; rel="canonical"
+
+/schema/page.json
+  Content-Type: application/ld+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/schemamap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/.well-known/api-catalog
+  Content-Type: application/linkset+json
+  Cache-Control: public, max-age=3600
+
+/.well-known/ard.json
+  Content-Type: application/json; charset=utf-8
   Cache-Control: public, max-age=3600
