@@ -16,22 +16,23 @@ export const GET: APIRoute = ({ params }) => {
     "",
     post.description,
     "",
-    ...post.content.map((block) => {
-      if (block.h) return `## ${block.h}\n`;
-      if (block.p) return `${block.p}\n`;
-      if (block.ul) return `${block.ul.map((li) => `- ${li}`).join("\n")}\n`;
+    ...post.content.flatMap((block) => {
+      const out = [];
+      if (block.h) out.push(`## ${block.h}`);
+      if (block.p) out.push(block.p);
+      if (block.ul) out.push(...block.ul.map((li) => `- ${li}`));
       if (block.cta) {
-        return [
+        out.push(
           "## Try Undistracted Me",
           "",
           "Free and open source, no account and no ads. See today's Nepali date on your new tab alongside a site blocker, a Pomodoro timer, ambient sounds and quiet widgets.",
           "",
           `- [Add to Chrome](${site.chromeUrl})`,
           `- [Get it for Firefox](${site.firefoxUrl})`,
-          "",
-        ].join("\n");
+        );
       }
-      return "";
+      out.push("");
+      return out;
     }),
   ].join("\n");
 

@@ -80,12 +80,12 @@ const graph = {
 
     <article class="post-body">
       <div class="post-wrap">
-        {post.content.map((block) => {
-          if (block.h) return <h2>{block.h}</h2>;
-          if (block.p) return <p>{block.p}</p>;
-          if (block.ul) return <ul>{block.ul.map((li) => <li>{li}</li>)}</ul>;
-          if (block.cta) {
-            return (
+        {post.content.map((block) => (
+          <>
+            {block.h && <h2>{block.h}</h2>}
+            {block.p && <p>{block.p}</p>}
+            {block.ul && <ul>{block.ul.map((li) => <li>{li}</li>)}</ul>}
+            {block.cta && (
               <aside class="post-cta">
                 <h2>Try Undistracted Me</h2>
                 <p>
@@ -98,10 +98,9 @@ const graph = {
                   <a class="btn ghost" href={site.firefoxUrl} rel="noopener" target="_blank">Get it for Firefox</a>
                 </div>
               </aside>
-            );
-          }
-          return null;
-        })}
+            )}
+          </>
+        ))}
       </div>
     </article>
 
