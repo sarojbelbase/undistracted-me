@@ -24,6 +24,8 @@ export const site = {
   momoUrl: "https://buymemomo.com/sarojbelbase",
   social: {
     reddit: "https://www.reddit.com/r/Nepal/comments/ggyzev/undistracted_me_a_nepali_extension_for_your/",
+    indieHackers: "https://www.indiehackers.com/product/undistracted-me",
+    showHn: "https://news.ycombinator.com/item?id=50628651",
     linkedin: [
       "https://www.linkedin.com/posts/sarojbelbase_undistractedme-madeinnepal-chromeextension-ugcPost-7294304729004703744-k1tI",
       "https://www.linkedin.com/posts/sarojbelbase_chromestore-share-6667725433678778368-c04V",

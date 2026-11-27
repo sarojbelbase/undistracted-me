@@ -37,7 +37,14 @@ export function buildSchemaGraph() {
           "@type": "ImageObject",
           url: `${site.url}/favicon.png`,
         },
-        sameAs: [site.githubUrl, site.chromeUrl, site.firefoxUrl, site.social.reddit],
+        sameAs: [
+          site.githubUrl,
+          site.chromeUrl,
+          site.firefoxUrl,
+          site.social.reddit,
+          site.social.indieHackers,
+          site.social.showHn,
+        ],
         founder: { "@id": `${site.url}/#author` },
         contactPoint: {
           "@type": "ContactPoint",
